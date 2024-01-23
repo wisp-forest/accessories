@@ -1,0 +1,32 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+#issueTrackerURL = ""
+license = "MIT"
+
+[[mods]]
+modId = "accessories"
+version = "${version}"
+displayName = "Accessories"
+authors = "Blodhgarm"
+description = '''
+This is an example description! Tell everyone what your mod is about!
+'''
+#logoFile = ""
+[[mixins]]
+config = 'accessories-common.mixins.json'
+[[mixins]]
+config = 'accessories-fabric.mixins.json'
+
+[[dependencies.accessories]]
+modId = "neoforge"
+mandatory = true
+versionRange = "[20,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.accessories]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.20.4,)"
+ordering = "NONE"
+side = "BOTH"

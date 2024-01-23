@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "accessories",
+  "version": "${version}",
+  "name": "Accessories",
+  "description": "This is an example description! Tell everyone what your mod is about!",
+  "authors": [
+    "Blodhgarm"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+  "license": "Insert License Here",
+  "icon": "assets/accessories/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "io.wispforest.accessories.fabric.AccessoriesModFabric"
+    ]
+  },
+  "mixins": [
+    "accessories-fabric.mixins.json",
+    "accessories-common.mixins.json"
+  ],
+  "depends": {
+    "fabric": "*",
+    "minecraft": ">=1.20.1",
+    "architectury": ">=9.1.12"
+  }
+}
