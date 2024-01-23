@@ -185,6 +185,8 @@ public class AccessoriesEvents {
                     var networkHandler = AccessoriesAccess.getHandler();
 
                     networkHandler.sendToTrackingAndSelf(entity, (Supplier<SyncContainers>) () -> new SyncContainers(bufData));
+
+                    bufData.release();
                 }
             }
         }

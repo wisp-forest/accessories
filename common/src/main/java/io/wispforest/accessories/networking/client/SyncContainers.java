@@ -49,7 +49,9 @@ public class SyncContainers extends AccessoriesPacket {
         }
 
         this.updatedContainers = updatedContainerTags;
+
         this.dirtyStacks = dirtyStacks;
+        this.dirtyCosmeticStacks = dirtyCosmeticStacks;
     }
 
     @Override

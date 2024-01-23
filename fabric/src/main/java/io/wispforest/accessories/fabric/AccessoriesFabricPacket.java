@@ -14,6 +14,12 @@ public record AccessoriesFabricPacket<P extends AccessoriesPacket>(P innerPacket
 
     @Override
     public PacketType<?> getType() {
-        return AccessoriesNetworkHandlerImpl.INSTANCE.get(this.innerPacket.getClass());
+        var clazz = this.innerPacket.getClass();
+
+        var packetType = AccessoriesNetworkHandlerImpl.INSTANCE.get(clazz);
+
+        if(packetType == null) throw new IllegalStateException("Unable to get the FabricPacket Type for the following class! [Name: " + clazz + "]");
+
+        return packetType;
     }
 }
