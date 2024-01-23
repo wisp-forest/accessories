@@ -46,11 +46,6 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
         return slotContainers;
     }
 
-    @Override
-    public Set<AccessoriesContainer> updatedContainers() {
-        return null;
-    }
-
     public static final String MAIN_KEY = "Accessories";
 
     @Override

@@ -1,8 +1,8 @@
 package io.wispforest.accessories.fabric;
 
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
-import io.wispforest.accessories.impl.AccessoriesTickEventData;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -16,8 +16,8 @@ public class AccessoriesAccessImpl {
         throw new AssertionError();
     }
 
-    public static AccessoriesHolderImpl getHolder(LivingEntity livingEntity){
-        throw new AssertionError();
+    public static AccessoriesHolder getHolder(LivingEntity livingEntity){
+        return livingEntity.getAttachedOrCreate(AccessoriesModFabric.HOLDER_ATTACHMENT_TYPE);
     }
 
     public static AccessoriesNetworkHandler getHandler(){

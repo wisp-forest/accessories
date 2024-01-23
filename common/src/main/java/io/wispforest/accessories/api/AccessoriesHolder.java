@@ -9,8 +9,6 @@ public interface AccessoriesHolder extends InstanceCodecable {
 
     Map<String, AccessoriesContainer> getSlotContainers();
 
-    Set<AccessoriesContainer> updatedContainers();
-
     @Override
     void write(CompoundTag tag);
 

@@ -2,7 +2,6 @@ package io.wispforest.accessories.impl;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
@@ -35,9 +34,16 @@ public class AccessoriesEvents {
             for (int i = 0; i < accessories.getContainerSize(); i++) {
                 var slotReference = new SlotReference(container.slotType(), capability.getEntity(), i);
 
-                var slotId = AccessoriesAPI.slottedIdentifier(container.slotType(), i);
+                var slotId = AccessoriesAPI.slottedId(container.slotType(), i);
 
                 var currentStack = accessories.getItem(i);
+
+                if(!currentStack.isEmpty()){
+                    currentStack.inventoryTick(entity.level(), entity, -1, false);
+
+                    api.getAccessory(currentStack).ifPresent(accessory -> accessory.tick(currentStack, slotReference));
+                }
+
                 var lastStack = accessories.getPreviousItem(i);
 
                 if(!ItemStack.matches(currentStack, lastStack)){

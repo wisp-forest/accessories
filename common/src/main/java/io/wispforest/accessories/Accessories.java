@@ -2,7 +2,7 @@ package io.wispforest.accessories;
 
 import net.minecraft.resources.ResourceLocation;
 
-public class AccessoriesMod {
+public class Accessories {
     public static final String MODID = "accessories";
 
     public static void init() {

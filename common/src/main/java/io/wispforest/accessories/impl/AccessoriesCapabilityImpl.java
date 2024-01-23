@@ -22,7 +22,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability {
 
     public AccessoriesCapabilityImpl(LivingEntity entity){
         this.entity = entity;
-        this.holder = AccessoriesAccess.getHolder(entity);
+        this.holder = (AccessoriesHolderImpl) AccessoriesAccess.getHolder(entity);
     }
 
     @Override

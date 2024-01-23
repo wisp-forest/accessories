@@ -49,9 +49,13 @@ public interface Accessory {
         return false;
     }
 
-    List<Component> getSlotTooltip(ItemStack stack, List<Component> tooltips);
+    default List<Component> getSlotTooltip(ItemStack stack, List<Component> tooltips){
+        return tooltips;
+    }
 
-    List<Component> getAttributesTooltip(ItemStack stack, List<Component> tooltips);
+    default List<Component> getAttributesTooltip(ItemStack stack, List<Component> tooltips){
+        return tooltips;
+    }
 
     //--
 

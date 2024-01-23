@@ -1,6 +1,6 @@
 package io.wispforest.accessories.fabric;
 
-import io.wispforest.accessories.AccessoriesMod;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
 import io.wispforest.accessories.networking.AccessoriesPacket;
 import net.fabricmc.api.EnvType;
@@ -25,7 +25,7 @@ public class AccessoriesNetworkHandlerImpl extends AccessoriesNetworkHandler {
 
     @Override
     protected <M extends AccessoriesPacket> void registerC2S(Class<M> messageType, Supplier<M> supplier) {
-        var location = AccessoriesMod.of(messageType.getName().toLowerCase());
+        var location = Accessories.of(messageType.getName().toLowerCase());
         PacketType<AccessoriesFabricPacket<?>> type = PacketType.create(location, buf -> {
             var emptyPacket = supplier.get();
 
@@ -42,7 +42,7 @@ public class AccessoriesNetworkHandlerImpl extends AccessoriesNetworkHandler {
     @Override
     @Environment(EnvType.CLIENT)
     protected <M extends AccessoriesPacket> void registerS2C(Class<M> messageType, Supplier<M> supplier) {
-        var location = AccessoriesMod.of(messageType.getName().toLowerCase());
+        var location = Accessories.of(messageType.getName().toLowerCase());
         PacketType<AccessoriesFabricPacket<?>> type = PacketType.create(location, buf -> {
             var emptyPacket = supplier.get();
 
@@ -69,6 +69,6 @@ public class AccessoriesNetworkHandlerImpl extends AccessoriesNetworkHandler {
 
     @Nullable
     public <M extends AccessoriesPacket> PacketType<AccessoriesFabricPacket<?>> get(Class<M> mClass){
-        return packetTypes.get(new ResourceLocation(AccessoriesMod.MODID, mClass.getName().toLowerCase()));
+        return packetTypes.get(new ResourceLocation(Accessories.MODID, mClass.getName().toLowerCase()));
     }
 }
