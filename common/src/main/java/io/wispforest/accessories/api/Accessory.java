@@ -3,6 +3,8 @@ package io.wispforest.accessories.api;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
@@ -28,6 +30,7 @@ public interface Accessory {
         return true;
     }
 
+    // TODO: Find places for which such should and should not be called
     default void onBreak(ItemStack stack, SlotReference reference){}
 
     default Multimap<Attribute, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid){
@@ -40,16 +43,22 @@ public interface Accessory {
 
     //--
 
-    default void onEquipFromUse(ItemStack stack, SlotReference reference){}
+    default void onEquipFromUse(ItemStack stack, SlotReference reference){
+        var sound = getEquipSound(stack, reference);
 
-    default void getEquipSound(ItemStack stack, SlotReference reference){}
+        reference.entity().playSound(sound.event(), sound.volume(), sound.pitch());
+    }
+
+    default SoundEventData getEquipSound(ItemStack stack, SlotReference reference){
+        return new SoundEventData(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
+    }
 
     default boolean canEquipFromUse(ItemStack stack, SlotReference reference){
         // TODO: Should this be defaulting to false?
         return false;
     }
 
-    default List<Component> getSlotTooltip(ItemStack stack, List<Component> tooltips){
+    default List<Component> getExtraTooltip(ItemStack stack, List<Component> tooltips){
         return tooltips;
     }
 

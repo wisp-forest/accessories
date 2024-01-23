@@ -2,11 +2,15 @@ package io.wispforest.accessories.api;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -15,16 +19,15 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public abstract class AccessoriesAPI {
 
     public static final Accessory DEFAULT = new Accessory() {};
 
     private static final Map<String, UUID> CACHED_UUIDS = new HashMap<>();
+
+    //--
 
     public abstract Optional<AccessoriesCapability> getCapability(LivingEntity livingEntity);
 
@@ -121,4 +124,77 @@ public abstract class AccessoriesAPI {
 
     public abstract Map<String, SlotType> getAllSlots(Level level);
 
+    public Optional<SlotType> getSlotType(Level level, String name){
+        return Optional.ofNullable(getAllSlots(level).get(name));
+    }
+
+    //--
+
+    public boolean canInsertIntoSlot(LivingEntity entity, SlotReference reference, ItemStack stack){
+        return getPredicateResults(reference.type().getValidators(), entity, reference, stack)
+                && getAccessory(stack).map(accessory -> accessory.canEquip(stack, reference)).orElse(false);
+    }
+
+    public Collection<SlotType> getValidSlotTypes(LivingEntity entity, ItemStack stack){
+        var slots = getEntitySlots(entity);
+
+        var validSlots = new ArrayList<SlotType>();
+
+        var capability = getCapability(entity);
+
+        if(capability.isPresent()) {
+            var containers = capability.get().getContainers();
+
+            for (SlotType value : slots.values()) {
+                if (!containers.containsKey(value.name())) continue;
+
+                for (var accessory : containers.get(value.name()).getAccessories()) {
+                    var reference = new SlotReference(value, entity, accessory.getFirst());
+
+                    if (canInsertIntoSlot(entity, reference, stack)) validSlots.add(value);
+                }
+            }
+        }
+
+        return validSlots;
+    }
+
+    //--
+
+    public abstract Optional<SlotBasedPredicate> getPredicate(ResourceLocation location);
+
+    public abstract void registerPredicate(ResourceLocation location, SlotBasedPredicate predicate);
+
+    public boolean getPredicateResults(Set<ResourceLocation> predicateIds, LivingEntity entity, SlotReference reference, ItemStack stack){
+        InteractionResult result = InteractionResult.PASS;
+
+        for (var predicateId : predicateIds) {
+            var predicate = getPredicate(predicateId);
+
+            if(predicate.isEmpty()) continue;
+
+            result = predicate.get().isValid(entity, reference, stack);
+
+            if(result != InteractionResult.PASS) break;
+        }
+
+        return result.consumesAction();
+    }
+
+    public static final TagKey<Item> ALL_ACCESSORIES = TagKey.create(Registries.ITEM, Accessories.of("all"));
+
+    private void initDefaultPredicates(){
+        registerPredicate(Accessories.of("all"), (entity, reference, stack) -> InteractionResult.SUCCESS);
+        registerPredicate(Accessories.of("none"), (entity, reference, stack) -> InteractionResult.FAIL);
+        registerPredicate(Accessories.of("tag"), (entity, reference, stack) -> {
+            var tag = TagKey.create(Registries.ITEM, Accessories.of(reference.type().name()));
+
+            return (stack.is(tag) || stack.is(ALL_ACCESSORIES)) ? InteractionResult.SUCCESS : InteractionResult.PASS;
+        });
+        registerPredicate(Accessories.of("relevant"), (entity, reference, stack) -> {
+            var bl = !getAttributeModifiers(stack, reference, getOrCreateSlotUUID(reference.type(), reference.slot())).isEmpty();
+
+            return bl ? InteractionResult.SUCCESS : InteractionResult.PASS;
+        });
+    }
 }

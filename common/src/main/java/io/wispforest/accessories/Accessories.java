@@ -11,4 +11,8 @@ public class Accessories {
     public static ResourceLocation of(String path){
         return new ResourceLocation(MODID, path);
     }
+
+    public static String translation(String path){
+        return MODID + "." + path;
+    }
 }

@@ -1,3 +1,7 @@
 {
-  "item.examplemod.example_item": "Example Item"
+  "accessories.slot.tooltip.singular": "Slot: {}",
+  "accessories.slot.tooltip.plural": "Slots: {}",
+  "accessories.slot.any": "Any",
+  "accessories.tooltip.attributes.any": "When Equipped:",
+  "accessories.tooltip.attributes.slot": "When Equipped in {}:"
 }
