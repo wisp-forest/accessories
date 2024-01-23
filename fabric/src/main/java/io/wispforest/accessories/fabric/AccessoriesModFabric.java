@@ -7,6 +7,7 @@ import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 
 public class AccessoriesModFabric implements ModInitializer {
 
@@ -23,5 +24,9 @@ public class AccessoriesModFabric implements ModInitializer {
     @Override
     public void onInitialize() {
         Accessories.init();
+
+        ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
+            // TODO: DROP ACCESSORIES!!!!
+        });
     }
 }
