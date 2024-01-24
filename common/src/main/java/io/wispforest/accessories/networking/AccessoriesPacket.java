@@ -23,13 +23,11 @@ public abstract class AccessoriesPacket {
         read(buf);
     }
 
-    public final void attemptToHandle(Player player){
+    public void handle(Player player){
         if(emptyPacket) {
             throw new IllegalStateException("Unable to handle Packet due to the required read call not happening before handle! [Class: " + this.getClass().getName() + "]");
         }
 
-        this.attemptToHandle(player);
+        this.handle(player);
     }
-
-    protected abstract void handle(Player player);
 }

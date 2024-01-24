@@ -7,11 +7,13 @@ import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
 import io.wispforest.accessories.networking.client.SyncContainers;
+import io.wispforest.accessories.networking.client.SyncData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -23,6 +25,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -89,6 +92,30 @@ public class AccessoriesEvents {
 
         container.setItem(reference.slot(), ItemStack.EMPTY);
         AccessoriesAccess.giveItemToPlayer(player, stack);
+    }
+
+    public static void dataSync(@Nullable PlayerList list, @Nullable ServerPlayer player){
+        var networkHandler = AccessoriesAccess.getHandler();
+        var syncPacket = SyncData.create();
+
+        if(list != null){
+            var buf = AccessoriesNetworkHandler.createBuf();
+
+            syncPacket.readPacket(buf);
+
+            for (var player1 : list.getPlayers()) {
+                networkHandler.sendToPlayer(player1, new SyncData(buf));
+            }
+
+            buf.release();
+
+            //--
+            //TODO: HANDLE SCREEN STUFF??
+        } else if(player != null){
+            networkHandler.sendToPlayer(player, syncPacket);
+            //--
+            //TODO: HANDLE SCREEN STUFF??
+        }
     }
 
     public static void onLivingEntityTick(LivingEntity entity){

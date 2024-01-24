@@ -33,9 +33,10 @@ public class AccessoriesFabric implements ModInitializer {
 
         ServerTickEvents.START_WORLD_TICK.register(AccessoriesEvents::onWorldTick);
 
-        //ServerPlayConnectionEvents.JOIN
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {
-            // TODO: SYNC DATA TO JOINING CLIENT and handled reload!?
+            if(!joined) return;
+
+            AccessoriesEvents.dataSync(null, player);
         });
     }
 }

@@ -36,7 +36,7 @@ public class AccessoriesNetworkHandlerImpl extends AccessoriesNetworkHandler {
 
         packetTypes.put(location, type);
 
-        ServerPlayNetworking.registerGlobalReceiver(type, (packet, player, responseSender) -> packet.innerPacket().attemptToHandle(player));
+        ServerPlayNetworking.registerGlobalReceiver(type, (packet, player, responseSender) -> packet.innerPacket().handle(player));
     }
 
     @Override
@@ -53,7 +53,7 @@ public class AccessoriesNetworkHandlerImpl extends AccessoriesNetworkHandler {
 
         packetTypes.put(location, type);
 
-        ClientPlayNetworking.registerGlobalReceiver(type, (packet, player, responseSender) -> packet.innerPacket().attemptToHandle(Minecraft.getInstance().player));
+        ClientPlayNetworking.registerGlobalReceiver(type, (packet, player, responseSender) -> packet.innerPacket().handle(Minecraft.getInstance().player));
     }
 
     @Override

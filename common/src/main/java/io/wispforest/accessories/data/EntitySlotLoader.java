@@ -37,6 +37,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
         return getEntitySlotData(isClientSide).get(entityType);
     }
 
+    @ApiStatus.Internal
     public final Map<EntityType<?>, Map<String, SlotType>> getEntitySlotData(boolean isClientSide){
         return isClientSide ? client : server;
     }

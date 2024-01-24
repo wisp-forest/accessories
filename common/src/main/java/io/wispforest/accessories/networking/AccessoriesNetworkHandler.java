@@ -3,6 +3,7 @@ package io.wispforest.accessories.networking;
 import io.netty.buffer.Unpooled;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.networking.client.SyncContainers;
+import io.wispforest.accessories.networking.client.SyncData;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.network.FriendlyByteBuf;
@@ -24,15 +25,15 @@ public abstract class AccessoriesNetworkHandler {
 
     }
 
-    @Environment(EnvType.CLIENT)
     public void registerClient(){
         registerS2C(SyncContainers.class, SyncContainers::new);
+        registerS2C(SyncData.class, SyncData::new);
     }
 
     protected abstract <M extends AccessoriesPacket> void registerC2S(Class<M> messageType, Supplier<M> supplier);
 
     @Environment(EnvType.CLIENT)
-    protected abstract  <M extends AccessoriesPacket> void registerS2C(Class<M> messageType, Supplier<M> supplier);
+    protected abstract <M extends AccessoriesPacket> void registerS2C(Class<M> messageType, Supplier<M> supplier);
 
     @Environment(EnvType.CLIENT)
     public abstract <M extends AccessoriesPacket> void sendToServer(M packet);

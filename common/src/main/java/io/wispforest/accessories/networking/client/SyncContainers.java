@@ -3,7 +3,9 @@ package io.wispforest.accessories.networking.client;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
-import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.accessories.networking.CacheableAccessoriesPacket;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.LivingEntity;
@@ -12,16 +14,13 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 /**
  * Catch all packet for handling syncing of containers and accessories within the main container
  * and cosmetic variant with the ability for such to be sync separately
  */
-public class SyncContainers extends AccessoriesPacket {
-
-    private Optional<FriendlyByteBuf> cachedBuf = Optional.empty();
+public class SyncContainers extends CacheableAccessoriesPacket {
 
     private int entityId;
     private Map<String, CompoundTag> updatedContainers;
@@ -31,7 +30,7 @@ public class SyncContainers extends AccessoriesPacket {
     public SyncContainers(){ super(); }
 
     public SyncContainers(FriendlyByteBuf buf){
-        this.cachedBuf = Optional.of(new FriendlyByteBuf(buf.copy()));
+        super(buf);
     }
 
     public SyncContainers(int entityId, Set<AccessoriesContainer> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks){
@@ -64,17 +63,7 @@ public class SyncContainers extends AccessoriesPacket {
     }
 
     @Override
-    public void write(FriendlyByteBuf buf) {
-        if(cachedBuf.isPresent()){
-            var cachedBufCopy = cachedBuf.get();
-
-            buf.writeBytes(cachedBufCopy);
-
-            cachedBufCopy.release();
-
-            return;
-        }
-
+    protected void writeUncached(FriendlyByteBuf buf) {
         buf.writeVarInt(entityId);
 
         buf.writeMap(this.updatedContainers, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeNbt);
@@ -83,8 +72,11 @@ public class SyncContainers extends AccessoriesPacket {
         buf.writeMap(this.dirtyCosmeticStacks, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeItem);
     }
 
+    @Environment(EnvType.CLIENT)
     @Override
-    protected void handle(Player player) {
+    public void handle(Player player) {
+        super.handle(player);
+
         var level = player.level();
 
         var entity = level.getEntity(entityId);
