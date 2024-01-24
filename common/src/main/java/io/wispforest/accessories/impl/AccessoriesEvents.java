@@ -22,10 +22,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.*;
 import java.util.function.Supplier;
 
+@ApiStatus.Internal
 public class AccessoriesEvents {
 
     public static boolean dataReloadOccured = false;
@@ -192,7 +194,7 @@ public class AccessoriesEvents {
         }
     }
 
-    public void addTooltipInfo(LivingEntity entity, ItemStack stack, List<Component> tooltip){
+    public static void addTooltipInfo(LivingEntity entity, ItemStack stack, List<Component> tooltip){
         var api = AccessoriesAccess.getAPI();
 
         var accessory = api.getAccessory(stack);
@@ -306,7 +308,7 @@ public class AccessoriesEvents {
         accessory.get().getExtraTooltip(stack, tooltip);
     }
 
-    public void addAttributeTooltip(Multimap<Attribute, AttributeModifier> multimap, List<Component> tooltip){
+    private static void addAttributeTooltip(Multimap<Attribute, AttributeModifier> multimap, List<Component> tooltip){
         if (multimap.isEmpty()) return;
 
         tooltip.add(CommonComponents.EMPTY);
@@ -345,7 +347,7 @@ public class AccessoriesEvents {
         }
     }
 
-    public void onDeath(LivingEntity entity){
+    public static void onDeath(LivingEntity entity){
         var api = AccessoriesAccess.getAPI();
 
         var capability = api.getCapability(entity);

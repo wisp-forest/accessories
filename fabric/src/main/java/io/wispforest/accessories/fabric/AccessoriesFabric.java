@@ -3,16 +3,17 @@ package io.wispforest.accessories.fabric;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.InstanceCodecable;
+import io.wispforest.accessories.impl.AccessoriesEvents;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 
-public class AccessoriesModFabric implements ModInitializer {
+public class AccessoriesFabric implements ModInitializer {
 
     public static final AttachmentType<AccessoriesHolder> HOLDER_ATTACHMENT_TYPE;
 
@@ -29,8 +30,11 @@ public class AccessoriesModFabric implements ModInitializer {
         Accessories.init();
 
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
+            AccessoriesEvents.onDeath(entity);
             // TODO: DROP ACCESSORIES!
         });
+
+        ServerTickEvents.START_WORLD_TICK.register(AccessoriesEvents::onWorldTick);
 
         //ServerPlayConnectionEvents.JOIN
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {

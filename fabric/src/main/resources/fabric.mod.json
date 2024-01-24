@@ -16,7 +16,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "io.wispforest.accessories.fabric.AccessoriesModFabric"
+      "io.wispforest.accessories.fabric.AccessoriesFabric"
     ]
   },
   "mixins": [
