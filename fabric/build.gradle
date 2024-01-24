@@ -27,6 +27,8 @@ dependencies {
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
+
+    modImplementation("net.neoforged:bus:7.2.0")
 }
 
 processResources {

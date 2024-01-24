@@ -6,6 +6,10 @@ loom {
     accessWidenerPath = file("src/main/resources/accessories.accesswidener")
 }
 
+repositories {
+    maven { url "https://maven.fabricmc.net/" }
+}
+
 dependencies {
     // We depend on fabric loader here to use the fabric @Environment annotations and get the mixin dependencies
     // Do NOT use other classes from fabric loader
@@ -14,6 +18,13 @@ dependencies {
     modApi "dev.architectury:architectury:${rootProject.architectury_version}"
 
     compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.3.5"))
+
+
+    include modImplementation(fabricApi.module("fabric-api-base", rootProject.fabric_api_version)){
+        exclude group: "fabric-api"
+    }
+
+    include modImplementation("net.neoforged:bus:7.2.0")
 }
 
 publishing {
@@ -24,8 +35,5 @@ publishing {
         }
     }
 
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-    repositories {
-        // Add repositories to publish to here.
-    }
+    repositories {}
 }

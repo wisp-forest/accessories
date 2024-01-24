@@ -21,11 +21,7 @@ public abstract class AccessoriesNetworkHandler {
         return new FriendlyByteBuf(Unpooled.buffer());
     }
 
-    public void register() {
-
-    }
-
-    public void registerClient(){
+    public final void register() {
         registerS2C(SyncContainers.class, SyncContainers::new);
         registerS2C(SyncData.class, SyncData::new);
     }

@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.*;
+import io.wispforest.accessories.api.events.AccessoriesEvents;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
 import io.wispforest.accessories.networking.client.SyncContainers;
 import io.wispforest.accessories.networking.client.SyncData;
@@ -15,6 +16,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.Container;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -31,7 +33,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 @ApiStatus.Internal
-public class AccessoriesEvents {
+public class AccessoriesEventHandler {
 
     public static boolean dataReloadOccured = false;
 
@@ -389,12 +391,16 @@ public class AccessoriesEvents {
         }
     }
 
-    public static void onDeath(LivingEntity entity){
+    public static void onDeath(LivingEntity entity, DamageSource damageSource){
         var api = AccessoriesAccess.getAPI();
 
         var capability = api.getCapability(entity);
 
         if(capability.isEmpty()) return;
+
+        var shouldDrop = AccessoriesEvents.ON_DEATH_EVENT.invoker().shouldDrop(entity, capability.get());
+
+        if(!shouldDrop) return;
 
         for (var containerEntry : capability.get().getContainers().entrySet()) {
             var slotType = containerEntry.getValue().slotType();
@@ -409,13 +415,13 @@ public class AccessoriesEvents {
             for (int i = 0; i < container.getSize(); i++) {
                 var reference = new SlotReference(container.getSlotName(), entity, i);
 
-                dropStack(slotDropRule, stacks, reference, entity);
-                dropStack(slotDropRule, cosmeticStacks, reference, entity);
+                dropStack(slotDropRule, entity, stacks, reference);
+                dropStack(slotDropRule, entity, cosmeticStacks, reference);
             }
         }
     }
 
-    private static void dropStack(SlotType.DropRule dropRule, Container container, SlotReference reference, LivingEntity entity){
+    private static void dropStack(SlotType.DropRule dropRule, LivingEntity entity, Container container, SlotReference reference){
         var api = AccessoriesAccess.getAPI();
 
         var stack = container.getItem(reference.slot());
@@ -424,6 +430,8 @@ public class AccessoriesEvents {
         if(accessory.isPresent() && dropRule == SlotType.DropRule.DEFAULT) {
             dropRule = accessory.get().getDropRule(stack, reference);
         }
+
+        dropRule = AccessoriesEvents.ON_DROP_EVENT.invoker().onDrop(dropRule, entity, reference, stack);
 
         boolean dropStack = true;
 

@@ -27,7 +27,5 @@ public abstract class AccessoriesPacket {
         if(emptyPacket) {
             throw new IllegalStateException("Unable to handle Packet due to the required read call not happening before handle! [Class: " + this.getClass().getName() + "]");
         }
-
-        this.handle(player);
     }
 }

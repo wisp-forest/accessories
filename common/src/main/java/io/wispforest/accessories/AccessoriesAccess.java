@@ -9,8 +9,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.bus.api.IEventBus;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public class AccessoriesAccess {
 
@@ -43,6 +45,11 @@ public class AccessoriesAccess {
 
     @ExpectPlatform
     public static boolean isValidOnConditions(JsonObject object){
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    public static Optional<IEventBus> getBus(){
         throw new AssertionError();
     }
 
