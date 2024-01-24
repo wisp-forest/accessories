@@ -18,7 +18,7 @@ import java.util.*;
 public class AccessoriesContainerImpl implements AccessoriesContainer {
 
     private final AccessoriesCapability capability;
-    private final SlotType slotType;
+    private String slotName;
 
     protected final Map<UUID, AttributeModifier> modifiers = new HashMap<>();
     protected final Set<AttributeModifier> persistentModifiers = new HashSet<>();
@@ -37,8 +37,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
 
     public AccessoriesContainerImpl(AccessoriesCapability capability, SlotType slotType){
         this.capability = capability;
-        this.slotType = slotType;
 
+        this.slotName = slotType.name();
         this.baseSize = slotType.amount();
 
         this.accessories = new ExpandedSimpleContainer(this.baseSize, "Accessories");
@@ -100,13 +100,13 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
         for (var invalidAccessory : invalidAccessories) {
             var index = invalidAccessory.getFirst();
 
-            UUID uuid = UUID.nameUUIDFromBytes((slotType.name() + invalidAccessory.getFirst()).getBytes());
+            UUID uuid = UUID.nameUUIDFromBytes((slotName + invalidAccessory.getFirst()).getBytes());
 
             var invalidStack = invalidAccessory.getSecond();
 
             if(invalidStack.isEmpty()) continue;
 
-            var slotReference = new SlotReference(this.slotType, livingEntity, index);
+            var slotReference = new SlotReference(this.slotName, livingEntity, index);
 
             var attributes = AccessoriesAPI.getAttributeModifiers(invalidStack, slotReference, uuid);
 
@@ -140,8 +140,13 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
     }
 
     @Override
-    public SlotType slotType() {
-        return this.slotType;
+    public String getSlotName(){
+        return this.slotName;
+    }
+
+    @Override
+    public Optional<SlotType> slotType() {
+        return AccessoriesAccess.getAPI().getSlotType(this.capability.getEntity().level(), this.slotName);
     }
 
     @Override
@@ -250,6 +255,9 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
 //    }
 
     //--
+
+    public static final String SLOT_NAME_KEY = "SlotName";
+
     public static final String BASE_SIZE_KEY = "BaseSize";
 
     public static final String RENDER_OPTIONS_KEY = "RenderOptions";
@@ -272,6 +280,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
     }
 
     public void write(CompoundTag tag, boolean sync){
+
+        tag.putString(SLOT_NAME_KEY, this.slotName);
 
         tag.putInt(BASE_SIZE_KEY, this.baseSize);
 
@@ -317,6 +327,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
     }
 
     public void read(CompoundTag tag, boolean sync){
+        this.slotName = tag.getString(SLOT_NAME_KEY);
+
         this.baseSize = tag.getInt(BASE_SIZE_KEY);
 
         this.renderOptions = new ArrayList<>(baseSize);

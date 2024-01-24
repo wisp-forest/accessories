@@ -72,8 +72,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
             if(!slots.containsKey(key)){
                 var container = this.getSlotContainers().get(key);
 
-                var prevAccessories = AccessoriesContainerImpl.copyContainerList((SimpleContainer) container.getAccessories());
-                var prevCosmetics = AccessoriesContainerImpl.copyContainerList((SimpleContainer) container.getCosmeticAccessories());
+                var prevAccessories = AccessoriesContainerImpl.copyContainerList(container.getAccessories());
+                var prevCosmetics = AccessoriesContainerImpl.copyContainerList(container.getCosmeticAccessories());
 
                 container.read(containerTag);
 

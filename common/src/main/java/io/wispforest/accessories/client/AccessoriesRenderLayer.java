@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.SlotReference;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
+import io.wispforest.accessories.mixin.RenderLayerAccessor;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
@@ -24,8 +25,12 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
         if(capability.isEmpty()) return;
 
         for (var entry : capability.get().getContainers().entrySet()) {
-            var accessories = entry.getValue().getAccessories();
-            var cosmetics = entry.getValue().getCosmeticAccessories();
+            var container = entry.getValue();
+
+            var accessories = container.getAccessories();
+            var cosmetics = container.getCosmeticAccessories();
+
+            var renderOptions = container.renderOptions();
 
             for (int i = 0; i < accessories.getContainerSize(); i++) {
                 var stack = accessories.getItem(i);
@@ -39,13 +44,13 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                 poseStack.pushPose();
 
-                var rendering = entry.getValue().renderOptions().get(i);
+                var rendering = renderOptions.get(i);
 
                 renderer.get()
                         .render(
                                 rendering,
                                 stack,
-                                new SlotReference(entry.getValue().slotType(), entity, i),
+                                new SlotReference(container.getSlotName(), entity, i),
                                 poseStack,
                                 getRenderLayerParent(),
                                 multiBufferSource,
@@ -63,6 +68,6 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
     }
 
     protected RenderLayerParent<T, M> getRenderLayerParent(){
-        return this.renderer;
+        return ((RenderLayerAccessor)this).accessories$getRenderer();
     }
 }

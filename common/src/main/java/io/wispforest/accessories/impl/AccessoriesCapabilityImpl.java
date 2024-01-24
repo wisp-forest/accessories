@@ -115,11 +115,11 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability {
 
                 if(stack.isEmpty()) continue;
 
-                var slotReference = new SlotReference(container.slotType(), this.entity, i);
+                var slotReference = new SlotReference(container.getSlotName(), this.entity, i);
 
                 var api = AccessoriesAccess.getAPI();
 
-                var map = AccessoriesAPI.getAttributeModifiers(stack, slotReference, api.getOrCreateSlotUUID(container.slotType(), i));
+                var map = AccessoriesAPI.getAttributeModifiers(stack, slotReference, api.getOrCreateSlotUUID(container.getSlotName(), i));
 
                 for (Attribute attribute : map.keySet()) {
                     if(attribute instanceof SlotAttribute slotAttribute) slotModifiers.putAll(slotAttribute.slotName(), map.get(slotAttribute));
@@ -169,7 +169,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability {
                 if(!predicate.test(stackEntry.getSecond())) continue;
 
                 references.add(new SlotEntryReference(
-                        new SlotReference(container.slotType(), container.capability().getEntity(), stackEntry.getFirst()),
+                        new SlotReference(container.getSlotName(), container.capability().getEntity(), stackEntry.getFirst()),
                         stackEntry.getSecond()
                 ));
             }
@@ -187,7 +187,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability {
 
             for (var stackEntry : containerEntry.getValue().getAccessories()) {
                 references.add(new SlotEntryReference(
-                        new SlotReference(container.slotType(), container.capability().getEntity(), stackEntry.getFirst()),
+                        new SlotReference(container.getSlotName(), container.capability().getEntity(), stackEntry.getFirst()),
                         stackEntry.getSecond()
                 ));
             }
@@ -209,7 +209,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability {
                 consumer.accept(
                         new SlotEntryReference(
                                 new SlotReference(
-                                        container.slotType(),
+                                        container.getSlotName(),
                                         entity,
                                         i
                                 ),

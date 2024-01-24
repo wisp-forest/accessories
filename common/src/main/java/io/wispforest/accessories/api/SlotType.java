@@ -7,6 +7,8 @@ import java.util.Set;
 
 public interface SlotType {
 
+    ResourceLocation EMPTY_SLOT_LOCATION = Accessories.of("gui/slot/empty_slot");
+
     /**
      * Name of Slot
      */
@@ -31,7 +33,7 @@ public interface SlotType {
      */
     int amount();
 
-    Set<ResourceLocation> getValidators();
+    Set<ResourceLocation> validators();
 
     DropRule dropRule();
 

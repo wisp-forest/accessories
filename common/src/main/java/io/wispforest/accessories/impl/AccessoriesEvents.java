@@ -54,13 +54,22 @@ public class AccessoriesEvents {
                     var cosmeticStacks = container.getCosmeticAccessories();
 
                     for (int i = 0; i < container.getSize(); i++) {
-                        var reference = new SlotReference(slotType.get(), player, i);
+                        var reference = new SlotReference(container.getSlotName(), player, i);
 
                         handleInvalidStacks(stacks, reference, player);
                         handleInvalidStacks(cosmeticStacks, reference, player);
                     }
                 } else {
                     // TODO: DROP CONTAINER!
+                    var stacks = container.getAccessories();
+                    var cosmeticStacks = container.getCosmeticAccessories();
+
+                    for (int i = 0; i < container.getSize(); i++) {
+                        var reference = new SlotReference(container.getSlotName(), player, i);
+
+                        dropAndRemoveStack(stacks, reference, player);
+                        dropAndRemoveStack(cosmeticStacks, reference, player);
+                    }
                 }
             }
         }
@@ -69,13 +78,17 @@ public class AccessoriesEvents {
     }
 
     private static void handleInvalidStacks(Container container, SlotReference reference, ServerPlayer player){
-        var api = AccessoriesAccess.getAPI();
+        var bl = AccessoriesAccess.getAPI()
+                .canInsertIntoSlot(player, reference, container.getItem(reference.slot()));
+
+        if(!bl) dropAndRemoveStack(container, reference, player);
+    }
+
+    private static void dropAndRemoveStack(Container container, SlotReference reference, ServerPlayer player){
         var stack = container.getItem(reference.slot());
 
-        if (!api.canInsertIntoSlot(player, reference, stack)) {
-            container.setItem(reference.slot(), ItemStack.EMPTY);
-            AccessoriesAccess.giveItemToPlayer(player, stack);
-        }
+        container.setItem(reference.slot(), ItemStack.EMPTY);
+        AccessoriesAccess.giveItemToPlayer(player, stack);
     }
 
     public static void onLivingEntityTick(LivingEntity entity){
@@ -91,12 +104,14 @@ public class AccessoriesEvents {
 
         for (var containerEntry : capability.getContainers().entrySet()) {
             var container = containerEntry.getValue();
+            var slotType = container.slotType().get();
+
             var accessories = (ExpandedSimpleContainer) container.getAccessories();
 
             for (int i = 0; i < accessories.getContainerSize(); i++) {
-                var slotReference = new SlotReference(container.slotType(), capability.getEntity(), i);
+                var slotReference = new SlotReference(container.getSlotName(), capability.getEntity(), i);
 
-                var slotId = AccessoriesAPI.slottedId(container.slotType(), i);
+                var slotId = AccessoriesAPI.slottedId(slotType, i);
 
                 var currentStack = accessories.getItem(i);
 
@@ -112,7 +127,7 @@ public class AccessoriesEvents {
                     if(!entity.level().isClientSide()) {
                         accessories.setPreviousItem(i, currentStack.copy());
                         dirtyStacks.put(slotId, currentStack.copy());
-                        var uuid = api.getOrCreateSlotUUID(container.slotType(), i);
+                        var uuid = api.getOrCreateSlotUUID(slotType, i);
 
                         if (!lastStack.isEmpty()) {
                             Accessory accessory = api.getOrDefaultAccessory(lastStack);
@@ -235,7 +250,7 @@ public class AccessoriesEvents {
         boolean allDuplicates = true;
 
         for (SlotType slotType : slotTypes) {
-            var reference = new SlotReference(slotType, entity, 0);
+            var reference = new SlotReference(slotType.name(), entity, 0);
             var uuid = api.getOrCreateSlotUUID(slotType, 0);
 
             var slotModifiers = accessory.get().getModifiers(stack, reference, uuid);
@@ -357,7 +372,7 @@ public class AccessoriesEvents {
         for (var containerEntry : capability.get().getContainers().entrySet()) {
             var slotType = containerEntry.getValue().slotType();
 
-            var slotDropRule = slotType.dropRule();
+            var slotDropRule = slotType.map(SlotType::dropRule).orElse(SlotType.DropRule.DEFAULT);
 
             var container = containerEntry.getValue();
 
@@ -365,7 +380,7 @@ public class AccessoriesEvents {
             var cosmeticStacks = container.getCosmeticAccessories();
 
             for (int i = 0; i < container.getSize(); i++) {
-                var reference = new SlotReference(slotType, entity, i);
+                var reference = new SlotReference(container.getSlotName(), entity, i);
 
                 dropStack(slotDropRule, stacks, reference, entity);
                 dropStack(slotDropRule, cosmeticStacks, reference, entity);
@@ -388,13 +403,14 @@ public class AccessoriesEvents {
         if(dropRule == SlotType.DropRule.DESTROY){
             container.setItem(reference.slot(), ItemStack.EMPTY);
             dropStack = false;
-            // TODO: Do we call break here?
+            // TODO: Do we call break here for the accessory?
         } else if(dropRule == SlotType.DropRule.DEFAULT){
             if(entity.level().getGameRules().getRule(GameRules.RULE_KEEPINVENTORY).get()) {
                 dropStack = true;
             } else if(EnchantmentHelper.hasVanishingCurse(stack)){
                 container.setItem(reference.slot(), ItemStack.EMPTY);
                 dropStack = false;
+                // TODO: Do we call break here for the accessory?
             }
         } else if(dropRule == SlotType.DropRule.KEEP) {
             dropStack = false;

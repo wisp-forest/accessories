@@ -29,10 +29,7 @@ public class AccessoriesFabric implements ModInitializer {
     public void onInitialize() {
         Accessories.init();
 
-        ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
-            AccessoriesEvents.onDeath(entity);
-            // TODO: DROP ACCESSORIES!
-        });
+        ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> AccessoriesEvents.onDeath(entity));
 
         ServerTickEvents.START_WORLD_TICK.register(AccessoriesEvents::onWorldTick);
 

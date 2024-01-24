@@ -1,5 +1,6 @@
 package io.wispforest.accessories;
 
+import com.google.gson.JsonObject;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesHolder;
@@ -28,6 +29,8 @@ public class AccessoriesAccess {
         throw new AssertionError();
     }
 
+    //--
+
     @ExpectPlatform
     public static Collection<ServerPlayer> getTracking(Entity entity){
         throw new AssertionError();
@@ -37,4 +40,11 @@ public class AccessoriesAccess {
     public static void giveItemToPlayer(ServerPlayer player, ItemStack stack){
         throw new AssertionError();
     }
+
+    @ExpectPlatform
+    public static boolean isValidOnConditions(JsonObject object){
+        throw new AssertionError();
+    }
+
+    //--
 }

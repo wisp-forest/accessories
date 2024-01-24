@@ -2,9 +2,11 @@ package io.wispforest.accessories.api;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.mojang.datafixers.util.Pair;
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.Tag;
@@ -18,10 +20,13 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.slf4j.Logger;
 
 import java.util.*;
 
 public abstract class AccessoriesAPI {
+
+    protected static final Logger LOGGER = LogUtils.getLogger();
 
     public static final Accessory DEFAULT = new Accessory() {};
 
@@ -63,7 +68,7 @@ public abstract class AccessoriesAPI {
             for (int i = 0; i < attributes.size(); i++) {
                 var attributeTag = attributes.getCompound(i);
 
-                if(attributeTag.contains("slot") && attributeTag.getString("slot").equals(reference.type().name())){
+                if(attributeTag.contains("slot") && attributeTag.getString("slot").equals(reference.slotName())){
                     var attributeType = ResourceLocation.tryParse(attributeTag.getString("AttributeName"));
                     var id = uuid;
 
@@ -104,14 +109,22 @@ public abstract class AccessoriesAPI {
     }
 
     public UUID getOrCreateSlotUUID(SlotType slotType, int index) {
+        return getOrCreateSlotUUID(slotType.name(), index);
+    }
+
+    public UUID getOrCreateSlotUUID(String slotName, int index) {
         return CACHED_UUIDS.computeIfAbsent(
-                slottedId(slotType, index),
+                slottedId(slotName, index),
                 s -> UUID.nameUUIDFromBytes(s.getBytes())
         );
     }
 
     public static String slottedId(SlotType slotType, int index) {
-        return slotType.name() + "/" + index;
+        return slottedId(slotType.name(), index);
+    }
+
+    public static String slottedId(String slotName, int index) {
+        return slotName + "/" + index;
     }
 
     //--
@@ -120,18 +133,26 @@ public abstract class AccessoriesAPI {
         return getSlots(livingEntity.level(), livingEntity.getType());
     }
 
-    public abstract Map<String, SlotType> getSlots(Level level, EntityType<?> entityType);
+    public Map<String, SlotType> getSlots(Level level, EntityType<?> entityType){
+        var map = EntitySlotLoader.INSTANCE.getSlotTypes(level.isClientSide, entityType);
 
-    public abstract Map<String, SlotType> getAllSlots(Level level);
+        return map != null ? map : Map.of();
+    }
 
     public Optional<SlotType> getSlotType(Level level, String name){
         return Optional.ofNullable(getAllSlots(level).get(name));
     }
 
+    public Map<String, SlotType> getAllSlots(Level level){
+        return SlotTypeLoader.INSTANCE.getSlotTypes(level);
+    }
+
     //--
 
     public boolean canInsertIntoSlot(LivingEntity entity, SlotReference reference, ItemStack stack){
-        return getPredicateResults(reference.type().getValidators(), entity, reference, stack)
+        var predicates = reference.type().map(SlotType::validators).orElse(Set.of());
+
+        return getPredicateResults(predicates, entity, reference, stack)
                 && getAccessory(stack).map(accessory -> accessory.canEquip(stack, reference)).orElse(false);
     }
 
@@ -148,8 +169,10 @@ public abstract class AccessoriesAPI {
             for (SlotType value : slots.values()) {
                 if (!containers.containsKey(value.name())) continue;
 
+                var container = containers.get(value.name());
+
                 for (var accessory : containers.get(value.name()).getAccessories()) {
-                    var reference = new SlotReference(value, entity, accessory.getFirst());
+                    var reference = new SlotReference(container.getSlotName(), entity, accessory.getFirst());
 
                     if (canInsertIntoSlot(entity, reference, stack)) validSlots.add(value);
                 }
@@ -187,12 +210,12 @@ public abstract class AccessoriesAPI {
         registerPredicate(Accessories.of("all"), (entity, reference, stack) -> InteractionResult.SUCCESS);
         registerPredicate(Accessories.of("none"), (entity, reference, stack) -> InteractionResult.FAIL);
         registerPredicate(Accessories.of("tag"), (entity, reference, stack) -> {
-            var tag = TagKey.create(Registries.ITEM, Accessories.of(reference.type().name()));
+            var tag = TagKey.create(Registries.ITEM, Accessories.of(reference.slotName()));
 
             return (stack.is(tag) || stack.is(ALL_ACCESSORIES)) ? InteractionResult.SUCCESS : InteractionResult.PASS;
         });
         registerPredicate(Accessories.of("relevant"), (entity, reference, stack) -> {
-            var bl = !getAttributeModifiers(stack, reference, getOrCreateSlotUUID(reference.type(), reference.slot())).isEmpty();
+            var bl = !getAttributeModifiers(stack, reference, getOrCreateSlotUUID(reference.slotName(), reference.slot())).isEmpty();
 
             return bl ? InteractionResult.SUCCESS : InteractionResult.PASS;
         });

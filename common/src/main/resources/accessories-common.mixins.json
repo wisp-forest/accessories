@@ -6,6 +6,7 @@
   "client": [
   ],
   "mixins": [
+    "RenderLayerAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

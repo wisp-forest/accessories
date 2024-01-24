@@ -6,7 +6,6 @@ import io.wispforest.accessories.impl.AccessoriesContainerImpl;
 import io.wispforest.accessories.networking.AccessoriesPacket;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -45,7 +44,7 @@ public class SyncContainers extends AccessoriesPacket {
 
             ((AccessoriesContainerImpl) updatedContainer).write(syncTag, true);
 
-            updatedContainerTags.put(updatedContainer.slotType().name(), syncTag);
+            updatedContainerTags.put(updatedContainer.getSlotName(), syncTag);
         }
 
         this.updatedContainers = updatedContainerTags;
@@ -85,9 +84,7 @@ public class SyncContainers extends AccessoriesPacket {
     }
 
     @Override
-    public void handle(Player player) {
-        super.handle(player);
-
+    protected void handle(Player player) {
         var level = player.level();
 
         var entity = level.getEntity(entityId);

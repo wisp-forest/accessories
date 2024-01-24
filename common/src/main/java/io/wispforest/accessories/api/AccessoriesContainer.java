@@ -9,7 +9,9 @@ import java.util.*;
 
 public interface AccessoriesContainer extends InstanceCodecable {
 
-    SlotType slotType();
+    Optional<SlotType> slotType();
+
+    String getSlotName();
 
     AccessoriesCapability capability();
 

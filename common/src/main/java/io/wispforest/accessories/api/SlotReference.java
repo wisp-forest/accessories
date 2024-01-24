@@ -1,6 +1,13 @@
 package io.wispforest.accessories.api;
 
+import io.wispforest.accessories.AccessoriesAccess;
 import net.minecraft.world.entity.LivingEntity;
 
-public record SlotReference(SlotType type, LivingEntity entity, int slot) {
+import java.util.Optional;
+
+public record SlotReference(String slotName, LivingEntity entity, int slot) {
+
+    public Optional<SlotType> type(){
+        return AccessoriesAccess.getAPI().getSlotType(entity.level(), this.slotName);
+    }
 }

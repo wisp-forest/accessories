@@ -29,14 +29,14 @@ public class AccessoriesNetworkHandlerImpl extends AccessoriesNetworkHandler {
         PacketType<AccessoriesFabricPacket<?>> type = PacketType.create(location, buf -> {
             var emptyPacket = supplier.get();
 
-            emptyPacket.read(buf);
+            emptyPacket.readPacket(buf);
 
             return new AccessoriesFabricPacket<>(emptyPacket);
         });
 
         packetTypes.put(location, type);
 
-        ServerPlayNetworking.registerGlobalReceiver(type, (packet, player, responseSender) -> packet.innerPacket().handle(player));
+        ServerPlayNetworking.registerGlobalReceiver(type, (packet, player, responseSender) -> packet.innerPacket().attemptToHandle(player));
     }
 
     @Override
@@ -46,14 +46,14 @@ public class AccessoriesNetworkHandlerImpl extends AccessoriesNetworkHandler {
         PacketType<AccessoriesFabricPacket<?>> type = PacketType.create(location, buf -> {
             var emptyPacket = supplier.get();
 
-            emptyPacket.read(buf);
+            emptyPacket.readPacket(buf);
 
             return new AccessoriesFabricPacket<>(emptyPacket);
         });
 
         packetTypes.put(location, type);
 
-        ClientPlayNetworking.registerGlobalReceiver(type, (packet, player, responseSender) -> packet.innerPacket().handle(Minecraft.getInstance().player));
+        ClientPlayNetworking.registerGlobalReceiver(type, (packet, player, responseSender) -> packet.innerPacket().attemptToHandle(Minecraft.getInstance().player));
     }
 
     @Override
