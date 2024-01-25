@@ -94,4 +94,11 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         this.addWidget(this.viewComponent);
         this.setInitialFocus(this.viewComponent);
     }
+
+    @Override
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int x, int y, int mouseButton) {
+        boolean flag = mouseX < (double)x || mouseY < (double)y || mouseX >= (double)(x + width) || mouseY >= (double)(y + height);
+        boolean flag1 = (double)(x - 147) < mouseX && mouseX < (double)x && (double)y < mouseY && mouseY < (double)(y + height);
+        return flag && !flag1;
+    }
 }
