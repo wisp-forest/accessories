@@ -1,6 +1,6 @@
 {
   "replace": false,
-  "amount": 2,
+  "amount": 1,
   "operation": "set",
   "order": 1000,
   "icon": "accessories:gui/slot/bracelet"

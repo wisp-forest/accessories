@@ -1,14 +1,20 @@
 package io.wispforest.accessories.client.gui;
 
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.AccessoriesMenu;
+import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.mixin.ScreenAccessor;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 
 public class AccessoriesScreen extends EffectRenderingInventoryScreen<AccessoriesMenu> {
+
+    public static final ResourceLocation SLOT_FRAME = Accessories.of("textures/gui/slot.png");
 
     private float xMouse;
     private float yMouse;
@@ -36,13 +42,26 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 
+        this.viewComponent.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        if (/*this.viewComponent.isVisible() && */this.widthTooNarrow) {
+        for (Slot slot : this.menu.slots) {
+            if(!(slot.container instanceof ExpandedSimpleContainer)) continue;
+
+            var pose = guiGraphics.pose();
+
+            pose.pushPose();
+
+            pose.translate(-1, -1, 100);
+
+            guiGraphics.blit(SLOT_FRAME, slot.x + this.leftPos, slot.y + this.topPos, 0, 0, 18, 18, 18, 18);
+
+            pose.popPose();
+        }
+
+        if (this.widthTooNarrow) {
             this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
-            this.viewComponent.render(guiGraphics, mouseX, mouseY, partialTick);
         } else {
             super.render(guiGraphics, mouseX, mouseY, partialTick);
-            this.viewComponent.render(guiGraphics, mouseX, mouseY, partialTick);
         }
 
         this.xMouse = (float)mouseX;
