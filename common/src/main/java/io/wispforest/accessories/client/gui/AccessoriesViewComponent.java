@@ -7,13 +7,13 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.recipebook.RecipeBookTabButton;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.RecipeBookMenu;
+
+import static io.wispforest.accessories.Accessories.MODID;
 
 public class AccessoriesViewComponent implements Renderable, GuiEventListener, NarratableEntry {
 
-    protected static final ResourceLocation RECIPE_BOOK_LOCATION = new ResourceLocation("textures/gui/recipe_book.png");
+    protected static final ResourceLocation ACCESSORIES_PANEL_LOCATION = new ResourceLocation(MODID, "textures/gui/accessories_panel.png");
 
     protected Minecraft minecraft;
 
@@ -26,11 +26,11 @@ public class AccessoriesViewComponent implements Renderable, GuiEventListener, N
     //private boolean visible;
     private boolean widthTooNarrow;
 
-    public AccessoriesViewComponent(){
+    public AccessoriesViewComponent() {
 
     }
 
-    public void init(int width, int height, Minecraft minecraft, boolean widthTooNarrow, AccessoriesMenu menu){
+    public void init(int width, int height, Minecraft minecraft, boolean widthTooNarrow, AccessoriesMenu menu) {
         this.minecraft = minecraft;
         this.widthTooNarrow = widthTooNarrow;
 
@@ -41,7 +41,7 @@ public class AccessoriesViewComponent implements Renderable, GuiEventListener, N
 
         //this.visible = this.isVisibleAccordingToBookData();
         //if (this.visible) {
-            this.initVisuals();
+        this.initVisuals();
         //}
     }
 
@@ -68,7 +68,7 @@ public class AccessoriesViewComponent implements Renderable, GuiEventListener, N
         guiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
         int i = (this.width - 147) / 2 - this.xOffset;
         int j = (this.height - 166) / 2;
-        guiGraphics.blit(RECIPE_BOOK_LOCATION, i, j, 1, 1, 147, 166);
+        guiGraphics.blit(ACCESSORIES_PANEL_LOCATION, i, j, 1, 1, 147, 166);
         //this.searchBox.render(guiGraphics, mouseX, mouseY, partialTick);
 
 //            for(RecipeBookTabButton recipeBookTabButton : this.tabButtons) {

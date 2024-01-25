@@ -35,12 +35,18 @@ public class AccessoriesMenu extends InventoryMenu {
         var player = inventory.player;
         var capability = api.getCapability(player);
 
+        int slotScale = 19;
+        int minX = -141;
+        int maxX = 119;
+        int minY = 8;
+        int maxY = 152;
+
         if(capability.isPresent()) {
             var containers = capability.get().getContainers();
 
-            int currentY = 40;
+            int currentY = 0;
             for (var group : groups.values().stream().sorted(Comparator.comparingInt(SlotGroup::order).reversed()).toList()) {
-                int currentX = -130;
+                int currentX = 0;
                 for (String slot : group.slots()) {
                     var accessoryContainer = containers.get(slot);
 
@@ -56,7 +62,7 @@ public class AccessoriesMenu extends InventoryMenu {
                         var reference = new SlotReference(slot, player, i);
 
                         this.addSlot(
-                                new Slot(accessories, i, currentX, currentY){
+                                new Slot(accessories, i, (currentX * slotScale) + minX, (currentY * slotScale) + minY){
                                     @Override
                                     public void set(ItemStack stack) {
                                         var prevStack = this.getItem();
@@ -108,10 +114,20 @@ public class AccessoriesMenu extends InventoryMenu {
                                 }
                         );
 
-                        currentX += 18;
+                        currentX++;
+                        if (((currentX * slotScale) + Math.max(18, slotScale)) > maxX && i < accessories.getContainerSize() - 1) {
+                            currentX = 0;
+                            currentY++;
+                            if (((currentY * slotScale) + Math.max(18, slotScale)) > maxY) {
+                                break;
+                            }
+                        }
                     }
                 }
-                currentY += 18;
+                currentY++;
+                if (((currentY * slotScale) + Math.max(18, slotScale)) > maxY) {
+                    break;
+                }
             }
         }
     }
