@@ -280,7 +280,7 @@ public class AccessoriesEventHandler {
 
                     var bufData = AccessoriesNetworkHandler.createBuf();
 
-                    packet.read(bufData);
+                    packet.write(bufData);
 
                     var networkHandler = AccessoriesAccess.getHandler();
 
@@ -318,14 +318,24 @@ public class AccessoriesEventHandler {
             slotsComponent.append("slot.any");
             allSlots = true;
         } else {
-            slotTypes.forEach(slotType -> slotsComponent.append(Component.translatable(slotType.translation())));
+            var slotTypesList = List.copyOf(slotTypes);
+
+            for (int i = 0; i < slotTypesList.size(); i++) {
+                var type = slotTypesList.get(i);
+
+                slotsComponent.append(Component.translatable(type.translation()));
+
+                if(i + 1 != slotTypesList.size()){
+                    slotInfoComponent.append(",");
+                }
+            }
         }
 
         var slotTranslationKey = "slot.tooltip." + ((slotTypes.size() > 1 && !allSlots) ? "plural" : "singular");
 
-        slotInfoComponent.append(Component.translatable(Accessories.translation(slotTranslationKey), slotsComponent));
+        slotInfoComponent.append(Component.translatable(Accessories.translation(slotTranslationKey)).append(slotsComponent));
 
-        slotInfoComponent.append(Component.translatable(Accessories.translation("accessories.tooltip.attributes")));
+        tooltip.add(slotInfoComponent);
 
         Map<SlotType, Multimap<Attribute, AttributeModifier>> slotSpecificModifiers = new HashMap<>();
         Multimap<Attribute, AttributeModifier> defaultModifiers = null;
@@ -340,7 +350,7 @@ public class AccessoriesEventHandler {
 
             slotSpecificModifiers.put(slotType, slotModifiers);
 
-            if(defaultModifiers != null){
+            if(defaultModifiers == null){
                 defaultModifiers = slotModifiers;
             } else if(allDuplicates) {
                 // WARNING: THIS MAY NOT WORK?
@@ -377,7 +387,7 @@ public class AccessoriesEventHandler {
             extraAttributeTooltips.put(slotType, extraAttributeTooltip);
 
             if(defaultExtraAttributeTooltip == null){
-                defaultExtraAttributeTooltip = null;
+                defaultExtraAttributeTooltip = extraAttributeTooltip;
             } else if(allDuplicatesExtras){
                 allDuplicatesExtras = extraAttributeTooltip.equals(defaultExtraAttributeTooltip);
             }
@@ -395,12 +405,15 @@ public class AccessoriesEventHandler {
 
         if(slotTypeToTooltipInfo.size() > 1) {
             for (var entry : slotTypeToTooltipInfo.entrySet()) {
-                tooltip.add(Component.translatable(Accessories.translation("accessories.tooltip.attributes.slot"), Component.translatable(entry.getKey().translation())));
+                tooltip.add(Component.translatable(Accessories.translation("tooltip.attributes.slot"), Component.translatable(entry.getKey().translation())));
                 tooltip.addAll(entry.getValue());
             }
         } else {
-            tooltip.add(Component.translatable(Accessories.translation("accessories.tooltip.attributes.any")));
-            tooltip.addAll(slotTypeToTooltipInfo.get(null));
+            var anyTooltipInfo = slotTypeToTooltipInfo.get(null);
+
+            if(anyTooltipInfo.size() > 1) {
+                tooltip.addAll(anyTooltipInfo);
+            }
         }
 
         accessory.get().getExtraTooltip(stack, tooltip);

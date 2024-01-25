@@ -15,7 +15,7 @@ public interface SlotType {
     String name();
 
     default String translation(){
-        return Accessories.translation(".slot." + name());
+        return Accessories.translation("slot." + name());
     }
 
     /**

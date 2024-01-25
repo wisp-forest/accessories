@@ -11,7 +11,7 @@ public abstract class CacheableAccessoriesPacket extends AccessoriesPacket {
     public CacheableAccessoriesPacket(){ super(); }
 
     public CacheableAccessoriesPacket(FriendlyByteBuf buf){
-        this.cachedBuf = Optional.of(new FriendlyByteBuf(buf.copy()));
+        this.cachedBuf = Optional.of(new FriendlyByteBuf(buf.slice()));
     }
 
     @Override
@@ -22,6 +22,8 @@ public abstract class CacheableAccessoriesPacket extends AccessoriesPacket {
             buf.writeBytes(cachedBufCopy);
 
             cachedBufCopy.release();
+
+            cachedBuf = Optional.empty();
 
             return;
         }

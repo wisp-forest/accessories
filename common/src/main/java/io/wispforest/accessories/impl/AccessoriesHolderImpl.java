@@ -71,8 +71,10 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
     public void read(LivingEntity entity, CompoundTag tag) {
         var slots = AccessoriesAccess.getAPI().getEntitySlots(entity);
 
-        for (String key : tag.getAllKeys()) {
-            var containerTag = tag.getCompound(key);
+        var containersTag = tag.getCompound(MAIN_KEY);
+
+        for (String key : containersTag.getAllKeys()) {
+            var containerTag = containersTag.getCompound(key);
 
             if(slots.containsKey(key)){
                 var container = slotContainers.get(key);

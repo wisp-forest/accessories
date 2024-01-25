@@ -28,7 +28,7 @@ public interface Accessory {
 
     default boolean canUnequip(ItemStack stack, SlotReference reference){
         // TODO: CHECK FOR CURSE OR SOMETHING?
-        return EnchantmentHelper.hasBindingCurse(stack);
+        return !EnchantmentHelper.hasBindingCurse(stack);
     }
 
     // TODO: Find places for which such should and should not be called

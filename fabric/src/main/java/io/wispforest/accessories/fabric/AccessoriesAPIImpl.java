@@ -21,7 +21,9 @@ public class AccessoriesAPIImpl extends AccessoriesAPI {
 
     private final Map<Item, Accessory> REGISTER = new HashMap<>();
 
-    private final Map<ResourceLocation, SlotBasedPredicate> PREDICATE_REGISTRY = new HashMap<>();
+    protected AccessoriesAPIImpl(){
+        super();
+    }
 
     //--
 
@@ -38,23 +40,5 @@ public class AccessoriesAPIImpl extends AccessoriesAPI {
     @Override
     public Optional<Accessory> getAccessory(Item item) {
         return Optional.ofNullable(this.REGISTER.get(item));
-    }
-
-    //--
-
-    @Override
-    public Optional<SlotBasedPredicate> getPredicate(ResourceLocation location) {
-        return Optional.ofNullable(PREDICATE_REGISTRY.get(location));
-    }
-
-    @Override
-    public void registerPredicate(ResourceLocation location, SlotBasedPredicate predicate) {
-        if(PREDICATE_REGISTRY.containsKey(location)) {
-            LOGGER.warn("[AccessoriesAPI]: A SlotBasedPredicate attempted to be registered but a duplicate entry existed already! [Id: " + location + "]");
-
-            return;
-        }
-
-        PREDICATE_REGISTRY.put(location, predicate);
     }
 }

@@ -1,7 +1,20 @@
 {
-  "accessories.slot.tooltip.singular": "Slot: {}",
-  "accessories.slot.tooltip.plural": "Slots: {}",
+  "accessories.slot.tooltip.singular": "Slot: ",
+  "accessories.slot.tooltip.plural": "Slots: ",
   "accessories.slot.any": "Any",
   "accessories.tooltip.attributes.any": "When Equipped:",
-  "accessories.tooltip.attributes.slot": "When Equipped in {}:"
+  "accessories.tooltip.attributes.slot": "When Equipped in {}:",
+  "accessories.slot.hat": "Hat",
+  "accessories.slot.face": "Face",
+  "accessories.slot.cape": "Cape",
+  "accessories.slot.necklace": "Necklace",
+  "accessories.slot.back": "Back",
+  "accessories.slot.hand": "Hand",
+  "accessories.slot.ring": "Ring",
+  "accessories.slot.wrist": "Wrist",
+  "accessories.slot.belt": "Belt",
+  "accessories.slot.anklet": "Anklet",
+  "accessories.slot.shoes": "Shoes",
+  "accessories.slot.charm": "Charm"
+
 }

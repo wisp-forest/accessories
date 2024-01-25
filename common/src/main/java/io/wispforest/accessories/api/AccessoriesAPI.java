@@ -32,6 +32,12 @@ public abstract class AccessoriesAPI {
 
     private static final Map<String, UUID> CACHED_UUIDS = new HashMap<>();
 
+    private final Map<ResourceLocation, SlotBasedPredicate> PREDICATE_REGISTRY = new HashMap<>();
+
+    protected AccessoriesAPI(){
+        initDefaultPredicates();
+    }
+
     //--
 
     public abstract Optional<AccessoriesCapability> getCapability(LivingEntity livingEntity);
@@ -184,9 +190,19 @@ public abstract class AccessoriesAPI {
 
     //--
 
-    public abstract Optional<SlotBasedPredicate> getPredicate(ResourceLocation location);
+    public Optional<SlotBasedPredicate> getPredicate(ResourceLocation location) {
+        return Optional.ofNullable(PREDICATE_REGISTRY.get(location));
+    }
 
-    public abstract void registerPredicate(ResourceLocation location, SlotBasedPredicate predicate);
+    public void registerPredicate(ResourceLocation location, SlotBasedPredicate predicate) {
+        if(PREDICATE_REGISTRY.containsKey(location)) {
+            LOGGER.warn("[AccessoriesAPI]: A SlotBasedPredicate attempted to be registered but a duplicate entry existed already! [Id: " + location + "]");
+
+            return;
+        }
+
+        PREDICATE_REGISTRY.put(location, predicate);
+    }
 
     public boolean getPredicateResults(Set<ResourceLocation> predicateIds, LivingEntity entity, SlotReference reference, ItemStack stack){
         InteractionResult result = InteractionResult.PASS;
