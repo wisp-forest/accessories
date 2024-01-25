@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "order": 60,
+  "slots": [
+    "hand",
+    "ring",
+    "bracelet"
+  ]
+}

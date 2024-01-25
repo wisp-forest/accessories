@@ -1,8 +1,11 @@
 package io.wispforest.accessories.networking.client;
 
+import io.wispforest.accessories.api.SlotGroup;
 import io.wispforest.accessories.api.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.impl.SlotGroupImpl;
 import io.wispforest.accessories.impl.SlotTypeImpl;
 import io.wispforest.accessories.networking.CacheableAccessoriesPacket;
 import net.fabricmc.api.EnvType;
@@ -21,6 +24,7 @@ public class SyncData extends CacheableAccessoriesPacket {
 
     private List<SlotType> slotTypes = List.of();
     private Map<EntityType<?>, Collection<String>> entitySlots = Map.of();
+    private Set<SlotGroup> slotGroups = Set.of();
 
     public SyncData(){}
 
@@ -28,9 +32,10 @@ public class SyncData extends CacheableAccessoriesPacket {
         super(buf);
     }
 
-    public SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Collection<String>> entitySlots){
+    public SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Collection<String>> entitySlots, Set<SlotGroup> slotGroups){
         this.slotTypes = slotTypes;
         this.entitySlots = entitySlots;
+        this.slotGroups = slotGroups;
     }
 
     public static SyncData create(){
@@ -44,7 +49,11 @@ public class SyncData extends CacheableAccessoriesPacket {
             entitySlots.put(entry.getKey(), entry.getValue().keySet());
         }
 
-        return new SyncData(List.copyOf(allSlotTypes.values()), entitySlots);
+        var slotGroups = new HashSet<SlotGroup>();
+
+        slotGroups.addAll(SlotGroupLoader.INSTANCE.getGroups(false).values());
+
+        return new SyncData(List.copyOf(allSlotTypes.values()), entitySlots, slotGroups);
     }
 
     @Override
@@ -59,6 +68,12 @@ public class SyncData extends CacheableAccessoriesPacket {
                 this.entitySlots,
                 (buf1, entityType) -> buf1.writeResourceLocation(BuiltInRegistries.ENTITY_TYPE.getKey(entityType)),
                 (buf1, value) -> buf1.writeCollection(value, FriendlyByteBuf::writeUtf));
+
+        buf.writeCollection(
+                this.slotGroups,
+                (buf1, slotGroup) -> {
+                    buf1.writeNbt(Util.getOrThrow(SlotGroupImpl.CODEC.codec().encodeStart(NbtOps.INSTANCE, slotGroup), IllegalStateException::new));
+                });
     }
 
     @Override
@@ -71,6 +86,10 @@ public class SyncData extends CacheableAccessoriesPacket {
                 buf1 -> BuiltInRegistries.ENTITY_TYPE.get(buf1.readResourceLocation()),
                 buf1 -> buf1.readCollection(HashSet::new, FriendlyByteBuf::readUtf)
         );
+
+        this.slotGroups = buf.readCollection(HashSet::new, buf1 -> {
+            return Util.getOrThrow(SlotGroupImpl.CODEC.codec().decode(NbtOps.INSTANCE, buf1.readNbt()), IllegalStateException::new).getFirst();
+        });
     }
 
     @Environment(EnvType.CLIENT)
@@ -97,6 +116,11 @@ public class SyncData extends CacheableAccessoriesPacket {
         }
 
         EntitySlotLoader.INSTANCE.setEntitySlotData(entitySlotTypes);
+
+        var slotGroups = this.slotGroups.stream()
+                .collect(Collectors.toUnmodifiableMap(SlotGroup::name, group -> group));
+
+        SlotGroupLoader.INSTANCE.setGroups(slotGroups);
     }
 
 
