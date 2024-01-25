@@ -1,5 +1,6 @@
 package io.wispforest.accessories.client.gui;
 
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -13,7 +14,7 @@ import static io.wispforest.accessories.Accessories.MODID;
 
 public class AccessoriesViewComponent implements Renderable, GuiEventListener, NarratableEntry {
 
-    protected static final ResourceLocation ACCESSORIES_PANEL_LOCATION = new ResourceLocation(MODID, "textures/gui/accessories_panel.png");
+    protected static final ResourceLocation ACCESSORIES_PANEL_LOCATION = Accessories.of("textures/gui/accessories_panel.png");
 
     protected Minecraft minecraft;
 
