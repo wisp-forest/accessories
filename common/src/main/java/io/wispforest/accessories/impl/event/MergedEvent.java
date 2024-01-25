@@ -2,7 +2,6 @@ package io.wispforest.accessories.impl.event;
 
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.fabricmc.fabric.impl.base.event.ArrayBackedEvent;
 import net.neoforged.bus.api.IEventBus;
 
 import java.util.Optional;
@@ -10,7 +9,7 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 /**
- * Wrapped Version of {@link ArrayBackedEvent} with the ability to call out to Forge Like Platforms with
+ * Wrapped Version of {@link net.fabricmc.fabric.impl.base.event.ArrayBackedEvent} with the ability to call out to Forge Like Platforms with
  * a {@link IEventBus} after Event Calls
  */
 public class MergedEvent<T> extends Event<T> {

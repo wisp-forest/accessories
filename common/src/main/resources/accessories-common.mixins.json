@@ -6,7 +6,10 @@
   "client": [
   ],
   "mixins": [
-    "RenderLayerAccessor"
+    "AbstractContainerMenuAccessor",
+    "AbstractContainerScreenAccessor",
+    "RenderLayerAccessor",
+    "ScreenAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

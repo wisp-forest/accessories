@@ -17,6 +17,9 @@
   "entrypoints": {
     "main": [
       "io.wispforest.accessories.fabric.AccessoriesFabric"
+    ],
+    "client":[
+      "io.wispforest.accessories.fabric.client.AccessoriesClientFabric"
     ]
   },
   "mixins": [
@@ -25,7 +28,6 @@
   ],
   "depends": {
     "fabric": "*",
-    "minecraft": ">=1.20.1",
-    "architectury": ">=9.1.12"
+    "minecraft": ">=1.20.1"
   }
 }

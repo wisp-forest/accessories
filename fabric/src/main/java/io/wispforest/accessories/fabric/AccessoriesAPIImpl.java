@@ -15,6 +15,8 @@ import java.util.Optional;
 
 public class AccessoriesAPIImpl extends AccessoriesAPI {
 
+    public static final AccessoriesAPIImpl INSTANCE = new AccessoriesAPIImpl();
+
     public final EntityApiLookup<AccessoriesCapability, Void> CAPABILITY = EntityApiLookup.get(Accessories.of("capability"), AccessoriesCapability.class, Void.class);
 
     private final Map<Item, Accessory> REGISTER = new HashMap<>();

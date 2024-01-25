@@ -73,7 +73,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
             var location = resourceEntry.getKey();
             var jsonObject = resourceEntry.getValue();
 
-            if(!AccessoriesAccess.isValidOnConditions(jsonObject)) continue;
+            if(!AccessoriesAccess.getInternal().isValidOnConditions(jsonObject)) continue;
 
             var pathParts = location.getPath().split("/");
 

@@ -1,9 +1,10 @@
 package io.wispforest.accessories.client;
 
-import io.wispforest.accessories.Accessories;
-import net.minecraft.resources.ResourceLocation;
+import io.wispforest.accessories.AccessoriesAccessClient;
 
 public class AccessoriesClient {
 
-    public static void init(){}
+    public static void init(){
+        AccessoriesAccessClient.registerToMenuTypes();
+    }
 }

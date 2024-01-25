@@ -93,7 +93,7 @@ public class AccessoriesEventHandler {
         var stack = container.getItem(reference.slot());
 
         container.setItem(reference.slot(), ItemStack.EMPTY);
-        AccessoriesAccess.giveItemToPlayer(player, stack);
+        AccessoriesAccess.getInternal().giveItemToPlayer(player, stack);
     }
 
     public static void dataSync(@Nullable PlayerList list, @Nullable ServerPlayer player){

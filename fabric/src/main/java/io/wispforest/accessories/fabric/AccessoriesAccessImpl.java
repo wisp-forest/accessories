@@ -2,13 +2,17 @@ package io.wispforest.accessories.fabric;
 
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesHolder;
+import io.wispforest.accessories.client.AccessoriesMenu;
+import io.wispforest.accessories.impl.AccessoriesInternals;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 
@@ -18,7 +22,7 @@ import java.util.Optional;
 public class AccessoriesAccessImpl {
 
     public static AccessoriesAPI getAPI() {
-        throw new AssertionError();
+        return AccessoriesAPIImpl.INSTANCE;
     }
 
     public static AccessoriesHolder getHolder(LivingEntity livingEntity){
@@ -29,18 +33,8 @@ public class AccessoriesAccessImpl {
         return AccessoriesNetworkHandlerImpl.INSTANCE;
     }
 
-    public static Collection<ServerPlayer> getTracking(Entity entity){
-        throw new AssertionError();
+    public static AccessoriesInternals getInternal(){
+        return AccessoriesInternalsImpl.INSTANCE;
     }
 
-    public static void giveItemToPlayer(ServerPlayer player, ItemStack stack){
-        try(var transaction = Transaction.openOuter()) {
-            PlayerInventoryStorage.of(player).offerOrDrop(ItemVariant.of(stack), stack.getCount(), transaction);
-            transaction.commit();
-        }
-    }
-
-    public static Optional<IEventBus> getBus(){
-        return Optional.empty();
-    }
 }

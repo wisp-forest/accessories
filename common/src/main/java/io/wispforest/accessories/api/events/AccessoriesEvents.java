@@ -12,7 +12,7 @@ import net.neoforged.bus.api.ICancellableEvent;
 
 public class AccessoriesEvents {
 
-    public static final Event<OnDeath> ON_DEATH_EVENT = new MergedEvent<>(OnDeath.class, AccessoriesAccess::getBus,
+    public static final Event<OnDeath> ON_DEATH_EVENT = new MergedEvent<>(OnDeath.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
                 return (livingEntity, capability) -> {
                     for (var invoker : invokers) {
@@ -60,7 +60,7 @@ public class AccessoriesEvents {
 
     //--
 
-    public static final Event<OnDrop> ON_DROP_EVENT = new MergedEvent<>(OnDrop.class, AccessoriesAccess::getBus,
+    public static final Event<OnDrop> ON_DROP_EVENT = new MergedEvent<>(OnDrop.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
                 return (dropRule, entity, reference, stack) -> {
                     for (var invoker : invokers) {
@@ -128,7 +128,7 @@ public class AccessoriesEvents {
 
     //--
 
-    public Event<OnEquip> ON_EQUIP_EVENT = new MergedEvent<>(OnEquip.class, AccessoriesAccess::getBus,
+    public Event<OnEquip> ON_EQUIP_EVENT = new MergedEvent<>(OnEquip.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
                 return (entity, reference, stack) -> {
                     for (var invoker : invokers) {
@@ -173,7 +173,7 @@ public class AccessoriesEvents {
 
     //--
 
-    public Event<OnUnequip> ON_UNEQUIP_EVENT = new MergedEvent<>(OnUnequip.class, AccessoriesAccess::getBus,
+    public Event<OnUnequip> ON_UNEQUIP_EVENT = new MergedEvent<>(OnUnequip.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
                 return (entity, reference, stack) -> {
                     for (var invoker : invokers) {

@@ -21,7 +21,7 @@ public class AccessoriesFabric implements ModInitializer {
                 .initializer(AccessoriesHolderImpl::new)
                 .persistent(InstanceCodecable.constructed(AccessoriesHolderImpl::new))
                 .copyOnDeath()
-                .buildAndRegister(Accessories.of("INVENTORY_HOLDER"));
+                .buildAndRegister(Accessories.of("inventory_holder"));
     }
 
     @Override

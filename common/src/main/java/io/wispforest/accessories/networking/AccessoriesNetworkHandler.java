@@ -4,6 +4,7 @@ import io.netty.buffer.Unpooled;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.networking.client.SyncContainers;
 import io.wispforest.accessories.networking.client.SyncData;
+import io.wispforest.accessories.networking.server.ScreenOpen;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.network.FriendlyByteBuf;
@@ -24,6 +25,8 @@ public abstract class AccessoriesNetworkHandler {
     public final void register() {
         registerS2C(SyncContainers.class, SyncContainers::new);
         registerS2C(SyncData.class, SyncData::new);
+
+        registerC2S(ScreenOpen.class, ScreenOpen::new);
     }
 
     protected abstract <M extends AccessoriesPacket> void registerC2S(Class<M> messageType, Supplier<M> supplier);
@@ -47,7 +50,7 @@ public abstract class AccessoriesNetworkHandler {
     public <M extends AccessoriesPacket> void sendToTrackingAndSelf(Entity entity, Supplier<M> packet) {
         if(entity.level().isClientSide) return;
 
-        var players = AccessoriesAccess.getTracking(entity);
+        var players = AccessoriesAccess.getInternal().getTracking(entity);
 
         for (var player : players) sendToPlayer(player, packet.get());
 
