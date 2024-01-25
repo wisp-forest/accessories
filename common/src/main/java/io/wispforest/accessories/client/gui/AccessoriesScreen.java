@@ -8,9 +8,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
+import org.jetbrains.annotations.Nullable;
 
 public class AccessoriesScreen extends EffectRenderingInventoryScreen<AccessoriesMenu> {
 
@@ -55,6 +57,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
             guiGraphics.blit(SLOT_FRAME, slot.x + this.leftPos, slot.y + this.topPos, 0, 0, 18, 18, 18, 18);
 
+            //InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, slot.x + this.leftPos, slot.y + this.topPos, slot.x + this.leftPos + 18, slot.y + this.topPos + 18, 8, 0.0625F, this.xMouse, this.yMouse, this.minecraft.player);
+
             pose.popPose();
         }
 
@@ -66,6 +70,13 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         this.xMouse = (float)mouseX;
         this.yMouse = (float)mouseY;
+
+        this.renderTooltip(guiGraphics, mouseX, mouseY);
+    }
+
+    @Override
+    public boolean handleComponentClicked(@Nullable Style style) {
+        return super.handleComponentClicked(style);
     }
 
     @Override
