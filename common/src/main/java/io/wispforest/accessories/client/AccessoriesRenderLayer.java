@@ -36,8 +36,6 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
             var accessories = container.getAccessories();
             var cosmetics = container.getCosmeticAccessories();
 
-            var renderOptions = container.renderOptions();
-
             for (int i = 0; i < accessories.getContainerSize(); i++) {
                 var stack = accessories.getItem(i);
                 var cosmeticStack = cosmetics.getItem(i);
@@ -50,7 +48,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                 poseStack.pushPose();
 
-                var rendering = renderOptions.get(i);
+                var rendering = container.shouldRender(i);
 
                 renderer.get()
                         .render(

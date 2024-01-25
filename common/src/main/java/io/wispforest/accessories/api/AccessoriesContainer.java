@@ -17,6 +17,12 @@ public interface AccessoriesContainer extends InstanceCodecable {
 
     List<Boolean> renderOptions();
 
+    default boolean shouldRender(int index){
+        var options = renderOptions();
+
+        return (index < options.size()) ? options.get(index) : true;
+    }
+
     //--
 
     ExpandedSimpleContainer getAccessories();

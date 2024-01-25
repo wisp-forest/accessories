@@ -21,8 +21,6 @@ public abstract class CacheableAccessoriesPacket extends AccessoriesPacket {
 
             buf.writeBytes(cachedBufCopy);
 
-            cachedBufCopy.release();
-
             cachedBuf = Optional.empty();
 
             return;
