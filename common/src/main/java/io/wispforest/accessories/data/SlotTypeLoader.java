@@ -55,7 +55,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             var location = resourceEntry.getKey();
             var jsonObject = resourceEntry.getValue();
 
-            if(AccessoriesAccess.isValidOnConditions(jsonObject)) continue;
+            if(!AccessoriesAccess.isValidOnConditions(jsonObject)) continue;
 
             if(!location.getNamespace().equals(Accessories.MODID)) continue;
 

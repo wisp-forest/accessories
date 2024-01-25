@@ -2,6 +2,7 @@ package io.wispforest.accessories.data;
 
 import com.google.gson.*;
 import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.SlotGroup;
 import io.wispforest.accessories.impl.SlotGroupImpl;
 import net.minecraft.resources.ResourceLocation;
@@ -71,6 +72,8 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
         for (var resourceEntry : data.entrySet()) {
             var location = resourceEntry.getKey();
             var jsonObject = resourceEntry.getValue();
+
+            if(!AccessoriesAccess.isValidOnConditions(jsonObject)) continue;
 
             var pathParts = location.getPath().split("/");
 
