@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
@@ -72,14 +73,12 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
             var entities = new ArrayList<EntityType<?>>();
 
-            var entityElements = this.safeHelper(GsonHelper::getAsJsonArray, jsonObject, "slots", new JsonArray(), location);
+            var entityElements = this.safeHelper(GsonHelper::getAsJsonArray, jsonObject, "entities", new JsonArray(), location);
 
             this.decodeJsonArray(entityElements, "entity", location, element -> {
-                var entityTypeLocation = ResourceLocation.tryParse(element.getAsString());
-
-                return (entityTypeLocation != null)
-                        ? BuiltInRegistries.ENTITY_TYPE.get(entityTypeLocation)
-                        : null;
+                return Optional.ofNullable(ResourceLocation.tryParse(element.getAsString()))
+                        .flatMap(BuiltInRegistries.ENTITY_TYPE::getOptional)
+                        .orElse(null);
             }, entities::add);
 
             for (EntityType<?> entity : entities) {

@@ -23,6 +23,10 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability {
     public AccessoriesCapabilityImpl(LivingEntity entity){
         this.entity = entity;
         this.holder = (AccessoriesHolderImpl) AccessoriesAccess.getHolder(entity);
+
+        if(this.holder.loadedFromTag){
+            this.clear();
+        }
     }
 
     @Override

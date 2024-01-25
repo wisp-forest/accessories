@@ -114,6 +114,8 @@ public abstract class ReplaceableJsonResourceReloadListener extends SimplePrepar
     }
 
     protected <T> T safeHelper(BiFunction<JsonObject, String, T> func, JsonObject object, String key, T defaultValue, ResourceLocation location){
+        if(!object.has(key)) return defaultValue;
+
         try {
             return func.apply(object, key);
         } catch (Exception e){

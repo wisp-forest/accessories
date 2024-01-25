@@ -2,7 +2,8 @@ package io.wispforest.accessories.networking;
 
 import io.netty.buffer.Unpooled;
 import io.wispforest.accessories.AccessoriesAccess;
-import io.wispforest.accessories.networking.client.SyncContainers;
+import io.wispforest.accessories.networking.client.SyncContainer;
+import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncData;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import net.fabricmc.api.EnvType;
@@ -23,7 +24,8 @@ public abstract class AccessoriesNetworkHandler {
     }
 
     public final void register() {
-        registerS2C(SyncContainers.class, SyncContainers::new);
+        registerS2C(SyncContainer.class, SyncContainer::new);
+        registerS2C(SyncContainerData.class, SyncContainerData::new);
         registerS2C(SyncData.class, SyncData::new);
 
         registerC2S(ScreenOpen.class, ScreenOpen::new);

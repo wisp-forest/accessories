@@ -8,6 +8,7 @@ import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,7 +28,7 @@ public interface Accessory {
 
     default boolean canUnequip(ItemStack stack, SlotReference reference){
         // TODO: CHECK FOR CURSE OR SOMETHING?
-        return true;
+        return EnchantmentHelper.hasBindingCurse(stack);
     }
 
     // TODO: Find places for which such should and should not be called

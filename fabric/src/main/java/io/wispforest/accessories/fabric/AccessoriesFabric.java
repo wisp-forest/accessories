@@ -1,20 +1,48 @@
 package io.wispforest.accessories.fabric;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.InstanceCodecable;
+import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.data.SlotGroupLoader;
+import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
+import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 public class AccessoriesFabric implements ModInitializer {
 
     public static final AttachmentType<AccessoriesHolder> HOLDER_ATTACHMENT_TYPE;
+
+    public static final ResourceLocation SLOT_LOADER_LOCATION = Accessories.of("slot_loader");
+    public static final ResourceLocation ENTITY_SLOT_LOADER_LOCATION = Accessories.of("entity_slot_loader");
+    public static final ResourceLocation SLOT_GROUP_LOADER_LOCATION = Accessories.of("slot_group_loader");
 
     static {
         HOLDER_ATTACHMENT_TYPE = AttachmentRegistry.<AccessoriesHolder>builder()
@@ -28,6 +56,8 @@ public class AccessoriesFabric implements ModInitializer {
     public void onInitialize() {
         Accessories.init();
 
+        AccessoriesNetworkHandlerImpl.INSTANCE.register();
+
         ServerLivingEntityEvents.AFTER_DEATH.register(AccessoriesEventHandler::onDeath);
 
         ServerTickEvents.START_WORLD_TICK.register(AccessoriesEventHandler::onWorldTick);
@@ -38,8 +68,59 @@ public class AccessoriesFabric implements ModInitializer {
             AccessoriesEventHandler.dataSync(null, player);
         });
 
-        AccessoriesNetworkHandlerImpl.INSTANCE.register();
+        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+            for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
+                var lookup = AccessoriesAPIImpl.INSTANCE.CAPABILITY;
 
+                if(lookup.getProvider(entityType) != null) continue;
 
+                lookup.registerForType((entity, unused) -> {
+                    var api = AccessoriesAccess.getAPI();
+
+                    if(!(entity instanceof LivingEntity livingEntity)) return null;
+
+                    var slots = api.getEntitySlots(livingEntity);
+
+                    if(slots.isEmpty()) return null;
+
+                    return new AccessoriesCapabilityImpl(livingEntity);
+                }, entityType);
+            }
+        });
+
+        ServerEntityEvents.ENTITY_LOAD.register((entity, world) -> {
+            if(!(entity instanceof LivingEntity livingEntity)) return;
+
+            AccessoriesEventHandler.entityLoad(livingEntity, world);
+        });
+
+        EntityTrackingEvents.START_TRACKING.register((trackedEntity, player) -> {
+            if(!(trackedEntity instanceof LivingEntity livingEntity)) return;
+
+            AccessoriesEventHandler.onTracking(livingEntity, player);
+        });
+
+        var manager = ResourceManagerHelper.get(PackType.SERVER_DATA);
+
+        manager.registerReloadListener(new IdentifiableResourceReloadListenerImpl(SLOT_LOADER_LOCATION, SlotTypeLoader.INSTANCE));
+        manager.registerReloadListener(new IdentifiableResourceReloadListenerImpl(ENTITY_SLOT_LOADER_LOCATION, EntitySlotLoader.INSTANCE, SLOT_LOADER_LOCATION));
+        manager.registerReloadListener(new IdentifiableResourceReloadListenerImpl(SLOT_GROUP_LOADER_LOCATION, SlotGroupLoader.INSTANCE, SLOT_LOADER_LOCATION));
     }
+    private record IdentifiableResourceReloadListenerImpl(ResourceLocation location, PreparableReloadListener listener, ResourceLocation ...dependencies) implements IdentifiableResourceReloadListener {
+        @Override
+        public ResourceLocation getFabricId() {
+            return this.location;
+        }
+
+        @Override
+        public CompletableFuture<Void> reload(PreparationBarrier preparationBarrier, ResourceManager resourceManager, ProfilerFiller preparationsProfiler, ProfilerFiller reloadProfiler, Executor backgroundExecutor, Executor gameExecutor) {
+            return this.listener.reload(preparationBarrier, resourceManager, preparationsProfiler, reloadProfiler, backgroundExecutor, gameExecutor);
+        }
+
+        @Override
+        public Collection<ResourceLocation> getFabricDependencies() {
+            return new HashSet<>(Set.of(dependencies));
+        }
+    }
+
 }

@@ -6,6 +6,7 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.SlotType;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -20,7 +21,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
     protected final Set<AccessoriesContainer> containersRequiringUpdates = new HashSet<>();
 
     private CompoundTag tag;
-    private boolean loadedFromTag = false;
+    protected boolean loadedFromTag = false;
 
     public void init(AccessoriesCapability capability){
         var livingEntity = capability.getEntity();
@@ -28,17 +29,21 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
         this.slotContainers.clear();
         this.invalidStacks.clear();
 
+        var api = AccessoriesAccess.getAPI();
+
         if(loadedFromTag) {
+            api.getEntitySlots(livingEntity).forEach((s, slotType) -> {
+                slotContainers.putIfAbsent(s, new AccessoriesContainerImpl(capability, slotType));
+            });
+
             read(livingEntity, this.tag);
 
             return;
+        } else {
+            api.getEntitySlots(livingEntity).forEach((s, slotType) -> {
+                slotContainers.put(s, new AccessoriesContainerImpl(capability, slotType));
+            });
         }
-
-        var api = AccessoriesAccess.getAPI();
-
-        api.getEntitySlots(livingEntity).forEach((s, slotType) -> {
-            slotContainers.put(s, new AccessoriesContainerImpl(capability, slotType));
-        });
     }
 
     @Override
@@ -69,8 +74,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
         for (String key : tag.getAllKeys()) {
             var containerTag = tag.getCompound(key);
 
-            if(!slots.containsKey(key)){
-                var container = this.getSlotContainers().get(key);
+            if(slots.containsKey(key)){
+                var container = slotContainers.get(key);
 
                 var prevAccessories = AccessoriesContainerImpl.copyContainerList(container.getAccessories());
                 var prevCosmetics = AccessoriesContainerImpl.copyContainerList(container.getCosmeticAccessories());

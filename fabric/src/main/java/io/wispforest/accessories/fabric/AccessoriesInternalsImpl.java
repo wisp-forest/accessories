@@ -44,7 +44,7 @@ public class AccessoriesInternalsImpl implements AccessoriesInternals {
 
     @Override
     public boolean isValidOnConditions(JsonObject object) {
-        return ResourceConditions.conditionMatches(object);
+        return ResourceConditions.objectMatchesConditions(object);
     }
 
     @Override

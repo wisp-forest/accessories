@@ -91,7 +91,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     }
 
     private boolean validIndex(int slot){
-        var isValid = slot > 0 && slot < this.getContainerSize();
+        var isValid = slot >= 0 && slot < this.getContainerSize();
 
         var nameInfo = (this.name != null ? "Container: " + this.name + ", " : "");
 
@@ -99,7 +99,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
             LOGGER.error("Access to a given Inventory was found to be out of the range valid for the container! [{}Index: {}]", nameInfo, slot);
         }
 
-        return slot > 0 && slot < this.getContainerSize();
+        return isValid;
     }
 
     //--

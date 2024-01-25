@@ -25,6 +25,8 @@ public interface AccessoriesContainer extends InstanceCodecable {
 
     int getSize();
 
+    void markChanged();
+
     void update();
 
     //--

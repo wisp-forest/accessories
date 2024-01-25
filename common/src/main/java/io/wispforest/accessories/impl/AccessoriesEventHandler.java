@@ -7,9 +7,11 @@ import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.events.AccessoriesEvents;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
-import io.wispforest.accessories.networking.client.SyncContainers;
+import io.wispforest.accessories.networking.client.SyncContainer;
+import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncData;
 import net.minecraft.ChatFormatting;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -96,7 +98,39 @@ public class AccessoriesEventHandler {
         AccessoriesAccess.getInternal().giveItemToPlayer(player, stack);
     }
 
+    public static void entityLoad(LivingEntity entity, Level level){
+        if(!level.isClientSide() || !(entity instanceof ServerPlayer serverPlayer)) return;
+
+        AccessoriesAccess.getAPI()
+                .getCapability(serverPlayer)
+                .ifPresent(capability -> {
+                    var holder = AccessoriesAccess.getHolder(capability.getEntity());
+
+                    var tag = new CompoundTag();
+
+                    holder.write(tag);
+
+                    AccessoriesAccess.getHandler().sendToTrackingAndSelf(serverPlayer, new SyncContainer(tag, capability.getEntity().getId()));
+                });
+    }
+
+    public static void onTracking(LivingEntity entity, ServerPlayer player){
+        AccessoriesAccess.getAPI()
+                .getCapability(entity)
+                .ifPresent(capability -> {
+                    var holder = AccessoriesAccess.getHolder(capability.getEntity());
+
+                    var tag = new CompoundTag();
+
+                    holder.write(tag);
+
+                    AccessoriesAccess.getHandler().sendToPlayer(player, new SyncContainer(tag, capability.getEntity().getId()));
+                });
+    }
+
     public static void dataSync(@Nullable PlayerList list, @Nullable ServerPlayer player){
+        var api = AccessoriesAccess.getAPI();
+
         var networkHandler = AccessoriesAccess.getHandler();
         var syncPacket = SyncData.create();
 
@@ -107,6 +141,16 @@ public class AccessoriesEventHandler {
 
             for (var player1 : list.getPlayers()) {
                 networkHandler.sendToPlayer(player1, new SyncData(buf));
+
+                api.getCapability(player1).ifPresent(capability -> {
+                    var holder = AccessoriesAccess.getHolder(capability.getEntity());
+
+                    var tag = new CompoundTag();
+
+                    holder.write(tag);
+
+                    networkHandler.sendToTrackingAndSelf(player1, new SyncContainer(tag, capability.getEntity().getId()));
+                });
             }
 
             buf.release();
@@ -115,6 +159,16 @@ public class AccessoriesEventHandler {
             //TODO: HANDLE SCREEN STUFF??
         } else if(player != null){
             networkHandler.sendToPlayer(player, syncPacket);
+
+            api.getCapability(player).ifPresent(capability -> {
+                var holder = AccessoriesAccess.getHolder(capability.getEntity());
+
+                var tag = new CompoundTag();
+
+                holder.write(tag);
+
+                networkHandler.sendToTrackingAndSelf(player, new SyncContainer(tag, capability.getEntity().getId()));
+            });
             //--
             //TODO: HANDLE SCREEN STUFF??
         }
@@ -222,7 +276,7 @@ public class AccessoriesEventHandler {
                 Set<AccessoriesContainer> updatedContainers = capability.getUpdatingInventories();
 
                 if(!dirtyStacks.isEmpty() || !dirtyCosmeticStacks.isEmpty() || !updatedContainers.isEmpty()) {
-                    var packet = new SyncContainers(entity.getId(), updatedContainers, dirtyStacks, dirtyCosmeticStacks);
+                    var packet = new SyncContainerData(entity.getId(), updatedContainers, dirtyStacks, dirtyCosmeticStacks);
 
                     var bufData = AccessoriesNetworkHandler.createBuf();
 
@@ -230,7 +284,7 @@ public class AccessoriesEventHandler {
 
                     var networkHandler = AccessoriesAccess.getHandler();
 
-                    networkHandler.sendToTrackingAndSelf(entity, (Supplier<SyncContainers>) () -> new SyncContainers(bufData));
+                    networkHandler.sendToTrackingAndSelf(entity, (Supplier<SyncContainerData>) () -> new SyncContainerData(bufData));
 
                     bufData.release();
                 }

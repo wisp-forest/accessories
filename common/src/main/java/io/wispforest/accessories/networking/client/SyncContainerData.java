@@ -20,20 +20,20 @@ import java.util.Set;
  * Catch all packet for handling syncing of containers and accessories within the main container
  * and cosmetic variant with the ability for such to be sync separately
  */
-public class SyncContainers extends CacheableAccessoriesPacket {
+public class SyncContainerData extends CacheableAccessoriesPacket {
 
     private int entityId;
     private Map<String, CompoundTag> updatedContainers;
     private Map<String, ItemStack> dirtyStacks;
     private Map<String, ItemStack> dirtyCosmeticStacks;
 
-    public SyncContainers(){ super(); }
+    public SyncContainerData(){ super(); }
 
-    public SyncContainers(FriendlyByteBuf buf){
+    public SyncContainerData(FriendlyByteBuf buf){
         super(buf);
     }
 
-    public SyncContainers(int entityId, Set<AccessoriesContainer> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks){
+    public SyncContainerData(int entityId, Set<AccessoriesContainer> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks){
         this.entityId = entityId;
 
         var updatedContainerTags = new HashMap<String, CompoundTag>();
