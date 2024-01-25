@@ -15,6 +15,7 @@
   "accessories.slot.belt": "Belt",
   "accessories.slot.anklet": "Anklet",
   "accessories.slot.shoes": "Shoes",
-  "accessories.slot.charm": "Charm"
-
+  "accessories.slot.charm": "Charm",
+  "accessories.key.category.accessories": "Accessories",
+  "accessories.key.open_accessories_screen": "Open Accessories Screen"
 }

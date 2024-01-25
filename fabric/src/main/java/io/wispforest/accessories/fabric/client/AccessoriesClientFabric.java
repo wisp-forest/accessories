@@ -22,6 +22,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import org.lwjgl.glfw.GLFW;
 
+import static io.wispforest.accessories.Accessories.MODID;
+
 public class AccessoriesClientFabric implements ClientModInitializer {
 
     public static KeyMapping OPEN_SCREEN;
@@ -30,7 +32,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
     public void onInitializeClient() {
         AccessoriesClient.init();
 
-        OPEN_SCREEN = KeyBindingHelper.registerKeyBinding(new KeyMapping("open_accessories_screen", GLFW.GLFW_KEY_H, Accessories.MODID));
+        OPEN_SCREEN = KeyBindingHelper.registerKeyBinding(new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories"));
 
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (OPEN_SCREEN.consumeClick()){
