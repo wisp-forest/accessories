@@ -121,7 +121,7 @@ public class SyncContainerData extends CacheableAccessoriesPacket {
             var container = containers.get(slot);
 
             try {
-                container.getAccessories().setItem(Integer.parseInt(parts[1]), entry.getValue());
+                container.getCosmeticAccessories().setItem(Integer.parseInt(parts[1]), entry.getValue());
             } catch (NumberFormatException ignored){}
         }
     }

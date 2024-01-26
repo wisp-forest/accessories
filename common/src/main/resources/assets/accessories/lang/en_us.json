@@ -1,6 +1,8 @@
 {
   "accessories.slot.tooltip.singular": "Slot: ",
   "accessories.slot.tooltip.plural": "Slots: ",
+  "accessories.cosmetic_slot.tooltip.singular": "Cosmetic Slot: ",
+  "accessories.cosmetic_slot.tooltip.plural": "Cosmetic Slots: ",
   "accessories.slot.any": "Any",
   "accessories.tooltip.attributes.any": "When Equipped:",
   "accessories.tooltip.attributes.slot": "When Equipped in {}:",

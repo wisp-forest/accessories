@@ -93,6 +93,9 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
             }
         }
 
+        this.accessories = newAccessories;
+        this.cosmeticAccessories = newCosmetics;
+
         var api = AccessoriesAccess.getAPI();
         var livingEntity = this.capability.getEntity();
 

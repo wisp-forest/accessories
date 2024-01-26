@@ -4,6 +4,8 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.mixin.ScreenAccessor;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
@@ -16,6 +18,10 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 public class AccessoriesScreen extends EffectRenderingInventoryScreen<AccessoriesMenu> {
 
     public static final ResourceLocation SLOT_FRAME = Accessories.of("textures/gui/slot.png");
@@ -27,9 +33,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     private float xMouse;
     private float yMouse;
-    private boolean widthTooNarrow;
-
-    protected AccessoriesViewComponent viewComponent = new AccessoriesViewComponent();
 
     public AccessoriesScreen(AccessoriesMenu menu, Inventory inventory, Component component) {
         super(menu, inventory, component);
@@ -63,16 +66,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-
-        //this.viewComponent.render(guiGraphics, mouseX, mouseY, partialTick);
-
-
-
-//        if (this.widthTooNarrow) {
-            this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
-//        } else {
-//            super.render(guiGraphics, mouseX, mouseY, partialTick);
-//        }
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
 
         for (Slot slot : this.menu.slots) {
             if(!(slot.container instanceof ExpandedSimpleContainer)) continue;
@@ -106,21 +100,36 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     @Override
     protected void init() {
         super.init();
-        this.widthTooNarrow = this.width < 379;
-        //this.viewComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow, this.menu);
-//        this.leftPos = this.viewComponent.updateScreenPosition(this.width, this.imageWidth);
-////            this.addRenderableWidget(new ImageButton(this.leftPos + 104, this.height / 2 - 22, 20, 18, RecipeBookComponent.RECIPE_BUTTON_SPRITES, button -> {
-////                //this.viewComponent.toggleVisibility();
-////                this.leftPos = this.viewComponent.updateScreenPosition(this.width, this.imageWidth);
-////                button.setPosition(this.leftPos + 104, this.height / 2 - 22);
-////                //this.buttonClicked = true;
-////            }));
 
         var button = Button.builder(Component.empty(), (btn) -> {})
                 .bounds(this.leftPos - 59, this.topPos + 7, 8, 6)
                 .build();
 
         this.addRenderableWidget(button);
+    }
+
+    @Override
+    protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
+        if(this.hoveredSlot instanceof AccessoriesSlot accessoriesSlot && accessoriesSlot.getItem().isEmpty()){
+            var slotType = accessoriesSlot.container.slotType();
+
+            if(slotType.isPresent()){
+                List<Component> tooltipData = new ArrayList<>();
+
+                var key = accessoriesSlot.isCosmetic ? "cosmetic_" : "";
+
+                tooltipData.add(
+                        Component.translatable(Accessories.translation(key + "slot.tooltip.singular")).withStyle(ChatFormatting.GRAY)
+                                .append(Component.translatable(slotType.get().translation()).withStyle(ChatFormatting.BLUE))
+                );
+
+                guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
+
+                return;
+            }
+        }
+
+        super.renderTooltip(guiGraphics, x, y);
     }
 
     @Override

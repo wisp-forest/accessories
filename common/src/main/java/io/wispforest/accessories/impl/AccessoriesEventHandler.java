@@ -266,8 +266,8 @@ public class AccessoriesEventHandler {
 
                 if(!ItemStack.matches(currentCosmeticStack, lastCosmeticStack)){
                     if(!entity.level().isClientSide()) {
-                        dirtyCosmeticStacks.put(slotId, currentCosmeticStack.copy());
                         cosmetics.setPreviousItem(i, currentCosmeticStack.copy());
+                        dirtyCosmeticStacks.put(slotId, currentCosmeticStack.copy());
                     }
                 }
             }
@@ -333,7 +333,11 @@ public class AccessoriesEventHandler {
 
         var slotTranslationKey = "slot.tooltip." + ((slotTypes.size() > 1 && !allSlots) ? "plural" : "singular");
 
-        slotInfoComponent.append(Component.translatable(Accessories.translation(slotTranslationKey)).append(slotsComponent));
+        slotInfoComponent.append(
+                Component.translatable(Accessories.translation(slotTranslationKey))
+                        .withStyle(ChatFormatting.GRAY)
+                        .append(slotsComponent.withStyle(ChatFormatting.BLUE))
+        );
 
         tooltip.add(slotInfoComponent);
 
@@ -364,13 +368,19 @@ public class AccessoriesEventHandler {
 
         if(allDuplicates){
             var attributeTooltip = new ArrayList<Component>();
-            attributeTooltip.add(Component.translatable(Accessories.translation("tooltip.attributes.any")));
+            attributeTooltip.add(
+                    Component.translatable(Accessories.translation("tooltip.attributes.any"))
+                            .withStyle(ChatFormatting.GRAY)
+            );
             addAttributeTooltip(defaultModifiers, attributeTooltip);
 
             slotTypeToTooltipInfo.put(null, attributeTooltip);
         } else {
             for (var slotModifiers : slotSpecificModifiers.entrySet()) {
-                tooltip.add(Component.translatable(Accessories.translation("tooltip.attributes.slot")));
+                tooltip.add(
+                        Component.translatable(Accessories.translation("tooltip.attributes.slot"))
+                                .withStyle(ChatFormatting.GRAY)
+                );
                 addAttributeTooltip(slotModifiers.getValue(), tooltip);
             }
         }
@@ -405,7 +415,10 @@ public class AccessoriesEventHandler {
 
         if(slotTypeToTooltipInfo.size() > 1) {
             for (var entry : slotTypeToTooltipInfo.entrySet()) {
-                tooltip.add(Component.translatable(Accessories.translation("tooltip.attributes.slot"), Component.translatable(entry.getKey().translation())));
+                tooltip.add(
+                        Component.translatable(Accessories.translation("tooltip.attributes.slot"), Component.translatable(entry.getKey().translation()))
+                                .withStyle(ChatFormatting.GRAY)
+                );
                 tooltip.addAll(entry.getValue());
             }
         } else {

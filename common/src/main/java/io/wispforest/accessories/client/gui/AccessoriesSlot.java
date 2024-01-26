@@ -1,9 +1,11 @@
 package io.wispforest.accessories.client.gui;
 
 import com.mojang.datafixers.util.Pair;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.SlotReference;
+import io.wispforest.accessories.api.SlotType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
@@ -42,7 +44,7 @@ public class AccessoriesSlot extends Slot {
                     .ifPresent(prevAccessory1 -> prevAccessory1.onUnequip(prevStack, reference));
 
             api.getAccessory(stack)
-                    .ifPresent(accessory1 -> accessory1.onEquip(stack, new SlotReference(container.getSlotName(), entity, getContainerSlot())));
+                    .ifPresent(accessory1 -> accessory1.onEquip(stack, reference));
         }
 
         container.markChanged();
@@ -57,7 +59,7 @@ public class AccessoriesSlot extends Slot {
 
     @Override
     public boolean mayPlace(ItemStack stack) {
-        if(isCosmetic) return true;
+        //if(isCosmetic) return true;
 
         return AccessoriesAPI.instance().canInsertIntoSlot(entity, new SlotReference(container.getSlotName(), entity, getContainerSlot()), stack);
     }
@@ -80,8 +82,12 @@ public class AccessoriesSlot extends Slot {
 
         // Thanks to mojang you can not access the GUI atlas from this call and you must use Atlases from ModelManager.
         // )::::::::::::::::::::::::::::::
-        return slotType.map(type -> new Pair<>(new ResourceLocation("textures/atlas/blocks.png"), type.icon()))
-                .orElse(null);
+
+        var spriteLocation = slotType.map(SlotType::icon).orElse(null);
+
+        if(isCosmetic) spriteLocation = Accessories.of("gui/slot/cosmetic");
+
+        return new Pair<>(new ResourceLocation("textures/atlas/blocks.png"), spriteLocation);
     }
 
     @Override

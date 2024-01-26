@@ -7,7 +7,7 @@ import java.util.Set;
 
 public interface SlotType {
 
-    ResourceLocation EMPTY_SLOT_LOCATION = Accessories.of("gui/slot/empty_slot");
+    ResourceLocation EMPTY_SLOT_LOCATION = Accessories.of("gui/slot/empty");
 
     /**
      * Name of Slot
