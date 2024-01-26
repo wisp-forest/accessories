@@ -8,6 +8,6 @@ import java.util.Optional;
 public record SlotReference(String slotName, LivingEntity entity, int slot) {
 
     public Optional<SlotType> type(){
-        return AccessoriesAccess.getAPI().getSlotType(entity.level(), this.slotName);
+        return AccessoriesAPI.getSlotType(entity.level(), this.slotName);
     }
 }

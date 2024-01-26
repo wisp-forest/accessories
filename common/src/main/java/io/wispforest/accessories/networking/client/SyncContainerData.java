@@ -1,6 +1,7 @@
 package io.wispforest.accessories.networking.client;
 
 import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
 import io.wispforest.accessories.networking.CacheableAccessoriesPacket;
@@ -81,11 +82,9 @@ public class SyncContainerData extends CacheableAccessoriesPacket {
 
         var entity = level.getEntity(entityId);
 
-        var api = AccessoriesAccess.getAPI();
-
         if(!(entity instanceof LivingEntity livingEntity)) return;
 
-        var capability = api.getCapability(livingEntity);
+        var capability = AccessoriesAPI.getCapability(livingEntity);
 
         if(capability.isEmpty()) return;
 

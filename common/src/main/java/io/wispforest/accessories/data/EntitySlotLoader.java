@@ -20,6 +20,10 @@ import org.slf4j.Logger;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Resource Reload in which handles the loading of {@link SlotType}'s bindings
+ * to the targeted {@link EntityType} though a {@link TagKey} or {@link ResourceLocation}
+ */
 public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
     private static final Logger LOGGER = LogUtils.getLogger();

@@ -38,12 +38,10 @@ public class AccessoriesSlot extends Slot {
         if(isCosmetic) {
             var reference = new SlotReference(container.getSlotName(), entity, getContainerSlot());
 
-            var api = AccessoriesAPI.instance();
-
-            api.getAccessory(prevStack)
+            AccessoriesAPI.getAccessory(prevStack)
                     .ifPresent(prevAccessory1 -> prevAccessory1.onUnequip(prevStack, reference));
 
-            api.getAccessory(stack)
+            AccessoriesAPI.getAccessory(stack)
                     .ifPresent(accessory1 -> accessory1.onEquip(stack, reference));
         }
 
@@ -61,7 +59,7 @@ public class AccessoriesSlot extends Slot {
     public boolean mayPlace(ItemStack stack) {
         //if(isCosmetic) return true;
 
-        return AccessoriesAPI.instance().canInsertIntoSlot(entity, new SlotReference(container.getSlotName(), entity, getContainerSlot()), stack);
+        return AccessoriesAPI.canInsertIntoSlot(entity, new SlotReference(container.getSlotName(), entity, getContainerSlot()), stack);
     }
 
     @Override
@@ -69,7 +67,7 @@ public class AccessoriesSlot extends Slot {
         if(isCosmetic) return true;
 
         var stack = this.getItem();
-        var accessory = AccessoriesAPI.instance().getAccessory(stack);
+        var accessory = AccessoriesAPI.getAccessory(stack);
 
         return accessory.map(value -> value.canUnequip(stack, new SlotReference(container.getSlotName(), entity, getContainerSlot())))
                 .orElseGet(() -> super.mayPickup(player));

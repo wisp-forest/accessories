@@ -5,6 +5,9 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.Set;
 
+/**
+ * A Holder for information pertaining to a given Slot entry registered
+ */
 public interface SlotType {
 
     ResourceLocation EMPTY_SLOT_LOCATION = Accessories.of("gui/slot/empty");
@@ -33,16 +36,14 @@ public interface SlotType {
      */
     int amount();
 
+    /**
+     * Set of ResourceLocation used to check if such is a valid slot for given entry. Check {@link AccessoriesAPI#canInsertIntoSlot}
+     */
     Set<ResourceLocation> validators();
 
+    /**
+     * Drop Rule used to result in item drops on Death
+     */
     DropRule dropRule();
 
-    boolean hasCosmetics();
-
-    enum DropRule {
-        KEEP,
-        DROP,
-        DESTROY,
-        DEFAULT
-    }
 }

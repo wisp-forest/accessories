@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Main class used to register and hold {@link AccessoryRenderer}'s for the given items
+ */
 public class AccessoriesRendererRegistery {
 
     private static final Map<Item, AccessoryRenderer> RENDERERS = new HashMap<>();

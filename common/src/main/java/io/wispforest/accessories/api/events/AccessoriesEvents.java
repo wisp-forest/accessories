@@ -2,8 +2,9 @@ package io.wispforest.accessories.api.events;
 
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.SlotReference;
-import io.wispforest.accessories.api.SlotType;
 import io.wispforest.accessories.impl.event.MergedEvent;
 import net.fabricmc.fabric.api.event.Event;
 import net.minecraft.world.entity.LivingEntity;
@@ -12,6 +13,10 @@ import net.neoforged.bus.api.ICancellableEvent;
 
 public class AccessoriesEvents {
 
+    /**
+     * Event used to check if the given {@link LivingEntity} should drop any of the given {@link Accessory}
+     * found on the entity
+     */
     public static final Event<OnDeath> ON_DEATH_EVENT = new MergedEvent<>(OnDeath.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
                 return (livingEntity, capability) -> {
@@ -60,13 +65,17 @@ public class AccessoriesEvents {
 
     //--
 
+    /**
+     * Event used to check what rule should be followed when handling of {@link Accessory} when
+     * about to drop such on {@link LivingEntity}'s death
+     */
     public static final Event<OnDrop> ON_DROP_EVENT = new MergedEvent<>(OnDrop.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
                 return (dropRule, entity, reference, stack) -> {
                     for (var invoker : invokers) {
                         var dropRule2 = invoker.onDrop(dropRule, entity, reference, stack);
 
-                        if(dropRule2 != SlotType.DropRule.DEFAULT) return dropRule2;
+                        if(dropRule2 != DropRule.DEFAULT) return dropRule2;
                     }
 
                     return bus.map(bus1 -> {
@@ -75,7 +84,7 @@ public class AccessoriesEvents {
                         if(event.isCanceled()){
                             var dropRule2 = event.dropRule;
 
-                            if(dropRule2 != SlotType.DropRule.DEFAULT) return dropRule2;
+                            if(dropRule2 != DropRule.DEFAULT) return dropRule2;
                         }
 
                         return dropRule;
@@ -85,18 +94,18 @@ public class AccessoriesEvents {
     );
 
     public interface OnDrop {
-        SlotType.DropRule onDrop(SlotType.DropRule dropRule, LivingEntity entity, SlotReference reference, ItemStack stack);
+        DropRule onDrop(DropRule dropRule, LivingEntity entity, SlotReference reference, ItemStack stack);
     }
 
     public static class OnDropEvent extends net.neoforged.bus.api.Event implements ICancellableEvent {
-        private SlotType.DropRule dropRule;
+        private DropRule dropRule;
 
         private final LivingEntity livingEntity;
         private final SlotReference reference;
 
         private final ItemStack stack;
 
-        public OnDropEvent(SlotType.DropRule dropRule, LivingEntity entity, SlotReference reference, ItemStack stack){
+        public OnDropEvent(DropRule dropRule, LivingEntity entity, SlotReference reference, ItemStack stack){
             this.dropRule = dropRule;
 
             this.livingEntity = entity;
@@ -105,11 +114,11 @@ public class AccessoriesEvents {
             this.stack = stack;
         }
 
-        public final SlotType.DropRule dropRule() {
+        public final DropRule dropRule() {
             return this.dropRule;
         }
 
-        private final void setDropRule(SlotType.DropRule dropRule){
+        private final void setDropRule(DropRule dropRule){
             this.dropRule = dropRule;
         }
 
@@ -128,6 +137,9 @@ public class AccessoriesEvents {
 
     //--
 
+    /**
+     * Event fired on the Equip of the following {@link Accessory} for the given {@link LivingEntity}
+     */
     public Event<OnEquip> ON_EQUIP_EVENT = new MergedEvent<>(OnEquip.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
                 return (entity, reference, stack) -> {
@@ -173,6 +185,9 @@ public class AccessoriesEvents {
 
     //--
 
+    /**
+     * Event fired on the Unequip of the following {@link Accessory} for the given {@link LivingEntity}
+     */
     public Event<OnUnequip> ON_UNEQUIP_EVENT = new MergedEvent<>(OnUnequip.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
                 return (entity, reference, stack) -> {

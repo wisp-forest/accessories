@@ -1,11 +1,11 @@
 package io.wispforest.accessories.fabric.client;
 
-import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
-import io.wispforest.accessories.fabric.AccessoriesAPIImpl;
+import io.wispforest.accessories.fabric.AccessoriesFabric;
 import io.wispforest.accessories.fabric.AppleAccessory;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
@@ -55,16 +55,14 @@ public class AccessoriesClientFabric implements ClientModInitializer {
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
-                var lookup = AccessoriesAPIImpl.INSTANCE.CAPABILITY;
+                var lookup = AccessoriesFabric.CAPABILITY;
 
                 if(lookup.getProvider(entityType) != null) continue;
 
                 lookup.registerForType((entity, unused) -> {
-                    var api = AccessoriesAccess.getAPI();
-
                     if(!(entity instanceof LivingEntity livingEntity)) return null;
 
-                    var slots = api.getEntitySlots(livingEntity);
+                    var slots = AccessoriesAPI.getEntitySlots(livingEntity);
 
                     if(slots.isEmpty()) return null;
 

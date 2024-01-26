@@ -3,6 +3,7 @@ package io.wispforest.accessories.fabric;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.SlotReference;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
@@ -25,9 +26,8 @@ public class AppleAccessory implements Accessory {
 
         if (player.getFoodData().getFoodLevel() > 16) return;
 
-        var api = AccessoriesAccess.getAPI();
 
-        if (!api.getCapability(player).get().isEquipped(Items.APPLE)) return;
+        if (!AccessoriesAPI.getCapability(player).get().isEquipped(Items.APPLE)) return;
 
         player.getFoodData().eat(Items.APPLE, stack);
         stack.shrink(1);

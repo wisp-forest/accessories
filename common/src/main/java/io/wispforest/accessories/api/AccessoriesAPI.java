@@ -24,45 +24,69 @@ import org.slf4j.Logger;
 
 import java.util.*;
 
-public abstract class AccessoriesAPI {
+/**
+ * Base implementation of API
+ */
+public class AccessoriesAPI {
 
-    protected static final Logger LOGGER = LogUtils.getLogger();
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     public static final Accessory DEFAULT = new Accessory() {};
 
     private static final Map<String, UUID> CACHED_UUIDS = new HashMap<>();
 
-    private final Map<ResourceLocation, SlotBasedPredicate> PREDICATE_REGISTRY = new HashMap<>();
+    private static final Map<ResourceLocation, SlotBasedPredicate> PREDICATE_REGISTRY = new HashMap<>();
 
-    protected AccessoriesAPI(){
-        initDefaultPredicates();
-    }
+    private static final Map<Item, Accessory> REGISTER = new HashMap<>();
 
     //--
 
-    public static AccessoriesAPI instance(){
-        return AccessoriesAccess.getAPI();
+    /**
+     * @return The Capability Bound to the given living entity if such is present
+     */
+    public static Optional<AccessoriesCapability> getCapability(LivingEntity livingEntity){
+        return AccessoriesAccess.getCapability(livingEntity);
     }
 
-    public abstract Optional<AccessoriesCapability> getCapability(LivingEntity livingEntity);
+    /**
+     * Main method to register a given {@link Item} to given {@link Accessory}
+     */
+    public static void registerAccessory(Item item, Accessory accessory) {
+        REGISTER.put(item, accessory);
+    }
 
-    public abstract void registerAccessory(Item item, Accessory accessory);
+    /**
+     * Attempt to get a {@link Accessory} bound to an {@link Item} or an Empty {@link Optional}
+     */
+    public static Optional<Accessory> getAccessory(Item item) {
+        return Optional.ofNullable(REGISTER.get(item));
+    }
 
-    public Optional<Accessory> getAccessory(ItemStack stack){
+    /**
+     * Attempt to get a {@link Accessory} bound to an {@link ItemStack}'s Item or an Empty {@link Optional}
+     */
+    public static Optional<Accessory> getAccessory(ItemStack stack){
         return getAccessory(stack.getItem());
     }
 
-    public abstract Optional<Accessory> getAccessory(Item item);
-
-    public Accessory getOrDefaultAccessory(ItemStack stack){
+    /**
+     * Get any bound {@link Accessory} to the given {@link ItemStack}'s Item or return {@link #DEFAULT} Accessory
+     */
+    public static Accessory getOrDefaultAccessory(ItemStack stack){
         return getOrDefaultAccessory(stack.getItem());
     }
 
-    public Accessory getOrDefaultAccessory(Item item){
+    /**
+     * Get any bound {@link Accessory} to the given {@link Item} or return {@link #DEFAULT} Accessory
+     */
+    public static Accessory getOrDefaultAccessory(Item item){
         return getAccessory(item).orElse(defaultAccessory());
     }
 
-    public Accessory defaultAccessory(){
+    /**
+     * @return Default {@link Accessory}
+     */
+    public static Accessory defaultAccessory(){
         return DEFAULT;
     }
 
@@ -70,7 +94,6 @@ public abstract class AccessoriesAPI {
 
     public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(ItemStack stack, SlotReference reference, UUID uuid){
         Multimap<Attribute, AttributeModifier> multimap = HashMultimap.create();
-        var api = AccessoriesAccess.getAPI();
 
         if(stack.getTag() != null && stack.getTag().contains("AccessoriesAttributeModifiers", Tag.TAG_LIST)){
             var attributes = stack.getTag().getList("AccessoriesAttributeModifiers", Tag.TAG_COMPOUND);
@@ -97,7 +120,7 @@ public abstract class AccessoriesAPI {
                     if(attributeType.getNamespace().equals(Accessories.MODID)){
                         var slotName = attributeType.getPath();
 
-                        if(!api.getAllSlots(reference.entity().level()).containsKey(slotName)) continue;
+                        if(!AccessoriesAPI.getAllSlots(reference.entity().level()).containsKey(slotName)) continue;
 
                         multimap.put(SlotAttribute.getSlotAttribute(slotName), attributeModifier);
                     } else {
@@ -113,60 +136,78 @@ public abstract class AccessoriesAPI {
 
         //TODO: Decide if such presents of modifiers prevents the accessory modifiers from existing
 
-        api.getAccessory(stack).ifPresent(accessory -> accessory.getModifiers(stack, reference, uuid));
+        AccessoriesAPI.getAccessory(stack).ifPresent(accessory -> accessory.getModifiers(stack, reference, uuid));
 
         return multimap;
     }
 
-    public UUID getOrCreateSlotUUID(SlotType slotType, int index) {
+    /**
+     * @return {@link UUID} based on the provided {@link SlotType#name} and entry index
+     */
+    public static UUID getOrCreateSlotUUID(SlotType slotType, int index) {
         return getOrCreateSlotUUID(slotType.name(), index);
     }
 
-    public UUID getOrCreateSlotUUID(String slotName, int index) {
+    /**
+     * @return {@link UUID} based on the provided slot name and entry index
+     */
+    public static UUID getOrCreateSlotUUID(String slotName, int index) {
         return CACHED_UUIDS.computeIfAbsent(
-                slottedId(slotName, index),
+                slotName + "/" + index,
                 s -> UUID.nameUUIDFromBytes(s.getBytes())
         );
     }
 
-    public static String slottedId(SlotType slotType, int index) {
-        return slottedId(slotType.name(), index);
-    }
-
-    public static String slottedId(String slotName, int index) {
-        return slotName + "/" + index;
-    }
-
     //--
 
-    public Map<String, SlotType> getEntitySlots(LivingEntity livingEntity){
-        return getSlots(livingEntity.level(), livingEntity.getType());
+    /**
+     * @return The valid {@link SlotType}'s for given {@link LivingEntity} based on its {@link EntityType}
+     */
+    public static Map<String, SlotType> getEntitySlots(LivingEntity livingEntity){
+        return getEntitySlots(livingEntity.level(), livingEntity.getType());
     }
 
-    public Map<String, SlotType> getSlots(Level level, EntityType<?> entityType){
+    /**
+     * @return The valid {@link SlotType}'s for given {@link EntityType}
+     */
+    public static Map<String, SlotType> getEntitySlots(Level level, EntityType<?> entityType){
         var map = EntitySlotLoader.INSTANCE.getSlotTypes(level.isClientSide, entityType);
 
         return map != null ? map : Map.of();
     }
 
-    public Optional<SlotType> getSlotType(Level level, String name){
-        return Optional.ofNullable(getAllSlots(level).get(name));
+    /**
+     * Attempt to get the given SlotType based on the provided slotName
+     */
+    public static Optional<SlotType> getSlotType(Level level, String slotName){
+        return Optional.ofNullable(getAllSlots(level).get(slotName));
     }
 
-    public Map<String, SlotType> getAllSlots(Level level){
+    /**
+     * Get all SlotTypes registered
+     */
+    public static Map<String, SlotType> getAllSlots(Level level){
         return SlotTypeLoader.INSTANCE.getSlotTypes(level);
     }
 
     //--
 
-    public boolean canInsertIntoSlot(LivingEntity entity, SlotReference reference, ItemStack stack){
+    /**
+     * Used to check if the given {@link ItemStack} is valid for the given LivingEntity and SlotReference
+     * based on {@link SlotBasedPredicate}s bound to the Slot and the {@link Accessory} bound to the stack if present
+     */
+    public static boolean canInsertIntoSlot(LivingEntity entity, SlotReference reference, ItemStack stack){
         var predicates = reference.type().map(SlotType::validators).orElse(Set.of());
 
         return getPredicateResults(predicates, entity, reference, stack)
                 && getAccessory(stack).map(accessory -> accessory.canEquip(stack, reference)).orElse(false);
     }
 
-    public Collection<SlotType> getValidSlotTypes(LivingEntity entity, ItemStack stack){
+    /**
+     * @return All valid {@link SlotType}s for the given {@link ItemStack} based on the {@link LivingEntity}
+     * available {@link SlotType}s
+     */
+    public static Collection<SlotType> getValidSlotTypes(LivingEntity entity, ItemStack stack){
         var slots = getEntitySlots(entity);
 
         var validSlots = new ArrayList<SlotType>();
@@ -194,11 +235,14 @@ public abstract class AccessoriesAPI {
 
     //--
 
-    public Optional<SlotBasedPredicate> getPredicate(ResourceLocation location) {
+    /**
+     * @return {@link SlotBasedPredicate} bound to the given {@link ResourceLocation} or an Empty {@link Optional} if absent
+     */
+    public static Optional<SlotBasedPredicate> getPredicate(ResourceLocation location) {
         return Optional.ofNullable(PREDICATE_REGISTRY.get(location));
     }
 
-    public void registerPredicate(ResourceLocation location, SlotBasedPredicate predicate) {
+    public static void registerPredicate(ResourceLocation location, SlotBasedPredicate predicate) {
         if(PREDICATE_REGISTRY.containsKey(location)) {
             LOGGER.warn("[AccessoriesAPI]: A SlotBasedPredicate attempted to be registered but a duplicate entry existed already! [Id: " + location + "]");
 
@@ -208,7 +252,7 @@ public abstract class AccessoriesAPI {
         PREDICATE_REGISTRY.put(location, predicate);
     }
 
-    public boolean getPredicateResults(Set<ResourceLocation> predicateIds, LivingEntity entity, SlotReference reference, ItemStack stack){
+    public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, LivingEntity entity, SlotReference reference, ItemStack stack){
         InteractionResult result = InteractionResult.PASS;
 
         for (var predicateId : predicateIds) {
@@ -224,9 +268,13 @@ public abstract class AccessoriesAPI {
         return result.consumesAction();
     }
 
+    /**
+     * TagKey in which allows for a given Item to pass {@link SlotBasedPredicate} allowing such to be equipped if
+     * desired
+     */
     public static final TagKey<Item> ALL_ACCESSORIES = TagKey.create(Registries.ITEM, Accessories.of("all"));
 
-    private void initDefaultPredicates(){
+    static {
         registerPredicate(Accessories.of("all"), (entity, reference, stack) -> InteractionResult.SUCCESS);
         registerPredicate(Accessories.of("none"), (entity, reference, stack) -> InteractionResult.FAIL);
         registerPredicate(Accessories.of("tag"), (entity, reference, stack) -> {

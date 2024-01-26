@@ -1,10 +1,7 @@
 package io.wispforest.accessories.impl;
 
 import io.wispforest.accessories.AccessoriesAccess;
-import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.api.SlotType;
+import io.wispforest.accessories.api.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -29,10 +26,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
         this.slotContainers.clear();
         this.invalidStacks.clear();
 
-        var api = AccessoriesAccess.getAPI();
-
         if(loadedFromTag) {
-            api.getEntitySlots(livingEntity).forEach((s, slotType) -> {
+            AccessoriesAPI.getEntitySlots(livingEntity).forEach((s, slotType) -> {
                 slotContainers.putIfAbsent(s, new AccessoriesContainerImpl(capability, slotType));
             });
 
@@ -40,7 +35,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
 
             return;
         } else {
-            api.getEntitySlots(livingEntity).forEach((s, slotType) -> {
+            AccessoriesAPI.getEntitySlots(livingEntity).forEach((s, slotType) -> {
                 slotContainers.put(s, new AccessoriesContainerImpl(capability, slotType));
             });
         }
@@ -69,7 +64,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
     }
 
     public void read(LivingEntity entity, CompoundTag tag) {
-        var slots = AccessoriesAccess.getAPI().getEntitySlots(entity);
+        var slots = AccessoriesAPI.getEntitySlots(entity);
 
         var containersTag = tag.getCompound(MAIN_KEY);
 

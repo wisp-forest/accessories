@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.SlotType;
 import io.wispforest.accessories.impl.SlotTypeImpl;
 import net.minecraft.resources.ResourceLocation;
@@ -87,7 +88,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
             decodeJsonArray(validators, "validator", location, element -> ResourceLocation.tryParse(element.getAsString()), slotBuilder::validator);
 
-            slotBuilder.dropRule(this.safeHelper((object, s) -> SlotType.DropRule.valueOf(GsonHelper.getAsString(object, s)), jsonObject, "drop_rule", location));
+            slotBuilder.dropRule(this.safeHelper((object, s) -> DropRule.valueOf(GsonHelper.getAsString(object, s)), jsonObject, "drop_rule", location));
 
             var slotType = slotBuilder.create();
 
@@ -105,7 +106,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         private Integer order = null;
         private Integer amount = null;
         private final Set<ResourceLocation> validators = new HashSet<>();
-        private SlotType.DropRule dropRule = null;
+        private DropRule dropRule = null;
 
         public SlotBuilder(String name){
             this.name = name;
@@ -141,7 +142,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             return this;
         }
 
-        public SlotBuilder dropRule(SlotType.DropRule value){
+        public SlotBuilder dropRule(DropRule value){
             this.dropRule = value;
             return this;
         }
@@ -155,7 +156,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
                     Optional.ofNullable(order).orElse(1000),
                     Optional.ofNullable(amount).map(i -> Math.max(i, 0)).orElse(1),
                     validators,
-                    Optional.ofNullable(dropRule).orElse(SlotType.DropRule.DEFAULT)
+                    Optional.ofNullable(dropRule).orElse(DropRule.DEFAULT)
             );
         }
     }

@@ -2,6 +2,7 @@ package io.wispforest.accessories.client;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.SlotGroup;
 import io.wispforest.accessories.api.SlotType;
 import io.wispforest.accessories.client.gui.AccessoriesSlot;
@@ -27,10 +28,8 @@ public class AccessoriesMenu extends InventoryMenu {
 
         var groups = SlotGroupLoader.INSTANCE.getGroups(inventory.player.level().isClientSide);
 
-        var api = AccessoriesAccess.getAPI();
-
         var player = inventory.player;
-        var capability = api.getCapability(player);
+        var capability = AccessoriesAPI.getCapability(player);
 
         int slotScale = 18;
 
@@ -49,7 +48,7 @@ public class AccessoriesMenu extends InventoryMenu {
                 var slotNames = group.slots();
 
                 var slotTypes = slotNames.stream()
-                        .map(s -> api.getSlotType(player.level(), s))
+                        .map(s -> AccessoriesAPI.getSlotType(player.level(), s))
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .sorted(Comparator.comparingInt(SlotType::order).reversed())

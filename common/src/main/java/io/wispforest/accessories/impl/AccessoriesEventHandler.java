@@ -42,17 +42,15 @@ public class AccessoriesEventHandler {
     public static void onWorldTick(Level level){
         if(!dataReloadOccured || !(level instanceof ServerLevel serverLevel)) return;
 
-        var api = AccessoriesAccess.getAPI();
-
         for (var player : serverLevel.getServer().getPlayerList().getPlayers()) {
-            var capability = api.getCapability(player);
+            var capability = AccessoriesAPI.getCapability(player);
 
             if(capability.isEmpty()) continue;
 
-            var validSlotTypes = api.getEntitySlots(player).values();
+            var validSlotTypes = AccessoriesAPI.getEntitySlots(player).values();
 
             for (var containerEntry : capability.get().getContainers().entrySet()) {
-                var slotType = api.getSlotType(level, containerEntry.getKey());
+                var slotType = AccessoriesAPI.getSlotType(level, containerEntry.getKey());
 
                 var container = containerEntry.getValue();
 
@@ -85,8 +83,7 @@ public class AccessoriesEventHandler {
     }
 
     private static void handleInvalidStacks(Container container, SlotReference reference, ServerPlayer player){
-        var bl = AccessoriesAccess.getAPI()
-                .canInsertIntoSlot(player, reference, container.getItem(reference.slot()));
+        var bl = AccessoriesAPI.canInsertIntoSlot(player, reference, container.getItem(reference.slot()));
 
         if(!bl) dropAndRemoveStack(container, reference, player);
     }
@@ -101,8 +98,7 @@ public class AccessoriesEventHandler {
     public static void entityLoad(LivingEntity entity, Level level){
         if(!level.isClientSide() || !(entity instanceof ServerPlayer serverPlayer)) return;
 
-        AccessoriesAccess.getAPI()
-                .getCapability(serverPlayer)
+        AccessoriesAPI.getCapability(serverPlayer)
                 .ifPresent(capability -> {
                     var holder = AccessoriesAccess.getHolder(capability.getEntity());
 
@@ -115,8 +111,7 @@ public class AccessoriesEventHandler {
     }
 
     public static void onTracking(LivingEntity entity, ServerPlayer player){
-        AccessoriesAccess.getAPI()
-                .getCapability(entity)
+        AccessoriesAPI.getCapability(entity)
                 .ifPresent(capability -> {
                     var holder = AccessoriesAccess.getHolder(capability.getEntity());
 
@@ -129,8 +124,6 @@ public class AccessoriesEventHandler {
     }
 
     public static void dataSync(@Nullable PlayerList list, @Nullable ServerPlayer player){
-        var api = AccessoriesAccess.getAPI();
-
         var networkHandler = AccessoriesAccess.getHandler();
         var syncPacket = SyncData.create();
 
@@ -142,7 +135,7 @@ public class AccessoriesEventHandler {
             for (var player1 : list.getPlayers()) {
                 networkHandler.sendToPlayer(player1, new SyncData(buf));
 
-                api.getCapability(player1).ifPresent(capability -> {
+                AccessoriesAPI.getCapability(player1).ifPresent(capability -> {
                     var holder = AccessoriesAccess.getHolder(capability.getEntity());
 
                     var tag = new CompoundTag();
@@ -160,7 +153,7 @@ public class AccessoriesEventHandler {
         } else if(player != null){
             networkHandler.sendToPlayer(player, syncPacket);
 
-            api.getCapability(player).ifPresent(capability -> {
+            AccessoriesAPI.getCapability(player).ifPresent(capability -> {
                 var holder = AccessoriesAccess.getHolder(capability.getEntity());
 
                 var tag = new CompoundTag();
@@ -175,8 +168,7 @@ public class AccessoriesEventHandler {
     }
 
     public static void onLivingEntityTick(LivingEntity entity){
-        var api = AccessoriesAccess.getAPI();
-        var possibleCapability = api.getCapability(entity);
+        var possibleCapability = AccessoriesAPI.getCapability(entity);
 
         if(possibleCapability.isEmpty()) return;
 
@@ -194,14 +186,14 @@ public class AccessoriesEventHandler {
             for (int i = 0; i < accessories.getContainerSize(); i++) {
                 var slotReference = new SlotReference(container.getSlotName(), capability.getEntity(), i);
 
-                var slotId = AccessoriesAPI.slottedId(slotType, i);
+                var slotId = slotType + "/" + i;
 
                 var currentStack = accessories.getItem(i);
 
                 if(!currentStack.isEmpty()){
                     currentStack.inventoryTick(entity.level(), entity, -1, false);
 
-                    api.getAccessory(currentStack).ifPresent(accessory -> accessory.tick(currentStack, slotReference));
+                    AccessoriesAPI.getAccessory(currentStack).ifPresent(accessory -> accessory.tick(currentStack, slotReference));
                 }
 
                 var lastStack = accessories.getPreviousItem(i);
@@ -210,10 +202,10 @@ public class AccessoriesEventHandler {
                     if(!entity.level().isClientSide()) {
                         accessories.setPreviousItem(i, currentStack.copy());
                         dirtyStacks.put(slotId, currentStack.copy());
-                        var uuid = api.getOrCreateSlotUUID(slotType, i);
+                        var uuid = AccessoriesAPI.getOrCreateSlotUUID(slotType, i);
 
                         if (!lastStack.isEmpty()) {
-                            Accessory accessory = api.getOrDefaultAccessory(lastStack);
+                            Accessory accessory = AccessoriesAPI.getOrDefaultAccessory(lastStack);
                             Multimap<Attribute, AttributeModifier> attributes = accessory.getModifiers(lastStack, slotReference, uuid);
                             Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
 
@@ -233,7 +225,7 @@ public class AccessoriesEventHandler {
                         }
 
                         if (!currentStack.isEmpty()) {
-                            Accessory accessory = api.getOrDefaultAccessory(currentStack);
+                            Accessory accessory = AccessoriesAPI.getOrDefaultAccessory(currentStack);
                             Multimap<Attribute, AttributeModifier> attributes = accessory.getModifiers(currentStack, slotReference, uuid);
                             Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
 
@@ -254,8 +246,8 @@ public class AccessoriesEventHandler {
                     }
 
                     if(!ItemStack.isSameItem(currentStack, lastStack)){
-                        api.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);
-                        api.getOrDefaultAccessory(currentStack.getItem()).onEquip(currentStack, slotReference);
+                        AccessoriesAPI.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);
+                        AccessoriesAPI.getOrDefaultAccessory(currentStack.getItem()).onEquip(currentStack, slotReference);
                     }
                 }
 
@@ -293,19 +285,17 @@ public class AccessoriesEventHandler {
     }
 
     public static void addTooltipInfo(LivingEntity entity, ItemStack stack, List<Component> tooltip){
-        var api = AccessoriesAccess.getAPI();
-
-        var accessory = api.getAccessory(stack);
+        var accessory = AccessoriesAPI.getAccessory(stack);
 
         if(accessory.isEmpty()) return;
 
         // TODO: MAYBE DEPENDING ON ENTITY OR SOMETHING SHOW ALL VALID SLOTS BUT COLOR CODE THEM IF NOT VALID FOR ENTITY?
-        var slotTypes = api.getValidSlotTypes(entity, stack);
-        var allSlotTypes = api.getAllSlots(entity.level());
+        var slotTypes = AccessoriesAPI.getValidSlotTypes(entity, stack);
+        var allSlotTypes = AccessoriesAPI.getAllSlots(entity.level());
 
         if(slotTypes.isEmpty()) return;
 
-        var capability = api.getCapability(entity);
+        var capability = AccessoriesAPI.getCapability(entity);
 
         if(capability.isEmpty()) return;
 
@@ -348,7 +338,7 @@ public class AccessoriesEventHandler {
 
         for (SlotType slotType : slotTypes) {
             var reference = new SlotReference(slotType.name(), entity, 0);
-            var uuid = api.getOrCreateSlotUUID(slotType, 0);
+            var uuid = AccessoriesAPI.getOrCreateSlotUUID(slotType, 0);
 
             var slotModifiers = accessory.get().getModifiers(stack, reference, uuid);
 
@@ -472,9 +462,7 @@ public class AccessoriesEventHandler {
     }
 
     public static void onDeath(LivingEntity entity, DamageSource damageSource){
-        var api = AccessoriesAccess.getAPI();
-
-        var capability = api.getCapability(entity);
+        var capability = AccessoriesAPI.getCapability(entity);
 
         if(capability.isEmpty()) return;
 
@@ -485,7 +473,7 @@ public class AccessoriesEventHandler {
         for (var containerEntry : capability.get().getContainers().entrySet()) {
             var slotType = containerEntry.getValue().slotType();
 
-            var slotDropRule = slotType.map(SlotType::dropRule).orElse(SlotType.DropRule.DEFAULT);
+            var slotDropRule = slotType.map(SlotType::dropRule).orElse(DropRule.DEFAULT);
 
             var container = containerEntry.getValue();
 
@@ -501,13 +489,11 @@ public class AccessoriesEventHandler {
         }
     }
 
-    private static void dropStack(SlotType.DropRule dropRule, LivingEntity entity, Container container, SlotReference reference){
-        var api = AccessoriesAccess.getAPI();
-
+    private static void dropStack(DropRule dropRule, LivingEntity entity, Container container, SlotReference reference){
         var stack = container.getItem(reference.slot());
-        var accessory = api.getAccessory(stack);
+        var accessory = AccessoriesAPI.getAccessory(stack);
 
-        if(accessory.isPresent() && dropRule == SlotType.DropRule.DEFAULT) {
+        if(accessory.isPresent() && dropRule == DropRule.DEFAULT) {
             dropRule = accessory.get().getDropRule(stack, reference);
         }
 
@@ -515,11 +501,11 @@ public class AccessoriesEventHandler {
 
         boolean dropStack = true;
 
-        if(dropRule == SlotType.DropRule.DESTROY){
+        if(dropRule == DropRule.DESTROY){
             container.setItem(reference.slot(), ItemStack.EMPTY);
             dropStack = false;
             // TODO: Do we call break here for the accessory?
-        } else if(dropRule == SlotType.DropRule.DEFAULT){
+        } else if(dropRule == DropRule.DEFAULT){
             if(entity.level().getGameRules().getRule(GameRules.RULE_KEEPINVENTORY).get()) {
                 dropStack = true;
             } else if(EnchantmentHelper.hasVanishingCurse(stack)){
@@ -527,7 +513,7 @@ public class AccessoriesEventHandler {
                 dropStack = false;
                 // TODO: Do we call break here for the accessory?
             }
-        } else if(dropRule == SlotType.DropRule.KEEP) {
+        } else if(dropRule == DropRule.KEEP) {
             dropStack = false;
         }
 

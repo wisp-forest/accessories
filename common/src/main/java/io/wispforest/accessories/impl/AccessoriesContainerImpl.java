@@ -96,7 +96,6 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
         this.accessories = newAccessories;
         this.cosmeticAccessories = newCosmetics;
 
-        var api = AccessoriesAccess.getAPI();
         var livingEntity = this.capability.getEntity();
 
         //TODO: Confirm if such is needed
@@ -128,7 +127,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
 
             livingEntity.getAttributes().removeAttributeModifiers(attributes);
             this.capability.removeSlotModifiers(slots);
-            api.getAccessory(invalidStack).ifPresent(accessory -> accessory.onUnequip(invalidStack, slotReference));
+            AccessoriesAPI.getAccessory(invalidStack).ifPresent(accessory -> accessory.onUnequip(invalidStack, slotReference));
 
             invalidStacks.add(invalidStack);
         }
@@ -149,7 +148,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
 
     @Override
     public Optional<SlotType> slotType() {
-        return AccessoriesAccess.getAPI().getSlotType(this.capability.getEntity().level(), this.slotName);
+        return AccessoriesAPI.getSlotType(this.capability.getEntity().level(), this.slotName);
     }
 
     @Override

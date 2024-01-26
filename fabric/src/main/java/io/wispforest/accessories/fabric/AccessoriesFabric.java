@@ -2,6 +2,8 @@ package io.wispforest.accessories.fabric;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.InstanceCodecable;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -17,6 +19,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
@@ -45,6 +48,8 @@ public class AccessoriesFabric implements ModInitializer {
     public static final ResourceLocation ENTITY_SLOT_LOADER_LOCATION = Accessories.of("entity_slot_loader");
     public static final ResourceLocation SLOT_GROUP_LOADER_LOCATION = Accessories.of("slot_group_loader");
 
+    public static final EntityApiLookup<AccessoriesCapability, Void> CAPABILITY = EntityApiLookup.get(Accessories.of("capability"), AccessoriesCapability.class, Void.class);\
+
     static {
         HOLDER_ATTACHMENT_TYPE = AttachmentRegistry.<AccessoriesHolder>builder()
                 .initializer(AccessoriesHolderImpl::new)
@@ -57,7 +62,7 @@ public class AccessoriesFabric implements ModInitializer {
     public void onInitialize() {
         Accessories.init();
 
-        AccessoriesAccess.getAPI().registerAccessory(Items.APPLE, new AppleAccessory());
+        AccessoriesAPI.registerAccessory(Items.APPLE, new AppleAccessory());
 
         AccessoriesNetworkHandlerImpl.INSTANCE.register();
 
@@ -73,16 +78,14 @@ public class AccessoriesFabric implements ModInitializer {
 
         ServerLifecycleEvents.SERVER_STARTED.register(server -> {
             for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
-                var lookup = AccessoriesAPIImpl.INSTANCE.CAPABILITY;
+                var lookup = CAPABILITY;
 
                 if(lookup.getProvider(entityType) != null) continue;
 
                 lookup.registerForType((entity, unused) -> {
-                    var api = AccessoriesAccess.getAPI();
-
                     if(!(entity instanceof LivingEntity livingEntity)) return null;
 
-                    var slots = api.getEntitySlots(livingEntity);
+                    var slots = AccessoriesAPI.getEntitySlots(livingEntity);
 
                     if(slots.isEmpty()) return null;
 

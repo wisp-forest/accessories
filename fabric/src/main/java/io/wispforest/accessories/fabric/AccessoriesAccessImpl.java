@@ -1,6 +1,7 @@
 package io.wispforest.accessories.fabric;
 
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.impl.AccessoriesInternals;
@@ -21,8 +22,8 @@ import java.util.Optional;
 
 public class AccessoriesAccessImpl {
 
-    public static AccessoriesAPI getAPI() {
-        return AccessoriesAPIImpl.INSTANCE;
+    public static Optional<AccessoriesCapability> getCapability(LivingEntity livingEntity){
+        return Optional.ofNullable(AccessoriesFabric.CAPABILITY.find(livingEntity, null));
     }
 
     public static AccessoriesHolder getHolder(LivingEntity livingEntity){
