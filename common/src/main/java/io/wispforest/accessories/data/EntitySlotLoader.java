@@ -4,9 +4,12 @@ import com.google.gson.*;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.SlotType;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
@@ -14,10 +17,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
@@ -76,10 +77,36 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
             var entityElements = this.safeHelper(GsonHelper::getAsJsonArray, jsonObject, "entities", new JsonArray(), location);
 
             this.decodeJsonArray(entityElements, "entity", location, element -> {
-                return Optional.ofNullable(ResourceLocation.tryParse(element.getAsString()))
-                        .flatMap(BuiltInRegistries.ENTITY_TYPE::getOptional)
-                        .orElse(null);
-            }, entities::add);
+                var string = element.getAsString();
+
+                if(string.contains("#")){
+                    var entityTypeTagLocation = ResourceLocation.tryParse(string.replace("#", ""));
+
+                    var entityTypeTag = TagKey.create(Registries.ENTITY_TYPE, entityTypeTagLocation);
+
+                    return BuiltInRegistries.ENTITY_TYPE.getTag(entityTypeTag)
+                            .map(holders -> {
+                                return holders.stream()
+                                        .map(Holder::value)
+                                        .collect(Collectors.toSet());
+                            }).orElseGet(() -> {
+                                LOGGER.warn("[EntitySlotLoader]: Unable to locate the given EntityType Tag used within a slot entry: [Location: " + string + "]");
+                                return Set.of();
+                            });
+                } else {
+                    return Optional.ofNullable(ResourceLocation.tryParse(string))
+                            .map(location1 -> {
+                                return BuiltInRegistries.ENTITY_TYPE.getOptional(location1)
+                                        .map(Set::of)
+                                        .orElse(Set.of());
+                            })
+                            .orElseGet(() -> {
+                                LOGGER.warn("[EntitySlotLoader]: Unable to locate the given EntityType within the registries for a slot entrie: [Location: " + string + "]");
+
+                                return Set.of();
+                            });
+                }
+            }, entities::addAll);
 
             for (EntityType<?> entity : entities) {
                 server.computeIfAbsent(entity, entityType -> new HashMap<>()).putAll(slots);

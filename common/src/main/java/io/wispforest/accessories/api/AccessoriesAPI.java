@@ -40,6 +40,10 @@ public abstract class AccessoriesAPI {
 
     //--
 
+    public static AccessoriesAPI instance(){
+        return AccessoriesAccess.getAPI();
+    }
+
     public abstract Optional<AccessoriesCapability> getCapability(LivingEntity livingEntity);
 
     public abstract void registerAccessory(Item item, Accessory accessory);

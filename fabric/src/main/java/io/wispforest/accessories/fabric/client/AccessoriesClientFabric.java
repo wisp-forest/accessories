@@ -2,9 +2,11 @@ package io.wispforest.accessories.fabric.client;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.accessories.fabric.AccessoriesAPIImpl;
+import io.wispforest.accessories.fabric.AppleAccessory;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.networking.server.ScreenOpen;
@@ -20,6 +22,7 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Items;
 import org.lwjgl.glfw.GLFW;
 
 import static io.wispforest.accessories.Accessories.MODID;
@@ -70,5 +73,6 @@ public class AccessoriesClientFabric implements ClientModInitializer {
             }
         });
 
+        AccessoriesRendererRegistery.registerRenderer(Items.APPLE, new AppleAccessory.Renderer());
     }
 }

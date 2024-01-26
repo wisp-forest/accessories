@@ -8,6 +8,7 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.resources.metadata.gui.GuiSpriteScaling;
 import net.minecraft.resources.ResourceLocation;
 
 import static io.wispforest.accessories.Accessories.MODID;
@@ -15,6 +16,9 @@ import static io.wispforest.accessories.Accessories.MODID;
 public class AccessoriesViewComponent implements Renderable, GuiEventListener, NarratableEntry {
 
     protected static final ResourceLocation ACCESSORIES_PANEL_LOCATION = Accessories.of("textures/gui/accessories_panel.png");
+
+    protected static final ResourceLocation BACKGROUND_PATCH = Accessories.of("background_patch");
+    protected static final ResourceLocation SCROLL_BAR_PATCH = Accessories.of("scroll_bar_patch");
 
     protected Minecraft minecraft;
 
@@ -51,14 +55,16 @@ public class AccessoriesViewComponent implements Renderable, GuiEventListener, N
     }
 
     public int updateScreenPosition(int width, int imageWidth) {
-        int i;
-        if (/*this.isVisible() &&*/ !this.widthTooNarrow) {
-            i = 177 + (width - imageWidth - 200) / 2;
+        /*int i;
+        if (*//*this.isVisible() &&*//* !this.widthTooNarrow) {
+            i = *//*177 +*//* (width - imageWidth - 200) / 2;
         } else {
             i = (width - imageWidth) / 2;
         }
 
-        return i;
+        return i;*/
+
+        return (width - imageWidth) / 2;
     }
 
 
@@ -69,7 +75,17 @@ public class AccessoriesViewComponent implements Renderable, GuiEventListener, N
         guiGraphics.pose().translate(0.0F, 0.0F, 100.0F);
         int i = (this.width - 147) / 2 - this.xOffset;
         int j = (this.height - 166) / 2;
-        guiGraphics.blit(ACCESSORIES_PANEL_LOCATION, i, j, 1, 1, 147, 166);
+
+        int upperPadding = 8;
+
+        guiGraphics.blitSprite(BACKGROUND_PATCH, i + 6/*+83*/, j, 64, 158 + upperPadding); //147
+        //guiGraphics.blit(ACCESSORIES_PANEL_LOCATION, i, j, 0, 0, 147, 166);
+
+        guiGraphics.blitSprite(SCROLL_BAR_PATCH, i + 13/* + 90*/, j + 7 + upperPadding, 8, 144);
+
+
+        //guiGraphics.blit(ACCESSORIES_PANEL_LOCATION, i + 90, j + 7, 185, 0, 8, 152);
+
         //this.searchBox.render(guiGraphics, mouseX, mouseY, partialTick);
 
 //            for(RecipeBookTabButton recipeBookTabButton : this.tabButtons) {

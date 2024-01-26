@@ -57,6 +57,8 @@ public class AccessoriesFabric implements ModInitializer {
     public void onInitialize() {
         Accessories.init();
 
+        AccessoriesAccess.getAPI().registerAccessory(Items.APPLE, new AppleAccessory());
+
         AccessoriesNetworkHandlerImpl.INSTANCE.register();
 
         ServerLivingEntityEvents.AFTER_DEATH.register(AccessoriesEventHandler::onDeath);

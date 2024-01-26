@@ -5,8 +5,10 @@ import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.mixin.ScreenAccessor;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.gui.screens.inventory.PageButton;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
@@ -17,6 +19,11 @@ import org.jetbrains.annotations.Nullable;
 public class AccessoriesScreen extends EffectRenderingInventoryScreen<AccessoriesMenu> {
 
     public static final ResourceLocation SLOT_FRAME = Accessories.of("textures/gui/slot.png");
+
+    protected static final ResourceLocation ACCESSORIES_PANEL_LOCATION = Accessories.of("textures/gui/accessories_panel.png");
+
+    protected static final ResourceLocation BACKGROUND_PATCH = Accessories.of("background_patch");
+    protected static final ResourceLocation SCROLL_BAR_PATCH = Accessories.of("scroll_bar_patch");
 
     private float xMouse;
     private float yMouse;
@@ -39,12 +46,33 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         int j = this.topPos;
         guiGraphics.blit(INVENTORY_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
         InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i + 26, j + 8, i + 75, j + 78, 30, 0.0625F, this.xMouse, this.yMouse, this.minecraft.player);
+
+        //if (!this.isVisible()) return;
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(0.0F, 0.0F, 0);
+        int x = this.leftPos - 72;
+        int y = this.topPos;
+
+        int upperPadding = 8;
+
+        guiGraphics.blitSprite(AccessoriesScreen.BACKGROUND_PATCH, x + 6/*+83*/, y, 64, 158 + upperPadding); //147
+        guiGraphics.blitSprite(AccessoriesScreen.SCROLL_BAR_PATCH, x + 13/* + 90*/, y + 7 + upperPadding, 8, 144);
+
+        guiGraphics.pose().popPose();
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 
-        this.viewComponent.render(guiGraphics, mouseX, mouseY, partialTick);
+        //this.viewComponent.render(guiGraphics, mouseX, mouseY, partialTick);
+
+
+
+//        if (this.widthTooNarrow) {
+            this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
+//        } else {
+//            super.render(guiGraphics, mouseX, mouseY, partialTick);
+//        }
 
         for (Slot slot : this.menu.slots) {
             if(!(slot.container instanceof ExpandedSimpleContainer)) continue;
@@ -62,11 +90,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             pose.popPose();
         }
 
-        if (this.widthTooNarrow) {
-            this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
-        } else {
-            super.render(guiGraphics, mouseX, mouseY, partialTick);
-        }
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         this.xMouse = (float)mouseX;
         this.yMouse = (float)mouseY;
@@ -83,16 +107,20 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     protected void init() {
         super.init();
         this.widthTooNarrow = this.width < 379;
-        this.viewComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow, this.menu);
-        this.leftPos = this.viewComponent.updateScreenPosition(this.width, this.imageWidth);
-//            this.addRenderableWidget(new ImageButton(this.leftPos + 104, this.height / 2 - 22, 20, 18, RecipeBookComponent.RECIPE_BUTTON_SPRITES, button -> {
-//                //this.viewComponent.toggleVisibility();
-//                this.leftPos = this.viewComponent.updateScreenPosition(this.width, this.imageWidth);
-//                button.setPosition(this.leftPos + 104, this.height / 2 - 22);
-//                //this.buttonClicked = true;
-//            }));
-        this.addWidget(this.viewComponent);
-        this.setInitialFocus(this.viewComponent);
+        //this.viewComponent.init(this.width, this.height, this.minecraft, this.widthTooNarrow, this.menu);
+//        this.leftPos = this.viewComponent.updateScreenPosition(this.width, this.imageWidth);
+////            this.addRenderableWidget(new ImageButton(this.leftPos + 104, this.height / 2 - 22, 20, 18, RecipeBookComponent.RECIPE_BUTTON_SPRITES, button -> {
+////                //this.viewComponent.toggleVisibility();
+////                this.leftPos = this.viewComponent.updateScreenPosition(this.width, this.imageWidth);
+////                button.setPosition(this.leftPos + 104, this.height / 2 - 22);
+////                //this.buttonClicked = true;
+////            }));
+
+        var button = Button.builder(Component.empty(), (btn) -> {})
+                .bounds(this.leftPos - 59, this.topPos + 7, 8, 6)
+                .build();
+
+        this.addRenderableWidget(button);
     }
 
     @Override
