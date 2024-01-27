@@ -9,6 +9,14 @@ public interface AccessoriesHolder extends InstanceCodecable {
 
     Map<String, AccessoriesContainer> getSlotContainers();
 
+    boolean cosmeticsShown();
+
+    AccessoriesHolder cosmeticsShown(boolean value);
+
+    int scrolledSlot();
+
+    AccessoriesHolder scrolledSlot(int slot);
+
     @Override
     void write(CompoundTag tag);
 

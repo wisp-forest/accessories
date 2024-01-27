@@ -14,6 +14,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Supplier;
+
 public class AccessoriesSlot extends Slot {
 
     public final boolean isCosmetic;
@@ -21,12 +23,20 @@ public class AccessoriesSlot extends Slot {
     public final LivingEntity entity;
     public final AccessoriesContainer container;
 
+    private Supplier<Boolean> isActive = () -> true;
+
     public AccessoriesSlot(LivingEntity entity, AccessoriesContainer container, boolean isCosmetic, int slot, int x, int y) {
         super(isCosmetic ? container.getCosmeticAccessories() : container.getAccessories(), slot, x, y);
 
         this.isCosmetic = isCosmetic;
         this.container = container;
         this.entity = entity;
+    }
+
+    public AccessoriesSlot isActive(Supplier<Boolean> isActive){
+        this.isActive = isActive;
+
+        return this;
     }
 
     @Override
@@ -57,13 +67,13 @@ public class AccessoriesSlot extends Slot {
 
     @Override
     public boolean mayPlace(ItemStack stack) {
-        //if(isCosmetic) return true;
-
-        return AccessoriesAPI.canInsertIntoSlot(entity, new SlotReference(container.getSlotName(), entity, getContainerSlot()), stack);
+        return isActive() && AccessoriesAPI.canInsertIntoSlot(entity, new SlotReference(container.getSlotName(), entity, getContainerSlot()), stack);
     }
 
     @Override
     public boolean mayPickup(Player player) {
+        if(!isActive()) return false;
+
         if(isCosmetic) return true;
 
         var stack = this.getItem();
@@ -90,6 +100,11 @@ public class AccessoriesSlot extends Slot {
 
     @Override
     public boolean allowModification(Player player) {
-        return true;
+        return isActive();
+    }
+
+    @Override
+    public boolean isActive() {
+        return this.isActive.get();
     }
 }

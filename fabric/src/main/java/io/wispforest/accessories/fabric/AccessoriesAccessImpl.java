@@ -19,6 +19,7 @@ import net.neoforged.bus.api.IEventBus;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.UnaryOperator;
 
 public class AccessoriesAccessImpl {
 
@@ -28,6 +29,14 @@ public class AccessoriesAccessImpl {
 
     public static AccessoriesHolder getHolder(LivingEntity livingEntity){
         return livingEntity.getAttachedOrCreate(AccessoriesFabric.HOLDER_ATTACHMENT_TYPE);
+    }
+
+    public static void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolder> modifier){
+        var holder = getHolder(livingEntity);
+
+        holder = modifier.apply(holder);
+
+        livingEntity.setAttached(AccessoriesFabric.HOLDER_ATTACHMENT_TYPE, holder);
     }
 
     public static AccessoriesNetworkHandler getHandler(){

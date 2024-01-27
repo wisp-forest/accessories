@@ -4,12 +4,13 @@
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [
-  ],
-  "mixins": [
-    "AbstractContainerMenuAccessor",
+    "AbstractContainerScreenMixin",
     "AbstractContainerScreenAccessor",
     "RenderLayerAccessor",
     "ScreenAccessor"
+  ],
+  "mixins": [
+    "AbstractContainerMenuAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

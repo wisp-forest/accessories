@@ -9,6 +9,7 @@ import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Optional;
+import java.util.function.UnaryOperator;
 
 /**
  * Util Class implemented though Architectury Plugin allowing for various access to platform specific way
@@ -29,6 +30,11 @@ public class AccessoriesAccess {
      */
     @ExpectPlatform
     public static AccessoriesHolder getHolder(LivingEntity livingEntity){
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    public static void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolder> modifier){
         throw new AssertionError();
     }
 

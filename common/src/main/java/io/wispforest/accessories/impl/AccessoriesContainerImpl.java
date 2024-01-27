@@ -1,11 +1,14 @@
 package io.wispforest.accessories.impl;
 
+import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.SlotAttribute;
 import io.wispforest.accessories.api.*;
+import net.minecraft.Util;
 import net.minecraft.nbt.*;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -44,11 +47,16 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
         this.accessories = new ExpandedSimpleContainer(this.baseSize, "Accessories");
         this.cosmeticAccessories = new ExpandedSimpleContainer(this.baseSize, "Cosmetic Accessories");
 
-        this.renderOptions = new ArrayList<>();
+        this.renderOptions = new ArrayList<>(this.baseSize);
     }
 
     public void markChanged(){
         this.update = true;
+
+        var inv = ((AccessoriesCapabilityImpl)this.capability).getUpdatingInventories();
+
+        inv.remove(this);
+        inv.add(this);
     }
 
     public void update(){
@@ -95,6 +103,20 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
 
         this.accessories = newAccessories;
         this.cosmeticAccessories = newCosmetics;
+
+        var newRenderOptions = new ArrayList<Boolean>(size);
+
+        for (int i = 0; i < renderOptions.size(); i++) {
+            var option = renderOptions.get(i);
+
+            if(i > baseSize){
+                newRenderOptions.add(i, option);
+            } else {
+                newRenderOptions.set(i, option);
+            }
+        }
+
+        this.renderOptions = newRenderOptions;
 
         var livingEntity = this.capability.getEntity();
 
@@ -282,14 +304,15 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
     }
 
     public void write(CompoundTag tag, boolean sync){
-
         tag.putString(SLOT_NAME_KEY, this.slotName);
 
         tag.putInt(BASE_SIZE_KEY, this.baseSize);
 
-        ListTag renderOptionsTag = new ListTag();
+        ByteArrayTag renderOptionsTag = new ByteArrayTag(new byte[renderOptions.size()]);
 
-        for (Boolean renderOption : this.renderOptions) renderOptionsTag.add(ByteTag.valueOf(renderOption));
+        for (int i = 0; i < this.renderOptions.size(); i++) {
+            renderOptionsTag.set(i, ByteTag.valueOf(this.renderOptions.get(i)));
+        }
 
         tag.put(RENDER_OPTIONS_KEY, renderOptionsTag);
 
@@ -333,13 +356,23 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
 
         this.baseSize = tag.getInt(BASE_SIZE_KEY);
 
-        this.renderOptions = new ArrayList<>(baseSize);
+        this.renderOptions = Util.make(new ArrayList<>(baseSize), booleans -> {
+            for (int i = 0; i < baseSize; i++) booleans.add(i, true);
+        });
 
-        var renderOptionsTag = tag.getList(RENDER_OPTIONS_KEY, Tag.TAG_BYTE);
+        var renderOptionsTag = tag.getByteArray(RENDER_OPTIONS_KEY);
 
-        for (int i = 0; i < renderOptions.size(); i++) {
-            renderOptions.set(i, BooleanUtils.toBoolean(((ByteTag) renderOptionsTag.get(i)).getAsInt()));
-        }
+        try {
+            for (int i = 0; i < renderOptionsTag.length; i++) {
+                var option = BooleanUtils.toBoolean(renderOptionsTag[i]);
+
+                if(i > baseSize){
+                    renderOptions.add(i, option);
+                } else {
+                    renderOptions.set(i, option);
+                }
+            }
+        } catch (Exception ignored){}
 
         if(sync) {
             this.modifiers.clear();

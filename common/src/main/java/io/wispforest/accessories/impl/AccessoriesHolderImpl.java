@@ -17,8 +17,35 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
     protected final List<ItemStack> invalidStacks = new ArrayList<>();
     protected final Set<AccessoriesContainer> containersRequiringUpdates = new HashSet<>();
 
+    private boolean cosmeticsShown = false;
+
+    private int scrolledSlot = 0;
+
     private CompoundTag tag;
     protected boolean loadedFromTag = false;
+
+    public boolean cosmeticsShown(){
+        return this.cosmeticsShown;
+    }
+
+    @Override
+    public AccessoriesHolder cosmeticsShown(boolean value) {
+        this.cosmeticsShown = value;
+
+        return this;
+    }
+
+    @Override
+    public int scrolledSlot() {
+        return this.scrolledSlot;
+    }
+
+    @Override
+    public AccessoriesHolder scrolledSlot(int slot) {
+        this.scrolledSlot = slot;
+
+        return this;
+    }
 
     public void init(AccessoriesCapability capability){
         var livingEntity = capability.getEntity();
@@ -48,6 +75,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
 
     public static final String MAIN_KEY = "Accessories";
 
+    public static final String COSMETICS_SHOWN_KEY = "CosmeticsShown";
+
     @Override
     public void write(CompoundTag tag) {
         CompoundTag main = new CompoundTag();
@@ -60,11 +89,15 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
             main.put(entry.getKey(), containerTag);
         }
 
+        tag.putBoolean(COSMETICS_SHOWN_KEY, cosmeticsShown);
+
         tag.put(MAIN_KEY, main);
     }
 
     public void read(LivingEntity entity, CompoundTag tag) {
         var slots = AccessoriesAPI.getEntitySlots(entity);
+
+        this.cosmeticsShown = tag.getBoolean(COSMETICS_SHOWN_KEY);
 
         var containersTag = tag.getCompound(MAIN_KEY);
 

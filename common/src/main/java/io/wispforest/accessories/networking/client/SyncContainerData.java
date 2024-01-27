@@ -91,7 +91,7 @@ public class SyncContainerData extends CacheableAccessoriesPacket {
         var containers = capability.get().getContainers();
 
         for (var entry : this.updatedContainers.entrySet()) {
-            if(containers.containsKey(entry.getKey())) continue;
+            if(!containers.containsKey(entry.getKey())) continue;
 
             ((AccessoriesContainerImpl)containers.get(entry.getKey())).read(entry.getValue(), true);
         }

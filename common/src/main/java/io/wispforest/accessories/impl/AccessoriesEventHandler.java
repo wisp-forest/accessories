@@ -280,6 +280,8 @@ public class AccessoriesEventHandler {
 
                     bufData.release();
                 }
+
+                updatedContainers.clear();
             }
         }
     }
