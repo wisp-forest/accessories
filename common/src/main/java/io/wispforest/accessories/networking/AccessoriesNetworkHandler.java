@@ -6,6 +6,7 @@ import io.wispforest.accessories.networking.client.SyncContainer;
 import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncData;
 import io.wispforest.accessories.networking.server.ScreenOpen;
+import io.wispforest.accessories.networking.server.MenuScroll;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.network.FriendlyByteBuf;
@@ -24,14 +25,26 @@ public abstract class AccessoriesNetworkHandler {
     }
 
     public final void register() {
+        registerS2CDeferred(SyncContainer.class, SyncContainer::new);
+        registerS2CDeferred(SyncContainerData.class, SyncContainerData::new);
+        registerS2CDeferred(SyncData.class, SyncData::new);
+        registerS2CDeferred(MenuScroll.class, MenuScroll::new);
+
+        registerC2S(ScreenOpen.class, ScreenOpen::new);
+        registerC2S(MenuScroll.class, MenuScroll::new);
+    }
+
+    @Environment(EnvType.CLIENT)
+    public final void registerClient(){
         registerS2C(SyncContainer.class, SyncContainer::new);
         registerS2C(SyncContainerData.class, SyncContainerData::new);
         registerS2C(SyncData.class, SyncData::new);
-
-        registerC2S(ScreenOpen.class, ScreenOpen::new);
+        registerS2C(MenuScroll.class, MenuScroll::new);
     }
 
     protected abstract <M extends AccessoriesPacket> void registerC2S(Class<M> messageType, Supplier<M> supplier);
+
+    protected abstract <M extends AccessoriesPacket> void registerS2CDeferred(Class<M> messageType, Supplier<M> supplier);
 
     @Environment(EnvType.CLIENT)
     protected abstract <M extends AccessoriesPacket> void registerS2C(Class<M> messageType, Supplier<M> supplier);

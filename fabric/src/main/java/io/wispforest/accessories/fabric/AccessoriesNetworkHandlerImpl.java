@@ -25,35 +25,29 @@ public class AccessoriesNetworkHandlerImpl extends AccessoriesNetworkHandler {
 
     @Override
     protected <M extends AccessoriesPacket> void registerC2S(Class<M> messageType, Supplier<M> supplier) {
-        var location = Accessories.of(messageType.getName().toLowerCase());
-        PacketType<AccessoriesFabricPacket<?>> type = PacketType.create(location, buf -> {
-            var emptyPacket = supplier.get();
-
-            emptyPacket.readPacket(buf);
-
-            return new AccessoriesFabricPacket<>(emptyPacket);
-        });
-
-        packetTypes.put(location, type);
+        PacketType<AccessoriesFabricPacket<?>> type = getOrCreate(messageType, supplier);
 
         ServerPlayNetworking.registerGlobalReceiver(type, (packet, player, responseSender) -> packet.innerPacket().handle(player));
     }
 
     @Override
+    protected <M extends AccessoriesPacket> void registerS2CDeferred(Class<M> messageType, Supplier<M> supplier) {
+        getOrCreate(messageType, supplier);
+    }
+
+    @Override
     @Environment(EnvType.CLIENT)
     protected <M extends AccessoriesPacket> void registerS2C(Class<M> messageType, Supplier<M> supplier) {
-        var location = Accessories.of(messageType.getName().toLowerCase());
-        PacketType<AccessoriesFabricPacket<?>> type = PacketType.create(location, buf -> {
-            var emptyPacket = supplier.get();
-
-            emptyPacket.readPacket(buf);
-
-            return new AccessoriesFabricPacket<>(emptyPacket);
-        });
-
-        packetTypes.put(location, type);
+        PacketType<AccessoriesFabricPacket<?>> type = getOrCreate(messageType, supplier);
 
         ClientPlayNetworking.registerGlobalReceiver(type, (packet, player, responseSender) -> packet.innerPacket().handle(Minecraft.getInstance().player));
+    }
+
+    private <M extends AccessoriesPacket> PacketType<AccessoriesFabricPacket<?>> getOrCreate(Class<M> messageType, Supplier<M> supplier){
+        return packetTypes.computeIfAbsent(
+                Accessories.of(messageType.getName().toLowerCase()),
+                location -> PacketType.create(location, buf -> new AccessoriesFabricPacket<>(supplier.get().readPacket(buf)))
+        );
     }
 
     @Override

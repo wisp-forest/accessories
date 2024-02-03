@@ -35,11 +35,13 @@ public class AccessoriesClientFabric implements ClientModInitializer {
     public void onInitializeClient() {
         AccessoriesClient.init();
 
+        AccessoriesAccess.getNetworkHandler().registerClient();
+
         OPEN_SCREEN = KeyBindingHelper.registerKeyBinding(new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories"));
 
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (OPEN_SCREEN.consumeClick()){
-                AccessoriesAccess.getHandler().sendToServer(new ScreenOpen());
+                AccessoriesAccess.getNetworkHandler().sendToServer(new ScreenOpen());
             }
         });
 

@@ -106,7 +106,7 @@ public class AccessoriesEventHandler {
 
                     holder.write(tag);
 
-                    AccessoriesAccess.getHandler().sendToTrackingAndSelf(serverPlayer, new SyncContainer(tag, capability.getEntity().getId()));
+                    AccessoriesAccess.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncContainer(tag, capability.getEntity().getId()));
                 });
     }
 
@@ -119,12 +119,12 @@ public class AccessoriesEventHandler {
 
                     holder.write(tag);
 
-                    AccessoriesAccess.getHandler().sendToPlayer(player, new SyncContainer(tag, capability.getEntity().getId()));
+                    AccessoriesAccess.getNetworkHandler().sendToPlayer(player, new SyncContainer(tag, capability.getEntity().getId()));
                 });
     }
 
     public static void dataSync(@Nullable PlayerList list, @Nullable ServerPlayer player){
-        var networkHandler = AccessoriesAccess.getHandler();
+        var networkHandler = AccessoriesAccess.getNetworkHandler();
         var syncPacket = SyncData.create();
 
         if(list != null){
@@ -274,7 +274,7 @@ public class AccessoriesEventHandler {
 
                     packet.write(bufData);
 
-                    var networkHandler = AccessoriesAccess.getHandler();
+                    var networkHandler = AccessoriesAccess.getNetworkHandler();
 
                     networkHandler.sendToTrackingAndSelf(entity, (Supplier<SyncContainerData>) () -> new SyncContainerData(bufData));
 

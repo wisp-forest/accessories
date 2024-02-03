@@ -1,7 +1,6 @@
 package io.wispforest.accessories;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.impl.AccessoriesInternals;
@@ -42,7 +41,7 @@ public class AccessoriesAccess {
      * @return {@link AccessoriesNetworkHandler} based on the Platforms method for getting such
      */
     @ExpectPlatform
-    public static AccessoriesNetworkHandler getHandler(){
+    public static AccessoriesNetworkHandler getNetworkHandler(){
         throw new AssertionError();
     }
 

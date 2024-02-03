@@ -19,6 +19,17 @@ configurations {
     developmentFabric.extendsFrom common
 }
 
+repositories {
+    maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+    }
+    maven {
+        name = "wispForestReleases"
+        url = "https://maven.wispforest.io/releases"
+    }
+}
+
 dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
@@ -27,6 +38,9 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
 
     include modImplementation("net.neoforged:bus:7.2.0")
+
+    modLocalRuntime("maven.modrinth:ok-boomer:0.1.3+1.20.2")
+    modLocalRuntime("io.wispforest:owo-lib:0.12.4-pre.2+1.20.3")
 }
 
 processResources {

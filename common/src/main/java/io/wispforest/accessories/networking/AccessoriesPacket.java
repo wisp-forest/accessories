@@ -17,10 +17,12 @@ public abstract class AccessoriesPacket {
 
     protected abstract void read(FriendlyByteBuf buf);
 
-    public final void readPacket(FriendlyByteBuf buf){
+    public final <A extends AccessoriesPacket> A readPacket(FriendlyByteBuf buf){
         this.emptyPacket = false;
 
         read(buf);
+
+        return (A) this;
     }
 
     public void handle(Player player){

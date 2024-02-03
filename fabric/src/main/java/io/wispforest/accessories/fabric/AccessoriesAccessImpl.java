@@ -39,7 +39,7 @@ public class AccessoriesAccessImpl {
         livingEntity.setAttached(AccessoriesFabric.HOLDER_ATTACHMENT_TYPE, holder);
     }
 
-    public static AccessoriesNetworkHandler getHandler(){
+    public static AccessoriesNetworkHandler getNetworkHandler(){
         return AccessoriesNetworkHandlerImpl.INSTANCE;
     }
 

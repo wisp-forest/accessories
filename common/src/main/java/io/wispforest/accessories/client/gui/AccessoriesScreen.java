@@ -1,9 +1,11 @@
 package io.wispforest.accessories.client.gui;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.mixin.ScreenAccessor;
+import io.wispforest.accessories.networking.server.MenuScroll;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -17,9 +19,11 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,12 +36,18 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     protected static final ResourceLocation ACCESSORIES_PANEL_LOCATION = Accessories.of("textures/gui/accessories_panel.png");
 
     protected static final ResourceLocation BACKGROUND_PATCH = Accessories.of("background_patch");
+
     protected static final ResourceLocation SCROLL_BAR_PATCH = Accessories.of("scroll_bar_patch");
+    protected static final ResourceLocation SCROLL_BAR = Accessories.of("scroll_bar");
 
     private List<Renderable> cosmeticButtons = new ArrayList<>();
 
     private float xMouse;
     private float yMouse;
+
+    private int scrollBarHeight = 0;
+
+    private boolean isScrolling = false;
 
     public AccessoriesScreen(AccessoriesMenu menu, Inventory inventory, Component component) {
         super(menu, inventory, component);
@@ -54,7 +64,16 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         if(this.getFocused() instanceof Button) this.clearFocus();
 
+        if(this.insideScrollbar(mouseX, mouseY)) this.isScrolling = true;
+
         return bl;
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if(!this.insideScrollbar(mouseX, mouseY) && button == GLFW.GLFW_MOUSE_BUTTON_1) this.isScrolling = false;
+
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
@@ -102,7 +121,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     }
 
     private int getPanelHeight(int upperPadding){
-        return 14 + (menu.totalSlots * 18) + upperPadding;
+        return 14 + (Math.min(menu.totalSlots, 8) * 18) + upperPadding;
     }
 
     private int getPanelWidth(){
@@ -139,11 +158,38 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if(insideScrollbar(mouseX, mouseY) || (this.hoveredSlot != null && this.hoveredSlot instanceof AccessoriesSlot)){
+            int index = (int) Math.max(Math.min(-scrollY + this.menu.scrolledIndex, this.menu.maxScrollableIndex), 0);
+
+            //if(index != menu.scrolledIndex) {
+            AccessoriesAccess.getNetworkHandler().sendToServer(new MenuScroll(index, false));
+
+            return true;
+            //}
+        }
+
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if(this.isScrolling){
+            int upperPadding = 8;
+
+            int patchYOffset = this.topPos + 7 + upperPadding;
+            int height = getPanelHeight(upperPadding);
+
+            this.menu.smoothScroll = Mth.clamp((float) (mouseY - patchYOffset) / (height - 22f), 0.0f, 1.0f); //(menu.smoothScroll + (dragY / (getPanelHeight(upperPadding) - 24)))
+
+            var index = Math.round(this.menu.smoothScroll * this.menu.maxScrollableIndex);
+
+            if(index != menu.scrolledIndex) {
+                AccessoriesAccess.getNetworkHandler().sendToServer(new MenuScroll(index, true));
+
+                return true;
+            }
+        }
+
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
@@ -171,6 +217,19 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             cosmeticButton.render(guiGraphics, mouseX, mouseY, partialTick);
         }
 
+        int x = getStartingPanelX();
+        int y = this.topPos;
+
+        int upperPadding = 8;
+
+        if(this.menu.overMaxVisibleSlots) {
+            var startingY = y + upperPadding + 8;
+
+            startingY += this.menu.smoothScroll * (getPanelHeight(upperPadding) - 24 - this.scrollBarHeight);
+
+            guiGraphics.blitSprite(AccessoriesScreen.SCROLL_BAR, x + 14, startingY, 6, this.scrollBarHeight);
+        }
+
         this.xMouse = (float)mouseX;
         this.yMouse = (float)mouseY;
 
@@ -186,7 +245,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     protected void init() {
         super.init();
 
-        cosmeticButtons.clear();
+        this.cosmeticButtons.clear();
 
         var button = Button.builder(Component.empty(), (btn) -> {
                     this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 0);
@@ -199,8 +258,10 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         this.addRenderableWidget(button);
 
-        for (Slot slot : menu.slots) {
-            if(!(slot instanceof AccessoriesSlot accessoriesSlot && !accessoriesSlot.isCosmetic)) continue;
+        int aceesoriesSlots = 0;
+
+        for (Slot slot : this.menu.slots) {
+            if(!(slot instanceof AccessoriesSlot accessoriesSlot && !accessoriesSlot.isCosmetic) || !accessoriesSlot.isActive()) continue;
 
             var slotButton = ToggleButton.toggleBuilder(Component.empty(), btn -> {
                         this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, slot.index);
@@ -220,7 +281,13 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                     .toggled(accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot()));
 
             cosmeticButtons.add(this.addWidget(slotButton));
+
+            aceesoriesSlots++;
         }
+
+        scrollBarHeight = Mth.lerpInt(Math.min(aceesoriesSlots / 20f, 1.0f), 101, 31);
+
+        if(scrollBarHeight % 2 == 0) scrollBarHeight++;
     }
 
     private Tooltip cosmeticsToggleTooltip(boolean value){
@@ -275,12 +342,5 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         boolean flag = mouseX < (double)x || mouseY < (double)y || mouseX >= (double)(x + width) || mouseY >= (double)(y + height);
         boolean flag1 = (double)(x - 147) < mouseX && mouseX < (double)x && (double)y < mouseY && mouseY < (double)(y + height);
         return flag && !flag1;
-    }
-
-    /**
-     * From <a href="https://github.com/wisp-forest/owo-lib/blob/d47a040240eab222362e1fa096575a816291cc2f/src/main/java/io/wispforest/owo/ui/core/PositionedRectangle.java#L37">PositionedRectangle.java</a>
-     */
-    private static boolean isIntersecting(int x1, int y1, int width1, int height1, int x2, int y2, int width2, int height2) {
-        return x2 < x1 + width1 && x2 + width2 >= x1 && y2 < y1 + height1 && y2 + height2 >= y1;
     }
 }

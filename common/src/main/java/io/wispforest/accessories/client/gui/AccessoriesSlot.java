@@ -14,26 +14,31 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class AccessoriesSlot extends Slot {
 
     public final boolean isCosmetic;
 
+    public final int menuIndex;
+
     public final LivingEntity entity;
     public final AccessoriesContainer container;
 
-    private Supplier<Boolean> isActive = () -> true;
+    private Function<AccessoriesSlot, Boolean> isActive = (slot) -> true;
 
-    public AccessoriesSlot(LivingEntity entity, AccessoriesContainer container, boolean isCosmetic, int slot, int x, int y) {
+    public AccessoriesSlot(int menuIndex, LivingEntity entity, AccessoriesContainer container, boolean isCosmetic, int slot, int x, int y) {
         super(isCosmetic ? container.getCosmeticAccessories() : container.getAccessories(), slot, x, y);
+
+        this.menuIndex = menuIndex;
 
         this.isCosmetic = isCosmetic;
         this.container = container;
         this.entity = entity;
     }
 
-    public AccessoriesSlot isActive(Supplier<Boolean> isActive){
+    public AccessoriesSlot isActive(Function<AccessoriesSlot, Boolean> isActive){
         this.isActive = isActive;
 
         return this;
@@ -105,6 +110,6 @@ public class AccessoriesSlot extends Slot {
 
     @Override
     public boolean isActive() {
-        return this.isActive.get();
+        return this.isActive.apply(this);
     }
 }
