@@ -27,6 +27,7 @@ public class AccessoriesSlot extends Slot {
     public final AccessoriesContainer container;
 
     private Function<AccessoriesSlot, Boolean> isActive = (slot) -> true;
+    private Function<AccessoriesSlot, Boolean> isAccessible = (slot) -> true;
 
     public AccessoriesSlot(int menuIndex, LivingEntity entity, AccessoriesContainer container, boolean isCosmetic, int slot, int x, int y) {
         super(isCosmetic ? container.getCosmeticAccessories() : container.getAccessories(), slot, x, y);
@@ -40,6 +41,12 @@ public class AccessoriesSlot extends Slot {
 
     public AccessoriesSlot isActive(Function<AccessoriesSlot, Boolean> isActive){
         this.isActive = isActive;
+
+        return this;
+    }
+
+    public AccessoriesSlot isAccessible(Function<AccessoriesSlot, Boolean> isAccessible){
+        this.isAccessible = isAccessible;
 
         return this;
     }
@@ -72,12 +79,12 @@ public class AccessoriesSlot extends Slot {
 
     @Override
     public boolean mayPlace(ItemStack stack) {
-        return isActive() && AccessoriesAPI.canInsertIntoSlot(entity, new SlotReference(container.getSlotName(), entity, getContainerSlot()), stack);
+        return isAccessible() && AccessoriesAPI.canInsertIntoSlot(entity, new SlotReference(container.getSlotName(), entity, getContainerSlot()), stack);
     }
 
     @Override
     public boolean mayPickup(Player player) {
-        if(!isActive()) return false;
+        if(!isAccessible()) return false;
 
         if(isCosmetic) return true;
 
@@ -105,11 +112,15 @@ public class AccessoriesSlot extends Slot {
 
     @Override
     public boolean allowModification(Player player) {
-        return isActive();
+        return isAccessible();
     }
 
     @Override
     public boolean isActive() {
         return this.isActive.apply(this);
+    }
+
+    public boolean isAccessible(){
+        return this.isAccessible.apply(this);
     }
 }

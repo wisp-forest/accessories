@@ -50,9 +50,10 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     private boolean isScrolling = false;
 
     public AccessoriesScreen(AccessoriesMenu menu, Inventory inventory, Component component) {
-        super(menu, inventory, component);
+        super(menu, inventory, Component.translatable("container.crafting"));
 
-        ((ScreenAccessor) this).accessories$setTitle(component);
+        this.titleLabelX = 97;
+        //((ScreenAccessor) this).accessories$setTitle(component);
 
         //this.titleLabelX = 42069;
         this.inventoryLabelX = 42069;
@@ -125,33 +126,19 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     }
 
     private int getPanelWidth(){
-        int width = 8;
+        int width = 8 + 18 + 18;
 
-        if(menu.isCosmeticsOpen()){
-            width += (18 * 2) + (2 + 8 + 8 + 2);
-        } else {
-            width += 18 + (2 + 8 + 8);
-        }
+        if(menu.isCosmeticsOpen()) width += 18 + 2;
 
-        if(!menu.overMaxVisibleSlots) {
-            width -= 12;
-        }
+        if(!menu.overMaxVisibleSlots) width -= 12;
 
         return width;
     }
 
     private int getStartingPanelX(){
-        int x = this.leftPos;
+        int x = this.leftPos - ((menu.isCosmeticsOpen()) ? 72 : 52);
 
-        if(menu.isCosmeticsOpen()){
-            x -= 72;
-        } else {
-            x -= 52;
-        }
-
-        if(!menu.overMaxVisibleSlots) {
-            x += 12;
-        }
+        if(!menu.overMaxVisibleSlots) x += 12;
 
         return x;
     }
@@ -161,11 +148,11 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         if(insideScrollbar(mouseX, mouseY) || (this.hoveredSlot != null && this.hoveredSlot instanceof AccessoriesSlot)){
             int index = (int) Math.max(Math.min(-scrollY + this.menu.scrolledIndex, this.menu.maxScrollableIndex), 0);
 
-            //if(index != menu.scrolledIndex) {
-            AccessoriesAccess.getNetworkHandler().sendToServer(new MenuScroll(index, false));
+            if(index != menu.scrolledIndex) {
+                AccessoriesAccess.getNetworkHandler().sendToServer(new MenuScroll(index, false));
 
-            return true;
-            //}
+                return true;
+            }
         }
 
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);

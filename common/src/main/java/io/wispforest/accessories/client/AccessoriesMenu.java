@@ -1,6 +1,5 @@
 package io.wispforest.accessories.client;
 
-import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.*;
@@ -16,6 +15,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.*;
 
@@ -31,6 +31,9 @@ public class AccessoriesMenu extends InventoryMenu {
     public float smoothScroll = 0;
 
     public int maxScrollableIndex = 0;
+
+    public int accessoriesSlotStartIndex = 0;
+    public int cosmeticSlotStartIndex = 0;
 
     private final Map<Integer, Boolean> slotToView = new HashMap<>();
 
@@ -92,6 +95,13 @@ public class AccessoriesMenu extends InventoryMenu {
 
         int yIndex = 0;
 
+        this.accessoriesSlotStartIndex = this.slots.size();
+
+        var slotVisablity = new HashMap<Slot, Boolean>();
+
+        var accessoriesSlots = new ArrayList<AccessoriesSlot>();
+        var cosmeticSlots = new ArrayList<AccessoriesSlot>();
+
         for (var group : groups.values().stream().sorted(Comparator.comparingInt(SlotGroup::order).reversed()).toList()) {
             var slotNames = group.slots();
 
@@ -112,31 +122,35 @@ public class AccessoriesMenu extends InventoryMenu {
                 var size = accessoryContainer.getSize();
 
                 for (int i = 0; i < size; i++) {
-                    int currentY = 0;
-
-                    currentY = (yIndex * Math.max(18, slotScale)) + minY + yOffset;
+                    int currentY = (yIndex * Math.max(18, slotScale)) + minY + yOffset;
 
                     int currentX = minX;
 
-                    var cosmeticSlot = this.addSlot(
+                    var cosmeticSlot =
                             new AccessoriesSlot(yIndex, player, accessoryContainer, true, i, currentX, currentY)
                                     .isActive((slot1) -> {
                                         return this.isCosmeticsOpen() && slotToView.getOrDefault(slot1.index, true);
                                     })
-                    );
+                                    .isAccessible(slot1 -> {
+                                        return slot1.isCosmetic && isCosmeticsOpen();
+                                    });
 
-                    slotToView.put(cosmeticSlot.index, !overMaxVisibleSlots);
+
+                    cosmeticSlots.add(cosmeticSlot);
+
+                    slotVisablity.put(cosmeticSlot, !overMaxVisibleSlots);
 
                     currentX += slotScale + cosmeticPadding;
 
-                    var baseSlot = this.addSlot(
+                    var baseSlot =
                             new AccessoriesSlot(yIndex, player, accessoryContainer, false, i, currentX, currentY)
                                     .isActive(slot1 -> {
                                         return slotToView.getOrDefault(slot1.index, true);
-                                    })
-                    );
+                                    });
 
-                    slotToView.put(baseSlot.index, !overMaxVisibleSlots);
+                    accessoriesSlots.add(baseSlot);
+
+                    slotVisablity.put(baseSlot, !overMaxVisibleSlots);
 
                     yIndex++;
 
@@ -144,13 +158,38 @@ public class AccessoriesMenu extends InventoryMenu {
                         overMaxVisibleSlots = true;
                     }
                 }
-
             }
+        }
+
+        for (var accessoriesSlot : accessoriesSlots) {
+            this.addSlot(accessoriesSlot);
+            slotToView.put(accessoriesSlot.index, slotVisablity.getOrDefault(accessoriesSlot, false));
+        }
+
+        cosmeticSlotStartIndex = this.slots.size();
+
+        for (var cosmeticSlot : cosmeticSlots) {
+            this.addSlot(cosmeticSlot);
+            slotToView.put(cosmeticSlot.index, slotVisablity.getOrDefault(cosmeticSlot, false));
         }
 
         totalSlots = yIndex;
 
         maxScrollableIndex = totalSlots - 8;
+    }
+
+    @Override
+    public ItemStack quickMoveStack(Player player, int index) {
+        final var slots = this.slots;
+        final var clickedSlot = slots.get(index);
+        if (!clickedSlot.hasItem()) return ItemStack.EMPTY;
+
+        final var clickedStack = clickedSlot.getItem();
+        if ((index < this.accessoriesSlotStartIndex && index < 45) && !moveItemStackTo(clickedStack, this.accessoriesSlotStartIndex, this.slots.size(), false)) {
+            return ItemStack.EMPTY;
+        }
+
+        return super.quickMoveStack(player, index);
     }
 
     public boolean scrollTo(int i, boolean smooth){
