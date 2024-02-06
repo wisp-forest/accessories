@@ -23,5 +23,7 @@
   "accessories.slot.cosmetics.toggle.shown": "Show Cosmetic Slots",
   "accessories.slot.cosmetics.toggle.hidden": "Hide Cosmetic Slots",
   "accessories.slot.display.toggle.shown": "Show Accessory",
-  "accessories.slot.display.toggle.hidden": "Hide Accessory"
+  "accessories.slot.display.toggle.hidden": "Hide Accessory",
+  "accessories.slot.lines.toggle.shown": "Show All Lines",
+  "accessories.slot.lines.toggle.hidden": "Hide All Lines"
 }

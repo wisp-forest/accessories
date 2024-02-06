@@ -125,9 +125,9 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             if (slot instanceof AccessoriesSlot accessoriesSlot) {
                 var positionKey = accessoriesSlot.container.getSlotName() + accessoriesSlot.getContainerSlot();
 
-                if (!accessoriesSlot.isCosmetic && NOT_VERY_NICE_POSITIONS.containsKey(positionKey)) {
-                    var start = new Vec3(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 1000);
-                    var vec3 = NOT_VERY_NICE_POSITIONS.get(positionKey).add(0, 0, 1000);
+                if (!accessoriesSlot.isCosmetic && NOT_VERY_NICE_POSITIONS.containsKey(positionKey) && (menu.areLinesShown() || (hoveredSlot != null && hoveredSlot.equals(slot)))) {
+                    var start = new Vec3(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
+                    var vec3 = NOT_VERY_NICE_POSITIONS.get(positionKey).add(0, 0, 5000);
 
                     var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
                     var normals = guiGraphics.pose().last().normal();
@@ -360,7 +360,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     @Override
     protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
         if (this.hoveredSlot instanceof AccessoriesSlot accessoriesSlot) {
-            if (menu.areLinesShown()) forceTooltipLeft = true;
+//            if (menu.areLinesShown() || (hoveredSlot != null && hoveredSlot.equals(accessoriesSlot) && accessoriesSlot.isActive() && !accessoriesSlot.getItem().isEmpty())) forceTooltipLeft = true;
+            forceTooltipLeft = true;
             if (accessoriesSlot.getItem().isEmpty()) {
                 var slotType = accessoriesSlot.container.slotType();
 

@@ -79,7 +79,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                         );
 
                 if (rendering) {
-                    if (AccessoriesClient.renderingPlayerModelInAccessoriesScreen && AccessoriesAccess.getHolder(entity).linesShown()) {
+                    if (AccessoriesClient.renderingPlayerModelInAccessoriesScreen) {
                         var meanPos = mpoatv.meanPos;
                         AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, meanPos);
                     }
