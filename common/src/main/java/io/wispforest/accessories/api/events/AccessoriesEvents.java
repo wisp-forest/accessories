@@ -21,7 +21,7 @@ public class AccessoriesEvents {
             (bus, invokers) -> {
                 return (livingEntity, capability) -> {
                     for (var invoker : invokers) {
-                        if(!invoker.shouldDrop(livingEntity, capability)) return false;
+                        if (!invoker.shouldDrop(livingEntity, capability)) return false;
                     }
 
                     return bus.map(bus1 -> {
@@ -35,7 +35,7 @@ public class AccessoriesEvents {
 
     /**
      * Fabric Ecosystem event in which fired directly from {@link #ON_DEATH_EVENT} call
-     *
+     * <p>
      * Can be used for Common sided mods
      */
     public interface OnDeath {
@@ -49,16 +49,16 @@ public class AccessoriesEvents {
         private final LivingEntity entity;
         private final AccessoriesCapability capability;
 
-        public OnDeathEvent(LivingEntity entity, AccessoriesCapability capability){
+        public OnDeathEvent(LivingEntity entity, AccessoriesCapability capability) {
             this.entity = entity;
             this.capability = capability;
         }
 
-        public final LivingEntity entity(){
+        public final LivingEntity entity() {
             return this.entity;
         }
 
-        public final AccessoriesCapability capability(){
+        public final AccessoriesCapability capability() {
             return this.capability;
         }
     }
@@ -75,16 +75,16 @@ public class AccessoriesEvents {
                     for (var invoker : invokers) {
                         var dropRule2 = invoker.onDrop(dropRule, entity, reference, stack);
 
-                        if(dropRule2 != DropRule.DEFAULT) return dropRule2;
+                        if (dropRule2 != DropRule.DEFAULT) return dropRule2;
                     }
 
                     return bus.map(bus1 -> {
                         var event = bus1.post(new OnDropEvent(dropRule, entity, reference, stack));
 
-                        if(event.isCanceled()){
+                        if (event.isCanceled()) {
                             var dropRule2 = event.dropRule;
 
-                            if(dropRule2 != DropRule.DEFAULT) return dropRule2;
+                            if (dropRule2 != DropRule.DEFAULT) return dropRule2;
                         }
 
                         return dropRule;
@@ -105,7 +105,7 @@ public class AccessoriesEvents {
 
         private final ItemStack stack;
 
-        public OnDropEvent(DropRule dropRule, LivingEntity entity, SlotReference reference, ItemStack stack){
+        public OnDropEvent(DropRule dropRule, LivingEntity entity, SlotReference reference, ItemStack stack) {
             this.dropRule = dropRule;
 
             this.livingEntity = entity;
@@ -118,7 +118,7 @@ public class AccessoriesEvents {
             return this.dropRule;
         }
 
-        private final void setDropRule(DropRule dropRule){
+        private final void setDropRule(DropRule dropRule) {
             this.dropRule = dropRule;
         }
 
@@ -130,7 +130,7 @@ public class AccessoriesEvents {
             return this.reference;
         }
 
-        private final ItemStack stack(){
+        private final ItemStack stack() {
             return this.stack;
         }
     }
@@ -144,11 +144,11 @@ public class AccessoriesEvents {
             (bus, invokers) -> {
                 return (entity, reference, stack) -> {
                     for (var invoker : invokers) {
-                       invoker.onEquip(entity, reference, stack);
+                        invoker.onEquip(entity, reference, stack);
                     }
 
                     bus.ifPresent(bus1 -> {
-                       bus1.post(new OnEquipEvent(entity, reference, stack));
+                        bus1.post(new OnEquipEvent(entity, reference, stack));
                     });
                 };
             }
@@ -164,7 +164,7 @@ public class AccessoriesEvents {
         private final SlotReference reference;
         private final ItemStack stack;
 
-        public OnEquipEvent(LivingEntity entity, SlotReference reference, ItemStack stack){
+        public OnEquipEvent(LivingEntity entity, SlotReference reference, ItemStack stack) {
             this.entity = entity;
             this.reference = reference;
             this.stack = stack;
@@ -212,7 +212,7 @@ public class AccessoriesEvents {
         private final SlotReference reference;
         private final ItemStack stack;
 
-        public OnUnequipEvent(LivingEntity entity, SlotReference reference, ItemStack stack){
+        public OnUnequipEvent(LivingEntity entity, SlotReference reference, ItemStack stack) {
             this.entity = entity;
             this.reference = reference;
             this.stack = stack;

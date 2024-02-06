@@ -45,7 +45,7 @@ public class AccessoriesMenu extends InventoryMenu {
         accessor.accessories$setMenuType(Accessories.ACCESSORIES_MENU_TYPE);
         accessor.accessories$setContainerId(containerId);
 
-        syncedData = new SimpleContainerData(2);
+        syncedData = new SimpleContainerData(3);
 
         this.addDataSlots(syncedData);
 
@@ -72,14 +72,14 @@ public class AccessoriesMenu extends InventoryMenu {
         for (var item : BuiltInRegistries.ITEM) {
             var accessory = AccessoriesAPI.getAccessory(item);
 
-            if(accessory.isEmpty()) continue;
+            if (accessory.isEmpty()) continue;
 
 //            if(item == Items.APPLE){
 //                System.out.println("APPLE");
 //            }
 
             for (var value : entitySlotTypes.values()) {
-                if(AccessoriesAPI.canInsertIntoSlot(player, new SlotReference(value.name(), player, 0), item.getDefaultInstance())){
+                if (AccessoriesAPI.canInsertIntoSlot(player, new SlotReference(value.name(), player, 0), item.getDefaultInstance())) {
                     sortAccessories.computeIfAbsent(value, s -> new HashSet<>()).add(accessory.get());
                 }
             }
@@ -89,7 +89,9 @@ public class AccessoriesMenu extends InventoryMenu {
 
         this.syncedData.set(1, AccessoriesAccess.getHolder(player).scrolledSlot());
 
-        if(capability.isEmpty()) return;
+        this.syncedData.set(2, AccessoriesAccess.getHolder(player).linesShown() ? 1 : 0);
+
+        if (capability.isEmpty()) return;
 
         var containers = capability.get().getContainers();
 
@@ -113,11 +115,11 @@ public class AccessoriesMenu extends InventoryMenu {
             for (SlotType slot : slotTypes) {
                 var accessoryContainer = containers.get(slot.name());
 
-                if(accessoryContainer == null) continue;
+                if (accessoryContainer == null) continue;
 
                 var slotType = accessoryContainer.slotType();
 
-                if(slotType.isEmpty()) continue;
+                if (slotType.isEmpty()) continue;
 
                 var size = accessoryContainer.getSize();
 
@@ -128,12 +130,8 @@ public class AccessoriesMenu extends InventoryMenu {
 
                     var cosmeticSlot =
                             new AccessoriesSlot(yIndex, player, accessoryContainer, true, i, currentX, currentY)
-                                    .isActive((slot1) -> {
-                                        return this.isCosmeticsOpen() && slotToView.getOrDefault(slot1.index, true);
-                                    })
-                                    .isAccessible(slot1 -> {
-                                        return slot1.isCosmetic && isCosmeticsOpen();
-                                    });
+                                    .isActive((slot1) -> this.isCosmeticsOpen() && slotToView.getOrDefault(slot1.index, true))
+                                    .isAccessible(slot1 -> slot1.isCosmetic && isCosmeticsOpen());
 
 
                     cosmeticSlots.add(cosmeticSlot);
@@ -192,17 +190,17 @@ public class AccessoriesMenu extends InventoryMenu {
         return super.quickMoveStack(player, index);
     }
 
-    public boolean scrollTo(int i, boolean smooth){
+    public boolean scrollTo(int i, boolean smooth) {
         var index = Math.min(Math.max(i, 0), this.maxScrollableIndex);
 
-        if(index == this.scrolledIndex) return false;
+        if (index == this.scrolledIndex) return false;
 
         var diff = this.scrolledIndex - index;
 
-        if(!smooth) this.smoothScroll = Mth.clamp(index / (float) this.maxScrollableIndex, 0.0f, 1.0f);
+        if (!smooth) this.smoothScroll = Mth.clamp(index / (float) this.maxScrollableIndex, 0.0f, 1.0f);
 
         for (Slot slot : this.slots) {
-            if(!(slot instanceof AccessoriesSlot accessoriesSlot)) continue;
+            if (!(slot instanceof AccessoriesSlot accessoriesSlot)) continue;
 
             ((SlotAccessor) accessoriesSlot).accessories$setY(accessoriesSlot.y + (diff * 18));
 
@@ -218,17 +216,29 @@ public class AccessoriesMenu extends InventoryMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int id) {
-        if(player.level().isClientSide) return true;
+        if (player.level().isClientSide) return true;
 
-        if(id == 0){
+        if (id == 0) {
             this.syncedData.set(0, (this.syncedData.get(0) == 0 ? 1 : 0));
 
             AccessoriesAccess.modifyHolder(player, holder -> holder.cosmeticsShown(isCosmeticsOpen()));
 
+            if (isCosmeticsOpen()) {
+
+            }
+
             return true;
         }
 
-        if(this.slots.get(id) instanceof AccessoriesSlot slot){
+        if (id == 1) {
+            this.syncedData.set(2, (this.syncedData.get(2) == 0 ? 1 : 0));
+
+            AccessoriesAccess.modifyHolder(player, holder -> holder.linesShown(areLinesShown()));
+
+            return true;
+        }
+
+        if (this.slots.get(id) instanceof AccessoriesSlot slot) {
             var renderOptions = slot.container.renderOptions();
             renderOptions.set(slot.getContainerSlot(), !slot.container.shouldRender(slot.getContainerSlot()));
             slot.container.markChanged();
@@ -237,7 +247,11 @@ public class AccessoriesMenu extends InventoryMenu {
         return super.clickMenuButton(player, id);
     }
 
-    public boolean isCosmeticsOpen(){
+    public boolean isCosmeticsOpen() {
         return this.syncedData.get(0) > 0;
+    }
+
+    public boolean areLinesShown() {
+        return this.syncedData.get(1) > 0;
     }
 }

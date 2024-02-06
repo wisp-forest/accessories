@@ -1,8 +1,12 @@
 package io.wispforest.accessories;
 
+import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.SlotReference;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 public class Accessories {
 

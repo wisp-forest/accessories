@@ -13,6 +13,10 @@ public interface AccessoriesHolder extends InstanceCodecable {
 
     AccessoriesHolder cosmeticsShown(boolean value);
 
+    boolean linesShown();
+
+    AccessoriesHolder linesShown(boolean value);
+
     int scrolledSlot();
 
     AccessoriesHolder scrolledSlot(int slot);

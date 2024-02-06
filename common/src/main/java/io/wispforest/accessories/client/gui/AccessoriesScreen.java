@@ -2,11 +2,15 @@ package io.wispforest.accessories.client.gui;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.mixin.ScreenAccessor;
 import io.wispforest.accessories.networking.server.MenuScroll;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.ints.IntIntPair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -16,18 +20,22 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class AccessoriesScreen extends EffectRenderingInventoryScreen<AccessoriesMenu> implements ContainerScreenExtension {
 
@@ -39,6 +47,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     protected static final ResourceLocation SCROLL_BAR_PATCH = Accessories.of("scroll_bar_patch");
     protected static final ResourceLocation SCROLL_BAR = Accessories.of("scroll_bar");
+
+    public static final Map<Pair<String, Integer>, Vec3> NOT_VERY_NICE_POSITIONS = new HashMap<>();
 
     private List<Renderable> cosmeticButtons = new ArrayList<>();
 
@@ -82,7 +92,9 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         int i = this.leftPos;
         int j = this.topPos;
         guiGraphics.blit(INVENTORY_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        AccessoriesClient.renderingPlayerModelInAccessoriesScreen = true;
         InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i + 26, j + 8, i + 75, j + 78, 30, 0.0625F, this.xMouse, this.yMouse, this.minecraft.player);
+        AccessoriesClient.renderingPlayerModelInAccessoriesScreen = false;
 
         //if (!this.isVisible()) return;
         guiGraphics.pose().pushPose();
@@ -112,6 +124,24 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             pose.pushPose();
 
             pose.translate(-1, -1, 0);
+
+            pose.pushPose();
+
+            if (getMenu().areLinesShown() && slot instanceof AccessoriesSlot accessoriesSlot && !accessoriesSlot.isCosmetic && NOT_VERY_NICE_POSITIONS.containsKey(Pair.of(accessoriesSlot.container.getSlotName(), accessoriesSlot.getContainerSlot()))) {
+                var start = new Vec3(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 100);
+                var vec3 = NOT_VERY_NICE_POSITIONS.get(Pair.of(accessoriesSlot.container.getSlotName(), accessoriesSlot.getContainerSlot()));
+
+                var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
+                var normals = guiGraphics.pose().last().normal();
+                var normalVec = vec3.subtract(start).normalize().toVector3f();
+
+                buf.vertex(start.x, start.y, start.z).color(255, 255, 255, 255).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BLOCK).normal(normals, normalVec.x, normalVec.y, normalVec.z).endVertex();
+                buf.vertex(vec3.x, vec3.y, vec3.z).color(255, 255, 255, 255).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BLOCK).normal(normals, normalVec.x, normalVec.y, normalVec.z).endVertex();
+
+                minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
+            }
+
+            pose.popPose();
 
             guiGraphics.blit(SLOT_FRAME, slot.x + this.leftPos, slot.y + this.topPos, 0, 0, 18, 18, 18, 18);
 
@@ -243,7 +273,17 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 .bounds(this.leftPos - 27, this.topPos + 7, 18, 6)
                 .build();
 
+        var linesButton = Button.builder(Component.empty(), (btn) -> {
+                    this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 1);
+
+                    btn.setTooltip(linesToggleTooltip(this.menu.areLinesShown()));
+                })
+                .tooltip(cosmeticsToggleTooltip(this.menu.areLinesShown()))
+                .bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6)
+                .build();
+
         this.addRenderableWidget(button);
+        this.addRenderableWidget(linesButton);
 
         int aceesoriesSlots = 0;
 
@@ -279,6 +319,12 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     private Tooltip cosmeticsToggleTooltip(boolean value){
         var key = "slot.cosmetics.toggle." + (!value ? "shown" : "hidden");
+
+        return Tooltip.create(Component.translatable(Accessories.translation(key)));
+    }
+
+    private Tooltip linesToggleTooltip(boolean value){
+        var key = "slot.lines.toggle." + (!value ? "shown" : "hidden");
 
         return Tooltip.create(Component.translatable(Accessories.translation(key)));
     }

@@ -21,10 +21,12 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
 
     private int scrolledSlot = 0;
 
+    private boolean linesShown = false;
+
     private CompoundTag tag;
     protected boolean loadedFromTag = false;
 
-    public boolean cosmeticsShown(){
+    public boolean cosmeticsShown() {
         return this.cosmeticsShown;
     }
 
@@ -47,13 +49,25 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
         return this;
     }
 
-    public void init(AccessoriesCapability capability){
+
+    public boolean linesShown() {
+        return this.linesShown;
+    }
+
+    @Override
+    public AccessoriesHolder linesShown(boolean value) {
+        this.linesShown = value;
+
+        return this;
+    }
+
+    public void init(AccessoriesCapability capability) {
         var livingEntity = capability.getEntity();
 
         this.slotContainers.clear();
         this.invalidStacks.clear();
 
-        if(loadedFromTag) {
+        if (loadedFromTag) {
             AccessoriesAPI.getEntitySlots(livingEntity).forEach((s, slotType) -> {
                 slotContainers.putIfAbsent(s, new AccessoriesContainerImpl(capability, slotType));
             });
@@ -77,6 +91,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
 
     public static final String COSMETICS_SHOWN_KEY = "CosmeticsShown";
 
+    public static final String LINES_SHOWN_KEY = "LinesShown";
+
     @Override
     public void write(CompoundTag tag) {
         CompoundTag main = new CompoundTag();
@@ -92,6 +108,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
         tag.putBoolean(COSMETICS_SHOWN_KEY, cosmeticsShown);
 
         tag.put(MAIN_KEY, main);
+
+        tag.putBoolean(LINES_SHOWN_KEY, linesShown);
     }
 
     public void read(LivingEntity entity, CompoundTag tag) {
@@ -99,12 +117,14 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
 
         this.cosmeticsShown = tag.getBoolean(COSMETICS_SHOWN_KEY);
 
+        this.linesShown = tag.getBoolean(LINES_SHOWN_KEY);
+
         var containersTag = tag.getCompound(MAIN_KEY);
 
         for (String key : containersTag.getAllKeys()) {
             var containerTag = containersTag.getCompound(key);
 
-            if(slots.containsKey(key)){
+            if (slots.containsKey(key)) {
                 var container = slotContainers.get(key);
 
                 var prevAccessories = AccessoriesContainerImpl.copyContainerList(container.getAccessories());
@@ -112,17 +132,17 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
 
                 container.read(containerTag);
 
-                if(prevAccessories.getContainerSize() > container.getSize()){
+                if (prevAccessories.getContainerSize() > container.getSize()) {
                     for (int i = container.getSize() - 1; i < prevAccessories.getContainerSize(); i++) {
                         var prevStack = prevAccessories.getItem(i);
 
-                        if(!prevStack.isEmpty()){
+                        if (!prevStack.isEmpty()) {
                             this.invalidStacks.add(prevStack);
                         }
 
                         var prevCosmetic = prevCosmetics.getItem(i);
 
-                        if(!prevCosmetic.isEmpty()){
+                        if (!prevCosmetic.isEmpty()) {
                             this.invalidStacks.add(prevCosmetic);
                         }
                     }
@@ -134,7 +154,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
                     for (int i = 0; i < simpleContainer.getContainerSize(); i++) {
                         var stack = simpleContainer.getItem(i);
 
-                        if(!stack.isEmpty()) this.invalidStacks.add(stack);
+                        if (!stack.isEmpty()) this.invalidStacks.add(stack);
                     }
                 }
             }
@@ -149,6 +169,4 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
         this.loadedFromTag = true;
         this.tag = tag;
     }
-
-
 }
