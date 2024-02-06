@@ -2,9 +2,7 @@ package io.wispforest.accessories.networking;
 
 import io.netty.buffer.Unpooled;
 import io.wispforest.accessories.AccessoriesAccess;
-import io.wispforest.accessories.networking.client.SyncContainer;
-import io.wispforest.accessories.networking.client.SyncContainerData;
-import io.wispforest.accessories.networking.client.SyncData;
+import io.wispforest.accessories.networking.client.*;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.accessories.networking.server.MenuScroll;
 import net.fabricmc.api.EnvType;
@@ -30,6 +28,9 @@ public abstract class AccessoriesNetworkHandler {
         registerS2CDeferred(SyncData.class, SyncData::new);
         registerS2CDeferred(MenuScroll.class, MenuScroll::new);
 
+        registerS2CDeferred(SyncCosmeticsMenuToggle.class, SyncCosmeticsMenuToggle::new);
+        registerS2CDeferred(SyncLinesMenuToggle.class, SyncLinesMenuToggle::new);
+
         registerC2S(ScreenOpen.class, ScreenOpen::new);
         registerC2S(MenuScroll.class, MenuScroll::new);
     }
@@ -40,6 +41,9 @@ public abstract class AccessoriesNetworkHandler {
         registerS2C(SyncContainerData.class, SyncContainerData::new);
         registerS2C(SyncData.class, SyncData::new);
         registerS2C(MenuScroll.class, MenuScroll::new);
+
+        registerS2C(SyncCosmeticsMenuToggle.class, SyncCosmeticsMenuToggle::new);
+        registerS2C(SyncLinesMenuToggle.class, SyncLinesMenuToggle::new);
     }
 
     protected abstract <M extends AccessoriesPacket> void registerC2S(Class<M> messageType, Supplier<M> supplier);

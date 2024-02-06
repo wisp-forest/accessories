@@ -52,7 +52,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                 var renderer = AccessoriesRendererRegistery.getRender(stack.getItem());
 
                 if (renderer.isEmpty()) {
-                    AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(Pair.of(container.getSlotName(), i));
+                    AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
                     continue;
                 }
 
@@ -79,12 +79,12 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                         );
 
                 if (rendering) {
-                    if (AccessoriesClient.renderingPlayerModelInAccessoriesScreen) {
+                    if (AccessoriesClient.renderingPlayerModelInAccessoriesScreen && AccessoriesAccess.getHolder(entity).linesShown()) {
                         var meanPos = mpoatv.meanPos;
-                        AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(Pair.of(container.getSlotName(), i), meanPos);
+                        AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, meanPos);
                     }
                 } else {
-                    AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(Pair.of(container.getSlotName(), i));
+                    AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
                 }
 
                 poseStack.popPose();

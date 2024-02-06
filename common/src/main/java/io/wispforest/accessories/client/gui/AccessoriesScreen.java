@@ -47,7 +47,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     protected static final ResourceLocation SCROLL_BAR_PATCH = Accessories.of("scroll_bar_patch");
     protected static final ResourceLocation SCROLL_BAR = Accessories.of("scroll_bar");
 
-    public static final Map<Pair<String, Integer>, Vec3> NOT_VERY_NICE_POSITIONS = new HashMap<>();
+    public static final Map<String, Vec3> NOT_VERY_NICE_POSITIONS = new HashMap<>();
 
     private final List<Renderable> cosmeticButtons = new ArrayList<>();
 
@@ -125,19 +125,24 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             pose.translate(-1, -1, 0);
 
             pose.pushPose();
+            if (slot instanceof AccessoriesSlot accessoriesSlot){
+                var positionKey = accessoriesSlot.container.getSlotName() + accessoriesSlot.getContainerSlot();
 
-            if (slot instanceof AccessoriesSlot accessoriesSlot && !accessoriesSlot.isCosmetic && NOT_VERY_NICE_POSITIONS.containsKey(Pair.of(accessoriesSlot.container.getSlotName(), accessoriesSlot.getContainerSlot()))) {
-                var start = new Vec3(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 100);
-                var vec3 = NOT_VERY_NICE_POSITIONS.get(Pair.of(accessoriesSlot.container.getSlotName(), accessoriesSlot.getContainerSlot())).add(0, 0, 100);
+                if (!accessoriesSlot.isCosmetic && NOT_VERY_NICE_POSITIONS.containsKey(positionKey)) {
+                    var start = new Vec3(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 100);
+                    var vec3 = NOT_VERY_NICE_POSITIONS.get(positionKey).add(0, 0, 100);
 
-                var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
-                var normals = guiGraphics.pose().last().normal();
-                var normalVec = vec3.subtract(start).normalize().toVector3f();
+                    var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
+                    var normals = guiGraphics.pose().last().normal();
+                    var normalVec = vec3.subtract(start).normalize().toVector3f();
 
-                buf.vertex(start.x, start.y, start.z).color(255, 255, 255, 255).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BLOCK).normal(normals, normalVec.x, normalVec.y, normalVec.z).endVertex();
-                buf.vertex(vec3.x, vec3.y, vec3.z).color(255, 255, 255, 255).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BLOCK).normal(normals, normalVec.x, normalVec.y, normalVec.z).endVertex();
+                    buf.vertex(start.x, start.y, start.z).color(255, 255, 255, 255).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BLOCK).normal(normals, normalVec.x, normalVec.y, normalVec.z).endVertex();
+                    buf.vertex(vec3.x, vec3.y, vec3.z).color(255, 255, 255, 255).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BLOCK).normal(normals, normalVec.x, normalVec.y, normalVec.z).endVertex();
 
-                minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
+                    minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
+
+                    NOT_VERY_NICE_POSITIONS.remove(positionKey);
+                }
             }
 
             pose.popPose();
@@ -257,31 +262,30 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         return super.handleComponentClicked(style);
     }
 
+    private Button cosmeticToggleButton = null;
+    private Button linesButton = null;
+
     @Override
     protected void init() {
         super.init();
 
         this.cosmeticButtons.clear();
 
-        var button = Button.builder(Component.empty(), (btn) -> {
+        this.cosmeticToggleButton = Button.builder(Component.empty(), (btn) -> {
                     this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 0);
-
-                    btn.setTooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen()));
                 })
                 .tooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen()))
                 .bounds(this.leftPos - 27, this.topPos + 7, 18, 6)
                 .build();
 
-        var linesButton = Button.builder(Component.empty(), (btn) -> {
+        this.linesButton = Button.builder(Component.empty(), (btn) -> {
                     this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 1);
-
-                    btn.setTooltip(linesToggleTooltip(this.menu.areLinesShown()));
                 })
-                .tooltip(cosmeticsToggleTooltip(this.menu.areLinesShown()))
+                .tooltip(linesToggleTooltip(this.menu.areLinesShown()))
                 .bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6)
                 .build();
 
-        this.addRenderableWidget(button);
+        this.addRenderableWidget(cosmeticToggleButton);
         this.addRenderableWidget(linesButton);
 
         int aceesoriesSlots = 0;
@@ -316,19 +320,29 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         if(scrollBarHeight % 2 == 0) scrollBarHeight++;
     }
 
-    private Tooltip cosmeticsToggleTooltip(boolean value){
+    public void updateLinesButton(){
+        this.linesButton.setTooltip(linesToggleTooltip(this.menu.areLinesShown()));
+    }
+
+    public void updateCosmeticToggleButton(){
+        this.cosmeticToggleButton.setTooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen()));
+
+        this.linesButton.setX(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39));
+    }
+
+    private static Tooltip cosmeticsToggleTooltip(boolean value){
         var key = "slot.cosmetics.toggle." + (!value ? "shown" : "hidden");
 
         return Tooltip.create(Component.translatable(Accessories.translation(key)));
     }
 
-    private Tooltip linesToggleTooltip(boolean value){
+    private static Tooltip linesToggleTooltip(boolean value){
         var key = "slot.lines.toggle." + (!value ? "shown" : "hidden");
 
         return Tooltip.create(Component.translatable(Accessories.translation(key)));
     }
 
-    private Tooltip toggleTooltip(boolean value){
+    private static Tooltip toggleTooltip(boolean value){
         var key = "slot.display.toggle." + (!value ? "shown" : "hidden");
 
         return Tooltip.create(Component.translatable(Accessories.translation(key)));

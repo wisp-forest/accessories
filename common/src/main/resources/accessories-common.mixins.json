@@ -11,6 +11,7 @@
   ],
   "mixins": [
     "AbstractContainerMenuAccessor",
+    "InventoryMenuAccessor",
     "SlotAccessor"
   ],
   "injectors": {

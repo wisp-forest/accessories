@@ -6,14 +6,16 @@ import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.client.gui.AccessoriesSlot;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.mixin.AbstractContainerMenuAccessor;
+import io.wispforest.accessories.mixin.InventoryMenuAccessor;
 import io.wispforest.accessories.mixin.SlotAccessor;
+import io.wispforest.accessories.networking.client.SyncCosmeticsMenuToggle;
+import io.wispforest.accessories.networking.client.SyncLinesMenuToggle;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
@@ -23,8 +25,6 @@ public class AccessoriesMenu extends InventoryMenu {
 
     public int totalSlots = 0;
     public boolean overMaxVisibleSlots = false;
-
-    private final ContainerData syncedData;
 
     public int scrolledIndex = 0;
 
@@ -40,18 +40,13 @@ public class AccessoriesMenu extends InventoryMenu {
     public AccessoriesMenu(int containerId, Inventory inventory) {
         super(inventory, inventory.player.level().isClientSide, inventory.player);
 
+        var player = inventory.player;
+
         var accessor = (AbstractContainerMenuAccessor) this;
 
         accessor.accessories$setMenuType(Accessories.ACCESSORIES_MENU_TYPE);
         accessor.accessories$setContainerId(containerId);
 
-        syncedData = new SimpleContainerData(3);
-
-        this.addDataSlots(syncedData);
-
-        var groups = SlotGroupLoader.INSTANCE.getGroups(inventory.player.level().isClientSide);
-
-        var player = inventory.player;
         var capability = AccessoriesAPI.getCapability(player);
 
         var entitySlotTypes = AccessoriesAPI.getEntitySlots(player);
@@ -85,13 +80,7 @@ public class AccessoriesMenu extends InventoryMenu {
             }
         }
 
-        this.syncedData.set(0, AccessoriesAccess.getHolder(player).cosmeticsShown() ? 1 : 0);
-
-        this.syncedData.set(1, AccessoriesAccess.getHolder(player).scrolledSlot());
-
-        this.syncedData.set(2, AccessoriesAccess.getHolder(player).linesShown() ? 1 : 0);
-
-        if (capability.isEmpty()) return;
+        if(capability.isEmpty()) return;
 
         var containers = capability.get().getContainers();
 
@@ -103,6 +92,8 @@ public class AccessoriesMenu extends InventoryMenu {
 
         var accessoriesSlots = new ArrayList<AccessoriesSlot>();
         var cosmeticSlots = new ArrayList<AccessoriesSlot>();
+
+        var groups = SlotGroupLoader.INSTANCE.getGroups(inventory.player.level().isClientSide);
 
         for (var group : groups.values().stream().sorted(Comparator.comparingInt(SlotGroup::order).reversed()).toList()) {
             var slotNames = group.slots();
@@ -219,21 +210,17 @@ public class AccessoriesMenu extends InventoryMenu {
         if (player.level().isClientSide) return true;
 
         if (id == 0) {
-            this.syncedData.set(0, (this.syncedData.get(0) == 0 ? 1 : 0));
+            AccessoriesAccess.modifyHolder(player, holder -> holder.cosmeticsShown(!isCosmeticsOpen()));
 
-            AccessoriesAccess.modifyHolder(player, holder -> holder.cosmeticsShown(isCosmeticsOpen()));
-
-            if (isCosmeticsOpen()) {
-
-            }
+            AccessoriesAccess.getNetworkHandler().sendToPlayer((ServerPlayer) player, new SyncCosmeticsMenuToggle(isCosmeticsOpen()));
 
             return true;
         }
 
         if (id == 1) {
-            this.syncedData.set(2, (this.syncedData.get(2) == 0 ? 1 : 0));
+            AccessoriesAccess.modifyHolder(player, holder -> holder.linesShown(!areLinesShown()));
 
-            AccessoriesAccess.modifyHolder(player, holder -> holder.linesShown(areLinesShown()));
+            AccessoriesAccess.getNetworkHandler().sendToPlayer((ServerPlayer) player, new SyncLinesMenuToggle(areLinesShown()));
 
             return true;
         }
@@ -248,10 +235,10 @@ public class AccessoriesMenu extends InventoryMenu {
     }
 
     public boolean isCosmeticsOpen() {
-        return this.syncedData.get(0) > 0;
+        return AccessoriesAccess.getHolder(((InventoryMenuAccessor) this).getOwner()).cosmeticsShown();
     }
 
     public boolean areLinesShown() {
-        return this.syncedData.get(1) > 0;
+        return AccessoriesAccess.getHolder(((InventoryMenuAccessor) this).getOwner()).linesShown();
     }
 }
