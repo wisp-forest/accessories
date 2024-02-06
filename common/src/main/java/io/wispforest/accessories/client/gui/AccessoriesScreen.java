@@ -44,6 +44,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     public static final Map<String, Vec3> NOT_VERY_NICE_POSITIONS = new HashMap<>();
 
+    public static boolean forceTooltipLeft = false;
+
     private final List<Renderable> cosmeticButtons = new ArrayList<>();
 
     private float xMouse;
@@ -67,16 +69,16 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         var bl = super.mouseClicked(mouseX, mouseY, button);
 
-        if(this.getFocused() instanceof Button) this.clearFocus();
+        if (this.getFocused() instanceof Button) this.clearFocus();
 
-        if(this.insideScrollbar(mouseX, mouseY)) this.isScrolling = true;
+        if (this.insideScrollbar(mouseX, mouseY)) this.isScrolling = true;
 
         return bl;
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if(!this.insideScrollbar(mouseX, mouseY) && button == GLFW.GLFW_MOUSE_BUTTON_1) this.isScrolling = false;
+        if (!this.insideScrollbar(mouseX, mouseY) && button == GLFW.GLFW_MOUSE_BUTTON_1) this.isScrolling = false;
 
         return super.mouseReleased(mouseX, mouseY, button);
     }
@@ -104,14 +106,14 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         guiGraphics.blitSprite(AccessoriesScreen.BACKGROUND_PATCH, x + 6, y, width, height); //147
 
-        if(menu.overMaxVisibleSlots) {
+        if (menu.overMaxVisibleSlots) {
             guiGraphics.blitSprite(AccessoriesScreen.SCROLL_BAR_PATCH, x + 13, y + 7 + upperPadding, 8, height - 22);
         }
 
         guiGraphics.pose().popPose();
 
         for (Slot slot : this.menu.slots) {
-            if(!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) continue;
+            if (!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) continue;
 
             var pose = guiGraphics.pose();
 
@@ -120,12 +122,12 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             pose.translate(-1, -1, 0);
 
             pose.pushPose();
-            if (slot instanceof AccessoriesSlot accessoriesSlot){
+            if (slot instanceof AccessoriesSlot accessoriesSlot) {
                 var positionKey = accessoriesSlot.container.getSlotName() + accessoriesSlot.getContainerSlot();
 
                 if (!accessoriesSlot.isCosmetic && NOT_VERY_NICE_POSITIONS.containsKey(positionKey)) {
-                    var start = new Vec3(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 100);
-                    var vec3 = NOT_VERY_NICE_POSITIONS.get(positionKey).add(0, 0, 100);
+                    var start = new Vec3(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 1000);
+                    var vec3 = NOT_VERY_NICE_POSITIONS.get(positionKey).add(0, 0, 1000);
 
                     var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
                     var normals = guiGraphics.pose().last().normal();
@@ -150,34 +152,34 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         }
     }
 
-    private int getPanelHeight(int upperPadding){
+    private int getPanelHeight(int upperPadding) {
         return 14 + (Math.min(menu.totalSlots, 8) * 18) + upperPadding;
     }
 
-    private int getPanelWidth(){
+    private int getPanelWidth() {
         int width = 8 + 18 + 18;
 
-        if(menu.isCosmeticsOpen()) width += 18 + 2;
+        if (menu.isCosmeticsOpen()) width += 18 + 2;
 
-        if(!menu.overMaxVisibleSlots) width -= 12;
+        if (!menu.overMaxVisibleSlots) width -= 12;
 
         return width;
     }
 
-    private int getStartingPanelX(){
+    private int getStartingPanelX() {
         int x = this.leftPos - ((menu.isCosmeticsOpen()) ? 72 : 52);
 
-        if(!menu.overMaxVisibleSlots) x += 12;
+        if (!menu.overMaxVisibleSlots) x += 12;
 
         return x;
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if(insideScrollbar(mouseX, mouseY) || (this.hoveredSlot != null && this.hoveredSlot instanceof AccessoriesSlot)){
+        if (insideScrollbar(mouseX, mouseY) || (this.hoveredSlot != null && this.hoveredSlot instanceof AccessoriesSlot)) {
             int index = (int) Math.max(Math.min(-scrollY + this.menu.scrolledIndex, this.menu.maxScrollableIndex), 0);
 
-            if(index != menu.scrolledIndex) {
+            if (index != menu.scrolledIndex) {
                 AccessoriesAccess.getNetworkHandler().sendToServer(new MenuScroll(index, false));
 
                 return true;
@@ -189,7 +191,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if(this.isScrolling){
+        if (this.isScrolling) {
             int upperPadding = 8;
 
             int patchYOffset = this.topPos + 7 + upperPadding;
@@ -199,7 +201,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
             var index = Math.round(this.menu.smoothScroll * this.menu.maxScrollableIndex);
 
-            if(index != menu.scrolledIndex) {
+            if (index != menu.scrolledIndex) {
                 AccessoriesAccess.getNetworkHandler().sendToServer(new MenuScroll(index, true));
 
                 return true;
@@ -238,7 +240,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         int upperPadding = 8;
 
-        if(this.menu.overMaxVisibleSlots) {
+        if (this.menu.overMaxVisibleSlots) {
             var startingY = y + upperPadding + 8;
 
             startingY += this.menu.smoothScroll * (getPanelHeight(upperPadding) - 24 - this.scrollBarHeight);
@@ -246,8 +248,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             guiGraphics.blitSprite(AccessoriesScreen.SCROLL_BAR, x + 14, startingY, 6, this.scrollBarHeight);
         }
 
-        this.xMouse = (float)mouseX;
-        this.yMouse = (float)mouseY;
+        this.xMouse = (float) mouseX;
+        this.yMouse = (float) mouseY;
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
@@ -286,7 +288,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         int aceesoriesSlots = 0;
 
         for (Slot slot : this.menu.slots) {
-            if(!(slot instanceof AccessoriesSlot accessoriesSlot && !accessoriesSlot.isCosmetic) || !accessoriesSlot.isActive()) continue;
+            if (!(slot instanceof AccessoriesSlot accessoriesSlot && !accessoriesSlot.isCosmetic) || !accessoriesSlot.isActive())
+                continue;
 
             var slotButton = ToggleButton.toggleBuilder(Component.empty(), btn -> {
                         this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, slot.index);
@@ -294,7 +297,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                     .onRender(btn -> {
                         var bl = accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot());
 
-                        if(bl != btn.toggled()){
+                        if (bl != btn.toggled()) {
                             btn.toggled(bl);
                             btn.setTooltip(toggleTooltip(bl));
                         }
@@ -312,32 +315,32 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         scrollBarHeight = Mth.lerpInt(Math.min(aceesoriesSlots / 20f, 1.0f), 101, 31);
 
-        if(scrollBarHeight % 2 == 0) scrollBarHeight++;
+        if (scrollBarHeight % 2 == 0) scrollBarHeight++;
     }
 
-    public void updateLinesButton(){
+    public void updateLinesButton() {
         this.linesButton.setTooltip(linesToggleTooltip(this.menu.areLinesShown()));
     }
 
-    public void updateCosmeticToggleButton(){
+    public void updateCosmeticToggleButton() {
         this.cosmeticToggleButton.setTooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen()));
 
         this.linesButton.setX(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39));
     }
 
-    private static Tooltip cosmeticsToggleTooltip(boolean value){
+    private static Tooltip cosmeticsToggleTooltip(boolean value) {
         var key = "slot.cosmetics.toggle." + (!value ? "shown" : "hidden");
 
         return Tooltip.create(Component.translatable(Accessories.translation(key)));
     }
 
-    private static Tooltip linesToggleTooltip(boolean value){
+    private static Tooltip linesToggleTooltip(boolean value) {
         var key = "slot.lines.toggle." + (!value ? "shown" : "hidden");
 
         return Tooltip.create(Component.translatable(Accessories.translation(key)));
     }
 
-    private static Tooltip toggleTooltip(boolean value){
+    private static Tooltip toggleTooltip(boolean value) {
         var key = "slot.display.toggle." + (!value ? "shown" : "hidden");
 
         return Tooltip.create(Component.translatable(Accessories.translation(key)));
@@ -346,7 +349,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     @Override
     public @Nullable Boolean isHovering(Slot slot, double mouseX, double mouseY) {
         for (GuiEventListener child : this.children()) {
-            if(child instanceof ToggleButton toggleButton && toggleButton.isMouseOver(mouseX, mouseY)){
+            if (child instanceof ToggleButton toggleButton && toggleButton.isMouseOver(mouseX, mouseY)) {
                 return false;
             }
         }
@@ -356,32 +359,35 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     @Override
     protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
-        if(this.hoveredSlot instanceof AccessoriesSlot accessoriesSlot && accessoriesSlot.getItem().isEmpty()){
-            var slotType = accessoriesSlot.container.slotType();
+        if (this.hoveredSlot instanceof AccessoriesSlot accessoriesSlot) {
+            if (menu.areLinesShown()) forceTooltipLeft = true;
+            if (accessoriesSlot.getItem().isEmpty()) {
+                var slotType = accessoriesSlot.container.slotType();
 
-            if(slotType.isPresent()){
-                List<Component> tooltipData = new ArrayList<>();
+                if (slotType.isPresent()) {
+                    List<Component> tooltipData = new ArrayList<>();
 
-                var key = accessoriesSlot.isCosmetic ? "cosmetic_" : "";
+                    var key = accessoriesSlot.isCosmetic ? "cosmetic_" : "";
 
-                tooltipData.add(
-                        Component.translatable(Accessories.translation(key + "slot.tooltip.singular")).withStyle(ChatFormatting.GRAY)
-                                .append(Component.translatable(slotType.get().translation()).withStyle(ChatFormatting.BLUE))
-                );
+                    tooltipData.add(
+                            Component.translatable(Accessories.translation(key + "slot.tooltip.singular")).withStyle(ChatFormatting.GRAY)
+                                    .append(Component.translatable(slotType.get().translation()).withStyle(ChatFormatting.BLUE))
+                    );
 
-                guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
+                    guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
 
-                return;
+                    return;
+                }
             }
         }
-
         super.renderTooltip(guiGraphics, x, y);
+        forceTooltipLeft = false;
     }
 
     @Override
     protected boolean hasClickedOutside(double mouseX, double mouseY, int x, int y, int mouseButton) {
-        boolean flag = mouseX < (double)x || mouseY < (double)y || mouseX >= (double)(x + width) || mouseY >= (double)(y + height);
-        boolean flag1 = (double)(x - 147) < mouseX && mouseX < (double)x && (double)y < mouseY && mouseY < (double)(y + height);
+        boolean flag = mouseX < (double) x || mouseY < (double) y || mouseX >= (double) (x + width) || mouseY >= (double) (y + height);
+        boolean flag1 = (double) (x - 147) < mouseX && mouseX < (double) x && (double) y < mouseY && mouseY < (double) (y + height);
         return flag && !flag1;
     }
 }

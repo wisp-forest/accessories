@@ -6,6 +6,7 @@
   "client": [
     "AbstractContainerScreenAccessor",
     "AbstractContainerScreenMixin",
+    "DefaultTooltipPositionerMixin",
     "RenderLayerAccessor",
     "ScreenAccessor"
   ],
