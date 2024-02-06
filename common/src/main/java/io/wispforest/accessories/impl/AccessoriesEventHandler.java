@@ -18,6 +18,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.Container;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -205,8 +207,7 @@ public class AccessoriesEventHandler {
                         var uuid = AccessoriesAPI.getOrCreateSlotUUID(slotType, i);
 
                         if (!lastStack.isEmpty()) {
-                            Accessory accessory = AccessoriesAPI.getOrDefaultAccessory(lastStack);
-                            Multimap<Attribute, AttributeModifier> attributes = accessory.getModifiers(lastStack, slotReference, uuid);
+                            Multimap<Attribute, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(lastStack, slotReference, uuid);
                             Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
 
                             Set<Attribute> slotAttributes = new HashSet<>();
@@ -225,8 +226,7 @@ public class AccessoriesEventHandler {
                         }
 
                         if (!currentStack.isEmpty()) {
-                            Accessory accessory = AccessoriesAPI.getOrDefaultAccessory(currentStack);
-                            Multimap<Attribute, AttributeModifier> attributes = accessory.getModifiers(currentStack, slotReference, uuid);
+                            Multimap<Attribute, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(currentStack, slotReference, uuid);
                             Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
 
                             Set<Attribute> slotAttributes = new HashSet<>();
@@ -287,9 +287,9 @@ public class AccessoriesEventHandler {
     }
 
     public static void addTooltipInfo(LivingEntity entity, ItemStack stack, List<Component> tooltip){
-        var accessory = AccessoriesAPI.getAccessory(stack);
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
-        if(accessory.isEmpty()) return;
+        if(accessory == null) return;
 
         // TODO: MAYBE DEPENDING ON ENTITY OR SOMETHING SHOW ALL VALID SLOTS BUT COLOR CODE THEM IF NOT VALID FOR ENTITY?
         var slotTypes = AccessoriesAPI.getValidSlotTypes(entity, stack);
@@ -318,7 +318,7 @@ public class AccessoriesEventHandler {
                 slotsComponent.append(Component.translatable(type.translation()));
 
                 if(i + 1 != slotTypesList.size()){
-                    slotInfoComponent.append(",");
+                    slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
                 }
             }
         }
@@ -342,7 +342,7 @@ public class AccessoriesEventHandler {
             var reference = new SlotReference(slotType.name(), entity, 0);
             var uuid = AccessoriesAPI.getOrCreateSlotUUID(slotType, 0);
 
-            var slotModifiers = accessory.get().getModifiers(stack, reference, uuid);
+            var slotModifiers = AccessoriesAPI.getAttributeModifiers(stack, reference, uuid);
 
             slotSpecificModifiers.put(slotType, slotModifiers);
 
@@ -354,24 +354,30 @@ public class AccessoriesEventHandler {
             }
         }
 
-        accessory.get().getExtraTooltip(stack, tooltip);
+        accessory.getExtraTooltip(stack, tooltip);
 
         Map<SlotType, List<Component>> slotTypeToTooltipInfo = new HashMap<>();
 
         if(allDuplicates){
-            var attributeTooltip = new ArrayList<Component>();
-            attributeTooltip.add(
-                    Component.translatable(Accessories.translation("tooltip.attributes.any"))
-                            .withStyle(ChatFormatting.GRAY)
-            );
-            addAttributeTooltip(defaultModifiers, attributeTooltip);
+            if(!defaultModifiers.isEmpty()) {
+                var attributeTooltip = new ArrayList<Component>();
+                attributeTooltip.add(
+                        Component.translatable(Accessories.translation("tooltip.attributes.any"))
+                                .withStyle(ChatFormatting.GRAY)
+                );
+                addAttributeTooltip(defaultModifiers, attributeTooltip);
 
-            slotTypeToTooltipInfo.put(null, attributeTooltip);
+                slotTypeToTooltipInfo.put(null, attributeTooltip);
+            }
         } else {
             for (var slotModifiers : slotSpecificModifiers.entrySet()) {
+                if(slotModifiers.getValue().isEmpty()) continue;
+
                 tooltip.add(
-                        Component.translatable(Accessories.translation("tooltip.attributes.slot"))
-                                .withStyle(ChatFormatting.GRAY)
+                        Component.translatable(
+                                        Accessories.translation("tooltip.attributes.slot"),
+                                        Component.translatable(slotModifiers.getKey().translation()).withStyle(ChatFormatting.BLUE)
+                                ).withStyle(ChatFormatting.GRAY)
                 );
                 addAttributeTooltip(slotModifiers.getValue(), tooltip);
             }
@@ -384,7 +390,7 @@ public class AccessoriesEventHandler {
 
         for (SlotType slotType : slotTypes) {
             var extraAttributeTooltip = new ArrayList<Component>();
-            accessory.get().getAttributesTooltip(stack, extraAttributeTooltip);
+            accessory.getAttributesTooltip(stack, slotType, extraAttributeTooltip);
 
             extraAttributeTooltips.put(slotType, extraAttributeTooltip);
 
@@ -421,7 +427,7 @@ public class AccessoriesEventHandler {
             }
         }
 
-        accessory.get().getExtraTooltip(stack, tooltip);
+        accessory.getExtraTooltip(stack, tooltip);
     }
 
     private static void addAttributeTooltip(Multimap<Attribute, AttributeModifier> multimap, List<Component> tooltip){
@@ -526,5 +532,29 @@ public class AccessoriesEventHandler {
         } else {
             entity.spawnAtLocation(stack);
         }
+    }
+
+    public static InteractionResultHolder<ItemStack> attemptEquipFromUse(Player player, Level world, InteractionHand hand){
+        var stack = player.getItemInHand(hand);
+
+        if(!stack.isEmpty() && !player.isSpectator() && player.isShiftKeyDown()) {
+            var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+
+            var capability = AccessoriesAPI.getCapability(player);
+
+            if (capability.isPresent()) {
+                var unequippedReference = capability.get().equipAccessory(stack, true, Accessory::canEquipFromUse);
+
+                if (unequippedReference != null) {
+                    accessory.onEquipFromUse(stack, unequippedReference.reference());
+
+                    player.setItemInHand(hand, unequippedReference.stack());
+
+                    return InteractionResultHolder.success(unequippedReference.stack());
+                }
+            }
+        }
+
+        return InteractionResultHolder.pass(stack);
     }
 }

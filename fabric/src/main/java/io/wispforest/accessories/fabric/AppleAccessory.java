@@ -6,6 +6,7 @@ import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.SlotReference;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -19,6 +20,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 public class AppleAccessory implements Accessory {
+
+    @Environment(EnvType.CLIENT)
+    public static void clientInit(){
+        AccessoriesRendererRegistery.registerRenderer(Items.APPLE, new AppleAccessory.Renderer());
+    }
+
+    public static void init(){
+        AccessoriesAPI.registerAccessory(Items.APPLE, new AppleAccessory());
+    }
 
     @Override
     public void tick(ItemStack stack, SlotReference reference) {

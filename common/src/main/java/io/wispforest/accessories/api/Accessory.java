@@ -2,6 +2,7 @@ package io.wispforest.accessories.api;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
@@ -96,17 +97,32 @@ public interface Accessory {
     }
 
     default boolean canEquipFromUse(ItemStack stack, SlotReference reference){
-        // TODO: Should this be defaulting to false?
-        return false;
+        return true;
     }
 
-    default List<Component> getExtraTooltip(ItemStack stack, List<Component> tooltips){
-        return tooltips;
-    }
+    /**
+     * Method used to add tooltip info for attribute like data based ona given slot type
+     *
+     * @param stack The Stack being referenced
+     * @param type The SlotType being referenced
+     * @param tooltips Final list containing the tooltip info
+     */
+    default void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips){}
 
-    default List<Component> getAttributesTooltip(ItemStack stack, List<Component> tooltips){
-        return tooltips;
-    }
+    /**
+     * Method used to add any additional tooltip inforamtion to a given {@link Accessory} tooltip
+     * within {@link AccessoriesEventHandler#addTooltipInfo(LivingEntity, ItemStack, List)} at the
+     * end of the method call.
+     *
+     * <p>
+     *     Do note that means that the list passed contains all tooltip info allowing for
+     *     positioning before or after the tooltip info
+     * </p>
+     *
+     * @param stack The Stack being referenced
+     * @param tooltips Final list containing the tooltip info
+     */
+    default void getExtraTooltip(ItemStack stack, List<Component> tooltips){}
 
     //--
 

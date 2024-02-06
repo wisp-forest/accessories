@@ -10,8 +10,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
+import org.apache.commons.lang3.function.TriFunction;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -144,9 +147,81 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability {
     }
 
     @Override
-    public boolean equipAccessory(ItemStack stack) {
-        //TODO: IMPLEMENT
-        return false;
+    @Nullable
+    public SlotEntryReference equipAccessory(ItemStack stack, boolean allowSwapping, TriFunction<Accessory, ItemStack, SlotReference, Boolean> additionalCheck) {
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+
+        if(accessory == null) return null;
+
+        var validContainers = new HashMap<String, AccessoriesContainer>();
+
+        // First attempt to equip an accessory within empty slot
+        for (var continerEntry : this.getContainers().entrySet()) {
+            var slotType = continerEntry.getKey();
+            var container = continerEntry.getValue();
+
+            var accessories = container.getAccessories();
+
+            boolean isValid = AccessoriesAPI.canInsertIntoSlot(getEntity(), new SlotReference(slotType, getEntity(), 0), stack);
+
+            if(!isValid || container.getSize() <= 0) continue;
+
+            if(allowSwapping) validContainers.put(slotType, container);
+
+            for (int i = 0; i < container.getSize(); i++) {
+                var slotStack = accessories.getItem(i);
+                var slotReference = new SlotReference(slotType, getEntity(), i);
+
+                if(!slotStack.isEmpty()) continue;
+
+                var slotAccessory = AccessoriesAPI.getAccessory(slotStack).orElse(null);
+
+                if(slotAccessory != null && !slotAccessory.canUnequip(stack, slotReference)) continue;
+
+                if(additionalCheck.apply(accessory, stack, slotReference) && accessory.canEquip(stack, slotReference)) {
+                    if (!entity.level().isClientSide) {
+                        accessories.setItem(i, stack);
+
+                        container.markChanged();
+                    }
+
+                    return new SlotEntryReference(
+                            new SlotReference(container.getSlotName(), getEntity(), i),
+                            ItemStack.EMPTY
+                    );
+                }
+            }
+        }
+
+        // Second attempt to equip an accessory within the first slot by swapping if allowed
+        for (var validContainerEntry : validContainers.entrySet()) {
+            var slotType = validContainerEntry.getKey();
+            var validContainer = validContainerEntry.getValue();
+
+            var accessories = validContainer.getAccessories();
+
+            var slotStack = accessories.getItem(0);
+            var slotReference = new SlotReference(slotType, getEntity(), 0);
+
+            var slotAccessory = AccessoriesAPI.getAccessory(slotStack).orElse(null);
+
+            if (slotAccessory != null && !slotAccessory.canUnequip(stack, slotReference)) continue;
+
+            if (additionalCheck.apply(accessory, stack, slotReference) && accessory.canEquip(stack, slotReference)) {
+                if (!entity.level().isClientSide) {
+                    accessories.setItem(0, stack);
+
+                    validContainer.markChanged();
+                }
+
+                return new SlotEntryReference(
+                        new SlotReference(validContainer.getSlotName(), getEntity(), 0),
+                        slotStack
+                );
+            }
+        }
+
+        return null;
     }
 
     @Override
@@ -196,30 +271,6 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability {
         }
 
         return references;
-    }
-
-    @Override
-    public void foreach(Consumer<SlotEntryReference> consumer) {
-        for (var entry : this.holder.getSlotContainers().entrySet()) {
-            var container = entry.getValue();
-
-            var accessories = container.getAccessories();
-
-            for (int i = 0; i < accessories.getContainerSize(); i++) {
-                var stack = accessories.getItem(i);
-
-                consumer.accept(
-                        new SlotEntryReference(
-                                new SlotReference(
-                                        container.getSlotName(),
-                                        entity,
-                                        i
-                                ),
-                                stack
-                        )
-                );
-            }
-        }
     }
 
     @Override
