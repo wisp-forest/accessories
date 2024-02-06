@@ -5,9 +5,11 @@ import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
+import io.wispforest.accessories.mixin.ScreenAccessor;
 import io.wispforest.accessories.networking.server.MenuScroll;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
 import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.ints.IntIntPair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -20,10 +22,12 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.phys.Vec3;
@@ -122,9 +126,9 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
             pose.pushPose();
 
-            if (getMenu().areLinesShown() && slot instanceof AccessoriesSlot accessoriesSlot && !accessoriesSlot.isCosmetic && NOT_VERY_NICE_POSITIONS.containsKey(Pair.of(accessoriesSlot.container.getSlotName(), accessoriesSlot.getContainerSlot()))) {
+            if (slot instanceof AccessoriesSlot accessoriesSlot && !accessoriesSlot.isCosmetic && NOT_VERY_NICE_POSITIONS.containsKey(Pair.of(accessoriesSlot.container.getSlotName(), accessoriesSlot.getContainerSlot()))) {
                 var start = new Vec3(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 100);
-                var vec3 = NOT_VERY_NICE_POSITIONS.get(Pair.of(accessoriesSlot.container.getSlotName(), accessoriesSlot.getContainerSlot()));
+                var vec3 = NOT_VERY_NICE_POSITIONS.get(Pair.of(accessoriesSlot.container.getSlotName(), accessoriesSlot.getContainerSlot())).add(0, 0, 100);
 
                 var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
                 var normals = guiGraphics.pose().last().normal();
