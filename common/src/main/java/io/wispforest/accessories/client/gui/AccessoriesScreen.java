@@ -4,7 +4,6 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
-import io.wispforest.accessories.mixin.ScreenAccessor;
 import io.wispforest.accessories.networking.server.MenuScroll;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
 import net.minecraft.ChatFormatting;
@@ -40,7 +39,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     protected static final ResourceLocation SCROLL_BAR_PATCH = Accessories.of("scroll_bar_patch");
     protected static final ResourceLocation SCROLL_BAR = Accessories.of("scroll_bar");
 
-    private List<Renderable> cosmeticButtons = new ArrayList<>();
+    private final List<Renderable> cosmeticButtons = new ArrayList<>();
 
     private float xMouse;
     private float yMouse;

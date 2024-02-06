@@ -5,7 +5,7 @@
   "accessories.cosmetic_slot.tooltip.plural": "Cosmetic Slots: ",
   "accessories.slot.any": "Any",
   "accessories.tooltip.attributes.any": "When Equipped:",
-  "accessories.tooltip.attributes.slot": "When Equipped in {}:",
+  "accessories.tooltip.attributes.slot": "When Equipped in %s:",
   "accessories.slot.hat": "Hat",
   "accessories.slot.face": "Face",
   "accessories.slot.cape": "Cape",

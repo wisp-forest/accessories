@@ -101,35 +101,37 @@ public class AccessoriesAPI {
             for (int i = 0; i < attributes.size(); i++) {
                 var attributeTag = attributes.getCompound(i);
 
-                if(attributeTag.contains("slot") && attributeTag.getString("slot").equals(reference.slotName())){
-                    var attributeType = ResourceLocation.tryParse(attributeTag.getString("AttributeName"));
-                    var id = uuid;
+                if(attributeTag.contains("Slot") && !attributeTag.getString("Slot").equals(reference.slotName())){
+                    continue;
+                }
 
-                    if(attributeType != null) continue;
+                var attributeType = ResourceLocation.tryParse(attributeTag.getString("AttributeName"));
+                var id = uuid;
 
-                    if(attributeTag.contains("UUID")) id = attributeTag.getUUID("UUID");
+                if(attributeType == null) continue;
 
-                    if(id.getLeastSignificantBits() == 0 || id.getMostSignificantBits() == 0) continue;
+                if(attributeTag.contains("UUID")) id = attributeTag.getUUID("UUID");
 
-                    var operation = AttributeModifier.Operation.fromValue(attributeTag.getInt("Operation"));
-                    var amount = attributeTag.getDouble("Amount");
-                    var name = attributeTag.getString("Name");
+                if(id.getLeastSignificantBits() == 0 || id.getMostSignificantBits() == 0) continue;
 
-                    var attributeModifier = new AttributeModifier(id, name, amount, operation);
+                var operation = AttributeModifier.Operation.fromValue(attributeTag.getInt("Operation"));
+                var amount = attributeTag.getDouble("Amount");
+                var name = attributeTag.getString("Name");
 
-                    if(attributeType.getNamespace().equals(Accessories.MODID)){
-                        var slotName = attributeType.getPath();
+                var attributeModifier = new AttributeModifier(id, name, amount, operation);
 
-                        if(!AccessoriesAPI.getAllSlots(reference.entity().level()).containsKey(slotName)) continue;
+                if(attributeType.getNamespace().equals(Accessories.MODID)){
+                    var slotName = attributeType.getPath();
 
-                        multimap.put(SlotAttribute.getSlotAttribute(slotName), attributeModifier);
-                    } else {
-                        var attribute = BuiltInRegistries.ATTRIBUTE.getOptional(attributeType);
+                    if(!AccessoriesAPI.getAllSlots(reference.entity().level()).containsKey(slotName)) continue;
 
-                        if(attribute.isEmpty()) continue;
+                    multimap.put(SlotAttribute.getSlotAttribute(slotName), attributeModifier);
+                } else {
+                    var attribute = BuiltInRegistries.ATTRIBUTE.getOptional(attributeType);
 
-                        multimap.put(attribute.get(), attributeModifier);
-                    }
+                    if(attribute.isEmpty()) continue;
+
+                    multimap.put(attribute.get(), attributeModifier);
                 }
             }
         }
@@ -199,8 +201,13 @@ public class AccessoriesAPI {
     public static boolean canInsertIntoSlot(LivingEntity entity, SlotReference reference, ItemStack stack){
         var predicates = reference.type().map(SlotType::validators).orElse(Set.of());
 
-        return getPredicateResults(predicates, entity, reference, stack)
-                && getAccessory(stack).map(accessory -> accessory.canEquip(stack, reference)).orElse(false);
+        if(getPredicateResults(predicates, entity, reference, stack)){
+            var accessory = getOrDefaultAccessory(stack);
+
+            return accessory.canEquip(stack, reference);
+        }
+
+        return false;
     }
 
     /**
@@ -274,6 +281,11 @@ public class AccessoriesAPI {
      */
     public static final TagKey<Item> ALL_ACCESSORIES = TagKey.create(Registries.ITEM, Accessories.of("all"));
 
+    public static final String ACCESSORY_PREDICATES_KEY = "AccessoryPredicates";
+
+    public static final String ACCESSORY_VALID_SLOTS_KEY = "ValidSlotOverrides";
+    public static final String ACCESSORY_INVALID_SLOTS_KEY = "InvalidSlotOverrides";
+
     static {
         registerPredicate(Accessories.of("all"), (entity, reference, stack) -> InteractionResult.SUCCESS);
         registerPredicate(Accessories.of("none"), (entity, reference, stack) -> InteractionResult.FAIL);
@@ -286,6 +298,33 @@ public class AccessoriesAPI {
             var bl = !getAttributeModifiers(stack, reference, getOrCreateSlotUUID(reference.slotName(), reference.slot())).isEmpty();
 
             return bl ? InteractionResult.SUCCESS : InteractionResult.PASS;
+        });
+        registerPredicate(Accessories.of("compound"), (entity, reference, stack) -> {
+            var tag = stack.getTag();
+
+            if(tag != null && tag.contains(ACCESSORY_PREDICATES_KEY)) {
+                var extraData = tag.getCompound(ACCESSORY_PREDICATES_KEY);
+
+                var invalidSlots = extraData.getList(ACCESSORY_INVALID_SLOTS_KEY, Tag.TAG_STRING);
+
+                for (int i = 0; i < invalidSlots.size(); i++) {
+                    var invalidSlot = invalidSlots.getString(i);
+
+                    if (reference.slotName().equals(invalidSlot)) return InteractionResult.FAIL;
+                }
+
+                //--
+
+                var validSlots = extraData.getList(ACCESSORY_VALID_SLOTS_KEY, Tag.TAG_STRING);
+
+                for (int i = 0; i < validSlots.size(); i++) {
+                    var validSlot = validSlots.getString(i);
+
+                    if (reference.slotName().equals(validSlot)) return InteractionResult.SUCCESS;
+                }
+            }
+
+            return InteractionResult.PASS;
         });
     }
 }
