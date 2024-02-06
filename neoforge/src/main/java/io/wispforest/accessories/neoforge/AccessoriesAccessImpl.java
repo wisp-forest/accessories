@@ -1,4 +1,4 @@
-package io.wispforest.accessories.fabric;
+package io.wispforest.accessories.neoforge;
 
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
@@ -12,11 +12,11 @@ import java.util.function.UnaryOperator;
 public class AccessoriesAccessImpl {
 
     public static Optional<AccessoriesCapability> getCapability(LivingEntity livingEntity){
-        return Optional.ofNullable(AccessoriesFabric.CAPABILITY.find(livingEntity, null));
+        return Optional.ofNullable(AccessoriesForge.CAPABILITY.getCapability(livingEntity, null));
     }
 
     public static AccessoriesHolder getHolder(LivingEntity livingEntity){
-        return livingEntity.getAttachedOrCreate(AccessoriesFabric.HOLDER_ATTACHMENT_TYPE);
+        return livingEntity.getData(AccessoriesForge.HOLDER_ATTACHMENT_TYPE);
     }
 
     public static void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolder> modifier){
@@ -24,15 +24,15 @@ public class AccessoriesAccessImpl {
 
         holder = modifier.apply(holder);
 
-        livingEntity.setAttached(AccessoriesFabric.HOLDER_ATTACHMENT_TYPE, holder);
+        livingEntity.setData(AccessoriesForge.HOLDER_ATTACHMENT_TYPE, holder);
     }
 
     public static AccessoriesNetworkHandler getNetworkHandler(){
-        return AccessoriesFabricNetworkHandler.INSTANCE;
+        return AccessoriesForgeNetworkHandler.INSTANCE;
     }
 
     public static AccessoriesInternals getInternal(){
-        return AccessoriesFabricInternals.INSTANCE;
+        return AccessoriesForgeInternals.INSTANCE;
     }
 
 }

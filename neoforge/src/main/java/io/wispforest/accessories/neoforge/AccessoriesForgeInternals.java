@@ -1,16 +1,10 @@
-package io.wispforest.accessories.fabric;
+package io.wispforest.accessories.neoforge;
 
 import com.google.gson.JsonObject;
-import io.wispforest.accessories.client.AccessoriesMenu;
+import com.mojang.serialization.JsonOps;
 import io.wispforest.accessories.impl.AccessoriesInternals;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
-import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -19,32 +13,30 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 import java.util.Collection;
-import java.util.Optional;
+import java.util.List;
 import java.util.function.BiFunction;
 
-public class AccessoriesInternalsImpl implements AccessoriesInternals {
+public class AccessoriesForgeInternals implements AccessoriesInternals {
 
-    public static final AccessoriesInternalsImpl INSTANCE = new AccessoriesInternalsImpl();
+    public static final AccessoriesForgeInternals INSTANCE = new AccessoriesForgeInternals();
 
     @Override
     public Collection<ServerPlayer> getTracking(Entity entity) {
-        return PlayerLookup.tracking(entity);
+        return List.of();
     }
 
     @Override
     public void giveItemToPlayer(ServerPlayer player, ItemStack stack) {
-        try(var transaction = Transaction.openOuter()) {
-            PlayerInventoryStorage.of(player).offerOrDrop(ItemVariant.of(stack), stack.getCount(), transaction);
-            transaction.commit();
-        }
+        ItemHandlerHelper.giveItemToPlayer(player, stack);
     }
 
     @Override
     public boolean isValidOnConditions(JsonObject object) {
-        return ResourceConditions.objectMatchesConditions(object);
+        return ICondition.conditionsMatched(JsonOps.INSTANCE, object);
     }
 
     @Override

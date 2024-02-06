@@ -1,7 +1,6 @@
 package io.wispforest.accessories.fabric;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
@@ -26,16 +25,12 @@ import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -67,7 +62,7 @@ public class AccessoriesFabric implements ModInitializer {
 
         UseItemCallback.EVENT.register(AccessoriesEventHandler::attemptEquipFromUse);
 
-        AccessoriesNetworkHandlerImpl.INSTANCE.register();
+        AccessoriesFabricNetworkHandler.INSTANCE.register();
 
         ServerLivingEntityEvents.AFTER_DEATH.register(AccessoriesEventHandler::onDeath);
 

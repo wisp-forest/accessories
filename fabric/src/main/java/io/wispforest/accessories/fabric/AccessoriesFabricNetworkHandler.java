@@ -17,9 +17,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class AccessoriesNetworkHandlerImpl extends AccessoriesNetworkHandler {
+public class AccessoriesFabricNetworkHandler extends AccessoriesNetworkHandler {
 
-    public static final AccessoriesNetworkHandlerImpl INSTANCE = new AccessoriesNetworkHandlerImpl();
+    public static final AccessoriesFabricNetworkHandler INSTANCE = new AccessoriesFabricNetworkHandler();
 
     private final Map<ResourceLocation, PacketType<AccessoriesFabricPacket<?>>> packetTypes = new HashMap<>();
 
