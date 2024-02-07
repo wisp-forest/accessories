@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "testccessories",
+  "version": "${version}",
+  "name": "Testccessories",
+  "description": "Testmod for accessories",
+  "authors": [
+    "chyzman"
+  ],
+  "contact": {
+    "homepage": "https://fabricmc.net/",
+    "sources": "https://github.com/FabricMC/fabric-example-mod"
+  },
+  "license": "MIT",
+  "icon": "assets/testccessories/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "io.wispforest.testccessories.fabric.Testccessories"
+    ],
+    "client":[
+      "io.wispforest.testccessories.fabric.client.TestccessoriesClientFabric"
+    ]
+  },
+  "mixins": [
+  ],
+  "depends": {
+    "fabric": "*",
+    "minecraft": ">=1.20.1",
+    "accessories": "*"
+  }
+}

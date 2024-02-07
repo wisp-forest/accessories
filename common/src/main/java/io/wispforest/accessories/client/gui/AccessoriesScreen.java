@@ -380,19 +380,19 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     }
 
     private static Tooltip cosmeticsToggleTooltip(boolean value) {
-        var key = "slot.cosmetics.toggle." + (!value ? "shown" : "hidden");
+        var key = "slot.cosmetics.toggle." + (!value ? "show" : "hide");
 
         return Tooltip.create(Component.translatable(Accessories.translation(key)));
     }
 
     private static Tooltip linesToggleTooltip(boolean value) {
-        var key = "slot.lines.toggle." + (!value ? "shown" : "hidden");
+        var key = "slot.lines.toggle." + (!value ? "show" : "hide");
 
         return Tooltip.create(Component.translatable(Accessories.translation(key)));
     }
 
     private static Tooltip toggleTooltip(boolean value) {
-        var key = "slot.display.toggle." + (!value ? "shown" : "hidden");
+        var key = "slot.display.toggle." + (!value ? "show" : "hide");
 
         return Tooltip.create(Component.translatable(Accessories.translation(key)));
     }

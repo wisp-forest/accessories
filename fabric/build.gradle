@@ -7,10 +7,6 @@ architectury {
     fabric()
 }
 
-loom {
-    accessWidenerPath = project(":common").loom.accessWidenerPath
-}
-
 configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin since it *excludes* files.
@@ -33,6 +29,13 @@ repositories {
     }
 }
 
+sourceSets {
+    testmod {
+        runtimeClasspath += main.runtimeClasspath
+        compileClasspath += main.compileClasspath
+    }
+}
+
 dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
     modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
@@ -45,6 +48,8 @@ dependencies {
     modLocalRuntime("maven.modrinth:ok-boomer:0.1.3+1.20.2")
     modLocalRuntime("io.wispforest:owo-lib:0.12.4-pre.2+1.20.3")
     modLocalRuntime("io.wispforest:gadget:0.2.3+1.20.3")
+
+    testmodImplementation sourceSets.main.output
 }
 
 processResources {
@@ -53,6 +58,33 @@ processResources {
     filesMatching("fabric.mod.json") {
         expand "version": project.version
     }
+}
+
+processTestmodResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+loom {
+    runs {
+        testmodClient {
+            client()
+            ideConfigGenerated true
+            name = "Testmod Client (:fabric)"
+            source sourceSets.testmod
+        }
+        testmodServer {
+            server()
+            ideConfigGenerated true
+            name = "Testmod Server (:fabric)"
+            source sourceSets.testmod
+        }
+    }
+
+    accessWidenerPath = project(":common").loom.accessWidenerPath
 }
 
 shadowJar {
