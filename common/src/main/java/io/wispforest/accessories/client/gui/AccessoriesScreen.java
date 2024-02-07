@@ -7,6 +7,7 @@ import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.networking.server.MenuScroll;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
+import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -27,6 +28,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector2i;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
@@ -43,6 +45,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     protected static final ResourceLocation SCROLL_BAR = Accessories.of("scroll_bar");
 
     public static final Map<String, Vec3> NOT_VERY_NICE_POSITIONS = new HashMap<>();
+    private static final List<Pair<Vec3, Vec3>> LINES = new ArrayList<>();
 
     public static boolean forceTooltipLeft = false;
 
@@ -87,9 +90,20 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         int i = this.leftPos;
         int j = this.topPos;
+        Vector2i playerInInventoryPosition = new Vector2i(i + 26, j + 8);
         guiGraphics.blit(INVENTORY_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
         AccessoriesClient.renderingPlayerModelInAccessoriesScreen = true;
-        InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i + 26, j + 8, i + 75, j + 78, 30, 0.0625F, this.xMouse, this.yMouse, this.minecraft.player);
+        InventoryScreen.renderEntityInInventoryFollowsMouse(
+                guiGraphics,
+                playerInInventoryPosition.x,
+                playerInInventoryPosition.y,
+                playerInInventoryPosition.x + 49,
+                playerInInventoryPosition.y + 70,
+                30,
+                0.0625F,
+                this.xMouse, this.yMouse,
+                this.minecraft.player
+        );
         AccessoriesClient.renderingPlayerModelInAccessoriesScreen = false;
 
         //if (!this.isVisible()) return;
@@ -129,14 +143,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                     var start = new Vec3(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
                     var vec3 = NOT_VERY_NICE_POSITIONS.get(positionKey).add(0, 0, 5000);
 
-                    var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
-                    var normals = guiGraphics.pose().last().normal();
-                    var normalVec = vec3.subtract(start).normalize().toVector3f();
-
-                    buf.vertex(start.x, start.y, start.z).color(255, 255, 255, 255).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BLOCK).normal(normals, normalVec.x, normalVec.y, normalVec.z).endVertex();
-                    buf.vertex(vec3.x, vec3.y, vec3.z).color(255, 255, 255, 255).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(LightTexture.FULL_BLOCK).normal(normals, normalVec.x, normalVec.y, normalVec.z).endVertex();
-
-                    minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
+                    LINES.add(Pair.of(start, vec3));
 
                     NOT_VERY_NICE_POSITIONS.remove(positionKey);
                 }
@@ -220,10 +227,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         int height = getPanelHeight(upperPadding) - 22;
         int width = 8;
 
-        return mouseX >= x
-                && mouseY >= y
-                && mouseX < (x + width)
-                && mouseY < (y + height);
+        return mouseX >= x && mouseY >= y && mouseX < (x + width) && mouseY < (y + height);
     }
 
     @Override
@@ -252,6 +256,61 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         this.yMouse = (float) mouseY;
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
+
+
+        var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
+        var normals = guiGraphics.pose().last().normal();
+        for (Pair<Vec3, Vec3> line : LINES) {
+            var normalVec = line.second().subtract(line.first()).normalize().toVector3f();
+            double segments = 20;
+            var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
+            buf.vertex(line.first().x, line.first().y, line.first().z)
+                    .color(255, 0, 0, 255)
+                    .overlayCoords(OverlayTexture.NO_OVERLAY)
+                    .uv2(LightTexture.FULL_BLOCK)
+                    .normal(normals, normalVec.x, normalVec.y, normalVec.z)
+                    .endVertex();
+            var delta = movement % (1/(segments)) % segments;
+            var pos = new Vec3(
+                    Mth.lerp(delta, line.first().x, line.second().x),
+                    Mth.lerp(delta, line.first().y, line.second().y),
+                    Mth.lerp(delta, line.first().z, line.second().z)
+            );
+            buf.vertex(pos.x, pos.y, pos.z)
+                    .color(255, 0, 0, 255)
+                    .overlayCoords(OverlayTexture.NO_OVERLAY)
+                    .uv2(LightTexture.FULL_BLOCK)
+                    .normal(normals, normalVec.x, normalVec.y, normalVec.z)
+                    .endVertex();
+            for (int i = 0; i < segments / 2; i++) {
+                var delta1 = ((i * 2) / segments + movement) % 1;
+                var delta2 = ((i * 2 + 1) / segments + movement) % 1;
+                var pos1 = new Vec3(
+                        Mth.lerp(delta1, line.first().x, line.second().x),
+                        Mth.lerp(delta1, line.first().y, line.second().y),
+                        Mth.lerp(delta1, line.first().z, line.second().z)
+                );
+                var pos2 = delta2 > delta1 ? new Vec3(
+                        Mth.lerp(delta2, line.first().x, line.second().x),
+                        Mth.lerp(delta2, line.first().y, line.second().y),
+                        Mth.lerp(delta2, line.first().z, line.second().z)
+                ) : line.second();
+                buf.vertex(pos1.x, pos1.y, pos1.z)
+                        .color(255, 255, 255, 255)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(LightTexture.FULL_BLOCK)
+                        .normal(normals, normalVec.x, normalVec.y, normalVec.z)
+                        .endVertex();
+                buf.vertex(pos2.x, pos2.y, pos2.z)
+                        .color(255, 255, 255, 255)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(LightTexture.FULL_BLOCK)
+                        .normal(normals, normalVec.x, normalVec.y, normalVec.z)
+                        .endVertex();
+            }
+        }
+        minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
+        LINES.clear();
     }
 
     @Override
@@ -269,18 +328,12 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         this.cosmeticButtons.clear();
 
         this.cosmeticToggleButton = Button.builder(Component.empty(), (btn) -> {
-                    this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 0);
-                })
-                .tooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen()))
-                .bounds(this.leftPos - 27, this.topPos + 7, 18, 6)
-                .build();
+            this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 0);
+        }).tooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen())).bounds(this.leftPos - 27, this.topPos + 7, 18, 6).build();
 
         this.linesButton = Button.builder(Component.empty(), (btn) -> {
-                    this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 1);
-                })
-                .tooltip(linesToggleTooltip(this.menu.areLinesShown()))
-                .bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6)
-                .build();
+            this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 1);
+        }).tooltip(linesToggleTooltip(this.menu.areLinesShown())).bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6).build();
 
         this.addRenderableWidget(cosmeticToggleButton);
         this.addRenderableWidget(linesButton);
@@ -292,21 +345,15 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 continue;
 
             var slotButton = ToggleButton.toggleBuilder(Component.empty(), btn -> {
-                        this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, slot.index);
-                    })
-                    .onRender(btn -> {
-                        var bl = accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot());
+                this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, slot.index);
+            }).onRender(btn -> {
+                var bl = accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot());
 
-                        if (bl != btn.toggled()) {
-                            btn.toggled(bl);
-                            btn.setTooltip(toggleTooltip(bl));
-                        }
-                    })
-                    .tooltip(toggleTooltip(accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot())))
-                    .zIndex(300)
-                    .bounds(slot.x + this.leftPos + 13, slot.y + this.topPos - 2, 5, 5)
-                    .build()
-                    .toggled(accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot()));
+                if (bl != btn.toggled()) {
+                    btn.toggled(bl);
+                    btn.setTooltip(toggleTooltip(bl));
+                }
+            }).tooltip(toggleTooltip(accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot()))).zIndex(300).bounds(slot.x + this.leftPos + 13, slot.y + this.topPos - 2, 5, 5).build().toggled(accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot()));
 
             cosmeticButtons.add(this.addWidget(slotButton));
 
@@ -370,10 +417,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
                     var key = accessoriesSlot.isCosmetic ? "cosmetic_" : "";
 
-                    tooltipData.add(
-                            Component.translatable(Accessories.translation(key + "slot.tooltip.singular")).withStyle(ChatFormatting.GRAY)
-                                    .append(Component.translatable(slotType.get().translation()).withStyle(ChatFormatting.BLUE))
-                    );
+                    tooltipData.add(Component.translatable(Accessories.translation(key + "slot.tooltip.singular")).withStyle(ChatFormatting.GRAY).append(Component.translatable(slotType.get().translation()).withStyle(ChatFormatting.BLUE)));
 
                     guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
 
