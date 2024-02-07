@@ -34,8 +34,8 @@ public class PotatoAccessory implements Accessory {
 
             AccessoryRenderer.translateToChest(matrices, humanoidModel, entity);
 
+            matrices.translate(0, 0, 19/64f);
             matrices.mulPose(Axis.XP.rotationDegrees(180));
-            matrices.translate(0, 0, 0);
         }
     }
 }
