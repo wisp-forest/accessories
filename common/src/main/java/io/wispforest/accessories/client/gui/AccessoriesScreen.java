@@ -260,28 +260,32 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
         var normals = guiGraphics.pose().last().normal();
+
         for (Pair<Vec3, Vec3> line : LINES) {
             var normalVec = line.second().subtract(line.first()).normalize().toVector3f();
-            double segments = 20;
+            double segments = 10;
+            segments *= 2;
             var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
-            buf.vertex(line.first().x, line.first().y, line.first().z)
-                    .color(255, 0, 0, 255)
-                    .overlayCoords(OverlayTexture.NO_OVERLAY)
-                    .uv2(LightTexture.FULL_BLOCK)
-                    .normal(normals, normalVec.x, normalVec.y, normalVec.z)
-                    .endVertex();
-            var delta = movement % (1/(segments)) % segments;
-            var pos = new Vec3(
-                    Mth.lerp(delta, line.first().x, line.second().x),
-                    Mth.lerp(delta, line.first().y, line.second().y),
-                    Mth.lerp(delta, line.first().z, line.second().z)
-            );
-            buf.vertex(pos.x, pos.y, pos.z)
-                    .color(255, 0, 0, 255)
-                    .overlayCoords(OverlayTexture.NO_OVERLAY)
-                    .uv2(LightTexture.FULL_BLOCK)
-                    .normal(normals, normalVec.x, normalVec.y, normalVec.z)
-                    .endVertex();
+            var delta = movement % (2 / (segments)) % segments;
+            if (delta > 0.05) {
+                buf.vertex(line.first().x, line.first().y, line.first().z)
+                        .color(255, 255, 255, 255)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(LightTexture.FULL_BLOCK)
+                        .normal(normals, normalVec.x, normalVec.y, normalVec.z)
+                        .endVertex();
+                var pos = new Vec3(
+                        Mth.lerp(delta - 0.05, line.first().x, line.second().x),
+                        Mth.lerp(delta - 0.05, line.first().y, line.second().y),
+                        Mth.lerp(delta - 0.05, line.first().z, line.second().z)
+                );
+                buf.vertex(pos.x, pos.y, pos.z)
+                        .color(255, 255, 255, 255)
+                        .overlayCoords(OverlayTexture.NO_OVERLAY)
+                        .uv2(LightTexture.FULL_BLOCK)
+                        .normal(normals, normalVec.x, normalVec.y, normalVec.z)
+                        .endVertex();
+            }
             for (int i = 0; i < segments / 2; i++) {
                 var delta1 = ((i * 2) / segments + movement) % 1;
                 var delta2 = ((i * 2 + 1) / segments + movement) % 1;
