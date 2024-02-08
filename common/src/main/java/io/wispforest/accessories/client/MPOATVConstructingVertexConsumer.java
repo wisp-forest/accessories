@@ -1,4 +1,4 @@
-package io.wispforest.accessories.api.client;
+package io.wispforest.accessories.client;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.world.phys.Vec3;

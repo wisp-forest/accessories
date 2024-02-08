@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @ApiStatus.Internal
 public class AccessoriesEventHandler {
@@ -292,7 +293,7 @@ public class AccessoriesEventHandler {
         if(accessory == null) return;
 
         // TODO: MAYBE DEPENDING ON ENTITY OR SOMETHING SHOW ALL VALID SLOTS BUT COLOR CODE THEM IF NOT VALID FOR ENTITY?
-        var slotTypes = AccessoriesAPI.getValidSlotTypes(entity, stack);
+        var slotTypes = new HashSet<>(AccessoriesAPI.getValidSlotTypes(entity, stack));
         var allSlotTypes = AccessoriesAPI.getAllSlots(entity.level());
 
         if(slotTypes.isEmpty()) return;

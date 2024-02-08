@@ -1,25 +1,18 @@
 package io.wispforest.accessories.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
-import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.SlotReference;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
-import io.wispforest.accessories.api.client.MPOATVConstructingVertexConsumer;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.mixin.RenderLayerAccessor;
-import it.unimi.dsi.fastutil.Pair;
-import it.unimi.dsi.fastutil.ints.IntIntPair;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.Vec3;
-import org.joml.Vector4f;
 
 /**
  * Render layer specific for Accessories Rendering inwhich are only applied
