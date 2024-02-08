@@ -14,6 +14,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -25,16 +26,19 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class PointedDripstoneAccessory implements Accessory {
 
     @Environment(EnvType.CLIENT)
-    public static void clientInit(){
+    public static void clientInit() {
         AccessoriesRendererRegistery.registerRenderer(Items.POINTED_DRIPSTONE, new PointedDripstoneAccessory.Renderer());
     }
 
-    public static void init(){
+    public static void init() {
         AccessoriesAPI.registerAccessory(Items.POINTED_DRIPSTONE, new PointedDripstoneAccessory());
     }
 
@@ -49,24 +53,26 @@ public class PointedDripstoneAccessory implements Accessory {
     public static class Renderer implements AccessoryRenderer {
 
         public <T extends LivingEntity, M extends EntityModel<T>> void align(LivingEntity entity, M model, PoseStack matrices, int slotIndex) {
-            if(!(model instanceof HumanoidModel<? extends LivingEntity> humanoidModel)) return;
+            if (!(model instanceof HumanoidModel<? extends LivingEntity> humanoidModel)) return;
 
             if (slotIndex % 2 == 0)
-                AccessoryRenderer.translateToRightArm(matrices, humanoidModel, entity);
+                AccessoryRenderer.transformToModelPart(matrices, humanoidModel.rightArm, 0, -1, 0);
             else
-                AccessoryRenderer.translateToLeftArm(matrices, humanoidModel, entity);
+                AccessoryRenderer.transformToModelPart(matrices, humanoidModel.leftArm, 0, -1, 0);
 
-            matrices.mulPose(Axis.XP.rotationDegrees(180));
-            matrices.translate(0, -11/32f, 0);
+            matrices.translate(0, -0.5, 0);
         }
 
         @Override
         public <T extends LivingEntity, M extends EntityModel<T>> void render(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack poseStack, RenderLayerParent<T, M> renderLayerParent, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float netHeadYaw, float headPitch) {
-            if(!isRendering) return;
+            if (!isRendering) return;
 
             align(reference.entity(), renderLayerParent.getModel(), poseStack, reference.slot());
 
-            Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.GROUND, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
+            for (int i = 0; i < stack.getCount(); i++) {
+                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
+                poseStack.mulPose(Axis.YP.rotationDegrees(Math.min(90, 360f/stack.getCount())));
+            }
         }
     }
 }

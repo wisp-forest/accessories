@@ -263,7 +263,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         for (Pair<Vec3, Vec3> line : LINES) {
             var normalVec = line.second().subtract(line.first()).normalize().toVector3f();
-            double segments = 10;
+            double segments = Math.max(10, ((int)(line.first().distanceTo(line.second())*10))/100);
             segments *= 2;
             var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
             var delta = movement % (2 / (segments)) % segments;

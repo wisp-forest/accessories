@@ -22,7 +22,7 @@ public interface SimpleAccessoryRenderer extends AccessoryRenderer {
 
         align(reference.entity(), renderLayerParent.getModel(), poseStack, netHeadYaw, headPitch);
 
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.GROUND, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
     }
 
     @Environment(EnvType.CLIENT)

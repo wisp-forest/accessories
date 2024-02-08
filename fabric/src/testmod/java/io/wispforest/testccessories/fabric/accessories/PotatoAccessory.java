@@ -32,10 +32,7 @@ public class PotatoAccessory implements Accessory {
         public <T extends LivingEntity, M extends EntityModel<T>> void align(LivingEntity entity, M model, PoseStack matrices, float netHeadYaw, float headPitch) {
             if(!(model instanceof HumanoidModel<? extends LivingEntity> humanoidModel)) return;
 
-            AccessoryRenderer.translateToChest(matrices, humanoidModel, entity);
-
-            matrices.translate(0, 0, 19/64f);
-            matrices.mulPose(Axis.XP.rotationDegrees(180));
+            AccessoryRenderer.transformToModelPart(matrices, humanoidModel.body, 0, 0, -1);
         }
     }
 }

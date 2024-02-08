@@ -1,21 +1,26 @@
 package io.wispforest.accessories.api.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
 import io.wispforest.accessories.api.SlotReference;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Main Render Interface used to render Accessories
- *
+ * <p>
  * <p/>
  * All Translation code is based on <a href="https://github.com/emilyploszaj/trinkets/blob/main/src/main/java/dev/emi/trinkets/api/client/TrinketRenderer.java">TrinketRenderer</a>
  * with adjustments to allow for any {@link LivingEntity} extending {@link HumanoidModel} in which
@@ -44,7 +49,7 @@ public interface AccessoryRenderer {
      * model does not implement {@link HumanoidModel}).
      *
      * @param entity The wearer of the trinket
-     * @param model The model to align to the body movement
+     * @param model  The model to align to the body movement
      */
     @SuppressWarnings("unchecked")
     static void followBodyRotations(final LivingEntity entity, final HumanoidModel<LivingEntity> model) {
@@ -138,5 +143,52 @@ public interface AccessoryRenderer {
         poseStack.mulPose(Axis.ZP.rotation(model.leftLeg.yRot));
         poseStack.mulPose(Axis.XP.rotation(model.leftLeg.xRot));
         poseStack.translate(0.0F, 0.75F, 0.0F);
+    }
+
+
+    /**
+     * Transforms the rendering context to a specific place relative to a ModelPart
+     *
+     * @param poseStack the pose stack to apply the transformation(s) to
+     * @param part      The ModelPart to transform to
+     * @param xPercent  The percentage of the x-axis to translate to
+     *                  (-1 being the left side and 1 being the right side)
+     *                  If null, will be ignored
+     * @param yPercent  The percentage of the y-axis to translate to
+     *                  (-1 being the bottom and 1 being the top)
+     *                  If null, will be ignored
+     * @param zPercent  The percentage of the z-axis to translate to
+     *                  (-1 being the back and 1 being the front)
+     *                  If null, will be ignored
+     */
+    static void transformToModelPart(PoseStack poseStack, ModelPart part, @Nullable Number xPercent, @Nullable Number yPercent, @Nullable Number zPercent) {
+        part.translateAndRotate(poseStack);
+        var aabb = getAABB(part);
+        poseStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
+        poseStack.translate(
+                xPercent != null ? Mth.lerp((-xPercent.doubleValue()+1)/2, aabb.getFirst().x, aabb.getSecond().x) : 0,
+                yPercent != null ? Mth.lerp((-yPercent.doubleValue()+1)/2, aabb.getFirst().y, aabb.getSecond().y) : 0,
+                zPercent != null ? Mth.lerp((-zPercent.doubleValue()+1)/2, aabb.getFirst().z, aabb.getSecond().z) : 0
+        );
+        poseStack.scale(8, 8, 8);
+        poseStack.mulPose(Axis.XP.rotationDegrees(180));
+    }
+
+    private static Pair<Vec3, Vec3> getAABB(ModelPart part) {
+        Vec3 min = new Vec3(0, 0, 0);
+        Vec3 max = new Vec3(0, 0, 0);
+        for (ModelPart.Cube cube : part.cubes) {
+            min = new Vec3(
+                    Math.min(min.x, Math.min(cube.minX, cube.maxX)),
+                    Math.min(min.y, Math.min(cube.minY, cube.maxY)),
+                    Math.min(min.z, Math.min(cube.minZ, cube.maxZ))
+            );
+            max = new Vec3(
+                    Math.max(max.x, Math.max(cube.minX, cube.maxX)),
+                    Math.max(max.y, Math.max(cube.minY, cube.maxY)),
+                    Math.max(max.z, Math.max(cube.minZ, cube.maxZ))
+            );
+        }
+        return Pair.of(min, max);
     }
 }
