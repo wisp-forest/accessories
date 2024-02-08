@@ -24,11 +24,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
 import org.joml.Vector2i;
+import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
@@ -38,6 +41,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     public static final ResourceLocation SLOT_FRAME = Accessories.of("textures/gui/slot.png");
 
     protected static final ResourceLocation ACCESSORIES_PANEL_LOCATION = Accessories.of("textures/gui/accessories_panel.png");
+
+    public static final ResourceLocation ACCESSORIES_INVENTORY_LOCATION = Accessories.of("textures/gui/container/accessories_inventory.png");
 
     protected static final ResourceLocation BACKGROUND_PATCH = Accessories.of("background_patch");
 
@@ -59,7 +64,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     private boolean isScrolling = false;
 
     public AccessoriesScreen(AccessoriesMenu menu, Inventory inventory, Component component) {
-        super(menu, inventory, Component.translatable("container.crafting"));
+        super(menu, inventory, Component.empty());
 
         this.titleLabelX = 97;
         //((ScreenAccessor) this).accessories$setTitle(component);
@@ -88,23 +93,41 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        int i = this.leftPos;
-        int j = this.topPos;
-        Vector2i playerInInventoryPosition = new Vector2i(i + 26, j + 8);
-        guiGraphics.blit(INVENTORY_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
+        int leftPos = this.leftPos;
+        int topPos = this.topPos;
+        guiGraphics.blit(ACCESSORIES_INVENTORY_LOCATION, leftPos, topPos, 0, 0, this.imageWidth, this.imageHeight);
+
+        var scissorStart = new Vector2i(leftPos + 26, topPos + 8);
+        var scissorEnd = new Vector2i(leftPos + 26 + 124, topPos + 8 + 70);
+        var mousePos = new Vector2i(mouseX, mouseY);
+        var size = new Vector2i((scissorEnd.x - scissorStart.x)/2, scissorEnd.y - scissorStart.y);
+
         AccessoriesClient.renderingPlayerModelInAccessoriesScreen = true;
-        InventoryScreen.renderEntityInInventoryFollowsMouse(
+        AccessoriesScreen.renderEntityInInventoryFollowingMouseRotated(
                 guiGraphics,
-                playerInInventoryPosition.x,
-                playerInInventoryPosition.y,
-                playerInInventoryPosition.x + 49,
-                playerInInventoryPosition.y + 70,
+                scissorStart,
+                size,
+                scissorStart,
+                scissorEnd,
                 30,
                 0.0625F,
-                this.xMouse, this.yMouse,
-                this.minecraft.player
+                mousePos,
+                this.minecraft.player,
+                0
         );
         AccessoriesClient.renderingPlayerModelInAccessoriesScreen = false;
+        AccessoriesScreen.renderEntityInInventoryFollowingMouseRotated(
+                guiGraphics,
+                new Vector2i(scissorStart).add(size.x, 0),
+                size,
+                scissorStart,
+                scissorEnd,
+                30,
+                0.0625F,
+                mousePos,
+                this.minecraft.player,
+                180
+        );
 
         //if (!this.isVisible()) return;
         guiGraphics.pose().pushPose();
@@ -157,6 +180,35 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
             pose.popPose();
         }
+    }
+
+    public static void renderEntityInInventoryFollowingMouseRotated(GuiGraphics guiGraphics, Vector2i pos, Vector2i size, Vector2i scissorStart, Vector2i scissorEnd, int scale, float yOffset, Vector2i mouse, LivingEntity entity, float rotation) {
+        float f = (float) (pos.x + pos.x + size.x) / 2.0F;
+        float g = (float) (pos.y + pos.y + size.y) / 2.0F;
+        guiGraphics.enableScissor(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y);
+        float h = (float) Math.atan(((scissorStart.x + scissorStart.x + size.x )/2f - mouse.x) / 40.0F);
+        float i = (float) Math.atan(((scissorStart.y + scissorStart.y + size.y )/2f- mouse.y) / 40.0F);
+        Quaternionf quaternionf = (new Quaternionf()).rotateZ(3.1415927F).rotateY((float) (rotation * (Math.PI/180)));
+        Quaternionf quaternionf2 = (new Quaternionf()).rotateX(i * 20.0F * 0.017453292F);
+        quaternionf.mul(quaternionf2);
+        float j = entity.yBodyRot;
+        float k = entity.getYRot();
+        float l = entity.getXRot();
+        float m = entity.yHeadRotO;
+        float n = entity.yHeadRot;
+        entity.yBodyRot = 180.0F + h * 20.0F;
+        entity.setYRot(180.0F + h * 40.0F);
+        entity.setXRot(-i * 20.0F);
+        entity.yHeadRot = entity.getYRot();
+        entity.yHeadRotO = entity.getYRot();
+        Vector3f vector3f = new Vector3f(0.0F, entity.getBbHeight() / 2.0F + yOffset, 0.0F);
+        InventoryScreen.renderEntityInInventory(guiGraphics, f, g, scale, vector3f, quaternionf, quaternionf2, entity);
+        entity.yBodyRot = j;
+        entity.setYRot(k);
+        entity.setXRot(l);
+        entity.yHeadRotO = m;
+        entity.yHeadRot = n;
+        guiGraphics.disableScissor();
     }
 
     private int getPanelHeight(int upperPadding) {
@@ -263,7 +315,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         for (Pair<Vec3, Vec3> line : LINES) {
             var normalVec = line.second().subtract(line.first()).normalize().toVector3f();
-            double segments = Math.max(10, ((int)(line.first().distanceTo(line.second())*10))/100);
+            double segments = Math.max(10, ((int) (line.first().distanceTo(line.second()) * 10)) / 100);
             segments *= 2;
             var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
             var delta = movement % (2 / (segments)) % segments;

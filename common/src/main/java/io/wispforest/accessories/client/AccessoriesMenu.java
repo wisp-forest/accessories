@@ -1,5 +1,6 @@
 package io.wispforest.accessories.client;
 
+import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.*;
@@ -11,8 +12,11 @@ import io.wispforest.accessories.mixin.SlotAccessor;
 import io.wispforest.accessories.networking.client.SyncCosmeticsMenuToggle;
 import io.wispforest.accessories.networking.client.SyncLinesMenuToggle;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.InventoryMenu;
@@ -39,6 +43,19 @@ public class AccessoriesMenu extends InventoryMenu {
 
     public AccessoriesMenu(int containerId, Inventory inventory) {
         super(inventory, inventory.player.level().isClientSide, inventory.player);
+//        this.slots.remove(slots.size()-1);
+//        this.slots.removeIf(slot -> slot.index < 5);
+//        this.slots.add(new Slot(inventory, 40, 77+51, 62) {
+//            public void setByPlayer(ItemStack newStack, ItemStack oldStack) {
+//                InventoryMenu.onEquipItem(inventory.player, EquipmentSlot.OFFHAND, newStack, oldStack);
+//                super.setByPlayer(newStack, oldStack);
+//            }
+//
+//            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+//                return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD);
+//            }
+//        });
+
 
         var player = inventory.player;
 
@@ -80,7 +97,7 @@ public class AccessoriesMenu extends InventoryMenu {
             }
         }
 
-        if(capability.isEmpty()) return;
+        if (capability.isEmpty()) return;
 
         var containers = capability.get().getContainers();
 
@@ -174,9 +191,37 @@ public class AccessoriesMenu extends InventoryMenu {
         if (!clickedSlot.hasItem()) return ItemStack.EMPTY;
 
         final var clickedStack = clickedSlot.getItem();
-        if ((index < this.accessoriesSlotStartIndex && index < 45) && !moveItemStackTo(clickedStack, this.accessoriesSlotStartIndex, this.slots.size(), false)) {
-            return ItemStack.EMPTY;
+
+        ItemStack itemStack2 = clickedSlot.getItem();
+        var itemStack = itemStack2.copy();
+        EquipmentSlot equipmentSlot = Mob.getEquipmentSlotForItem(itemStack);
+        if (index >= 5 && index < 9) {
+            if (!this.moveItemStackTo(itemStack2, 9, 45, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (equipmentSlot.getType() == EquipmentSlot.Type.ARMOR && !this.slots.get(8 - equipmentSlot.getIndex()).hasItem()) {
+            int i = 8 - equipmentSlot.getIndex();
+            if (!this.moveItemStackTo(itemStack2, i, i + 1, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else if (equipmentSlot == EquipmentSlot.OFFHAND && !this.slots.get(45).hasItem()) {
+            if (!this.moveItemStackTo(itemStack2, 45, 46, false)) {
+                return ItemStack.EMPTY;
+            }
+        } else if ((index < this.accessoriesSlotStartIndex && index < 45) && !moveItemStackTo(clickedStack, this.accessoriesSlotStartIndex, this.slots.size(), false)) {
+            if (index >= 9 && index < 36) {
+                if (!this.moveItemStackTo(itemStack2, 36, 45, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (index >= 36) {
+                if (!this.moveItemStackTo(itemStack2, 9, 36, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (!this.moveItemStackTo(itemStack2, 9, 45, false)) {
+                return ItemStack.EMPTY;
+            }
         }
+
 
         return super.quickMoveStack(player, index);
     }
