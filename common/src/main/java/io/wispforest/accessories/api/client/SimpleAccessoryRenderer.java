@@ -1,10 +1,7 @@
-package io.wispforest.accessories.fabric;
+package io.wispforest.accessories.api.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.SlotReference;
-import io.wispforest.accessories.api.client.AccessoryRenderer;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -22,9 +19,8 @@ public interface SimpleAccessoryRenderer extends AccessoryRenderer {
 
         align(reference.entity(), renderLayerParent.getModel(), poseStack, netHeadYaw, headPitch);
 
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.GROUND, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
     }
 
-    @Environment(EnvType.CLIENT)
     <T extends LivingEntity, M extends EntityModel<T>> void align(LivingEntity entity, M model, PoseStack matrices, float netHeadYaw, float headPitch);
 }

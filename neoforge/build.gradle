@@ -7,18 +7,6 @@ architectury {
     neoForge()
 }
 
-loom {
-    accessWidenerPath = project(":common").loom.accessWidenerPath
-
-    neoForge  {
-    //     convertAccessWideners = true
-    //     extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
-
-    //     mixinConfig "examplemod-common.mixins.json"
-    //     mixinConfig "examplemod.mixins.json"
-    }
-}
-
 configurations {
     common
     shadowCommon // Don't use shadow from the shadow plugin since it *excludes* files.
@@ -31,6 +19,13 @@ repositories {
     maven { url "https://maven.neoforged.net/releases/" }
 }
 
+sourceSets {
+    testmod {
+        runtimeClasspath += main.runtimeClasspath
+        compileClasspath += main.compileClasspath
+    }
+}
+
 dependencies {
     neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
 
@@ -40,6 +35,8 @@ dependencies {
     include modImplementation(fabricApi.module("fabric-api-base", rootProject.fabric_api_version)){
         exclude group: "fabric-api"
     }
+
+    testmodImplementation sourceSets.main.output
 }
 
 processResources {
@@ -47,6 +44,38 @@ processResources {
 
     filesMatching("META-INF/mods.toml") {
         expand "version": project.version
+    }
+}
+
+processTestmodResources {
+    inputs.property "version", project.version
+
+    filesMatching("META-INF/mods.toml") {
+        expand "version": project.version
+    }
+}
+
+loom {
+    runs {
+        testmodClient {
+            client()
+            ideConfigGenerated true
+            name = "Testmod Client"
+            source sourceSets.testmod
+        }
+        testmodServer {
+            server()
+            ideConfigGenerated true
+            name = "Testmod Server"
+            source sourceSets.testmod
+        }
+    }
+
+    accessWidenerPath = project(":common").loom.accessWidenerPath
+
+    neoForge  {
+        //     convertAccessWideners = true
+        //     extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
     }
 }
 

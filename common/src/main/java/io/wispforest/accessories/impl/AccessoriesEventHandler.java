@@ -7,7 +7,7 @@ import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.events.AccessoriesEvents;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
-import io.wispforest.accessories.networking.client.SyncContainer;
+import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncData;
 import net.minecraft.ChatFormatting;
@@ -35,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 @ApiStatus.Internal
 public class AccessoriesEventHandler {
@@ -109,7 +108,7 @@ public class AccessoriesEventHandler {
 
                     holder.write(tag);
 
-                    AccessoriesAccess.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncContainer(tag, capability.getEntity().getId()));
+                    AccessoriesAccess.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(tag, capability.getEntity().getId()));
                 });
     }
 
@@ -122,7 +121,7 @@ public class AccessoriesEventHandler {
 
                     holder.write(tag);
 
-                    AccessoriesAccess.getNetworkHandler().sendToPlayer(player, new SyncContainer(tag, capability.getEntity().getId()));
+                    AccessoriesAccess.getNetworkHandler().sendToPlayer(player, new SyncEntireContainer(tag, capability.getEntity().getId()));
                 });
     }
 
@@ -130,10 +129,10 @@ public class AccessoriesEventHandler {
         var networkHandler = AccessoriesAccess.getNetworkHandler();
         var syncPacket = SyncData.create();
 
-        if(list != null){
+        if(list != null && !list.getPlayers().isEmpty()){
             var buf = AccessoriesNetworkHandler.createBuf();
 
-            syncPacket.readPacket(buf);
+            syncPacket.write(buf);
 
             for (var player1 : list.getPlayers()) {
                 networkHandler.sendToPlayer(player1, new SyncData(buf));
@@ -145,7 +144,7 @@ public class AccessoriesEventHandler {
 
                     holder.write(tag);
 
-                    networkHandler.sendToTrackingAndSelf(player1, new SyncContainer(tag, capability.getEntity().getId()));
+                    networkHandler.sendToTrackingAndSelf(player1, new SyncEntireContainer(tag, capability.getEntity().getId()));
                 });
             }
 
@@ -163,7 +162,7 @@ public class AccessoriesEventHandler {
 
                 holder.write(tag);
 
-                networkHandler.sendToTrackingAndSelf(player, new SyncContainer(tag, capability.getEntity().getId()));
+                networkHandler.sendToPlayer(player, new SyncEntireContainer(tag, capability.getEntity().getId()));
             });
             //--
             //TODO: HANDLE SCREEN STUFF??

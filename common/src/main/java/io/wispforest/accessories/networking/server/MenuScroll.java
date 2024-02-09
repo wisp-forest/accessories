@@ -17,6 +17,8 @@ public class MenuScroll extends AccessoriesPacket {
     }
 
     public MenuScroll(int index, boolean smooth){
+        super(false);
+
         this.index = index;
         this.smooth = smooth;
     }

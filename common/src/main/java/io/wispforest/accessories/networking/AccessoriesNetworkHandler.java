@@ -1,6 +1,7 @@
 package io.wispforest.accessories.networking;
 
 import io.netty.buffer.Unpooled;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.networking.client.*;
 import io.wispforest.accessories.networking.server.ScreenOpen;
@@ -8,50 +9,53 @@ import io.wispforest.accessories.networking.server.MenuScroll;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 public abstract class AccessoriesNetworkHandler {
 
     public static Supplier<MinecraftServer> server = () -> null;
 
+    protected final Map<ResourceLocation, NetworkPacketBuilder<?>> c2sBuilders = new HashMap<>();
+    protected final Map<ResourceLocation, NetworkPacketBuilder<?>> s2cBuilders = new HashMap<>();
+
     public static FriendlyByteBuf createBuf() {
         return new FriendlyByteBuf(Unpooled.buffer());
     }
 
+    public abstract void init();
+
     public final void register() {
-        registerS2CDeferred(SyncContainer.class, SyncContainer::new);
-        registerS2CDeferred(SyncContainerData.class, SyncContainerData::new);
-        registerS2CDeferred(SyncData.class, SyncData::new);
-        registerS2CDeferred(MenuScroll.class, MenuScroll::new);
+        registerBuilderC2S(ScreenOpen.class, ScreenOpen::new);
+        registerBuilderC2S(MenuScroll.class, MenuScroll::new);
 
-        registerS2CDeferred(SyncCosmeticsMenuToggle.class, SyncCosmeticsMenuToggle::new);
-        registerS2CDeferred(SyncLinesMenuToggle.class, SyncLinesMenuToggle::new);
+        registerBuilderS2C(SyncEntireContainer.class, SyncEntireContainer::new);
+        registerBuilderS2C(SyncContainerData.class, SyncContainerData::new);
+        registerBuilderS2C(SyncData.class, SyncData::new);
+        registerBuilderS2C(MenuScroll.class, MenuScroll::new);
 
-        registerC2S(ScreenOpen.class, ScreenOpen::new);
-        registerC2S(MenuScroll.class, MenuScroll::new);
+        registerBuilderS2C(SyncCosmeticsMenuToggle.class, SyncCosmeticsMenuToggle::new);
+        registerBuilderS2C(SyncLinesMenuToggle.class, SyncLinesMenuToggle::new);
     }
 
-    @Environment(EnvType.CLIENT)
-    public final void registerClient(){
-        registerS2C(SyncContainer.class, SyncContainer::new);
-        registerS2C(SyncContainerData.class, SyncContainerData::new);
-        registerS2C(SyncData.class, SyncData::new);
-        registerS2C(MenuScroll.class, MenuScroll::new);
+    protected <M extends AccessoriesPacket> void registerBuilderC2S(Class<M> messageType, Supplier<M> supplier){
+        var builder = NetworkPacketBuilder.of(messageType, supplier);
 
-        registerS2C(SyncCosmeticsMenuToggle.class, SyncCosmeticsMenuToggle::new);
-        registerS2C(SyncLinesMenuToggle.class, SyncLinesMenuToggle::new);
+        this.c2sBuilders.put(builder.location(), builder);
     }
 
-    protected abstract <M extends AccessoriesPacket> void registerC2S(Class<M> messageType, Supplier<M> supplier);
+    protected <M extends AccessoriesPacket> void registerBuilderS2C(Class<M> messageType, Supplier<M> supplier){
+        var builder = NetworkPacketBuilder.of(messageType, supplier);
 
-    protected abstract <M extends AccessoriesPacket> void registerS2CDeferred(Class<M> messageType, Supplier<M> supplier);
-
-    @Environment(EnvType.CLIENT)
-    protected abstract <M extends AccessoriesPacket> void registerS2C(Class<M> messageType, Supplier<M> supplier);
+        this.s2cBuilders.put(builder.location(), builder);
+    }
 
     @Environment(EnvType.CLIENT)
     public abstract <M extends AccessoriesPacket> void sendToServer(M packet);
@@ -74,5 +78,19 @@ public abstract class AccessoriesNetworkHandler {
         for (var player : players) sendToPlayer(player, packet.get());
 
         if(entity instanceof ServerPlayer serverPlayer) sendToPlayer(serverPlayer, packet.get());
+    }
+
+    public record NetworkPacketBuilder<M extends AccessoriesPacket>(ResourceLocation location, Class<M> clazz, Supplier<M> supplier) {
+        public static <M extends AccessoriesPacket> NetworkPacketBuilder<M> of(Class<M> clazz, Supplier<M> supplier){
+            return new NetworkPacketBuilder<>(getId(clazz), clazz, supplier);
+        }
+
+        public void registerPacket(BiConsumer<Class<M>, Supplier<M>> registerFunc){
+            registerFunc.accept(clazz(), supplier());
+        }
+    }
+
+    public static <M extends AccessoriesPacket> ResourceLocation getId(Class<M> mClass){
+        return new ResourceLocation(Accessories.MODID, mClass.getName().toLowerCase());
     }
 }
