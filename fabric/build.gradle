@@ -16,17 +16,9 @@ configurations {
 }
 
 repositories {
-    maven {
-        name = "Modrinth"
-        url = "https://api.modrinth.com/maven"
-    }
-    maven {
-        name = "wispForestReleases"
-        url = "https://maven.wispforest.io/releases"
-    }
-    maven {
-        url = 'https://oss.sonatype.org/content/repositories/snapshots'
-    }
+    maven { url = "https://api.modrinth.com/maven" }
+    maven { url = "https://maven.wispforest.io/releases" }
+    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
 }
 
 sourceSets {
@@ -73,13 +65,13 @@ loom {
         testmodClient {
             client()
             ideConfigGenerated true
-            name = "Testmod Client (:fabric)"
+            name = "Testmod Client"
             source sourceSets.testmod
         }
         testmodServer {
             server()
             ideConfigGenerated true
-            name = "Testmod Server (:fabric)"
+            name = "Testmod Server"
             source sourceSets.testmod
         }
     }

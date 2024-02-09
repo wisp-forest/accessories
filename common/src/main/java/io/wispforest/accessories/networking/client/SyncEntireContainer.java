@@ -1,23 +1,24 @@
 package io.wispforest.accessories.networking.client;
 
 import io.wispforest.accessories.AccessoriesAccess;
-import io.wispforest.accessories.impl.SlotTypeImpl;
 import io.wispforest.accessories.networking.AccessoriesPacket;
-import net.minecraft.Util;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
-public class SyncContainer extends AccessoriesPacket {
+public class SyncEntireContainer extends AccessoriesPacket {
 
     public CompoundTag containerTag;
     public int entityId;
 
-    public SyncContainer(){}
+    public SyncEntireContainer(){}
 
-    public SyncContainer(CompoundTag containerTag, int entityId){
+    public SyncEntireContainer(CompoundTag containerTag, int entityId){
+        super(false);
+
         this.containerTag = containerTag;
         this.entityId = entityId;
     }
@@ -34,6 +35,7 @@ public class SyncContainer extends AccessoriesPacket {
         this.entityId = buf.readVarInt();
     }
 
+    @Environment(EnvType.CLIENT)
     @Override
     public void handle(Player player) {
         super.handle(player);

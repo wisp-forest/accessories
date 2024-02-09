@@ -9,9 +9,15 @@ public abstract class AccessoriesPacket {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private boolean emptyPacket = true;
+    private boolean emptyPacket;
 
-    public AccessoriesPacket(){}
+    public AccessoriesPacket(){
+        this(true);
+    }
+
+    public AccessoriesPacket(boolean emptyPacket){
+        this.emptyPacket = emptyPacket;
+    }
 
     public abstract void write(FriendlyByteBuf buf);
 

@@ -10,14 +10,15 @@ import io.wispforest.accessories.mixin.RenderLayerAccessor;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.world.entity.LivingEntity;
 
 /**
- * Render layer specific for Accessories Rendering inwhich are only applied
- * onto any model extending {@link HumanoidModel} with the requirement for
- * such to be registered by others if not such a model
+ * Render layer used to render equipped Accessories for a given {@link LivingEntity}.
+ * Such is only applied to {@link LivingEntityRenderer} that have a model that
+ * extends {@link HumanoidModel}
  */
 public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M> {
     public AccessoriesRenderLayer(RenderLayerParent<T, M> renderLayerParent) {

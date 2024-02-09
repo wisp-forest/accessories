@@ -16,6 +16,8 @@ public class SyncLinesMenuToggle extends AccessoriesPacket {
     public SyncLinesMenuToggle(){}
 
     public SyncLinesMenuToggle(boolean isCosmeticsToggled){
+        super(false);
+
         this.isLinesToggled = isCosmeticsToggled;
     }
 

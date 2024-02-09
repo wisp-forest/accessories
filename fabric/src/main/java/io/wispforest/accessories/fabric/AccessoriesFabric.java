@@ -63,6 +63,7 @@ public class AccessoriesFabric implements ModInitializer {
         UseItemCallback.EVENT.register(AccessoriesEventHandler::attemptEquipFromUse);
 
         AccessoriesFabricNetworkHandler.INSTANCE.register();
+        AccessoriesFabricNetworkHandler.INSTANCE.init();
 
         ServerLivingEntityEvents.AFTER_DEATH.register(AccessoriesEventHandler::onDeath);
 
@@ -109,6 +110,8 @@ public class AccessoriesFabric implements ModInitializer {
         manager.registerReloadListener(new IdentifiableResourceReloadListenerImpl(SLOT_LOADER_LOCATION, SlotTypeLoader.INSTANCE));
         manager.registerReloadListener(new IdentifiableResourceReloadListenerImpl(ENTITY_SLOT_LOADER_LOCATION, EntitySlotLoader.INSTANCE, SLOT_LOADER_LOCATION));
         manager.registerReloadListener(new IdentifiableResourceReloadListenerImpl(SLOT_GROUP_LOADER_LOCATION, SlotGroupLoader.INSTANCE, SLOT_LOADER_LOCATION));
+
+        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> AccessoriesEventHandler.dataReloadOccured = true);
     }
 
     private record IdentifiableResourceReloadListenerImpl(ResourceLocation location, PreparableReloadListener listener, ResourceLocation ...dependencies) implements IdentifiableResourceReloadListener {

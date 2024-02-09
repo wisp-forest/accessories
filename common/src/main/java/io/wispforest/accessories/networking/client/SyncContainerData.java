@@ -1,6 +1,5 @@
 package io.wispforest.accessories.networking.client;
 
-import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
@@ -35,6 +34,8 @@ public class SyncContainerData extends CacheableAccessoriesPacket {
     }
 
     public SyncContainerData(int entityId, Set<AccessoriesContainer> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks){
+        super(false);
+
         this.entityId = entityId;
 
         var updatedContainerTags = new HashMap<String, CompoundTag>();

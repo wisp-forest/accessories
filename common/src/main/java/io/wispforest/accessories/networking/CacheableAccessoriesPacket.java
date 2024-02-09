@@ -10,7 +10,13 @@ public abstract class CacheableAccessoriesPacket extends AccessoriesPacket {
 
     public CacheableAccessoriesPacket(){ super(); }
 
+    public CacheableAccessoriesPacket(boolean emptyPacket){
+        super(emptyPacket);
+    }
+
     public CacheableAccessoriesPacket(FriendlyByteBuf buf){
+        super(false);
+
         this.cachedBuf = Optional.of(new FriendlyByteBuf(buf.slice()));
     }
 

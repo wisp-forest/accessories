@@ -5,6 +5,7 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.accessories.fabric.AccessoriesFabric;
+import io.wispforest.accessories.fabric.AccessoriesFabricNetworkHandler;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.networking.server.ScreenOpen;
@@ -32,7 +33,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
     public void onInitializeClient() {
         AccessoriesClient.init();
 
-        AccessoriesAccess.getNetworkHandler().registerClient();
+        AccessoriesFabricNetworkHandler.INSTANCE.initClient();
 
         OPEN_SCREEN = KeyBindingHelper.registerKeyBinding(new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories"));
 

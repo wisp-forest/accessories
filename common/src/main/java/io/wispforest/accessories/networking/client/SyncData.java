@@ -33,6 +33,8 @@ public class SyncData extends CacheableAccessoriesPacket {
     }
 
     public SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Collection<String>> entitySlots, Set<SlotGroup> slotGroups){
+        super(false);
+
         this.slotTypes = slotTypes;
         this.entitySlots = entitySlots;
         this.slotGroups = slotGroups;
@@ -122,6 +124,4 @@ public class SyncData extends CacheableAccessoriesPacket {
 
         SlotGroupLoader.INSTANCE.setGroups(slotGroups);
     }
-
-
 }

@@ -4,27 +4,23 @@ loaderVersion = "[1,)"
 license = "MIT"
 
 [[mods]]
-modId = "accessories"
+modId = "testccessories"
 version = "${version}"
-displayName = "Accessories"
-authors = "Blodhgarm"
+displayName = "Testccessories"
+authors = "chyzman"
 description = '''
-This is an example description! Tell everyone what your mod is about!
+Testmod for accessories
 '''
 #logoFile = ""
-[[mixins]]
-config = 'accessories-common.mixins.json'
-[[mixins]]
-config = 'accessories-forge.mixins.json'
 
-[[dependencies.accessories]]
+[[dependencies.testccessories]]
 modId = "neoforge"
 required = true
 versionRange = "[20,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.accessories]]
+[[dependencies.testccessories]]
 modId = "minecraft"
 required = true
 versionRange = "[1.20.4,)"
