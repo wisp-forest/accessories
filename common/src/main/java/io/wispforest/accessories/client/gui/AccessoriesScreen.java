@@ -54,7 +54,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     public static boolean forceTooltipLeft = false;
 
-    private final List<Renderable> cosmeticButtons = new ArrayList<>();
+    private final Map<AccessoriesSlot, ToggleButton> cosmeticButtons = new LinkedHashMap<>();
 
     private float xMouse;
     private float yMouse;
@@ -287,7 +287,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         //this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        for (Renderable cosmeticButton : this.cosmeticButtons) {
+        for (Renderable cosmeticButton : this.cosmeticButtons.values()) {
             cosmeticButton.render(guiGraphics, mouseX, mouseY, partialTick);
         }
 
@@ -397,8 +397,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         int aceesoriesSlots = 0;
 
         for (Slot slot : this.menu.slots) {
-            if (!(slot instanceof AccessoriesSlot accessoriesSlot && !accessoriesSlot.isCosmetic) || !accessoriesSlot.isActive())
-                continue;
+            if (!(slot instanceof AccessoriesSlot accessoriesSlot && !accessoriesSlot.isCosmetic)) continue;
 
             var slotButton = ToggleButton.toggleBuilder(Component.empty(), btn -> {
                 this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, slot.index);
@@ -409,12 +408,21 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                     btn.toggled(bl);
                     btn.setTooltip(toggleTooltip(bl));
                 }
-            }).tooltip(toggleTooltip(accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot()))).zIndex(300).bounds(slot.x + this.leftPos + 13, slot.y + this.topPos - 2, 5, 5).build().toggled(accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot()));
+            }).tooltip(toggleTooltip(accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot())))
+                    .zIndex(300)
+                    .bounds(slot.x + this.leftPos + 13, slot.y + this.topPos - 2, 5, 5)
+                    .build()
+                    .toggled(accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot()));
 
-            cosmeticButtons.add(this.addWidget(slotButton));
+            slotButton.visible = accessoriesSlot.isActive();
+            slotButton.active = accessoriesSlot.isActive();
+
+            cosmeticButtons.put(accessoriesSlot, this.addWidget(slotButton));
 
             aceesoriesSlots++;
         }
+
+        this.menu.onScrollToEvent = this::updateAccessoryToggleButtons;
 
         scrollBarHeight = Mth.lerpInt(Math.min(aceesoriesSlots / 20f, 1.0f), 101, 31);
 
@@ -429,6 +437,28 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         this.cosmeticToggleButton.setTooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen()));
 
         this.linesButton.setX(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39));
+    }
+
+    public void updateAccessoryToggleButtons(){
+        for (var entry : cosmeticButtons.entrySet()) {
+            var accessoriesSlot = entry.getKey();
+            var btn = entry.getValue();
+
+            if(!accessoriesSlot.isActive()){
+                btn.active = false;
+                btn.visible = false;
+            } else {
+                btn.setTooltip(toggleTooltip(accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot())));
+
+                btn.setX(accessoriesSlot.x + this.leftPos + 13);
+                btn.setY(accessoriesSlot.y + this.topPos - 2);
+
+                btn.toggled(accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot()));
+
+                btn.active = true;
+                btn.visible = true;
+            }
+        }
     }
 
     private static Tooltip cosmeticsToggleTooltip(boolean value) {

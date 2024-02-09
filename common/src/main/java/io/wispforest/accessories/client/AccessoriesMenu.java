@@ -41,6 +41,8 @@ public class AccessoriesMenu extends InventoryMenu {
 
     private final Map<Integer, Boolean> slotToView = new HashMap<>();
 
+    public Runnable onScrollToEvent = () -> {};
+
     public AccessoriesMenu(int containerId, Inventory inventory) {
         super(inventory, inventory.player.level().isClientSide, inventory.player);
 //        this.slots.remove(slots.size()-1);
@@ -246,6 +248,8 @@ public class AccessoriesMenu extends InventoryMenu {
         }
 
         this.scrolledIndex = index;
+
+        onScrollToEvent.run();
 
         return true;
     }
