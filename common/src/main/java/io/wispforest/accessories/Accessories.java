@@ -15,7 +15,7 @@ public class Accessories {
     public static final String MODID = "accessories";
 
     public static void init() {
-        ACCESSORIES_MENU_TYPE = AccessoriesAccess.getInternal().registerMenuType(of("accessories_menu"), AccessoriesMenu::new);
+        ACCESSORIES_MENU_TYPE = AccessoriesAccess.getInternal().registerMenuType(of("accessories_menu"), (integer, inventory) -> new AccessoriesMenu(integer, inventory, false, inventory.player));
     }
 
     public static ResourceLocation of(String path){

@@ -19,13 +19,25 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 
 import java.util.*;
 
-public class AccessoriesMenu extends InventoryMenu {
+public class AccessoriesMenu extends AbstractContainerMenu {
+    public static final ResourceLocation BLOCK_ATLAS = new ResourceLocation("textures/atlas/blocks.png");
+    public static final ResourceLocation EMPTY_ARMOR_SLOT_HELMET = new ResourceLocation("item/empty_armor_slot_helmet");
+    public static final ResourceLocation EMPTY_ARMOR_SLOT_CHESTPLATE = new ResourceLocation("item/empty_armor_slot_chestplate");
+    public static final ResourceLocation EMPTY_ARMOR_SLOT_LEGGINGS = new ResourceLocation("item/empty_armor_slot_leggings");
+    public static final ResourceLocation EMPTY_ARMOR_SLOT_BOOTS = new ResourceLocation("item/empty_armor_slot_boots");
+    public static final ResourceLocation EMPTY_ARMOR_SLOT_SHIELD = new ResourceLocation("item/empty_armor_slot_shield");
+    static final ResourceLocation[] TEXTURE_EMPTY_SLOTS;
+    private static final EquipmentSlot[] SLOT_IDS;
+    public final boolean active;
+    private final Player owner;
 
     public int totalSlots = 0;
     public boolean overMaxVisibleSlots = false;
@@ -41,22 +53,62 @@ public class AccessoriesMenu extends InventoryMenu {
 
     private final Map<Integer, Boolean> slotToView = new HashMap<>();
 
-    public Runnable onScrollToEvent = () -> {};
+    public Runnable onScrollToEvent = () -> {
+    };
 
-    public AccessoriesMenu(int containerId, Inventory inventory) {
-        super(inventory, inventory.player.level().isClientSide, inventory.player);
-//        this.slots.remove(slots.size()-1);
-//        this.slots.removeIf(slot -> slot.index < 5);
-//        this.slots.add(new Slot(inventory, 40, 77+51, 62) {
-//            public void setByPlayer(ItemStack newStack, ItemStack oldStack) {
-//                InventoryMenu.onEquipItem(inventory.player, EquipmentSlot.OFFHAND, newStack, oldStack);
-//                super.setByPlayer(newStack, oldStack);
-//            }
-//
-//            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-//                return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD);
-//            }
-//        });
+    public AccessoriesMenu(int containerId, Inventory inventory, boolean active, final Player owner) {
+        super(Accessories.ACCESSORIES_MENU_TYPE, containerId);
+
+        this.active = active;
+        this.owner = owner;
+
+        for (int i = 0; i < 4; ++i) {
+            final EquipmentSlot equipmentSlot = SLOT_IDS[i];
+            this.addSlot(new Slot(inventory, 39 - i, 8, 8 + i * 18) {
+                public void setByPlayer(ItemStack newStack, ItemStack oldStack) {
+                    InventoryMenu.onEquipItem(owner, equipmentSlot, newStack, oldStack);
+                    super.setByPlayer(newStack, oldStack);
+                }
+
+                public int getMaxStackSize() {
+                    return 1;
+                }
+
+                public boolean mayPlace(ItemStack stack) {
+                    return equipmentSlot == Mob.getEquipmentSlotForItem(stack);
+                }
+
+                public boolean mayPickup(Player player) {
+                    ItemStack itemStack = this.getItem();
+                    return !itemStack.isEmpty() && !player.isCreative() && EnchantmentHelper.hasBindingCurse(itemStack) ? false : super.mayPickup(player);
+                }
+
+                public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+                    return Pair.of(BLOCK_ATLAS, TEXTURE_EMPTY_SLOTS[equipmentSlot.getIndex()]);
+                }
+            });
+        }
+
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 9; ++j) {
+                this.addSlot(new Slot(inventory, j + (i + 1) * 9, 8 + j * 18, 84 + i * 18));
+            }
+        }
+
+        for (int i = 0; i < 9; ++i) {
+            this.addSlot(new Slot(inventory, i, 8 + i * 18, 142));
+        }
+
+        this.addSlot(new Slot(inventory, 40, 152, 62) {
+            public void setByPlayer(ItemStack newStack, ItemStack oldStack) {
+                InventoryMenu.onEquipItem(owner, EquipmentSlot.OFFHAND, newStack, oldStack);
+                super.setByPlayer(newStack, oldStack);
+            }
+
+            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+                return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD);
+            }
+        });
 
 
         var player = inventory.player;
@@ -187,45 +239,89 @@ public class AccessoriesMenu extends InventoryMenu {
     }
 
     @Override
-    public ItemStack quickMoveStack(Player player, int index) {
+    public ItemStack quickMoveStack(Player player, int clickedIndex) {
         final var slots = this.slots;
-        final var clickedSlot = slots.get(index);
+        final var clickedSlot = slots.get(clickedIndex);
         if (!clickedSlot.hasItem()) return ItemStack.EMPTY;
 
-        final var clickedStack = clickedSlot.getItem();
+        ItemStack clickedStack = clickedSlot.getItem();
+        var oldStack = clickedStack.copy();
+        EquipmentSlot equipmentSlot = Mob.getEquipmentSlotForItem(oldStack);
 
-        ItemStack itemStack2 = clickedSlot.getItem();
-        var itemStack = itemStack2.copy();
-        EquipmentSlot equipmentSlot = Mob.getEquipmentSlotForItem(itemStack);
-        if (index >= 5 && index < 9) {
-            if (!this.moveItemStackTo(itemStack2, 9, 45, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (equipmentSlot.getType() == EquipmentSlot.Type.ARMOR && !this.slots.get(8 - equipmentSlot.getIndex()).hasItem()) {
-            int i = 8 - equipmentSlot.getIndex();
-            if (!this.moveItemStackTo(itemStack2, i, i + 1, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if (equipmentSlot == EquipmentSlot.OFFHAND && !this.slots.get(45).hasItem()) {
-            if (!this.moveItemStackTo(itemStack2, 45, 46, false)) {
-                return ItemStack.EMPTY;
-            }
-        } else if ((index < this.accessoriesSlotStartIndex && index < 45) && !moveItemStackTo(clickedStack, this.accessoriesSlotStartIndex, this.slots.size(), false)) {
-            if (index >= 9 && index < 36) {
-                if (!this.moveItemStackTo(itemStack2, 36, 45, false)) {
+        int armorSlots = 4;
+        int hotbarSlots = 9;
+        int invSlots = 27;
+
+        int armorStart = 0;
+        int armorEnd = armorStart - 1 + armorSlots;
+        int invStart = armorEnd + 1;
+        int invEnd = invStart - 1 + invSlots;
+        int hotbarStart = invEnd + 1;
+        int hotbarEnd = hotbarStart - 1 + hotbarSlots;
+        int offhand = hotbarEnd + 1;
+
+        // If the clicked slot isn't an accessory slot
+        if (clickedIndex < this.accessoriesSlotStartIndex) {
+            // Try to move to accessories
+            if (!this.moveItemStackTo(clickedStack, this.accessoriesSlotStartIndex, this.slots.size(), false)) {
+                // If the clicked slot is one of the armor slots
+                if (clickedIndex >= armorStart && clickedIndex <= armorEnd) {
+                    // Try to move to the inventory or hotbar
+                    if (!this.moveItemStackTo(clickedStack, invStart, hotbarEnd, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                    // If the clicked slot can go into an armor slot and said armor slot is empty
+                } else if (equipmentSlot.getType() == EquipmentSlot.Type.ARMOR && !this.slots.get(armorEnd - equipmentSlot.getIndex()).hasItem()) {
+                    // Try to move to the armor slot
+                    int targetArmorSlotIndex = armorEnd - equipmentSlot.getIndex();
+                    if (!this.moveItemStackTo(clickedStack, targetArmorSlotIndex, targetArmorSlotIndex + 1, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                    // If the clicked slot can go into the offhand slot and the offhand slot is empty
+                } else if (equipmentSlot == EquipmentSlot.OFFHAND && !this.slots.get(offhand).hasItem()) {
+                    // Try to move to the offhand slot
+                    if (!this.moveItemStackTo(clickedStack, offhand, offhand + 1, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                    // If the clicked slot is in the hotbar
+                } else if (clickedIndex >= hotbarStart && clickedIndex <= hotbarEnd) {
+                    // Try to move to the inventory
+                    if (!this.moveItemStackTo(clickedStack, invStart, invEnd, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                    // If the clicked slot is in the inventory
+                } else if (clickedIndex >= invStart && clickedIndex <= invEnd) {
+                    // Try to move to the hotbar
+                    if (!this.moveItemStackTo(clickedStack, hotbarStart, hotbarEnd, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                    // Try to move to the inventory or hotbar
+                } else if (!this.moveItemStackTo(clickedStack, invStart, hotbarEnd, false)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (index >= 36) {
-                if (!this.moveItemStackTo(itemStack2, 9, 36, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (!this.moveItemStackTo(itemStack2, 9, 45, false)) {
-                return ItemStack.EMPTY;
             }
+        } else if (!this.moveItemStackTo(clickedStack, invStart, hotbarEnd, false)) {
+            return ItemStack.EMPTY;
         }
 
+        if (clickedStack.isEmpty()) {
+            clickedSlot.setByPlayer(ItemStack.EMPTY, oldStack);
+        } else {
+            clickedSlot.setChanged();
+        }
 
-        return super.quickMoveStack(player, index);
+        if (clickedStack.getCount() == oldStack.getCount()) {
+            return ItemStack.EMPTY;
+        }
+
+        clickedSlot.onTake(player, clickedStack);
+
+        return oldStack;
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return true;
     }
 
     public boolean scrollTo(int i, boolean smooth) {
@@ -284,10 +380,15 @@ public class AccessoriesMenu extends InventoryMenu {
     }
 
     public boolean isCosmeticsOpen() {
-        return AccessoriesAccess.getHolder(((InventoryMenuAccessor) this).getOwner()).cosmeticsShown();
+        return AccessoriesAccess.getHolder(owner).cosmeticsShown();
     }
 
     public boolean areLinesShown() {
-        return AccessoriesAccess.getHolder(((InventoryMenuAccessor) this).getOwner()).linesShown();
+        return AccessoriesAccess.getHolder(owner).linesShown();
+    }
+
+    static {
+        TEXTURE_EMPTY_SLOTS = new ResourceLocation[]{EMPTY_ARMOR_SLOT_BOOTS, EMPTY_ARMOR_SLOT_LEGGINGS, EMPTY_ARMOR_SLOT_CHESTPLATE, EMPTY_ARMOR_SLOT_HELMET};
+        SLOT_IDS = new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
     }
 }

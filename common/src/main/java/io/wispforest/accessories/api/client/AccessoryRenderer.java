@@ -136,6 +136,7 @@ public interface AccessoryRenderer {
      * Translates the rendering context to the center of the bottom of the player's left leg
      */
     static void translateToLeftLeg(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
+
         if (player.isCrouching() && !model.riding && !player.isSwimming()) poseStack.translate(0.0F, 0.0F, 0.25F);
 
         poseStack.translate(0.125F, 0.75F, 0.0F);

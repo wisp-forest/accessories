@@ -21,6 +21,6 @@ public class ScreenOpen extends AccessoriesPacket {
 
     @Override
     public void handle(Player player) {
-        player.openMenu(new SimpleMenuProvider((i, inventory, player1) -> new AccessoriesMenu(i, inventory), Component.empty()));
+        player.openMenu(new SimpleMenuProvider((i, inventory, player1) -> new AccessoriesMenu(i, inventory, true, player1), Component.empty()));
     }
 }
