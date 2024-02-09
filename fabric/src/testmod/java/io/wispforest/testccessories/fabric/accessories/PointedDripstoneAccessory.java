@@ -40,7 +40,8 @@ public class PointedDripstoneAccessory implements Accessory {
     @Override
     public Multimap<Attribute, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid) {
         var modifiers = Accessory.super.getModifiers(stack, reference, uuid);
-        modifiers.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(uuid, "Pointed Dripstone Accessory Attack Damage", 2, AttributeModifier.Operation.ADDITION));
+
+        modifiers.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(uuid, "Pointed Dripstone Accessory Attack Damage", 3 * (stack.getCount() / 64f), AttributeModifier.Operation.ADDITION));
         return modifiers;
     }
 

@@ -188,7 +188,7 @@ public class AccessoriesEventHandler {
             for (int i = 0; i < accessories.getContainerSize(); i++) {
                 var slotReference = new SlotReference(container.getSlotName(), capability.getEntity(), i);
 
-                var slotId = slotType + "/" + i;
+                var slotId = slotType.name() + "/" + i;
 
                 var currentStack = accessories.getItem(i);
 

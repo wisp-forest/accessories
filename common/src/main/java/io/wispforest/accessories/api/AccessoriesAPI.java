@@ -137,8 +137,11 @@ public class AccessoriesAPI {
         }
 
         //TODO: Decide if such presents of modifiers prevents the accessory modifiers from existing
+        AccessoriesAPI.getAccessory(stack).ifPresent(accessory -> {
+            var data = accessory.getModifiers(stack, reference, uuid);
 
-        AccessoriesAPI.getAccessory(stack).ifPresent(accessory -> accessory.getModifiers(stack, reference, uuid));
+            multimap.putAll(data);
+        });
 
         return multimap;
     }

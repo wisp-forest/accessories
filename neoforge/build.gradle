@@ -56,18 +56,33 @@ processTestmodResources {
 }
 
 loom {
+    mods {
+        create("testmod") {
+            sourceSet sourceSets.testmod
+            sourceSet sourceSets.main
+        }
+    }
+
     runs {
         testmodClient {
             client()
             ideConfigGenerated true
             name = "Testmod Client"
-            source sourceSets.testmod
+            mods {
+                create("testmod") {
+                    sourceSet sourceSets.testmod
+                }
+            }
         }
         testmodServer {
             server()
             ideConfigGenerated true
             name = "Testmod Server"
-            source sourceSets.testmod
+            mods {
+                create("testmod") {
+                    sourceSet sourceSets.testmod
+                }
+            }
         }
     }
 
