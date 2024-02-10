@@ -42,15 +42,15 @@ public class TntAccessory implements Accessory {
         }
 
         @Override
-        public <T extends LivingEntity, M extends EntityModel<T>> void render(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack poseStack, RenderLayerParent<T, M> renderLayerParent, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float netHeadYaw, float headPitch) {
+        public <T extends LivingEntity, M extends EntityModel<T>> void render(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack matrices, RenderLayerParent<T, M> renderLayerParent, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float netHeadYaw, float headPitch) {
             if (!isRendering) return;
 
-            align(reference.entity(), renderLayerParent.getModel(), poseStack, netHeadYaw, headPitch);
-            poseStack.scale(2, 2, 2);
-            poseStack.translate(0, 1/4f, 0);
+            align(reference.entity(), renderLayerParent.getModel(), matrices, netHeadYaw, headPitch);
+            matrices.scale(2, 2, 2);
+            matrices.translate(0, 1/4f, 0);
             for (int i = 0; i < stack.getCount(); i++) {
-                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
-                poseStack.translate(0, 1/2f, 0);
+                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, matrices, multiBufferSource, reference.entity().level(), 0);
+                matrices.translate(0, 1/2f, 0);
             }
         }
     }

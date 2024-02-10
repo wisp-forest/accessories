@@ -65,7 +65,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                                 stack,
                                 new SlotReference(container.getSlotName(), entity, i),
                                 poseStack,
-                                getRenderLayerParent(),
+                                getRenderLayerParent().getModel(),
                                 renderType -> VertexMultiConsumer.create(multiBufferSource.getBuffer(renderType), mpoatv),
                                 light,
                                 limbSwing,

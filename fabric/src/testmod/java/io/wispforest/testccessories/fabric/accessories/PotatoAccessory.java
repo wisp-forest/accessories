@@ -28,7 +28,7 @@ public class PotatoAccessory implements Accessory {
     public static class Renderer implements SimpleAccessoryRenderer {
 
         @Override
-        public <T extends LivingEntity, M extends EntityModel<T>> void align(LivingEntity entity, M model, PoseStack matrices, float netHeadYaw, float headPitch) {
+        public <M extends LivingEntity> void align(LivingEntity entity, EntityModel<M> model, PoseStack matrices, float netHeadYaw, float headPitch) {
             if(!(model instanceof HumanoidModel<? extends LivingEntity> humanoidModel)) return;
 
             AccessoryRenderer.transformToModelPart(matrices, humanoidModel.body, 0, 0, -1);

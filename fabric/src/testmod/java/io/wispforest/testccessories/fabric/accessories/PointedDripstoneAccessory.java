@@ -48,7 +48,7 @@ public class PointedDripstoneAccessory implements Accessory {
     @Environment(EnvType.CLIENT)
     public static class Renderer implements AccessoryRenderer {
 
-        public <T extends LivingEntity, M extends EntityModel<T>> void align(LivingEntity entity, M model, PoseStack matrices, int slotIndex) {
+        public <M extends LivingEntity> void align(LivingEntity entity, EntityModel<M> model, PoseStack matrices, int slotIndex) {
             if (!(model instanceof HumanoidModel<? extends LivingEntity> humanoidModel)) return;
 
             if (slotIndex % 2 == 0)
@@ -60,14 +60,14 @@ public class PointedDripstoneAccessory implements Accessory {
         }
 
         @Override
-        public <T extends LivingEntity, M extends EntityModel<T>> void render(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack poseStack, RenderLayerParent<T, M> renderLayerParent, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float netHeadYaw, float headPitch) {
+        public <M extends LivingEntity> void render(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float netHeadYaw, float headPitch) {
             if (!isRendering) return;
 
-            align(reference.entity(), renderLayerParent.getModel(), poseStack, reference.slot());
+            align(reference.entity(), model, matrices, reference.slot());
 
             for (int i = 0; i < stack.getCount(); i++) {
-                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
-                poseStack.mulPose(Axis.YP.rotationDegrees(Math.min(90, 360f/stack.getCount())));
+                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, matrices, multiBufferSource, reference.entity().level(), 0);
+                matrices.mulPose(Axis.YP.rotationDegrees(Math.min(90, 360f/stack.getCount())));
             }
         }
     }

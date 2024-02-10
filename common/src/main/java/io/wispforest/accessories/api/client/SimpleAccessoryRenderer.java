@@ -14,13 +14,13 @@ import net.minecraft.world.item.ItemStack;
 public interface SimpleAccessoryRenderer extends AccessoryRenderer {
 
     @Override
-    default <T extends LivingEntity, M extends EntityModel<T>> void render(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack poseStack, RenderLayerParent<T, M> renderLayerParent, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float netHeadYaw, float headPitch){
+    default <M extends LivingEntity> void render(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float netHeadYaw, float headPitch){
         if(!isRendering) return;
 
-        align(reference.entity(), renderLayerParent.getModel(), poseStack, netHeadYaw, headPitch);
+        align(reference.entity(), model, matrices, netHeadYaw, headPitch);
 
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, matrices, multiBufferSource, reference.entity().level(), 0);
     }
 
-    <T extends LivingEntity, M extends EntityModel<T>> void align(LivingEntity entity, M model, PoseStack matrices, float netHeadYaw, float headPitch);
+    <M extends LivingEntity> void align(LivingEntity entity, EntityModel<M> model, PoseStack matrices, float netHeadYaw, float headPitch);
 }

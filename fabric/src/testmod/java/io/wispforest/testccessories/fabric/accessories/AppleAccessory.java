@@ -53,21 +53,21 @@ public class AppleAccessory implements Accessory {
     public static class Renderer implements SimpleAccessoryRenderer {
 
         @Override
-        public <T extends LivingEntity, M extends EntityModel<T>> void align(LivingEntity entity, M model, PoseStack matrices, float netHeadYaw, float headPitch) {
+        public <M extends LivingEntity> void align(LivingEntity entity, EntityModel<M> model, PoseStack matrices, float netHeadYaw, float headPitch) {
             if(!(model instanceof HeadedModel headedModel)) return;
 
             AccessoryRenderer.transformToModelPart(matrices, headedModel.getHead(), null, 0, 1);
         }
 
         @Override
-        public <T extends LivingEntity, M extends EntityModel<T>> void render(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack poseStack, RenderLayerParent<T, M> renderLayerParent, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float netHeadYaw, float headPitch) {
+        public <M extends LivingEntity> void render(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float netHeadYaw, float headPitch) {
             if (!isRendering) return;
 
-            align(reference.entity(), renderLayerParent.getModel(), poseStack, netHeadYaw, headPitch);
+            align(reference.entity(), model, matrices, netHeadYaw, headPitch);
 
             for (int i = 0; i < stack.getCount(); i++) {
-                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
-                poseStack.translate(0, 0, 1/16f);
+                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, matrices, multiBufferSource, reference.entity().level(), 0);
+                matrices.translate(0, 0, 1/16f);
             }
         }
     }

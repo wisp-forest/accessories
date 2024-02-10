@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -28,12 +29,12 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface AccessoryRenderer {
 
-    <T extends LivingEntity, M extends EntityModel<T>> void render(
+    <M extends LivingEntity> void render(
             boolean isRendering,
             ItemStack stack,
             SlotReference reference,
-            PoseStack poseStack,
-            RenderLayerParent<T, M> renderLayerParent,
+            PoseStack matrices,
+            EntityModel<M> model,
             MultiBufferSource multiBufferSource,
             int light,
             float limbSwing,
@@ -42,6 +43,56 @@ public interface AccessoryRenderer {
             float netHeadYaw,
             float headPitch
     );
+
+    default <M extends LivingEntity> void renderOnFirstPersonRightArm(
+            boolean isRendering,
+            ItemStack stack,
+            SlotReference reference,
+            PoseStack matrices,
+            EntityModel<M> model,
+            MultiBufferSource multiBufferSource,
+            int light
+    ) {
+        this.render(
+                isRendering,
+                stack,
+                reference,
+                matrices,
+                model,
+                multiBufferSource,
+                light,
+                0,
+                0,
+                0,
+                0,
+                0
+        );
+    }
+
+    default <M extends LivingEntity> void renderOnFirstPersonLeftArm(
+            boolean isRendering,
+            ItemStack stack,
+            SlotReference reference,
+            PoseStack matrices,
+            EntityModel<M> model,
+            MultiBufferSource multiBufferSource,
+            int light
+    ) {
+        this.render(
+                isRendering,
+                stack,
+                reference,
+                matrices,
+                model,
+                multiBufferSource,
+                light,
+                0,
+                0,
+                0,
+                0,
+                0
+        );
+    }
 
     /**
      * Rotates the rendering for the models based on the entity's poses and movements. This will do
@@ -167,9 +218,9 @@ public interface AccessoryRenderer {
         var aabb = getAABB(part);
         poseStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
         poseStack.translate(
-                xPercent != null ? Mth.lerp((-xPercent.doubleValue()+1)/2, aabb.getFirst().x, aabb.getSecond().x) : 0,
-                yPercent != null ? Mth.lerp((-yPercent.doubleValue()+1)/2, aabb.getFirst().y, aabb.getSecond().y) : 0,
-                zPercent != null ? Mth.lerp((-zPercent.doubleValue()+1)/2, aabb.getFirst().z, aabb.getSecond().z) : 0
+                xPercent != null ? Mth.lerp((-xPercent.doubleValue() + 1) / 2, aabb.getFirst().x, aabb.getSecond().x) : 0,
+                yPercent != null ? Mth.lerp((-yPercent.doubleValue() + 1) / 2, aabb.getFirst().y, aabb.getSecond().y) : 0,
+                zPercent != null ? Mth.lerp((-zPercent.doubleValue() + 1) / 2, aabb.getFirst().z, aabb.getSecond().z) : 0
         );
         poseStack.scale(8, 8, 8);
         poseStack.mulPose(Axis.XP.rotationDegrees(180));
