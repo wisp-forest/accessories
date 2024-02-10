@@ -5,6 +5,7 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.InstanceCodecable;
+import io.wispforest.accessories.api.events.extra.ImplementedEvents;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -29,9 +30,11 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
+import net.neoforged.neoforge.event.TickEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.neoforge.event.entity.living.LootingLevelEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.RegisterEvent;
@@ -67,6 +70,9 @@ public class AccessoriesForge {
 
         eventBus.addListener(this::init);
         eventBus.addListener(this::registerStuff);
+
+        NeoForge.EVENT_BUS.addListener(this::adjustLooting);
+        NeoForge.EVENT_BUS.addListener(this::onWorldTick);
 
         eventBus.register(AccessoriesForgeNetworkHandler.INSTANCE);
     }
@@ -130,5 +136,19 @@ public class AccessoriesForge {
             @Override protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) { return null; }
             @Override protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profiler) { AccessoriesEventHandler.dataReloadOccured = true; }
         });
+    }
+
+    //--
+
+    public void adjustLooting(LootingLevelEvent event){
+        event.setLootingLevel(ImplementedEvents.lootingAdjustments(event.getEntity(), event.getDamageSource(), event.getLootingLevel()));
+    }
+
+    public void onWorldTick(TickEvent.LevelTickEvent event){
+        if(event.phase == TickEvent.Phase.END) {
+            ImplementedEvents.clearEndermanAngryCache();
+        } else {
+            AccessoriesEventHandler.onWorldTick(event.level);
+        }
     }
 }

@@ -85,7 +85,7 @@ public class AccessoriesEventHandler {
     }
 
     private static void handleInvalidStacks(Container container, SlotReference reference, ServerPlayer player){
-        var bl = AccessoriesAPI.canInsertIntoSlot(player, reference, container.getItem(reference.slot()));
+        var bl = AccessoriesAPI.canInsertIntoSlot(container.getItem(reference.slot()), reference);
 
         if(!bl) dropAndRemoveStack(container, reference, player);
     }
@@ -476,7 +476,7 @@ public class AccessoriesEventHandler {
 
         var shouldDrop = AccessoriesEvents.ON_DEATH_EVENT.invoker().shouldDrop(entity, capability.get());
 
-        if(!shouldDrop) return;
+        if(!shouldDrop.orElse(true)) return;
 
         for (var containerEntry : capability.get().getContainers().entrySet()) {
             var slotType = containerEntry.getValue().slotType();
@@ -505,7 +505,7 @@ public class AccessoriesEventHandler {
             dropRule = accessory.get().getDropRule(stack, reference);
         }
 
-        dropRule = AccessoriesEvents.ON_DROP_EVENT.invoker().onDrop(dropRule, entity, reference, stack);
+        dropRule = AccessoriesEvents.ON_DROP_EVENT.invoker().onDrop(dropRule, stack, reference);
 
         boolean dropStack = true;
 

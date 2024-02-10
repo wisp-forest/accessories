@@ -145,7 +145,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 //            }
 
             for (var value : entitySlotTypes.values()) {
-                if (AccessoriesAPI.canInsertIntoSlot(player, new SlotReference(value.name(), player, 0), item.getDefaultInstance())) {
+                if (AccessoriesAPI.canInsertIntoSlot(item.getDefaultInstance(), new SlotReference(value.name(), player, 0))) {
                     sortAccessories.computeIfAbsent(value, s -> new HashSet<>()).add(accessory.get());
                 }
             }
