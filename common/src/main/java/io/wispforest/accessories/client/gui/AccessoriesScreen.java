@@ -103,6 +103,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         var size = new Vector2i((scissorEnd.x - scissorStart.x)/2, scissorEnd.y - scissorStart.y);
 
         AccessoriesClient.renderingPlayerModelInAccessoriesScreen = true;
+        AccessoriesClient.scissorBox.set(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y);
         AccessoriesScreen.renderEntityInInventoryFollowingMouseRotated(
                 guiGraphics,
                 scissorStart,
@@ -167,8 +168,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                     var vec3 = NOT_VERY_NICE_POSITIONS.get(positionKey).add(0, 0, 5000);
 
                     LINES.add(Pair.of(start, vec3));
-
-                    NOT_VERY_NICE_POSITIONS.remove(positionKey);
                 }
             }
 

@@ -13,7 +13,10 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Render layer used to render equipped Accessories for a given {@link LivingEntity}.
@@ -75,7 +78,20 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                 if (rendering) {
                     if (AccessoriesClient.renderingPlayerModelInAccessoriesScreen) {
                         var meanPos = mpoatv.meanPos;
-                        AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, meanPos);
+                        if (AccessoriesScreen.NOT_VERY_NICE_POSITIONS.containsKey(container.getSlotName() + i)) {
+                            var oldPos = AccessoriesScreen.NOT_VERY_NICE_POSITIONS.get(container.getSlotName() + i);
+                            if (mpoatv.getBoundingBox().contains(oldPos) && mpoatv.hasBeenClamped) {
+                                AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, new Vec3(
+                                        Mth.lerp(0.25, oldPos.x, meanPos.x),
+                                        Mth.lerp(0.25, oldPos.y, meanPos.y),
+                                        Mth.lerp(0.25, oldPos.z, meanPos.z)
+                                ));
+                            } else {
+                                AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, meanPos);
+                            }
+                        } else {
+                            AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, meanPos);
+                        }
                     }
                 } else {
                     AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
