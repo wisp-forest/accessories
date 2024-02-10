@@ -7,6 +7,7 @@ import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.SlotReference;
 import io.wispforest.accessories.impl.event.MergedEvent;
 import net.fabricmc.fabric.api.event.Event;
+import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.ICancellableEvent;
@@ -20,15 +21,19 @@ public class AccessoriesEvents {
     public static final Event<OnDeath> ON_DEATH_EVENT = new MergedEvent<>(OnDeath.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
                 return (livingEntity, capability) -> {
+                    var state = TriState.DEFAULT;
+
                     for (var invoker : invokers) {
-                        if (!invoker.shouldDrop(livingEntity, capability)) return false;
+                        state = invoker.shouldDrop(livingEntity, capability);
+
+                        if (state != TriState.DEFAULT) return state;
                     }
 
-                    return bus.map(bus1 -> {
-                        var event = bus1.post(new OnDeathEvent(livingEntity, capability));
+                    if(bus.isEmpty()) return state;
 
-                        return event.isCanceled();
-                    }).orElse(true);
+                    return bus.get()
+                            .post(new OnDeathEvent(livingEntity, capability))
+                            .getReturn();
                 };
             }
     );
@@ -39,13 +44,13 @@ public class AccessoriesEvents {
      * Can be used for Common sided mods
      */
     public interface OnDeath {
-        boolean shouldDrop(LivingEntity livingEntity, AccessoriesCapability capability);
+        TriState shouldDrop(LivingEntity livingEntity, AccessoriesCapability capability);
     }
 
     /**
      * Forge Ecosystem event in which fired indirectly from {@link #ON_DEATH_EVENT} call using the main Neoforge Event Bus
      */
-    public static class OnDeathEvent extends net.neoforged.bus.api.Event implements ICancellableEvent {
+    public static class OnDeathEvent extends ReturnableEvent {
         private final LivingEntity entity;
         private final AccessoriesCapability capability;
 
@@ -71,44 +76,38 @@ public class AccessoriesEvents {
      */
     public static final Event<OnDrop> ON_DROP_EVENT = new MergedEvent<>(OnDrop.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
-                return (dropRule, entity, reference, stack) -> {
-                    for (var invoker : invokers) {
-                        var dropRule2 = invoker.onDrop(dropRule, entity, reference, stack);
+                return (dropRule, stack, reference) -> {
+                    var currentRule = dropRule;
 
-                        if (dropRule2 != DropRule.DEFAULT) return dropRule2;
+                    for (var invoker : invokers) {
+                        currentRule = invoker.onDrop(dropRule, stack, reference);
+
+                        if (currentRule != DropRule.DEFAULT) return currentRule;
                     }
 
-                    return bus.map(bus1 -> {
-                        var event = bus1.post(new OnDropEvent(dropRule, entity, reference, stack));
+                    if(bus.isEmpty()) return currentRule;
 
-                        if (event.isCanceled()) {
-                            var dropRule2 = event.dropRule;
-
-                            if (dropRule2 != DropRule.DEFAULT) return dropRule2;
-                        }
-
-                        return dropRule;
-                    }).orElse(dropRule);
+                    return bus.get()
+                            .post(new OnDropEvent(dropRule, stack, reference))
+                            .dropRule();
                 };
             }
     );
 
     public interface OnDrop {
-        DropRule onDrop(DropRule dropRule, LivingEntity entity, SlotReference reference, ItemStack stack);
+        DropRule onDrop(DropRule dropRule, ItemStack stack, SlotReference reference);
     }
 
-    public static class OnDropEvent extends net.neoforged.bus.api.Event implements ICancellableEvent {
+    public static class OnDropEvent extends net.neoforged.bus.api.Event implements ICancellableEvent, SlotReferenced {
         private DropRule dropRule;
 
-        private final LivingEntity livingEntity;
         private final SlotReference reference;
 
         private final ItemStack stack;
 
-        public OnDropEvent(DropRule dropRule, LivingEntity entity, SlotReference reference, ItemStack stack) {
+        public OnDropEvent(DropRule dropRule, ItemStack stack, SlotReference reference) {
             this.dropRule = dropRule;
 
-            this.livingEntity = entity;
             this.reference = reference;
 
             this.stack = stack;
@@ -118,19 +117,19 @@ public class AccessoriesEvents {
             return this.dropRule;
         }
 
-        private final void setDropRule(DropRule dropRule) {
+        private void setDropRule(DropRule dropRule) {
             this.dropRule = dropRule;
+
+            this.setCanceled(true);
         }
 
-        public final LivingEntity entity() {
-            return this.livingEntity;
-        }
-
+        @Override
         public final SlotReference reference() {
             return this.reference;
         }
 
-        private final ItemStack stack() {
+        @Override
+        public final ItemStack stack() {
             return this.stack;
         }
     }
@@ -140,44 +139,45 @@ public class AccessoriesEvents {
     /**
      * Event fired on the Equip of the following {@link Accessory} for the given {@link LivingEntity}
      */
-    public Event<OnEquip> ON_EQUIP_EVENT = new MergedEvent<>(OnEquip.class, AccessoriesAccess.getInternal()::getBus,
+    public static final Event<CanEquip> CAN_EQUIP_EVENT = new MergedEvent<>(CanEquip.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
-                return (entity, reference, stack) -> {
+                return (reference, stack) -> {
+                    var state = TriState.DEFAULT;
+
                     for (var invoker : invokers) {
-                        invoker.onEquip(entity, reference, stack);
+                        state = invoker.onEquip(reference, stack);
+
+                        if(state != TriState.DEFAULT) return state;
                     }
 
-                    bus.ifPresent(bus1 -> {
-                        bus1.post(new OnEquipEvent(entity, reference, stack));
-                    });
+                    if(bus.isEmpty()) return state;
+
+                    return bus.get()
+                            .post(new CanEquipEvent(reference, stack))
+                            .getReturn();
                 };
             }
     );
 
-    public interface OnEquip {
-        void onEquip(LivingEntity entity, SlotReference reference, ItemStack stack);
+    public interface CanEquip {
+        TriState onEquip(ItemStack stack, SlotReference reference);
     }
 
-    public static class OnEquipEvent extends net.neoforged.bus.api.Event {
-
-        private final LivingEntity entity;
+    public static class CanEquipEvent extends ReturnableEvent implements SlotReferenced {
         private final SlotReference reference;
         private final ItemStack stack;
 
-        public OnEquipEvent(LivingEntity entity, SlotReference reference, ItemStack stack) {
-            this.entity = entity;
+        public CanEquipEvent(ItemStack stack, SlotReference reference) {
             this.reference = reference;
             this.stack = stack;
         }
 
-        public LivingEntity entity() {
-            return entity;
-        }
-
+        @Override
         public SlotReference reference() {
             return reference;
         }
 
+        @Override
         public ItemStack stack() {
             return stack;
         }
@@ -188,46 +188,82 @@ public class AccessoriesEvents {
     /**
      * Event fired on the Unequip of the following {@link Accessory} for the given {@link LivingEntity}
      */
-    public Event<OnUnequip> ON_UNEQUIP_EVENT = new MergedEvent<>(OnUnequip.class, AccessoriesAccess.getInternal()::getBus,
+    public static final Event<CanUnequip> CAN_UNEQUIP_EVENT = new MergedEvent<>(CanUnequip.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
-                return (entity, reference, stack) -> {
+                return (stack, reference) -> {
+                    var state = TriState.DEFAULT;
+
                     for (var invoker : invokers) {
-                        invoker.onEquip(entity, reference, stack);
+                        state = invoker.onUnequip(stack, reference);
+
+                        if(state != TriState.DEFAULT) return state;
                     }
 
-                    bus.ifPresent(bus1 -> {
-                        bus1.post(new OnUnequipEvent(entity, reference, stack));
-                    });
+                    if(bus.isEmpty()) return state;
+
+                    return bus.get()
+                            .post(new CanUnequipEvent(stack, reference))
+                            .getReturn();
                 };
             }
     );
 
-    public interface OnUnequip {
-        void onEquip(LivingEntity entity, SlotReference reference, ItemStack stack);
+    public interface CanUnequip {
+        TriState onUnequip(ItemStack stack, SlotReference reference);
     }
 
-    public static class OnUnequipEvent extends net.neoforged.bus.api.Event {
-
-        private final LivingEntity entity;
+    public static class CanUnequipEvent extends ReturnableEvent implements SlotReferenced {
         private final SlotReference reference;
         private final ItemStack stack;
 
-        public OnUnequipEvent(LivingEntity entity, SlotReference reference, ItemStack stack) {
-            this.entity = entity;
+        public CanUnequipEvent(ItemStack stack, SlotReference reference) {
             this.reference = reference;
             this.stack = stack;
         }
 
-        public LivingEntity entity() {
-            return entity;
-        }
-
+        @Override
         public SlotReference reference() {
             return reference;
         }
 
+        @Override
         public ItemStack stack() {
             return stack;
+        }
+    }
+
+    //--
+
+    public interface SlotReferenced {
+        SlotReference reference();
+        ItemStack stack();
+    }
+
+    private static class ReturnableEvent extends net.neoforged.bus.api.Event implements ICancellableEvent {
+        private TriState returnState = TriState.DEFAULT;
+
+        public final ReturnableEvent setReturn(TriState returnState){
+            this.returnState = returnState;
+
+            if(returnState != TriState.DEFAULT) this.setCanceled(true);
+
+            return this;
+        }
+
+        public final TriState getReturn(){
+            return this.returnState;
+        }
+
+        @Deprecated
+        @Override
+        public final void setResult(Result value) {
+            super.setResult(value);
+
+            switch (value) {
+                case DEFAULT -> setReturn(TriState.DEFAULT);
+                case ALLOW -> setReturn(TriState.TRUE);
+                case DENY -> setReturn(TriState.FALSE);
+            }
         }
     }
 }

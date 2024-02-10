@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.SlotAttribute;
 import io.wispforest.accessories.api.*;
+import io.wispforest.accessories.api.events.AccessoriesEvents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -162,7 +163,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability {
 
             var accessories = container.getAccessories();
 
-            boolean isValid = AccessoriesAPI.canInsertIntoSlot(getEntity(), new SlotReference(slotType, getEntity(), 0), stack);
+            boolean isValid = AccessoriesAPI.canInsertIntoSlot(stack, new SlotReference(slotType, getEntity(), 0));
 
             if(!isValid || container.getSize() <= 0) continue;
 
@@ -174,11 +175,9 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability {
 
                 if(!slotStack.isEmpty()) continue;
 
-                var slotAccessory = AccessoriesAPI.getAccessory(slotStack).orElse(null);
+                if(!AccessoriesAPI.canUnequip(slotStack, slotReference)) continue;
 
-                if(slotAccessory != null && !slotAccessory.canUnequip(stack, slotReference)) continue;
-
-                if(additionalCheck.apply(accessory, stack, slotReference) && accessory.canEquip(stack, slotReference)) {
+                if(additionalCheck.apply(accessory, stack, slotReference) && AccessoriesAPI.canInsertIntoSlot(stack, slotReference)) {
                     if (!entity.level().isClientSide) {
                         accessories.setItem(i, stack);
 
@@ -203,11 +202,9 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability {
             var slotStack = accessories.getItem(0);
             var slotReference = new SlotReference(slotType, getEntity(), 0);
 
-            var slotAccessory = AccessoriesAPI.getAccessory(slotStack).orElse(null);
+            if(!AccessoriesAPI.canUnequip(slotStack, slotReference)) continue;
 
-            if (slotAccessory != null && !slotAccessory.canUnequip(stack, slotReference)) continue;
-
-            if (additionalCheck.apply(accessory, stack, slotReference) && accessory.canEquip(stack, slotReference)) {
+            if (additionalCheck.apply(accessory, stack, slotReference) && AccessoriesAPI.canInsertIntoSlot(stack, slotReference)) {
                 if (!entity.level().isClientSide) {
                     accessories.setItem(0, stack);
 

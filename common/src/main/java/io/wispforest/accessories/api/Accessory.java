@@ -60,9 +60,6 @@ public interface Accessory {
         return !EnchantmentHelper.hasBindingCurse(stack);
     }
 
-    // TODO: Find places for which such should and should not be called
-    default void onBreak(ItemStack stack, SlotReference reference){}
-
     /**
      * Returns the Attribute Modifiers for the following stack within the given reference
      *
@@ -123,25 +120,4 @@ public interface Accessory {
      * @param tooltips Final list containing the tooltip info
      */
     default void getExtraTooltip(ItemStack stack, List<Component> tooltips){}
-
-    //--
-
-    //TODO: Figure out if such should be implemented or not. Is required for curios layer but unknown if the mod should handle such???
-
-    default int getFortuneLevel() { return 0; }
-
-    default int getLootingLevel() { return 0; }
-
-    default boolean makesPiglinsNeutral() { return false; }
-
-    default boolean canWalkOnPowderedSnow() { return false; }
-
-    default boolean isEnderMask() { return false; }
-
-    //--
-
-
-
-
-
 }

@@ -6,8 +6,8 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.SlotReference;
 import io.wispforest.accessories.api.SlotType;
+import io.wispforest.accessories.api.events.AccessoriesEvents;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
@@ -15,7 +15,6 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class AccessoriesSlot extends Slot {
 
@@ -79,7 +78,7 @@ public class AccessoriesSlot extends Slot {
 
     @Override
     public boolean mayPlace(ItemStack stack) {
-        return isAccessible() && AccessoriesAPI.canInsertIntoSlot(entity, new SlotReference(container.getSlotName(), entity, getContainerSlot()), stack);
+        return isAccessible() && AccessoriesAPI.canInsertIntoSlot(stack, new SlotReference(container.getSlotName(), entity, getContainerSlot()));
     }
 
     @Override
@@ -91,7 +90,15 @@ public class AccessoriesSlot extends Slot {
         var stack = this.getItem();
         var accessory = AccessoriesAPI.getAccessory(stack);
 
-        return accessory.map(value -> value.canUnequip(stack, new SlotReference(container.getSlotName(), entity, getContainerSlot())))
+        return accessory.map(value -> {
+                    var slotReference = new SlotReference(container.getSlotName(), entity, getContainerSlot());
+
+                    if(value.canUnequip(stack, slotReference)) return true;
+
+                    return AccessoriesEvents.CAN_UNEQUIP_EVENT.invoker()
+                            .onUnequip(stack, slotReference)
+                            .orElse(false);
+                })
                 .orElseGet(() -> super.mayPickup(player));
     }
 

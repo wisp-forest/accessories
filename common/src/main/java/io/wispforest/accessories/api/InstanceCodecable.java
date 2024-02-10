@@ -21,8 +21,9 @@ public interface InstanceCodecable {
             public <T1> DataResult<Pair<T, T1>> decode(DynamicOps<T1> ops, T1 input) {
                 var tag = ops.convertTo(NbtOps.INSTANCE, input);
 
-                if (!(tag instanceof CompoundTag compoundTag))
+                if (!(tag instanceof CompoundTag compoundTag)) {
                     return DataResult.error(() -> "Unable to decode InstanceCodecable due to input not being a map type!");
+                }
 
                 var instance = supplier.get();
 

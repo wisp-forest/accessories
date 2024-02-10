@@ -5,6 +5,7 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.InstanceCodecable;
+import io.wispforest.accessories.api.events.extra.ImplementedEvents;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -68,6 +69,10 @@ public class AccessoriesFabric implements ModInitializer {
         ServerLivingEntityEvents.AFTER_DEATH.register(AccessoriesEventHandler::onDeath);
 
         ServerTickEvents.START_WORLD_TICK.register(AccessoriesEventHandler::onWorldTick);
+
+        ServerTickEvents.END_WORLD_TICK.register(world -> {
+            ImplementedEvents.clearEndermanAngryCache();
+        });
 
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {
             if(!joined) return;

@@ -14,7 +14,11 @@
   "mixins": [
     "AbstractContainerMenuAccessor",
     "InventoryMenuAccessor",
-    "SlotAccessor"
+    "SlotAccessor",
+    "ApplyBonusCountMixin",
+    "PiglinAiMixin",
+    "PowderSnowBlockMixin",
+    "EndermanMixin"
   ],
   "injectors": {
     "defaultRequire": 1
