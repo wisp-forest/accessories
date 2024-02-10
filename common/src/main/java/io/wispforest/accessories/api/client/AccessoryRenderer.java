@@ -13,10 +13,12 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
+import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -114,89 +116,105 @@ public interface AccessoryRenderer {
     /**
      * Translates the rendering context to the center of the player's face
      */
-    static void translateToFace(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity entity, float headYaw, float headPitch) {
-        if (entity.isVisuallySwimming() || entity.isFallFlying()) {
-            poseStack.mulPose(Axis.ZP.rotationDegrees(model.head.zRot));
-            poseStack.mulPose(Axis.YP.rotationDegrees(headYaw));
-            poseStack.mulPose(Axis.XP.rotationDegrees(-45.0F));
-        } else {
-            if (entity.isCrouching() && !model.riding) poseStack.translate(0.0F, 0.25F, 0.0F);
-
-            poseStack.mulPose(Axis.YP.rotationDegrees(headYaw));
-            poseStack.mulPose(Axis.XP.rotationDegrees(headPitch));
-        }
-
-        poseStack.translate(0.0F, -0.25F, -0.3F);
+    static void translateToFace(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity entity) {
+        transformToFace(poseStack, model.head, Side.FRONT);
+//        if (entity.isVisuallySwimming() || entity.isFallFlying()) {
+//            poseStack.mulPose(Axis.ZP.rotationDegrees(model.head.zRot));
+//            poseStack.mulPose(Axis.YP.rotationDegrees(headYaw));
+//            poseStack.mulPose(Axis.XP.rotationDegrees(-45.0F));
+//        } else {
+//            if (entity.isCrouching() && !model.riding) poseStack.translate(0.0F, 0.25F, 0.0F);
+//
+//            poseStack.mulPose(Axis.YP.rotationDegrees(headYaw));
+//            poseStack.mulPose(Axis.XP.rotationDegrees(headPitch));
+//        }
+//
+//        poseStack.translate(0.0F, -0.25F, -0.3F);
     }
 
     /**
      * Translates the rendering context to the center of the player's chest/torso segment
      */
     static void translateToChest(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity livingEntity) {
-        if (livingEntity.isCrouching() && !model.riding && !livingEntity.isSwimming()) {
-            poseStack.translate(0.0F, 0.2F, 0.0F);
-            poseStack.mulPose(Axis.XP.rotation(model.body.xRot));
-        }
-
-        poseStack.mulPose(Axis.ZP.rotation(model.body.yRot));
-        poseStack.translate(0.0F, 0.4F, -0.16F);
+        transformToModelPart(poseStack, model.body);
+//        if (livingEntity.isCrouching() && !model.riding && !livingEntity.isSwimming()) {
+//            poseStack.translate(0.0F, 0.2F, 0.0F);
+//            poseStack.mulPose(Axis.XP.rotation(model.body.xRot));
+//        }
+//
+//        poseStack.mulPose(Axis.ZP.rotation(model.body.yRot));
+//        poseStack.translate(0.0F, 0.4F, -0.16F);
     }
 
     /**
      * Translates the rendering context to the center of the bottom of the player's right arm
      */
     static void translateToRightArm(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
-        if (player.isCrouching() && !model.riding && !player.isSwimming()) poseStack.translate(0.0F, 0.2F, 0.0F);
-
-        poseStack.mulPose(Axis.ZP.rotation(model.body.yRot));
-        poseStack.translate(-0.3125F, 0.15625F, 0.0F);
-        poseStack.mulPose(Axis.ZP.rotation(model.rightArm.zRot));
-        poseStack.mulPose(Axis.ZP.rotation(model.rightArm.yRot));
-        poseStack.mulPose(Axis.XP.rotation(model.rightArm.xRot));
-        poseStack.translate(-0.0625F, 0.625F, 0.0F);
+        transformToFace(poseStack, model.rightArm, Side.BOTTOM);
+//        if (player.isCrouching() && !model.riding && !player.isSwimming()) poseStack.translate(0.0F, 0.2F, 0.0F);
+//
+//        poseStack.mulPose(Axis.ZP.rotation(model.body.yRot));
+//        poseStack.translate(-0.3125F, 0.15625F, 0.0F);
+//        poseStack.mulPose(Axis.ZP.rotation(model.rightArm.zRot));
+//        poseStack.mulPose(Axis.ZP.rotation(model.rightArm.yRot));
+//        poseStack.mulPose(Axis.XP.rotation(model.rightArm.xRot));
+//        poseStack.translate(-0.0625F, 0.625F, 0.0F);
     }
 
     /**
      * Translates the rendering context to the center of the bottom of the player's left arm
      */
     static void translateToLeftArm(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
-        if (player.isCrouching() && !model.riding && !player.isSwimming()) poseStack.translate(0.0F, 0.2F, 0.0F);
+        transformToFace(poseStack, model.leftArm, Side.BOTTOM);
 
-        poseStack.mulPose(Axis.ZP.rotation(model.body.yRot));
-        poseStack.translate(0.3125F, 0.15625F, 0.0F);
-        poseStack.mulPose(Axis.ZP.rotation(model.leftArm.zRot));
-        poseStack.mulPose(Axis.ZP.rotation(model.leftArm.yRot));
-        poseStack.mulPose(Axis.XP.rotation(model.leftArm.xRot));
-        poseStack.translate(0.0625F, 0.625F, 0.0F);
+//        if (player.isCrouching() && !model.riding && !player.isSwimming()) poseStack.translate(0.0F, 0.2F, 0.0F);
+//
+//        poseStack.mulPose(Axis.ZP.rotation(model.body.yRot));
+//        poseStack.translate(0.3125F, 0.15625F, 0.0F);
+//        poseStack.mulPose(Axis.ZP.rotation(model.leftArm.zRot));
+//        poseStack.mulPose(Axis.ZP.rotation(model.leftArm.yRot));
+//        poseStack.mulPose(Axis.XP.rotation(model.leftArm.xRot));
+//        poseStack.translate(0.0625F, 0.625F, 0.0F);
     }
 
     /**
      * Translates the rendering context to the center of the bottom of the player's right leg
      */
     static void translateToRightLeg(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
-        if (player.isCrouching() && !model.riding && !player.isSwimming()) poseStack.translate(0.0F, 0.0F, 0.25F);
-
-        poseStack.translate(-0.125F, 0.75F, 0.0F);
-        poseStack.mulPose(Axis.ZP.rotation(model.rightLeg.zRot));
-        poseStack.mulPose(Axis.ZP.rotation(model.rightLeg.yRot));
-        poseStack.mulPose(Axis.XP.rotation(model.rightLeg.xRot));
-        poseStack.translate(0.0F, 0.75F, 0.0F);
+        transformToFace(poseStack, model.rightLeg, Side.BOTTOM);
+//        if (player.isCrouching() && !model.riding && !player.isSwimming()) poseStack.translate(0.0F, 0.0F, 0.25F);
+//
+//        poseStack.translate(-0.125F, 0.75F, 0.0F);
+//        poseStack.mulPose(Axis.ZP.rotation(model.rightLeg.zRot));
+//        poseStack.mulPose(Axis.ZP.rotation(model.rightLeg.yRot));
+//        poseStack.mulPose(Axis.XP.rotation(model.rightLeg.xRot));
+//        poseStack.translate(0.0F, 0.75F, 0.0F);
     }
 
     /**
      * Translates the rendering context to the center of the bottom of the player's left leg
      */
     static void translateToLeftLeg(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
-
-        if (player.isCrouching() && !model.riding && !player.isSwimming()) poseStack.translate(0.0F, 0.0F, 0.25F);
-
-        poseStack.translate(0.125F, 0.75F, 0.0F);
-        poseStack.mulPose(Axis.ZP.rotation(model.leftLeg.zRot));
-        poseStack.mulPose(Axis.ZP.rotation(model.leftLeg.yRot));
-        poseStack.mulPose(Axis.XP.rotation(model.leftLeg.xRot));
-        poseStack.translate(0.0F, 0.75F, 0.0F);
+        transformToFace(poseStack, model.leftLeg, Side.BOTTOM);
+//        if (player.isCrouching() && !model.riding && !player.isSwimming()) poseStack.translate(0.0F, 0.0F, 0.25F);
+//
+//        poseStack.translate(0.125F, 0.75F, 0.0F);
+//        poseStack.mulPose(Axis.ZP.rotation(model.leftLeg.zRot));
+//        poseStack.mulPose(Axis.ZP.rotation(model.leftLeg.yRot));
+//        poseStack.mulPose(Axis.XP.rotation(model.leftLeg.xRot));
+//        poseStack.translate(0.0F, 0.75F, 0.0F);
     }
 
+    /**
+     * Transforms the rendering context to a specific face on a ModelPart
+     *
+     * @param poseStack the pose stack to apply the transformation(s) to
+     * @param part      The ModelPart to transform to
+     * @param side      The side of the ModelPart to transform to
+     */
+    static void transformToFace(PoseStack poseStack, ModelPart part, Side side) {
+        transformToModelPart(poseStack, part, side.direction.getNormal().getX(), side.direction.getNormal().getY(), side.direction.getNormal().getZ());
+    }
 
     /**
      * Transforms the rendering context to a specific place relative to a ModelPart
@@ -224,6 +242,16 @@ public interface AccessoryRenderer {
         );
         poseStack.scale(8, 8, 8);
         poseStack.mulPose(Axis.XP.rotationDegrees(180));
+    }
+
+    /**
+     * Transforms the rendering context to the center of a ModelPart
+     *
+     * @param poseStack the pose stack to apply the transformation(s) to
+     * @param part      The ModelPart to transform to
+     */
+    static void transformToModelPart(PoseStack poseStack, ModelPart part) {
+        transformToModelPart(poseStack, part, 0, 0, 0);
     }
 
     private static Pair<Vec3, Vec3> getAABB(ModelPart part) {

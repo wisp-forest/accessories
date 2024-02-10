@@ -35,7 +35,7 @@ public class TntAccessory implements Accessory {
     public static class Renderer implements SimpleAccessoryRenderer {
 
         @Override
-        public <M extends LivingEntity> void align(LivingEntity entity, EntityModel<M> model, PoseStack matrices, float netHeadYaw, float headPitch) {
+        public <M extends LivingEntity> void align(ItemStack stack, SlotReference reference, EntityModel<M> model, PoseStack matrices) {
             if(!(model instanceof HeadedModel headedModel)) return;
 
             AccessoryRenderer.transformToModelPart(matrices, headedModel.getHead(), null, 1, null);
@@ -45,7 +45,7 @@ public class TntAccessory implements Accessory {
         public <M extends LivingEntity> void render(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float netHeadYaw, float headPitch) {
             if (!isRendering) return;
 
-            align(reference.entity(), model, matrices, netHeadYaw, headPitch);
+            align(stack,reference, model, matrices);
             matrices.scale(2, 2, 2);
             matrices.translate(0, 1/4f, 0);
             for (int i = 0; i < stack.getCount(); i++) {

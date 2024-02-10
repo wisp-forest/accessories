@@ -49,10 +49,10 @@ public class AppleAccessory implements Accessory {
     public static class Renderer implements SimpleAccessoryRenderer {
 
         @Override
-        public <T extends LivingEntity, M extends EntityModel<T>> void align(LivingEntity entity, M model, PoseStack matrices, float netHeadYaw, float headPitch) {
+        public <M extends LivingEntity> void align(ItemStack stack, SlotReference reference, EntityModel<M> model, PoseStack matrices) {
             if(!(model instanceof HumanoidModel<? extends LivingEntity> humanoidModel)) return;
 
-            AccessoryRenderer.translateToFace(matrices, (HumanoidModel<LivingEntity>) humanoidModel, entity, netHeadYaw, headPitch);
+            AccessoryRenderer.translateToFace(matrices, (HumanoidModel<LivingEntity>) humanoidModel, reference.entity());
 
             matrices.mulPose(Axis.XP.rotationDegrees(180));
             matrices.translate(0, -.1, -.03);
