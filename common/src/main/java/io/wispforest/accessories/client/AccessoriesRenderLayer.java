@@ -78,20 +78,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                 if (rendering) {
                     if (AccessoriesClient.renderingPlayerModelInAccessoriesScreen) {
                         var meanPos = mpoatv.meanPos;
-                        if (AccessoriesScreen.NOT_VERY_NICE_POSITIONS.containsKey(container.getSlotName() + i)) {
-                            var oldPos = AccessoriesScreen.NOT_VERY_NICE_POSITIONS.get(container.getSlotName() + i);
-                            if (mpoatv.getBoundingBox().contains(oldPos) && mpoatv.hasBeenClamped) {
-                                AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, new Vec3(
-                                        Mth.lerp(0.25, oldPos.x, meanPos.x),
-                                        Mth.lerp(0.25, oldPos.y, meanPos.y),
-                                        Mth.lerp(0.25, oldPos.z, meanPos.z)
-                                ));
-                            } else {
-                                AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, meanPos);
-                            }
-                        } else {
-                            AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, meanPos);
-                        }
+                        AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, meanPos);
                     }
                 } else {
                     AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);

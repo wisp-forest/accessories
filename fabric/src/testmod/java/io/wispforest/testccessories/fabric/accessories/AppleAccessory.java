@@ -12,6 +12,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HeadedModel;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -54,9 +55,9 @@ public class AppleAccessory implements Accessory {
 
         @Override
         public <M extends LivingEntity> void align(ItemStack stack, SlotReference reference, EntityModel<M> model, PoseStack matrices) {
-            if(!(model instanceof HeadedModel headedModel)) return;
+            if (!(model instanceof HumanoidModel<? extends LivingEntity> humanoidModel)) return;
 
-            AccessoryRenderer.transformToModelPart(matrices, headedModel.getHead(), null, 0, 1);
+            AccessoryRenderer.translateToFace(matrices, humanoidModel, reference.entity());
         }
 
         @Override
