@@ -104,7 +104,10 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         AccessoriesClient.renderingPlayerModelInAccessoriesScreen = true;
         AccessoriesClient.scissorBox.set(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y);
-        AccessoriesScreen.renderEntityInInventoryFollowingMouseRotated(
+        if (hoveredSlot instanceof AccessoriesSlot accessoriesSlot) {
+            AccessoriesClient.currentSlot = accessoriesSlot.container.getSlotName() +  accessoriesSlot.getContainerSlot();
+        }
+            AccessoriesScreen.renderEntityInInventoryFollowingMouseRotated(
                 guiGraphics,
                 scissorStart,
                 size,
@@ -129,6 +132,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 this.minecraft.player,
                 180
         );
+        AccessoriesClient.currentSlot = null;
 
         //if (!this.isVisible()) return;
         guiGraphics.pose().pushPose();

@@ -1,10 +1,13 @@
 package io.wispforest.accessories.api.events.extra;
 
+import com.mojang.authlib.minecraft.client.MinecraftClient;
+import com.mojang.blaze3d.platform.Window;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.SlotReference;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.EnderMan;
@@ -243,5 +246,23 @@ public class ImplementedEvents {
 
     public interface EndermanMasked {
         TriState isEndermanMasked(EnderMan enderMan, ItemStack stack, SlotReference reference);
+    }
+
+    public static final Event<WindowResizeCallback> WINDOW_RESIZE_CALLBACK_EVENT = EventFactory.createArrayBacked(WindowResizeCallback.class, callbacks -> (client, window) -> {
+        for (var callback : callbacks) {
+            callback.onResized(client, window);
+        }
+    });
+
+    public interface WindowResizeCallback {
+
+        /**
+         * Called after the client's window has been resized
+         *
+         * @param client The currently active client
+         * @param window The window which was resized
+         */
+        void onResized(Minecraft client, Window window);
+
     }
 }

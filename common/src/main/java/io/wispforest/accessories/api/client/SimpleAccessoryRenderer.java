@@ -26,23 +26,4 @@ public interface SimpleAccessoryRenderer extends AccessoryRenderer {
 
     <M extends LivingEntity> void align(ItemStack stack, SlotReference reference, EntityModel<M> model, PoseStack matrices);
 
-    /**
-     * Determines if this accessory should render in first person
-     * Override to return true for whichever arm this accessory renders on
-     */
-    default boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference) {
-        return false;
-    }
-
-    @Override
-    default <M extends LivingEntity> void renderOnFirstPersonRightArm(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light) {
-        if (!shouldRenderInFirstPerson(HumanoidArm.RIGHT, stack, reference)) return;
-        AccessoryRenderer.super.renderOnFirstPersonRightArm(isRendering, stack, reference, matrices, model, multiBufferSource, light);
-    }
-
-    @Override
-    default <M extends LivingEntity> void renderOnFirstPersonLeftArm(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light) {
-        if (!shouldRenderInFirstPerson(HumanoidArm.LEFT, stack, reference)) return;
-        AccessoryRenderer.super.renderOnFirstPersonLeftArm(isRendering, stack, reference, matrices, model, multiBufferSource, light);
-    }
 }

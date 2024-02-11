@@ -7,18 +7,19 @@
     "AbstractContainerScreenAccessor",
     "AbstractContainerScreenMixin",
     "DefaultTooltipPositionerMixin",
+    "MinecraftMixin",
     "PlayerRendererMixin",
     "RenderLayerAccessor",
     "ScreenAccessor"
   ],
   "mixins": [
     "AbstractContainerMenuAccessor",
-    "InventoryMenuAccessor",
-    "SlotAccessor",
     "ApplyBonusCountMixin",
+    "EndermanMixin",
+    "InventoryMenuAccessor",
     "PiglinAiMixin",
     "PowderSnowBlockMixin",
-    "EndermanMixin"
+    "SlotAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

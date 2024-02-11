@@ -15,6 +15,7 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -24,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Main Render Interface used to render Accessories
  * <p>
- * <p/>
  * All Translation code is based on <a href="https://github.com/emilyploszaj/trinkets/blob/main/src/main/java/dev/emi/trinkets/api/client/TrinketRenderer.java">TrinketRenderer</a>
  * with adjustments to allow for any {@link LivingEntity} extending {@link HumanoidModel} in which
  * credit goes to <a href="https://github.com/TheIllusiveC4">TheIllusiveC4</a>, <a href="https://github.com/florensie">florensie</a>, and <a href="https://github.com/emilyploszaj">Emi</a>
@@ -46,6 +46,15 @@ public interface AccessoryRenderer {
             float headPitch
     );
 
+
+    /**
+     * Determines if this accessory should render in first person
+     * Override to return true for whichever arm this accessory renders on
+     */
+    default boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference) {
+        return false;
+    }
+
     default <M extends LivingEntity> void renderOnFirstPersonRightArm(
             boolean isRendering,
             ItemStack stack,
@@ -55,6 +64,7 @@ public interface AccessoryRenderer {
             MultiBufferSource multiBufferSource,
             int light
     ) {
+        if (!shouldRenderInFirstPerson(HumanoidArm.RIGHT, stack, reference)) return;
         this.render(
                 isRendering,
                 stack,
@@ -80,6 +90,7 @@ public interface AccessoryRenderer {
             MultiBufferSource multiBufferSource,
             int light
     ) {
+        if (!shouldRenderInFirstPerson(HumanoidArm.LEFT, stack, reference)) return;
         this.render(
                 isRendering,
                 stack,
@@ -222,13 +233,19 @@ public interface AccessoryRenderer {
      * @param poseStack the pose stack to apply the transformation(s) to
      * @param part      The ModelPart to transform to
      * @param xPercent  The percentage of the x-axis to translate to
+     *                  <p>
      *                  (-1 being the left side and 1 being the right side)
+     *                  <p>
      *                  If null, will be ignored
      * @param yPercent  The percentage of the y-axis to translate to
+     *                  <p>
      *                  (-1 being the bottom and 1 being the top)
+     *                  <p>
      *                  If null, will be ignored
      * @param zPercent  The percentage of the z-axis to translate to
+     *                  <p>
      *                  (-1 being the back and 1 being the front)
+     *                  <p>
      *                  If null, will be ignored
      */
     static void transformToModelPart(PoseStack poseStack, ModelPart part, @Nullable Number xPercent, @Nullable Number yPercent, @Nullable Number zPercent) {
