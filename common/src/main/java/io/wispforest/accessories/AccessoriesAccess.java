@@ -6,6 +6,7 @@ import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.impl.AccessoriesInternals;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 
 import java.util.Optional;
 import java.util.function.UnaryOperator;

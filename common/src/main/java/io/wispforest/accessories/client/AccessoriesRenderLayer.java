@@ -94,6 +94,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                                 limbSwing,
                                 limbSwingAmount,
                                 partialTicks,
+                                ageInTicks,
                                 netHeadYaw,
                                 headPitch
                         );

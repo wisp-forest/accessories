@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +34,8 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
     private final Map<EntityType<?>, Map<String, SlotType>> server = new HashMap<>();
     private final Map<EntityType<?>, Map<String, SlotType>> client = new HashMap<>();
+
+    public Consumer<Map<EntityType<?>, Map<String, SlotType>>> externalEventHook = map -> {};
 
     protected EntitySlotLoader() {
         super(GSON, LOGGER, "accessories/entities");
@@ -116,5 +119,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
                 server.computeIfAbsent(entity, entityType -> new HashMap<>()).putAll(slots);
             }
         }
+
+        externalEventHook.accept(server);
     }
 }

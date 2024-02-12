@@ -14,11 +14,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
@@ -33,6 +35,8 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
     private final Map<String, SlotType> server = new HashMap<>();
     private final Map<String, SlotType> client = new HashMap<>();
+
+    public Consumer<Map<String, SlotType>> externalEventHook = map -> {};
 
     public final Map<String, SlotType> getSlotTypes(Level level){
         return getSlotTypes(level.isClientSide());
@@ -98,6 +102,8 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
                 server.put(slotType.name(), slotType);
             }
         }
+
+        externalEventHook.accept(server);
     }
 
     public static class SlotBuilder {
