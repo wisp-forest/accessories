@@ -66,6 +66,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     public AccessoriesScreen(AccessoriesMenu menu, Inventory inventory, Component component) {
         super(menu, inventory, Component.empty());
 
+        this.leftPos +=
+
         this.titleLabelX = 97;
         //((ScreenAccessor) this).accessories$setTitle(component);
 
@@ -167,7 +169,9 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             if (slot instanceof AccessoriesSlot accessoriesSlot) {
                 var positionKey = accessoriesSlot.container.getSlotName() + accessoriesSlot.getContainerSlot();
 
-                if (!accessoriesSlot.isCosmetic && NOT_VERY_NICE_POSITIONS.containsKey(positionKey) && (menu.areLinesShown() || (hoveredSlot != null && hoveredSlot.equals(slot)))) {
+                if (!accessoriesSlot.isCosmetic && NOT_VERY_NICE_POSITIONS.containsKey(positionKey) && NOT_VERY_NICE_POSITIONS.get(positionKey) != null && (menu.areLinesShown()
+//                        || (hoveredSlot != null && hoveredSlot.equals(slot))
+                )) {
                     var start = new Vec3(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
                     var vec3 = NOT_VERY_NICE_POSITIONS.get(positionKey).add(0, 0, 5000);
 
@@ -199,7 +203,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         float l = entity.getXRot();
         float m = entity.yHeadRotO;
         float n = entity.yHeadRot;
-        entity.yBodyRot = 180.0F + h * 20.0F;
+        entity.yBodyRot = 180.0F + h * 30.0F;
         entity.setYRot(180.0F + h * 40.0F);
         entity.setXRot(-i * 20.0F);
         entity.yHeadRot = entity.getYRot();

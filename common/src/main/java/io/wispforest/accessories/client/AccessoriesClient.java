@@ -7,7 +7,7 @@ public class AccessoriesClient {
     public static boolean renderingPlayerModelInAccessoriesScreen = false;
     public static Vector4i scissorBox = new Vector4i();
     public static String currentSlot = null;
-    public static boolean preventSettingShaderColor;
+    public static boolean isFirsPersonInvisible = false;
 
     public static void init(){
         AccessoriesAccessClient.registerToMenuTypes();

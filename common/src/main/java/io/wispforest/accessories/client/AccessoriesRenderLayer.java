@@ -8,6 +8,7 @@ import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.SlotReference;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
+import io.wispforest.accessories.api.client.DefaultAccessoryRenderer;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.mixin.RenderLayerAccessor;
 import net.minecraft.client.Minecraft;
@@ -25,6 +26,7 @@ import org.lwjgl.opengl.GL30;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -64,6 +66,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                 var renderer = AccessoriesRendererRegistery.getRender(stack.getItem());
 
                 if (renderer.isEmpty()) {
+//                    renderer = Optional.of(new DefaultAccessoryRenderer());
                     AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
                     continue;
                 }
@@ -74,11 +77,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                 var mpoatv = new MPOATVConstructingVertexConsumer();
 
-                float scale = (float) (1 + (0.5 * (0.75 + (Math.sin(System.currentTimeMillis() / 300d)))));
-
-//                var color = RenderSystem.getShaderColor();
-//                RenderSystem.setShaderColor(scale, scale, scale, 1);
-//                AccessoriesClient.preventSettingShaderColor = true;
+                float scale = (float) (1 + (0.5 * (0.75 + (Math.sin(System.currentTimeMillis() / 250d)))));
 
                 renderer.get()
                         .render(
@@ -98,7 +97,6 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                                 netHeadYaw,
                                 headPitch
                         );
-
 
                 if (multiBufferSource instanceof MultiBufferSource.BufferSource) {
                     buffer.beginWrite(true, GL30.GL_DEPTH_BUFFER_BIT);
@@ -120,9 +118,6 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                     GL30.glBlitFramebuffer(0, 0, buffer.buffer().width, buffer.buffer().height, 0, 0, buffer.buffer().width, buffer.buffer().height, GL30.GL_DEPTH_BUFFER_BIT, GL30.GL_NEAREST);
                     Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
                 }
-
-//                AccessoriesClient.preventSettingShaderColor = false;
-//                RenderSystem.setShaderColor(color[0], color[1], color[2], color[3]);
 
                 if (rendering) {
                     if (AccessoriesClient.renderingPlayerModelInAccessoriesScreen) {
