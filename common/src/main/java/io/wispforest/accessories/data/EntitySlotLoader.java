@@ -35,7 +35,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
     private final Map<EntityType<?>, Map<String, SlotType>> server = new HashMap<>();
     private final Map<EntityType<?>, Map<String, SlotType>> client = new HashMap<>();
 
-    public Consumer<Map<EntityType<?>, Map<String, SlotType>>> externalEventHook = map -> {};
+    public List<Consumer<Map<EntityType<?>, Map<String, SlotType>>>> externalEventHooks = new ArrayList<>();
 
     protected EntitySlotLoader() {
         super(GSON, LOGGER, "accessories/entities");
@@ -120,6 +120,6 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
             }
         }
 
-        externalEventHook.accept(server);
+        for (var eventHook : externalEventHooks) eventHook.accept(server);
     }
 }

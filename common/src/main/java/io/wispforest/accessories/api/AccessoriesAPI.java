@@ -8,6 +8,7 @@ import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.events.AccessoriesEvents;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.Tag;
@@ -211,21 +212,21 @@ public class AccessoriesAPI {
     public static boolean canEquip(ItemStack stack, SlotReference reference){
         var accessory = getOrDefaultAccessory(stack);
 
-        if(accessory.canEquip(stack, reference)) return true;
-
         var state = AccessoriesEvents.CAN_EQUIP_EVENT.invoker().onEquip(stack, reference);
 
-        return state.orElse(true);
+        if(state != TriState.DEFAULT) return state.get();
+
+        return accessory.canEquip(stack, reference);
     }
 
     public static boolean canUnequip(ItemStack stack, SlotReference reference){
         var accessory = getOrDefaultAccessory(stack);
 
-        if(accessory.canUnequip(stack, reference)) return true;
-
         var state = AccessoriesEvents.CAN_UNEQUIP_EVENT.invoker().onUnequip(stack, reference);
 
-        return state.orElse(true);
+        if(state != TriState.DEFAULT) return state.get();
+
+        return accessory.canUnequip(stack, reference);
     }
 
     /**
@@ -278,7 +279,7 @@ public class AccessoriesAPI {
     }
 
     public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, SlotReference reference, ItemStack stack){
-        InteractionResult result = InteractionResult.PASS;
+        var result = TriState.DEFAULT;
 
         for (var predicateId : predicateIds) {
             var predicate = getPredicate(predicateId);
@@ -287,10 +288,10 @@ public class AccessoriesAPI {
 
             result = predicate.get().isValid(reference, stack);
 
-            if(result != InteractionResult.PASS) break;
+            if(result != TriState.DEFAULT) break;
         }
 
-        return result.consumesAction();
+        return result.orElse(false);
     }
 
     /**
@@ -305,17 +306,17 @@ public class AccessoriesAPI {
     public static final String ACCESSORY_INVALID_SLOTS_KEY = "InvalidSlotOverrides";
 
     static {
-        registerPredicate(Accessories.of("all"), (reference, stack) -> InteractionResult.SUCCESS);
-        registerPredicate(Accessories.of("none"), (reference, stack) -> InteractionResult.FAIL);
+        registerPredicate(Accessories.of("all"), (reference, stack) -> TriState.TRUE);
+        registerPredicate(Accessories.of("none"), (reference, stack) -> TriState.FALSE);
         registerPredicate(Accessories.of("tag"), (reference, stack) -> {
             var tag = TagKey.create(Registries.ITEM, Accessories.of(reference.slotName()));
 
-            return (stack.is(tag) || stack.is(ALL_ACCESSORIES)) ? InteractionResult.SUCCESS : InteractionResult.PASS;
+            return (stack.is(tag) || stack.is(ALL_ACCESSORIES)) ? TriState.TRUE : TriState.DEFAULT;
         });
         registerPredicate(Accessories.of("relevant"), (reference, stack) -> {
             var bl = !getAttributeModifiers(stack, reference, getOrCreateSlotUUID(reference.slotName(), reference.slot())).isEmpty();
 
-            return bl ? InteractionResult.SUCCESS : InteractionResult.PASS;
+            return bl ? TriState.TRUE : TriState.DEFAULT;
         });
         registerPredicate(Accessories.of("compound"), (reference, stack) -> {
             var tag = stack.getTag();
@@ -328,7 +329,7 @@ public class AccessoriesAPI {
                 for (int i = 0; i < invalidSlots.size(); i++) {
                     var invalidSlot = invalidSlots.getString(i);
 
-                    if (reference.slotName().equals(invalidSlot)) return InteractionResult.FAIL;
+                    if (reference.slotName().equals(invalidSlot)) return TriState.FALSE;
                 }
 
                 //--
@@ -338,11 +339,11 @@ public class AccessoriesAPI {
                 for (int i = 0; i < validSlots.size(); i++) {
                     var validSlot = validSlots.getString(i);
 
-                    if (reference.slotName().equals(validSlot)) return InteractionResult.SUCCESS;
+                    if (reference.slotName().equals(validSlot)) return TriState.TRUE;
                 }
             }
 
-            return InteractionResult.PASS;
+            return TriState.DEFAULT;
         });
     }
 }
