@@ -5,9 +5,13 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.impl.AccessoriesInternals;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
@@ -51,6 +55,11 @@ public class AccessoriesAccess {
      */
     @ExpectPlatform
     public static AccessoriesInternals getInternal(){
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    public static <T> Optional<Collection<Holder<T>>> getHolder(TagKey<T> tagKey){
         throw new AssertionError();
     }
 }

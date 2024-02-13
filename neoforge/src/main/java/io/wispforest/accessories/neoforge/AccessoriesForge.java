@@ -1,6 +1,7 @@
 package io.wispforest.accessories.neoforge;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
@@ -128,8 +129,14 @@ public class AccessoriesForge {
 
         event.addListener(new SimplePreparableReloadListener<Void>() {
             @Override protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) { return null; }
-            @Override protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profiler) { AccessoriesEventHandler.dataReloadOccured = true; }
+            @Override protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profiler) {
+                AccessoriesEventHandler.dataReloadOccured = true;
+
+                AccessoriesAccessImpl.setContext(null);
+            }
         });
+
+        AccessoriesAccessImpl.setContext(event.getConditionContext());
     }
 
     //--

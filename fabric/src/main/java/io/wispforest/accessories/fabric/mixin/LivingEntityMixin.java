@@ -25,7 +25,7 @@ public abstract class LivingEntityMixin {
 
     //--
 
-    @WrapOperation(method = "dropAllDeathLoot", constant = @Constant(classValue = Player.class)) //net/minecraft/class_1657 : net/minecraft/world/entity/player/Player
+    @WrapOperation(method = "dropAllDeathLoot", constant = @Constant(classValue = Player.class))
     private boolean accessories$allowAllLivingEntities(Object object, Operation<Boolean> original){
         return object instanceof LivingEntity || original.call(object);
     }

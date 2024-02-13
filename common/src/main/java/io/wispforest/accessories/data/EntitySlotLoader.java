@@ -91,7 +91,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
                     var entityTypeTag = TagKey.create(Registries.ENTITY_TYPE, entityTypeTagLocation);
 
-                    return BuiltInRegistries.ENTITY_TYPE.getTag(entityTypeTag)
+                    return AccessoriesAccess.getHolder(entityTypeTag)
                             .map(holders -> {
                                 return holders.stream()
                                         .map(Holder::value)
