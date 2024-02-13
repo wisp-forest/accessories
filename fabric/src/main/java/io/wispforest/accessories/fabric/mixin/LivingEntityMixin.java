@@ -7,8 +7,10 @@ import io.wispforest.accessories.api.events.extra.ImplementedEvents;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -23,7 +25,7 @@ public abstract class LivingEntityMixin {
 
     //--
 
-    @WrapOperation(method = "dropAllDeathLoot", at = @At(value = "CONSTANT", args = "classValue=net/minecraft/world/entity/player/Player"))
+    @WrapOperation(method = "dropAllDeathLoot", constant = @Constant(classValue = Player.class)) //net/minecraft/class_1657 : net/minecraft/world/entity/player/Player
     private boolean accessories$allowAllLivingEntities(Object object, Operation<Boolean> original){
         return object instanceof LivingEntity || original.call(object);
     }
