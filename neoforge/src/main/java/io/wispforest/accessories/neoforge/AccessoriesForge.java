@@ -49,7 +49,7 @@ public class AccessoriesForge {
         HOLDER_ATTACHMENT_TYPE = Registry.register(
                 NeoForgeRegistries.ATTACHMENT_TYPES,
                 Accessories.of("inventory_holder"),
-                AttachmentType.<AccessoriesHolder>builder(AccessoriesHolderImpl::new)
+                AttachmentType.<AccessoriesHolder>builder(AccessoriesHolderImpl::of)
                         .serialize(InstanceCodecable.constructed(AccessoriesHolderImpl::new))
                         .copyOnDeath()
                         .build()

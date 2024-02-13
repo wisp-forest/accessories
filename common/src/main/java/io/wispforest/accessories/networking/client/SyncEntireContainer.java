@@ -1,6 +1,7 @@
 package io.wispforest.accessories.networking.client;
 
 import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.networking.AccessoriesPacket;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -44,6 +45,8 @@ public class SyncEntireContainer extends AccessoriesPacket {
 
         if(!(entity instanceof LivingEntity livingEntity)) return;
 
-        AccessoriesAccess.getHolder(livingEntity).read(containerTag);
+        AccessoriesAPI.getHolder(livingEntity).ifPresent(holder -> {
+            holder.read(containerTag);
+        });
     }
 }

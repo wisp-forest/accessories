@@ -51,7 +51,7 @@ public class AccessoriesFabric implements ModInitializer {
 
     static {
         HOLDER_ATTACHMENT_TYPE = AttachmentRegistry.<AccessoriesHolder>builder()
-                .initializer(AccessoriesHolderImpl::new)
+                .initializer(AccessoriesHolderImpl::of)
                 .persistent(InstanceCodecable.constructed(AccessoriesHolderImpl::new))
                 .copyOnDeath()
                 .buildAndRegister(Accessories.of("inventory_holder"));

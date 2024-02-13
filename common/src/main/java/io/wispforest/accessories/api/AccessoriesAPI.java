@@ -8,6 +8,7 @@ import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.events.AccessoriesEvents;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -48,6 +49,10 @@ public class AccessoriesAPI {
      */
     public static Optional<AccessoriesCapability> getCapability(LivingEntity livingEntity){
         return AccessoriesAccess.getCapability(livingEntity);
+    }
+
+    public static Optional<AccessoriesHolder> getHolder(LivingEntity livingEntity){
+        return getCapability(livingEntity).map(AccessoriesCapability::getHolder);
     }
 
     /**

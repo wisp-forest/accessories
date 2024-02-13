@@ -102,7 +102,7 @@ public class AccessoriesEventHandler {
 
         AccessoriesAPI.getCapability(serverPlayer)
                 .ifPresent(capability -> {
-                    var holder = AccessoriesAccess.getHolder(capability.getEntity());
+                    var holder = capability.getHolder();
 
                     var tag = new CompoundTag();
 
@@ -115,7 +115,7 @@ public class AccessoriesEventHandler {
     public static void onTracking(LivingEntity entity, ServerPlayer player){
         AccessoriesAPI.getCapability(entity)
                 .ifPresent(capability -> {
-                    var holder = AccessoriesAccess.getHolder(capability.getEntity());
+                    var holder = capability.getHolder();
 
                     var tag = new CompoundTag();
 
@@ -138,7 +138,7 @@ public class AccessoriesEventHandler {
                 networkHandler.sendToPlayer(player1, new SyncData(buf));
 
                 AccessoriesAPI.getCapability(player1).ifPresent(capability -> {
-                    var holder = AccessoriesAccess.getHolder(capability.getEntity());
+                    var holder = capability.getHolder();
 
                     var tag = new CompoundTag();
 
@@ -156,7 +156,7 @@ public class AccessoriesEventHandler {
             networkHandler.sendToPlayer(player, syncPacket);
 
             AccessoriesAPI.getCapability(player).ifPresent(capability -> {
-                var holder = AccessoriesAccess.getHolder(capability.getEntity());
+                var holder = capability.getHolder();
 
                 var tag = new CompoundTag();
 

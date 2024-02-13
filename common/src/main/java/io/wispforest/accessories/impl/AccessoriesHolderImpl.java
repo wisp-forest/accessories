@@ -26,6 +26,15 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
     private CompoundTag tag;
     protected boolean loadedFromTag = false;
 
+    public static AccessoriesHolderImpl of(){
+        var holder = new AccessoriesHolderImpl();
+
+        holder.loadedFromTag = true;
+        holder.tag = new CompoundTag();
+
+        return holder;
+    }
+
     public boolean cosmeticsShown() {
         return this.cosmeticsShown;
     }
