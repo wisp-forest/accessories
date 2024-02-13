@@ -469,7 +469,7 @@ public class AccessoriesEventHandler {
         }
     }
 
-    public static void onDeath(LivingEntity entity, DamageSource damageSource){
+    public static void onDeath(LivingEntity entity, DamageSource source){
         var capability = AccessoriesAPI.getCapability(entity);
 
         if(capability.isEmpty()) return;
@@ -491,18 +491,18 @@ public class AccessoriesEventHandler {
             for (int i = 0; i < container.getSize(); i++) {
                 var reference = new SlotReference(container.getSlotName(), entity, i);
 
-                dropStack(slotDropRule, entity, stacks, reference);
-                dropStack(slotDropRule, entity, cosmeticStacks, reference);
+                dropStack(slotDropRule, entity, stacks, reference, source);
+                dropStack(slotDropRule, entity, cosmeticStacks, reference, source);
             }
         }
     }
 
-    private static void dropStack(DropRule dropRule, LivingEntity entity, Container container, SlotReference reference){
+    private static void dropStack(DropRule dropRule, LivingEntity entity, Container container, SlotReference reference, DamageSource source){
         var stack = container.getItem(reference.slot());
         var accessory = AccessoriesAPI.getAccessory(stack);
 
         if(accessory.isPresent() && dropRule == DropRule.DEFAULT) {
-            dropRule = accessory.get().getDropRule(stack, reference);
+            dropRule = accessory.get().getDropRule(stack, reference, source);
         }
 
         dropRule = AccessoriesEvents.ON_DROP_EVENT.invoker().onDrop(dropRule, stack, reference);
