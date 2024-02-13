@@ -49,7 +49,6 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
         return this;
     }
 
-
     public boolean linesShown() {
         return this.linesShown;
     }

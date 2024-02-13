@@ -14,7 +14,7 @@ public abstract class EndermanMixin {
 
     @Inject(method = "isLookingAtMe", at = @At("HEAD"))
     private void isEndermanMaskAccessory(Player player, CallbackInfoReturnable<Boolean> cir){
-        var state = ImplementedEvents.isEndermanMask(player, (EnderMan) (Object) player);
+        var state = ImplementedEvents.isEndermanMask(player, (EnderMan) (Object) this);
 
         if(state != TriState.DEFAULT) cir.setReturnValue(state.orElse(false));
     }

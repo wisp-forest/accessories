@@ -5,7 +5,13 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 
-public record AccessoriesForgePacket <P extends AccessoriesPacket>(P innerPacket) implements CustomPacketPayload {
+import java.util.function.Supplier;
+
+public record AccessoriesForgePacket<P extends AccessoriesPacket>(P innerPacket) implements CustomPacketPayload {
+
+    public static <P extends AccessoriesPacket> AccessoriesForgePacket<P> of(Supplier<P> supplier, FriendlyByteBuf buf){
+        return new AccessoriesForgePacket<>(supplier.get().readPacket(buf));
+    }
 
     @Override
     public void write(FriendlyByteBuf buffer) {

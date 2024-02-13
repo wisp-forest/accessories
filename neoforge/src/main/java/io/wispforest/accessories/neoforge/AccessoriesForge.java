@@ -23,7 +23,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.capabilities.EntityCapability;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -68,17 +67,12 @@ public class AccessoriesForge {
         NeoForge.EVENT_BUS.addListener(this::onStartTracking);
         NeoForge.EVENT_BUS.addListener(this::registerReloadListeners);
 
-        eventBus.addListener(this::init);
         eventBus.addListener(this::registerStuff);
 
         NeoForge.EVENT_BUS.addListener(this::adjustLooting);
         NeoForge.EVENT_BUS.addListener(this::onWorldTick);
 
         eventBus.register(AccessoriesForgeNetworkHandler.INSTANCE);
-    }
-
-    public void init(FMLCommonSetupEvent event){
-        AppleAccessory.init();
     }
 
     public void registerStuff(RegisterEvent event){

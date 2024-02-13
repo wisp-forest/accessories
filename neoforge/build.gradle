@@ -17,6 +17,8 @@ configurations {
 
 repositories {
     maven { url "https://maven.neoforged.net/releases/" }
+    maven { url "https://maven.su5ed.dev/releases" }
+    mavenLocal()
 }
 
 sourceSets {
@@ -32,7 +34,11 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive = false }
 
-    include modImplementation(fabricApi.module("fabric-api-base", rootProject.fabric_api_version)){
+//    include forgeRuntimeLibrary(fabricApi.module("fabric-api-base", rootProject.fabric_api_version)){
+//        exclude group: "fabric-api"
+//    }
+
+    include modApi("dev.su5ed.sinytra.fabric-api:fabric-api-base:0.4.35+f77bd0ed4f"){
         exclude group: "fabric-api"
     }
 
@@ -56,33 +62,35 @@ processTestmodResources {
 }
 
 loom {
-    mods {
-        create("testmod") {
-            sourceSet sourceSets.testmod
-            sourceSet sourceSets.main
-        }
-    }
-
     runs {
         testmodClient {
             client()
+            forgeTemplate "client"
             ideConfigGenerated true
             name = "Testmod Client"
             mods {
-                create("testmod") {
+                create("testccessories") {
                     sourceSet sourceSets.testmod
                 }
+                create("${project.archives_base_name}"){
+                    sourceSet sourceSets.main
+                }
             }
+            source sourceSets.testmod
         }
         testmodServer {
             server()
             ideConfigGenerated true
             name = "Testmod Server"
             mods {
-                create("testmod") {
+                create("testccessories") {
                     sourceSet sourceSets.testmod
                 }
+                create("${project.archives_base_name}"){
+                    sourceSet sourceSets.main
+                }
             }
+            source sourceSets.testmod
         }
     }
 
