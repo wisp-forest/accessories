@@ -24,12 +24,12 @@ public abstract class LivingEntityMixin {
     //--
 
     @WrapOperation(method = "dropAllDeathLoot", at = @At(value = "CONSTANT", args = "classValue=net/minecraft/world/entity/player/Player"))
-    private boolean curios$allowAllLivingEntities(Object object, Operation<Boolean> original){
+    private boolean accessories$allowAllLivingEntities(Object object, Operation<Boolean> original){
         return object instanceof LivingEntity || original.call(object);
     }
 
     @ModifyVariable(method = "dropAllDeathLoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/enchantment/EnchantmentHelper;getMobLooting(Lnet/minecraft/world/entity/LivingEntity;)I", shift = At.Shift.BY, by = 2))
-    private int curios$adjustLooting(int original, @Local(argsOnly = true) DamageSource source){
+    private int accessories$adjustLooting(int original, @Local(argsOnly = true) DamageSource source){
         return ImplementedEvents.lootingAdjustments((LivingEntity)(Object) this, source, original);
     }
 }
