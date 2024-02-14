@@ -9,6 +9,7 @@ import io.wispforest.accessories.api.events.AccessoriesEvents;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
+import it.unimi.dsi.fastutil.Pair;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -23,6 +24,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -264,6 +266,18 @@ public class AccessoriesAPI {
         return validSlots;
     }
 
+    public static Collection<SlotType> getStackSlotTypes(Level level, ItemStack stack){
+        var validSlots = new ArrayList<SlotType>();
+
+        for (SlotType value : getAllSlots(level).values()) {
+            var results = getPredicateResultsUnsafe(value.validators(), value, stack);
+
+            if(results.first().isPresent() && results.first().get()) validSlots.add(value);
+        }
+
+        return validSlots;
+    }
+
     //--
 
     /**
@@ -297,6 +311,33 @@ public class AccessoriesAPI {
         }
 
         return result.orElse(false);
+    }
+
+    private static Pair<Optional<Boolean>, Set<ResourceLocation>> getPredicateResultsUnsafe(Set<ResourceLocation> predicateIds, SlotType slotType, ItemStack stack){
+        TriState result = null;
+
+        var erroredPredicates = new HashSet<ResourceLocation>();
+
+        var reference = new SlotReference(slotType.name(), null, 0);
+
+        for (var predicateId : predicateIds) {
+            var predicate = getPredicate(predicateId);
+
+            if(predicate.isEmpty()) continue;
+
+            try {
+                result = predicate.get().isValid(reference, stack);
+            } catch (Exception e){
+                erroredPredicates.add(predicateId);
+            }
+
+            if(result != null && result != TriState.DEFAULT) break;
+        }
+
+        return Pair.of(
+                Optional.ofNullable(result).flatMap(state -> Optional.of(state.orElse(false))),
+                erroredPredicates
+        );
     }
 
     /**

@@ -1,10 +1,7 @@
 package io.wispforest.accessories.api.events;
 
 import io.wispforest.accessories.AccessoriesAccess;
-import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.DropRule;
-import io.wispforest.accessories.api.SlotReference;
+import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.impl.event.EventUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.util.TriState;
@@ -141,11 +138,31 @@ public class AccessoriesEvents {
      */
     public static final Event<CanEquip> CAN_EQUIP_EVENT = EventUtils.createEventWithBus(CanEquip.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
-                return (reference, stack) -> {
+                return (stack, reference) -> {
                     var state = TriState.DEFAULT;
 
+                    if(AccessoriesAPI.getAccessory(stack.getItem()).orElse(null) instanceof AccessoryNest holdable){
+                        var innerStacks = holdable.getInnerStacks(stack);
+
+                        for (ItemStack innerStack : innerStacks) {
+                            for (var invoker : invokers) {
+                                state = invoker.onEquip(innerStack, reference);
+
+                                if(state == TriState.FALSE) return state;
+                            }
+
+                            if(bus.isPresent()) {
+                                state = bus.get()
+                                        .post(new CanUnequipEvent(innerStack, reference))
+                                        .getReturn();
+                            }
+
+                            if(state == TriState.FALSE) return state;
+                        }
+                    }
+
                     for (var invoker : invokers) {
-                        state = invoker.onEquip(reference, stack);
+                        state = invoker.onEquip(stack, reference);
 
                         if(state != TriState.DEFAULT) return state;
                     }
@@ -153,7 +170,7 @@ public class AccessoriesEvents {
                     if(bus.isEmpty()) return state;
 
                     return bus.get()
-                            .post(new CanEquipEvent(reference, stack))
+                            .post(new CanEquipEvent(stack, reference))
                             .getReturn();
                 };
             }
@@ -192,6 +209,26 @@ public class AccessoriesEvents {
             (bus, invokers) -> {
                 return (stack, reference) -> {
                     var state = TriState.DEFAULT;
+
+                    if(AccessoriesAPI.getAccessory(stack.getItem()).orElse(null) instanceof AccessoryNest holdable){
+                        var innerStacks = holdable.getInnerStacks(stack);
+
+                        for (ItemStack innerStack : innerStacks) {
+                            for (var invoker : invokers) {
+                                state = invoker.onUnequip(innerStack, reference);
+
+                                if(state == TriState.FALSE) return state;
+                            }
+
+                            if(bus.isPresent()) {
+                                state = bus.get()
+                                        .post(new CanUnequipEvent(innerStack, reference))
+                                        .getReturn();
+                            }
+
+                            if(state == TriState.FALSE) return state;
+                        }
+                    }
 
                     for (var invoker : invokers) {
                         state = invoker.onUnequip(stack, reference);

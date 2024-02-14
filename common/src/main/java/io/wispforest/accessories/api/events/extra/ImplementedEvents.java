@@ -1,8 +1,8 @@
 package io.wispforest.accessories.api.events.extra;
 
-import com.mojang.authlib.minecraft.client.MinecraftClient;
 import com.mojang.blaze3d.platform.Window;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoryNest;
 import io.wispforest.accessories.api.SlotReference;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
@@ -37,6 +37,14 @@ public class ImplementedEvents {
 
                         if(accessory.isPresent() && accessory.get() instanceof LootingAdjustment lootingAdjustment){
                             currentLevel += lootingAdjustment.getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
+                        }
+
+                        for (var entry : AccessoryNest.tryAndGet(stack).entrySet()) {
+                            if((entry.getValue() instanceof LootingAdjustment lootingAdjustment)) {
+                                currentLevel += lootingAdjustment.getLootingAdjustment(entry.getKey(), reference, targetEntity, damageSource, currentLevel);
+                            }
+
+                            currentLevel += LOOTING_ADJUSTMENT_EVENT.invoker().getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
                         }
 
                         currentLevel += LOOTING_ADJUSTMENT_EVENT.invoker().getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
@@ -81,6 +89,16 @@ public class ImplementedEvents {
                         currentLevel += fortuneAdjustment.getFortuneAdjustment(stack, reference, context, currentLevel);
                     }
 
+                    for (var entry : AccessoryNest.tryAndGet(stack).entrySet()) {
+                        var innerStack = entry.getKey();
+
+                        if((entry.getValue() instanceof FortuneAdjustment fortuneAdjustment)) {
+                            currentLevel += fortuneAdjustment.getFortuneAdjustment(innerStack, reference, context, currentLevel);
+                        }
+
+                        currentLevel += FORTUNE_ADJUSTMENT_EVENT.invoker().getFortuneAdjustment(innerStack, reference, context, currentLevel);
+                    }
+
                     currentLevel += FORTUNE_ADJUSTMENT_EVENT.invoker().getFortuneAdjustment(stack, reference, context, currentLevel);
                 }
             }
@@ -123,6 +141,20 @@ public class ImplementedEvents {
                     }
 
                     state = PIGLIN_NEUTRAL_INDUCER_EVENT.invoker().makesPiglinsNeutral(stack, reference);
+
+                    if(state != TriState.DEFAULT) return state;
+
+                    for (var entry : AccessoryNest.tryAndGet(stack).entrySet()) {
+                        var innerStack = entry.getKey();
+
+                        if(entry.getValue() instanceof PiglinNeutralInducer inducer) {
+                            state = inducer.makesPiglinsNeutral(innerStack, reference);
+
+                            if(state != TriState.DEFAULT) return state;
+                        }
+
+                        state = PIGLIN_NEUTRAL_INDUCER_EVENT.invoker().makesPiglinsNeutral(innerStack, reference);
+                    }
                 }
             }
         }
@@ -166,6 +198,20 @@ public class ImplementedEvents {
                     }
 
                     state = ALLOW_WALING_ON_SNOW_EVENT.invoker().allowWalkingOnSnow(stack, reference);
+
+                    if(state != TriState.DEFAULT) return state;
+
+                    for (var entry : AccessoryNest.tryAndGet(stack).entrySet()) {
+                        var innerStack = entry.getKey();
+
+                        if(entry.getValue() instanceof AllowWalingOnSnow event) {
+                            state = event.allowWalkingOnSnow(innerStack, reference);
+
+                            if (state != TriState.DEFAULT) return state;
+                        }
+
+                        state = ALLOW_WALING_ON_SNOW_EVENT.invoker().allowWalkingOnSnow(innerStack, reference);
+                    }
                 }
             }
         }
@@ -220,6 +266,20 @@ public class ImplementedEvents {
                     }
 
                     state = ENDERMAN_MASKED_EVENT.invoker().isEndermanMasked(enderMan, stack, reference);
+
+                    if(state != TriState.DEFAULT) return state;
+
+                    for (var entry : AccessoryNest.tryAndGet(stack).entrySet()) {
+                        var innerStack = entry.getKey();
+
+                        if(entry.getValue() instanceof EndermanMasked masked) {
+                            state = masked.isEndermanMasked(enderMan, innerStack, reference);
+
+                            if (state != TriState.DEFAULT) return state;
+                        }
+
+                        state = ENDERMAN_MASKED_EVENT.invoker().isEndermanMasked(enderMan, innerStack, reference);
+                    }
                 }
             }
         }

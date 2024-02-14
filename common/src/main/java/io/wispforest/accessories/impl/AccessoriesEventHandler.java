@@ -505,6 +505,29 @@ public class AccessoriesEventHandler {
             dropRule = accessory.get().getDropRule(stack, reference, source);
         }
 
+        if(accessory.orElse(null) instanceof AccessoryNest holdable){
+            var dropRules = holdable.getDropRules(stack, reference, source);
+
+            for (int i = 0; i < dropRules.size(); i++) {
+                var rulePair = dropRules.get(i);
+
+                var rule = rulePair.left();
+                var innerStack = rulePair.right();
+
+                rule = AccessoriesEvents.ON_DROP_EVENT.invoker().onDrop(rule, innerStack, reference);
+
+                var breakInnerStack = (rule == DropRule.DEFAULT && EnchantmentHelper.hasVanishingCurse(innerStack))
+                        || (rule == DropRule.DESTROY);
+
+                if(breakInnerStack) {
+                    holdable.modifyInnerStack(stack, i, ItemStack.EMPTY);
+                    // TODO: Do we call break here for the accessory?
+
+                    container.setItem(reference.slot(), stack);
+                }
+            }
+        }
+
         dropRule = AccessoriesEvents.ON_DROP_EVENT.invoker().onDrop(dropRule, stack, reference);
 
         boolean dropStack = true;
