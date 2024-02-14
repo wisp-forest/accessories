@@ -6,6 +6,7 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.InstanceCodecable;
 import io.wispforest.accessories.api.events.extra.ImplementedEvents;
+import io.wispforest.accessories.data.DataLoadingModifications;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -24,6 +25,7 @@ import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
@@ -35,6 +37,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -112,14 +115,34 @@ public class AccessoriesFabric implements ModInitializer {
 
         var manager = ResourceManagerHelper.get(PackType.SERVER_DATA);
 
-        manager.registerReloadListener(new IdentifiableResourceReloadListenerImpl(SLOT_LOADER_LOCATION, SlotTypeLoader.INSTANCE));
-        manager.registerReloadListener(new IdentifiableResourceReloadListenerImpl(ENTITY_SLOT_LOADER_LOCATION, EntitySlotLoader.INSTANCE, SLOT_LOADER_LOCATION));
+        FabricLoader.getInstance().getEntrypoints("data_loading_modifications", DataLoadingModifications.class)
+                .forEach(dataLoadingModifications -> {
+                    dataLoadingModifications.beforeRegistration(preparableReloadListener -> {
+                        if(preparableReloadListener instanceof IdentifiableResourceReloadListener identifiableResourceReloadListener){
+                            manager.registerReloadListener(identifiableResourceReloadListener);
+                        }
+                    });
+                });
+
+        var SLOT_TYPE_LOADER = new IdentifiableResourceReloadListenerImpl(SLOT_LOADER_LOCATION, SlotTypeLoader.INSTANCE);
+        SLOT_TYPE_LOADER.dependencies.addAll(SlotTypeLoader.INSTANCE.dependentLoaders);
+
+        var ENTITY_SLOT_LOADER = new IdentifiableResourceReloadListenerImpl(ENTITY_SLOT_LOADER_LOCATION, EntitySlotLoader.INSTANCE, SLOT_LOADER_LOCATION);
+        ENTITY_SLOT_LOADER.dependencies.addAll(EntitySlotLoader.INSTANCE.dependentLoaders);
+
+        manager.registerReloadListener(SLOT_TYPE_LOADER);
+        manager.registerReloadListener(ENTITY_SLOT_LOADER);
         manager.registerReloadListener(new IdentifiableResourceReloadListenerImpl(SLOT_GROUP_LOADER_LOCATION, SlotGroupLoader.INSTANCE, SLOT_LOADER_LOCATION));
 
         ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> AccessoriesEventHandler.dataReloadOccured = true);
     }
 
-    private record IdentifiableResourceReloadListenerImpl(ResourceLocation location, PreparableReloadListener listener, ResourceLocation ...dependencies) implements IdentifiableResourceReloadListener {
+    private record IdentifiableResourceReloadListenerImpl(ResourceLocation location, PreparableReloadListener listener, Set<ResourceLocation> dependencies) implements IdentifiableResourceReloadListener {
+
+        public IdentifiableResourceReloadListenerImpl(ResourceLocation location, PreparableReloadListener listener, ResourceLocation ...dependencies){
+            this(location, listener, new HashSet<>(List.of(dependencies)));
+        }
+
         @Override
         public ResourceLocation getFabricId() {
             return this.location;
@@ -132,7 +155,7 @@ public class AccessoriesFabric implements ModInitializer {
 
         @Override
         public Collection<ResourceLocation> getFabricDependencies() {
-            return new HashSet<>(Set.of(dependencies));
+            return new HashSet<>(dependencies);
         }
     }
 

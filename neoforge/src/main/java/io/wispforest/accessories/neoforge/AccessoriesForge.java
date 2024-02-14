@@ -1,5 +1,6 @@
 package io.wispforest.accessories.neoforge;
 
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.AccessoriesAPI;
@@ -7,6 +8,7 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.InstanceCodecable;
 import io.wispforest.accessories.api.events.extra.ImplementedEvents;
+import io.wispforest.accessories.data.DataLoadingModifications;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -23,11 +25,13 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.capabilities.EntityCapability;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.TickEvent;
@@ -38,9 +42,14 @@ import net.neoforged.neoforge.event.entity.living.LootingLevelEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.RegisterEvent;
+import net.neoforged.neoforgespi.language.ModFileScanData;
+import org.objectweb.asm.Type;
+import org.slf4j.Logger;
 
 @Mod(Accessories.MODID)
 public class AccessoriesForge {
+
+    public static final Logger LOGGER = LogUtils.getLogger();
 
     public static final AttachmentType<AccessoriesHolder> HOLDER_ATTACHMENT_TYPE;
 
@@ -123,6 +132,28 @@ public class AccessoriesForge {
     }
 
     public void registerReloadListeners(AddReloadListenerEvent event){
+        for (ModFileScanData data : ModList.get().getAllScanData()) {
+            data.getAnnotations().forEach(annotationData -> {
+                if (annotationData.annotationType().equals(Type.getType(DataLoadingModifications.DataLoadingModificationsCapable.class))) {
+                    try {
+                        Class<?> clazz = Class.forName(annotationData.memberName());
+
+                        if (DataLoadingModifications.class.isAssignableFrom(clazz)) {
+                            try {
+                                var instance = (DataLoadingModifications) clazz.getDeclaredConstructor().newInstance();
+
+                                instance.beforeRegistration(event::addListener);
+                            } catch (Throwable e) {
+                                LOGGER.error("Failed to load CondensedEntryInit: " + annotationData.memberName(), e);
+                            }
+                        }
+                    } catch (Throwable e) {
+                        LOGGER.error("No class from such annotation: " + annotationData.memberName(), e);
+                    }
+                }
+            });
+        }
+
         event.addListener(SlotTypeLoader.INSTANCE);
         event.addListener(EntitySlotLoader.INSTANCE);
         event.addListener(SlotGroupLoader.INSTANCE);

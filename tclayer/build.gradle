@@ -1,0 +1,76 @@
+plugins {
+    id "com.github.johnrengelman.shadow" version "7.1.2"
+}
+
+base {
+    archivesName = "accessories_tclayer"
+}
+
+architectury {
+    platformSetupLoomIde()
+    fabric()
+}
+
+repositories {
+    maven { url = "https://mvn.devos.one/snapshots/" }
+    maven { url = 'https://maven.ladysnake.org/releases' }
+    maven { url = "https://api.modrinth.com/maven" }
+    maven { url = "https://maven.wispforest.io/releases" }
+    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+    mavenLocal()
+}
+
+dependencies {
+    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
+    modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
+
+    developmentFabric implementation(project(path: ":common", configuration: "namedElements"))
+    //modLocalRuntime(project(path: ":common", configuration: "namedElements"))
+    localRuntime(project(path: ":fabric", configuration: "namedElements"))
+
+    modLocalRuntime("net.neoforged:bus:7.2.0")
+
+    modLocalRuntime("maven.modrinth:modmenu:9.0.0")
+    modLocalRuntime("maven.modrinth:ok-boomer:0.1.3+1.20.2")
+    modLocalRuntime("io.wispforest:owo-lib:0.12.4-pre.2+1.20.3")
+    modLocalRuntime("io.wispforest:gadget:0.2.3+1.20.3")
+
+    include modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-base:5.4.0")
+    include modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-entity:5.4.0")
+
+    modCompileOnly ("com.glisco:things:0.3.3+1.20.3") {
+        exclude group: "dev.emi"
+        exclude group: "com.terraformersmc"
+    }
+
+//    modLocalRuntime("maven.modrinth:things:0.3.3+1.20.3")
+//    modLocalRuntime("maven.modrinth:lavender:0.1.2+1.20.3")
+
+    modImplementation("com.jamieswhiteshirt:reach-entity-attributes:2.5.0-wf_pre.1")
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+loom {
+
+}
+
+publishing {
+    publications {
+        mavenFabric(MavenPublication) {
+            artifactId = rootProject.archives_base_name + "-" + project.name
+            from components.java
+        }
+    }
+
+    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+    repositories {
+        // Add repositories to publish to here.
+    }
+}

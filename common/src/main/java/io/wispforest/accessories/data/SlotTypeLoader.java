@@ -36,6 +36,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
     private final Map<String, SlotType> client = new HashMap<>();
 
     public List<Consumer<Map<String, SlotType>>> externalEventHooks = new ArrayList<>();
+    public Set<ResourceLocation> dependentLoaders = new HashSet<>();
 
     public final Map<String, SlotType> getSlotTypes(Level level){
         return getSlotTypes(level.isClientSide());
@@ -113,8 +114,15 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         private final Set<ResourceLocation> validators = new HashSet<>();
         private DropRule dropRule = null;
 
+        private Optional<String> alternativeTranslation = Optional.empty();
+
         public SlotBuilder(String name){
             this.name = name;
+        }
+
+        public SlotBuilder alternativeTranslation(String value){
+            this.alternativeTranslation = Optional.of(value);
+            return this;
         }
 
         public SlotBuilder icon(ResourceLocation value){
@@ -160,6 +168,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
             return new SlotTypeImpl(
                     name,
+                    alternativeTranslation,
                     Optional.ofNullable(icon).orElse(SlotType.EMPTY_SLOT_LOCATION),
                     Optional.ofNullable(order).orElse(1000),
                     Optional.ofNullable(amount).map(i -> Math.max(i, 0)).orElse(1),
