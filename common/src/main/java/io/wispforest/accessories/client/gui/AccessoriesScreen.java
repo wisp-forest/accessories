@@ -32,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
+import org.joml.Vector4i;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.*;
@@ -48,6 +49,12 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     protected static final ResourceLocation SCROLL_BAR_PATCH = Accessories.of("scroll_bar_patch");
     protected static final ResourceLocation SCROLL_BAR = Accessories.of("scroll_bar");
+
+    @Nullable
+    public static String HOVERED_SLOT_TYPE = null;
+    public static Vector4i SCISSOR_BOX = new Vector4i();
+
+    public static boolean IS_RENDERING_PLAYER = false;
 
     public static final Map<String, Vec3> NOT_VERY_NICE_POSITIONS = new HashMap<>();
     private static final List<Pair<Vec3, Vec3>> LINES = new ArrayList<>();
@@ -99,30 +106,36 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         int topPos = this.topPos;
         guiGraphics.blit(ACCESSORIES_INVENTORY_LOCATION, leftPos, topPos, 0, 0, this.imageWidth, this.imageHeight);
 
+        //--
+
         var scissorStart = new Vector2i(leftPos + 26, topPos + 8);
         var scissorEnd = new Vector2i(leftPos + 26 + 124, topPos + 8 + 70);
         var mousePos = new Vector2i(mouseX, mouseY);
         var size = new Vector2i((scissorEnd.x - scissorStart.x)/2, scissorEnd.y - scissorStart.y);
 
-        AccessoriesClient.renderingPlayerModelInAccessoriesScreen = true;
-        AccessoriesClient.scissorBox.set(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y);
+        IS_RENDERING_PLAYER = true;
+        SCISSOR_BOX.set(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y);
+
         if (hoveredSlot instanceof AccessoriesSlot accessoriesSlot) {
-            AccessoriesClient.currentSlot = accessoriesSlot.container.getSlotName() +  accessoriesSlot.getContainerSlot();
+            HOVERED_SLOT_TYPE = accessoriesSlot.container.getSlotName() +  accessoriesSlot.getContainerSlot();
         }
-            AccessoriesScreen.renderEntityInInventoryFollowingMouseRotated(
-                guiGraphics,
-                scissorStart,
-                size,
-                scissorStart,
-                scissorEnd,
-                30,
-                0.0625F,
-                mousePos,
-                this.minecraft.player,
-                0
+
+        renderEntityInInventoryFollowingMouseRotated(
+            guiGraphics,
+            scissorStart,
+            size,
+            scissorStart,
+            scissorEnd,
+            30,
+            0.0625F,
+            mousePos,
+            this.minecraft.player,
+            0
         );
-        AccessoriesClient.renderingPlayerModelInAccessoriesScreen = false;
-        AccessoriesScreen.renderEntityInInventoryFollowingMouseRotated(
+
+        IS_RENDERING_PLAYER = false;
+
+        renderEntityInInventoryFollowingMouseRotated(
                 guiGraphics,
                 new Vector2i(scissorStart).add(size.x, 0),
                 size,
@@ -134,7 +147,10 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 this.minecraft.player,
                 180
         );
-        AccessoriesClient.currentSlot = null;
+
+        HOVERED_SLOT_TYPE = null;
+
+        //--
 
         //if (!this.isVisible()) return;
         guiGraphics.pose().pushPose();
@@ -187,35 +203,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
             pose.popPose();
         }
-    }
-
-    public static void renderEntityInInventoryFollowingMouseRotated(GuiGraphics guiGraphics, Vector2i pos, Vector2i size, Vector2i scissorStart, Vector2i scissorEnd, int scale, float yOffset, Vector2i mouse, LivingEntity entity, float rotation) {
-        float f = (float) (pos.x + pos.x + size.x) / 2.0F;
-        float g = (float) (pos.y + pos.y + size.y) / 2.0F;
-        guiGraphics.enableScissor(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y);
-        float h = (float) Math.atan(((scissorStart.x + scissorStart.x + size.x )/2f - mouse.x) / 40.0F);
-        float i = (float) Math.atan(((scissorStart.y + scissorStart.y + size.y )/2f- mouse.y) / 40.0F);
-        Quaternionf quaternionf = (new Quaternionf()).rotateZ(3.1415927F).rotateY((float) (rotation * (Math.PI/180)));
-        Quaternionf quaternionf2 = (new Quaternionf()).rotateX(i * 20.0F * 0.017453292F);
-        quaternionf.mul(quaternionf2);
-        float j = entity.yBodyRot;
-        float k = entity.getYRot();
-        float l = entity.getXRot();
-        float m = entity.yHeadRotO;
-        float n = entity.yHeadRot;
-        entity.yBodyRot = 180.0F + h * 30.0F;
-        entity.setYRot(180.0F + h * 40.0F);
-        entity.setXRot(-i * 20.0F);
-        entity.yHeadRot = entity.getYRot();
-        entity.yHeadRotO = entity.getYRot();
-        Vector3f vector3f = new Vector3f(0.0F, entity.getBbHeight() / 2.0F + yOffset, 0.0F);
-        InventoryScreen.renderEntityInInventory(guiGraphics, f, g, scale, vector3f, quaternionf, quaternionf2, entity);
-        entity.yBodyRot = j;
-        entity.setYRot(k);
-        entity.setXRot(l);
-        entity.yHeadRotO = m;
-        entity.yHeadRot = n;
-        guiGraphics.disableScissor();
     }
 
     private int getPanelHeight(int upperPadding) {
@@ -315,7 +302,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         this.yMouse = (float) mouseY;
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
-
 
         var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
         var normals = guiGraphics.pose().last().normal();
@@ -527,5 +513,36 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         boolean flag = mouseX < (double) x || mouseY < (double) y || mouseX >= (double) (x + width) || mouseY >= (double) (y + height);
         boolean flag1 = (double) (x - 147) < mouseX && mouseX < (double) x && (double) y < mouseY && mouseY < (double) (y + height);
         return flag && !flag1;
+    }
+
+    //--
+
+    private static void renderEntityInInventoryFollowingMouseRotated(GuiGraphics guiGraphics, Vector2i pos, Vector2i size, Vector2i scissorStart, Vector2i scissorEnd, int scale, float yOffset, Vector2i mouse, LivingEntity entity, float rotation) {
+        float f = (float) (pos.x + pos.x + size.x) / 2.0F;
+        float g = (float) (pos.y + pos.y + size.y) / 2.0F;
+        guiGraphics.enableScissor(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y);
+        float h = (float) Math.atan(((scissorStart.x + scissorStart.x + size.x )/2f - mouse.x) / 40.0F);
+        float i = (float) Math.atan(((scissorStart.y + scissorStart.y + size.y )/2f- mouse.y) / 40.0F);
+        Quaternionf quaternionf = (new Quaternionf()).rotateZ(3.1415927F).rotateY((float) (rotation * (Math.PI/180)));
+        Quaternionf quaternionf2 = (new Quaternionf()).rotateX(i * 20.0F * 0.017453292F);
+        quaternionf.mul(quaternionf2);
+        float j = entity.yBodyRot;
+        float k = entity.getYRot();
+        float l = entity.getXRot();
+        float m = entity.yHeadRotO;
+        float n = entity.yHeadRot;
+        entity.yBodyRot = 180.0F + h * 30.0F;
+        entity.setYRot(180.0F + h * 40.0F);
+        entity.setXRot(-i * 20.0F);
+        entity.yHeadRot = entity.getYRot();
+        entity.yHeadRotO = entity.getYRot();
+        Vector3f vector3f = new Vector3f(0.0F, entity.getBbHeight() / 2.0F + yOffset, 0.0F);
+        InventoryScreen.renderEntityInInventory(guiGraphics, f, g, scale, vector3f, quaternionf, quaternionf2, entity);
+        entity.yBodyRot = j;
+        entity.setYRot(k);
+        entity.setXRot(l);
+        entity.yHeadRotO = m;
+        entity.yHeadRot = n;
+        guiGraphics.disableScissor();
     }
 }
