@@ -2,8 +2,10 @@ package io.wispforest.accessories.client.gui;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.api.SlotGroup;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesMenu;
+import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.networking.server.MenuScroll;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
@@ -20,28 +22,27 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Quaternionf;
-import org.joml.Vector2i;
-import org.joml.Vector3f;
-import org.joml.Vector4i;
+import org.joml.*;
 import org.lwjgl.glfw.GLFW;
 
+import java.lang.Math;
 import java.util.*;
 
 public class AccessoriesScreen extends EffectRenderingInventoryScreen<AccessoriesMenu> implements ContainerScreenExtension {
 
     public static final ResourceLocation SLOT_FRAME = Accessories.of("textures/gui/slot.png");
-
-    protected static final ResourceLocation ACCESSORIES_PANEL_LOCATION = Accessories.of("textures/gui/accessories_panel.png");
 
     public static final ResourceLocation ACCESSORIES_INVENTORY_LOCATION = Accessories.of("textures/gui/container/accessories_inventory.png");
 
@@ -49,6 +50,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     protected static final ResourceLocation SCROLL_BAR_PATCH = Accessories.of("scroll_bar_patch");
     protected static final ResourceLocation SCROLL_BAR = Accessories.of("scroll_bar");
+
+    protected static final ResourceLocation HORIZONTAL_TABS = Accessories.of("textures/gui/container/horizontal_tabs_small.png");
 
     @Nullable
     public static String HOVERED_SLOT_TYPE = null;
@@ -88,7 +91,33 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         if (this.getFocused() instanceof Button) this.clearFocus();
 
-        if (this.insideScrollbar(mouseX, mouseY)) this.isScrolling = true;
+        if (this.insideScrollbar(mouseX, mouseY)) {
+            this.isScrolling = true;
+
+            return true;
+        }
+
+        int x = getStartingPanelX();
+        int y = this.topPos;
+
+        var groups = this.getGroups(x, y);
+
+        for (var value : groups.values()) {
+            if(value.isInBounds((int) Math.round(mouseX), (int) Math.round(mouseY))){
+                var index = value.startingIndex;
+
+                if(index > this.menu.maxScrollableIndex) index = this.menu.maxScrollableIndex;
+
+                if(index != this.menu.scrolledIndex) {
+                    AccessoriesAccess.getNetworkHandler().sendToServer(new MenuScroll(index, false));
+
+                    Minecraft.getInstance().getSoundManager()
+                            .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                }
+
+                break;
+            }
+        }
 
         return bl;
     }
@@ -290,13 +319,57 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         int upperPadding = 8;
 
+        int panelHeight = getPanelHeight(upperPadding);
+
         if (this.menu.overMaxVisibleSlots) {
             var startingY = y + upperPadding + 8;
 
-            startingY += this.menu.smoothScroll * (getPanelHeight(upperPadding) - 24 - this.scrollBarHeight);
+            startingY += this.menu.smoothScroll * (panelHeight - 24 - this.scrollBarHeight);
 
             guiGraphics.blitSprite(AccessoriesScreen.SCROLL_BAR, x + 14, startingY, 6, this.scrollBarHeight);
         }
+
+        //--
+
+        int tabIndex = 0;
+
+        for (var entry : getGroups(x, y).entrySet()) {
+            var group = entry.getKey();
+            var pair = entry.getValue();
+
+            var vector = pair.dimensions();
+
+            int v;
+
+            if(pair.isSelected()){
+                v = vector.w;
+            } else {
+                v = vector.w * 3;
+            }
+
+            guiGraphics.blit(HORIZONTAL_TABS, vector.x, vector.y, 0, v, vector.z, vector.w, 19, vector.w * 4); //32,128
+
+            var textureAtlasSprite = this.minecraft.getTextureAtlas(new ResourceLocation("textures/atlas/blocks.png")).apply(group.iconInfo().second());
+
+            var poseStack = guiGraphics.pose();
+
+            poseStack.pushPose();
+
+            poseStack.translate(vector.x + 3, vector.y + 3, 0);
+            poseStack.translate(1, 1, 0);
+
+            if(pair.isSelected) poseStack.translate(2, 0, 0);
+
+            var iconSize = group.iconInfo().first();
+
+            guiGraphics.blit(0, 0, 0, 8, 8, textureAtlasSprite);
+
+            poseStack.popPose();
+
+            tabIndex++;
+        }
+
+        //--
 
         this.xMouse = (float) mouseX;
         this.yMouse = (float) mouseY;
@@ -504,6 +577,22 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 }
             }
         }
+
+        int panelX = getStartingPanelX();
+        int panelY = this.topPos;
+
+        for (var entry : getGroups(panelX, panelY).entrySet()) {
+            if(entry.getValue().isInBounds(x, y)){
+                var tooltipData = new ArrayList<Component>();
+
+                tooltipData.add(Component.translatable(entry.getKey().translation()));
+
+                guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
+
+                break;
+            }
+        }
+
         super.renderTooltip(guiGraphics, x, y);
         forceTooltipLeft = false;
     }
@@ -513,6 +602,66 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         boolean flag = mouseX < (double) x || mouseY < (double) y || mouseX >= (double) (x + width) || mouseY >= (double) (y + height);
         boolean flag1 = (double) (x - 147) < mouseX && mouseX < (double) x && (double) y < mouseY && mouseY < (double) (y + height);
         return flag && !flag1;
+    }
+
+    private Map<SlotGroup, SlotGroupData> getGroups(int x, int y){
+        Set<String> selectedGroup = new HashSet<>();
+
+        int currentIndexOffset = 0;
+
+        var groups = SlotGroupLoader.INSTANCE.getGroups(true).values().stream()
+                .sorted(Comparator.comparingInt(SlotGroup::order).reversed())
+                .toList();
+
+        var groupToIndex = new HashMap<SlotGroup, Integer>();
+
+        for (var group : groups) {
+            var bottomIndex = this.menu.scrolledIndex;
+            var upperIndex = bottomIndex + 8;
+
+            if(currentIndexOffset >= bottomIndex && (currentIndexOffset + group.slots().size()) < upperIndex){
+                selectedGroup.add(group.name());
+            }
+
+            groupToIndex.put(group, currentIndexOffset);
+
+            currentIndexOffset += group.slots().size();
+        }
+
+        int maxHeight = getPanelHeight(8) - 4;
+
+        int width = 19;//32;
+        int height = 16;//28;
+
+        int tabY = y + 4;
+        int tabX = x - (width - 10);
+
+        int yOffset = 0;
+
+        var groupValues = new HashMap<SlotGroup, SlotGroupData>();
+
+        for (var group : groups) {
+            if((yOffset + height) > maxHeight) break;
+
+            var selected = selectedGroup.contains(group.name());
+
+            int xOffset = (selected) ? 0 : 2;
+
+            groupValues.put(group, new SlotGroupData(new Vector4i(tabX + xOffset, tabY + yOffset, width - xOffset, height), selected, groupToIndex.get(group)));
+
+            yOffset += height + 1;
+        }
+
+        return groupValues;
+    }
+
+    private record SlotGroupData(Vector4i dimensions, boolean isSelected, int startingIndex){
+        private boolean isInBounds(int x, int y){
+            return (x > dimensions.x) &&
+                    (y > dimensions.y) &&
+                    (x < dimensions.x + dimensions.z) &&
+                    (y < dimensions.y + dimensions.w);
+        }
     }
 
     //--

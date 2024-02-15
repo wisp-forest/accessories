@@ -4,5 +4,9 @@
   "slots": [
     "hat",
     "face"
-  ]
+  ],
+  "icon":{
+    "location": "accessories:gui/group/head",
+    "size": 16
+  }
 }
