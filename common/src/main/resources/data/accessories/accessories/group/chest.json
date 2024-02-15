@@ -5,5 +5,9 @@
     "necklace",
     "cape",
     "back"
-  ]
+  ],
+  "icon":{
+    "location": "accessories:gui/group/chest",
+    "size": 16
+  }
 }

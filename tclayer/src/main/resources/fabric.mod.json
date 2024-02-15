@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "id": "tclayer",
+  "provides": [
+    "trinkets"
+  ],
+  "version": "3.8.0",
+  "name": "Accessories Trinkets Compat Layer",
+  "description": "Adds Compatibility layer between Trinkets Based Mods and Accessories API",
+  "authors": [
+    "Blodhgarm"
+  ],
+  "contributors": [
+    {
+      "name": "Emi",
+      "contact": { "github": "https://github.com/emilyploszaj" }
+    },
+    {
+      "name": "C4",
+      "contact": { "github": "https://github.com/TheIllusiveC4" }
+    }
+  ],
+  "contact": {
+    "sources": "https://github.com/wisp-forest/accessories"
+  },
+  "license": "MIT",
+  "icon": "assets/tclayer/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "io.wispforest.tclayer.TCLayer"
+    ],
+    "data_loading_modifications": [
+      "io.wispforest.tclayer.TCLayer"
+    ],
+    "cardinal-components-entity": [
+      "dev.emi.trinkets.api.TrinketsApi"
+    ]
+  },
+  "mixins": [
+    "accessories-tclayer.mixins.json"
+  ],
+  "depends": {
+    "fabric": "*",
+    "minecraft": ">=1.20.1",
+    "cardinal-components-base": ">=3.0.0-0",
+    "cardinal-components-entity": ">=3.0.0-0"
+  },
+  "custom": {
+    "cardinal-components": [
+      "trinkets:trinkets"
+    ]
+  }
+}

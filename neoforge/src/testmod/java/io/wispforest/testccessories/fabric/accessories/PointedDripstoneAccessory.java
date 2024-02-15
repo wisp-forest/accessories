@@ -8,6 +8,7 @@ import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.SlotReference;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
+import io.wispforest.accessories.api.client.SimpleAccessoryRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -45,12 +46,13 @@ public class PointedDripstoneAccessory implements Accessory {
     }
 
     @OnlyIn(Dist.CLIENT)
-    public static class Renderer implements AccessoryRenderer {
+    public static class Renderer implements SimpleAccessoryRenderer {
 
-        public <T extends LivingEntity, M extends EntityModel<T>> void align(LivingEntity entity, M model, PoseStack matrices, int slotIndex) {
+        @Override
+        public <M extends LivingEntity> void align(ItemStack stack, SlotReference reference, EntityModel<M> model, PoseStack matrices) {
             if (!(model instanceof HumanoidModel<? extends LivingEntity> humanoidModel)) return;
 
-            if (slotIndex % 2 == 0)
+            if (reference.slot() % 2 == 0)
                 AccessoryRenderer.transformToModelPart(matrices, humanoidModel.rightArm, 0, -1, 0);
             else
                 AccessoryRenderer.transformToModelPart(matrices, humanoidModel.leftArm, 0, -1, 0);
@@ -59,10 +61,10 @@ public class PointedDripstoneAccessory implements Accessory {
         }
 
         @Override
-        public <T extends LivingEntity, M extends EntityModel<T>> void render(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack matrices, RenderLayerParent<T, M> renderLayerParent, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float netHeadYaw, float headPitch) {
+        public <M extends LivingEntity> void render(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks,  float netHeadYaw, float headPitch) {
             if (!isRendering) return;
 
-            align(reference.entity(), renderLayerParent.getModel(), matrices, reference.slot());
+            align(stack, reference, model, matrices);
 
             for (int i = 0; i < stack.getCount(); i++) {
                 Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, matrices, multiBufferSource, reference.entity().level(), 0);

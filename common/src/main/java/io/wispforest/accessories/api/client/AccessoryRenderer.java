@@ -42,6 +42,7 @@ public interface AccessoryRenderer {
             float limbSwing,
             float limbSwingAmount,
             float partialTicks,
+            float ageInTicks,
             float netHeadYaw,
             float headPitch
     );
@@ -77,6 +78,7 @@ public interface AccessoryRenderer {
                 0,
                 0,
                 0,
+                0,
                 0
         );
     }
@@ -99,6 +101,7 @@ public interface AccessoryRenderer {
                 model,
                 multiBufferSource,
                 light,
+                0,
                 0,
                 0,
                 0,

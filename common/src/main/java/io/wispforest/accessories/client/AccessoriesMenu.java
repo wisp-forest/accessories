@@ -380,11 +380,11 @@ public class AccessoriesMenu extends AbstractContainerMenu {
     }
 
     public boolean isCosmeticsOpen() {
-        return AccessoriesAccess.getHolder(owner).cosmeticsShown();
+        return AccessoriesAPI.getHolder(owner).map(AccessoriesHolder::cosmeticsShown).orElse(false);
     }
 
     public boolean areLinesShown() {
-        return AccessoriesAccess.getHolder(owner).linesShown();
+        return AccessoriesAPI.getHolder(owner).map(AccessoriesHolder::linesShown).orElse(false);
     }
 
     static {

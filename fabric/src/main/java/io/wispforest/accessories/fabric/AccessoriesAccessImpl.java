@@ -4,8 +4,14 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.impl.AccessoriesInternals;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
+import net.fabricmc.fabric.impl.resource.conditions.ResourceConditionsImpl;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.LivingEntity;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
@@ -35,4 +41,15 @@ public class AccessoriesAccessImpl {
         return AccessoriesFabricInternals.INSTANCE;
     }
 
+    public static <T> Optional<Collection<Holder<T>>> getHolder(TagKey<T> tagKey){
+        var map = ResourceConditionsImpl.LOADED_TAGS.get();
+
+        var tags = map.get(tagKey.registry());
+
+        if(tags == null) return Optional.empty();
+
+        var converted = (Collection<Holder<T>>) tags.get(tagKey.location()).stream().map(holder -> (Holder<T>) holder).toList();
+
+        return Optional.of(converted);
+    }
 }

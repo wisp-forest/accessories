@@ -18,6 +18,8 @@ public interface AccessoriesCapability extends InstanceCodecable {
 
     LivingEntity getEntity();
 
+    AccessoriesHolder getHolder();
+
     void clear();
 
     Map<String, AccessoriesContainer> getContainers();

@@ -102,7 +102,7 @@ public class AccessoriesEventHandler {
 
         AccessoriesAPI.getCapability(serverPlayer)
                 .ifPresent(capability -> {
-                    var holder = AccessoriesAccess.getHolder(capability.getEntity());
+                    var holder = capability.getHolder();
 
                     var tag = new CompoundTag();
 
@@ -115,7 +115,7 @@ public class AccessoriesEventHandler {
     public static void onTracking(LivingEntity entity, ServerPlayer player){
         AccessoriesAPI.getCapability(entity)
                 .ifPresent(capability -> {
-                    var holder = AccessoriesAccess.getHolder(capability.getEntity());
+                    var holder = capability.getHolder();
 
                     var tag = new CompoundTag();
 
@@ -138,7 +138,7 @@ public class AccessoriesEventHandler {
                 networkHandler.sendToPlayer(player1, new SyncData(buf));
 
                 AccessoriesAPI.getCapability(player1).ifPresent(capability -> {
-                    var holder = AccessoriesAccess.getHolder(capability.getEntity());
+                    var holder = capability.getHolder();
 
                     var tag = new CompoundTag();
 
@@ -156,7 +156,7 @@ public class AccessoriesEventHandler {
             networkHandler.sendToPlayer(player, syncPacket);
 
             AccessoriesAPI.getCapability(player).ifPresent(capability -> {
-                var holder = AccessoriesAccess.getHolder(capability.getEntity());
+                var holder = capability.getHolder();
 
                 var tag = new CompoundTag();
 
@@ -307,7 +307,7 @@ public class AccessoriesEventHandler {
         boolean allSlots = false;
 
         if(slotTypes.containsAll(allSlotTypes.values())) {
-            slotsComponent.append("slot.any");
+            slotsComponent.append(Accessories.translation("slot.any"));
             allSlots = true;
         } else {
             var slotTypesList = List.copyOf(slotTypes);
@@ -469,7 +469,7 @@ public class AccessoriesEventHandler {
         }
     }
 
-    public static void onDeath(LivingEntity entity, DamageSource damageSource){
+    public static void onDeath(LivingEntity entity, DamageSource source){
         var capability = AccessoriesAPI.getCapability(entity);
 
         if(capability.isEmpty()) return;
@@ -491,18 +491,41 @@ public class AccessoriesEventHandler {
             for (int i = 0; i < container.getSize(); i++) {
                 var reference = new SlotReference(container.getSlotName(), entity, i);
 
-                dropStack(slotDropRule, entity, stacks, reference);
-                dropStack(slotDropRule, entity, cosmeticStacks, reference);
+                dropStack(slotDropRule, entity, stacks, reference, source);
+                dropStack(slotDropRule, entity, cosmeticStacks, reference, source);
             }
         }
     }
 
-    private static void dropStack(DropRule dropRule, LivingEntity entity, Container container, SlotReference reference){
+    private static void dropStack(DropRule dropRule, LivingEntity entity, Container container, SlotReference reference, DamageSource source){
         var stack = container.getItem(reference.slot());
         var accessory = AccessoriesAPI.getAccessory(stack);
 
         if(accessory.isPresent() && dropRule == DropRule.DEFAULT) {
-            dropRule = accessory.get().getDropRule(stack, reference);
+            dropRule = accessory.get().getDropRule(stack, reference, source);
+        }
+
+        if(accessory.orElse(null) instanceof AccessoryNest holdable){
+            var dropRules = holdable.getDropRules(stack, reference, source);
+
+            for (int i = 0; i < dropRules.size(); i++) {
+                var rulePair = dropRules.get(i);
+
+                var rule = rulePair.left();
+                var innerStack = rulePair.right();
+
+                rule = AccessoriesEvents.ON_DROP_EVENT.invoker().onDrop(rule, innerStack, reference);
+
+                var breakInnerStack = (rule == DropRule.DEFAULT && EnchantmentHelper.hasVanishingCurse(innerStack))
+                        || (rule == DropRule.DESTROY);
+
+                if(breakInnerStack) {
+                    holdable.modifyInnerStack(stack, i, ItemStack.EMPTY);
+                    // TODO: Do we call break here for the accessory?
+
+                    container.setItem(reference.slot(), stack);
+                }
+            }
         }
 
         dropRule = AccessoriesEvents.ON_DROP_EVENT.invoker().onDrop(dropRule, stack, reference);

@@ -15,14 +15,13 @@ dependencies {
     // Do NOT use other classes from fabric loader
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
 
-    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-fabric:0.3.5"))
+    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5"))
 
-
-    modImplementation(fabricApi.module("fabric-api-base", rootProject.fabric_api_version)){
+    modCompileOnly(fabricApi.module("fabric-api-base", rootProject.fabric_api_version)){
         exclude group: "fabric-api"
     }
 
-    modImplementation("net.neoforged:bus:7.2.0")
+    modCompileOnly("net.neoforged:bus:7.2.0")
 }
 
 publishing {

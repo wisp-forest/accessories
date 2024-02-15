@@ -1,11 +1,8 @@
 package io.wispforest.accessories.api.events;
 
 import io.wispforest.accessories.AccessoriesAccess;
-import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.DropRule;
-import io.wispforest.accessories.api.SlotReference;
-import io.wispforest.accessories.impl.event.MergedEvent;
+import io.wispforest.accessories.api.*;
+import io.wispforest.accessories.impl.event.EventUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,7 +15,7 @@ public class AccessoriesEvents {
      * Event used to check if the given {@link LivingEntity} should drop any of the given {@link Accessory}
      * found on the entity
      */
-    public static final Event<OnDeath> ON_DEATH_EVENT = new MergedEvent<>(OnDeath.class, AccessoriesAccess.getInternal()::getBus,
+    public static final Event<OnDeath> ON_DEATH_EVENT = EventUtils.createEventWithBus(OnDeath.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
                 return (livingEntity, capability) -> {
                     var state = TriState.DEFAULT;
@@ -74,7 +71,7 @@ public class AccessoriesEvents {
      * Event used to check what rule should be followed when handling of {@link Accessory} when
      * about to drop such on {@link LivingEntity}'s death
      */
-    public static final Event<OnDrop> ON_DROP_EVENT = new MergedEvent<>(OnDrop.class, AccessoriesAccess.getInternal()::getBus,
+    public static final Event<OnDrop> ON_DROP_EVENT = EventUtils.createEventWithBus(OnDrop.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
                 return (dropRule, stack, reference) -> {
                     var currentRule = dropRule;
@@ -139,13 +136,33 @@ public class AccessoriesEvents {
     /**
      * Event fired on the Equip of the following {@link Accessory} for the given {@link LivingEntity}
      */
-    public static final Event<CanEquip> CAN_EQUIP_EVENT = new MergedEvent<>(CanEquip.class, AccessoriesAccess.getInternal()::getBus,
+    public static final Event<CanEquip> CAN_EQUIP_EVENT = EventUtils.createEventWithBus(CanEquip.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
-                return (reference, stack) -> {
+                return (stack, reference) -> {
                     var state = TriState.DEFAULT;
 
+                    if(AccessoriesAPI.getAccessory(stack.getItem()).orElse(null) instanceof AccessoryNest holdable){
+                        var innerStacks = holdable.getInnerStacks(stack);
+
+                        for (ItemStack innerStack : innerStacks) {
+                            for (var invoker : invokers) {
+                                state = invoker.onEquip(innerStack, reference);
+
+                                if(state == TriState.FALSE) return state;
+                            }
+
+                            if(bus.isPresent()) {
+                                state = bus.get()
+                                        .post(new CanUnequipEvent(innerStack, reference))
+                                        .getReturn();
+                            }
+
+                            if(state == TriState.FALSE) return state;
+                        }
+                    }
+
                     for (var invoker : invokers) {
-                        state = invoker.onEquip(reference, stack);
+                        state = invoker.onEquip(stack, reference);
 
                         if(state != TriState.DEFAULT) return state;
                     }
@@ -153,7 +170,7 @@ public class AccessoriesEvents {
                     if(bus.isEmpty()) return state;
 
                     return bus.get()
-                            .post(new CanEquipEvent(reference, stack))
+                            .post(new CanEquipEvent(stack, reference))
                             .getReturn();
                 };
             }
@@ -188,10 +205,30 @@ public class AccessoriesEvents {
     /**
      * Event fired on the Unequip of the following {@link Accessory} for the given {@link LivingEntity}
      */
-    public static final Event<CanUnequip> CAN_UNEQUIP_EVENT = new MergedEvent<>(CanUnequip.class, AccessoriesAccess.getInternal()::getBus,
+    public static final Event<CanUnequip> CAN_UNEQUIP_EVENT = EventUtils.createEventWithBus(CanUnequip.class, AccessoriesAccess.getInternal()::getBus,
             (bus, invokers) -> {
                 return (stack, reference) -> {
                     var state = TriState.DEFAULT;
+
+                    if(AccessoriesAPI.getAccessory(stack.getItem()).orElse(null) instanceof AccessoryNest holdable){
+                        var innerStacks = holdable.getInnerStacks(stack);
+
+                        for (ItemStack innerStack : innerStacks) {
+                            for (var invoker : invokers) {
+                                state = invoker.onUnequip(innerStack, reference);
+
+                                if(state == TriState.FALSE) return state;
+                            }
+
+                            if(bus.isPresent()) {
+                                state = bus.get()
+                                        .post(new CanUnequipEvent(innerStack, reference))
+                                        .getReturn();
+                            }
+
+                            if(state == TriState.FALSE) return state;
+                        }
+                    }
 
                     for (var invoker : invokers) {
                         state = invoker.onUnequip(stack, reference);

@@ -63,7 +63,7 @@ public class SyncData extends CacheableAccessoriesPacket {
         buf.writeCollection(
                 this.slotTypes,
                 (buf1, slotType) -> {
-                    buf1.writeNbt(Util.getOrThrow(SlotTypeImpl.CODEC.codec().encodeStart(NbtOps.INSTANCE, slotType), IllegalStateException::new));
+                    buf1.writeNbt(Util.getOrThrow(SlotTypeImpl.CODEC.codec().encodeStart(NbtOps.INSTANCE, (SlotTypeImpl) slotType), IllegalStateException::new));
                 });
 
         buf.writeMap(

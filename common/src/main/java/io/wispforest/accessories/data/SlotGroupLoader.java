@@ -6,6 +6,9 @@ import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.SlotGroup;
 import io.wispforest.accessories.api.SlotType;
 import io.wispforest.accessories.impl.SlotGroupImpl;
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.objects.ObjectObjectImmutablePair;
+import it.unimi.dsi.fastutil.objects.ObjectObjectMutablePair;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagKey;
@@ -13,6 +16,7 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.inventory.Slot;
+import org.apache.commons.lang3.tuple.MutablePair;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -103,6 +107,23 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
             group.order(safeHelper(GsonHelper::getAsInt, jsonObject, "order", 100, location));
 
+            var iconInfo = safeHelper(GsonHelper::getAsJsonObject, jsonObject, "icon", location);
+
+            if(iconInfo != null){
+                var iconSize = safeHelper(GsonHelper::getAsInt, iconInfo, "size", 8, location);
+                var iconLocationString = safeHelper(GsonHelper::getAsString, iconInfo, "location", location);
+
+                if(iconLocationString != null){
+                    var iconLocation = ResourceLocation.tryParse(iconLocationString);
+
+                    if(iconLocation != null){
+                        group.icon(iconSize, iconLocation);
+                    } else {
+                        LOGGER.warn("A given SlotGroup was found to have a invalid Icon Location. [Location: {}]", location);
+                    }
+                }
+            }
+
             slotGroups.put(group.name, group);
         }
 
@@ -116,6 +137,9 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
         private Integer order = null;
         private final Set<String> slots = new HashSet<>();
+
+        private int iconSize = 16;
+        private ResourceLocation iconLocation = SlotType.EMPTY_SLOT_LOCATION;
 
         public SlotGroupBuilder(String name){
             this.name = name;
@@ -139,11 +163,19 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
             return this;
         }
 
+        public SlotGroupBuilder icon(Integer size, ResourceLocation location) {
+            this.iconSize = size;
+            this.iconLocation = location;
+
+            return this;
+        }
+
         public SlotGroup build(){
             return new SlotGroupImpl(
                     name,
                     Optional.ofNullable(order).orElse(0),
-                    slots
+                    slots,
+                    Pair.of(iconSize, iconLocation)
             );
         }
     }

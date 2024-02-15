@@ -7,8 +7,10 @@ import io.wispforest.accessories.api.events.extra.ImplementedEvents;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -23,13 +25,13 @@ public abstract class LivingEntityMixin {
 
     //--
 
-    @WrapOperation(method = "dropAllDeathLoot", at = @At(value = "CONSTANT", args = "classValue=net/minecraft/world/entity/player/Player"))
-    private boolean curios$allowAllLivingEntities(Object object, Operation<Boolean> original){
+    @WrapOperation(method = "dropAllDeathLoot", constant = @Constant(classValue = Player.class))
+    private boolean accessories$allowAllLivingEntities(Object object, Operation<Boolean> original){
         return object instanceof LivingEntity || original.call(object);
     }
 
     @ModifyVariable(method = "dropAllDeathLoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/enchantment/EnchantmentHelper;getMobLooting(Lnet/minecraft/world/entity/LivingEntity;)I", shift = At.Shift.BY, by = 2))
-    private int curios$adjustLooting(int original, @Local(argsOnly = true) DamageSource source){
+    private int accessories$adjustLooting(int original, @Local(argsOnly = true) DamageSource source){
         return ImplementedEvents.lootingAdjustments((LivingEntity)(Object) this, source, original);
     }
 }

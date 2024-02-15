@@ -3,5 +3,9 @@
   "order": 120,
   "slots": [
     "charm"
-  ]
+  ],
+  "icon":{
+    "location": "accessories:gui/group/any",
+    "size": 16
+  }
 }

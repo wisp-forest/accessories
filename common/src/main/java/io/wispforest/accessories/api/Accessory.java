@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -77,7 +78,7 @@ public interface Accessory {
      * @param stack The Stack being prepared for dropping
      * @param reference The reference to the targeted {@link LivingEntity}, slot and index
      */
-    default DropRule getDropRule(ItemStack stack, SlotReference reference){
+    default DropRule getDropRule(ItemStack stack, SlotReference reference, DamageSource source){
         return DropRule.DEFAULT;
     }
 

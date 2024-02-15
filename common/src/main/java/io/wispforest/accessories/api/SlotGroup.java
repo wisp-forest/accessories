@@ -1,5 +1,9 @@
 package io.wispforest.accessories.api;
 
+import io.wispforest.accessories.Accessories;
+import it.unimi.dsi.fastutil.Pair;
+import net.minecraft.resources.ResourceLocation;
+
 import java.util.Set;
 
 /**
@@ -10,7 +14,13 @@ public interface SlotGroup {
 
     String name();
 
+    default String translation(){
+        return Accessories.translation("slot_group." + name());
+    }
+
     int order();
 
     Set<String> slots();
+
+    Pair<Integer, ResourceLocation> iconInfo();
 }

@@ -47,7 +47,9 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
         this.accessories = new ExpandedSimpleContainer(this.baseSize, "Accessories");
         this.cosmeticAccessories = new ExpandedSimpleContainer(this.baseSize, "Cosmetic Accessories");
 
-        this.renderOptions = new ArrayList<>(this.baseSize);
+        this.renderOptions = Util.make(new ArrayList<>(baseSize), booleans -> {
+            for (int i = 0; i < baseSize; i++) booleans.add(i, true);
+        });
     }
 
     public void markChanged(){
@@ -354,7 +356,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
     public void read(CompoundTag tag, boolean sync){
         this.slotName = tag.getString(SLOT_NAME_KEY);
 
-        this.baseSize = tag.getInt(BASE_SIZE_KEY);
+        this.baseSize = (tag.contains(BASE_SIZE_KEY)) ? tag.getInt(BASE_SIZE_KEY) : baseSize;
 
         this.renderOptions = Util.make(new ArrayList<>(baseSize), booleans -> {
             for (int i = 0; i < baseSize; i++) booleans.add(i, true);

@@ -4,5 +4,9 @@
   "slots": [
     "shoes",
     "anklet"
-  ]
+  ],
+  "icon":{
+    "location": "accessories:gui/group/feet",
+    "size": 16
+  }
 }

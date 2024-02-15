@@ -3,7 +3,6 @@ package io.wispforest.accessories.neoforge.client;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
-import io.wispforest.accessories.neoforge.AppleAccessory;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import net.minecraft.client.KeyMapping;
 import net.neoforged.api.distmarker.Dist;
@@ -26,7 +25,6 @@ public class AccessoriesClientForge {
     @SubscribeEvent
     public static void onInitializeClient(FMLClientSetupEvent event) {
         AccessoriesClient.init();
-        AppleAccessory.clientInit();
 
         NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
         NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::itemTooltipCallback);

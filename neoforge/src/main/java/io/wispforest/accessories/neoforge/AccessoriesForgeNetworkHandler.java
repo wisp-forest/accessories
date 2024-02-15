@@ -87,7 +87,7 @@ public class AccessoriesForgeNetworkHandler extends AccessoriesNetworkHandler {
 
         registrar.play(
                 location,
-                buf -> new AccessoriesForgePacket<>(supplier.get().readPacket(buf)),
+                buf -> AccessoriesForgePacket.of(supplier, buf),
                 builder -> {
                     builder.client(
                             (arg, iPayloadContext) -> {
@@ -113,9 +113,9 @@ public class AccessoriesForgeNetworkHandler extends AccessoriesNetworkHandler {
 
         registrar.play(
                 location,
-                buf -> new AccessoriesForgePacket<>(supplier.get().readPacket(buf)),
+                buf -> AccessoriesForgePacket.of(supplier, buf),
                 builder -> {
-                    IPlayPayloadHandler<AccessoriesForgePacket<AccessoriesPacket>> handler = (arg, iPayloadContext) -> {
+                    IPlayPayloadHandler<AccessoriesForgePacket<M>> handler = (arg, iPayloadContext) -> {
                         var player = iPayloadContext.player();
 
                         if(player.isEmpty()) {

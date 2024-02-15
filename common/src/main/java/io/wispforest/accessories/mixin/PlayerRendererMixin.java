@@ -6,7 +6,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.SlotReference;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
-import io.wispforest.accessories.api.client.DefaultAccessoryRenderer;
 import io.wispforest.accessories.client.AccessoriesClient;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
@@ -23,8 +22,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-import java.util.Optional;
-
 @Mixin(PlayerRenderer.class)
 public abstract class PlayerRendererMixin {
 
@@ -35,8 +32,8 @@ public abstract class PlayerRendererMixin {
 
     @WrapWithCondition(method = "renderHand", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/geom/ModelPart;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;II)V"))
     private boolean accessories$fixOverridenInvisibility(ModelPart instance, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay) {
-        var returned = AccessoriesClient.isFirsPersonInvisible;
-        AccessoriesClient.isFirsPersonInvisible = false;
+        var returned = AccessoriesClient.IS_PLAYER_INVISIBLE;
+        AccessoriesClient.IS_PLAYER_INVISIBLE = false;
         return returned;
     }
 
