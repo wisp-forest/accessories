@@ -6,6 +6,7 @@
   "client": [
     "AbstractContainerScreenAccessor",
     "AbstractContainerScreenMixin",
+    "CreativeModeInventoryScreenMixin",
     "DefaultTooltipPositionerMixin",
     "MinecraftMixin",
     "PlayerRendererMixin",
@@ -18,6 +19,7 @@
     "ApplyBonusCountMixin",
     "EndermanMixin",
     "InventoryMenuAccessor",
+    "InventoryMixin",
     "PiglinAiMixin",
     "PowderSnowBlockMixin",
     "SlotAccessor"

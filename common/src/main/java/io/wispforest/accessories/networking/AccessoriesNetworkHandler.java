@@ -4,6 +4,7 @@ import io.netty.buffer.Unpooled;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.networking.client.*;
+import io.wispforest.accessories.networking.server.NukeAccessories;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.accessories.networking.server.MenuScroll;
 import net.fabricmc.api.EnvType;
@@ -35,6 +36,7 @@ public abstract class AccessoriesNetworkHandler {
     public final void register() {
         registerBuilderC2S(ScreenOpen.class, ScreenOpen::new);
         registerBuilderC2S(MenuScroll.class, MenuScroll::new);
+        registerBuilderC2S(NukeAccessories.class, NukeAccessories::new);
 
         registerBuilderS2C(SyncEntireContainer.class, SyncEntireContainer::new);
         registerBuilderS2C(SyncContainerData.class, SyncContainerData::new);
