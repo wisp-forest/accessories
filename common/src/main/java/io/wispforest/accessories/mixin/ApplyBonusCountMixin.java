@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 @Mixin(ApplyBonusCount.class)
-public class ApplyBonusCountMixin {
+public abstract class ApplyBonusCountMixin {
 
     @Shadow @Final private Holder<Enchantment> enchantment;
 

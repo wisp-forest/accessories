@@ -2,13 +2,17 @@ package io.wispforest.accessories.neoforge.client;
 
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.client.AccessoriesClient;
+import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.networking.server.ScreenOpen;
+import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.KeyMapping;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.ConfigScreenHandler;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.TickEvent;
@@ -24,10 +28,18 @@ public class AccessoriesClientForge {
 
     @SubscribeEvent
     public static void onInitializeClient(FMLClientSetupEvent event) {
-        AccessoriesClient.init();
+        event.enqueueWork(() -> {
+            AccessoriesClient.init();
 
-        NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
-        NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::itemTooltipCallback);
+            NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
+            NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::itemTooltipCallback);
+
+            ModLoadingContext.get().registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class, () -> {
+                return new ConfigScreenHandler.ConfigScreenFactory(
+                        (minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get()
+                );
+            });
+        });
     }
 
     @SubscribeEvent

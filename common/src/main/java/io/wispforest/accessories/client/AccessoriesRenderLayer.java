@@ -3,11 +3,11 @@ package io.wispforest.accessories.client;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.SlotReference;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
-import io.wispforest.accessories.mixin.RenderLayerAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -58,27 +58,28 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                 if (!cosmeticStack.isEmpty()) stack = cosmeticStack;
 
-                var renderer = AccessoriesRendererRegistery.getRender(stack.getItem());
+                var renderer = AccessoriesRendererRegistery.getOrDefaulted(stack.getItem());
 
-                if (renderer.isEmpty()) {
-                    AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
-                    continue;
-                }
+//                if (renderer.isEmpty()) {
+//                    AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
+//                    continue;
+//                }
 
                 poseStack.pushPose();
 
                 var rendering = container.shouldRender(i);
 
+                var lineRendering = Accessories.getConfig().clientData.showLineRendering;
+
                 var mpoatv = new MPOATVConstructingVertexConsumer();
 
                 MultiBufferSource innerBufferSource = renderType -> {
-                    return AccessoriesScreen.IS_RENDERING_PLAYER ?
+                    return AccessoriesScreen.IS_RENDERING_PLAYER && lineRendering ?
                             VertexMultiConsumer.create(multiBufferSource.getBuffer(renderType), mpoatv) :
                             multiBufferSource.getBuffer(renderType);
                 };
 
-                renderer.get()
-                        .render(
+                renderer.render(
                                 rendering,
                                 stack,
                                 new SlotReference(container.getSlotName(), entity, i),
@@ -94,46 +95,44 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                                 headPitch
                         );
 
-                if (multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
-                    BUFFER.beginWrite(true, GL30.GL_DEPTH_BUFFER_BIT);
-                    bufferSource.endBatch();
-                    BUFFER.endWrite();
+                if(lineRendering) {
+                    if (multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
+                        BUFFER.beginWrite(true, GL30.GL_DEPTH_BUFFER_BIT);
+                        bufferSource.endBatch();
+                        BUFFER.endWrite();
 
-                    var colorValues = new float[]{1, 1, 1, 1};
+                        var colorValues = new float[]{1, 1, 1, 1};
 
-                    if (AccessoriesScreen.HOVERED_SLOT_TYPE != null && AccessoriesScreen.HOVERED_SLOT_TYPE.equals(container.getSlotName() + i)) {
-                        if (calendar.get(Calendar.MONTH) + 1 == 5 && calendar.get(Calendar.DATE) == 16) {
-                            var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
+                        if (AccessoriesScreen.HOVERED_SLOT_TYPE != null && AccessoriesScreen.HOVERED_SLOT_TYPE.equals(container.getSlotName() + i)) {
+                            if (calendar.get(Calendar.MONTH) + 1 == 5 && calendar.get(Calendar.DATE) == 16) {
+                                var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
 
-                            var color = new Color(Mth.hsvToRgb(hue, 1, 1));
+                                var color = new Color(Mth.hsvToRgb(hue, 1, 1));
 
-                            colorValues = new float[]{color.getRed() / 128f, color.getGreen() / 128f, color.getBlue() / 128f, 1};
-                        } else {
-                            colorValues = new float[]{scale, scale, scale, 1};
+                                colorValues = new float[]{color.getRed() / 128f, color.getGreen() / 128f, color.getBlue() / 128f, 1};
+                            } else {
+                                colorValues = new float[]{scale, scale, scale, 1};
+                            }
                         }
+
+                        BUFFER.draw(colorValues);
+
+                        var frameBuffer = BUFFER.buffer();
+
+                        GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, frameBuffer.frameBufferId);
+                        GL30.glBlitFramebuffer(0, 0, frameBuffer.width, frameBuffer.height, 0, 0, frameBuffer.width, frameBuffer.height, GL30.GL_DEPTH_BUFFER_BIT, GL30.GL_NEAREST);
+                        Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
                     }
 
-                    BUFFER.draw(colorValues);
-
-                    var frameBuffer = BUFFER.buffer();
-
-                    GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, frameBuffer.frameBufferId);
-                    GL30.glBlitFramebuffer(0, 0, frameBuffer.width, frameBuffer.height, 0, 0, frameBuffer.width, frameBuffer.height, GL30.GL_DEPTH_BUFFER_BIT, GL30.GL_NEAREST);
-                    Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
-                }
-
-                if(!rendering){
-                    AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
-                } else if(AccessoriesScreen.IS_RENDERING_PLAYER){
-                    AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, mpoatv.meanPos);
+                    if (!rendering) {
+                        AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
+                    } else if (AccessoriesScreen.IS_RENDERING_PLAYER) {
+                        AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, mpoatv.meanPos);
+                    }
                 }
 
                 poseStack.popPose();
             }
         }
-    }
-
-    protected RenderLayerParent<T, M> getRenderLayerParent() {
-        return ((RenderLayerAccessor) this).accessories$getRenderer();
     }
 }

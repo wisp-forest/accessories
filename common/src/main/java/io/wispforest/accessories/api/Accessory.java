@@ -121,4 +121,8 @@ public interface Accessory {
      * @param tooltips Final list containing the tooltip info
      */
     default void getExtraTooltip(ItemStack stack, List<Component> tooltips){}
+
+    default int maxStackSize(ItemStack stack){
+        return stack.getMaxStackSize();
+    }
 }

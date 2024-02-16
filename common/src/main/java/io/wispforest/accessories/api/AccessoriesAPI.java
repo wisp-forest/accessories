@@ -36,7 +36,12 @@ public class AccessoriesAPI {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final Accessory DEFAULT = new Accessory() {};
+    public static final Accessory DEFAULT = new Accessory() {
+        @Override
+        public int maxStackSize(ItemStack stack) {
+            return 1;
+        }
+    };
 
     private static final Map<String, UUID> CACHED_UUIDS = new HashMap<>();
 
@@ -384,6 +389,8 @@ public class AccessoriesAPI {
 
                 for (int i = 0; i < validSlots.size(); i++) {
                     var validSlot = validSlots.getString(i);
+
+                    if(validSlot.equals("any")) return TriState.TRUE;
 
                     if (reference.slotName().equals(validSlot)) return TriState.TRUE;
                 }

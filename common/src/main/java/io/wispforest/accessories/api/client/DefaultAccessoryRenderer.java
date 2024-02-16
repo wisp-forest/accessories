@@ -17,9 +17,11 @@ import java.util.function.Consumer;
 
 public class DefaultAccessoryRenderer implements AccessoryRenderer {
 
+    public static final DefaultAccessoryRenderer INSTANCE = new DefaultAccessoryRenderer();
+
     @Override
     public <M extends LivingEntity> void render(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-        if(!isRendering) return;
+        if (!isRendering) return;
         if (!(model instanceof HumanoidModel<? extends LivingEntity> humanoidModel)) return;
 
         Consumer<PoseStack> render = (poseStack) -> Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
@@ -64,7 +66,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 render.accept(matrices);
             }
             case "hand" -> {
-                AccessoryRenderer.transformToFace(matrices, reference.slot() % 2 == 0 ? humanoidModel.rightArm : humanoidModel.leftArm,Side.BOTTOM);
+                AccessoryRenderer.transformToFace(matrices, reference.slot() % 2 == 0 ? humanoidModel.rightArm : humanoidModel.leftArm, Side.BOTTOM);
                 matrices.translate(0, 0.25, 0);
                 matrices.scale(1.02f, 1.02f, 1.02f);
                 matrices.mulPose(Axis.YP.rotationDegrees(90));
@@ -96,7 +98,6 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
             }
         }
     }
-
 
     @Override
     public boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference) {

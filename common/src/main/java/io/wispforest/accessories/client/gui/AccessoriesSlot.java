@@ -77,6 +77,13 @@ public class AccessoriesSlot extends Slot {
     }
 
     @Override
+    public int getMaxStackSize(ItemStack stack) {
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+
+        return accessory.maxStackSize(stack);
+    }
+
+    @Override
     public boolean mayPlace(ItemStack stack) {
         return isAccessible() && AccessoriesAPI.canInsertIntoSlot(stack, new SlotReference(container.getSlotName(), entity, getContainerSlot()));
     }

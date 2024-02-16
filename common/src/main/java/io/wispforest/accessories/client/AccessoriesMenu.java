@@ -391,4 +391,81 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         TEXTURE_EMPTY_SLOTS = new ResourceLocation[]{EMPTY_ARMOR_SLOT_BOOTS, EMPTY_ARMOR_SLOT_LEGGINGS, EMPTY_ARMOR_SLOT_CHESTPLATE, EMPTY_ARMOR_SLOT_HELMET};
         SLOT_IDS = new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
     }
+
+    //--
+
+    @Override
+    protected boolean moveItemStackTo(ItemStack stack, int startIndex, int endIndex, boolean reverseDirection) {
+        boolean bl = false;
+        int i = startIndex;
+        if (reverseDirection) {
+            i = endIndex - 1;
+        }
+
+        if (stack.isStackable()) {
+            while(!stack.isEmpty() && (reverseDirection ? i >= startIndex : i < endIndex)) {
+                Slot slot = this.slots.get(i);
+                ItemStack itemStack = slot.getItem();
+
+                //Check if the slot dose not permit the given amount
+                if(slot.getMaxStackSize(itemStack) < itemStack.getCount()) {
+                    if (!itemStack.isEmpty() && ItemStack.isSameItemSameTags(stack, itemStack)) {
+                        int j = itemStack.getCount() + stack.getCount();
+                        if (j <= stack.getMaxStackSize()) {
+                            stack.setCount(0);
+                            itemStack.setCount(j);
+                            slot.setChanged();
+                            bl = true;
+                        } else if (itemStack.getCount() < stack.getMaxStackSize()) {
+                            stack.shrink(stack.getMaxStackSize() - itemStack.getCount());
+                            itemStack.setCount(stack.getMaxStackSize());
+                            slot.setChanged();
+                            bl = true;
+                        }
+                    }
+                }
+
+                if (reverseDirection) {
+                    --i;
+                } else {
+                    ++i;
+                }
+            }
+        }
+
+        if (!stack.isEmpty()) {
+            if (reverseDirection) {
+                i = endIndex - 1;
+            } else {
+                i = startIndex;
+            }
+
+            while(reverseDirection ? i >= startIndex : i < endIndex) {
+                Slot slot = this.slots.get(i);
+                ItemStack itemStack = slot.getItem();
+                if (itemStack.isEmpty() && slot.mayPlace(stack)) {
+                    //Use Stack aware form of getMaxStackSize
+                    if (stack.getCount() > slot.getMaxStackSize(stack)) {
+                        slot.setByPlayer(stack.split(slot.getMaxStackSize(stack)));
+                    } else {
+                        slot.setByPlayer(stack.split(stack.getCount()));
+                    }
+
+                    slot.setChanged();
+                    bl = true;
+                    break;
+                }
+
+                if (reverseDirection) {
+                    --i;
+                } else {
+                    ++i;
+                }
+            }
+        }
+
+        return bl;
+    }
+
+    //--
 }

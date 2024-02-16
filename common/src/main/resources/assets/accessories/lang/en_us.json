@@ -31,5 +31,14 @@
   "accessories.slot.display.toggle.show": "Show Accessory",
   "accessories.slot.display.toggle.hide": "Hide Accessory",
   "accessories.slot.lines.toggle.show": "Show All Lines",
-  "accessories.slot.lines.toggle.hide": "Hide All Lines"
+  "accessories.slot.lines.toggle.hide": "Hide All Lines",
+  "accessories.open.screen": "Open Accessories",
+  "text.autoconfig.accessories.title": "Accessories Config",
+  "text.autoconfig.accessories.option.clientData": "Client Options",
+  "text.autoconfig.accessories.option.clientData.showGroupTabs": "Show Group Tabs",
+  "text.autoconfig.accessories.option.clientData.showLineRendering": "Show Line Rendering",
+  "text.autoconfig.accessories.option.clientData.inventoryButtonXOffset": "Inventory Button X Offset",
+  "text.autoconfig.accessories.option.clientData.inventoryButtonYOffset": "Inventory Button Y Offset",
+  "text.autoconfig.accessories.option.clientData.creativeInventoryButtonXOffset": "Creative Inventory Button X Offset",
+  "text.autoconfig.accessories.option.clientData.creativeInventoryButtonYOffset": "Creative Inventory Button Y Offset"
 }

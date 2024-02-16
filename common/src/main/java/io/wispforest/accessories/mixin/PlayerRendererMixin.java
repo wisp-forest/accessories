@@ -56,9 +56,7 @@ public abstract class PlayerRendererMixin {
 
                     if (!cosmeticStack.isEmpty()) stack = cosmeticStack;
 
-                    var renderer = AccessoriesRendererRegistery.getRender(stack.getItem());
-
-                    if (renderer.isEmpty()) continue;
+                    var renderer = AccessoriesRendererRegistery.getOrDefaulted(stack.getItem());
 
 //                    if (renderer.isEmpty()) renderer = Optional.of(new DefaultAccessoryRenderer());
 
@@ -67,7 +65,7 @@ public abstract class PlayerRendererMixin {
                     var rendering = container.shouldRender(i);
 
                     if (currentArm == HumanoidArm.LEFT) {
-                        renderer.get().renderOnFirstPersonLeftArm(
+                        renderer.renderOnFirstPersonLeftArm(
                                 rendering,
                                 stack,
                                 new SlotReference(container.getSlotName(), player, i),
@@ -77,7 +75,7 @@ public abstract class PlayerRendererMixin {
                                 combinedLight
                         );
                     } else {
-                        renderer.get().renderOnFirstPersonRightArm(
+                        renderer.renderOnFirstPersonRightArm(
                                 rendering,
                                 stack,
                                 new SlotReference(container.getSlotName(), player, i),

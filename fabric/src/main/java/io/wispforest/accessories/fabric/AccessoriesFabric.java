@@ -62,7 +62,8 @@ public class AccessoriesFabric implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        Accessories.init();
+        Accessories.registerMenuType();
+        Accessories.setupConfig();
 
         UseItemCallback.EVENT.register(AccessoriesEventHandler::attemptEquipFromUse);
 

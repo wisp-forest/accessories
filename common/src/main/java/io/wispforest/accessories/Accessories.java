@@ -1,12 +1,13 @@
 package io.wispforest.accessories;
 
-import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.SlotReference;
 import io.wispforest.accessories.client.AccessoriesMenu;
+import io.wispforest.accessories.compat.AccessoriesConfig;
+import me.shedaniel.autoconfig.AutoConfig;
+import me.shedaniel.autoconfig.ConfigHolder;
+import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import org.jetbrains.annotations.Nullable;
 
 public class Accessories {
 
@@ -14,8 +15,21 @@ public class Accessories {
 
     public static final String MODID = "accessories";
 
-    public static void init() {
+    @Nullable
+    private static ConfigHolder<AccessoriesConfig> CONFIG_HOLDER = null;
+
+    public static void registerMenuType() {
         ACCESSORIES_MENU_TYPE = AccessoriesAccess.getInternal().registerMenuType(of("accessories_menu"), (integer, inventory) -> new AccessoriesMenu(integer, inventory, false, inventory.player));
+    }
+
+    public static void setupConfig(){
+        CONFIG_HOLDER = AutoConfig.register(AccessoriesConfig.class, JanksonConfigSerializer::new);
+    }
+
+    public static AccessoriesConfig getConfig(){
+        if(CONFIG_HOLDER == null) return null;
+
+        return CONFIG_HOLDER.getConfig();
     }
 
     public static ResourceLocation of(String path){

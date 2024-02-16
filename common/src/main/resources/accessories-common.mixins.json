@@ -9,8 +9,9 @@
     "DefaultTooltipPositionerMixin",
     "MinecraftMixin",
     "PlayerRendererMixin",
-    "RenderLayerAccessor",
-    "ScreenAccessor"
+    "ScreenAccessor",
+    "InventoryScreenMixin",
+    "CreativeInventoryScreenMixin"
   ],
   "mixins": [
     "AbstractContainerMenuAccessor",

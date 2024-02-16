@@ -2,7 +2,6 @@ package io.wispforest.accessories.neoforge;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
@@ -31,7 +30,6 @@ import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.capabilities.EntityCapability;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.TickEvent;
@@ -69,6 +67,8 @@ public class AccessoriesForge {
     public AccessoriesForge(final IEventBus eventBus) {
         //Accessories.init();
 
+        Accessories.setupConfig();
+
         NeoForge.EVENT_BUS.addListener(this::onEntityDeath);
         NeoForge.EVENT_BUS.addListener(this::onLivingEntityTick);
         NeoForge.EVENT_BUS.addListener(this::onDataSync);
@@ -87,7 +87,7 @@ public class AccessoriesForge {
 
     public void registerStuff(RegisterEvent event){
         event.register(Registries.MENU, (helper) -> {
-            Accessories.init();
+            Accessories.registerMenuType();
         });
     }
 

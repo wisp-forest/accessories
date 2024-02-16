@@ -97,25 +97,27 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             return true;
         }
 
-        int x = getStartingPanelX();
-        int y = this.topPos;
+        if(Accessories.getConfig().clientData.showGroupTabs) {
+            int x = getStartingPanelX();
+            int y = this.topPos;
 
-        var groups = this.getGroups(x, y);
+            var groups = this.getGroups(x, y);
 
-        for (var value : groups.values()) {
-            if(value.isInBounds((int) Math.round(mouseX), (int) Math.round(mouseY))){
-                var index = value.startingIndex;
+            for (var value : groups.values()) {
+                if (value.isInBounds((int) Math.round(mouseX), (int) Math.round(mouseY))) {
+                    var index = value.startingIndex;
 
-                if(index > this.menu.maxScrollableIndex) index = this.menu.maxScrollableIndex;
+                    if (index > this.menu.maxScrollableIndex) index = this.menu.maxScrollableIndex;
 
-                if(index != this.menu.scrolledIndex) {
-                    AccessoriesAccess.getNetworkHandler().sendToServer(new MenuScroll(index, false));
+                    if (index != this.menu.scrolledIndex) {
+                        AccessoriesAccess.getNetworkHandler().sendToServer(new MenuScroll(index, false));
 
-                    Minecraft.getInstance().getSoundManager()
-                            .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                        Minecraft.getInstance().getSoundManager()
+                                .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                    }
+
+                    break;
                 }
-
-                break;
             }
         }
 
@@ -333,40 +335,42 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         int tabIndex = 0;
 
-        for (var entry : getGroups(x, y).entrySet()) {
-            var group = entry.getKey();
-            var pair = entry.getValue();
+        if(Accessories.getConfig().clientData.showGroupTabs) {
+            for (var entry : getGroups(x, y).entrySet()) {
+                var group = entry.getKey();
+                var pair = entry.getValue();
 
-            var vector = pair.dimensions();
+                var vector = pair.dimensions();
 
-            int v;
+                int v;
 
-            if(pair.isSelected()){
-                v = vector.w;
-            } else {
-                v = vector.w * 3;
+                if (pair.isSelected()) {
+                    v = vector.w;
+                } else {
+                    v = vector.w * 3;
+                }
+
+                guiGraphics.blit(HORIZONTAL_TABS, vector.x, vector.y, 0, v, vector.z, vector.w, 19, vector.w * 4); //32,128
+
+                var textureAtlasSprite = this.minecraft.getTextureAtlas(new ResourceLocation("textures/atlas/blocks.png")).apply(group.iconInfo().second());
+
+                var poseStack = guiGraphics.pose();
+
+                poseStack.pushPose();
+
+                poseStack.translate(vector.x + 3, vector.y + 3, 0);
+                poseStack.translate(1, 1, 0);
+
+                if (pair.isSelected) poseStack.translate(2, 0, 0);
+
+                var iconSize = group.iconInfo().first();
+
+                guiGraphics.blit(0, 0, 0, 8, 8, textureAtlasSprite);
+
+                poseStack.popPose();
+
+                tabIndex++;
             }
-
-            guiGraphics.blit(HORIZONTAL_TABS, vector.x, vector.y, 0, v, vector.z, vector.w, 19, vector.w * 4); //32,128
-
-            var textureAtlasSprite = this.minecraft.getTextureAtlas(new ResourceLocation("textures/atlas/blocks.png")).apply(group.iconInfo().second());
-
-            var poseStack = guiGraphics.pose();
-
-            poseStack.pushPose();
-
-            poseStack.translate(vector.x + 3, vector.y + 3, 0);
-            poseStack.translate(1, 1, 0);
-
-            if(pair.isSelected) poseStack.translate(2, 0, 0);
-
-            var iconSize = group.iconInfo().first();
-
-            guiGraphics.blit(0, 0, 0, 8, 8, textureAtlasSprite);
-
-            poseStack.popPose();
-
-            tabIndex++;
         }
 
         //--
@@ -376,63 +380,65 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
 
-        var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
-        var normals = guiGraphics.pose().last().normal();
+        if(Accessories.getConfig().clientData.showLineRendering) {
+            var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
+            var normals = guiGraphics.pose().last().normal();
 
-        for (Pair<Vec3, Vec3> line : LINES) {
-            var normalVec = line.second().subtract(line.first()).normalize().toVector3f();
-            double segments = Math.max(10, ((int) (line.first().distanceTo(line.second()) * 10)) / 100);
-            segments *= 2;
-            var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
-            var delta = movement % (2 / (segments)) % segments;
-            if (delta > 0.05) {
-                buf.vertex(line.first().x, line.first().y, line.first().z)
-                        .color(255, 255, 255, 255)
-                        .overlayCoords(OverlayTexture.NO_OVERLAY)
-                        .uv2(LightTexture.FULL_BLOCK)
-                        .normal(normals, normalVec.x, normalVec.y, normalVec.z)
-                        .endVertex();
-                var pos = new Vec3(
-                        Mth.lerp(delta - 0.05, line.first().x, line.second().x),
-                        Mth.lerp(delta - 0.05, line.first().y, line.second().y),
-                        Mth.lerp(delta - 0.05, line.first().z, line.second().z)
-                );
-                buf.vertex(pos.x, pos.y, pos.z)
-                        .color(255, 255, 255, 255)
-                        .overlayCoords(OverlayTexture.NO_OVERLAY)
-                        .uv2(LightTexture.FULL_BLOCK)
-                        .normal(normals, normalVec.x, normalVec.y, normalVec.z)
-                        .endVertex();
+            for (Pair<Vec3, Vec3> line : LINES) {
+                var normalVec = line.second().subtract(line.first()).normalize().toVector3f();
+                double segments = Math.max(10, ((int) (line.first().distanceTo(line.second()) * 10)) / 100);
+                segments *= 2;
+                var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
+                var delta = movement % (2 / (segments)) % segments;
+                if (delta > 0.05) {
+                    buf.vertex(line.first().x, line.first().y, line.first().z)
+                            .color(255, 255, 255, 255)
+                            .overlayCoords(OverlayTexture.NO_OVERLAY)
+                            .uv2(LightTexture.FULL_BLOCK)
+                            .normal(normals, normalVec.x, normalVec.y, normalVec.z)
+                            .endVertex();
+                    var pos = new Vec3(
+                            Mth.lerp(delta - 0.05, line.first().x, line.second().x),
+                            Mth.lerp(delta - 0.05, line.first().y, line.second().y),
+                            Mth.lerp(delta - 0.05, line.first().z, line.second().z)
+                    );
+                    buf.vertex(pos.x, pos.y, pos.z)
+                            .color(255, 255, 255, 255)
+                            .overlayCoords(OverlayTexture.NO_OVERLAY)
+                            .uv2(LightTexture.FULL_BLOCK)
+                            .normal(normals, normalVec.x, normalVec.y, normalVec.z)
+                            .endVertex();
+                }
+                for (int i = 0; i < segments / 2; i++) {
+                    var delta1 = ((i * 2) / segments + movement) % 1;
+                    var delta2 = ((i * 2 + 1) / segments + movement) % 1;
+                    var pos1 = new Vec3(
+                            Mth.lerp(delta1, line.first().x, line.second().x),
+                            Mth.lerp(delta1, line.first().y, line.second().y),
+                            Mth.lerp(delta1, line.first().z, line.second().z)
+                    );
+                    var pos2 = delta2 > delta1 ? new Vec3(
+                            Mth.lerp(delta2, line.first().x, line.second().x),
+                            Mth.lerp(delta2, line.first().y, line.second().y),
+                            Mth.lerp(delta2, line.first().z, line.second().z)
+                    ) : line.second();
+                    buf.vertex(pos1.x, pos1.y, pos1.z)
+                            .color(255, 255, 255, 255)
+                            .overlayCoords(OverlayTexture.NO_OVERLAY)
+                            .uv2(LightTexture.FULL_BLOCK)
+                            .normal(normals, normalVec.x, normalVec.y, normalVec.z)
+                            .endVertex();
+                    buf.vertex(pos2.x, pos2.y, pos2.z)
+                            .color(255, 255, 255, 255)
+                            .overlayCoords(OverlayTexture.NO_OVERLAY)
+                            .uv2(LightTexture.FULL_BLOCK)
+                            .normal(normals, normalVec.x, normalVec.y, normalVec.z)
+                            .endVertex();
+                }
             }
-            for (int i = 0; i < segments / 2; i++) {
-                var delta1 = ((i * 2) / segments + movement) % 1;
-                var delta2 = ((i * 2 + 1) / segments + movement) % 1;
-                var pos1 = new Vec3(
-                        Mth.lerp(delta1, line.first().x, line.second().x),
-                        Mth.lerp(delta1, line.first().y, line.second().y),
-                        Mth.lerp(delta1, line.first().z, line.second().z)
-                );
-                var pos2 = delta2 > delta1 ? new Vec3(
-                        Mth.lerp(delta2, line.first().x, line.second().x),
-                        Mth.lerp(delta2, line.first().y, line.second().y),
-                        Mth.lerp(delta2, line.first().z, line.second().z)
-                ) : line.second();
-                buf.vertex(pos1.x, pos1.y, pos1.z)
-                        .color(255, 255, 255, 255)
-                        .overlayCoords(OverlayTexture.NO_OVERLAY)
-                        .uv2(LightTexture.FULL_BLOCK)
-                        .normal(normals, normalVec.x, normalVec.y, normalVec.z)
-                        .endVertex();
-                buf.vertex(pos2.x, pos2.y, pos2.z)
-                        .color(255, 255, 255, 255)
-                        .overlayCoords(OverlayTexture.NO_OVERLAY)
-                        .uv2(LightTexture.FULL_BLOCK)
-                        .normal(normals, normalVec.x, normalVec.y, normalVec.z)
-                        .endVertex();
-            }
+            minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
+            LINES.clear();
         }
-        minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
-        LINES.clear();
     }
 
     @Override
@@ -453,12 +459,15 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 0);
         }).tooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen())).bounds(this.leftPos - 27, this.topPos + 7, 18, 6).build();
 
-        this.linesButton = Button.builder(Component.empty(), (btn) -> {
-            this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 1);
-        }).tooltip(linesToggleTooltip(this.menu.areLinesShown())).bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6).build();
-
         this.addRenderableWidget(cosmeticToggleButton);
-        this.addRenderableWidget(linesButton);
+
+        if(Accessories.getConfig().clientData.showLineRendering) {
+            this.linesButton = Button.builder(Component.empty(), (btn) -> {
+                this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 1);
+            }).tooltip(linesToggleTooltip(this.menu.areLinesShown())).bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6).build();
+
+            this.addRenderableWidget(linesButton);
+        }
 
         int aceesoriesSlots = 0;
 
@@ -496,13 +505,17 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     }
 
     public void updateLinesButton() {
-        this.linesButton.setTooltip(linesToggleTooltip(this.menu.areLinesShown()));
+        if(Accessories.getConfig().clientData.showLineRendering) {
+            this.linesButton.setTooltip(linesToggleTooltip(this.menu.areLinesShown()));
+        }
     }
 
     public void updateCosmeticToggleButton() {
         this.cosmeticToggleButton.setTooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen()));
 
-        this.linesButton.setX(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39));
+        if(Accessories.getConfig().clientData.showLineRendering) {
+            this.linesButton.setX(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39));
+        }
     }
 
     public void updateAccessoryToggleButtons(){
@@ -578,18 +591,20 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             }
         }
 
-        int panelX = getStartingPanelX();
-        int panelY = this.topPos;
+        if(Accessories.getConfig().clientData.showGroupTabs) {
+            int panelX = getStartingPanelX();
+            int panelY = this.topPos;
 
-        for (var entry : getGroups(panelX, panelY).entrySet()) {
-            if(entry.getValue().isInBounds(x, y)){
-                var tooltipData = new ArrayList<Component>();
+            for (var entry : getGroups(panelX, panelY).entrySet()) {
+                if (entry.getValue().isInBounds(x, y)) {
+                    var tooltipData = new ArrayList<Component>();
 
-                tooltipData.add(Component.translatable(entry.getKey().translation()));
+                    tooltipData.add(Component.translatable(entry.getKey().translation()));
 
-                guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
+                    guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
 
-                break;
+                    break;
+                }
             }
         }
 

@@ -17,6 +17,7 @@ repositories {
     maven { url = "https://api.modrinth.com/maven" }
     maven { url = "https://maven.wispforest.io/releases" }
     maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url "https://maven.shedaniel.me/" }
     mavenLocal()
 }
 
@@ -27,6 +28,8 @@ dependencies {
     developmentFabric implementation(project(path: ":common", configuration: "namedElements"))
     //modLocalRuntime(project(path: ":common", configuration: "namedElements"))
     localRuntime(project(path: ":fabric", configuration: "namedElements"))
+
+    modImplementation("me.shedaniel.cloth:cloth-config:${rootProject.cloth_version}")
 
     modLocalRuntime("net.neoforged:bus:7.2.0")
 

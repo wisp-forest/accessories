@@ -20,4 +20,8 @@ public class AccessoriesRendererRegistery {
     public static Optional<AccessoryRenderer> getRender(Item item){
         return Optional.ofNullable(RENDERERS.get(item));
     }
+
+    public static AccessoryRenderer getOrDefaulted(Item item){
+        return getRender(item).orElse(DefaultAccessoryRenderer.INSTANCE);
+    }
 }

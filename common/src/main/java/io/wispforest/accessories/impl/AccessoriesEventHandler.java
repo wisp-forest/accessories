@@ -307,7 +307,7 @@ public class AccessoriesEventHandler {
         boolean allSlots = false;
 
         if(slotTypes.containsAll(allSlotTypes.values())) {
-            slotsComponent.append(Accessories.translation("slot.any"));
+            slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
             allSlots = true;
         } else {
             var slotTypesList = List.copyOf(slotTypes);
