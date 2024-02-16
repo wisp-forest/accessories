@@ -7,11 +7,12 @@ license = "MIT"
 modId = "accessories"
 version = "${version}"
 displayName = "Accessories"
-authors = "Blodhgarm"
+authors = "Blodhgarm, chyzman, Dr.Zeal"
+credits = "Special thanks to both Emi and C4 for the creation of both Trinkets and Curios"
 description = '''
-This is an example description! Tell everyone what your mod is about!
+A extendable and data-driven Accessory Mod for Minecraft.
 '''
-#logoFile = ""
+logoFile = "icon.png"
 
 [[mixins]]
 config = 'accessories-common.mixins.json'
@@ -29,5 +30,12 @@ side = "BOTH"
 modId = "minecraft"
 required = true
 versionRange = "[1.20.4,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.accessories]]
+modId = "cloth_config"
+required = true
+versionRange = "[13,)"
 ordering = "NONE"
 side = "BOTH"

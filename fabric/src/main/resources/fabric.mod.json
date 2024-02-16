@@ -3,15 +3,42 @@
   "id": "accessories",
   "version": "${version}",
   "name": "Accessories",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "description": "A extendable and data-driven Accessory Mod for Minecraft",
   "authors": [
-    "Blodhgarm"
+    {
+      "name": "Blodhgarm",
+      "contact": {
+        "homepage": "https://github.com/Dragon-Seeker"
+      }
+    },
+    {
+      "name": "chyzman",
+      "contact": {
+        "homepage": "https://chyz.xyz/"
+      }
+    },
+    {
+      "name": "Dr.Zeal",
+      "contact": {
+        "homepage": "https://linktr.ee/miscellaneouszeal"
+      }
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Emi",
+      "contact": { "github": "https://github.com/emilyploszaj" }
+    },
+    {
+      "name": "C4",
+      "contact": { "github": "https://github.com/TheIllusiveC4" }
+    }
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "https://wispforest.io/",
+    "sources": "https://github.com/wisp-forest/accessories"
   },
-  "license": "Insert License Here",
+  "license": "MIT",
   "icon": "assets/accessories/icon.png",
   "environment": "*",
   "entrypoints": {
@@ -30,7 +57,8 @@
     "accessories-common.mixins.json"
   ],
   "depends": {
-    "fabric": "*",
-    "minecraft": ">=1.20.1"
+    "fabric": ">=0.92.0",
+    "minecraft": ">=1.20.1",
+    "cloth-config": ">=13.0.121"
   }
 }

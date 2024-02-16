@@ -18,7 +18,7 @@ public class AccessoriesConfig implements ConfigData {
         public int inventoryButtonXOffset = 66;
         public int inventoryButtonYOffset = 9;
 
-        public int creativeInventoryButtonXOffset = 66;
-        public int creativeInventoryButtonYOffset = 9;
+        public int creativeInventoryButtonXOffset = 318;
+        public int creativeInventoryButtonYOffset = 111;
     }
 }
