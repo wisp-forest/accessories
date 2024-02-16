@@ -2,6 +2,7 @@ package io.wispforest.accessories.mixin;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.networking.server.NukeAccessories;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
@@ -9,6 +10,8 @@ import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.CreativeModeTab;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -45,6 +48,12 @@ public abstract class CreativeInventoryScreenMixin extends EffectRenderingInvent
     @Inject(method = "selectTab", at = @At(value = "TAIL"))
     private void adjustAccessoryButton(CreativeModeTab tab, CallbackInfo ci){
         accessoryButton.visible = tab.getType().equals(CreativeModeTab.Type.INVENTORY);
+    }
+
+    @Inject(method = "slotClicked",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/core/NonNullList;size()I", ordinal = 0, shift = At.Shift.BEFORE))
+    private void clearAccessoriesWithClearSlot(Slot slot, int slotId, int mouseButton, ClickType type, CallbackInfo ci) {
+        AccessoriesAccess.getNetworkHandler().sendToServer(new NukeAccessories());
     }
 
 }

@@ -5,6 +5,8 @@ import com.google.common.collect.Multimap;
 import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.SlotAttribute;
 import io.wispforest.accessories.api.*;
+import io.wispforest.accessories.networking.client.SyncContainerData;
+import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -49,7 +51,15 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability {
 
     @Override
     public void clear() {
+        if(this.entity.level().isClientSide()) return;
+
         this.holder.init(this);
+
+        var tag = new CompoundTag();
+
+        this.holder.write(tag);
+
+        AccessoriesAccess.getNetworkHandler().sendToTrackingAndSelf(this.getEntity(), new SyncEntireContainer(tag, this.entity.getId()));
     }
 
     @Override

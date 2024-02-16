@@ -6,7 +6,6 @@
   "client": [
     "AbstractContainerScreenAccessor",
     "AbstractContainerScreenMixin",
-    "CreativeModeInventoryScreenMixin",
     "DefaultTooltipPositionerMixin",
     "MinecraftMixin",
     "PlayerRendererMixin",

@@ -10,18 +10,20 @@ import net.minecraft.world.entity.player.Player;
 
 public class NukeAccessories extends AccessoriesPacket {
 
-    @Override
-    public void write(FriendlyByteBuf buf) {
-
+    public NukeAccessories(){
+        super(false);
     }
 
     @Override
-    protected void read(FriendlyByteBuf buf) {
+    public void write(FriendlyByteBuf buf) {}
 
-    }
+    @Override
+    protected void read(FriendlyByteBuf buf) {}
 
     @Override
     public void handle(Player player) {
-        AccessoriesAccess.getCapability(Minecraft.getInstance().player).ifPresent(AccessoriesCapability::clear);
+        super.handle(player);
+
+        AccessoriesAccess.getCapability(player).ifPresent(AccessoriesCapability::clear);
     }
 }
