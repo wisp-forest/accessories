@@ -144,7 +144,7 @@ public class AccessoriesForge {
 
                                 instance.beforeRegistration(event::addListener);
                             } catch (Throwable e) {
-                                LOGGER.error("Failed to load CondensedEntryInit: " + annotationData.memberName(), e);
+                                LOGGER.error("Failed to load DataLoadingModificationsCapable: " + annotationData.memberName(), e);
                             }
                         }
                     } catch (Throwable e) {

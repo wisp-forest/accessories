@@ -95,9 +95,9 @@ public class WrappedTrinketComponent implements TrinketComponent {
 
     @Override
     public List<Tuple<SlotReference, ItemStack>> getEquipped(Predicate<ItemStack> predicate) {
-        var curios = capability.getEquipped(predicate);
+        var equipped = capability.getEquipped(predicate);
 
-        return curios.stream()
+        return equipped.stream()
                 .map(slotResult -> {
                     var reference = WrappingTrinketsUtils.createReference(slotResult.reference());
 
@@ -112,9 +112,9 @@ public class WrappedTrinketComponent implements TrinketComponent {
 
     @Override
     public void forEach(BiConsumer<SlotReference, ItemStack> consumer) {
-        var curios = capability.getEquipped(stack -> true);
+        var equipped = capability.getEquipped(stack -> true);
 
-        curios.forEach(slotResult -> {
+        equipped.forEach(slotResult -> {
             var reference = WrappingTrinketsUtils.createReference(slotResult.reference());
 
             if(reference.isEmpty()) return;
