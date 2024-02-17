@@ -12,8 +12,9 @@ pluginManagement {
 
 include("common")
 include("fabric")
-include("tclayer")
 include("neoforge")
-//include("forge")
+
+include("tclayer")
+include("cclayer")
 
 rootProject.name = "accessories"

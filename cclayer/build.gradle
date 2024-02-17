@@ -1,0 +1,65 @@
+plugins {
+    id "com.github.johnrengelman.shadow" version "7.1.2"
+}
+
+base {
+    archivesName = project.archives_base_name
+}
+
+version = project.mod_version
+group = project.maven_group
+
+architectury {
+    platformSetupLoomIde()
+    neoForge()
+}
+
+repositories {
+    maven { url "https://maven.neoforged.net/releases/" }
+    maven { url "https://maven.su5ed.dev/releases" }
+    maven { url "https://maven.shedaniel.me/" }
+    mavenLocal()
+}
+
+dependencies {
+    neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
+
+    compileOnly(project(path: ":common", configuration: "namedElements"))
+
+    modLocalRuntime("io.wispforest:accessories-neoforge:0.0.1-alpha.3")
+
+//    developmentNeoForge compileOnly(project(path: ":common", configuration: "namedElements")){
+//        transitive = false
+//    }
+//    developmentNeoForge localRuntime(project(path: ":neoforge", configuration: "namedElements"))
+
+    modCompileOnly ("dev.su5ed.sinytra.fabric-api:fabric-api-base:0.4.35+f77bd0ed4f") {
+        exclude group: "fabric-api"
+    }
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("META-INF/mods.toml") {
+        expand "version": project.version
+    }
+}
+
+loom {
+    neoForge  {}
+}
+
+publishing {
+    publications {
+        mavenForge(MavenPublication) {
+            artifactId = rootProject.archives_base_name + "-" + project.name
+            from components.java
+        }
+    }
+
+    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+    repositories {
+        // Add repositories to publish to here.
+    }
+}

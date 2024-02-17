@@ -1,0 +1,38 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+#issueTrackerURL = ""
+license = "LGPL-3.0"
+
+[[mods]]
+modId = "cclayer"
+version = "${version}"
+displayName = "Accessories Curios Compat Layer"
+authors = "Blodhgarm"
+credits = "Special thanks to C4 for the creation of Curios"
+description = '''
+Adds Compatibility layer between Curios Based Mods and Accessories API.
+'''
+logoFile = "icon.png"
+
+[[mixins]]
+config = 'cclayer.mixins.json'
+
+[[mods]]
+modId = "curios"
+
+[[mixins]]
+config = 'cclayer_curios.mixins.json'
+
+[[dependencies.cclayer]]
+modId = "neoforge"
+required = true
+versionRange = "[20,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.cclayer]]
+modId = "minecraft"
+required = true
+versionRange = "[1.20.4,)"
+ordering = "NONE"
+side = "BOTH"

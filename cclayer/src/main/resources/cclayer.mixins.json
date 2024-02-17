@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "package": "io.wispforest.cclayer.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "minVersion": "0.8",
+  "client": [
+    "ItemStackMixin"
+  ],
+  "mixins": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
