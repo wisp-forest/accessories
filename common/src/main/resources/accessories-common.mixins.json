@@ -6,12 +6,12 @@
   "client": [
     "AbstractContainerScreenAccessor",
     "AbstractContainerScreenMixin",
+    "CreativeInventoryScreenMixin",
     "DefaultTooltipPositionerMixin",
+    "InventoryScreenMixin",
     "MinecraftMixin",
     "PlayerRendererMixin",
-    "ScreenAccessor",
-    "InventoryScreenMixin",
-    "CreativeInventoryScreenMixin"
+    "ScreenAccessor"
   ],
   "mixins": [
     "AbstractContainerMenuAccessor",
@@ -19,6 +19,7 @@
     "EndermanMixin",
     "InventoryMenuAccessor",
     "InventoryMixin",
+    "ModelPartAccessor",
     "PiglinAiMixin",
     "PowderSnowBlockMixin",
     "SlotAccessor"

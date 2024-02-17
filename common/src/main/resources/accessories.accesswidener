@@ -1,5 +1,1 @@
 accessWidener   v2  named
-
-accessible method net/minecraft/client/gui/screens/MenuScreens register (Lnet/minecraft/world/inventory/MenuType;Lnet/minecraft/client/gui/screens/MenuScreens$ScreenConstructor;)V
-accessible field net/minecraft/client/model/geom/ModelPart cubes Ljava/util/List;
-accessible method net/minecraft/world/inventory/InventoryMenu onEquipItem (Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/entity/EquipmentSlot;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/ItemStack;)V

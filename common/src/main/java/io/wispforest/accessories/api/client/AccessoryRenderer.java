@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
 import io.wispforest.accessories.api.SlotReference;
+import io.wispforest.accessories.mixin.ModelPartAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -277,7 +278,7 @@ public interface AccessoryRenderer {
     private static Pair<Vec3, Vec3> getAABB(ModelPart part) {
         Vec3 min = new Vec3(0, 0, 0);
         Vec3 max = new Vec3(0, 0, 0);
-        for (ModelPart.Cube cube : part.cubes) {
+        for (ModelPart.Cube cube : ((ModelPartAccessor) (Object) part).getCubes()) {
             min = new Vec3(
                     Math.min(min.x, Math.min(cube.minX, cube.maxX)),
                     Math.min(min.y, Math.min(cube.minY, cube.maxY)),
