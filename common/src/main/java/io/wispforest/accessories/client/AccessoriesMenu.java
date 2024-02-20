@@ -2,7 +2,7 @@ package io.wispforest.accessories.client;
 
 import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.client.gui.AccessoriesSlot;
 import io.wispforest.accessories.data.SlotGroupLoader;
@@ -355,17 +355,17 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         if (player.level().isClientSide) return true;
 
         if (id == 0) {
-            AccessoriesAccess.modifyHolder(player, holder -> holder.cosmeticsShown(!isCosmeticsOpen()));
+            AccessoriesInternals.modifyHolder(player, holder -> holder.cosmeticsShown(!isCosmeticsOpen()));
 
-            AccessoriesAccess.getNetworkHandler().sendToPlayer((ServerPlayer) player, new SyncCosmeticsMenuToggle(isCosmeticsOpen()));
+            AccessoriesInternals.getNetworkHandler().sendToPlayer((ServerPlayer) player, new SyncCosmeticsMenuToggle(isCosmeticsOpen()));
 
             return true;
         }
 
         if (id == 1) {
-            AccessoriesAccess.modifyHolder(player, holder -> holder.linesShown(!areLinesShown()));
+            AccessoriesInternals.modifyHolder(player, holder -> holder.linesShown(!areLinesShown()));
 
-            AccessoriesAccess.getNetworkHandler().sendToPlayer((ServerPlayer) player, new SyncLinesMenuToggle(areLinesShown()));
+            AccessoriesInternals.getNetworkHandler().sendToPlayer((ServerPlayer) player, new SyncLinesMenuToggle(areLinesShown()));
 
             return true;
         }

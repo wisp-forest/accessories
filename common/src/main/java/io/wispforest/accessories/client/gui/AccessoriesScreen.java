@@ -1,7 +1,7 @@
 package io.wispforest.accessories.client.gui;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.SlotGroup;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesMenu;
@@ -110,7 +110,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                     if (index > this.menu.maxScrollableIndex) index = this.menu.maxScrollableIndex;
 
                     if (index != this.menu.scrolledIndex) {
-                        AccessoriesAccess.getNetworkHandler().sendToServer(new MenuScroll(index, false));
+                        AccessoriesInternals.getNetworkHandler().sendToServer(new MenuScroll(index, false));
 
                         Minecraft.getInstance().getSoundManager()
                                 .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
@@ -264,7 +264,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             int index = (int) Math.max(Math.min(-scrollY + this.menu.scrolledIndex, this.menu.maxScrollableIndex), 0);
 
             if (index != menu.scrolledIndex) {
-                AccessoriesAccess.getNetworkHandler().sendToServer(new MenuScroll(index, false));
+                AccessoriesInternals.getNetworkHandler().sendToServer(new MenuScroll(index, false));
 
                 return true;
             }
@@ -286,7 +286,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             var index = Math.round(this.menu.smoothScroll * this.menu.maxScrollableIndex);
 
             if (index != menu.scrolledIndex) {
-                AccessoriesAccess.getNetworkHandler().sendToServer(new MenuScroll(index, true));
+                AccessoriesInternals.getNetworkHandler().sendToServer(new MenuScroll(index, true));
 
                 return true;
             }

@@ -1,6 +1,6 @@
 package io.wispforest.accessories.api.events;
 
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.impl.event.EventUtils;
 import net.fabricmc.fabric.api.event.Event;

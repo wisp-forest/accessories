@@ -22,7 +22,6 @@
     "ModelPartAccessor",
     "PiglinAiMixin",
     "PowderSnowBlockMixin",
-    "SlotAccessor"
     "SlotAccessor",
     "LivingEntityMixin"
   ],

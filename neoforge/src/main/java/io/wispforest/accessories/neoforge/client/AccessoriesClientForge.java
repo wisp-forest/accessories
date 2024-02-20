@@ -1,6 +1,6 @@
 package io.wispforest.accessories.neoforge.client;
 
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
@@ -51,7 +51,7 @@ public class AccessoriesClientForge {
 
     public static void clientTick(TickEvent.ClientTickEvent event){
         if (OPEN_SCREEN.consumeClick()){
-            AccessoriesAccess.getNetworkHandler().sendToServer(new ScreenOpen());
+            AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen());
         }
     }
 

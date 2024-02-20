@@ -5,7 +5,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.mojang.datafixers.util.Pair;
-import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.SlotAttribute;
 import io.wispforest.accessories.api.*;
 import net.minecraft.Util;
