@@ -1,6 +1,5 @@
 package io.wispforest.accessories.api;
 
-import io.wispforest.accessories.AccessoriesAccess;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.util.Optional;

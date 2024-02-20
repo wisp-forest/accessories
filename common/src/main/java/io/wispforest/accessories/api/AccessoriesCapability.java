@@ -1,20 +1,27 @@
 package io.wispforest.accessories.api;
 
 import com.google.common.collect.Multimap;
+import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.function.TriFunction;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiPredicate;
-import java.util.function.Consumer;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public interface AccessoriesCapability extends InstanceCodecable {
+
+    static Optional<AccessoriesCapability> get(@NotNull LivingEntity livingEntity){
+        return ((AccessoriesAPIAccess) livingEntity).accessoriesCapability();
+    }
+
+    //--
 
     LivingEntity getEntity();
 

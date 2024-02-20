@@ -42,10 +42,13 @@ public class TrinketsApi implements EntityComponentInitializer {
         var trinket = TRINKETS.get(item);
 
         if(trinket == null) {
-            var accessory = AccessoriesAPI.getOrDefaultAccessory(item);
+            var accessory = AccessoriesAPI.getAccessory(item);
 
-            trinket = new WrappedAccessory(accessory);
+            if(accessory.isPresent()) trinket = new WrappedAccessory(accessory.get());
         }
+
+        //TODO: Maybe check for valid slots if any and return different wrapped accessory as a way of indicating this item is for sure a valid trinket for things like Compound Accessories
+        if(trinket == null) return DEFAULT_TRINKET;
 
         return trinket;
     }
@@ -55,7 +58,9 @@ public class TrinketsApi implements EntityComponentInitializer {
     }
 
     public static Optional<TrinketComponent> getTrinketComponent(LivingEntity livingEntity) {
-        return AccessoriesAPI.getCapability(livingEntity).<TrinketComponent>map(LivingEntityTrinketComponent::new).or(() -> Optional.of(new EmptyComponent()));
+        if(livingEntity == null) return Optional.empty();
+
+        return AccessoriesAPI.getCapability(livingEntity).<TrinketComponent>map(LivingEntityTrinketComponent::new).or(() -> Optional.of(new EmptyComponent(livingEntity)));
     }
 
     public static void onTrinketBroken(ItemStack stack, SlotReference ref, LivingEntity entity) {
@@ -231,7 +236,7 @@ public class TrinketsApi implements EntityComponentInitializer {
             }
             return TriState.DEFAULT;
         });
-        DEFAULT_TRINKET = new Trinket() {};
+        DEFAULT_TRINKET = new WrappedAccessory(AccessoriesAPI.defaultAccessory());
     }
 
     @Override

@@ -3,7 +3,7 @@ package io.wispforest.accessories.impl;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.events.AccessoriesEvents;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
@@ -94,7 +94,7 @@ public class AccessoriesEventHandler {
         var stack = container.getItem(reference.slot());
 
         container.setItem(reference.slot(), ItemStack.EMPTY);
-        AccessoriesAccess.getInternal().giveItemToPlayer(player, stack);
+        AccessoriesInternals.giveItemToPlayer(player, stack);
     }
 
     public static void entityLoad(LivingEntity entity, Level level){
@@ -108,7 +108,7 @@ public class AccessoriesEventHandler {
 
                     holder.write(tag);
 
-                    AccessoriesAccess.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(tag, capability.getEntity().getId()));
+                    AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(tag, capability.getEntity().getId()));
                 });
     }
 
@@ -121,12 +121,12 @@ public class AccessoriesEventHandler {
 
                     holder.write(tag);
 
-                    AccessoriesAccess.getNetworkHandler().sendToPlayer(player, new SyncEntireContainer(tag, capability.getEntity().getId()));
+                    AccessoriesInternals.getNetworkHandler().sendToPlayer(player, new SyncEntireContainer(tag, capability.getEntity().getId()));
                 });
     }
 
     public static void dataSync(@Nullable PlayerList list, @Nullable ServerPlayer player){
-        var networkHandler = AccessoriesAccess.getNetworkHandler();
+        var networkHandler = AccessoriesInternals.getNetworkHandler();
         var syncPacket = SyncData.create();
 
         if(list != null && !list.getPlayers().isEmpty()){
@@ -274,7 +274,7 @@ public class AccessoriesEventHandler {
 
                     packet.write(bufData);
 
-                    var networkHandler = AccessoriesAccess.getNetworkHandler();
+                    var networkHandler = AccessoriesInternals.getNetworkHandler();
 
                     networkHandler.sendToTrackingAndSelf(entity, (Supplier<SyncContainerData>) () -> new SyncContainerData(bufData));
 

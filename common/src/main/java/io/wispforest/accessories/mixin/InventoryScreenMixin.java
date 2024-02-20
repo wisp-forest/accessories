@@ -1,12 +1,10 @@
 package io.wispforest.accessories.mixin;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.networking.server.ScreenOpen;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
@@ -35,7 +33,7 @@ public abstract class InventoryScreenMixin extends EffectRenderingInventoryScree
 
         accessoryButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), button -> {
-                    AccessoriesAccess.getNetworkHandler().sendToServer(new ScreenOpen());
+                    AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen());
                 }).bounds(this.leftPos + xOffset, this.topPos + yOffset, 8, 8)
                         .tooltip(Tooltip.create(Component.translatable(Accessories.translation("open.screen"))))
                         .build()

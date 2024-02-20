@@ -4,7 +4,6 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.events.AccessoriesEvents;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -16,7 +15,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -24,7 +22,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -54,12 +52,12 @@ public class AccessoriesAPI {
     /**
      * @return The Capability Bound to the given living entity if such is present
      */
-    public static Optional<AccessoriesCapability> getCapability(LivingEntity livingEntity){
-        return AccessoriesAccess.getCapability(livingEntity);
+    public static Optional<AccessoriesCapability> getCapability(@NotNull LivingEntity livingEntity){
+        return AccessoriesCapability.get(livingEntity);
     }
 
-    public static Optional<AccessoriesHolder> getHolder(LivingEntity livingEntity){
-        return getCapability(livingEntity).map(AccessoriesCapability::getHolder);
+    public static Optional<AccessoriesHolder> getHolder(@NotNull LivingEntity livingEntity){
+        return AccessoriesHolder.get(livingEntity);
     }
 
     /**
@@ -102,6 +100,16 @@ public class AccessoriesAPI {
      */
     public static Accessory defaultAccessory(){
         return DEFAULT;
+    }
+
+    //--
+
+    /**
+     * @return If a given {@link ItemStack} is found either to have an {@link Accessory} besides the
+     * default or if the given stack has valid slots which it can be equipped
+     */
+    public static boolean isValidAccessory(ItemStack stack, Level level){
+        return getAccessory(stack).isPresent() || (getStackSlotTypes(level, stack).size() > 0);
     }
 
     //--

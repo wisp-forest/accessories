@@ -1,6 +1,6 @@
 package io.wispforest.accessories.fabric.client;
 
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
@@ -39,7 +39,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
 
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (OPEN_SCREEN.consumeClick()){
-                AccessoriesAccess.getNetworkHandler().sendToServer(new ScreenOpen());
+                AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen());
             }
         });
 

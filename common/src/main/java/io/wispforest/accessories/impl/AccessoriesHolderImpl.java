@@ -1,9 +1,7 @@
 package io.wispforest.accessories.impl;
 
-import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.*;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;

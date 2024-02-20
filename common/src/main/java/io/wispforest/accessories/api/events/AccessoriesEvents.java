@@ -15,7 +15,7 @@ public class AccessoriesEvents {
      * Event used to check if the given {@link LivingEntity} should drop any of the given {@link Accessory}
      * found on the entity
      */
-    public static final Event<OnDeath> ON_DEATH_EVENT = EventUtils.createEventWithBus(OnDeath.class, AccessoriesAccess.getInternal()::getBus,
+    public static final Event<OnDeath> ON_DEATH_EVENT = EventUtils.createEventWithBus(OnDeath.class, AccessoriesInternals::getBus,
             (bus, invokers) -> {
                 return (livingEntity, capability) -> {
                     var state = TriState.DEFAULT;
@@ -71,7 +71,7 @@ public class AccessoriesEvents {
      * Event used to check what rule should be followed when handling of {@link Accessory} when
      * about to drop such on {@link LivingEntity}'s death
      */
-    public static final Event<OnDrop> ON_DROP_EVENT = EventUtils.createEventWithBus(OnDrop.class, AccessoriesAccess.getInternal()::getBus,
+    public static final Event<OnDrop> ON_DROP_EVENT = EventUtils.createEventWithBus(OnDrop.class, AccessoriesInternals::getBus,
             (bus, invokers) -> {
                 return (dropRule, stack, reference) -> {
                     var currentRule = dropRule;
@@ -136,7 +136,7 @@ public class AccessoriesEvents {
     /**
      * Event fired on the Equip of the following {@link Accessory} for the given {@link LivingEntity}
      */
-    public static final Event<CanEquip> CAN_EQUIP_EVENT = EventUtils.createEventWithBus(CanEquip.class, AccessoriesAccess.getInternal()::getBus,
+    public static final Event<CanEquip> CAN_EQUIP_EVENT = EventUtils.createEventWithBus(CanEquip.class, AccessoriesInternals::getBus,
             (bus, invokers) -> {
                 return (stack, reference) -> {
                     var state = TriState.DEFAULT;
@@ -205,7 +205,7 @@ public class AccessoriesEvents {
     /**
      * Event fired on the Unequip of the following {@link Accessory} for the given {@link LivingEntity}
      */
-    public static final Event<CanUnequip> CAN_UNEQUIP_EVENT = EventUtils.createEventWithBus(CanUnequip.class, AccessoriesAccess.getInternal()::getBus,
+    public static final Event<CanUnequip> CAN_UNEQUIP_EVENT = EventUtils.createEventWithBus(CanUnequip.class, AccessoriesInternals::getBus,
             (bus, invokers) -> {
                 return (stack, reference) -> {
                     var state = TriState.DEFAULT;

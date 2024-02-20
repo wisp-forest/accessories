@@ -1,7 +1,7 @@
 package io.wispforest.accessories.mixin;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.networking.server.NukeAccessories;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import net.minecraft.client.gui.components.Button;
@@ -36,7 +36,7 @@ public abstract class CreativeInventoryScreenMixin extends EffectRenderingInvent
 
         accessoryButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), button -> {
-                            AccessoriesAccess.getNetworkHandler().sendToServer(new ScreenOpen());
+                            AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen());
                         }).bounds(this.leftPos + xOffset, this.topPos + yOffset, 8, 8)
                         .tooltip(Tooltip.create(Component.translatable(Accessories.translation("open.screen"))))
                         .build()
@@ -53,7 +53,7 @@ public abstract class CreativeInventoryScreenMixin extends EffectRenderingInvent
     @Inject(method = "slotClicked",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/core/NonNullList;size()I", ordinal = 0, shift = At.Shift.BEFORE))
     private void clearAccessoriesWithClearSlot(Slot slot, int slotId, int mouseButton, ClickType type, CallbackInfo ci) {
-        AccessoriesAccess.getNetworkHandler().sendToServer(new NukeAccessories());
+        AccessoriesInternals.getNetworkHandler().sendToServer(new NukeAccessories());
     }
 
 }

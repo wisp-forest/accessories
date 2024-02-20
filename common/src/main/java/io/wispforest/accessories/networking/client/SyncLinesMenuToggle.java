@@ -1,6 +1,6 @@
 package io.wispforest.accessories.networking.client;
 
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.networking.AccessoriesPacket;
 import net.fabricmc.api.EnvType;
@@ -36,7 +36,7 @@ public class SyncLinesMenuToggle extends AccessoriesPacket {
     public void handle(Player player) {
         super.handle(player);
 
-        AccessoriesAccess.modifyHolder(player, holder -> holder.linesShown(this.isLinesToggled));
+        AccessoriesInternals.modifyHolder(player, holder -> holder.linesShown(this.isLinesToggled));
 
         if(Minecraft.getInstance().screen instanceof AccessoriesScreen accessoriesScreen) {
             accessoriesScreen.updateLinesButton();

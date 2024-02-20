@@ -6,7 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.SlotType;
 import io.wispforest.accessories.impl.SlotTypeImpl;
@@ -60,7 +60,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             var location = resourceEntry.getKey();
             var jsonObject = resourceEntry.getValue();
 
-            if(!AccessoriesAccess.getInternal().isValidOnConditions(jsonObject)) continue;
+            if(!AccessoriesInternals.isValidOnConditions(jsonObject)) continue;
 
             if(!location.getNamespace().equals(Accessories.MODID)) continue;
 

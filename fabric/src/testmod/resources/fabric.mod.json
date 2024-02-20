@@ -28,5 +28,12 @@
     "fabric": "*",
     "minecraft": ">=1.20.1",
     "accessories": "*"
+  },
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/class_1309": [
+        "io/wispforest/accessories/pond/AccessoriesAPIAccess"
+      ]
+    }
   }
 }
