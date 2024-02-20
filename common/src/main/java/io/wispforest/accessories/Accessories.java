@@ -19,7 +19,7 @@ public class Accessories {
     private static ConfigHolder<AccessoriesConfig> CONFIG_HOLDER = null;
 
     public static void registerMenuType() {
-        ACCESSORIES_MENU_TYPE = AccessoriesAccess.getInternal().registerMenuType(of("accessories_menu"), (integer, inventory) -> new AccessoriesMenu(integer, inventory, false, inventory.player));
+        ACCESSORIES_MENU_TYPE = AccessoriesInternals.registerMenuType(of("accessories_menu"), (integer, inventory) -> new AccessoriesMenu(integer, inventory, false, inventory.player));
     }
 
     public static void setupConfig(){

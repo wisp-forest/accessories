@@ -2,12 +2,12 @@ package io.wispforest.accessories.impl;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.SlotAttribute;
 import io.wispforest.accessories.api.*;
-import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -25,7 +25,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability {
 
     public AccessoriesCapabilityImpl(LivingEntity entity){
         this.entity = entity;
-        this.holder = (AccessoriesHolderImpl) AccessoriesAccess.getHolder(entity);
+        this.holder = (AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity);
 
         if(this.holder.loadedFromTag) this.clear();
     }
@@ -55,11 +55,13 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability {
 
         this.holder.init(this);
 
+        if(!(this.entity instanceof ServerPlayer serverPlayer) || serverPlayer.connection == null) return;
+
         var tag = new CompoundTag();
 
         this.holder.write(tag);
 
-        AccessoriesAccess.getNetworkHandler().sendToTrackingAndSelf(this.getEntity(), new SyncEntireContainer(tag, this.entity.getId()));
+        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(this.getEntity(), new SyncEntireContainer(tag, this.entity.getId()));
     }
 
     @Override

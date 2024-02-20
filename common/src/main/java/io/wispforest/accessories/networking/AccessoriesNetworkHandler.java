@@ -2,7 +2,7 @@ package io.wispforest.accessories.networking;
 
 import io.netty.buffer.Unpooled;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.networking.client.*;
 import io.wispforest.accessories.networking.server.NukeAccessories;
 import io.wispforest.accessories.networking.server.ScreenOpen;
@@ -75,7 +75,7 @@ public abstract class AccessoriesNetworkHandler {
     public <M extends AccessoriesPacket> void sendToTrackingAndSelf(Entity entity, Supplier<M> packet) {
         if(entity.level().isClientSide) return;
 
-        var players = AccessoriesAccess.getInternal().getTracking(entity);
+        var players = AccessoriesInternals.getTracking(entity);
 
         for (var player : players) sendToPlayer(player, packet.get());
 

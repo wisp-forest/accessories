@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
-public class AccessoriesAccessImpl {
+public class AccessoriesInternalsImpl {
 
     public static Optional<AccessoriesCapability> getCapability(LivingEntity livingEntity){
         return Optional.ofNullable(AccessoriesForge.CAPABILITY.getCapability(livingEntity, null));
@@ -36,10 +36,6 @@ public class AccessoriesAccessImpl {
         return AccessoriesForgeNetworkHandler.INSTANCE;
     }
 
-    public static AccessoriesInternals getInternal(){
-        return AccessoriesForgeInternals.INSTANCE;
-    }
-
     public static <T> Optional<Collection<Holder<T>>> getHolder(TagKey<T> tagKey){
         return currentContext.map(iContext -> iContext.getTag(tagKey));
     }
@@ -50,4 +46,25 @@ public class AccessoriesAccessImpl {
         currentContext = Optional.ofNullable(context);
     }
 
+    //--
+
+    public static Collection<ServerPlayer> getTracking(Entity entity) {
+        return List.of();
+    }
+
+    public static void giveItemToPlayer(ServerPlayer player, ItemStack stack) {
+        ItemHandlerHelper.giveItemToPlayer(player, stack);
+    }
+
+    public static boolean isValidOnConditions(JsonObject object) {
+        return ICondition.conditionsMatched(JsonOps.INSTANCE, object);
+    }
+
+    public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(ResourceLocation location, BiFunction<Integer, Inventory, T> func) {
+        return Registry.register(BuiltInRegistries.MENU, location, new MenuType<>(func::apply, FeatureFlags.VANILLA_SET));
+    }
+
+    public static Optional<IEventBus> getBus() {
+        return Optional.empty();
+    }
 }

@@ -1,6 +1,6 @@
 package io.wispforest.accessories.networking.server;
 
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.networking.AccessoriesPacket;
 import net.minecraft.network.FriendlyByteBuf;
@@ -40,7 +40,7 @@ public class MenuScroll extends AccessoriesPacket {
         super.handle(player);
 
         if(player.containerMenu instanceof AccessoriesMenu menu && menu.scrollTo(this.index, this.smooth) && player instanceof ServerPlayer serverPlayer){
-            AccessoriesAccess.getNetworkHandler().sendToPlayer(serverPlayer, new MenuScroll(this.index, this.smooth));
+            AccessoriesInternals.getNetworkHandler().sendToPlayer(serverPlayer, new MenuScroll(this.index, this.smooth));
         }
     }
 }

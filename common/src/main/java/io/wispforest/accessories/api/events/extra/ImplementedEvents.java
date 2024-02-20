@@ -2,6 +2,7 @@ package io.wispforest.accessories.api.events.extra;
 
 import com.mojang.blaze3d.platform.Window;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoryNest;
 import io.wispforest.accessories.api.SlotReference;
 import net.fabricmc.fabric.api.event.Event;
@@ -25,7 +26,7 @@ public class ImplementedEvents {
 
     public static int lootingAdjustments(LivingEntity entity, DamageSource damageSource, int currentLevel){
         if(damageSource != null && damageSource.getEntity() instanceof LivingEntity targetEntity){
-            var capability = AccessoriesAPI.getCapability(entity);
+            var capability = AccessoriesCapability.get(entity);
 
             if(capability.isPresent()){
                 for (var containerEntry : capability.get().getContainers().entrySet()) {
@@ -75,7 +76,7 @@ public class ImplementedEvents {
 
         if(!(entity instanceof LivingEntity livingEntity)) return currentLevel;
 
-        var capability = AccessoriesAPI.getCapability(livingEntity);
+        var capability = AccessoriesCapability.get(livingEntity);
 
         if(capability.isPresent()){
             for (var containerEntry : capability.get().getContainers().entrySet()) {
@@ -124,7 +125,7 @@ public class ImplementedEvents {
     public static TriState isPiglinsNeutral(LivingEntity entity){
         var state = TriState.DEFAULT;
 
-        var capability = AccessoriesAPI.getCapability(entity);
+        var capability = AccessoriesCapability.get(entity);
 
         if(capability.isPresent()){
             for (var containerEntry : capability.get().getContainers().entrySet()) {
@@ -181,7 +182,7 @@ public class ImplementedEvents {
     public static TriState allowWalkingOnSnow(LivingEntity entity){
         var state = TriState.DEFAULT;
 
-        var capability = AccessoriesAPI.getCapability(entity);
+        var capability = AccessoriesCapability.get(entity);
 
         if(capability.isPresent()){
             for (var containerEntry : capability.get().getContainers().entrySet()) {
@@ -249,7 +250,7 @@ public class ImplementedEvents {
             }
         }
 
-        var capability = AccessoriesAPI.getCapability(entity);
+        var capability = AccessoriesCapability.get(entity);
 
         if(capability.isPresent()){
             for (var containerEntry : capability.get().getContainers().entrySet()) {

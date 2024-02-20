@@ -23,10 +23,10 @@ public class TrinketItem extends Item implements Trinket {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
-        ItemStack stack = user.getItemInHand(hand);
-        if (equipItem(user, stack)) {
-            return InteractionResultHolder.sidedSuccess(stack, world.isClientSide());
-        }
+//        ItemStack stack = user.getItemInHand(hand);
+//        if (equipItem(user, stack)) {
+//            return InteractionResultHolder.sidedSuccess(stack, world.isClientSide());
+//        }
         return super.use(world, user, hand);
     }
 

@@ -23,6 +23,8 @@
     "PiglinAiMixin",
     "PowderSnowBlockMixin",
     "SlotAccessor"
+    "SlotAccessor",
+    "LivingEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

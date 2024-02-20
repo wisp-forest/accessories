@@ -1,5 +1,6 @@
 package dev.emi.trinkets.compat;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import dev.emi.trinkets.api.SlotGroup;
 import dev.emi.trinkets.api.SlotReference;
@@ -19,19 +20,25 @@ import java.util.function.Predicate;
 
 public class EmptyComponent implements TrinketComponent {
 
+    private final LivingEntity livingEntity;
+
+    public EmptyComponent(LivingEntity livingEntity){
+        this.livingEntity = livingEntity;
+    }
+
     @Override
     public LivingEntity getEntity() {
-        return null;
+        return livingEntity;
     }
 
     @Override
     public Map<String, SlotGroup> getGroups() {
-        return null;
+        return Map.of();
     }
 
     @Override
     public Map<String, Map<String, TrinketInventory>> getInventory() {
-        return null;
+        return Map.of();
     }
 
     @Override
@@ -51,7 +58,7 @@ public class EmptyComponent implements TrinketComponent {
 
     @Override
     public Multimap<String, AttributeModifier> getModifiers() {
-        return null;
+        return HashMultimap.create();
     }
 
     @Override
@@ -61,7 +68,7 @@ public class EmptyComponent implements TrinketComponent {
 
     @Override
     public List<Tuple<SlotReference, ItemStack>> getEquipped(Predicate<ItemStack> predicate) {
-        return null;
+        return List.of();
     }
 
     @Override
@@ -69,7 +76,7 @@ public class EmptyComponent implements TrinketComponent {
 
     @Override
     public Set<TrinketInventory> getTrackingUpdates() {
-        return null;
+        return Set.of();
     }
 
     @Override

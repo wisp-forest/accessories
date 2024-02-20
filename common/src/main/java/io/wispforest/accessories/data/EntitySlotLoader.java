@@ -2,7 +2,7 @@ package io.wispforest.accessories.data;
 
 import com.google.gson.*;
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.SlotType;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -68,7 +68,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
             var location = resourceEntry.getKey();
             var jsonObject = resourceEntry.getValue();
 
-            if(!AccessoriesAccess.getInternal().isValidOnConditions(jsonObject)) continue;
+            if(!AccessoriesInternals.isValidOnConditions(jsonObject)) continue;
 
             var slots = new HashMap<String, SlotType>();
 
@@ -92,7 +92,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
                     var entityTypeTag = TagKey.create(Registries.ENTITY_TYPE, entityTypeTagLocation);
 
-                    return AccessoriesAccess.getHolder(entityTypeTag)
+                    return AccessoriesInternals.getHolder(entityTypeTag)
                             .map(holders -> {
                                 return holders.stream()
                                         .map(Holder::value)
