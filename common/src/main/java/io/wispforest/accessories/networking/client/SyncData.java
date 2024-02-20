@@ -12,6 +12,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.EntityType;
@@ -63,7 +64,7 @@ public class SyncData extends CacheableAccessoriesPacket {
         buf.writeCollection(
                 this.slotTypes,
                 (buf1, slotType) -> {
-                    buf1.writeNbt(Util.getOrThrow(SlotTypeImpl.CODEC.codec().encodeStart(NbtOps.INSTANCE, (SlotTypeImpl) slotType), IllegalStateException::new));
+                    buf1.writeNbt((CompoundTag) Util.getOrThrow(SlotTypeImpl.CODEC.codec().encodeStart(NbtOps.INSTANCE, (SlotTypeImpl) slotType), IllegalStateException::new));
                 });
 
         buf.writeMap(
@@ -74,7 +75,7 @@ public class SyncData extends CacheableAccessoriesPacket {
         buf.writeCollection(
                 this.slotGroups,
                 (buf1, slotGroup) -> {
-                    buf1.writeNbt(Util.getOrThrow(SlotGroupImpl.CODEC.codec().encodeStart(NbtOps.INSTANCE, slotGroup), IllegalStateException::new));
+                    buf1.writeNbt((CompoundTag) Util.getOrThrow(SlotGroupImpl.CODEC.codec().encodeStart(NbtOps.INSTANCE, slotGroup), IllegalStateException::new));
                 });
     }
 

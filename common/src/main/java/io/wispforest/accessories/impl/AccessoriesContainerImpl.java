@@ -1,11 +1,8 @@
 package io.wispforest.accessories.impl;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.mojang.datafixers.util.Pair;
-import io.wispforest.accessories.AccessoriesAccess;
 import io.wispforest.accessories.api.SlotAttribute;
 import io.wispforest.accessories.api.*;
 import net.minecraft.Util;
@@ -442,7 +439,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
         return containers;
     }
 
-    public static SimpleContainer copyContainerList(SimpleContainer container){
+    public static SimpleContainer copyContainerList(ExpandedSimpleContainer container){
         var innerList = container.getItems();
 
         return new SimpleContainer(innerList.toArray(ItemStack[]::new));

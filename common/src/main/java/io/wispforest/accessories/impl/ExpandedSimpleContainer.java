@@ -2,6 +2,7 @@ package io.wispforest.accessories.impl;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.mixin.SimpleContainerAccessor;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -12,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.function.BiConsumer;
 
 public class ExpandedSimpleContainer extends SimpleContainer implements Iterable<Pair<Integer, ItemStack>> {
@@ -156,6 +158,10 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
                 return pair;
             }
         };
+    }
+
+    public List<ItemStack> getItems(){
+        return ((SimpleContainerAccessor)this).accessories$getItems();
     }
 }
 

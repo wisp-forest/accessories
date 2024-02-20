@@ -24,7 +24,7 @@ dependencies {
         exclude group: "fabric-api"
     }
 
-    modCompileOnly("net.neoforged:bus:7.2.0")
+    modCompileOnly("net.minecraftforge:eventbus:6.2.0")
 }
 
 publishing {

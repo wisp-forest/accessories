@@ -1,23 +1,20 @@
 package io.wispforest.accessories.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import io.wispforest.accessories.mixin.AbstractButtonAccessor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
 public class ToggleButton extends Button {
-
-    public static final WidgetSprites SPRITES = new WidgetSprites(new ResourceLocation("widget/button"), new ResourceLocation("widget/button_disabled"), new ResourceLocation("widget/button_highlighted"));
 
     private boolean toggled = false;
 
@@ -63,7 +60,7 @@ public class ToggleButton extends Button {
         guiGraphics.setColor(1.0F, 1.0F, 1.0F, this.alpha);
         RenderSystem.enableBlend();
         RenderSystem.enableDepthTest();
-        guiGraphics.blitSprite(SPRITES.get(this.toggled(), this.isHoveredOrFocused()), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+        guiGraphics.blitNineSliced(WIDGETS_LOCATION, this.getX(), this.getY(), this.getWidth(), this.getHeight(), 20, 4, 200, 20, 0, ((AbstractButtonAccessor) this).accessories$getTextureY()); //
         guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
         int i = this.active ? 16777215 : 10526880;
         this.renderString(guiGraphics, Minecraft.getInstance().font, i | Mth.ceil(this.alpha * 255.0F) << 24);

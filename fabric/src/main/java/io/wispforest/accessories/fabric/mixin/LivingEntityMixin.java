@@ -1,5 +1,6 @@
 package io.wispforest.accessories.fabric.mixin;
 
+
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;

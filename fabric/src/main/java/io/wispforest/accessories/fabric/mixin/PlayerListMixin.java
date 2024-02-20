@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class PlayerListMixin {
     @Inject(
             method = "reloadResources",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/common/ClientboundUpdateTagsPacket;<init>(Ljava/util/Map;)V")
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/network/protocol/game/ClientboundUpdateTagsPacket;<init>(Ljava/util/Map;)V")
     )
     private void hookOnDataPacksReloaded(CallbackInfo ci) {
         AccessoriesEventHandler.dataSync(((PlayerList) (Object) this), null);

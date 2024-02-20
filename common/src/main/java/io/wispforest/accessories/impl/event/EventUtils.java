@@ -2,8 +2,8 @@ package io.wispforest.accessories.impl.event;
 
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.fabricmc.fabric.api.util.TriState;
-import net.neoforged.bus.api.Event;
-import net.neoforged.bus.api.IEventBus;
+import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.eventbus.api.IEventBus;
 
 import java.util.Optional;
 import java.util.function.BiFunction;

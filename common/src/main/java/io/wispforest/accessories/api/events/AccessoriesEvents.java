@@ -1,13 +1,13 @@
 package io.wispforest.accessories.api.events;
 
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.impl.event.EventUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.ICancellableEvent;
+import net.minecraftforge.eventbus.api.Cancelable;
 
 public class AccessoriesEvents {
 
@@ -28,9 +28,11 @@ public class AccessoriesEvents {
 
                     if(bus.isEmpty()) return state;
 
-                    return bus.get()
-                            .post(new OnDeathEvent(livingEntity, capability))
-                            .getReturn();
+                    var event = new OnDeathEvent(livingEntity, capability);
+
+                    bus.get().post(event);
+
+                    return event.getReturn();
                 };
             }
     );
@@ -84,9 +86,11 @@ public class AccessoriesEvents {
 
                     if(bus.isEmpty()) return currentRule;
 
-                    return bus.get()
-                            .post(new OnDropEvent(dropRule, stack, reference))
-                            .dropRule();
+                    var event = new OnDropEvent(dropRule, stack, reference);
+
+                    bus.get().post(event);
+
+                    return event.dropRule();
                 };
             }
     );
@@ -95,7 +99,8 @@ public class AccessoriesEvents {
         DropRule onDrop(DropRule dropRule, ItemStack stack, SlotReference reference);
     }
 
-    public static class OnDropEvent extends net.neoforged.bus.api.Event implements ICancellableEvent, SlotReferenced {
+    @Cancelable
+    public static class OnDropEvent extends net.minecraftforge.eventbus.api.Event implements SlotReferenced {
         private DropRule dropRule;
 
         private final SlotReference reference;
@@ -152,9 +157,11 @@ public class AccessoriesEvents {
                             }
 
                             if(bus.isPresent()) {
-                                state = bus.get()
-                                        .post(new CanUnequipEvent(innerStack, reference))
-                                        .getReturn();
+                                var event = new CanUnequipEvent(innerStack, reference);
+
+                                bus.get().post(event);
+
+                                state = event.getReturn();
                             }
 
                             if(state == TriState.FALSE) return state;
@@ -169,9 +176,11 @@ public class AccessoriesEvents {
 
                     if(bus.isEmpty()) return state;
 
-                    return bus.get()
-                            .post(new CanEquipEvent(stack, reference))
-                            .getReturn();
+                    var event = new CanEquipEvent(stack, reference);
+
+                    bus.get().post(event);
+
+                    return event.getReturn();
                 };
             }
     );
@@ -221,9 +230,11 @@ public class AccessoriesEvents {
                             }
 
                             if(bus.isPresent()) {
-                                state = bus.get()
-                                        .post(new CanUnequipEvent(innerStack, reference))
-                                        .getReturn();
+                                var event = new CanUnequipEvent(innerStack, reference);
+
+                                bus.get().post(event);
+
+                                state = event.getReturn();
                             }
 
                             if(state == TriState.FALSE) return state;
@@ -238,9 +249,11 @@ public class AccessoriesEvents {
 
                     if(bus.isEmpty()) return state;
 
-                    return bus.get()
-                            .post(new CanUnequipEvent(stack, reference))
-                            .getReturn();
+                    var event = new CanUnequipEvent(stack, reference);
+
+                    bus.get().post(event);
+
+                    return event.getReturn();
                 };
             }
     );
@@ -276,7 +289,8 @@ public class AccessoriesEvents {
         ItemStack stack();
     }
 
-    private static class ReturnableEvent extends net.neoforged.bus.api.Event implements ICancellableEvent {
+    @Cancelable
+    private static class ReturnableEvent extends net.minecraftforge.eventbus.api.Event {
         private TriState returnState = TriState.DEFAULT;
 
         public final ReturnableEvent setReturn(TriState returnState){

@@ -23,6 +23,8 @@ import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.eventbus.api.Event;
+import net.minecraftforge.fml.common.Mod;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
@@ -69,18 +71,18 @@ public class AccessoriesForge {
 
         Accessories.setupConfig();
 
-        NeoForge.EVENT_BUS.addListener(this::onEntityDeath);
-        NeoForge.EVENT_BUS.addListener(this::onLivingEntityTick);
-        NeoForge.EVENT_BUS.addListener(this::onDataSync);
+        MinecraftForge.EVENT_BUS.addListener(this::onEntityDeath);
+        MinecraftForge.EVENT_BUS.addListener(this::onLivingEntityTick);
+        MinecraftForge.EVENT_BUS.addListener(this::onDataSync);
         eventBus.addListener(this::registerCapabilities);
-        NeoForge.EVENT_BUS.addListener(this::onEntityLoad);
-        NeoForge.EVENT_BUS.addListener(this::onStartTracking);
-        NeoForge.EVENT_BUS.addListener(this::registerReloadListeners);
+        MinecraftForge.EVENT_BUS.addListener(this::onEntityLoad);
+        MinecraftForge.EVENT_BUS.addListener(this::onStartTracking);
+        MinecraftForge.EVENT_BUS.addListener(this::registerReloadListeners);
 
         eventBus.addListener(this::registerStuff);
 
-        NeoForge.EVENT_BUS.addListener(this::adjustLooting);
-        NeoForge.EVENT_BUS.addListener(this::onWorldTick);
+        MinecraftForge.EVENT_BUS.addListener(this::adjustLooting);
+        MinecraftForge.EVENT_BUS.addListener(this::onWorldTick);
 
         eventBus.register(AccessoriesForgeNetworkHandler.INSTANCE);
     }

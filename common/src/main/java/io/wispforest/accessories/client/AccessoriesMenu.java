@@ -2,12 +2,11 @@ package io.wispforest.accessories.client;
 
 import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesAccess;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.client.gui.AccessoriesSlot;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.mixin.AbstractContainerMenuAccessor;
-import io.wispforest.accessories.mixin.InventoryMenuAccessor;
 import io.wispforest.accessories.mixin.SlotAccessor;
 import io.wispforest.accessories.networking.client.SyncCosmeticsMenuToggle;
 import io.wispforest.accessories.networking.client.SyncLinesMenuToggle;
@@ -65,9 +64,9 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         for (int i = 0; i < 4; ++i) {
             final EquipmentSlot equipmentSlot = SLOT_IDS[i];
             this.addSlot(new Slot(inventory, 39 - i, 8, 8 + i * 18) {
-                public void setByPlayer(ItemStack newStack, ItemStack oldStack) {
-                    owner.onEquipItem(equipmentSlot, oldStack, newStack);
-                    super.setByPlayer(newStack, oldStack);
+                public void setByPlayer(ItemStack stack) {
+                    owner.onEquipItem(equipmentSlot, this.getItem(), stack);
+                    super.setByPlayer(stack);
                 }
 
                 public int getMaxStackSize() {
@@ -100,9 +99,9 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         }
 
         this.addSlot(new Slot(inventory, 40, 152, 62) {
-            public void setByPlayer(ItemStack newStack, ItemStack oldStack) {
-                owner.onEquipItem(EquipmentSlot.OFFHAND, oldStack, newStack);
-                super.setByPlayer(newStack, oldStack);
+            public void setByPlayer(ItemStack stack) {
+                owner.onEquipItem(EquipmentSlot.OFFHAND, this.getItem(), stack);
+                super.setByPlayer(stack);
             }
 
             public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
@@ -305,7 +304,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         }
 
         if (clickedStack.isEmpty()) {
-            clickedSlot.setByPlayer(ItemStack.EMPTY, oldStack);
+            clickedSlot.setByPlayer(ItemStack.EMPTY);
         } else {
             clickedSlot.setChanged();
         }
@@ -355,17 +354,17 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         if (player.level().isClientSide) return true;
 
         if (id == 0) {
-            AccessoriesAccess.modifyHolder(player, holder -> holder.cosmeticsShown(!isCosmeticsOpen()));
+            AccessoriesInternals.modifyHolder(player, holder -> holder.cosmeticsShown(!isCosmeticsOpen()));
 
-            AccessoriesAccess.getNetworkHandler().sendToPlayer((ServerPlayer) player, new SyncCosmeticsMenuToggle(isCosmeticsOpen()));
+            AccessoriesInternals.getNetworkHandler().sendToPlayer((ServerPlayer) player, new SyncCosmeticsMenuToggle(isCosmeticsOpen()));
 
             return true;
         }
 
         if (id == 1) {
-            AccessoriesAccess.modifyHolder(player, holder -> holder.linesShown(!areLinesShown()));
+            AccessoriesInternals.modifyHolder(player, holder -> holder.linesShown(!areLinesShown()));
 
-            AccessoriesAccess.getNetworkHandler().sendToPlayer((ServerPlayer) player, new SyncLinesMenuToggle(areLinesShown()));
+            AccessoriesInternals.getNetworkHandler().sendToPlayer((ServerPlayer) player, new SyncLinesMenuToggle(areLinesShown()));
 
             return true;
         }
