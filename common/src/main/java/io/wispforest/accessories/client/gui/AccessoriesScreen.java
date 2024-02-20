@@ -4,7 +4,7 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.SlotGroup;
+import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;

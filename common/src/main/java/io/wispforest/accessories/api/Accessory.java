@@ -2,6 +2,8 @@ package io.wispforest.accessories.api;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -16,6 +18,10 @@ import java.util.List;
 import java.util.UUID;
 
 public interface Accessory {
+
+    //--
+
+    //--
 
     /**
      * Called every tick on every tick of the linked {@link LivingEntity} on both the Client and Server

@@ -10,6 +10,7 @@ import dev.onyxstudios.cca.api.v3.entity.EntityComponentInitializer;
 import dev.onyxstudios.cca.api.v3.entity.RespawnCopyStrategy;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.registries.Registries;
@@ -60,7 +61,7 @@ public class TrinketsApi implements EntityComponentInitializer {
     public static Optional<TrinketComponent> getTrinketComponent(LivingEntity livingEntity) {
         if(livingEntity == null) return Optional.empty();
 
-        return AccessoriesAPI.getCapability(livingEntity).<TrinketComponent>map(LivingEntityTrinketComponent::new).or(() -> Optional.of(new EmptyComponent(livingEntity)));
+        return AccessoriesCapability.get(livingEntity).<TrinketComponent>map(LivingEntityTrinketComponent::new).or(() -> Optional.of(new EmptyComponent(livingEntity)));
     }
 
     public static void onTrinketBroken(ItemStack stack, SlotReference ref, LivingEntity entity) {
@@ -89,7 +90,7 @@ public class TrinketsApi implements EntityComponentInitializer {
 ////        var convertedGroups = new HashMap<String, SlotGroup>();
 ////
 ////        for (var entry : SlotGroupLoader.INSTANCE.getGroups(false).entrySet()) {
-////            Map<String, io.wispforest.accessories.api.SlotType> validSlots = new HashMap<>();
+////            Map<String, io.wispforest.accessories.api.slot.SlotType> validSlots = new HashMap<>();
 ////
 ////            for (String slot : entry.getValue().slots()) {
 ////                var slotType = validEntitySlots.get(slot);
@@ -115,7 +116,7 @@ public class TrinketsApi implements EntityComponentInitializer {
 ////        var convertedGroups = new HashMap<String, SlotGroup>();
 ////
 ////        for (var entry : SlotGroupLoader.INSTANCE.getGroups(world.isClientSide()).entrySet()) {
-////            Map<String, io.wispforest.accessories.api.SlotType> validSlots = new HashMap<>();
+////            Map<String, io.wispforest.accessories.api.slot.SlotType> validSlots = new HashMap<>();
 ////
 ////            for (String slot : entry.getValue().slots()) {
 ////                var slotType = validEntitySlots.get(slot);
@@ -148,7 +149,7 @@ public class TrinketsApi implements EntityComponentInitializer {
     public static Map<String, SlotGroup> getEntitySlots(Level world, EntityType<?> type) {
         Map<String, SlotType> convertedSlots = new HashMap<>();
 
-        for (var entry : AccessoriesAPI.getEntitySlots(world, type).entrySet()) {
+        for (var entry : EntitySlotLoader.getEntitySlots(world, type).entrySet()) {
             convertedSlots.put(entry.getKey(), new WrappedSlotType(entry.getValue()));
         }
 
@@ -165,7 +166,7 @@ public class TrinketsApi implements EntityComponentInitializer {
         PREDICATES.put(id, predicate);
 
         AccessoriesAPI.registerPredicate(id, (reference, stack) -> {
-            var capability = AccessoriesAPI.getCapability(reference.entity());
+            var capability = AccessoriesCapability.get(reference.entity());
 
             if(capability.isEmpty()) return TriState.DEFAULT;
 
@@ -207,7 +208,7 @@ public class TrinketsApi implements EntityComponentInitializer {
 
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-        var reference = new io.wispforest.accessories.api.SlotReference(slotName, entity, ref.index());
+        var reference = new io.wispforest.accessories.api.slot.SlotReference(slotName, entity, ref.index());
 
         return AccessoriesAPI.getPredicateResults(convertedSet, reference, stack);
     }
@@ -230,7 +231,7 @@ public class TrinketsApi implements EntityComponentInitializer {
             UUID uuid = UUID.nameUUIDFromBytes((ref.inventory().getSlotType().getName() + ref.index()).getBytes());
             var accessory = AccessoriesAPI.getAccessory(stack).get();
 
-            var map = accessory.getModifiers(stack, new io.wispforest.accessories.api.SlotReference(ref.inventory().getSlotType().getName(), entity, ref.index()), uuid);
+            var map = accessory.getModifiers(stack, new io.wispforest.accessories.api.slot.SlotReference(ref.inventory().getSlotType().getName(), entity, ref.index()), uuid);
             if (!map.isEmpty()) {
                 return TriState.TRUE;
             }

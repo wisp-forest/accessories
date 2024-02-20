@@ -3,7 +3,7 @@ package top.theillusivec4.curios.compat;
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
-import io.wispforest.accessories.api.SlotReference;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.SoundEventData;
 import io.wispforest.accessories.api.events.extra.ImplementedEvents;
 import net.fabricmc.fabric.api.util.TriState;

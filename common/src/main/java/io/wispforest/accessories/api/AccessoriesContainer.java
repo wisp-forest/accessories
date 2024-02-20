@@ -1,8 +1,8 @@
 package io.wispforest.accessories.api;
 
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
 import java.util.*;

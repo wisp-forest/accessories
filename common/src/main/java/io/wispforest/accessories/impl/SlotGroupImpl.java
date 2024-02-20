@@ -3,8 +3,7 @@ package io.wispforest.accessories.impl;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.wispforest.accessories.api.SlotGroup;
-import io.wispforest.accessories.api.SlotType;
+import io.wispforest.accessories.api.slot.SlotGroup;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.resources.ResourceLocation;
 

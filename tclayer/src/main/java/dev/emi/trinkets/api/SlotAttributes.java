@@ -37,9 +37,9 @@ public class SlotAttributes {
     }
 
     public static class WrappedSlotAttribute extends SlotAttribute {
-        private final io.wispforest.accessories.api.SlotAttribute attribute;
+        private final io.wispforest.accessories.api.slot.SlotAttribute attribute;
 
-        public WrappedSlotAttribute(io.wispforest.accessories.api.SlotAttribute attribute){
+        public WrappedSlotAttribute(io.wispforest.accessories.api.slot.SlotAttribute attribute){
             super(attribute.slotName());
 
             this.attribute = attribute;

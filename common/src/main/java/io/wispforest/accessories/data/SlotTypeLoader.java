@@ -8,7 +8,7 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.DropRule;
-import io.wispforest.accessories.api.SlotType;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.SlotTypeImpl;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -38,9 +38,23 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
     public List<Consumer<Map<String, SlotType>>> externalEventHooks = new ArrayList<>();
     public Set<ResourceLocation> dependentLoaders = new HashSet<>();
 
-    public final Map<String, SlotType> getSlotTypes(Level level){
-        return getSlotTypes(level.isClientSide());
+    //--
+
+    /**
+     * Attempt to get the given SlotType based on the provided slotName
+     */
+    public static Optional<SlotType> getSlotType(Level level, String slotName){
+        return Optional.ofNullable(getSlotTypes(level).get(slotName));
     }
+
+    /**
+     * Get all SlotTypes registered
+     */
+    public static Map<String, SlotType> getSlotTypes(Level level){
+        return INSTANCE.getSlotTypes(level.isClientSide());
+    }
+
+    //--
 
     public final Map<String, SlotType> getSlotTypes(boolean isClientSide){
         return isClientSide ? client : server;

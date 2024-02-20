@@ -5,9 +5,12 @@ import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.events.AccessoriesEvents;
+import io.wispforest.accessories.api.slot.SlotAttribute;
+import io.wispforest.accessories.api.slot.SlotBasedPredicate;
+import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import it.unimi.dsi.fastutil.Pair;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -22,7 +25,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -48,17 +50,6 @@ public class AccessoriesAPI {
     private static final Map<Item, Accessory> REGISTER = new HashMap<>();
 
     //--
-
-    /**
-     * @return The Capability Bound to the given living entity if such is present
-     */
-    public static Optional<AccessoriesCapability> getCapability(@NotNull LivingEntity livingEntity){
-        return AccessoriesCapability.get(livingEntity);
-    }
-
-    public static Optional<AccessoriesHolder> getHolder(@NotNull LivingEntity livingEntity){
-        return AccessoriesHolder.get(livingEntity);
-    }
 
     /**
      * Main method to register a given {@link Item} to given {@link Accessory}
@@ -102,8 +93,6 @@ public class AccessoriesAPI {
         return DEFAULT;
     }
 
-    //--
-
     /**
      * @return If a given {@link ItemStack} is found either to have an {@link Accessory} besides the
      * default or if the given stack has valid slots which it can be equipped
@@ -145,7 +134,7 @@ public class AccessoriesAPI {
                 if(attributeType.getNamespace().equals(Accessories.MODID)){
                     var slotName = attributeType.getPath();
 
-                    if(!AccessoriesAPI.getAllSlots(reference.entity().level()).containsKey(slotName)) continue;
+                    if(!SlotTypeLoader.getSlotTypes(reference.entity().level()).containsKey(slotName)) continue;
 
                     multimap.put(SlotAttribute.getSlotAttribute(slotName), attributeModifier);
                 } else {
@@ -168,6 +157,8 @@ public class AccessoriesAPI {
         return multimap;
     }
 
+    //--
+
     /**
      * @return {@link UUID} based on the provided {@link SlotType#name} and entry index
      */
@@ -183,38 +174,6 @@ public class AccessoriesAPI {
                 slotName + "/" + index,
                 s -> UUID.nameUUIDFromBytes(s.getBytes())
         );
-    }
-
-    //--
-
-    /**
-     * @return The valid {@link SlotType}'s for given {@link LivingEntity} based on its {@link EntityType}
-     */
-    public static Map<String, SlotType> getEntitySlots(LivingEntity livingEntity){
-        return getEntitySlots(livingEntity.level(), livingEntity.getType());
-    }
-
-    /**
-     * @return The valid {@link SlotType}'s for given {@link EntityType}
-     */
-    public static Map<String, SlotType> getEntitySlots(Level level, EntityType<?> entityType){
-        var map = EntitySlotLoader.INSTANCE.getSlotTypes(level.isClientSide, entityType);
-
-        return map != null ? map : Map.of();
-    }
-
-    /**
-     * Attempt to get the given SlotType based on the provided slotName
-     */
-    public static Optional<SlotType> getSlotType(Level level, String slotName){
-        return Optional.ofNullable(getAllSlots(level).get(slotName));
-    }
-
-    /**
-     * Get all SlotTypes registered
-     */
-    public static Map<String, SlotType> getAllSlots(Level level){
-        return SlotTypeLoader.INSTANCE.getSlotTypes(level);
     }
 
     //--
@@ -254,11 +213,11 @@ public class AccessoriesAPI {
      * available {@link SlotType}s
      */
     public static Collection<SlotType> getValidSlotTypes(LivingEntity entity, ItemStack stack){
-        var slots = getEntitySlots(entity);
+        var slots = EntitySlotLoader.getEntitySlots(entity);
 
         var validSlots = new ArrayList<SlotType>();
 
-        var capability = getCapability(entity);
+        var capability = AccessoriesCapability.get(entity);
 
         if(capability.isPresent()) {
             var containers = capability.get().getContainers();
@@ -282,7 +241,7 @@ public class AccessoriesAPI {
     public static Collection<SlotType> getStackSlotTypes(Level level, ItemStack stack){
         var validSlots = new ArrayList<SlotType>();
 
-        for (SlotType value : getAllSlots(level).values()) {
+        for (SlotType value : SlotTypeLoader.getSlotTypes(level).values()) {
             var results = getPredicateResultsUnsafe(value.validators(), value, stack);
 
             if(results.first().isPresent() && results.first().get()) validSlots.add(value);

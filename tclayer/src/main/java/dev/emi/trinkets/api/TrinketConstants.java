@@ -2,7 +2,7 @@ package dev.emi.trinkets.api;
 
 import dev.emi.trinkets.TrinketSlot;
 import dev.emi.trinkets.compat.WrappingTrinketsUtils;
-import io.wispforest.accessories.api.SlotReference;
+import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.apache.logging.log4j.LogManager;

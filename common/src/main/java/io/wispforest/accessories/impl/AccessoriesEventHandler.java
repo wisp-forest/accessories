@@ -6,6 +6,11 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.events.AccessoriesEvents;
+import io.wispforest.accessories.api.slot.SlotAttribute;
+import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.networking.client.SyncContainerData;
@@ -45,14 +50,14 @@ public class AccessoriesEventHandler {
         if(!dataReloadOccured || !(level instanceof ServerLevel serverLevel)) return;
 
         for (var player : serverLevel.getServer().getPlayerList().getPlayers()) {
-            var capability = AccessoriesAPI.getCapability(player);
+            var capability = AccessoriesCapability.get(player);
 
             if(capability.isEmpty()) continue;
 
-            var validSlotTypes = AccessoriesAPI.getEntitySlots(player).values();
+            var validSlotTypes = EntitySlotLoader.getEntitySlots(player).values();
 
             for (var containerEntry : capability.get().getContainers().entrySet()) {
-                var slotType = AccessoriesAPI.getSlotType(level, containerEntry.getKey());
+                var slotType = SlotTypeLoader.getSlotType(level, containerEntry.getKey());
 
                 var container = containerEntry.getValue();
 
@@ -100,7 +105,7 @@ public class AccessoriesEventHandler {
     public static void entityLoad(LivingEntity entity, Level level){
         if(!level.isClientSide() || !(entity instanceof ServerPlayer serverPlayer)) return;
 
-        AccessoriesAPI.getCapability(serverPlayer)
+        AccessoriesCapability.get(serverPlayer)
                 .ifPresent(capability -> {
                     var holder = capability.getHolder();
 
@@ -113,7 +118,7 @@ public class AccessoriesEventHandler {
     }
 
     public static void onTracking(LivingEntity entity, ServerPlayer player){
-        AccessoriesAPI.getCapability(entity)
+        AccessoriesCapability.get(entity)
                 .ifPresent(capability -> {
                     var holder = capability.getHolder();
 
@@ -137,7 +142,7 @@ public class AccessoriesEventHandler {
             for (var player1 : list.getPlayers()) {
                 networkHandler.sendToPlayer(player1, new SyncData(buf));
 
-                AccessoriesAPI.getCapability(player1).ifPresent(capability -> {
+                AccessoriesCapability.get(player1).ifPresent(capability -> {
                     var holder = capability.getHolder();
 
                     var tag = new CompoundTag();
@@ -155,7 +160,7 @@ public class AccessoriesEventHandler {
         } else if(player != null){
             networkHandler.sendToPlayer(player, syncPacket);
 
-            AccessoriesAPI.getCapability(player).ifPresent(capability -> {
+            AccessoriesCapability.get(player).ifPresent(capability -> {
                 var holder = capability.getHolder();
 
                 var tag = new CompoundTag();
@@ -170,7 +175,7 @@ public class AccessoriesEventHandler {
     }
 
     public static void onLivingEntityTick(LivingEntity entity){
-        var possibleCapability = AccessoriesAPI.getCapability(entity);
+        var possibleCapability = AccessoriesCapability.get(entity);
 
         if(possibleCapability.isEmpty()) return;
 
@@ -293,11 +298,11 @@ public class AccessoriesEventHandler {
 
         // TODO: MAYBE DEPENDING ON ENTITY OR SOMETHING SHOW ALL VALID SLOTS BUT COLOR CODE THEM IF NOT VALID FOR ENTITY?
         var slotTypes = new HashSet<>(AccessoriesAPI.getValidSlotTypes(entity, stack));
-        var allSlotTypes = AccessoriesAPI.getAllSlots(entity.level());
+        var allSlotTypes = SlotTypeLoader.getSlotTypes(entity.level());
 
         if(slotTypes.isEmpty()) return;
 
-        var capability = AccessoriesAPI.getCapability(entity);
+        var capability = AccessoriesCapability.get(entity);
 
         if(capability.isEmpty()) return;
 
@@ -470,7 +475,7 @@ public class AccessoriesEventHandler {
     }
 
     public static void onDeath(LivingEntity entity, DamageSource source){
-        var capability = AccessoriesAPI.getCapability(entity);
+        var capability = AccessoriesCapability.get(entity);
 
         if(capability.isEmpty()) return;
 
@@ -563,7 +568,7 @@ public class AccessoriesEventHandler {
         if(!stack.isEmpty() && !player.isSpectator() && player.isShiftKeyDown()) {
             var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
-            var capability = AccessoriesAPI.getCapability(player);
+            var capability = AccessoriesCapability.get(player);
 
             if (capability.isPresent()) {
                 var unequippedReference = capability.get().equipAccessory(stack, true, Accessory::canEquipFromUse);

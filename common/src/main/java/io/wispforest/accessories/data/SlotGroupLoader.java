@@ -3,14 +3,16 @@ package io.wispforest.accessories.data;
 import com.google.gson.*;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.SlotGroup;
-import io.wispforest.accessories.api.SlotType;
+import io.wispforest.accessories.api.slot.SlotGroup;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.SlotGroupImpl;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -29,9 +31,23 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
         super(GSON, LOGGER, "accessories/group");
     }
 
+
+    //--
+
+    public static Map<String, SlotGroup> getGroups(Level level){
+        return INSTANCE.getGroups(level.isClientSide());
+    }
+
+    public static Optional<SlotGroup> getGroup(Level level, String group){
+        return Optional.ofNullable(INSTANCE.getGroup(level.isClientSide(), group));
+    }
+
+    //--
+
     public final Map<String, SlotGroup> getGroups(boolean isClientSide){
         return isClientSide ? this.client : this.server;
     }
+
 
     public final SlotGroup getGroup(boolean isClientSide, String group){
         return getGroups(isClientSide).get(group);

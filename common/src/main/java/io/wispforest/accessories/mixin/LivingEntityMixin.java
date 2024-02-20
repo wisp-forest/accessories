@@ -19,7 +19,7 @@ public class LivingEntityMixin implements AccessoriesAPIAccess {
 
     @Override
     public Optional<AccessoriesCapability> accessoriesCapability() {
-        var slots = AccessoriesAPI.getEntitySlots((LivingEntity) (Object) this);
+        var slots = EntitySlotLoader.getEntitySlots((LivingEntity) (Object) this);
 
         if(slots.isEmpty()) return Optional.empty();
 

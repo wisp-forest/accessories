@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.wispforest.accessories.api.DropRule;
-import io.wispforest.accessories.api.SlotType;
+import io.wispforest.accessories.api.slot.SlotType;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;

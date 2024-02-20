@@ -1,7 +1,7 @@
 package io.wispforest.accessories.mixin;
 
 import com.mojang.blaze3d.platform.Window;
-import io.wispforest.accessories.api.events.extra.ImplementedEvents;
+import io.wispforest.accessories.client.AccessoriesClient;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,6 +16,6 @@ public abstract class MinecraftMixin {
 
     @Inject(method = "resizeDisplay", at = @At(value = "TAIL"))
     private void captureResize(CallbackInfo ci){
-        ImplementedEvents.WINDOW_RESIZE_CALLBACK_EVENT.invoker().onResized(((Minecraft) ((Object) this)), this.window);
+        AccessoriesClient.WINDOW_RESIZE_CALLBACK_EVENT.invoker().onResized(((Minecraft) ((Object) this)), this.window);
     }
 }

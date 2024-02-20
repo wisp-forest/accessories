@@ -20,7 +20,7 @@
 package top.theillusivec4.curios.api.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import io.wispforest.accessories.api.SlotReference;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
 import net.minecraft.client.model.EntityModel;

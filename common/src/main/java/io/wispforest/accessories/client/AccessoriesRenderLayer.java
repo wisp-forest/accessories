@@ -4,8 +4,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.AccessoriesAPI;
-import io.wispforest.accessories.api.SlotReference;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import net.minecraft.client.Minecraft;
@@ -38,7 +37,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
     @Override
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-        var capability = AccessoriesAPI.getCapability(entity);
+        var capability = AccessoriesCapability.get(entity);
 
         if (capability.isEmpty()) return;
 

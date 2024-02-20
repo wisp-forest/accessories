@@ -1,6 +1,8 @@
 package io.wispforest.accessories.api;
 
 import com.google.common.collect.Multimap;
+import io.wispforest.accessories.api.slot.SlotEntryReference;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -17,6 +19,9 @@ import java.util.function.Predicate;
 
 public interface AccessoriesCapability extends InstanceCodecable {
 
+    /**
+     * @return The Capability Bound to the given living entity if such is present
+     */
     static Optional<AccessoriesCapability> get(@NotNull LivingEntity livingEntity){
         return ((AccessoriesAPIAccess) livingEntity).accessoriesCapability();
     }

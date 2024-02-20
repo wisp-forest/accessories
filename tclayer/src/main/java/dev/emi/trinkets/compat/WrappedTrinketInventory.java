@@ -3,6 +3,7 @@ package dev.emi.trinkets.compat;
 import dev.emi.trinkets.api.TrinketComponent;
 import dev.emi.trinkets.api.TrinketInventory;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.slot.SlotType;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 
@@ -14,7 +15,7 @@ public class WrappedTrinketInventory extends TrinketInventory {
 
     public final AccessoriesContainer container;
 
-    public WrappedTrinketInventory(TrinketComponent component, AccessoriesContainer container, io.wispforest.accessories.api.SlotType slotType) {
+    public WrappedTrinketInventory(TrinketComponent component, AccessoriesContainer container, SlotType slotType) {
         super(new WrappedSlotType(slotType), component, trinketInventory -> {});
 
         this.container = (AccessoriesContainer) container;
