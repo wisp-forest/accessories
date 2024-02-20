@@ -2,12 +2,11 @@ package top.theillusivec4.curios.compat;
 
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
-import io.wispforest.accessories.api.SlotReference;
+import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.world.item.ItemStack;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
-import top.theillusivec4.curios.common.capability.ItemizedCurioCapability;
 import top.theillusivec4.curios.mixin.CuriosImplMixinHooks;
 
 import java.util.Optional;

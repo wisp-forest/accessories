@@ -85,7 +85,7 @@ public class SyncContainerData extends CacheableAccessoriesPacket {
 
         if(!(entity instanceof LivingEntity livingEntity)) return;
 
-        var capability = AccessoriesAPI.getCapability(livingEntity);
+        var capability = AccessoriesCapability.get(livingEntity);
 
         if(capability.isEmpty()) return;
 

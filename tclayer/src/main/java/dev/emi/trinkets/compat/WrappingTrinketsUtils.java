@@ -9,15 +9,15 @@ import java.util.Optional;
 
 public class WrappingTrinketsUtils {
 
-    public static Optional<SlotReference> createReference(io.wispforest.accessories.api.SlotReference slotReference){
+    public static Optional<SlotReference> createReference(io.wispforest.accessories.api.slot.SlotReference slotReference){
         try {
-            var capability = AccessoriesAPI.getCapability(slotReference.entity());
+            var capability = AccessoriesCapability.get(slotReference.entity());
 
             if(capability.isEmpty()) return Optional.empty();
 
             var curiosHandler = capability.get().getContainers().get(TrinketConstants.trinketsToAccessories(slotReference.slotName()));
 
-            var slotType = AccessoriesAPI.getSlotType(slotReference.entity().level(), curiosHandler.getSlotName()).get();
+            var slotType = SlotTypeLoader.getSlotType(slotReference.entity().level(), curiosHandler.getSlotName()).get();
 
             var trinketInv = new WrappedTrinketInventory(new LivingEntityTrinketComponent(capability.get()), curiosHandler, slotType);
 

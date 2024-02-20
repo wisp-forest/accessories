@@ -1,6 +1,8 @@
-package io.wispforest.accessories.api;
+package io.wispforest.accessories.api.slot;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.DropRule;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Set;

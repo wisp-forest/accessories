@@ -110,7 +110,7 @@ public class AccessoriesForge {
             event.registerEntity(CAPABILITY, entityType, (entity, unused) -> {
                 if(!(entity instanceof LivingEntity livingEntity)) return null;
 
-                var slots = AccessoriesAPI.getEntitySlots(livingEntity);
+                var slots = EntitySlotLoader.getEntitySlots(livingEntity);
 
                 if(slots.isEmpty()) return null;
 

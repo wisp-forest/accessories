@@ -23,7 +23,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
-import io.wispforest.accessories.api.SlotReference;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.Util;
@@ -170,7 +170,7 @@ public class CuriosImplMixinHooks {
 
     var additionalSlots = AccessoriesAPI.getStackSlotTypes(livingEntity.level(), stack);
 
-    for (io.wispforest.accessories.api.SlotType additionalSlot : additionalSlots) {
+    for (io.wispforest.accessories.api.slot.SlotType additionalSlot : additionalSlots) {
       if(!result.containsKey(additionalSlot.name())){
         result.put(additionalSlot.name(), new WrappedSlotType(additionalSlot));
       }

@@ -3,7 +3,7 @@ package io.wispforest.accessories.data;
 import com.google.gson.*;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.SlotType;
+import io.wispforest.accessories.api.slot.SlotType;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -13,6 +13,8 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -42,6 +44,26 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
         super(GSON, LOGGER, "accessories/entities");
     }
 
+    //--
+
+    /**
+     * @return The valid {@link SlotType}'s for given {@link LivingEntity} based on its {@link EntityType}
+     */
+    public static Map<String, SlotType> getEntitySlots(LivingEntity livingEntity){
+        return getEntitySlots(livingEntity.level(), livingEntity.getType());
+    }
+
+    /**
+     * @return The valid {@link SlotType}'s for given {@link EntityType}
+     */
+    public static Map<String, SlotType> getEntitySlots(Level level, EntityType<?> entityType){
+        var map = EntitySlotLoader.INSTANCE.getSlotTypes(level.isClientSide, entityType);
+
+        return map != null ? map : Map.of();
+    }
+
+    //--
+
     @Nullable
     public final Map<String, SlotType> getSlotTypes(boolean isClientSide, EntityType<?> entityType){
         return getEntitySlotData(isClientSide).get(entityType);
@@ -57,6 +79,8 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
         this.client.clear();
         this.client.putAll(data);
     }
+
+    //--
 
     @Override
     protected void apply(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler) {

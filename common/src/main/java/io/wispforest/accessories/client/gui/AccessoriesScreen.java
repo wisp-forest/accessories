@@ -2,8 +2,7 @@ package io.wispforest.accessories.client.gui;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.SlotGroup;
-import io.wispforest.accessories.client.AccessoriesClient;
+import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
@@ -22,7 +21,6 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;

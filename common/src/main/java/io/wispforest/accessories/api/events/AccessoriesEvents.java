@@ -2,6 +2,7 @@ package io.wispforest.accessories.api.events;
 
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.impl.event.EventUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.util.TriState;

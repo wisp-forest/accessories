@@ -1,12 +1,8 @@
 package io.wispforest.accessories.mixin;
 
-import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.wispforest.accessories.api.AccessoriesAPI;
-import io.wispforest.accessories.api.SlotReference;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
-import io.wispforest.accessories.client.AccessoriesClient;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -40,7 +36,7 @@ public abstract class PlayerRendererMixin {
     @Inject(method = "renderHand", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/geom/ModelPart;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;II)V", ordinal = 1, shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
     private void accessories$firstPersonAccessories(PoseStack poseStack, MultiBufferSource buffer, int combinedLight, AbstractClientPlayer player, ModelPart rendererArm, ModelPart rendererArmwear, CallbackInfo ci, PlayerModel playerModel, ResourceLocation resourceLocation) {
         if (currentArm != null) {
-            var capability = AccessoriesAPI.getCapability(player);
+            var capability = AccessoriesCapability.get(player);
 
             if (capability.isEmpty()) return;
 

@@ -1,12 +1,12 @@
 package io.wispforest.accessories.impl;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.mojang.datafixers.util.Pair;
-import io.wispforest.accessories.api.SlotAttribute;
+import io.wispforest.accessories.api.slot.SlotAttribute;
 import io.wispforest.accessories.api.*;
+import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.SlotType;
 import net.minecraft.Util;
 import net.minecraft.nbt.*;
 import net.minecraft.world.SimpleContainer;
@@ -171,7 +171,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
 
     @Override
     public Optional<SlotType> slotType() {
-        return AccessoriesAPI.getSlotType(this.capability.getEntity().level(), this.slotName);
+        return SlotTypeLoader.getSlotType(this.capability.getEntity().level(), this.slotName);
     }
 
     @Override

@@ -1,6 +1,6 @@
 package top.theillusivec4.curios.compat;
 
-import io.wispforest.accessories.api.SlotType;
+import io.wispforest.accessories.api.slot.SlotType;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.type.ISlotType;

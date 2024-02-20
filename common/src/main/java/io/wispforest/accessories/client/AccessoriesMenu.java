@@ -4,10 +4,13 @@ import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
+import io.wispforest.accessories.api.slot.SlotGroup;
+import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.client.gui.AccessoriesSlot;
+import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.mixin.AbstractContainerMenuAccessor;
-import io.wispforest.accessories.mixin.InventoryMenuAccessor;
 import io.wispforest.accessories.mixin.SlotAccessor;
 import io.wispforest.accessories.networking.client.SyncCosmeticsMenuToggle;
 import io.wispforest.accessories.networking.client.SyncLinesMenuToggle;
@@ -118,9 +121,9 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         accessor.accessories$setMenuType(Accessories.ACCESSORIES_MENU_TYPE);
         accessor.accessories$setContainerId(containerId);
 
-        var capability = AccessoriesAPI.getCapability(player);
+        var capability = AccessoriesCapability.get(player);
 
-        var entitySlotTypes = AccessoriesAPI.getEntitySlots(player);
+        var entitySlotTypes = EntitySlotLoader.getEntitySlots(player);
 
         int slotScale = 18;
 
@@ -170,7 +173,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
             var slotNames = group.slots();
 
             var slotTypes = slotNames.stream()
-                    .flatMap(s -> AccessoriesAPI.getSlotType(player.level(), s).stream())
+                    .flatMap(s -> SlotTypeLoader.getSlotType(player.level(), s).stream())
                     .sorted(Comparator.comparingInt(SlotType::order).reversed())
                     .toList();
 
@@ -380,11 +383,11 @@ public class AccessoriesMenu extends AbstractContainerMenu {
     }
 
     public boolean isCosmeticsOpen() {
-        return AccessoriesAPI.getHolder(owner).map(AccessoriesHolder::cosmeticsShown).orElse(false);
+        return AccessoriesHolder.get(owner).map(AccessoriesHolder::cosmeticsShown).orElse(false);
     }
 
     public boolean areLinesShown() {
-        return AccessoriesAPI.getHolder(owner).map(AccessoriesHolder::linesShown).orElse(false);
+        return AccessoriesHolder.get(owner).map(AccessoriesHolder::linesShown).orElse(false);
     }
 
     static {

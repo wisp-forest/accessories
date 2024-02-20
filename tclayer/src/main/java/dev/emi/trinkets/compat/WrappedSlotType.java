@@ -11,9 +11,9 @@ import java.util.Set;
 
 public class WrappedSlotType extends SlotType {
 
-    private final io.wispforest.accessories.api.SlotType slotType;
+    private final io.wispforest.accessories.api.slot.SlotType slotType;
 
-    public WrappedSlotType(io.wispforest.accessories.api.SlotType slotType){
+    public WrappedSlotType(io.wispforest.accessories.api.slot.SlotType slotType){
         super("", "", 0, 0, new ResourceLocation(""), Set.of(), Set.of(Accessories.of("tag"), Accessories.of("compound")), Set.of(), null);
 
         this.slotType = slotType;

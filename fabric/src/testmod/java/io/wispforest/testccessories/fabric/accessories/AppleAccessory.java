@@ -3,7 +3,7 @@ package io.wispforest.testccessories.fabric.accessories;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.SlotReference;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
 import io.wispforest.accessories.api.client.SimpleAccessoryRenderer;
@@ -11,10 +11,8 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.HeadedModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -42,7 +40,7 @@ public class AppleAccessory implements Accessory {
         if (player.getFoodData().getFoodLevel() > 16) return;
 
 
-        if (!AccessoriesAPI.getCapability(player).get().isEquipped(Items.APPLE)) return;
+        if (!AccessoriesCapability.get(player).get().isEquipped(Items.APPLE)) return;
 
         player.getFoodData().eat(Items.APPLE, stack);
         stack.shrink(1);

@@ -1,6 +1,7 @@
 package io.wispforest.accessories.impl;
 
 import io.wispforest.accessories.api.*;
+import io.wispforest.accessories.data.EntitySlotLoader;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.LivingEntity;
@@ -74,7 +75,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
         this.invalidStacks.clear();
 
         if (loadedFromTag) {
-            AccessoriesAPI.getEntitySlots(livingEntity).forEach((s, slotType) -> {
+            EntitySlotLoader.getEntitySlots(livingEntity).forEach((s, slotType) -> {
                 slotContainers.putIfAbsent(s, new AccessoriesContainerImpl(capability, slotType));
             });
 
@@ -82,7 +83,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
 
             return;
         } else {
-            AccessoriesAPI.getEntitySlots(livingEntity).forEach((s, slotType) -> {
+            EntitySlotLoader.getEntitySlots(livingEntity).forEach((s, slotType) -> {
                 slotContainers.put(s, new AccessoriesContainerImpl(capability, slotType));
             });
         }
@@ -119,7 +120,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
     }
 
     public void read(LivingEntity entity, CompoundTag tag) {
-        var slots = AccessoriesAPI.getEntitySlots(entity);
+        var slots = EntitySlotLoader.getEntitySlots(entity);
 
         this.cosmeticsShown = tag.getBoolean(COSMETICS_SHOWN_KEY);
 

@@ -5,7 +5,7 @@ import dev.emi.trinkets.api.Trinket;
 import dev.emi.trinkets.api.TrinketEnums;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
-import io.wispforest.accessories.api.SlotReference;
+import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;

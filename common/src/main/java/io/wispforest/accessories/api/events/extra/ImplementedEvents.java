@@ -1,20 +1,20 @@
 package io.wispforest.accessories.api.events.extra;
 
-import com.mojang.blaze3d.platform.Window;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.AccessoryNest;
-import io.wispforest.accessories.api.SlotReference;
+import io.wispforest.accessories.api.slot.SlotReference;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.fabricmc.fabric.api.util.TriState;
-import net.minecraft.client.Minecraft;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,15 +40,24 @@ public class ImplementedEvents {
                             currentLevel += lootingAdjustment.getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
                         }
 
-                        for (var entry : AccessoryNest.tryAndGet(stack).entrySet()) {
-                            if((entry.getValue() instanceof LootingAdjustment lootingAdjustment)) {
-                                currentLevel += lootingAdjustment.getLootingAdjustment(entry.getKey(), reference, targetEntity, damageSource, currentLevel);
+                        currentLevel += LOOTING_ADJUSTMENT_EVENT.invoker().getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
+
+                        var levelHolder = new MutableInt(currentLevel);
+                        currentLevel += AccessoryNest.attemptFunction(stack, entity, map -> {
+                            var innerLevel = levelHolder.getValue();
+
+                            for (var entry : map.entrySet()) {
+                                var innerStack = entry.getKey();
+
+                                if ((entry.getValue() instanceof LootingAdjustment lootingAdjustment)) {
+                                    innerLevel += lootingAdjustment.getLootingAdjustment(innerStack, reference, targetEntity, damageSource, innerLevel);
+                                }
+
+                                innerLevel += LOOTING_ADJUSTMENT_EVENT.invoker().getLootingAdjustment(innerStack, reference, targetEntity, damageSource, innerLevel);
                             }
 
-                            currentLevel += LOOTING_ADJUSTMENT_EVENT.invoker().getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
-                        }
-
-                        currentLevel += LOOTING_ADJUSTMENT_EVENT.invoker().getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
+                            return innerLevel;
+                        }, 0);
                     }
                 }
             }
@@ -90,17 +99,24 @@ public class ImplementedEvents {
                         currentLevel += fortuneAdjustment.getFortuneAdjustment(stack, reference, context, currentLevel);
                     }
 
-                    for (var entry : AccessoryNest.tryAndGet(stack).entrySet()) {
-                        var innerStack = entry.getKey();
+                    currentLevel += FORTUNE_ADJUSTMENT_EVENT.invoker().getFortuneAdjustment(stack, reference, context, currentLevel);
 
-                        if((entry.getValue() instanceof FortuneAdjustment fortuneAdjustment)) {
-                            currentLevel += fortuneAdjustment.getFortuneAdjustment(innerStack, reference, context, currentLevel);
+                    var levelHolder = new MutableInt(currentLevel);
+                    currentLevel += AccessoryNest.attemptFunction(stack, livingEntity, map -> {
+                        var innerLevel = levelHolder.getValue();
+
+                        for (var entry : map.entrySet()) {
+                            var innerStack = entry.getKey();
+
+                            if((entry.getValue() instanceof FortuneAdjustment fortuneAdjustment)) {
+                                innerLevel += fortuneAdjustment.getFortuneAdjustment(innerStack, reference, context, innerLevel);
+                            }
+
+                            innerLevel += FORTUNE_ADJUSTMENT_EVENT.invoker().getFortuneAdjustment(innerStack, reference, context, innerLevel);
                         }
 
-                        currentLevel += FORTUNE_ADJUSTMENT_EVENT.invoker().getFortuneAdjustment(innerStack, reference, context, currentLevel);
-                    }
-
-                    currentLevel += FORTUNE_ADJUSTMENT_EVENT.invoker().getFortuneAdjustment(stack, reference, context, currentLevel);
+                        return innerLevel;
+                    }, 0);
                 }
             }
         }
@@ -145,17 +161,25 @@ public class ImplementedEvents {
 
                     if(state != TriState.DEFAULT) return state;
 
-                    for (var entry : AccessoryNest.tryAndGet(stack).entrySet()) {
-                        var innerStack = entry.getKey();
+                    state = AccessoryNest.attemptFunction(stack, entity, map -> {
+                        var innerState = TriState.DEFAULT;
 
-                        if(entry.getValue() instanceof PiglinNeutralInducer inducer) {
-                            state = inducer.makesPiglinsNeutral(innerStack, reference);
+                        for (var entry : map.entrySet()) {
+                            var innerStack = entry.getKey();
 
-                            if(state != TriState.DEFAULT) return state;
+                            if(entry.getValue() instanceof PiglinNeutralInducer inducer) {
+                                innerState = inducer.makesPiglinsNeutral(innerStack, reference);
+
+                                if(innerState != TriState.DEFAULT) return innerState;
+                            }
+
+                            innerState = PIGLIN_NEUTRAL_INDUCER_EVENT.invoker().makesPiglinsNeutral(innerStack, reference);
+
+                            if(innerState != TriState.DEFAULT) return innerState;
                         }
 
-                        state = PIGLIN_NEUTRAL_INDUCER_EVENT.invoker().makesPiglinsNeutral(innerStack, reference);
-                    }
+                        return innerState;
+                    }, TriState.DEFAULT);
                 }
             }
         }
@@ -202,17 +226,25 @@ public class ImplementedEvents {
 
                     if(state != TriState.DEFAULT) return state;
 
-                    for (var entry : AccessoryNest.tryAndGet(stack).entrySet()) {
-                        var innerStack = entry.getKey();
+                    state = AccessoryNest.attemptFunction(stack, entity, map -> {
+                        var innerState = TriState.DEFAULT;
 
-                        if(entry.getValue() instanceof AllowWalingOnSnow event) {
-                            state = event.allowWalkingOnSnow(innerStack, reference);
+                        for (var entry : map.entrySet()) {
+                            var innerStack = entry.getKey();
 
-                            if (state != TriState.DEFAULT) return state;
+                            if(entry.getValue() instanceof AllowWalingOnSnow event) {
+                                innerState = event.allowWalkingOnSnow(innerStack, reference);
+
+                                if(innerState != TriState.DEFAULT) return innerState;
+                            }
+
+                            innerState = ALLOW_WALING_ON_SNOW_EVENT.invoker().allowWalkingOnSnow(innerStack, reference);
+
+                            if(innerState != TriState.DEFAULT) return innerState;
                         }
 
-                        state = ALLOW_WALING_ON_SNOW_EVENT.invoker().allowWalkingOnSnow(innerStack, reference);
-                    }
+                        return innerState;
+                    }, TriState.DEFAULT);
                 }
             }
         }
@@ -270,17 +302,25 @@ public class ImplementedEvents {
 
                     if(state != TriState.DEFAULT) return state;
 
-                    for (var entry : AccessoryNest.tryAndGet(stack).entrySet()) {
-                        var innerStack = entry.getKey();
+                    state = AccessoryNest.attemptFunction(stack, entity, map -> {
+                        var innerState = TriState.DEFAULT;
 
-                        if(entry.getValue() instanceof EndermanMasked masked) {
-                            state = masked.isEndermanMasked(enderMan, innerStack, reference);
+                        for (var entry : map.entrySet()) {
+                            var innerStack = entry.getKey();
 
-                            if (state != TriState.DEFAULT) return state;
+                            if(entry.getValue() instanceof EndermanMasked masked) {
+                                innerState = masked.isEndermanMasked(enderMan, innerStack, reference);
+
+                                if(innerState != TriState.DEFAULT) return innerState;
+                            }
+
+                            innerState = ENDERMAN_MASKED_EVENT.invoker().isEndermanMasked(enderMan, innerStack, reference);
+
+                            if(innerState != TriState.DEFAULT) return innerState;
                         }
 
-                        state = ENDERMAN_MASKED_EVENT.invoker().isEndermanMasked(enderMan, innerStack, reference);
-                    }
+                        return innerState;
+                    }, TriState.DEFAULT);
                 }
             }
         }
@@ -307,23 +347,5 @@ public class ImplementedEvents {
 
     public interface EndermanMasked {
         TriState isEndermanMasked(EnderMan enderMan, ItemStack stack, SlotReference reference);
-    }
-
-    public static final Event<WindowResizeCallback> WINDOW_RESIZE_CALLBACK_EVENT = EventFactory.createArrayBacked(WindowResizeCallback.class, callbacks -> (client, window) -> {
-        for (var callback : callbacks) {
-            callback.onResized(client, window);
-        }
-    });
-
-    public interface WindowResizeCallback {
-
-        /**
-         * Called after the client's window has been resized
-         *
-         * @param client The currently active client
-         * @param window The window which was resized
-         */
-        void onResized(Minecraft client, Window window);
-
     }
 }

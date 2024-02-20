@@ -3,7 +3,7 @@ package dev.emi.trinkets.api.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.emi.trinkets.compat.WrappedTrinketInventory;
 import dev.emi.trinkets.compat.WrappingTrinketsUtils;
-import io.wispforest.accessories.api.SlotReference;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
 import net.minecraft.client.model.EntityModel;
@@ -52,7 +52,7 @@ public class TrinketRendererRegistry {
                 return (stack, ref, contextModel, matrices, vertexConsumers, light, entity, limbAngle, limbDistance, tickDelta, animationProgress, headYaw, headPitch) -> {
                     var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-                    var reference = new io.wispforest.accessories.api.SlotReference(slotName, entity, ref.index());
+                    var reference = new SlotReference(slotName, entity, ref.index());
 
                     accessoryRenderer.render(true, stack, reference, matrices, contextModel, vertexConsumers, light, limbAngle, limbDistance, tickDelta, animationProgress, headYaw, headPitch);
                 };

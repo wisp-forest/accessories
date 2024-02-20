@@ -4,7 +4,6 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
-import io.wispforest.accessories.api.events.extra.ImplementedEvents;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
@@ -78,7 +77,7 @@ public class PostEffectBuffer {
         this.framebuffer = new TextureTarget(Minecraft.getInstance().getMainRenderTarget().width, Minecraft.getInstance().getMainRenderTarget().height, true, Minecraft.ON_OSX);
         this.framebuffer.setClearColor(0, 0, 0, 0);
 
-        ImplementedEvents.WINDOW_RESIZE_CALLBACK_EVENT.register((client, window) -> {
+        AccessoriesClient.WINDOW_RESIZE_CALLBACK_EVENT.register((client, window) -> {
             this.framebuffer.resize(window.getWidth(), window.getHeight(), Minecraft.ON_OSX);
             if (this.textureFilter != -1) {
                 this.framebuffer.setFilterMode(this.textureFilter);

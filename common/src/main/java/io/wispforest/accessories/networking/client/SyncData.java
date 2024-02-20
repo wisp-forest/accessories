@@ -1,7 +1,7 @@
 package io.wispforest.accessories.networking.client;
 
-import io.wispforest.accessories.api.SlotGroup;
-import io.wispforest.accessories.api.SlotType;
+import io.wispforest.accessories.api.slot.SlotGroup;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;

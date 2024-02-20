@@ -1,4 +1,4 @@
-package io.wispforest.accessories.api;
+package io.wispforest.accessories.api.slot;
 
 import io.wispforest.accessories.Accessories;
 import it.unimi.dsi.fastutil.Pair;

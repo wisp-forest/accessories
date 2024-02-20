@@ -1,6 +1,7 @@
 package io.wispforest.cclayer;
 
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.data.DataLoadingModifications;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -60,7 +61,7 @@ public class CCLayer {
         for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
             event.registerEntity(CuriosCapability.ITEM_HANDLER, entityType,
                     (entity, ctx) -> {
-                        if (entity instanceof LivingEntity livingEntity && AccessoriesAPI.getEntitySlots(livingEntity).isEmpty()) {
+                        if (entity instanceof LivingEntity livingEntity && EntitySlotLoader.getEntitySlots(livingEntity).isEmpty()) {
                             return new CurioItemHandler(livingEntity);
                         }
 
@@ -70,7 +71,7 @@ public class CCLayer {
             event.registerEntity(CuriosCapability.INVENTORY, entityType,
                     (entity, ctx) -> {
                         if (entity instanceof LivingEntity livingEntity) {
-                            var capability = AccessoriesAPI.getCapability(livingEntity);
+                            var capability = AccessoriesCapability.get(livingEntity);
 
                             if(capability.isPresent()) return new WrappedCurioItemHandler((AccessoriesCapabilityImpl) capability.get());
                         }
