@@ -165,11 +165,11 @@ public class AccessoriesForge {
             @Override protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profiler) {
                 AccessoriesEventHandler.dataReloadOccured = true;
 
-                AccessoriesAccessImpl.setContext(null);
+                AccessoriesInternalsImpl.setContext(null);
             }
         });
 
-        AccessoriesAccessImpl.setContext(event.getConditionContext());
+        AccessoriesInternalsImpl.setContext(event.getConditionContext());
     }
 
     //--
