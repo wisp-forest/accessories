@@ -13,7 +13,7 @@ public enum Side {
 
     public final Direction direction;
 
-    private Side(Direction direction) {
+    Side(Direction direction) {
         this.direction = direction;
     }
 }

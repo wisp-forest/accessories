@@ -1,10 +1,8 @@
 package io.wispforest.accessories.fabric;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.api.InstanceCodecable;
+import io.wispforest.accessories.impl.InstanceCodecable;
 import io.wispforest.accessories.api.events.extra.ImplementedEvents;
 import io.wispforest.accessories.data.DataLoadingModifications;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -44,7 +42,7 @@ import java.util.concurrent.Executor;
 
 public class AccessoriesFabric implements ModInitializer {
 
-    public static final AttachmentType<AccessoriesHolder> HOLDER_ATTACHMENT_TYPE;
+    public static final AttachmentType<AccessoriesHolderImpl> HOLDER_ATTACHMENT_TYPE;
 
     public static final ResourceLocation SLOT_LOADER_LOCATION = Accessories.of("slot_loader");
     public static final ResourceLocation ENTITY_SLOT_LOADER_LOCATION = Accessories.of("entity_slot_loader");
@@ -53,7 +51,7 @@ public class AccessoriesFabric implements ModInitializer {
     public static final EntityApiLookup<AccessoriesCapability, Void> CAPABILITY = EntityApiLookup.get(Accessories.of("capability"), AccessoriesCapability.class, Void.class);
 
     static {
-        HOLDER_ATTACHMENT_TYPE = AttachmentRegistry.<AccessoriesHolder>builder()
+        HOLDER_ATTACHMENT_TYPE = AttachmentRegistry.<AccessoriesHolderImpl>builder()
                 .initializer(AccessoriesHolderImpl::of)
                 .persistent(InstanceCodecable.constructed(AccessoriesHolderImpl::new))
                 .copyOnDeath()
@@ -74,9 +72,7 @@ public class AccessoriesFabric implements ModInitializer {
 
         ServerTickEvents.START_WORLD_TICK.register(AccessoriesEventHandler::onWorldTick);
 
-        ServerTickEvents.END_WORLD_TICK.register(world -> {
-            ImplementedEvents.clearEndermanAngryCache();
-        });
+        ServerTickEvents.END_WORLD_TICK.register(world -> ImplementedEvents.clearEndermanAngryCache());
 
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {
             if(!joined) return;

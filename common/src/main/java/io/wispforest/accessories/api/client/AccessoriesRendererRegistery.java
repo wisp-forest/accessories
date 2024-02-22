@@ -13,14 +13,23 @@ public class AccessoriesRendererRegistery {
 
     private static final Map<Item, AccessoryRenderer> RENDERERS = new HashMap<>();
 
+    /**
+     * Main method used to register an {@link Item} with a given {@link AccessoryRenderer}
+     */
     public static void registerRenderer(Item item, AccessoryRenderer renderer){
         RENDERERS.put(item, renderer);
     }
 
+    /**
+     * @return An optional representing the {@link AccessoryRenderer} if found within the registry
+     */
     public static Optional<AccessoryRenderer> getRender(Item item){
         return Optional.ofNullable(RENDERERS.get(item));
     }
 
+    /**
+     * @return Either the {@link AccessoryRenderer} bound to the item or the instance of the {@link DefaultAccessoryRenderer}
+     */
     public static AccessoryRenderer getOrDefaulted(Item item){
         return getRender(item).orElse(DefaultAccessoryRenderer.INSTANCE);
     }

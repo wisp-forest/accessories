@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.Optional;
 
-public interface AccessoriesHolder extends InstanceCodecable {
+public interface AccessoriesHolder {
 
     static Optional<AccessoriesHolder> get(@NotNull LivingEntity livingEntity){
         return ((AccessoriesAPIAccess) livingEntity).accessoriesHolder();
@@ -17,6 +17,8 @@ public interface AccessoriesHolder extends InstanceCodecable {
     //--
 
     Map<String, AccessoriesContainer> getSlotContainers();
+
+    //--
 
     boolean cosmeticsShown();
 
@@ -30,9 +32,4 @@ public interface AccessoriesHolder extends InstanceCodecable {
 
     AccessoriesHolder scrolledSlot(int slot);
 
-    @Override
-    void write(CompoundTag tag);
-
-    @Override
-    void read(CompoundTag tag);
 }

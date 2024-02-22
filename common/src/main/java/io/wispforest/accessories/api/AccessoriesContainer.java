@@ -1,22 +1,40 @@
 package io.wispforest.accessories.api;
 
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
 import java.util.*;
 
-public interface AccessoriesContainer extends InstanceCodecable {
+public interface AccessoriesContainer {
 
-    Optional<SlotType> slotType();
-
-    String getSlotName();
-
+    /**
+     * @return the given AccessoriesCapability from which such was initialized with
+     */
     AccessoriesCapability capability();
 
+    /**
+     * @return The Containers slot name
+     */
+    String getSlotName();
+
+    /**
+     * @return An Optional of the given slotType based on the {@link #getSlotName} if found or an empty optional
+     */
+    default Optional<SlotType> slotType() {
+        return SlotTypeLoader.getSlotType(this.capability().getEntity().level(), this.getSlotName());
+    }
+
+    /**
+     * @return List containing if a given accessories slot should render or not
+     */
     List<Boolean> renderOptions();
 
+    /**
+     * @return Either the toggle value for the given index or true if an option is not found
+     */
     default boolean shouldRender(int index){
         var options = renderOptions();
 
@@ -54,10 +72,4 @@ public interface AccessoriesContainer extends InstanceCodecable {
     void removeCachedModifiers(AttributeModifier modifier);
 
     void clearCachedModifiers();
-
-    //--
-
-    void write(CompoundTag tag);
-
-    void read(CompoundTag tag);
 }

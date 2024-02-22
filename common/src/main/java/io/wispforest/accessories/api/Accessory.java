@@ -19,10 +19,6 @@ import java.util.UUID;
 
 public interface Accessory {
 
-    //--
-
-    //--
-
     /**
      * Called every tick on every tick of the linked {@link LivingEntity} on both the Client and Server
      *
@@ -114,7 +110,7 @@ public interface Accessory {
     default void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips){}
 
     /**
-     * Method used to add any additional tooltip inforamtion to a given {@link Accessory} tooltip
+     * Method used to add any additional tooltip information to a given {@link Accessory} tooltip
      * within {@link AccessoriesEventHandler#addTooltipInfo(LivingEntity, ItemStack, List)} at the
      * end of the method call.
      *

@@ -4,6 +4,7 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.AccessoryNest;
+import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
@@ -29,36 +30,17 @@ public class ImplementedEvents {
             var capability = AccessoriesCapability.get(entity);
 
             if(capability.isPresent()){
-                for (var containerEntry : capability.get().getContainers().entrySet()) {
-                    for (var accessoryEntry : containerEntry.getValue().getAccessories()) {
-                        var reference = new SlotReference(containerEntry.getKey(), entity, accessoryEntry.getFirst());
-                        var stack = accessoryEntry.getSecond();
+                for (var entryRef : capability.get().getAllEquipped()) {
+                    var reference = entryRef.reference();
+                    var stack = entryRef.stack();
 
-                        var accessory = AccessoriesAPI.getAccessory(stack);
+                    var accessory = AccessoriesAPI.getAccessory(stack);
 
-                        if(accessory.isPresent() && accessory.get() instanceof LootingAdjustment lootingAdjustment){
-                            currentLevel += lootingAdjustment.getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
-                        }
-
-                        currentLevel += LOOTING_ADJUSTMENT_EVENT.invoker().getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
-
-                        var levelHolder = new MutableInt(currentLevel);
-                        currentLevel += AccessoryNest.attemptFunction(stack, entity, map -> {
-                            var innerLevel = levelHolder.getValue();
-
-                            for (var entry : map.entrySet()) {
-                                var innerStack = entry.getKey();
-
-                                if ((entry.getValue() instanceof LootingAdjustment lootingAdjustment)) {
-                                    innerLevel += lootingAdjustment.getLootingAdjustment(innerStack, reference, targetEntity, damageSource, innerLevel);
-                                }
-
-                                innerLevel += LOOTING_ADJUSTMENT_EVENT.invoker().getLootingAdjustment(innerStack, reference, targetEntity, damageSource, innerLevel);
-                            }
-
-                            return innerLevel;
-                        }, 0);
+                    if(accessory.isPresent() && accessory.get() instanceof LootingAdjustment lootingAdjustment){
+                        currentLevel += lootingAdjustment.getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
                     }
+
+                    currentLevel += LOOTING_ADJUSTMENT_EVENT.invoker().getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
                 }
             }
         }
@@ -88,36 +70,17 @@ public class ImplementedEvents {
         var capability = AccessoriesCapability.get(livingEntity);
 
         if(capability.isPresent()){
-            for (var containerEntry : capability.get().getContainers().entrySet()) {
-                for (var accessoryEntry : containerEntry.getValue().getAccessories()) {
-                    var reference = new SlotReference(containerEntry.getKey(), livingEntity, accessoryEntry.getFirst());
-                    var stack = accessoryEntry.getSecond();
+            for (var entryRef : capability.get().getAllEquipped()) {
+                var reference = entryRef.reference();
+                var stack = entryRef.stack();
 
-                    var accessory = AccessoriesAPI.getAccessory(stack);
+                var accessory = AccessoriesAPI.getAccessory(stack);
 
-                    if(accessory.isPresent() && accessory.get() instanceof FortuneAdjustment fortuneAdjustment){
-                        currentLevel += fortuneAdjustment.getFortuneAdjustment(stack, reference, context, currentLevel);
-                    }
-
-                    currentLevel += FORTUNE_ADJUSTMENT_EVENT.invoker().getFortuneAdjustment(stack, reference, context, currentLevel);
-
-                    var levelHolder = new MutableInt(currentLevel);
-                    currentLevel += AccessoryNest.attemptFunction(stack, livingEntity, map -> {
-                        var innerLevel = levelHolder.getValue();
-
-                        for (var entry : map.entrySet()) {
-                            var innerStack = entry.getKey();
-
-                            if((entry.getValue() instanceof FortuneAdjustment fortuneAdjustment)) {
-                                innerLevel += fortuneAdjustment.getFortuneAdjustment(innerStack, reference, context, innerLevel);
-                            }
-
-                            innerLevel += FORTUNE_ADJUSTMENT_EVENT.invoker().getFortuneAdjustment(innerStack, reference, context, innerLevel);
-                        }
-
-                        return innerLevel;
-                    }, 0);
+                if(accessory.isPresent() && accessory.get() instanceof FortuneAdjustment fortuneAdjustment){
+                    currentLevel += fortuneAdjustment.getFortuneAdjustment(stack, reference, context, currentLevel);
                 }
+
+                currentLevel += FORTUNE_ADJUSTMENT_EVENT.invoker().getFortuneAdjustment(stack, reference, context, currentLevel);
             }
         }
 
@@ -144,43 +107,21 @@ public class ImplementedEvents {
         var capability = AccessoriesCapability.get(entity);
 
         if(capability.isPresent()){
-            for (var containerEntry : capability.get().getContainers().entrySet()) {
-                for (var accessoryEntry : containerEntry.getValue().getAccessories()) {
-                    var reference = new SlotReference(containerEntry.getKey(), entity, accessoryEntry.getFirst());
-                    var stack = accessoryEntry.getSecond();
+            for (var entryRef : capability.get().getAllEquipped()) {
+                var reference = entryRef.reference();
+                var stack = entryRef.stack();
 
-                    var accessory = AccessoriesAPI.getAccessory(stack);
+                var accessory = AccessoriesAPI.getAccessory(stack);
 
-                    if(accessory.isPresent() && accessory.get() instanceof PiglinNeutralInducer inducer){
-                        state = inducer.makesPiglinsNeutral(stack, reference);
-
-                        if(state != TriState.DEFAULT) return state;
-                    }
-
-                    state = PIGLIN_NEUTRAL_INDUCER_EVENT.invoker().makesPiglinsNeutral(stack, reference);
+                if(accessory.isPresent() && accessory.get() instanceof PiglinNeutralInducer inducer){
+                    state = inducer.makesPiglinsNeutral(stack, reference);
 
                     if(state != TriState.DEFAULT) return state;
-
-                    state = AccessoryNest.attemptFunction(stack, entity, map -> {
-                        var innerState = TriState.DEFAULT;
-
-                        for (var entry : map.entrySet()) {
-                            var innerStack = entry.getKey();
-
-                            if(entry.getValue() instanceof PiglinNeutralInducer inducer) {
-                                innerState = inducer.makesPiglinsNeutral(innerStack, reference);
-
-                                if(innerState != TriState.DEFAULT) return innerState;
-                            }
-
-                            innerState = PIGLIN_NEUTRAL_INDUCER_EVENT.invoker().makesPiglinsNeutral(innerStack, reference);
-
-                            if(innerState != TriState.DEFAULT) return innerState;
-                        }
-
-                        return innerState;
-                    }, TriState.DEFAULT);
                 }
+
+                state = PIGLIN_NEUTRAL_INDUCER_EVENT.invoker().makesPiglinsNeutral(stack, reference);
+
+                if(state != TriState.DEFAULT) return state;
             }
         }
 
@@ -209,43 +150,21 @@ public class ImplementedEvents {
         var capability = AccessoriesCapability.get(entity);
 
         if(capability.isPresent()){
-            for (var containerEntry : capability.get().getContainers().entrySet()) {
-                for (var accessoryEntry : containerEntry.getValue().getAccessories()) {
-                    var reference = new SlotReference(containerEntry.getKey(), entity, accessoryEntry.getFirst());
-                    var stack = accessoryEntry.getSecond();
+            for (var entryRef : capability.get().getAllEquipped()) {
+                var reference = entryRef.reference();
+                var stack = entryRef.stack();
 
-                    var accessory = AccessoriesAPI.getAccessory(stack);
+                var accessory = AccessoriesAPI.getAccessory(stack);
 
-                    if(accessory.isPresent() && accessory.get() instanceof AllowWalingOnSnow event){
-                        state = event.allowWalkingOnSnow(stack, reference);
-
-                        if(state != TriState.DEFAULT) return state;
-                    }
-
-                    state = ALLOW_WALING_ON_SNOW_EVENT.invoker().allowWalkingOnSnow(stack, reference);
+                if(accessory.isPresent() && accessory.get() instanceof AllowWalingOnSnow event){
+                    state = event.allowWalkingOnSnow(stack, reference);
 
                     if(state != TriState.DEFAULT) return state;
-
-                    state = AccessoryNest.attemptFunction(stack, entity, map -> {
-                        var innerState = TriState.DEFAULT;
-
-                        for (var entry : map.entrySet()) {
-                            var innerStack = entry.getKey();
-
-                            if(entry.getValue() instanceof AllowWalingOnSnow event) {
-                                innerState = event.allowWalkingOnSnow(innerStack, reference);
-
-                                if(innerState != TriState.DEFAULT) return innerState;
-                            }
-
-                            innerState = ALLOW_WALING_ON_SNOW_EVENT.invoker().allowWalkingOnSnow(innerStack, reference);
-
-                            if(innerState != TriState.DEFAULT) return innerState;
-                        }
-
-                        return innerState;
-                    }, TriState.DEFAULT);
                 }
+
+                state = ALLOW_WALING_ON_SNOW_EVENT.invoker().allowWalkingOnSnow(stack, reference);
+
+                if(state != TriState.DEFAULT) return state;
             }
         }
 
@@ -284,44 +203,22 @@ public class ImplementedEvents {
 
         var capability = AccessoriesCapability.get(entity);
 
-        if(capability.isPresent()){
-            for (var containerEntry : capability.get().getContainers().entrySet()) {
-                for (var accessoryEntry : containerEntry.getValue().getAccessories()) {
-                    var reference = new SlotReference(containerEntry.getKey(), entity, accessoryEntry.getFirst());
-                    var stack = accessoryEntry.getSecond();
+        if(capability.isPresent()) {
+            for (var entryRef : capability.get().getAllEquipped()) {
+                var reference = entryRef.reference();
+                var stack = entryRef.stack();
 
-                    var accessory = AccessoriesAPI.getAccessory(stack);
+                var accessory = AccessoriesAPI.getAccessory(stack);
 
-                    if(accessory.isPresent() && accessory.get() instanceof EndermanMasked masked){
-                        state = masked.isEndermanMasked(enderMan, stack, reference);
-
-                        if(state != TriState.DEFAULT) return state;
-                    }
-
-                    state = ENDERMAN_MASKED_EVENT.invoker().isEndermanMasked(enderMan, stack, reference);
+                if(accessory.isPresent() && accessory.get() instanceof EndermanMasked masked){
+                    state = masked.isEndermanMasked(enderMan, stack, reference);
 
                     if(state != TriState.DEFAULT) return state;
-
-                    state = AccessoryNest.attemptFunction(stack, entity, map -> {
-                        var innerState = TriState.DEFAULT;
-
-                        for (var entry : map.entrySet()) {
-                            var innerStack = entry.getKey();
-
-                            if(entry.getValue() instanceof EndermanMasked masked) {
-                                innerState = masked.isEndermanMasked(enderMan, innerStack, reference);
-
-                                if(innerState != TriState.DEFAULT) return innerState;
-                            }
-
-                            innerState = ENDERMAN_MASKED_EVENT.invoker().isEndermanMasked(enderMan, innerStack, reference);
-
-                            if(innerState != TriState.DEFAULT) return innerState;
-                        }
-
-                        return innerState;
-                    }, TriState.DEFAULT);
                 }
+
+                state = ENDERMAN_MASKED_EVENT.invoker().isEndermanMasked(enderMan, stack, reference);
+
+                if(state != TriState.DEFAULT) return state;
             }
         }
 

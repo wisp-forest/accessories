@@ -1,8 +1,8 @@
 package io.wispforest.accessories.mixin;
 
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
+import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import net.minecraft.world.entity.LivingEntity;
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.Unique;
 import java.util.Optional;
 
 @Mixin(LivingEntity.class)
-public class LivingEntityMixin implements AccessoriesAPIAccess {
+public abstract class LivingEntityMixin implements AccessoriesAPIAccess {
 
     @Unique
     private AccessoriesCapability capability = null;

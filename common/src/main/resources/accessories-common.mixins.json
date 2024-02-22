@@ -4,26 +4,25 @@
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [
-    "AbstractContainerScreenAccessor",
-    "AbstractContainerScreenMixin",
-    "CreativeInventoryScreenMixin",
-    "DefaultTooltipPositionerMixin",
-    "InventoryScreenMixin",
-    "MinecraftMixin",
-    "PlayerRendererMixin",
-    "ScreenAccessor"
+    "client.AbstractContainerScreenMixin",
+    "client.CreativeInventoryScreenMixin",
+    "client.DefaultTooltipPositionerMixin",
+    "client.InventoryScreenMixin",
+    "client.MinecraftMixin",
+    "client.PlayerRendererMixin",
+    "client.AbstractContainerScreenAccessor",
+    "client.ModelPartAccessor"
   ],
   "mixins": [
-    "AbstractContainerMenuAccessor",
     "ApplyBonusCountMixin",
     "EndermanMixin",
-    "InventoryMenuAccessor",
     "InventoryMixin",
-    "ModelPartAccessor",
     "PiglinAiMixin",
     "PowderSnowBlockMixin",
     "SlotAccessor",
-    "LivingEntityMixin"
+    "LivingEntityMixin",
+    "AbstractContainerMenuAccessor",
+    "InventoryMenuAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

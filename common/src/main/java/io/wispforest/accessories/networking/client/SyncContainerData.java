@@ -1,6 +1,6 @@
 package io.wispforest.accessories.networking.client;
 
-import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
 import io.wispforest.accessories.networking.CacheableAccessoriesPacket;

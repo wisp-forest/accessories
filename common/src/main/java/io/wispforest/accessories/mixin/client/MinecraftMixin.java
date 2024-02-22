@@ -1,4 +1,4 @@
-package io.wispforest.accessories.mixin;
+package io.wispforest.accessories.mixin.client;
 
 import com.mojang.blaze3d.platform.Window;
 import io.wispforest.accessories.client.AccessoriesClient;

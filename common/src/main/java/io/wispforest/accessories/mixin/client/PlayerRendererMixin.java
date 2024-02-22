@@ -1,6 +1,7 @@
-package io.wispforest.accessories.mixin;
+package io.wispforest.accessories.mixin.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import net.minecraft.client.model.PlayerModel;

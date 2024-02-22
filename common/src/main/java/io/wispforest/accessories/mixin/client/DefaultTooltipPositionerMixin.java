@@ -1,4 +1,4 @@
-package io.wispforest.accessories.mixin;
+package io.wispforest.accessories.mixin.client;
 
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;

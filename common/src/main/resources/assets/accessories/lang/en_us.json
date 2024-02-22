@@ -40,5 +40,9 @@
   "text.autoconfig.accessories.option.clientData.inventoryButtonXOffset": "Inventory Button X Offset",
   "text.autoconfig.accessories.option.clientData.inventoryButtonYOffset": "Inventory Button Y Offset",
   "text.autoconfig.accessories.option.clientData.creativeInventoryButtonXOffset": "Creative Inventory Button X Offset",
-  "text.autoconfig.accessories.option.clientData.creativeInventoryButtonYOffset": "Creative Inventory Button Y Offset"
+  "text.autoconfig.accessories.option.clientData.creativeInventoryButtonYOffset": "Creative Inventory Button Y Offset",
+  "text.autoconfig.accessories.option.modifiers": "Slot Amount Modifiers",
+  "text.autoconfig.accessories.option.SlotAmountModifier": "Modifier Entry",
+  "text.autoconfig.accessories.option.SlotAmountModifier.slotType": "Slot Type Name",
+  "text.autoconfig.accessories.option.SlotAmountModifier.amount": "Offset Amount"
 }

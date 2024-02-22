@@ -1,4 +1,4 @@
-package io.wispforest.accessories.mixin;
+package io.wispforest.accessories.mixin.client;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import io.wispforest.accessories.client.AccessoriesClient;

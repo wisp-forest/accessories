@@ -99,6 +99,7 @@ public class AccessoriesEventHandler {
         var stack = container.getItem(reference.slot());
 
         container.setItem(reference.slot(), ItemStack.EMPTY);
+
         AccessoriesInternals.giveItemToPlayer(player, stack);
     }
 
@@ -107,11 +108,9 @@ public class AccessoriesEventHandler {
 
         AccessoriesCapability.get(serverPlayer)
                 .ifPresent(capability -> {
-                    var holder = capability.getHolder();
-
                     var tag = new CompoundTag();
 
-                    holder.write(tag);
+                    capability.getHolder().write(tag);
 
                     AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(tag, capability.getEntity().getId()));
                 });
@@ -120,11 +119,9 @@ public class AccessoriesEventHandler {
     public static void onTracking(LivingEntity entity, ServerPlayer player){
         AccessoriesCapability.get(entity)
                 .ifPresent(capability -> {
-                    var holder = capability.getHolder();
-
                     var tag = new CompoundTag();
 
-                    holder.write(tag);
+                    capability.getHolder().write(tag);
 
                     AccessoriesInternals.getNetworkHandler().sendToPlayer(player, new SyncEntireContainer(tag, capability.getEntity().getId()));
                 });
@@ -143,11 +140,9 @@ public class AccessoriesEventHandler {
                 networkHandler.sendToPlayer(player1, new SyncData(buf));
 
                 AccessoriesCapability.get(player1).ifPresent(capability -> {
-                    var holder = capability.getHolder();
-
                     var tag = new CompoundTag();
 
-                    holder.write(tag);
+                    capability.getHolder().write(tag);
 
                     networkHandler.sendToTrackingAndSelf(player1, new SyncEntireContainer(tag, capability.getEntity().getId()));
                 });
@@ -161,11 +156,9 @@ public class AccessoriesEventHandler {
             networkHandler.sendToPlayer(player, syncPacket);
 
             AccessoriesCapability.get(player).ifPresent(capability -> {
-                var holder = capability.getHolder();
-
                 var tag = new CompoundTag();
 
-                holder.write(tag);
+                capability.getHolder().write(tag);
 
                 networkHandler.sendToPlayer(player, new SyncEntireContainer(tag, capability.getEntity().getId()));
             });
@@ -525,7 +518,7 @@ public class AccessoriesEventHandler {
                         || (rule == DropRule.DESTROY);
 
                 if(breakInnerStack) {
-                    holdable.modifyInnerStack(stack, i, ItemStack.EMPTY);
+                    holdable.setInnerStack(stack, i, ItemStack.EMPTY);
                     // TODO: Do we call break here for the accessory?
 
                     container.setItem(reference.slot(), stack);

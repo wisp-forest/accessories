@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class AccessoriesCapabilityImpl implements AccessoriesCapability {
+public class AccessoriesCapabilityImpl implements AccessoriesCapability, InstanceCodecable {
 
     private final LivingEntity entity;
     private final AccessoriesHolderImpl holder;

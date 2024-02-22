@@ -12,13 +12,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.*;
 
 public class AccessoryNestUtils {
 
     private final static LoadingCache<ItemStack, StackData> CACHE = CacheBuilder.newBuilder()
             .concurrencyLevel(1)
-            .maximumSize(400)
+            .expireAfterAccess(Duration.ofSeconds(1))
+            //.maximumSize(1000)
             .weakKeys()
             .build(CacheLoader.from(StackData::new));
 
@@ -86,5 +88,4 @@ public class AccessoryNestUtils {
             return this.accessoryNest;
         }
     }
-
 }

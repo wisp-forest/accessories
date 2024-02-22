@@ -5,6 +5,10 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
 import it.unimi.dsi.fastutil.Pair;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,7 +18,10 @@ import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -23,10 +30,26 @@ import java.util.function.Function;
  */
 public interface AccessoryNest extends Accessory {
 
+    String ACCESSORY_NEST_ITEMS_KEY = "AccessoryNestItems";
+
     /**
      * @Return Gets all inner {@link ItemStack}'s with the passed holderStack
      */
-    List<ItemStack> getInnerStacks(ItemStack holderStack);
+    default List<ItemStack> getInnerStacks(ItemStack holderStack) {
+        var tag = holderStack.getTag();
+
+        if(tag == null) return List.of();
+
+        var listTag = tag.getList(ACCESSORY_NEST_ITEMS_KEY, 10);
+
+        var list = NonNullList.withSize(listTag.size(), ItemStack.EMPTY);
+
+        for (Tag tag1 : listTag) {
+            if(tag1 instanceof CompoundTag compoundTag) list.add(ItemStack.of(compoundTag));
+        }
+
+        return list;
+    }
 
     /**
      * Method used to modify the inner stacks of given AccessoryNest Stack
@@ -35,7 +58,15 @@ public interface AccessoryNest extends Accessory {
      * @param index The target index
      * @param newStack The new stack replacing the given index
      */
-    void modifyInnerStack(ItemStack holderStack, int index, ItemStack newStack);
+    default void setInnerStack(ItemStack holderStack, int index, ItemStack newStack) {
+        var tag = holderStack.getTag();
+
+        var listTag = tag.getList(ACCESSORY_NEST_ITEMS_KEY, 10);
+
+        var newTag = ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, newStack);
+
+        newTag.result().ifPresent(tag1 -> listTag.set(index, tag1));
+    }
 
     default List<Pair<DropRule, ItemStack>> getDropRules(ItemStack stack, SlotReference reference, DamageSource source) {
         var innerRules = new ArrayList<Pair<DropRule, ItemStack>>();
@@ -55,6 +86,14 @@ public interface AccessoryNest extends Accessory {
 
     //--
 
+    /**
+     * Method used to perform some action on a possible {@link AccessoryNest} and return a result from such action or a default value if none found
+     *
+     * @param holderStack  Potential stack linked to a AccessoryNest
+     * @param livingEntity Potential Living Entity involved with any stack changes
+     * @param func         Action being done
+     * @param defaultValue Default value if stack is not a AccessoryNest
+     */
     static <T> T attemptFunction(ItemStack holderStack, @Nullable LivingEntity livingEntity, Function<Map<ItemStack, Accessory>, T> func, T defaultValue){
         var data = AccessoryNestUtils.getData(holderStack);
 
@@ -67,14 +106,30 @@ public interface AccessoryNest extends Accessory {
         return t;
     }
 
+    /**
+     * Method used to perform some action on a possible {@link AccessoryNest}
+     *
+     * @param holderStack  Potential stack linked to a AccessoryNest
+     * @param livingEntity Potential Living Entity involved with any stack changes
+     * @param consumer     Action being done
+     */
     static void attemptConsumer(ItemStack holderStack, @Nullable LivingEntity livingEntity, Consumer<Map<ItemStack, Accessory>> consumer){
         var data = AccessoryNestUtils.getData(holderStack);
 
         if(data == null) return;
 
-        consumer.andThen(map -> data.getNest().checkAndHandleStackChanges(holderStack, data, livingEntity)).accept(data.getMap());
+        consumer.accept(data.getMap());
+
+        data.getNest().checkAndHandleStackChanges(holderStack, data, livingEntity);
     }
 
+    /**
+     * Check and handle any inner stack changes that may have occurred from an action performed on the stacks within the nest
+     *
+     * @param holderStack  HolderStack containing the nest of stacks
+     * @param data         StackData linked to the given HolderStack
+     * @param livingEntity Potential Living Entity involved with any stack changes
+     */
     default void checkAndHandleStackChanges(ItemStack holderStack, AccessoryNestUtils.StackData data, @Nullable LivingEntity livingEntity){
         var prevStacks = data.getDefensiveCopies();
         var currentStacks = data.getStacks();
@@ -84,7 +139,7 @@ public interface AccessoryNest extends Accessory {
 
             if(ItemStack.matches(prevStacks.get(i), currentStack)) continue;
 
-            this.modifyInnerStack(holderStack, i, currentStack);
+            this.setInnerStack(holderStack, i, currentStack);
         }
     }
 

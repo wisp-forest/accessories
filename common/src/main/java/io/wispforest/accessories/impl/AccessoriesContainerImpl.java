@@ -3,10 +3,13 @@ package io.wispforest.accessories.impl;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.datafixers.util.Pair;
+import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.SlotAttribute;
-import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.Util;
 import net.minecraft.nbt.*;
 import net.minecraft.world.SimpleContainer;
@@ -17,7 +20,7 @@ import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.*;
 
-public class AccessoriesContainerImpl implements AccessoriesContainer {
+public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceCodecable {
 
     private final AccessoriesCapability capability;
     private String slotName;
@@ -167,11 +170,6 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
     @Override
     public String getSlotName(){
         return this.slotName;
-    }
-
-    @Override
-    public Optional<SlotType> slotType() {
-        return SlotTypeLoader.getSlotType(this.capability.getEntity().level(), this.slotName);
     }
 
     @Override
@@ -355,7 +353,11 @@ public class AccessoriesContainerImpl implements AccessoriesContainer {
     public void read(CompoundTag tag, boolean sync){
         this.slotName = tag.getString(SLOT_NAME_KEY);
 
-        this.baseSize = (tag.contains(BASE_SIZE_KEY)) ? tag.getInt(BASE_SIZE_KEY) : baseSize;
+        var sizeFromTag = (tag.contains(BASE_SIZE_KEY)) ? tag.getInt(BASE_SIZE_KEY) : baseSize;
+
+        this.baseSize = SlotTypeLoader.getSlotType(this.capability.getEntity().level(), this.slotName)
+                .map(SlotType::amount)
+                .orElse(sizeFromTag);
 
         this.renderOptions = Util.make(new ArrayList<>(baseSize), booleans -> {
             for (int i = 0; i < baseSize; i++) booleans.add(i, true);

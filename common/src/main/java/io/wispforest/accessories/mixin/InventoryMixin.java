@@ -21,15 +21,17 @@ import java.util.function.Predicate;
 public abstract class InventoryMixin {
     @Shadow @Final public Player player;
 
-    @Inject(method = "clearOrCountMatchingItems",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z", shift = At.Shift.AFTER))
+    @Inject(method = "clearOrCountMatchingItems", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z", shift = At.Shift.AFTER))
     private void clearAccessories(Predicate<ItemStack> stackPredicate, int maxCount, Container inventory, CallbackInfoReturnable<Integer> cir, @Local(ordinal = 1) LocalIntRef i) {
-        var accessories = AccessoriesCapability.get(player).get();
-        if (accessories == null) return;
-        accessories.getContainers().forEach((s, accessoriesContainer) -> {
-            for (int accessoryIndex = 0; accessoryIndex < accessoriesContainer.getAccessories().getContainerSize(); accessoryIndex++) {
-                i.set(i.get() + ContainerHelper.clearOrCountMatchingItems(accessoriesContainer.getAccessories(), stackPredicate, maxCount - i.get(), maxCount - i.get() == 0));
-            }
+        AccessoriesCapability.get(player).ifPresent(capability -> {
+            capability.getContainers().forEach((s, container) -> {
+                var accessories = container.getAccessories();
+                i.set(i.get() + ContainerHelper.clearOrCountMatchingItems(accessories, stackPredicate, maxCount - i.get(), maxCount - i.get() == 0));
+
+                var cosmetics = container.getCosmeticAccessories();
+                i.set(i.get() + ContainerHelper.clearOrCountMatchingItems(cosmetics, stackPredicate, maxCount - i.get(), maxCount - i.get() == 0));
+            });
         });
+
     }
 }

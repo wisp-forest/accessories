@@ -14,12 +14,15 @@ import org.slf4j.Logger;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
 
+/**
+ * An implementation of SimpleContainer with easy utilities for iterating over the stacks
+ * and holding on to previous stack info
+ */
 public class ExpandedSimpleContainer extends SimpleContainer implements Iterable<Pair<Integer, ItemStack>> {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    @Nullable
-    private String name = null;
+    private final String name;
     private final NonNullList<ItemStack> previousItems;
 
     public ExpandedSimpleContainer(int size) {
@@ -36,8 +39,11 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     public ExpandedSimpleContainer(ItemStack... items) {
         super(items);
 
+        this.name = "";
         this.previousItems = NonNullList.withSize(items.length, ItemStack.EMPTY);
     }
+
+    //--
 
     public void setPreviousItem(int slot, ItemStack stack) {
         this.previousItems.set(slot, stack);
@@ -52,12 +58,6 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         return slot >= 0 && slot < this.previousItems.size()
                 ? this.previousItems.get(slot)
                 : ItemStack.EMPTY;
-    }
-
-    public void iterateInventory(BiConsumer<Integer, ItemStack> consumer){
-        for (int i = 0; i < this.getContainerSize(); i++) {
-            consumer.accept(i, this.getItem(i));
-        }
     }
 
     //--
@@ -90,6 +90,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         super.setItem(slot, stack);
     }
 
+    // Simple validation method to make sure that the given access is valid before attempting an operation
     private boolean validIndex(int slot){
         var isValid = slot >= 0 && slot < this.getContainerSize();
 
@@ -111,8 +112,10 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         }
 
         for(int i = 0; i < containerNbt.size(); ++i) {
-            CompoundTag compoundTag = containerNbt.getCompound(i);
+            var compoundTag = containerNbt.getCompound(i);
+
             int j = compoundTag.getInt("Slot");
+
             if (j >= 0 && j < this.getContainerSize()) {
                 this.setItem(j, ItemStack.of(compoundTag));
             }
@@ -125,16 +128,20 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
         for(int i = 0; i < this.getContainerSize(); ++i) {
             ItemStack itemStack = this.getItem(i);
+
             if (!itemStack.isEmpty()) {
-                CompoundTag compoundTag = new CompoundTag();
+                var compoundTag = new CompoundTag();
+
                 compoundTag.putInt("Slot", i);
-                itemStack.save(compoundTag);
-                listTag.add(compoundTag);
+
+                listTag.add(itemStack.save(compoundTag));
             }
         }
 
         return listTag;
     }
+
+    //--
 
     @NotNull
     @Override

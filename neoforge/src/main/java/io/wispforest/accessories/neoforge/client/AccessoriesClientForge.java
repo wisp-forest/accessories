@@ -35,9 +35,7 @@ public class AccessoriesClientForge {
             NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::itemTooltipCallback);
 
             ModLoadingContext.get().registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class, () -> {
-                return new ConfigScreenHandler.ConfigScreenFactory(
-                        (minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get()
-                );
+                return new ConfigScreenHandler.ConfigScreenFactory((minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get());
             });
         });
     }

@@ -7,9 +7,10 @@ import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.client.gui.AccessoriesSlot;
+import io.wispforest.accessories.client.gui.AccessoriesInternalSlot;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.mixin.AbstractContainerMenuAccessor;
 import io.wispforest.accessories.mixin.SlotAccessor;
 import io.wispforest.accessories.networking.client.SyncCosmeticsMenuToggle;
@@ -164,8 +165,8 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
         var slotVisablity = new HashMap<Slot, Boolean>();
 
-        var accessoriesSlots = new ArrayList<AccessoriesSlot>();
-        var cosmeticSlots = new ArrayList<AccessoriesSlot>();
+        var accessoriesSlots = new ArrayList<AccessoriesInternalSlot>();
+        var cosmeticSlots = new ArrayList<AccessoriesInternalSlot>();
 
         var groups = SlotGroupLoader.INSTANCE.getGroups(inventory.player.level().isClientSide);
 
@@ -193,8 +194,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
                     int currentX = minX;
 
-                    var cosmeticSlot =
-                            new AccessoriesSlot(yIndex, player, accessoryContainer, true, i, currentX, currentY)
+                    var cosmeticSlot = new AccessoriesInternalSlot(yIndex, accessoryContainer, true, i, currentX, currentY)
                                     .isActive((slot1) -> this.isCosmeticsOpen() && slotToView.getOrDefault(slot1.index, true))
                                     .isAccessible(slot1 -> slot1.isCosmetic && isCosmeticsOpen());
 
@@ -205,11 +205,8 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
                     currentX += slotScale + cosmeticPadding;
 
-                    var baseSlot =
-                            new AccessoriesSlot(yIndex, player, accessoryContainer, false, i, currentX, currentY)
-                                    .isActive(slot1 -> {
-                                        return slotToView.getOrDefault(slot1.index, true);
-                                    });
+                    var baseSlot = new AccessoriesInternalSlot(yIndex, accessoryContainer, false, i, currentX, currentY)
+                                    .isActive(slot1 -> slotToView.getOrDefault(slot1.index, true));
 
                     accessoriesSlots.add(baseSlot);
 
@@ -337,7 +334,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         if (!smooth) this.smoothScroll = Mth.clamp(index / (float) this.maxScrollableIndex, 0.0f, 1.0f);
 
         for (Slot slot : this.slots) {
-            if (!(slot instanceof AccessoriesSlot accessoriesSlot)) continue;
+            if (!(slot instanceof AccessoriesInternalSlot accessoriesSlot)) continue;
 
             ((SlotAccessor) accessoriesSlot).accessories$setY(accessoriesSlot.y + (diff * 18));
 
@@ -373,7 +370,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
             return true;
         }
 
-        if (this.slots.get(id) instanceof AccessoriesSlot slot) {
+        if (this.slots.get(id) instanceof AccessoriesInternalSlot slot) {
             var renderOptions = slot.container.renderOptions();
             renderOptions.set(slot.getContainerSlot(), !slot.container.shouldRender(slot.getContainerSlot()));
             slot.container.markChanged();

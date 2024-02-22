@@ -23,12 +23,12 @@ public abstract class CacheableAccessoriesPacket extends AccessoriesPacket {
 
     @Override
     public final void write(FriendlyByteBuf buf) {
-        if (cachedBuf.isPresent()) { // Should only happen when sending the packet from Integrated Server to Client of such Server
-            var cachedBufCopy = cachedBuf.get();
+        if (this.cachedBuf.isPresent()) { // Should only happen when sending the packet from Integrated Server to Client of such Server
+            var cachedBufCopy = this.cachedBuf.get();
 
             buf.writeBytes(cachedBufCopy);
 
-            cachedBuf = Optional.empty();
+            this.cachedBuf = Optional.empty();
 
             cachedBufCopy.release();
 
@@ -42,8 +42,8 @@ public abstract class CacheableAccessoriesPacket extends AccessoriesPacket {
 
     @Override
     public void handle(Player player) {
-        if(cachedBuf.isPresent()){
-            var buf = cachedBuf.get();
+        if(this.cachedBuf.isPresent()){ // TODO: Fix issue with buf not being read on network thread within single player
+            var buf = this.cachedBuf.get();
 
             this.read(buf);
 

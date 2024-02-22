@@ -2,10 +2,8 @@ package io.wispforest.accessories.neoforge;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.api.InstanceCodecable;
+import io.wispforest.accessories.impl.InstanceCodecable;
 import io.wispforest.accessories.api.events.extra.ImplementedEvents;
 import io.wispforest.accessories.data.DataLoadingModifications;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -49,7 +47,7 @@ public class AccessoriesForge {
 
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final AttachmentType<AccessoriesHolder> HOLDER_ATTACHMENT_TYPE;
+    public static final AttachmentType<AccessoriesHolderImpl> HOLDER_ATTACHMENT_TYPE;
 
     public static final EntityCapability<AccessoriesCapability, Void> CAPABILITY = EntityCapability.createVoid(Accessories.of("capability"), AccessoriesCapability.class);
 
@@ -57,7 +55,7 @@ public class AccessoriesForge {
         HOLDER_ATTACHMENT_TYPE = Registry.register(
                 NeoForgeRegistries.ATTACHMENT_TYPES,
                 Accessories.of("inventory_holder"),
-                AttachmentType.<AccessoriesHolder>builder(AccessoriesHolderImpl::of)
+                AttachmentType.builder(AccessoriesHolderImpl::of)
                         .serialize(InstanceCodecable.constructed(AccessoriesHolderImpl::new))
                         .copyOnDeath()
                         .build()
@@ -86,9 +84,7 @@ public class AccessoriesForge {
     }
 
     public void registerStuff(RegisterEvent event){
-        event.register(Registries.MENU, (helper) -> {
-            Accessories.registerMenuType();
-        });
+        event.register(Registries.MENU, (helper) -> Accessories.registerMenuType());
     }
 
     public void onEntityDeath(LivingDeathEvent event){

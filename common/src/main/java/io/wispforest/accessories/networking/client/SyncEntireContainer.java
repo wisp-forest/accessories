@@ -1,6 +1,6 @@
 package io.wispforest.accessories.networking.client;
 
-import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.networking.AccessoriesPacket;
 import net.fabricmc.api.EnvType;

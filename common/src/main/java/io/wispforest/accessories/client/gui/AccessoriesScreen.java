@@ -62,7 +62,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     public static boolean forceTooltipLeft = false;
 
-    private final Map<AccessoriesSlot, ToggleButton> cosmeticButtons = new LinkedHashMap<>();
+    private final Map<AccessoriesInternalSlot, ToggleButton> cosmeticButtons = new LinkedHashMap<>();
 
     private float xMouse;
     private float yMouse;
@@ -73,8 +73,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     public AccessoriesScreen(AccessoriesMenu menu, Inventory inventory, Component component) {
         super(menu, inventory, Component.empty());
-
-        this.leftPos +=
 
         this.titleLabelX = 97;
         //((ScreenAccessor) this).accessories$setTitle(component);
@@ -145,8 +143,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         IS_RENDERING_PLAYER = true;
         SCISSOR_BOX.set(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y);
 
-        if (hoveredSlot instanceof AccessoriesSlot accessoriesSlot) {
-            HOVERED_SLOT_TYPE = accessoriesSlot.container.getSlotName() +  accessoriesSlot.getContainerSlot();
+        if (hoveredSlot instanceof AccessoriesInternalSlot slot) {
+            HOVERED_SLOT_TYPE = slot.container.getSlotName() + slot.getContainerSlot();
         }
 
         renderEntityInInventoryFollowingMouseRotated(
@@ -211,7 +209,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             pose.translate(-1, -1, 0);
 
             pose.pushPose();
-            if (slot instanceof AccessoriesSlot accessoriesSlot) {
+            if (slot instanceof AccessoriesInternalSlot accessoriesSlot) {
                 var positionKey = accessoriesSlot.container.getSlotName() + accessoriesSlot.getContainerSlot();
 
                 if (!accessoriesSlot.isCosmetic && NOT_VERY_NICE_POSITIONS.containsKey(positionKey) && NOT_VERY_NICE_POSITIONS.get(positionKey) != null && (menu.areLinesShown()
@@ -258,7 +256,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (insideScrollbar(mouseX, mouseY) || (this.hoveredSlot != null && this.hoveredSlot instanceof AccessoriesSlot)) {
+        if (insideScrollbar(mouseX, mouseY) || (this.hoveredSlot != null && this.hoveredSlot instanceof AccessoriesInternalSlot)) {
             int index = (int) Math.max(Math.min(-scrollY + this.menu.scrolledIndex, this.menu.maxScrollableIndex), 0);
 
             if (index != menu.scrolledIndex) {
@@ -331,8 +329,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         //--
 
-        int tabIndex = 0;
-
         if(Accessories.getConfig().clientData.showGroupTabs) {
             for (var entry : getGroups(x, y).entrySet()) {
                 var group = entry.getKey();
@@ -366,8 +362,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 guiGraphics.blit(0, 0, 0, 8, 8, textureAtlasSprite);
 
                 poseStack.popPose();
-
-                tabIndex++;
             }
         }
 
@@ -470,7 +464,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         int aceesoriesSlots = 0;
 
         for (Slot slot : this.menu.slots) {
-            if (!(slot instanceof AccessoriesSlot accessoriesSlot && !accessoriesSlot.isCosmetic)) continue;
+            if (!(slot instanceof AccessoriesInternalSlot accessoriesSlot && !accessoriesSlot.isCosmetic)) continue;
 
             var slotButton = ToggleButton.toggleBuilder(Component.empty(), btn -> {
                 this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, slot.index);
@@ -569,7 +563,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     @Override
     protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
-        if (this.hoveredSlot instanceof AccessoriesSlot accessoriesSlot) {
+        if (this.hoveredSlot instanceof AccessoriesInternalSlot accessoriesSlot) {
 //            if (menu.areLinesShown() || (hoveredSlot != null && hoveredSlot.equals(accessoriesSlot) && accessoriesSlot.isActive() && !accessoriesSlot.getItem().isEmpty())) forceTooltipLeft = true;
             forceTooltipLeft = true;
             if (accessoriesSlot.getItem().isEmpty()) {

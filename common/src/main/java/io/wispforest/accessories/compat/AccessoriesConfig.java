@@ -5,8 +5,13 @@ import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Config(name = Accessories.MODID)
 public class AccessoriesConfig implements ConfigData {
+
+    //TODO: Add config for easier time adjusting slot count for given slot type
 
     @ConfigEntry.Gui.CollapsibleObject
     public ClientData clientData = new ClientData();
@@ -20,5 +25,12 @@ public class AccessoriesConfig implements ConfigData {
 
         public int creativeInventoryButtonXOffset = 319;
         public int creativeInventoryButtonYOffset = 122;
+    }
+
+    public List<SlotAmountModifier> modifiers = new ArrayList<>();
+
+    public static class SlotAmountModifier {
+        public String slotType;
+        public int amount = 0;
     }
 }

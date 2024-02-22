@@ -103,6 +103,14 @@ public class AccessoriesAPI {
 
     //--
 
+    /**
+     * Attempts to get any at all AttributeModifier's found on the stack either though NBT or the Accessory bound
+     * to the {@link ItemStack}'s item
+     *
+     * @param stack     Current Stack
+     * @param reference Reference to the stack within the {@link AccessoriesContainer}
+     * @param uuid      The UUID based on the SlotType and index of the stack
+     */
     public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(ItemStack stack, SlotReference reference, UUID uuid){
         Multimap<Attribute, AttributeModifier> multimap = HashMultimap.create();
 
@@ -188,6 +196,13 @@ public class AccessoriesAPI {
         return getPredicateResults(predicates, reference, stack) && canEquip(stack, reference);
     }
 
+    /**
+     * Method used to check weather or not the given stack can be equipped within the slot referenced
+     *
+     * @param stack
+     * @param reference
+     * @return if the stack can be equipped or not
+     */
     public static boolean canEquip(ItemStack stack, SlotReference reference){
         var accessory = getOrDefaultAccessory(stack);
 
@@ -198,6 +213,13 @@ public class AccessoriesAPI {
         return accessory.canEquip(stack, reference);
     }
 
+    /**
+     * Method used to check weather or not the given stack can be unequipped within the slot referenced
+     *
+     * @param stack
+     * @param reference
+     * @return if the stack can be unequipped or not
+     */
     public static boolean canUnequip(ItemStack stack, SlotReference reference){
         var accessory = getOrDefaultAccessory(stack);
 

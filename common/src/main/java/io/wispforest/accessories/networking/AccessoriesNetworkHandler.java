@@ -72,15 +72,7 @@ public abstract class AccessoriesNetworkHandler {
        sendToTrackingAndSelf(entity, (Supplier<M>) () -> packet);
     }
 
-    public <M extends AccessoriesPacket> void sendToTrackingAndSelf(Entity entity, Supplier<M> packet) {
-        if(entity.level().isClientSide) return;
-
-        var players = AccessoriesInternals.getTracking(entity);
-
-        for (var player : players) sendToPlayer(player, packet.get());
-
-        if(entity instanceof ServerPlayer serverPlayer) sendToPlayer(serverPlayer, packet.get());
-    }
+    public abstract <M extends AccessoriesPacket> void sendToTrackingAndSelf(Entity entity, Supplier<M> packet);
 
     public record NetworkPacketBuilder<M extends AccessoriesPacket>(ResourceLocation location, Class<M> clazz, Supplier<M> supplier) {
         public static <M extends AccessoriesPacket> NetworkPacketBuilder<M> of(Class<M> clazz, Supplier<M> supplier){

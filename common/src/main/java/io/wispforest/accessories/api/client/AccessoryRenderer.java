@@ -3,8 +3,10 @@ package io.wispforest.accessories.api.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
+import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.mixin.ModelPartAccessor;
+import io.wispforest.accessories.client.AccessoriesRenderLayer;
+import io.wispforest.accessories.mixin.client.ModelPartAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -28,6 +30,24 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface AccessoryRenderer {
 
+    /**
+     * Render method called within the {@link AccessoriesRenderLayer#render(PoseStack, MultiBufferSource, int, LivingEntity, float, float, float, float, float, float)} when
+     * rendering a given Accessory on a given {@link LivingEntity}
+     *
+     * @param isRendering Weather or not the given Accessory should or should not be rendered
+     * @param stack       The current stack
+     * @param reference   Reference to the slot based on its type, entity and index within the {@link AccessoriesContainer}
+     * @param matrices
+     * @param model
+     * @param multiBufferSource
+     * @param light
+     * @param limbSwing
+     * @param limbSwingAmount
+     * @param partialTicks
+     * @param ageInTicks
+     * @param netHeadYaw
+     * @param headPitch
+     */
     <M extends LivingEntity> void render(
             boolean isRendering,
             ItemStack stack,
@@ -63,21 +83,8 @@ public interface AccessoryRenderer {
             int light
     ) {
         if (!shouldRenderInFirstPerson(HumanoidArm.RIGHT, stack, reference)) return;
-        this.render(
-                isRendering,
-                stack,
-                reference,
-                matrices,
-                model,
-                multiBufferSource,
-                light,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0
-        );
+
+        this.render(isRendering, stack, reference, matrices, model, multiBufferSource, light, 0, 0, 0, 0, 0, 0);
     }
 
     default <M extends LivingEntity> void renderOnFirstPersonLeftArm(
@@ -90,21 +97,8 @@ public interface AccessoryRenderer {
             int light
     ) {
         if (!shouldRenderInFirstPerson(HumanoidArm.LEFT, stack, reference)) return;
-        this.render(
-                isRendering,
-                stack,
-                reference,
-                matrices,
-                model,
-                multiBufferSource,
-                light,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0
-        );
+
+        this.render(isRendering, stack, reference, matrices, model, multiBufferSource, light, 0, 0, 0, 0, 0, 0);
     }
 
     /**

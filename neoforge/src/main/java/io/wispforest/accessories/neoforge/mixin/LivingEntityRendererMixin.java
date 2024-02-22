@@ -20,8 +20,6 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void attemptToAddLayer(EntityRendererProvider.Context context, EntityModel model, float shadowRadius, CallbackInfo ci){
-        if(model instanceof HumanoidModel){
-            this.addLayer(new AccessoriesRenderLayer<>((LivingEntityRenderer<T, M>)(Object)this));
-        }
+        if(model instanceof HumanoidModel) this.addLayer(new AccessoriesRenderLayer<>((LivingEntityRenderer<T, M>)(Object)this));
     }
 }

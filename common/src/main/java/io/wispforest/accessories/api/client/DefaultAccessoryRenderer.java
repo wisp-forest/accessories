@@ -23,11 +23,9 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private static final Map<String, RenderHelper> DEFAULT_HELPERS;
-
     //--
 
-    public static final DefaultAccessoryRenderer INSTANCE = new DefaultAccessoryRenderer();
+    public static final DefaultAccessoryRenderer INSTANCE;
 
     private final Map<String, RenderHelper> slotToHelpers = new HashMap<>();
 
@@ -56,7 +54,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
 
         var helper = slotToHelpers.get(slotName);
 
-        helper.render(render, matrices, humanoidModel, reference);
+        if(helper != null) helper.render(render, matrices, humanoidModel, reference);
     }
 
     @Override
@@ -69,6 +67,8 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
     }
 
     //--
+
+    private static final Map<String, RenderHelper> DEFAULT_HELPERS;
 
     static {
         DEFAULT_HELPERS = Map.ofEntries(
@@ -174,5 +174,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                     }
                 })
         );
+
+        INSTANCE = new DefaultAccessoryRenderer();
     }
 }

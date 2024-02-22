@@ -29,14 +29,6 @@ import java.util.function.UnaryOperator;
 public class AccessoriesInternals {
 
     /**
-     * @return {@link AccessoriesCapability} attached to a given {@link LivingEntity} based on the Platforms method for getting such
-     */
-    @ExpectPlatform
-    public static Optional<AccessoriesCapability> getCapability(LivingEntity livingEntity){
-        throw new AssertionError();
-    }
-
-    /**
      * @return {@link AccessoriesHolder} attached to a given {@link LivingEntity} based on the Platforms method for getting such
      */
     @ExpectPlatform
@@ -65,11 +57,6 @@ public class AccessoriesInternals {
     }
 
     @ExpectPlatform
-    public static Collection<ServerPlayer> getTracking(Entity entity){
-        throw new AssertionError();
-    }
-
-    @ExpectPlatform
     public static void giveItemToPlayer(ServerPlayer player, ItemStack stack){
         throw new AssertionError();
     }
@@ -81,7 +68,7 @@ public class AccessoriesInternals {
 
     @ExpectPlatform
     public static Optional<IEventBus> getBus() {
-        return Optional.empty();
+        throw new AssertionError();
     }
 
     @ExpectPlatform

@@ -5,9 +5,15 @@ import io.wispforest.accessories.compat.AccessoriesConfig;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.packs.repository.PackRepository;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.level.storage.WorldData;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 public class Accessories {
 

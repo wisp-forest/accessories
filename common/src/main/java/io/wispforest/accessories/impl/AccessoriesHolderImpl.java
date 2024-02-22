@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.*;
 
-public class AccessoriesHolderImpl implements AccessoriesHolder {
+public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecable {
 
     private final Map<String, AccessoriesContainer> slotContainers = new HashMap<>();
 
@@ -34,6 +34,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
         return holder;
     }
 
+
+    @Override
     public boolean cosmeticsShown() {
         return this.cosmeticsShown;
     }
@@ -68,6 +70,11 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
         return this;
     }
 
+    @Override
+    public Map<String, AccessoriesContainer> getSlotContainers() {
+        return slotContainers;
+    }
+
     public void init(AccessoriesCapability capability) {
         var livingEntity = capability.getEntity();
 
@@ -80,18 +87,11 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
             });
 
             read(livingEntity, this.tag);
-
-            return;
         } else {
             EntitySlotLoader.getEntitySlots(livingEntity).forEach((s, slotType) -> {
                 slotContainers.put(s, new AccessoriesContainerImpl(capability, slotType));
             });
         }
-    }
-
-    @Override
-    public Map<String, AccessoriesContainer> getSlotContainers() {
-        return slotContainers;
     }
 
     public static final String MAIN_KEY = "Accessories";
@@ -107,7 +107,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
         for (var entry : this.slotContainers.entrySet()) {
             var containerTag = new CompoundTag();
 
-            entry.getValue().write(containerTag);
+            ((AccessoriesContainerImpl) entry.getValue()).write(containerTag);
 
             main.put(entry.getKey(), containerTag);
         }
@@ -137,7 +137,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder {
                 var prevAccessories = AccessoriesContainerImpl.copyContainerList(container.getAccessories());
                 var prevCosmetics = AccessoriesContainerImpl.copyContainerList(container.getCosmeticAccessories());
 
-                container.read(containerTag);
+                ((AccessoriesContainerImpl) container).read(containerTag);
 
                 if (prevAccessories.getContainerSize() > container.getSize()) {
                     for (int i = container.getSize() - 1; i < prevAccessories.getContainerSize(); i++) {

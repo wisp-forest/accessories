@@ -9,6 +9,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.impl.SlotTypeImpl;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -70,6 +71,12 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
     protected void apply(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler) {
         server.clear();
 
+        var additionalModifiers = new HashMap<String, Integer>();
+
+        for (AccessoriesConfig.SlotAmountModifier modifier : Accessories.getConfig().modifiers) {
+            additionalModifiers.put(modifier.slotType, modifier.amount);
+        }
+
         for (var resourceEntry : data.entrySet()) {
             var location = resourceEntry.getKey();
             var jsonObject = resourceEntry.getValue();
@@ -101,6 +108,8 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
                 slotBuilder.subtractAmount(amount);
             }
+
+            slotBuilder.addAmount(additionalModifiers.getOrDefault(slotName, 0));
 
             var validators = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "validator_predicates", new JsonArray(), location);
 

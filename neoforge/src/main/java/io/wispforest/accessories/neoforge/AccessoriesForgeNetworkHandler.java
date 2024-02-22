@@ -42,27 +42,25 @@ public class AccessoriesForgeNetworkHandler extends AccessoriesNetworkHandler {
 
     @Override
     public void init() {
-        for (ResourceLocation location : List.copyOf(s2cBuilders.keySet())) {
-            if(!c2sBuilders.containsKey(location)) continue;
+        for (ResourceLocation location : List.copyOf(this.s2cBuilders.keySet())) {
+            if(!this.c2sBuilders.containsKey(location)) continue;
 
-            var builder = s2cBuilders.get(location);
+            var builder = this.s2cBuilders.get(location);
 
             builder.registerPacket(this::registerBoth);
 
-            s2cBuilders.remove(location);
-            c2sBuilders.remove(location);
+            this.s2cBuilders.remove(location);
+            this.c2sBuilders.remove(location);
         }
 
-        s2cBuilders.forEach((location, builder) -> builder.registerPacket(this::registerS2C));
-        c2sBuilders.forEach((location, builder) -> builder.registerPacket(this::registerC2S));
+        this.s2cBuilders.forEach((location, builder) -> builder.registerPacket(this::registerS2C));
+        this.c2sBuilders.forEach((location, builder) -> builder.registerPacket(this::registerC2S));
     }
 
     protected <M extends AccessoriesPacket> void registerC2S(Class<M> messageType, Supplier<M> supplier) {
         var location = getId(messageType);
 
-        registrar.play(
-                location,
-                buf -> new AccessoriesForgePacket<>(supplier.get().readPacket(buf)),
+        registrar.play(location, buf -> AccessoriesPacket.read(supplier, buf),
                 builder -> {
                     builder.server(
                             (arg, iPayloadContext) -> {
@@ -74,9 +72,7 @@ public class AccessoriesForgeNetworkHandler extends AccessoriesNetworkHandler {
                                     return;
                                 }
 
-                                iPayloadContext.workHandler().execute(() -> {
-                                    arg.innerPacket().handle(player.get());
-                                });
+                                iPayloadContext.workHandler().execute(() -> arg.handle(player.get()));
                             });
                 }
         );
@@ -85,9 +81,7 @@ public class AccessoriesForgeNetworkHandler extends AccessoriesNetworkHandler {
     protected <M extends AccessoriesPacket> void registerS2C(Class<M> messageType, Supplier<M> supplier) {
         var location = getId(messageType);
 
-        registrar.play(
-                location,
-                buf -> AccessoriesForgePacket.of(supplier, buf),
+        registrar.play(location, buf -> AccessoriesPacket.read(supplier, buf),
                 builder -> {
                     builder.client(
                             (arg, iPayloadContext) -> {
@@ -101,7 +95,7 @@ public class AccessoriesForgeNetworkHandler extends AccessoriesNetworkHandler {
                                         return;
                                     }
 
-                                    arg.innerPacket().handle(player.get());
+                                    arg.handle(player.get());
                                 });
                             });
                 }
@@ -111,11 +105,9 @@ public class AccessoriesForgeNetworkHandler extends AccessoriesNetworkHandler {
     protected <M extends AccessoriesPacket> void registerBoth(Class<M> messageType, Supplier<M> supplier) {
         var location = getId(messageType);
 
-        registrar.play(
-                location,
-                buf -> AccessoriesForgePacket.of(supplier, buf),
+        registrar.play(location, buf -> AccessoriesPacket.read(supplier, buf),
                 builder -> {
-                    IPlayPayloadHandler<AccessoriesForgePacket<M>> handler = (arg, iPayloadContext) -> {
+                    IPlayPayloadHandler<M> handler = (arg, iPayloadContext) -> {
                         var player = iPayloadContext.player();
 
                         if(player.isEmpty()) {
@@ -124,9 +116,7 @@ public class AccessoriesForgeNetworkHandler extends AccessoriesNetworkHandler {
                             return;
                         }
 
-                        iPayloadContext.workHandler().execute(() -> {
-                            arg.innerPacket().handle(player.get());
-                        });
+                        iPayloadContext.workHandler().execute(() -> arg.handle(player.get()));
                     };
 
                     builder.client(handler)
@@ -137,16 +127,16 @@ public class AccessoriesForgeNetworkHandler extends AccessoriesNetworkHandler {
 
     @Override
     public <M extends AccessoriesPacket> void sendToServer(M packet) {
-        PacketDistributor.SERVER.with(null).send(new AccessoriesForgePacket<>(packet));
+        PacketDistributor.SERVER.with(null).send(packet);
     }
 
     @Override
     public <M extends AccessoriesPacket> void sendToPlayer(ServerPlayer player, M packet) {
-        PacketDistributor.PLAYER.with(player).send(new AccessoriesForgePacket<>(packet));
+        PacketDistributor.PLAYER.with(player).send(packet);
     }
 
     @Override
     public <M extends AccessoriesPacket> void sendToTrackingAndSelf(Entity entity, Supplier<M> packet) {
-        PacketDistributor.TRACKING_ENTITY_AND_SELF.with(entity).send(new AccessoriesForgePacket<>(packet.get()));
+        PacketDistributor.TRACKING_ENTITY_AND_SELF.with(entity).send(packet.get());
     }
 }

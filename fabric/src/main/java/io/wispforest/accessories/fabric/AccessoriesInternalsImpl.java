@@ -3,6 +3,7 @@ package io.wispforest.accessories.fabric;
 import com.google.gson.JsonObject;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
+import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
@@ -32,16 +33,12 @@ import java.util.function.UnaryOperator;
 
 public class AccessoriesInternalsImpl {
 
-    public static Optional<AccessoriesCapability> getCapability(LivingEntity livingEntity){
-        return Optional.ofNullable(AccessoriesFabric.CAPABILITY.find(livingEntity, null));
-    }
-
     public static AccessoriesHolder getHolder(LivingEntity livingEntity){
         return livingEntity.getAttachedOrCreate(AccessoriesFabric.HOLDER_ATTACHMENT_TYPE);
     }
 
-    public static void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolder> modifier){
-        var holder = getHolder(livingEntity);
+    public static void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolderImpl> modifier){
+        var holder = (AccessoriesHolderImpl) getHolder(livingEntity);
 
         holder = modifier.apply(holder);
 
@@ -53,24 +50,23 @@ public class AccessoriesInternalsImpl {
     }
 
     public static <T> Optional<Collection<Holder<T>>> getHolder(TagKey<T> tagKey){
-        var map = ResourceConditionsImpl.LOADED_TAGS.get();
-
-        var tags = map.get(tagKey.registry());
+        var tags = ResourceConditionsImpl.LOADED_TAGS.get().get(tagKey.registry());
 
         if(tags == null) return Optional.empty();
 
-        var converted = (Collection<Holder<T>>) tags.get(tagKey.location()).stream().map(holder -> (Holder<T>) holder).toList();
+        var converted = (Collection<Holder<T>>) tags.get(tagKey.location())
+                .stream()
+                .map(holder -> (Holder<T>) holder)
+                .toList();
 
         return Optional.of(converted);
     }
 
     //--
 
-    public static Collection<ServerPlayer> getTracking(Entity entity) {
-        return PlayerLookup.tracking(entity);
-    }
-
     public static void giveItemToPlayer(ServerPlayer player, ItemStack stack) {
+        if(stack.isEmpty()) return;
+
         try(var transaction = Transaction.openOuter()) {
             PlayerInventoryStorage.of(player).offerOrDrop(ItemVariant.of(stack), stack.getCount(), transaction);
             transaction.commit();

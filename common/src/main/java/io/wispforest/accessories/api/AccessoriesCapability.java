@@ -3,6 +3,7 @@ package io.wispforest.accessories.api;
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -17,7 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-public interface AccessoriesCapability extends InstanceCodecable {
+public interface AccessoriesCapability {
 
     /**
      * @return The Capability Bound to the given living entity if such is present
@@ -28,12 +29,23 @@ public interface AccessoriesCapability extends InstanceCodecable {
 
     //--
 
+    /**
+     * @return The bound entity to the given AccessoriesCapability instance
+     */
     LivingEntity getEntity();
 
+    /**
+     * @return The bound data holder to the given LivingEntity
+     */
     AccessoriesHolder getHolder();
+
+    //--
 
     void clear();
 
+    /**
+     * @return A Map containing all the {@link AccessoriesContainer}s with their {@link SlotType#name()} as the key
+     */
     Map<String, AccessoriesContainer> getContainers();
 
     //--

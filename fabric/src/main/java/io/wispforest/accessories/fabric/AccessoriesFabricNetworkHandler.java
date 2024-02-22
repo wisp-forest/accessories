@@ -5,10 +5,14 @@ import io.wispforest.accessories.networking.AccessoriesPacket;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.FabricPacket;
 import net.fabricmc.fabric.api.networking.v1.PacketType;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -23,22 +27,20 @@ public class AccessoriesFabricNetworkHandler extends AccessoriesNetworkHandler {
 
     @Override
     public void init() {
-        s2cBuilders.forEach((location, builder) -> builder.registerPacket(this::registerS2CDeferred));
+        this.s2cBuilders.forEach((location, builder) -> builder.registerPacket(this::registerS2CDeferred));
 
-        c2sBuilders.forEach((location, builder) -> builder.registerPacket(this::registerC2S));
+        this.c2sBuilders.forEach((location, builder) -> builder.registerPacket(this::registerC2S));
     }
 
     @Environment(EnvType.CLIENT)
     public void initClient() {
-        s2cBuilders.forEach((location, builder) -> builder.registerPacket(this::registerS2C));
+        this.s2cBuilders.forEach((location, builder) -> builder.registerPacket(this::registerS2C));
 
-        c2sBuilders.forEach((location, builder) -> builder.registerPacket(this::registerC2S));
+        this.c2sBuilders.forEach((location, builder) -> builder.registerPacket(this::registerC2S));
     }
 
     protected <M extends AccessoriesPacket> void registerC2S(Class<M> messageType, Supplier<M> supplier) {
-        PacketType<AccessoriesFabricPacket<?>> type = getOrCreate(messageType, supplier);
-
-        ServerPlayNetworking.registerGlobalReceiver(type, (packet, player, responseSender) -> packet.innerPacket().handle(player));
+        ServerPlayNetworking.registerGlobalReceiver(getOrCreate(messageType, supplier), (packet, player, sender) -> packet.innerPacket().handle(player));
     }
 
     protected <M extends AccessoriesPacket> void registerS2CDeferred(Class<M> messageType, Supplier<M> supplier) {
@@ -47,16 +49,14 @@ public class AccessoriesFabricNetworkHandler extends AccessoriesNetworkHandler {
 
     @Environment(EnvType.CLIENT)
     protected <M extends AccessoriesPacket> void registerS2C(Class<M> messageType, Supplier<M> supplier) {
-        PacketType<AccessoriesFabricPacket<?>> type = getOrCreate(messageType, supplier);
-
         //TODO: CLASS LOADING ISSUE!
-        ClientPlayNetworking.registerGlobalReceiver(type, (packet, player, responseSender) -> packet.innerPacket().handle(player));
+        ClientPlayNetworking.registerGlobalReceiver(getOrCreate(messageType, supplier), (packet, player, sender) -> packet.innerPacket().handle(player));
     }
 
     private <M extends AccessoriesPacket> PacketType<AccessoriesFabricPacket<?>> getOrCreate(Class<M> messageType, Supplier<M> supplier){
         return packetTypes.computeIfAbsent(
                 getId(messageType),
-                location -> PacketType.create(location, buf -> new AccessoriesFabricPacket<>(supplier.get().readPacket(buf)))
+                location -> PacketType.create(location, buf -> new AccessoriesFabricPacket<>(AccessoriesPacket.read(supplier, buf)))
         );
     }
 
@@ -71,8 +71,35 @@ public class AccessoriesFabricNetworkHandler extends AccessoriesNetworkHandler {
         ServerPlayNetworking.send(player, new AccessoriesFabricPacket<>(packet));
     }
 
+    @Override
+    public <M extends AccessoriesPacket> void sendToTrackingAndSelf(Entity entity, Supplier<M> packet) {
+        if(entity.level().isClientSide) return;
+
+        for (var player : PlayerLookup.tracking(entity)) sendToPlayer(player, packet.get());
+
+        if(entity instanceof ServerPlayer serverPlayer) sendToPlayer(serverPlayer, packet.get());
+    }
+
     @Nullable
     public <M extends AccessoriesPacket> PacketType<AccessoriesFabricPacket<?>> get(Class<M> mClass){
-        return packetTypes.get(getId(mClass));
+        return this.packetTypes.get(getId(mClass));
+    }
+
+    private record AccessoriesFabricPacket<P extends AccessoriesPacket>(P innerPacket) implements FabricPacket {
+        @Override
+        public void write(FriendlyByteBuf buf) {
+            this.innerPacket.write(buf);
+        }
+
+        @Override
+        public PacketType<?> getType() {
+            var clazz = this.innerPacket.getClass();
+
+            var packetType = INSTANCE.get(clazz);
+
+            if(packetType == null) throw new IllegalStateException("Unable to get the FabricPacket Type for the following class! [Name: " + clazz + "]");
+
+            return packetType;
+        }
     }
 }

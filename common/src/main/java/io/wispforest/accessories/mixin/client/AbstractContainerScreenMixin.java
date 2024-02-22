@@ -1,4 +1,4 @@
-package io.wispforest.accessories.mixin;
+package io.wispforest.accessories.mixin.client;
 
 import io.wispforest.accessories.pond.ContainerScreenExtension;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
