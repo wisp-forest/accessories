@@ -2,6 +2,7 @@ package io.wispforest.accessories.impl;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 
 import java.util.Iterator;
 import java.util.function.BiConsumer;
+import java.util.function.IntFunction;
 
 /**
  * An implementation of SimpleContainer with easy utilities for iterating over the stacks
@@ -25,7 +27,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     private final String name;
     private final NonNullList<ItemStack> previousItems;
 
-    public ExpandedSimpleContainer(int size) {
+    private ExpandedSimpleContainer(int size) {
         this(size, "");
     }
 
@@ -36,7 +38,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         this.previousItems = NonNullList.withSize(size, ItemStack.EMPTY);
     }
 
-    public ExpandedSimpleContainer(ItemStack... items) {
+    private ExpandedSimpleContainer(ItemStack... items) {
         super(items);
 
         this.name = "";

@@ -1,5 +1,6 @@
 package io.wispforest.accessories.api;
 
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
@@ -25,6 +26,10 @@ public interface AccessoriesContainer {
      */
     default Optional<SlotType> slotType() {
         return SlotTypeLoader.getSlotType(this.capability().getEntity().level(), this.getSlotName());
+    }
+
+    default SlotReference createReference(int index){
+        return new SlotReference(getSlotName(), capability().getEntity(), index);
     }
 
     /**

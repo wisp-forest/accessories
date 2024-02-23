@@ -4,6 +4,8 @@ import dev.emi.trinkets.api.LivingEntityTrinketComponent;
 import dev.emi.trinkets.api.SlotReference;
 import dev.emi.trinkets.api.TrinketConstants;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.data.SlotTypeLoader;
 
 import java.util.Optional;
 

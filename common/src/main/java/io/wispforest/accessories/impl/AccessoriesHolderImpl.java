@@ -11,7 +11,7 @@ import java.util.*;
 
 public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecable {
 
-    private final Map<String, AccessoriesContainer> slotContainers = new HashMap<>();
+    private final Map<String, AccessoriesContainer> slotContainers = new LinkedHashMap<>();
 
     protected final List<ItemStack> invalidStacks = new ArrayList<>();
     protected final Set<AccessoriesContainer> containersRequiringUpdates = new HashSet<>();

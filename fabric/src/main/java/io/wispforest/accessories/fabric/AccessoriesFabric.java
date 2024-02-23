@@ -23,6 +23,7 @@ import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.transfer.v1.storage.TransferVariant;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -155,5 +156,4 @@ public class AccessoriesFabric implements ModInitializer {
             return new HashSet<>(dependencies);
         }
     }
-
 }

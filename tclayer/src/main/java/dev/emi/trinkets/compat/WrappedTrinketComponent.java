@@ -5,6 +5,7 @@ import dev.emi.trinkets.api.*;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.data.SlotGroupLoader;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.LivingEntity;
