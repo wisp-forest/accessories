@@ -58,15 +58,16 @@ public class AccessoriesBasedSlot extends Slot {
         return AccessoriesAPI.canUnequip(this.getItem(), new SlotReference(this.accessoriesContainer.getSlotName(), this.entity, this.getContainerSlot()));
     }
 
+    protected ResourceLocation icon(){
+        return this.accessoriesContainer.slotType().map(SlotType::icon).orElse(SlotType.EMPTY_SLOT_LOCATION);
+    }
+
     @Nullable
     @Override
     public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
         // Thanks to mojang you can not access the GUI atlas from this call and you must use Atlases from ModelManager.
         // )::::::::::::::::::::::::::::::
 
-        return new Pair<>(
-                new ResourceLocation("textures/atlas/blocks.png"),
-                this.accessoriesContainer.slotType().map(SlotType::icon).orElse(SlotType.EMPTY_SLOT_LOCATION)
-        );
+        return new Pair<>(new ResourceLocation("textures/atlas/blocks.png"), icon());
     }
 }

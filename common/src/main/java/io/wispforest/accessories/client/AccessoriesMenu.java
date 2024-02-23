@@ -57,8 +57,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
     private final Map<Integer, Boolean> slotToView = new HashMap<>();
 
-    public Runnable onScrollToEvent = () -> {
-    };
+    public Runnable onScrollToEvent = () -> {};
 
     public AccessoriesMenu(int containerId, Inventory inventory, boolean active, final Player owner) {
         super(Accessories.ACCESSORIES_MENU_TYPE, containerId);

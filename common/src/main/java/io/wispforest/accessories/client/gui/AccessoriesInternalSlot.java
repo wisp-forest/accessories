@@ -1,9 +1,11 @@
 package io.wispforest.accessories.client.gui;
 
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.SlotReference;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -38,6 +40,11 @@ public class AccessoriesInternalSlot extends AccessoriesBasedSlot {
         this.isAccessible = isAccessible;
 
         return this;
+    }
+
+    @Override
+    protected ResourceLocation icon() {
+        return (this.isCosmetic) ? Accessories.of("gui/slot/cosmetic") : super.icon();
     }
 
     @Override

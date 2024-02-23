@@ -79,7 +79,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
         var livingEntity = capability.getEntity();
 
         this.slotContainers.clear();
-        this.invalidStacks.clear();
+        //this.invalidStacks.clear();
 
         if (loadedFromTag) {
             EntitySlotLoader.getEntitySlots(livingEntity).forEach((s, slotType) -> {

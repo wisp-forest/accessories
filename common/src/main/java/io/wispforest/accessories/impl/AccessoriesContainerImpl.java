@@ -54,6 +54,11 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
         });
     }
 
+    public int getBaseSize(){
+        return this.baseSize;
+    }
+
+    @Override
     public void markChanged(){
         this.update = true;
 
@@ -68,7 +73,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         this.update = false;
 
-        var baseSize = this.baseSize;
+        int baseSize = slotType().map(SlotType::amount).orElse(this.baseSize);
 
         for(AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADDITION)){
             baseSize += modifier.getAmount();

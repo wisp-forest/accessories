@@ -81,6 +81,11 @@ public class CCLayer {
         }
 
         for (Item item : BuiltInRegistries.ITEM) {
+            // Force all items instanceof ICurioItem to register for Accessories systems
+            if(CuriosImplMixinHooks.getCurioFromRegistry(item).isEmpty() && item instanceof ICurioItem iCurioItem){
+                CuriosImplMixinHooks.registerCurio(item, iCurioItem);
+            }
+
             event.registerItem(CuriosCapability.ITEM, (stack, ctx) -> {
                 Item it = stack.getItem();
                 ICurioItem curioItem = CuriosImplMixinHooks.getCurioFromRegistry(item).orElse(null);
@@ -165,6 +170,8 @@ public class CCLayer {
                             if (curiosBuilder.dropRule != null) {
                                 builder.dropRule(CuriosWrappingUtils.convert(curiosBuilder.dropRule));
                             }
+
+                            builder.alternativeTranslation("curios.identifier." + entry.getKey());
 
                             map.put(accessoryType, builder.create());
                         }

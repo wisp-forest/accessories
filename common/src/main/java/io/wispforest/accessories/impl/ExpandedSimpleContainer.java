@@ -93,7 +93,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     }
 
     // Simple validation method to make sure that the given access is valid before attempting an operation
-    private boolean validIndex(int slot){
+    public boolean validIndex(int slot){
         var isValid = slot >= 0 && slot < this.getContainerSize();
 
         var nameInfo = (this.name != null ? "Container: " + this.name + ", " : "");

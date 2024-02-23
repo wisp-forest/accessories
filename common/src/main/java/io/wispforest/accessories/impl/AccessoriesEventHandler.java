@@ -40,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @ApiStatus.Internal
 public class AccessoriesEventHandler {
@@ -56,12 +57,17 @@ public class AccessoriesEventHandler {
 
             var validSlotTypes = EntitySlotLoader.getEntitySlots(player).values();
 
-            for (var containerEntry : capability.get().getContainers().entrySet()) {
-                var slotType = SlotTypeLoader.getSlotType(level, containerEntry.getKey());
-
-                var container = containerEntry.getValue();
+            for (var container : capability.get().getContainers().values()) {
+                var slotType = container.slotType();
 
                 if(slotType.isPresent() && validSlotTypes.contains(slotType.get())){
+                    var baseSize = ((AccessoriesContainerImpl) container).getBaseSize();
+
+                    if(baseSize != slotType.get().amount()) {
+                        container.markChanged();
+                        container.update();
+                    }
+
                     var stacks = container.getAccessories();
                     var cosmeticStacks = container.getCosmeticAccessories();
 
@@ -110,7 +116,7 @@ public class AccessoriesEventHandler {
                 .ifPresent(capability -> {
                     var tag = new CompoundTag();
 
-                    capability.getHolder().write(tag);
+                    ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
 
                     AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(tag, capability.getEntity().getId()));
                 });
@@ -121,7 +127,7 @@ public class AccessoriesEventHandler {
                 .ifPresent(capability -> {
                     var tag = new CompoundTag();
 
-                    capability.getHolder().write(tag);
+                    ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
 
                     AccessoriesInternals.getNetworkHandler().sendToPlayer(player, new SyncEntireContainer(tag, capability.getEntity().getId()));
                 });
@@ -142,7 +148,7 @@ public class AccessoriesEventHandler {
                 AccessoriesCapability.get(player1).ifPresent(capability -> {
                     var tag = new CompoundTag();
 
-                    capability.getHolder().write(tag);
+                    ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
 
                     networkHandler.sendToTrackingAndSelf(player1, new SyncEntireContainer(tag, capability.getEntity().getId()));
                 });
@@ -158,7 +164,7 @@ public class AccessoriesEventHandler {
             AccessoriesCapability.get(player).ifPresent(capability -> {
                 var tag = new CompoundTag();
 
-                capability.getHolder().write(tag);
+                ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
 
                 networkHandler.sendToPlayer(player, new SyncEntireContainer(tag, capability.getEntity().getId()));
             });
@@ -261,26 +267,36 @@ public class AccessoriesEventHandler {
                     }
                 }
             }
+        }
 
-            if(!entity.level().isClientSide()) {
-                Set<AccessoriesContainer> updatedContainers = capability.getUpdatingInventories();
+        if(!entity.level().isClientSide()) {
+            Set<AccessoriesContainer> updatedContainers = capability.getUpdatingInventories();
 
-                if(!dirtyStacks.isEmpty() || !dirtyCosmeticStacks.isEmpty() || !updatedContainers.isEmpty()) {
-                    var packet = new SyncContainerData(entity.getId(), updatedContainers, dirtyStacks, dirtyCosmeticStacks);
+            if(!dirtyStacks.isEmpty() || !dirtyCosmeticStacks.isEmpty() || !updatedContainers.isEmpty()) {
+                var packet = new SyncContainerData(entity.getId(), updatedContainers, dirtyStacks, dirtyCosmeticStacks);
 
-                    var bufData = AccessoriesNetworkHandler.createBuf();
+                var bufData = AccessoriesNetworkHandler.createBuf();
 
-                    packet.write(bufData);
+                packet.write(bufData);
 
-                    var networkHandler = AccessoriesInternals.getNetworkHandler();
+                var networkHandler = AccessoriesInternals.getNetworkHandler();
 
-                    networkHandler.sendToTrackingAndSelf(entity, (Supplier<SyncContainerData>) () -> new SyncContainerData(bufData));
+                networkHandler.sendToTrackingAndSelf(entity, (Supplier<SyncContainerData>) () -> new SyncContainerData(bufData));
 
-                    bufData.release();
-                }
-
-                updatedContainers.clear();
+                bufData.release();
             }
+
+            updatedContainers.clear();
+        }
+
+        if(!entity.level().isClientSide()) {
+            var invalidStacks = ((AccessoriesHolderImpl) capability.getHolder()).invalidStacks;
+
+            for (ItemStack invalidStack : invalidStacks) {
+                if(entity instanceof ServerPlayer serverPlayer) AccessoriesInternals.giveItemToPlayer(serverPlayer, invalidStack);
+            }
+
+            invalidStacks.clear();
         }
     }
 
@@ -291,7 +307,10 @@ public class AccessoriesEventHandler {
 
         // TODO: MAYBE DEPENDING ON ENTITY OR SOMETHING SHOW ALL VALID SLOTS BUT COLOR CODE THEM IF NOT VALID FOR ENTITY?
         var slotTypes = new HashSet<>(AccessoriesAPI.getValidSlotTypes(entity, stack));
-        var allSlotTypes = SlotTypeLoader.getSlotTypes(entity.level());
+        var allSlotTypes = SlotTypeLoader.getSlotTypes(entity.level()).values()
+                .stream()
+                .filter(slotType -> slotType.amount() > 0)
+                .collect(Collectors.toSet());
 
         if(slotTypes.isEmpty()) return;
 
@@ -304,7 +323,7 @@ public class AccessoriesEventHandler {
         var slotsComponent = Component.literal("");
         boolean allSlots = false;
 
-        if(slotTypes.containsAll(allSlotTypes.values())) {
+        if(slotTypes.containsAll(allSlotTypes)) {
             slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
             allSlots = true;
         } else {

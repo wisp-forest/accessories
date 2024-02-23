@@ -3,8 +3,10 @@ package io.wispforest.accessories.client.gui;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotGroup;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.data.SlotGroupLoader;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.networking.server.MenuScroll;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
@@ -37,6 +39,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.lang.Math;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class AccessoriesScreen extends EffectRenderingInventoryScreen<AccessoriesMenu> implements ContainerScreenExtension {
 
@@ -623,16 +626,23 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         var groupToIndex = new HashMap<SlotGroup, Integer>();
 
         for (var group : groups) {
+            var groupSize = group.slots().stream()
+                    .map(s -> SlotTypeLoader.getSlotType(Minecraft.getInstance().player.clientLevel, s))
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .mapToInt(SlotType::amount)
+                    .sum();
+
             var bottomIndex = this.menu.scrolledIndex;
             var upperIndex = bottomIndex + 8;
 
-            if(currentIndexOffset >= bottomIndex && (currentIndexOffset + group.slots().size()) < upperIndex){
+            if(currentIndexOffset >= bottomIndex && ((currentIndexOffset + groupSize) - 1) < upperIndex){
                 selectedGroup.add(group.name());
             }
 
             groupToIndex.put(group, currentIndexOffset);
 
-            currentIndexOffset += group.slots().size();
+            currentIndexOffset += groupSize;
         }
 
         int maxHeight = getPanelHeight(8) - 4;

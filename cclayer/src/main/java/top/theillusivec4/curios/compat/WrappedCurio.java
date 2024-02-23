@@ -65,7 +65,7 @@ public class WrappedCurio implements Accessory, ImplementedEvents.LootingAdjustm
     public Multimap<Attribute, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid) {
         var context = CuriosWrappingUtils.create(reference);
 
-        var modifiers = getModifiers(stack, reference, uuid);
+        var modifiers = Accessory.super.getModifiers(stack, reference, uuid);
 
         modifiers.putAll(this.iCurioItem.getAttributeModifiers(context, uuid, stack));
 

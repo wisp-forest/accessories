@@ -24,9 +24,9 @@ repositories {
 dependencies {
     neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
 
-    compileOnly(project(path: ":common", configuration: "namedElements"))
+    modCompileOnly(project(path: ":common", configuration: "namedElements"))
 
-    modLocalRuntime("io.wispforest:accessories-neoforge:0.0.1-alpha.3")
+    modLocalRuntime("io.wispforest:accessories-neoforge:0.0.1-alpha.4")
 
 //    developmentNeoForge compileOnly(project(path: ":common", configuration: "namedElements")){
 //        transitive = false
