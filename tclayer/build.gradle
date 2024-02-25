@@ -63,9 +63,7 @@ processResources {
     }
 }
 
-loom {
-
-}
+loom {}
 
 publishing {
     publications {

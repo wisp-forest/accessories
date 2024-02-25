@@ -89,11 +89,6 @@ public interface AccessoriesCapability {
     //--
 
     /**
-     * @return If any {@link ItemStack} is equipped based on the passed predicate
-     */
-    boolean isEquipped(Predicate<ItemStack> predicate);
-
-    /**
      * @return If any {@link ItemStack} is equipped based on the given {@link Item} entry
      */
     default boolean isEquipped(Item item){
@@ -101,9 +96,15 @@ public interface AccessoriesCapability {
     }
 
     /**
-     * @return A list of all {@link SlotEntryReference}'s formatted within {@link SlotEntryReference} matching the passed predicate
+     * @return If any {@link ItemStack} is equipped based on the passed predicate
      */
-    List<SlotEntryReference> getEquipped(Predicate<ItemStack> predicate);
+    boolean isEquipped(Predicate<ItemStack> predicate);
+
+    default Optional<SlotEntryReference> getFirstEquipped(Item item){
+        return getFirstEquipped(stack -> stack.getItem() == item);
+    }
+
+    Optional<SlotEntryReference> getFirstEquipped(Predicate<ItemStack> predicate);
 
     /**
      * @return A list of all {@link ItemStack}'s formatted within {@link SlotEntryReference} matching the given {@link Item} entry
@@ -111,6 +112,11 @@ public interface AccessoriesCapability {
     default List<SlotEntryReference> getEquipped(Item item){
         return getEquipped(stack -> stack.getItem() == item);
     }
+
+    /**
+     * @return A list of all {@link SlotEntryReference}'s formatted within {@link SlotEntryReference} matching the passed predicate
+     */
+    List<SlotEntryReference> getEquipped(Predicate<ItemStack> predicate);
 
     /**
      * @return A list of all {@link ItemStack}'s formatted within {@link SlotEntryReference}

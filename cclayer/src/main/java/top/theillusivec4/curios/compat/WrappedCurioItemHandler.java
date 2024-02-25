@@ -95,9 +95,7 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
 
     @Override
     public Optional<SlotResult> findFirstCurio(Predicate<ItemStack> filter) {
-        return this.capability.getEquipped(filter)
-                .stream()
-                .findFirst()
+        return this.capability.getFirstEquipped(filter)
                 .map(entry -> new SlotResult(CuriosWrappingUtils.create(entry.reference()), entry.stack()));
     }
 
@@ -207,12 +205,8 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
     }
 
     @Override
-    public void growSlotType(String identifier, int amount) {
-
-    }
+    public void growSlotType(String identifier, int amount) {}
 
     @Override
-    public void shrinkSlotType(String identifier, int amount) {
-
-    }
+    public void shrinkSlotType(String identifier, int amount) {}
 }

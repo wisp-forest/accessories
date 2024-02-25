@@ -18,6 +18,8 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 public class AccessoriesCapabilityImpl implements AccessoriesCapability, InstanceCodecable {
@@ -121,7 +123,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     @Override
     public void clearCachedSlotModifiers() {
-        Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
+        var slotModifiers = HashMultimap.<String, AttributeModifier>create();
 
         var containers = this.holder.getSlotContainers();
 
@@ -175,11 +177,13 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
             var slotType = continerEntry.getKey();
             var container = continerEntry.getValue();
 
+            if(container.getSize() <= 0) continue;
+
             var accessories = container.getAccessories();
 
             boolean isValid = AccessoriesAPI.canInsertIntoSlot(stack, new SlotReference(slotType, getEntity(), 0));
 
-            if(!isValid || container.getSize() <= 0) continue;
+            if(!isValid) continue;
 
             if(allowSwapping) validContainers.put(slotType, container);
 
@@ -198,10 +202,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
                         container.markChanged();
                     }
 
-                    return new SlotEntryReference(
-                            new SlotReference(container.getSlotName(), getEntity(), i),
-                            ItemStack.EMPTY
-                    );
+                    return new SlotEntryReference(new SlotReference(container.getSlotName(), getEntity(), i), ItemStack.EMPTY);
                 }
             }
         }
@@ -234,23 +235,33 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     @Override
     public boolean isEquipped(Predicate<ItemStack> predicate) {
-        for (var containerEntry : this.holder.getSlotContainers().entrySet()) {
-            for (var stackEntry : containerEntry.getValue().getAccessories()) {
+        return getFirstEquipped(predicate).isPresent();
+    }
+
+    public Optional<SlotEntryReference> getFirstEquipped(Predicate<ItemStack> predicate) {
+        for (var container : this.holder.getSlotContainers().values()) {
+            for (var stackEntry : container.getAccessories()) {
                 var stack = stackEntry.getSecond();
+
+                if(stack.isEmpty()) continue;
+
+                var reference = new SlotReference(container.getSlotName(), this.getEntity(), stackEntry.getFirst());
 
                 var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
 
-                if(predicate.test(stack)) return true;
+                if(predicate.test(stack)) return Optional.of(new SlotEntryReference(reference, stack));
 
                 if(accessory instanceof AccessoryNest holdable){
                     for (ItemStack innerStack : holdable.getInnerStacks(stackEntry.getSecond())) {
-                        if(predicate.test(innerStack)) return true;
+                        if(innerStack.isEmpty()) continue;
+
+                        if(predicate.test(innerStack)) return Optional.of(new SlotEntryReference(reference, innerStack));
                     }
                 }
             }
         }
 
-        return false;
+        return Optional.empty();
     }
 
     @Override
@@ -262,12 +273,13 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     public List<SlotEntryReference> getAllEquipped() {
         var references = new ArrayList<SlotEntryReference>();
 
-        for (var containerEntry : this.holder.getSlotContainers().entrySet()) {
-            var container = containerEntry.getValue();
-
-            for (var stackEntry : containerEntry.getValue().getAccessories()) {
+        for (var container : this.holder.getSlotContainers().values()) {
+            for (var stackEntry : container.getAccessories()) {
                 var stack = stackEntry.getSecond();
-                var reference = new SlotReference(container.getSlotName(), container.capability().getEntity(), stackEntry.getFirst());
+
+                if(stack.isEmpty()) continue;
+
+                var reference = new SlotReference(container.getSlotName(), this.getEntity(), stackEntry.getFirst());
 
                 var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
 
@@ -275,6 +287,8 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
                 if(accessory instanceof AccessoryNest holdable){
                     for (ItemStack innerStack : holdable.getInnerStacks(stackEntry.getSecond())) {
+                        if(innerStack.isEmpty()) continue;
+
                         references.add(new SlotEntryReference(reference, innerStack));
                     }
                 }

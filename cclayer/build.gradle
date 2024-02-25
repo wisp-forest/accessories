@@ -24,18 +24,12 @@ repositories {
 dependencies {
     neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
 
-    modCompileOnly(project(path: ":common", configuration: "namedElements"))
+    developmentNeoForge implementation(project(path: ":common", configuration: "namedElements"))
+    modLocalRuntime(project(path: ":neoforge", configuration: "namedElements"))
 
-    modLocalRuntime("io.wispforest:accessories-neoforge:0.0.1-alpha.4")
+    modRuntimeOnly ("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
 
-//    developmentNeoForge compileOnly(project(path: ":common", configuration: "namedElements")){
-//        transitive = false
-//    }
-//    developmentNeoForge localRuntime(project(path: ":neoforge", configuration: "namedElements"))
-
-    modCompileOnly ("dev.su5ed.sinytra.fabric-api:fabric-api-base:0.4.35+f77bd0ed4f") {
-        exclude group: "fabric-api"
-    }
+    modImplementation ("dev.su5ed.sinytra.fabric-api:fabric-api-base:0.4.35+f77bd0ed4f") { exclude group: "fabric-api" }
 }
 
 processResources {
