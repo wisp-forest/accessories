@@ -5,6 +5,7 @@ import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
@@ -47,6 +48,10 @@ public interface AccessoriesCapability {
      * @return A Map containing all the {@link AccessoriesContainer}s with their {@link SlotType#name()} as the key
      */
     Map<String, AccessoriesContainer> getContainers();
+
+    default Optional<AccessoriesContainer> tryAndGetContainer(SlotType slotType){
+        return Optional.ofNullable(getContainers().get(slotType.name()));
+    }
 
     //--
 

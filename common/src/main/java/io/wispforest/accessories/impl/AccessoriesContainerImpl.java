@@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.SlotAmountAdjustments;
 import io.wispforest.accessories.api.slot.SlotAttribute;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
@@ -89,6 +90,14 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
             baseSize *= modifier.getAmount();
         }
 
+        var slotAmountModifier = this.slotType()
+                .map(slotType -> SlotAmountAdjustments.INSTANCE.getAmount(slotType, this.capability.getEntity()))
+                .orElse(0);
+
+        if(slotAmountModifier > baseSize){
+            baseSize = slotAmountModifier;
+        }
+
         //--
 
         if(size == accessories.getContainerSize()) return;
@@ -163,7 +172,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
             invalidStacks.add(invalidStack);
         }
 
-        ((AccessoriesCapabilityImpl) this.capability).addInvalidStacks(invalidStacks);
+        ((AccessoriesHolderImpl) this.capability.getHolder()).invalidStacks.addAll(invalidStacks);
     }
 
     @Override

@@ -7,8 +7,10 @@ import io.wispforest.accessories.api.slot.SlotAttribute;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -47,10 +49,6 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     @Override
     public Map<String, AccessoriesContainer> getContainers() {
         return this.holder.getSlotContainers();
-    }
-
-    public void addInvalidStacks(Collection<ItemStack> stacks){
-        this.holder.invalidStacks.addAll(stacks);
     }
 
     @Override

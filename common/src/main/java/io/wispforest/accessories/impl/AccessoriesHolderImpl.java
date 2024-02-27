@@ -2,7 +2,9 @@ package io.wispforest.accessories.impl;
 
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -34,6 +36,10 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
         return holder;
     }
 
+    @Override
+    public Map<String, AccessoriesContainer> getSlotContainers() {
+        return this.slotContainers;
+    }
 
     @Override
     public boolean cosmeticsShown() {
@@ -59,6 +65,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
         return this;
     }
 
+    @Override
     public boolean linesShown() {
         return this.linesShown;
     }
@@ -68,11 +75,6 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
         this.linesShown = value;
 
         return this;
-    }
-
-    @Override
-    public Map<String, AccessoriesContainer> getSlotContainers() {
-        return slotContainers;
     }
 
     public void init(AccessoriesCapability capability) {
@@ -94,7 +96,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
         }
     }
 
-    public static final String MAIN_KEY = "Accessories";
+    public static final String CONTAINERS_KEY = "AccessoriesContainers";
 
     public static final String COSMETICS_SHOWN_KEY = "CosmeticsShown";
 
@@ -102,21 +104,19 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
 
     @Override
     public void write(CompoundTag tag) {
-        CompoundTag main = new CompoundTag();
-
-        for (var entry : this.slotContainers.entrySet()) {
-            var containerTag = new CompoundTag();
-
-            ((AccessoriesContainerImpl) entry.getValue()).write(containerTag);
-
-            main.put(entry.getKey(), containerTag);
-        }
-
         tag.putBoolean(COSMETICS_SHOWN_KEY, cosmeticsShown);
 
-        tag.put(MAIN_KEY, main);
-
         tag.putBoolean(LINES_SHOWN_KEY, linesShown);
+
+        //--
+
+        CompoundTag main = new CompoundTag();
+
+        this.slotContainers.forEach((s, container) -> {
+            main.put(s, Util.make(new CompoundTag(), innerTag -> ((AccessoriesContainerImpl) container).write(innerTag)));
+        });
+
+        tag.put(CONTAINERS_KEY, main);
     }
 
     public void read(LivingEntity entity, CompoundTag tag) {
@@ -126,7 +126,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
 
         this.linesShown = tag.getBoolean(LINES_SHOWN_KEY);
 
-        var containersTag = tag.getCompound(MAIN_KEY);
+        var containersTag = tag.contains(CONTAINERS_KEY) ? tag.getCompound(CONTAINERS_KEY) : tag.getCompound("Accessories");
 
         for (String key : containersTag.getAllKeys()) {
             var containerTag = containersTag.getCompound(key);
