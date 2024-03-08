@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Optional;
 
-public class AccessoryEquippedCriterion extends SimpleCriterionTrigger<AccessoryEquippedCriterion.Conditions> {
+public class AccessoryChangedCriterion extends SimpleCriterionTrigger<AccessoryChangedCriterion.Conditions> {
 
     public void trigger(
             ServerPlayer player,
