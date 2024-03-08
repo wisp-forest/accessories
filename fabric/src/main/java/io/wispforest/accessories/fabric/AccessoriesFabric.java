@@ -2,7 +2,6 @@ package io.wispforest.accessories.fabric;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.impl.InstanceCodecable;
 import io.wispforest.accessories.api.events.extra.ImplementedEvents;
 import io.wispforest.accessories.data.DataLoadingModifications;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -11,6 +10,7 @@ import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.accessories.impl.InstanceCodecable;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
@@ -23,7 +23,6 @@ import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.transfer.v1.storage.TransferVariant;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -63,6 +62,7 @@ public class AccessoriesFabric implements ModInitializer {
     public void onInitialize() {
         Accessories.registerMenuType();
         Accessories.setupConfig();
+        Accessories.registerCriteria();
 
         UseItemCallback.EVENT.register(AccessoriesEventHandler::attemptEquipFromUse);
 
