@@ -30,9 +30,6 @@
     "main": [
       "io.wispforest.tclayer.TCLayer"
     ],
-    "data_loading_modifications": [
-      "io.wispforest.tclayer.TCLayer"
-    ],
     "cardinal-components-entity": [
       "dev.emi.trinkets.api.TrinketsApi"
     ]

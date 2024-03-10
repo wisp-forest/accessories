@@ -31,7 +31,6 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
         super(GSON, LOGGER, "accessories/group");
     }
 
-
     //--
 
     public static Map<String, SlotGroup> getGroups(Level level){

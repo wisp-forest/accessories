@@ -9,6 +9,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.impl.SlotTypeImpl;
 import net.minecraft.resources.ResourceLocation;
@@ -35,9 +36,6 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
     private final Map<String, SlotType> server = new HashMap<>();
     private final Map<String, SlotType> client = new HashMap<>();
-
-    public List<Consumer<Map<String, SlotType>>> externalEventHooks = new ArrayList<>();
-    public Set<ResourceLocation> dependentLoaders = new HashSet<>();
 
     //--
 
@@ -76,6 +74,8 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         for (AccessoriesConfig.SlotAmountModifier modifier : Accessories.getConfig().modifiers) {
             additionalModifiers.put(modifier.slotType, modifier.amount);
         }
+
+        var builders = new HashMap<String, SlotBuilder>();
 
         for (var resourceEntry : data.entrySet()) {
             var location = resourceEntry.getKey();
@@ -117,16 +117,32 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
             slotBuilder.dropRule(this.safeHelper((object, s) -> DropRule.valueOf(GsonHelper.getAsString(object, s)), jsonObject, "drop_rule", location));
 
-            var slotType = slotBuilder.create();
-
-            if(server.containsKey(slotType.name())){
+            if(server.containsKey(slotBuilder.name)){
                 LOGGER.warn("Found duplicate slotType with the same name, not registering newly made type! [Location: " + location + "]");
-            } else {
-                server.put(slotType.name(), slotType);
+
+                return;
             }
+
+            builders.put(slotBuilder.name, slotBuilder);
         }
 
-        for (var eventHook : externalEventHooks) eventHook.accept(server);
+        UniqueSlotHandling.EVENT.invoker().initTypes((location, integer) -> {
+            var name = location.toString();
+
+            var builder = builders.remove(name);
+
+            if(builder == null) builder = new SlotBuilder(name);
+
+            builder.amount(integer);
+
+            var slotType = builder.create();
+
+            server.put(slotType.name(), slotType);
+
+            return slotType;
+        });
+
+        builders.forEach((s, slotBuilder) -> server.put(s, slotBuilder.create()));
     }
 
     public static class SlotBuilder {

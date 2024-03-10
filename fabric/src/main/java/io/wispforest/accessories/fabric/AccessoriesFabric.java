@@ -73,7 +73,7 @@ public class AccessoriesFabric implements ModInitializer {
 
         ServerTickEvents.START_WORLD_TICK.register(AccessoriesEventHandler::onWorldTick);
 
-        ServerTickEvents.END_WORLD_TICK.register(world -> ImplementedEvents.clearEndermanAngryCache());
+        //ServerTickEvents.END_WORLD_TICK.register(world -> ImplementedEvents.clearEndermanAngryCache());
 
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {
             if(!joined) return;
@@ -113,20 +113,18 @@ public class AccessoriesFabric implements ModInitializer {
 
         var manager = ResourceManagerHelper.get(PackType.SERVER_DATA);
 
-        FabricLoader.getInstance().getEntrypoints("data_loading_modifications", DataLoadingModifications.class)
-                .forEach(dataLoadingModifications -> {
-                    dataLoadingModifications.beforeRegistration(preparableReloadListener -> {
-                        if(preparableReloadListener instanceof IdentifiableResourceReloadListener identifiableResourceReloadListener){
-                            manager.registerReloadListener(identifiableResourceReloadListener);
-                        }
-                    });
-                });
+//        FabricLoader.getInstance().getEntrypoints("data_loading_modifications", DataLoadingModifications.class)
+//                .forEach(dataLoadingModifications -> {
+//                    dataLoadingModifications.beforeRegistration(preparableReloadListener -> {
+//                        if(preparableReloadListener instanceof IdentifiableResourceReloadListener identifiableResourceReloadListener){
+//                            manager.registerReloadListener(identifiableResourceReloadListener);
+//                        }
+//                    });
+//                });
 
-        var SLOT_TYPE_LOADER = new IdentifiableResourceReloadListenerImpl(SLOT_LOADER_LOCATION, SlotTypeLoader.INSTANCE);
-        SLOT_TYPE_LOADER.dependencies.addAll(SlotTypeLoader.INSTANCE.dependentLoaders);
+        var SLOT_TYPE_LOADER = (IdentifiableResourceReloadListener) new IdentifiableResourceReloadListenerImpl(SLOT_LOADER_LOCATION, SlotTypeLoader.INSTANCE);
 
-        var ENTITY_SLOT_LOADER = new IdentifiableResourceReloadListenerImpl(ENTITY_SLOT_LOADER_LOCATION, EntitySlotLoader.INSTANCE, SLOT_LOADER_LOCATION);
-        ENTITY_SLOT_LOADER.dependencies.addAll(EntitySlotLoader.INSTANCE.dependentLoaders);
+        var ENTITY_SLOT_LOADER = (IdentifiableResourceReloadListener) new IdentifiableResourceReloadListenerImpl(ENTITY_SLOT_LOADER_LOCATION, EntitySlotLoader.INSTANCE, SLOT_LOADER_LOCATION);
 
         manager.registerReloadListener(SLOT_TYPE_LOADER);
         manager.registerReloadListener(ENTITY_SLOT_LOADER);
@@ -153,7 +151,7 @@ public class AccessoriesFabric implements ModInitializer {
 
         @Override
         public Collection<ResourceLocation> getFabricDependencies() {
-            return new HashSet<>(dependencies);
+            return dependencies;
         }
     }
 }

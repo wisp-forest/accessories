@@ -16,6 +16,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -41,6 +42,8 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforgespi.language.ModFileScanData;
 import org.objectweb.asm.Type;
 import org.slf4j.Logger;
+
+import java.util.function.Consumer;
 
 @Mod(Accessories.MODID)
 public class AccessoriesForge {
@@ -128,33 +131,40 @@ public class AccessoriesForge {
     }
 
     public void registerReloadListeners(AddReloadListenerEvent event){
-        for (ModFileScanData data : ModList.get().getAllScanData()) {
-            data.getAnnotations().forEach(annotationData -> {
-                if (annotationData.annotationType().equals(Type.getType(DataLoadingModifications.DataLoadingModificationsCapable.class))) {
-                    try {
-                        Class<?> clazz = Class.forName(annotationData.memberName());
+        intermediateRegisterListeners(event::addListener);
 
-                        if (DataLoadingModifications.class.isAssignableFrom(clazz)) {
-                            try {
-                                var instance = (DataLoadingModifications) clazz.getDeclaredConstructor().newInstance();
+        AccessoriesInternalsImpl.setContext(event.getConditionContext());
+    }
 
-                                instance.beforeRegistration(event::addListener);
-                            } catch (Throwable e) {
-                                LOGGER.error("Failed to load DataLoadingModificationsCapable: " + annotationData.memberName(), e);
-                            }
-                        }
-                    } catch (Throwable e) {
-                        LOGGER.error("No class from such annotation: " + annotationData.memberName(), e);
-                    }
-                }
-            });
-        }
+    // This exists as a way to register things within the TCLayer without depending on NeoForge to do such within a mixin
+    public void intermediateRegisterListeners(Consumer<PreparableReloadListener> registrationMethod){
+//        for (ModFileScanData data : ModList.get().getAllScanData()) {
+//            data.getAnnotations().forEach(annotationData -> {
+//                if (annotationData.annotationType().equals(Type.getType(DataLoadingModifications.DataLoadingModificationsCapable.class))) {
+//                    try {
+//                        Class<?> clazz = Class.forName(annotationData.memberName());
+//
+//                        if (DataLoadingModifications.class.isAssignableFrom(clazz)) {
+//                            try {
+//                                var instance = (DataLoadingModifications) clazz.getDeclaredConstructor().newInstance();
+//
+//                                instance.beforeRegistration(registrationMethod);
+//                            } catch (Throwable e) {
+//                                LOGGER.error("Failed to load DataLoadingModificationsCapable: " + annotationData.memberName(), e);
+//                            }
+//                        }
+//                    } catch (Throwable e) {
+//                        LOGGER.error("No class from such annotation: " + annotationData.memberName(), e);
+//                    }
+//                }
+//            });
+//        }
 
-        event.addListener(SlotTypeLoader.INSTANCE);
-        event.addListener(EntitySlotLoader.INSTANCE);
-        event.addListener(SlotGroupLoader.INSTANCE);
+        registrationMethod.accept(SlotTypeLoader.INSTANCE);
+        registrationMethod.accept(EntitySlotLoader.INSTANCE);
+        registrationMethod.accept(SlotGroupLoader.INSTANCE);
 
-        event.addListener(new SimplePreparableReloadListener<Void>() {
+        registrationMethod.accept(new SimplePreparableReloadListener<Void>() {
             @Override protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) { return null; }
             @Override protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profiler) {
                 AccessoriesEventHandler.dataReloadOccured = true;
@@ -162,8 +172,6 @@ public class AccessoriesForge {
                 AccessoriesInternalsImpl.setContext(null);
             }
         });
-
-        AccessoriesInternalsImpl.setContext(event.getConditionContext());
     }
 
     //--
@@ -174,7 +182,7 @@ public class AccessoriesForge {
 
     public void onWorldTick(TickEvent.LevelTickEvent event){
         if(event.phase == TickEvent.Phase.END) {
-            ImplementedEvents.clearEndermanAngryCache();
+            //ImplementedEvents.clearEndermanAngryCache();
         } else {
             AccessoriesEventHandler.onWorldTick(event.level);
         }
