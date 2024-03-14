@@ -6,6 +6,10 @@
   "client": [
   ],
   "mixins": [
+    "AccessoriesFabricMixin",
+    "AccessoriesForgeMixin",
+    "EntitySlotLoaderMixin",
+    "SlotTypeLoaderMixin",
     "ItemStackMixin"
   ],
   "injectors": {
