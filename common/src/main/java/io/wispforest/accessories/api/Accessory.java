@@ -101,7 +101,7 @@ public interface Accessory {
     }
 
     /**
-     * Method used to add tooltip info for attribute like data based ona given slot type
+     * Method used to add tooltip info for attribute like data based on a given slot type
      *
      * @param stack The Stack being referenced
      * @param type The SlotType being referenced
