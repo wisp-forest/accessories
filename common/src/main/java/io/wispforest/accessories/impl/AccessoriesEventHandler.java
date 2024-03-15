@@ -81,7 +81,7 @@ public class AccessoriesEventHandler {
                         handleInvalidStacks(cosmeticStacks, reference, player);
                     }
                 } else {
-                    // TODO: DROP CONTAINER!
+                    // TODO: DROP CONTAINER ?!
                     var stacks = container.getAccessories();
                     var cosmeticStacks = container.getCosmeticAccessories();
 
@@ -177,6 +177,8 @@ public class AccessoriesEventHandler {
     }
 
     public static void onLivingEntityTick(LivingEntity entity) {
+        if(entity.isRemoved()) return;
+
         var possibleCapability = AccessoriesCapability.get(entity);
 
         if (possibleCapability.isEmpty()) return;
@@ -199,7 +201,9 @@ public class AccessoriesEventHandler {
 
                 var currentStack = accessories.getItem(i);
 
+                // TODO: Move ticking below checks?
                 if (!currentStack.isEmpty()) {
+                    // TODO: Document this behavior to prevent double ticking maybe!!!
                     currentStack.inventoryTick(entity.level(), entity, -1, false);
 
                     AccessoriesAPI.getAccessory(currentStack).ifPresent(accessory -> accessory.tick(currentStack, slotReference));
@@ -252,14 +256,22 @@ public class AccessoriesEventHandler {
                         }
                     }
 
+                    /*
+                     * TODO: Figure out best method to fix issue with people using
+                     * this as a method to handle caching of access data pertaining
+                     * to a stack's data for a given living entity
+                     */
                     if (!ItemStack.isSameItem(currentStack, lastStack)) {
                         AccessoriesAPI.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);
                         AccessoriesAPI.getOrDefaultAccessory(currentStack.getItem()).onEquip(currentStack, slotReference);
+
                         if (entity instanceof ServerPlayer serverPlayer) {
-                            if (!currentStack.isEmpty())
+                            if (!currentStack.isEmpty()) {
                                 ACCESSORY_EQUIPPED.trigger(serverPlayer, currentStack, slotReference, false);
-                            if (!lastStack.isEmpty())
+                            }
+                            if (!lastStack.isEmpty()) {
                                 ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, false);
+                            }
                         }
                     }
                 }
@@ -273,11 +285,14 @@ public class AccessoriesEventHandler {
                     if (!entity.level().isClientSide()) {
                         cosmetics.setPreviousItem(i, currentCosmeticStack.copy());
                         dirtyCosmeticStacks.put(slotId, currentCosmeticStack.copy());
+
                         if (entity instanceof ServerPlayer serverPlayer) {
-                            if (!currentStack.isEmpty())
+                            if (!currentStack.isEmpty()) {
                                 ACCESSORY_EQUIPPED.trigger(serverPlayer, currentStack, slotReference, true);
-                            if (!lastStack.isEmpty())
+                            }
+                            if (!lastStack.isEmpty()) {
                                 ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, true);
+                            }
                         }
                     }
                 }
@@ -308,8 +323,9 @@ public class AccessoriesEventHandler {
             var invalidStacks = ((AccessoriesHolderImpl) capability.getHolder()).invalidStacks;
 
             for (ItemStack invalidStack : invalidStacks) {
-                if (entity instanceof ServerPlayer serverPlayer)
+                if (entity instanceof ServerPlayer serverPlayer) {
                     AccessoriesInternals.giveItemToPlayer(serverPlayer, invalidStack);
+                }
             }
 
             invalidStacks.clear();
@@ -382,7 +398,7 @@ public class AccessoriesEventHandler {
             if (defaultModifiers == null) {
                 defaultModifiers = slotModifiers;
             } else if (allDuplicates) {
-                // WARNING: THIS MAY NOT WORK?
+                // TODO: ! WARNING ! THIS MAY NOT WORK?
                 allDuplicates = defaultModifiers.equals(slotModifiers);
             }
         }
