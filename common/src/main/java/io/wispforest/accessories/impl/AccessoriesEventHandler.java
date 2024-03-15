@@ -459,9 +459,7 @@ public class AccessoriesEventHandler {
         if(slotTypeToTooltipInfo.containsKey(null)) {
             var anyTooltipInfo = slotTypeToTooltipInfo.get(null);
 
-            if (anyTooltipInfo.size() > 1) {
-                tooltip.addAll(anyTooltipInfo);
-            }
+            if (anyTooltipInfo.size() > 0) tooltip.addAll(anyTooltipInfo);
 
             slotTypeToTooltipInfo.remove(null);
         }
