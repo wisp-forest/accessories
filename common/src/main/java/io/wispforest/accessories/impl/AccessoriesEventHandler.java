@@ -395,12 +395,6 @@ public class AccessoriesEventHandler {
             if (!defaultModifiers.isEmpty()) {
                 var attributeTooltip = new ArrayList<Component>();
 
-                attributeTooltip.add(CommonComponents.EMPTY);
-
-                attributeTooltip.add(
-                        Component.translatable(Accessories.translation("tooltip.attributes.any"))
-                                .withStyle(ChatFormatting.GRAY)
-                );
                 addAttributeTooltip(defaultModifiers, attributeTooltip);
 
                 slotTypeToTooltipInfo.put(null, attributeTooltip);
@@ -414,14 +408,6 @@ public class AccessoriesEventHandler {
 
                 var attributeTooltip = new ArrayList<Component>();
 
-                attributeTooltip.add(CommonComponents.EMPTY);
-
-                attributeTooltip.add(
-                        Component.translatable(
-                                Accessories.translation("tooltip.attributes.slot"),
-                                Component.translatable(slotType.translation()).withStyle(ChatFormatting.BLUE)
-                        ).withStyle(ChatFormatting.GRAY)
-                );
                 addAttributeTooltip(modifiers, attributeTooltip);
 
                 slotTypeToTooltipInfo.put(slotType, attributeTooltip);
@@ -459,17 +445,35 @@ public class AccessoriesEventHandler {
         if(slotTypeToTooltipInfo.containsKey(null)) {
             var anyTooltipInfo = slotTypeToTooltipInfo.get(null);
 
-            if (anyTooltipInfo.size() > 0) tooltip.addAll(anyTooltipInfo);
+            if (anyTooltipInfo.size() > 0) {
+                tooltip.add(CommonComponents.EMPTY);
+
+                tooltip.add(
+                        Component.translatable(Accessories.translation("tooltip.attributes.any"))
+                                .withStyle(ChatFormatting.GRAY)
+                );
+
+                tooltip.addAll(anyTooltipInfo);
+            }
 
             slotTypeToTooltipInfo.remove(null);
         }
 
         if(!slotTypeToTooltipInfo.isEmpty()) {
             for (var entry : slotTypeToTooltipInfo.entrySet()) {
+                var tooltipData = entry.getValue();
+
+                if(tooltipData.size() == 0) continue;
+
+                tooltip.add(CommonComponents.EMPTY);
+
                 tooltip.add(
-                        Component.translatable(Accessories.translation("tooltip.attributes.slot"), Component.translatable(entry.getKey().translation()))
-                                .withStyle(ChatFormatting.GRAY)
+                        Component.translatable(
+                                Accessories.translation("tooltip.attributes.slot"),
+                                Component.translatable(entry.getKey().translation()).withStyle(ChatFormatting.BLUE)
+                        ).withStyle(ChatFormatting.GRAY)
                 );
+
                 tooltip.addAll(entry.getValue());
             }
         }
