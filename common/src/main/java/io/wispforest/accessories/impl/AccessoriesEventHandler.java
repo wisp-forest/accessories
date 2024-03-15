@@ -394,6 +394,9 @@ public class AccessoriesEventHandler {
         if (allDuplicates) {
             if (!defaultModifiers.isEmpty()) {
                 var attributeTooltip = new ArrayList<Component>();
+
+                tooltip.add(CommonComponents.EMPTY);
+
                 attributeTooltip.add(
                         Component.translatable(Accessories.translation("tooltip.attributes.any"))
                                 .withStyle(ChatFormatting.GRAY)
@@ -405,6 +408,8 @@ public class AccessoriesEventHandler {
         } else {
             for (var slotModifiers : slotSpecificModifiers.entrySet()) {
                 if (slotModifiers.getValue().isEmpty()) continue;
+
+                tooltip.add(CommonComponents.EMPTY);
 
                 tooltip.add(
                         Component.translatable(
@@ -465,8 +470,6 @@ public class AccessoriesEventHandler {
 
     private static void addAttributeTooltip(Multimap<Attribute, AttributeModifier> multimap, List<Component> tooltip) {
         if (multimap.isEmpty()) return;
-
-        tooltip.add(CommonComponents.EMPTY);
 
         for (Map.Entry<Attribute, AttributeModifier> entry : multimap.entries()) {
             AttributeModifier attributeModifier = entry.getValue();
