@@ -38,7 +38,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
     private final Map<EntityType<?>, Map<String, SlotType>> client = new HashMap<>();
 
     protected EntitySlotLoader() {
-        super(GSON, LOGGER, "accessories/entities");
+        super(GSON, LOGGER, "accessories/entity");
     }
 
     //--

@@ -13,8 +13,8 @@ import net.neoforged.bus.api.ICancellableEvent;
 public class AccessoriesEvents {
 
     /**
-     * Event used to check if the given {@link LivingEntity} should drop any of the given {@link Accessory}
-     * found on the entity
+     * Event used to check if the given {@link LivingEntity} should drop any of
+     * the given {@link Accessory} found on the entity
      */
     public static final Event<OnDeath> ON_DEATH_EVENT = EventUtils.createEventWithBus(OnDeath.class, AccessoriesInternals::getBus,
             (bus, invokers) -> {
@@ -36,17 +36,12 @@ public class AccessoriesEvents {
             }
     );
 
-    /**
-     * Fabric Ecosystem event in which fired directly from {@link #ON_DEATH_EVENT} call
-     * <p>
-     * Can be used for Common sided mods
-     */
     public interface OnDeath {
         TriState shouldDrop(LivingEntity livingEntity, AccessoriesCapability capability);
     }
 
     /**
-     * Forge Ecosystem event in which fired indirectly from {@link #ON_DEATH_EVENT} call using the main Neoforge Event Bus
+     * Neoforge Ecosystem event in which fired directly from {@link #ON_DEATH_EVENT} call using the main Neoforge Event Bus
      */
     public static class OnDeathEvent extends ReturnableEvent {
         private final LivingEntity entity;
@@ -96,6 +91,9 @@ public class AccessoriesEvents {
         DropRule onDrop(DropRule dropRule, ItemStack stack, SlotReference reference);
     }
 
+    /**
+     * Neoforge Ecosystem event in which fired directly from {@link #ON_DROP_EVENT} call using the main Neoforge Event Bus
+     */
     public static class OnDropEvent extends net.neoforged.bus.api.Event implements ICancellableEvent, SlotReferenced {
         private DropRule dropRule;
 
@@ -181,6 +179,9 @@ public class AccessoriesEvents {
         TriState onEquip(ItemStack stack, SlotReference reference);
     }
 
+    /**
+     * Neoforge Ecosystem event in which fired directly from {@link #CAN_EQUIP_EVENT} call using the main Neoforge Event Bus
+     */
     public static class CanEquipEvent extends ReturnableEvent implements SlotReferenced {
         private final SlotReference reference;
         private final ItemStack stack;
@@ -250,6 +251,9 @@ public class AccessoriesEvents {
         TriState onUnequip(ItemStack stack, SlotReference reference);
     }
 
+    /**
+     * Neoforge Ecosystem event in which fired directly from {@link #CAN_UNEQUIP_EVENT} call using the main Neoforge Event Bus
+     */
     public static class CanUnequipEvent extends ReturnableEvent implements SlotReferenced {
         private final SlotReference reference;
         private final ItemStack stack;

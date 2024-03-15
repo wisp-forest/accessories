@@ -1,11 +1,15 @@
 package io.wispforest.accessories.api.events.extra;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.AccessoryNest;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.impl.AccessoryNestUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.fabricmc.fabric.api.util.TriState;
@@ -14,9 +18,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import org.apache.commons.lang3.mutable.MutableInt;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,6 +54,10 @@ public class ImplementedEvents {
         return currentLevel;
     }
 
+    /**
+     * Event used to adjust the looting level of a given {@link LivingEntity} death within
+     * the {@link LivingEntity#dropAllDeathLoot} call based on the Accessory passed in
+     */
     public static final Event<LootingAdjustment> LOOTING_ADJUSTMENT_EVENT = EventFactory.createArrayBacked(LootingAdjustment.class, invokers -> (stack, reference, target, damageSource, currentLevel) -> {
         for (var invoker : invokers) {
             currentLevel += invoker.getLootingAdjustment(stack, reference, target, damageSource, currentLevel);
@@ -87,6 +97,9 @@ public class ImplementedEvents {
         return currentLevel;
     }
 
+    /**
+     * Event used to adjust the fortune level of a given Bonus Count adjustment for any valid {@link ApplyBonusCount#run} call
+     */
     public static final Event<FortuneAdjustment> FORTUNE_ADJUSTMENT_EVENT = EventFactory.createArrayBacked(FortuneAdjustment.class, invokers -> (stack, reference, context, currentLevel) -> {
         for (var invoker : invokers) {
             currentLevel += invoker.getFortuneAdjustment(stack, reference, context, currentLevel);
@@ -128,6 +141,10 @@ public class ImplementedEvents {
         return state;
     }
 
+    /**
+     * Event used to test if the given {@link LivingEntity} will have piglins be
+     * neutral or not based on the passed Accessory
+     */
     public static final Event<PiglinNeutralInducer> PIGLIN_NEUTRAL_INDUCER_EVENT = EventFactory.createArrayBacked(PiglinNeutralInducer.class, invokers -> (stack, reference) -> {
         for (var invoker : invokers) {
             var state = invoker.makesPiglinsNeutral(stack, reference);
@@ -171,6 +188,10 @@ public class ImplementedEvents {
         return state;
     }
 
+    /**
+     * Event used to test if the given {@link LivingEntity} will have the ability
+     * to walk on snow or not based on the passed Accessory
+     */
     public static final Event<AllowWalingOnSnow> ALLOW_WALING_ON_SNOW_EVENT = EventFactory.createArrayBacked(AllowWalingOnSnow.class, invokers -> (stack, reference) -> {
         for (var invoker : invokers) {
             var state = invoker.allowWalkingOnSnow(stack, reference);
@@ -187,18 +208,20 @@ public class ImplementedEvents {
 
     //--
 
-    //TODO: Replace with cache?
-    private static final Map<Integer, Map<Integer, TriState>> endermanAngyCacheResults = new HashMap<>();
+    private static final LoadingCache<Integer, Map<Integer, TriState>> endermanAngyCacheResults = CacheBuilder.newBuilder()
+            .concurrencyLevel(1)
+            .expireAfterAccess(Duration.ofSeconds(1))
+            //.maximumSize(1000)
+            .weakKeys()
+            .build(CacheLoader.from(() -> new HashMap<>()));
 
     public static TriState isEndermanMask(LivingEntity entity, EnderMan enderMan){
         var state = TriState.DEFAULT;
 
-        if(endermanAngyCacheResults.containsKey(entity.getId())){
-            var enderManResultCache = endermanAngyCacheResults.get(entity.getId());
+        var cache = endermanAngyCacheResults.getIfPresent(entity.getId());
 
-            if(enderManResultCache.containsKey(enderMan.getId())){
-                return enderManResultCache.get(enderMan.getId());
-            }
+        if(cache != null && cache.containsKey(enderMan.getId())){
+            return cache.get(enderMan.getId());
         }
 
         var capability = AccessoriesCapability.get(entity);
@@ -222,16 +245,20 @@ public class ImplementedEvents {
             }
         }
 
-        endermanAngyCacheResults.computeIfAbsent(entity.getId(), integer -> new HashMap<>())
+        endermanAngyCacheResults.getUnchecked(entity.getId())
                 .put(enderMan.getId(), state);
 
         return state;
     }
 
-    public static void clearEndermanAngryCache(){
-        for (var map : endermanAngyCacheResults.values()) map.clear();
-    }
+//    public static void clearEndermanAngryCache(){
+//        for (var map : endermanAngyCacheResults.values()) map.clear();
+//    }
 
+    /**
+     * Event used to test if the given {@link LivingEntity} will anger
+     * any enderman or not based on the passed Accessory
+     */
     public static final Event<EndermanMasked> ENDERMAN_MASKED_EVENT = EventFactory.createArrayBacked(EndermanMasked.class, invokers -> (enderMan, stack, reference) -> {
         for (var invoker : invokers) {
             var state = invoker.isEndermanMasked(enderMan, stack, reference);

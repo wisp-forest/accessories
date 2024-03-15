@@ -48,14 +48,29 @@ public interface AccessoriesContainer {
 
     //--
 
+    /**
+     * @return The main container holding the primary Accessory Stacks
+     */
     ExpandedSimpleContainer getAccessories();
 
+    /**
+     * @return The main container holding the cosmetic Accessory Stacks
+     */
     ExpandedSimpleContainer getCosmeticAccessories();
 
+    /**
+     * @return The max size of the given Container refering to the max number of slots available
+     */
     int getSize();
 
+    /**
+     * Used to mark the container dirty for any call made to {@link #update}
+     */
     void markChanged();
 
+    /**
+     * Used to update the container if dirty
+     */
     void update();
 
     //--

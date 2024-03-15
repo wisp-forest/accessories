@@ -42,6 +42,9 @@ public interface AccessoriesCapability {
 
     //--
 
+    /**
+     * Method used to clear all containers bound to the given {@link LivingEntity}
+     */
     void clear();
 
     /**
@@ -49,6 +52,9 @@ public interface AccessoriesCapability {
      */
     Map<String, AccessoriesContainer> getContainers();
 
+    /**
+     * @return an {@link Optional} representing a given {@link AccessoriesContainer} if found on the given {@link LivingEntity} tied to the Capability
+     */
     default Optional<AccessoriesContainer> tryAndGetContainer(SlotType slotType){
         return Optional.ofNullable(getContainers().get(slotType.name()));
     }
@@ -105,14 +111,20 @@ public interface AccessoriesCapability {
      */
     boolean isEquipped(Predicate<ItemStack> predicate);
 
+    /**
+     * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given {@link Item}
+     */
     default Optional<SlotEntryReference> getFirstEquipped(Item item){
         return getFirstEquipped(stack -> stack.getItem() == item);
     }
 
+    /**
+     * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given predicate
+     */
     Optional<SlotEntryReference> getFirstEquipped(Predicate<ItemStack> predicate);
 
     /**
-     * @return A list of all {@link ItemStack}'s formatted within {@link SlotEntryReference} matching the given {@link Item} entry
+     * @return A list of all {@link ItemStack}'s formatted within {@link SlotEntryReference} matching the given {@link Item}
      */
     default List<SlotEntryReference> getEquipped(Item item){
         return getEquipped(stack -> stack.getItem() == item);
