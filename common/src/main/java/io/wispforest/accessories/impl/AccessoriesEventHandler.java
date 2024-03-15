@@ -395,7 +395,7 @@ public class AccessoriesEventHandler {
             if (!defaultModifiers.isEmpty()) {
                 var attributeTooltip = new ArrayList<Component>();
 
-                tooltip.add(CommonComponents.EMPTY);
+                attributeTooltip.add(CommonComponents.EMPTY);
 
                 attributeTooltip.add(
                         Component.translatable(Accessories.translation("tooltip.attributes.any"))
@@ -407,17 +407,24 @@ public class AccessoriesEventHandler {
             }
         } else {
             for (var slotModifiers : slotSpecificModifiers.entrySet()) {
-                if (slotModifiers.getValue().isEmpty()) continue;
+                var slotType = slotModifiers.getKey();
+                var modifiers = slotModifiers.getValue();
 
-                tooltip.add(CommonComponents.EMPTY);
+                if (modifiers.isEmpty()) continue;
 
-                tooltip.add(
+                var attributeTooltip = new ArrayList<Component>();
+
+                attributeTooltip.add(CommonComponents.EMPTY);
+
+                attributeTooltip.add(
                         Component.translatable(
                                 Accessories.translation("tooltip.attributes.slot"),
-                                Component.translatable(slotModifiers.getKey().translation()).withStyle(ChatFormatting.BLUE)
+                                Component.translatable(slotType.translation()).withStyle(ChatFormatting.BLUE)
                         ).withStyle(ChatFormatting.GRAY)
                 );
-                addAttributeTooltip(slotModifiers.getValue(), tooltip);
+                addAttributeTooltip(modifiers, attributeTooltip);
+
+                slotTypeToTooltipInfo.put(slotType, attributeTooltip);
             }
         }
 
@@ -449,19 +456,23 @@ public class AccessoriesEventHandler {
             });
         }
 
-        if (slotTypeToTooltipInfo.size() > 1) {
+        if(slotTypeToTooltipInfo.containsKey(null)) {
+            var anyTooltipInfo = slotTypeToTooltipInfo.get(null);
+
+            if (anyTooltipInfo.size() > 1) {
+                tooltip.addAll(anyTooltipInfo);
+            }
+
+            slotTypeToTooltipInfo.remove(null);
+        }
+
+        if(!slotTypeToTooltipInfo.isEmpty()) {
             for (var entry : slotTypeToTooltipInfo.entrySet()) {
                 tooltip.add(
                         Component.translatable(Accessories.translation("tooltip.attributes.slot"), Component.translatable(entry.getKey().translation()))
                                 .withStyle(ChatFormatting.GRAY)
                 );
                 tooltip.addAll(entry.getValue());
-            }
-        } else {
-            var anyTooltipInfo = slotTypeToTooltipInfo.get(null);
-
-            if (anyTooltipInfo.size() > 1) {
-                tooltip.addAll(anyTooltipInfo);
             }
         }
 
