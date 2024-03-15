@@ -7,6 +7,7 @@ import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModLoadingContext;
@@ -18,6 +19,8 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.TickEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import org.lwjgl.glfw.GLFW;
+
+import java.util.ArrayList;
 
 import static io.wispforest.accessories.Accessories.MODID;
 
@@ -58,7 +61,13 @@ public class AccessoriesClientForge {
 
         if(player == null) return;
 
-        AccessoriesEventHandler.addTooltipInfo(player, event.getItemStack(), event.getToolTip());
+        var stackTooltip = event.getToolTip();
+
+        var tooltipData = new ArrayList<Component>();
+
+        AccessoriesEventHandler.addTooltipInfo(player, event.getItemStack(), stackTooltip);
+
+        stackTooltip.addAll(1, tooltipData);
     }
 
 //    public static void addRenderLayer(EntityRenderersEvent.AddLayers event){

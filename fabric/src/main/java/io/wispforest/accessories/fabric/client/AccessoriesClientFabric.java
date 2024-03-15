@@ -20,9 +20,12 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import org.lwjgl.glfw.GLFW;
+
+import java.util.ArrayList;
 
 import static io.wispforest.accessories.Accessories.MODID;
 
@@ -49,7 +52,11 @@ public class AccessoriesClientFabric implements ClientModInitializer {
 
             if(player == null) return;
 
-            AccessoriesEventHandler.addTooltipInfo(player, stack, lines);
+            var tooltipData = new ArrayList<Component>();
+
+            AccessoriesEventHandler.addTooltipInfo(player, stack, tooltipData);
+
+            lines.addAll(1, tooltipData);
         });
 
         LivingEntityFeatureRendererRegistrationCallback.EVENT.register((entityType, entityRenderer, registrationHelper, context) -> {
