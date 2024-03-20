@@ -257,11 +257,9 @@ public class AccessoriesEventHandler {
                     }
 
                     /*
-                     * TODO: Figure out best method to fix issue with people using
-                     * this as a method to handle caching of access data pertaining
-                     * to a stack's data for a given living entity
+                     * TODO: Dose item check need to exist anymore?
                      */
-                    if (!ItemStack.isSameItem(currentStack, lastStack)) {
+                    if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlaged(i)) {
                         AccessoriesAPI.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);
                         AccessoriesAPI.getOrDefaultAccessory(currentStack.getItem()).onEquip(currentStack, slotReference);
 

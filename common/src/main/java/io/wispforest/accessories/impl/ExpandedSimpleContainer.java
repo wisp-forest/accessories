@@ -3,6 +3,8 @@ package io.wispforest.accessories.impl;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.slot.SlotReference;
+import it.unimi.dsi.fastutil.ints.Int2BooleanArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -14,6 +16,7 @@ import org.slf4j.Logger;
 
 import java.util.Iterator;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.IntFunction;
 
 /**
@@ -26,6 +29,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
     private final String name;
     private final NonNullList<ItemStack> previousItems;
+    private final Int2BooleanMap setFlags = new Int2BooleanArrayMap();
 
     private ExpandedSimpleContainer(int size) {
         this(size, "");
@@ -46,6 +50,14 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     }
 
     //--
+
+    public boolean isSlotFlaged(int slot){
+        var bl = setFlags.getOrDefault(slot, false);
+
+        if(bl) setFlags.put(slot, false);
+
+        return bl;
+    }
 
     public void setPreviousItem(int slot, ItemStack stack) {
         this.previousItems.set(slot, stack);
@@ -75,12 +87,20 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     public ItemStack removeItem(int slot, int amount) {
         if(!validIndex(slot)) return ItemStack.EMPTY;
 
-        return super.removeItem(slot, amount);
+        var stack = super.removeItem(slot, amount);
+
+        if (!stack.isEmpty()) {
+            setFlags.put(slot, true);
+        }
+
+        return stack;
     }
 
     @Override
     public ItemStack removeItemNoUpdate(int slot) {
         if(!validIndex(slot)) return ItemStack.EMPTY;
+
+        // TODO: Concerning the flagging system, should such work for it?
 
         return super.removeItemNoUpdate(slot);
     }
@@ -90,6 +110,8 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         if(!validIndex(slot)) return;
 
         super.setItem(slot, stack);
+
+        setFlags.put(slot, true);
     }
 
     // Simple validation method to make sure that the given access is valid before attempting an operation
