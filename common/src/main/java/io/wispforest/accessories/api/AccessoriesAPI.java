@@ -25,6 +25,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -103,15 +104,15 @@ public class AccessoriesAPI {
 
     //--
 
+    public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(ItemStack stack, String slotName, int slot, UUID uuid){
+        return getAttributeModifiers(stack, null, slotName, slot, uuid);
+    }
+
     /**
      * Attempts to get any at all AttributeModifier's found on the stack either though NBT or the Accessory bound
      * to the {@link ItemStack}'s item
-     *
-     * @param stack     Current Stack
-     * @param reference Reference to the stack within the {@link AccessoriesContainer}
-     * @param uuid      The UUID based on the SlotType and index of the stack
      */
-    public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(ItemStack stack, SlotReference reference, UUID uuid){
+    public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot, UUID uuid){
         Multimap<Attribute, AttributeModifier> multimap = HashMultimap.create();
 
         if(stack.getTag() != null && stack.getTag().contains("AccessoriesAttributeModifiers", Tag.TAG_LIST)){
@@ -120,7 +121,7 @@ public class AccessoriesAPI {
             for (int i = 0; i < attributes.size(); i++) {
                 var attributeTag = attributes.getCompound(i);
 
-                if(attributeTag.contains("Slot") && !attributeTag.getString("Slot").equals(reference.slotName())){
+                if(attributeTag.contains("Slot") && !attributeTag.getString("Slot").equals(slotName)){
                     continue;
                 }
 
@@ -140,11 +141,11 @@ public class AccessoriesAPI {
                 var attributeModifier = new AttributeModifier(id, name, amount, operation);
 
                 if(attributeType.getNamespace().equals(Accessories.MODID)){
-                    var slotName = attributeType.getPath();
+                    var attributeSlotName = attributeType.getPath();
 
-                    if(!SlotTypeLoader.getSlotTypes(reference.entity().level()).containsKey(slotName)) continue;
+                    if(entity != null && !SlotTypeLoader.getSlotTypes(entity.level()).containsKey(attributeSlotName)) continue;
 
-                    multimap.put(SlotAttribute.getSlotAttribute(slotName), attributeModifier);
+                    multimap.put(SlotAttribute.getSlotAttribute(attributeSlotName), attributeModifier);
                 } else {
                     var attribute = BuiltInRegistries.ATTRIBUTE.getOptional(attributeType);
 
@@ -155,12 +156,14 @@ public class AccessoriesAPI {
             }
         }
 
-        //TODO: Decide if such presents of modifiers prevents the accessory modifiers from existing
-        AccessoriesAPI.getAccessory(stack).ifPresent(accessory -> {
-            var data = accessory.getModifiers(stack, reference, uuid);
+        if(entity != null) {
+            //TODO: Decide if such presents of modifiers prevents the accessory modifiers from existing
+            AccessoriesAPI.getAccessory(stack).ifPresent(accessory -> {
+                var data = accessory.getModifiers(stack, new SlotReference(slotName, entity, slot), uuid);
 
-            multimap.putAll(data);
-        });
+                multimap.putAll(data);
+            });
+        }
 
         return multimap;
     }
@@ -193,7 +196,7 @@ public class AccessoriesAPI {
     public static boolean canInsertIntoSlot(ItemStack stack, SlotReference reference){
         var predicates = reference.type().map(SlotType::validators).orElse(Set.of());
 
-        return getPredicateResults(predicates, reference, stack) && canEquip(stack, reference);
+        return getPredicateResults(predicates, reference.slotName(), 0, stack) && canEquip(stack, reference);
     }
 
     /**
@@ -264,9 +267,7 @@ public class AccessoriesAPI {
         var validSlots = new ArrayList<SlotType>();
 
         for (SlotType value : SlotTypeLoader.getSlotTypes(level).values()) {
-            var results = getPredicateResultsUnsafe(value.validators(), value, stack);
-
-            if(results.first().isPresent() && results.first().get()) validSlots.add(value);
+            if(getPredicateResults(value.validators(), value.name(), 0, stack)) validSlots.add(value);
         }
 
         return validSlots;
@@ -291,7 +292,7 @@ public class AccessoriesAPI {
         PREDICATE_REGISTRY.put(location, predicate);
     }
 
-    public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, SlotReference reference, ItemStack stack){
+    public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, String slotName, int index, ItemStack stack){
         var result = TriState.DEFAULT;
 
         for (var predicateId : predicateIds) {
@@ -299,39 +300,12 @@ public class AccessoriesAPI {
 
             if(predicate.isEmpty()) continue;
 
-            result = predicate.get().isValid(reference, stack);
+            result = predicate.get().isValid(slotName, index, stack);
 
             if(result != TriState.DEFAULT) break;
         }
 
         return result.orElse(false);
-    }
-
-    private static Pair<Optional<Boolean>, Set<ResourceLocation>> getPredicateResultsUnsafe(Set<ResourceLocation> predicateIds, SlotType slotType, ItemStack stack){
-        TriState result = null;
-
-        var erroredPredicates = new HashSet<ResourceLocation>();
-
-        var reference = new SlotReference(slotType.name(), null, 0);
-
-        for (var predicateId : predicateIds) {
-            var predicate = getPredicate(predicateId);
-
-            if(predicate.isEmpty()) continue;
-
-            try {
-                result = predicate.get().isValid(reference, stack);
-            } catch (Exception e){
-                erroredPredicates.add(predicateId);
-            }
-
-            if(result != null && result != TriState.DEFAULT) break;
-        }
-
-        return Pair.of(
-                Optional.ofNullable(result).flatMap(state -> Optional.of(state.orElse(false))),
-                erroredPredicates
-        );
     }
 
     /**
@@ -346,19 +320,19 @@ public class AccessoriesAPI {
     public static final String ACCESSORY_INVALID_SLOTS_KEY = "InvalidSlotOverrides";
 
     static {
-        registerPredicate(Accessories.of("all"), (reference, stack) -> TriState.TRUE);
-        registerPredicate(Accessories.of("none"), (reference, stack) -> TriState.FALSE);
-        registerPredicate(Accessories.of("tag"), (reference, stack) -> {
-            var tag = TagKey.create(Registries.ITEM, Accessories.of(reference.slotName()));
+        registerPredicate(Accessories.of("all"), (slotName, i, stack) -> TriState.TRUE);
+        registerPredicate(Accessories.of("none"), (slotName, i, stack) -> TriState.FALSE);
+        registerPredicate(Accessories.of("tag"), (slotName, i, stack) -> {
+            var tag = TagKey.create(Registries.ITEM, Accessories.of(slotName));
 
             return (stack.is(tag) || stack.is(ALL_ACCESSORIES)) ? TriState.TRUE : TriState.DEFAULT;
         });
-        registerPredicate(Accessories.of("relevant"), (reference, stack) -> {
-            var bl = !getAttributeModifiers(stack, reference, getOrCreateSlotUUID(reference.slotName(), reference.slot())).isEmpty();
+        registerPredicate(Accessories.of("relevant"), (slotName, i, stack) -> {
+            var bl = !getAttributeModifiers(stack, slotName, i, getOrCreateSlotUUID(slotName, i)).isEmpty();
 
             return bl ? TriState.TRUE : TriState.DEFAULT;
         });
-        registerPredicate(Accessories.of("compound"), (reference, stack) -> {
+        registerPredicate(Accessories.of("compound"), (slotName, index, stack) -> {
             var tag = stack.getTag();
 
             if(tag != null && tag.contains(ACCESSORY_PREDICATES_KEY)) {
@@ -369,7 +343,7 @@ public class AccessoriesAPI {
                 for (int i = 0; i < invalidSlots.size(); i++) {
                     var invalidSlot = invalidSlots.getString(i);
 
-                    if (reference.slotName().equals(invalidSlot)) return TriState.FALSE;
+                    if (slotName.equals(invalidSlot)) return TriState.FALSE;
                 }
 
                 //--
@@ -381,7 +355,7 @@ public class AccessoriesAPI {
 
                     if(validSlot.equals("any")) return TriState.TRUE;
 
-                    if (reference.slotName().equals(validSlot)) return TriState.TRUE;
+                    if (slotName.equals(validSlot)) return TriState.TRUE;
                 }
             }
 

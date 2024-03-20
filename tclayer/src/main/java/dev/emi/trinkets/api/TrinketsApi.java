@@ -165,26 +165,26 @@ public class TrinketsApi implements EntityComponentInitializer {
     public static void registerTrinketPredicate(ResourceLocation id, Function3<ItemStack, SlotReference, LivingEntity, TriState> predicate) {
         PREDICATES.put(id, predicate);
 
-        AccessoriesAPI.registerPredicate(id, (reference, stack) -> {
-            var capability = AccessoriesCapability.get(reference.entity());
-
-            if(capability.isEmpty()) return TriState.DEFAULT;
-
-            var container = capability.get().getContainers().get(reference.slotName());
-
-            if(container == null) return TriState.DEFAULT;
-
-            var ref = new SlotReference(
-                    new WrappedTrinketInventory(
-                            new LivingEntityTrinketComponent(capability.get()),
-                            container,
-                            container.slotType().get()
-                    ),
-                    0
-            );
-
-            return predicate.apply(stack, ref, reference.entity());
-        });
+//        AccessoriesAPI.registerPredicate(id, (slotName, index, stack) -> {
+//            var capability = AccessoriesCapability.get(reference.entity());
+//
+//            if(capability.isEmpty()) return TriState.DEFAULT;
+//
+//            var container = capability.get().getContainers().get(reference.slotName());
+//
+//            if(container == null) return TriState.DEFAULT;
+//
+//            var ref = new SlotReference(
+//                    new WrappedTrinketInventory(
+//                            new LivingEntityTrinketComponent(capability.get()),
+//                            container,
+//                            container.slotType().get()
+//                    ),
+//                    0
+//            );
+//
+//            return predicate.apply(stack, ref, reference.entity());
+//        });
     }
 
     public static Optional<Function3<ItemStack, SlotReference, LivingEntity, TriState>> getTrinketPredicate(ResourceLocation id) {
@@ -208,9 +208,7 @@ public class TrinketsApi implements EntityComponentInitializer {
 
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-        var reference = new io.wispforest.accessories.api.slot.SlotReference(slotName, entity, ref.index());
-
-        return AccessoriesAPI.getPredicateResults(convertedSet, reference, stack);
+        return AccessoriesAPI.getPredicateResults(convertedSet, slotName, ref.index(), stack);
     }
 
     static {
