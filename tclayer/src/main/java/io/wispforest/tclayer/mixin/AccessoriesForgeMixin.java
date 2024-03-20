@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import java.util.function.Consumer;
 
 @Pseudo
-@Mixin(targets = "io/wispforest/accessories/neoforge/AccessoriesForge")
+@Mixin(targets = "io/wispforest/accessories/neoforge/AccessoriesForge", remap = false)
 public abstract class AccessoriesForgeMixin {
 
     @Inject(method = "intermediateRegisterListeners", at = @At("HEAD"))

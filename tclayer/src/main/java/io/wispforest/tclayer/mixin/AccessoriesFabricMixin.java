@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Pseudo
-@Mixin(targets = "io/wispforest/accessories/fabric/AccessoriesFabric")
+@Mixin(targets = "io/wispforest/accessories/fabric/AccessoriesFabric", remap = false)
 public abstract class AccessoriesFabricMixin {
 
     @Inject(method = "onInitialize", at = @At("TAIL"))
