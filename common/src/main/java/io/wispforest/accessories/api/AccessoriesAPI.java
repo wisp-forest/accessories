@@ -104,6 +104,10 @@ public class AccessoriesAPI {
 
     //--
 
+    public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(ItemStack stack, SlotReference slotReference, UUID uuid){
+        return getAttributeModifiers(stack, slotReference.entity(), slotReference.slotName(), slotReference.slot(), uuid);
+    }
+
     public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(ItemStack stack, String slotName, int slot, UUID uuid){
         return getAttributeModifiers(stack, null, slotName, slot, uuid);
     }

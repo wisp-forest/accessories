@@ -139,7 +139,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
                 var slotReference = new SlotReference(container.getSlotName(), this.entity, i);
 
-                var map = AccessoriesAPI.getAttributeModifiers(stack, slotReference.entity(), slotReference.slotName(), 0, AccessoriesAPI.getOrCreateSlotUUID(container.getSlotName(), i));
+                var map = AccessoriesAPI.getAttributeModifiers(stack, slotReference, AccessoriesAPI.getOrCreateSlotUUID(container.getSlotName(), i));
 
                 for (Attribute attribute : map.keySet()) {
                     if(attribute instanceof SlotAttribute slotAttribute) slotModifiers.putAll(slotAttribute.slotName(), map.get(slotAttribute));

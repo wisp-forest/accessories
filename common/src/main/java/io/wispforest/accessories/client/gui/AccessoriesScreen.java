@@ -8,6 +8,7 @@ import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
+import io.wispforest.accessories.impl.SlotGroupImpl;
 import io.wispforest.accessories.networking.server.MenuScroll;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
 import it.unimi.dsi.fastutil.Pair;
@@ -33,6 +34,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.phys.Vec3;
+import org.apache.commons.lang3.Range;
 import org.jetbrains.annotations.Nullable;
 import org.joml.*;
 import org.lwjgl.glfw.GLFW;
@@ -69,6 +71,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     private float xMouse;
     private float yMouse;
+
+    private int currentTabPage = 1;
 
     private int scrollBarHeight = 0;
 
@@ -444,9 +448,14 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     private Button cosmeticToggleButton = null;
     private Button linesButton = null;
 
+    private Button tabUpButton = null;
+    private Button tabDownButton = null;
+
     @Override
     protected void init() {
         super.init();
+
+        this.currentTabPage = 1;
 
         this.cosmeticButtons.clear();
 
@@ -492,11 +501,68 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             aceesoriesSlots++;
         }
 
+        if(tabPageCount() > 1) {
+            this.tabDownButton = this.addRenderableWidget(
+                    Button.builder(Component.literal("⬆"), button -> this.onTabPageChange(true))
+                            .bounds(this.leftPos - 56, this.topPos - 11, 10, 10)
+                            .build()
+            );
+
+            this.tabDownButton.active = false;
+
+            int upperPadding = 8;
+
+            var height = getPanelHeight(upperPadding);
+
+            this.tabUpButton = this.addRenderableWidget(
+                    Button.builder(Component.literal("⬇"), button -> this.onTabPageChange(false))
+                            .bounds(this.leftPos - 56, this.topPos + height + 0, 10, 10)
+                            .build()
+            );
+
+            this.tabUpButton.setTooltip(Tooltip.create(Component.literal("Page 2")));
+
+            this.tabUpButton.active = tabPageCount() != 1;
+        }
+
         this.menu.onScrollToEvent = this::updateAccessoryToggleButtons;
 
-        scrollBarHeight = Mth.lerpInt(Math.min(aceesoriesSlots / 20f, 1.0f), 101, 31);
+        this.scrollBarHeight = Mth.lerpInt(Math.min(aceesoriesSlots / 20f, 1.0f), 101, 31);
 
-        if (scrollBarHeight % 2 == 0) scrollBarHeight++;
+        if (this.scrollBarHeight % 2 == 0) this.scrollBarHeight++;
+    }
+
+    private void onTabPageChange(boolean isDown){
+        if((this.currentTabPage <= 1 && isDown) || (this.currentTabPage > tabPageCount() && !isDown)) {
+            return;
+        }
+
+        if(isDown) {
+            this.currentTabPage--;
+        } else {
+            this.currentTabPage++;
+        }
+
+        var lowerLabel = "Page " + (this.currentTabPage - 1);
+        var upperLabel = "Page " + (this.currentTabPage + 1);
+
+        this.tabDownButton.setTooltip(Tooltip.create(Component.literal(lowerLabel)));
+        this.tabUpButton.setTooltip(Tooltip.create(Component.literal(upperLabel)));
+
+//        this.tabDownButton.setMessage(Component.literal(lowerLabel));
+//        this.tabUpButton.setMessage(Component.literal(upperLabel));
+
+        if(this.currentTabPage <= 1) {
+            this.tabDownButton.active = false;
+        } else if(!this.tabDownButton.active) {
+            this.tabDownButton.active = true;
+        }
+
+        if(this.currentTabPage >= tabPageCount()) {
+            this.tabUpButton.active = false;
+        } else if(!this.tabUpButton.active) {
+            this.tabUpButton.active = true;
+        }
     }
 
     public void updateLinesButton() {
@@ -614,16 +680,37 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         return flag && !flag1;
     }
 
+    public static int tabPageCount() {
+        var groups = new ArrayList<>(SlotGroupLoader.INSTANCE.getGroups(true).values());
+
+        return (int) Math.ceil(groups.size() / 9f);
+    }
+
+    // MAX 9
     private Map<SlotGroup, SlotGroupData> getGroups(int x, int y){
         Set<String> selectedGroup = new HashSet<>();
 
         int currentIndexOffset = 0;
 
-        var groups = SlotGroupLoader.INSTANCE.getGroups(true).values().stream()
+        List<SlotGroup> groups = new ArrayList<>(SlotGroupLoader.INSTANCE.getGroups(true).values().stream()
                 .sorted(Comparator.comparingInt(SlotGroup::order).reversed())
-                .toList();
+                .toList());
+
+        if(tabPageCount() > 1) {
+            var lowerBound = (this.currentTabPage - 1) * 9;
+            var upperBound = lowerBound + 9;
+
+            if(upperBound > groups.size()) upperBound = groups.size();
+
+            groups = groups.subList(lowerBound, upperBound);
+        }
 
         var groupToIndex = new HashMap<SlotGroup, Integer>();
+
+        var bottomIndex = this.menu.scrolledIndex;
+        var upperIndex = bottomIndex + 8 - 1;
+
+        var scrollRange = Range.of(bottomIndex, upperIndex);
 
         for (var group : groups) {
             var groupSize = group.slots().stream()
@@ -633,14 +720,16 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                     .mapToInt(SlotType::amount)
                     .sum();
 
-            var bottomIndex = this.menu.scrolledIndex;
-            var upperIndex = bottomIndex + 8;
+            var groupMinIndex = currentIndexOffset;
+            var groupMaxIndex = groupMinIndex + groupSize - 1;
 
-            if(currentIndexOffset >= bottomIndex && ((currentIndexOffset + groupSize) - 1) < upperIndex){
+            var groupRange = Range.of(groupMinIndex, groupMaxIndex);
+
+            if(groupRange.isOverlappedBy(scrollRange)) {
                 selectedGroup.add(group.name());
             }
 
-            groupToIndex.put(group, currentIndexOffset);
+            groupToIndex.put(group, groupMinIndex);
 
             currentIndexOffset += groupSize;
         }
@@ -670,6 +759,10 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         }
 
         return groupValues;
+    }
+
+    private static SlotGroupImpl copy(SlotGroup group) {
+        return new SlotGroupImpl(group.name() + 1, group.order(), group.slots(), group.iconInfo());
     }
 
     private record SlotGroupData(Vector4i dimensions, boolean isSelected, int startingIndex){
