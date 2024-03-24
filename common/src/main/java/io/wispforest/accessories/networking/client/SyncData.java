@@ -53,7 +53,7 @@ public class SyncData extends CacheableAccessoriesPacket {
 
         var slotGroups = new HashSet<SlotGroup>();
 
-        slotGroups.addAll(SlotGroupLoader.INSTANCE.getGroups(false).values());
+        slotGroups.addAll(SlotGroupLoader.INSTANCE.getAllGroups(false).values());
 
         return new SyncData(List.copyOf(allSlotTypes.values()), entitySlots, slotGroups);
     }

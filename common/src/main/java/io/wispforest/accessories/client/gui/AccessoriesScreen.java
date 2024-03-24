@@ -41,7 +41,6 @@ import org.lwjgl.glfw.GLFW;
 
 import java.lang.Math;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class AccessoriesScreen extends EffectRenderingInventoryScreen<AccessoriesMenu> implements ContainerScreenExtension {
 
@@ -681,7 +680,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     }
 
     public static int tabPageCount() {
-        var groups = new ArrayList<>(SlotGroupLoader.INSTANCE.getGroups(true).values());
+        var groups = SlotGroupLoader.INSTANCE.getSharedGroups(true);
 
         return (int) Math.ceil(groups.size() / 9f);
     }
@@ -692,9 +691,9 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         int currentIndexOffset = 0;
 
-        List<SlotGroup> groups = new ArrayList<>(SlotGroupLoader.INSTANCE.getGroups(true).values().stream()
+        List<SlotGroup> groups = SlotGroupLoader.INSTANCE.getSharedGroups(true).stream()
                 .sorted(Comparator.comparingInt(SlotGroup::order).reversed())
-                .toList());
+                .toList();
 
         if(tabPageCount() > 1) {
             var lowerBound = (this.currentTabPage - 1) * 9;

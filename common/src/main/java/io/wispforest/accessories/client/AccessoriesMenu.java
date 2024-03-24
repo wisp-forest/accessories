@@ -167,9 +167,9 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         var accessoriesSlots = new ArrayList<AccessoriesInternalSlot>();
         var cosmeticSlots = new ArrayList<AccessoriesInternalSlot>();
 
-        var groups = SlotGroupLoader.INSTANCE.getGroups(inventory.player.level().isClientSide);
+        var groups = SlotGroupLoader.INSTANCE.getSharedGroups(inventory.player.level().isClientSide);
 
-        for (var group : groups.values().stream().sorted(Comparator.comparingInt(SlotGroup::order).reversed()).toList()) {
+        for (var group : groups.stream().sorted(Comparator.comparingInt(SlotGroup::order).reversed()).toList()) {
             var slotNames = group.slots();
 
             var slotTypes = slotNames.stream()

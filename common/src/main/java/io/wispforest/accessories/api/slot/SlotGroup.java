@@ -12,6 +12,8 @@ import java.util.Set;
  */
 public interface SlotGroup {
 
+    ResourceLocation UNKNOWN = Accessories.of("gui/slot/unknown");
+
     String name();
 
     default String translation(){
@@ -23,4 +25,8 @@ public interface SlotGroup {
     Set<String> slots();
 
     Pair<Integer, ResourceLocation> iconInfo();
+
+    default boolean uniqueSlot() {
+        return UniqueSlotHandling.getGroups().containsKey(this.name());
+    }
 }

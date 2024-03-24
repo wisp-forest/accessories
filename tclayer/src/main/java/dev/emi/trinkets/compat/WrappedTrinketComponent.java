@@ -2,7 +2,6 @@ package dev.emi.trinkets.compat;
 
 import com.google.common.collect.Multimap;
 import dev.emi.trinkets.api.*;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -37,7 +36,7 @@ public class WrappedTrinketComponent implements TrinketComponent {
     @Override
     public Map<String, Map<String, TrinketInventory>> getInventory() {
         //TODO: HANDLE SUCH TRINKET SPECIFIC NAMES AND GROUPS
-        var groups = SlotGroupLoader.INSTANCE.getGroups(capability.getEntity().level().isClientSide());
+        var groups = SlotGroupLoader.INSTANCE.getAllGroups(capability.getEntity().level().isClientSide());
         var containers = capability.getContainers();
 
         var inventories = new HashMap<String, Map<String, TrinketInventory>>();

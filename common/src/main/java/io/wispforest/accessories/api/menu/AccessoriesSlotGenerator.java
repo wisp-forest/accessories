@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.Slot;
@@ -15,6 +16,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * Slot Generator to be used for slots generator from {@link UniqueSlotHandling} event hooks
+ * to have easier time to add Accessories slots to a given owner of the unique slots
+ */
 public class AccessoriesSlotGenerator {
 
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -63,8 +68,8 @@ public class AccessoriesSlotGenerator {
     }
 
     public AccessoriesSlotGenerator padding(int value) {
-        this.horizontalPadding = value;
-        this.verticalPadding = value;
+        this.horizontalPadding(value);
+        this.verticalPadding(value);
 
         return this;
     }
@@ -81,6 +86,9 @@ public class AccessoriesSlotGenerator {
         return this;
     }
 
+    /**
+     * Layout the given slots based as a row from the given starting position
+     */
     public void row() {
         var containers = capability.getContainers();
 
@@ -104,6 +112,9 @@ public class AccessoriesSlotGenerator {
         }
     }
 
+    /**
+     * Layout the given slots based as a column from the given starting position
+     */
     public void column() {
         var containers = capability.getContainers();
 
