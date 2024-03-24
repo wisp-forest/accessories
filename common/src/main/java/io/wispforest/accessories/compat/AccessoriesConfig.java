@@ -11,8 +11,6 @@ import java.util.List;
 @Config(name = Accessories.MODID)
 public class AccessoriesConfig implements ConfigData {
 
-    //TODO: Add config for easier time adjusting slot count for given slot type
-
     @ConfigEntry.Gui.CollapsibleObject
     public ClientData clientData = new ClientData();
 

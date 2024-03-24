@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 public class AccessoriesFabricNetworkHandler extends AccessoriesNetworkHandler {
@@ -33,8 +34,8 @@ public class AccessoriesFabricNetworkHandler extends AccessoriesNetworkHandler {
     }
 
     @Environment(EnvType.CLIENT)
-    public void initClient() {
-        this.s2cBuilders.forEach((location, builder) -> builder.registerPacket(this::registerS2C));
+    public void initClient(RegistrationFunc registerS2C) {
+        this.s2cBuilders.forEach((location, builder) -> builder.registerPacket(registerS2C::consume));
 
         this.c2sBuilders.forEach((location, builder) -> builder.registerPacket(this::registerC2S));
     }
@@ -47,13 +48,7 @@ public class AccessoriesFabricNetworkHandler extends AccessoriesNetworkHandler {
         getOrCreate(messageType, supplier);
     }
 
-    @Environment(EnvType.CLIENT)
-    protected <M extends AccessoriesPacket> void registerS2C(Class<M> messageType, Supplier<M> supplier) {
-        //TODO: CLASS LOADING ISSUE!
-        ClientPlayNetworking.registerGlobalReceiver(getOrCreate(messageType, supplier), (packet, player, sender) -> packet.innerPacket().handle(player));
-    }
-
-    private <M extends AccessoriesPacket> PacketType<AccessoriesFabricPacket<?>> getOrCreate(Class<M> messageType, Supplier<M> supplier){
+    public  <M extends AccessoriesPacket> PacketType<AccessoriesFabricPacket<?>> getOrCreate(Class<M> messageType, Supplier<M> supplier){
         return packetTypes.computeIfAbsent(
                 getId(messageType),
                 location -> PacketType.create(location, buf -> new AccessoriesFabricPacket<>(AccessoriesPacket.read(supplier, buf)))
@@ -85,7 +80,7 @@ public class AccessoriesFabricNetworkHandler extends AccessoriesNetworkHandler {
         return this.packetTypes.get(getId(mClass));
     }
 
-    private record AccessoriesFabricPacket<P extends AccessoriesPacket>(P innerPacket) implements FabricPacket {
+    public record AccessoriesFabricPacket<P extends AccessoriesPacket>(P innerPacket) implements FabricPacket {
         @Override
         public void write(FriendlyByteBuf buf) {
             this.innerPacket.write(buf);
@@ -101,5 +96,9 @@ public class AccessoriesFabricNetworkHandler extends AccessoriesNetworkHandler {
 
             return packetType;
         }
+    }
+
+    public interface RegistrationFunc {
+        public <M extends AccessoriesPacket> void consume(Class<M> messageType, Supplier<M> supplier);
     }
 }

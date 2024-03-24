@@ -54,15 +54,15 @@ public class AccessoriesInternalSlot extends AccessoriesBasedSlot {
         super.set(stack);
 
         // TODO: SHOULD THIS BE HERE?
-        if(isCosmetic) {
-            var reference = new SlotReference(container.getSlotName(), entity, getContainerSlot());
-
-            AccessoriesAPI.getAccessory(prevStack)
-                    .ifPresent(prevAccessory1 -> prevAccessory1.onUnequip(prevStack, reference));
-
-            AccessoriesAPI.getAccessory(stack)
-                    .ifPresent(accessory1 -> accessory1.onEquip(stack, reference));
-        }
+//        if(isCosmetic) {
+//            var reference = new SlotReference(container.getSlotName(), entity, getContainerSlot());
+//
+//            AccessoriesAPI.getAccessory(prevStack)
+//                    .ifPresent(prevAccessory1 -> prevAccessory1.onUnequip(prevStack, reference));
+//
+//            AccessoriesAPI.getAccessory(stack)
+//                    .ifPresent(accessory1 -> accessory1.onEquip(stack, reference));
+//        }
     }
 
     @Override

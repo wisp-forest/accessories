@@ -9,6 +9,7 @@ import io.wispforest.accessories.api.events.AccessoriesEvents;
 import io.wispforest.accessories.api.slot.SlotAttribute;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
@@ -25,6 +26,7 @@ import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -145,22 +147,24 @@ public class AccessoriesEventHandler {
 
             syncPacket.write(buf);
 
-            for (var player1 : list.getPlayers()) {
-                networkHandler.sendToPlayer(player1, new SyncData(buf));
+            for (var playerEntry : list.getPlayers()) {
+                networkHandler.sendToPlayer(playerEntry, new SyncData(buf));
 
-                AccessoriesCapability.get(player1).ifPresent(capability -> {
+                AccessoriesCapability.get(playerEntry).ifPresent(capability -> {
                     var tag = new CompoundTag();
 
                     ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
 
-                    networkHandler.sendToTrackingAndSelf(player1, new SyncEntireContainer(tag, capability.getEntity().getId()));
+                    networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(tag, capability.getEntity().getId()));
                 });
+
+                if(playerEntry.containerMenu instanceof AccessoriesMenu) {
+                    player.openMenu(new SimpleMenuProvider((i, inventory, player1) -> new AccessoriesMenu(i, inventory, true, player1), Component.empty()));
+                }
             }
 
             buf.release();
 
-            //--
-            //TODO: HANDLE SCREEN STUFF??
         } else if (player != null) {
             networkHandler.sendToPlayer(player, syncPacket);
 
@@ -171,8 +175,10 @@ public class AccessoriesEventHandler {
 
                 networkHandler.sendToPlayer(player, new SyncEntireContainer(tag, capability.getEntity().getId()));
             });
-            //--
-            //TODO: HANDLE SCREEN STUFF??
+
+            if(player.containerMenu instanceof AccessoriesMenu) {
+                player.openMenu(new SimpleMenuProvider((i, inventory, player1) -> new AccessoriesMenu(i, inventory, true, player1), Component.empty()));
+            }
         }
     }
 
