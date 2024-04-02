@@ -23,6 +23,7 @@
     ]
   },
   "mixins": [
+    "testccessories-fabric.mixins.json"
   ],
   "depends": {
     "fabric": "*",

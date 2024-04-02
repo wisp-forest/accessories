@@ -2,6 +2,7 @@ package io.wispforest.accessories.api.menu;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.SlotReference;
@@ -9,6 +10,8 @@ import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -17,6 +20,8 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -102,6 +107,18 @@ public class AccessoriesBasedSlot extends Slot {
 
     protected ResourceLocation icon(){
         return this.accessoriesContainer.slotType().map(SlotType::icon).orElse(SlotType.EMPTY_SLOT_LOCATION);
+    }
+
+    public List<Component> getTooltipData() {
+        List<Component> tooltipData = new ArrayList<>();
+
+        var slotType = this.accessoriesContainer.slotType().get();
+
+        tooltipData.add(Component.translatable(Accessories.translation( "slot.tooltip.singular"))
+                .withStyle(ChatFormatting.GRAY)
+                .append(Component.translatable(slotType.translation()).withStyle(ChatFormatting.BLUE)));
+
+        return tooltipData;
     }
 
     @Nullable

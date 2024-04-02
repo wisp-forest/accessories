@@ -12,6 +12,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -208,7 +209,10 @@ public class TrinketsApi implements EntityComponentInitializer {
 
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-        return AccessoriesAPI.getPredicateResults(convertedSet, slotName, ref.index(), stack);
+        var slotType = SlotTypeLoader.getSlotType(entity.level(), slotName)
+                .orElseThrow(() -> {throw new IllegalStateException("Unable to get a SlotType using the WrappedTrinketInventory from the SlotTypeLoader! [Name: " + slotName +"]");});
+
+        return AccessoriesAPI.getPredicateResults(convertedSet, slotType, ref.index(), stack);
     }
 
     static {

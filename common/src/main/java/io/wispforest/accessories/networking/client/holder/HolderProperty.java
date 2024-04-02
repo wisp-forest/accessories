@@ -1,0 +1,60 @@
+package io.wispforest.accessories.networking.client.holder;
+
+import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.api.AccessoriesHolder;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.world.entity.player.Player;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+
+public record HolderProperty<T>(String name, BiConsumer<FriendlyByteBuf, T> writer, Function<FriendlyByteBuf, T> reader,  BiConsumer<AccessoriesHolder, T> modifyHolder) {
+
+    private static final Map<String, HolderProperty<?>> ALL_PROPERTIES = new HashMap<>();
+
+    public static HolderProperty<Boolean> LINES_PROP;
+    public static HolderProperty<Boolean> COSMETIC_PROP;
+    public static HolderProperty<Boolean> UNUSED_PROP;
+
+    static { init(); }
+
+    public static HolderProperty<?> getProperty(String name) {
+        if(ALL_PROPERTIES.isEmpty()) init();
+
+        var prop = ALL_PROPERTIES.get(name);
+
+        if(prop == null) {
+            throw new IllegalStateException("Unable to locate the given HolderProperty! [Name: " + name + "]");
+        }
+
+        return prop;
+    }
+
+    public HolderProperty {
+        ALL_PROPERTIES.put(name, this);
+    }
+
+    public void write(FriendlyByteBuf buf, Object data) {
+        writer.accept(buf, (T) data);
+    }
+
+    public void setData(Player player, Object data) {
+        AccessoriesInternals.modifyHolder(player, holder -> {
+            modifyHolder.accept(holder, (T) data);
+
+            return holder;
+        });
+    }
+
+
+    public static void init() {
+        if(!ALL_PROPERTIES.isEmpty()) return;
+
+        LINES_PROP = new HolderProperty<>("lines", FriendlyByteBuf::writeBoolean, FriendlyByteBuf::readBoolean, AccessoriesHolder::linesShown);
+        COSMETIC_PROP = new HolderProperty<>("cosmetic", FriendlyByteBuf::writeBoolean, FriendlyByteBuf::readBoolean, AccessoriesHolder::cosmeticsShown);
+        UNUSED_PROP = new HolderProperty<>("unused_slots", FriendlyByteBuf::writeBoolean, FriendlyByteBuf::readBoolean, AccessoriesHolder::showUnusedSlots);
+    }
+}

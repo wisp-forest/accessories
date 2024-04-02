@@ -12,7 +12,6 @@ import io.wispforest.accessories.impl.SlotGroupImpl;
 import io.wispforest.accessories.networking.server.MenuScroll;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
 import it.unimi.dsi.fastutil.Pair;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -99,7 +98,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             return true;
         }
 
-        if(Accessories.getConfig().clientData.showGroupTabs) {
+        if(Accessories.getConfig().clientData.showGroupTabs && this.menu.maxScrollableIndex > 0) {
             int x = getStartingPanelX();
             int y = this.topPos;
 
@@ -445,7 +444,9 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     }
 
     private Button cosmeticToggleButton = null;
-    private Button linesButton = null;
+    private Button linesToggleButton = null;
+
+    private Button unusedSlotsToggleButton = null;
 
     private Button tabUpButton = null;
     private Button tabDownButton = null;
@@ -460,17 +461,32 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         this.cosmeticToggleButton = Button.builder(Component.empty(), (btn) -> {
             this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 0);
-        }).tooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen())).bounds(this.leftPos - 27, this.topPos + 7, 18, 6).build();
+        }).tooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen()))
+                .bounds(this.leftPos - 27, this.topPos + 7, 18, 6)
+                .build();
+
+        this.unusedSlotsToggleButton = Button.builder(Component.empty(), (btn) -> {
+                    this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 2);
+                }).tooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()))
+                .bounds(this.leftPos + 154, this.topPos + 7, 12, 12)
+                .build();
+
+        this.addRenderableWidget(unusedSlotsToggleButton);
 
         this.addRenderableWidget(cosmeticToggleButton);
 
         if(Accessories.getConfig().clientData.showLineRendering) {
-            this.linesButton = Button.builder(Component.empty(), (btn) -> {
+            this.linesToggleButton = Button.builder(Component.empty(), (btn) -> {
                 this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 1);
-            }).tooltip(linesToggleTooltip(this.menu.areLinesShown())).bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6).build();
+            }).tooltip(linesToggleTooltip(this.menu.areLinesShown()))
+                    .bounds(this.leftPos + 154, this.topPos + 7 + 15, 12, 12)
+                    //.bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6)
+                    .build();
 
-            this.addRenderableWidget(linesButton);
+            this.addRenderableWidget(linesToggleButton);
         }
+
+
 
         int aceesoriesSlots = 0;
 
@@ -564,18 +580,27 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         }
     }
 
+    public void updateButtons(String name) {
+        switch (name) {
+            case "lines" -> updateLinesButton();
+            case "cosmetic" -> updateCosmeticToggleButton();
+            case "unused_slots" -> updateUnusedSlotToggleButton();
+        }
+    }
+
     public void updateLinesButton() {
         if(Accessories.getConfig().clientData.showLineRendering) {
-            this.linesButton.setTooltip(linesToggleTooltip(this.menu.areLinesShown()));
+            this.linesToggleButton.setTooltip(linesToggleTooltip(this.menu.areLinesShown()));
         }
     }
 
     public void updateCosmeticToggleButton() {
         this.cosmeticToggleButton.setTooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen()));
+    }
 
-        if(Accessories.getConfig().clientData.showLineRendering) {
-            this.linesButton.setX(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39));
-        }
+    public void updateUnusedSlotToggleButton() {
+        this.unusedSlotsToggleButton.setTooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()));
+        this.getMenu().reopenMenu();
     }
 
     public void updateAccessoryToggleButtons(){
@@ -612,6 +637,12 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         return Tooltip.create(Component.translatable(Accessories.translation(key)));
     }
 
+    private static Tooltip unusedSlotsToggleButton(boolean value) {
+        var key = "slot.unused_slots.toggle." + (!value ? "show" : "hide");
+
+        return Tooltip.create(Component.translatable(Accessories.translation(key)));
+    }
+
     private static Tooltip toggleTooltip(boolean value) {
         var key = "slot.display.toggle." + (!value ? "show" : "hide");
 
@@ -632,22 +663,14 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     @Override
     protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
         if (this.hoveredSlot instanceof AccessoriesInternalSlot accessoriesSlot) {
-//            if (menu.areLinesShown() || (hoveredSlot != null && hoveredSlot.equals(accessoriesSlot) && accessoriesSlot.isActive() && !accessoriesSlot.getItem().isEmpty())) forceTooltipLeft = true;
             forceTooltipLeft = true;
-            if (accessoriesSlot.getItem().isEmpty()) {
-                var slotType = accessoriesSlot.container.slotType();
 
-                if (slotType.isPresent()) {
-                    List<Component> tooltipData = new ArrayList<>();
+            if (accessoriesSlot.getItem().isEmpty() && accessoriesSlot.container.slotType().isPresent()) {
+                var tooltipData = accessoriesSlot.getTooltipData();
 
-                    var key = accessoriesSlot.isCosmetic ? "cosmetic_" : "";
+                guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
 
-                    tooltipData.add(Component.translatable(Accessories.translation(key + "slot.tooltip.singular")).withStyle(ChatFormatting.GRAY).append(Component.translatable(slotType.get().translation()).withStyle(ChatFormatting.BLUE)));
-
-                    guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
-
-                    return;
-                }
+                return;
             }
         }
 
@@ -691,7 +714,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         int currentIndexOffset = 0;
 
-        List<SlotGroup> groups = SlotGroupLoader.INSTANCE.getSharedGroups(true).stream()
+        List<SlotGroup> groups = this.getMenu().validGroups.stream()
                 .sorted(Comparator.comparingInt(SlotGroup::order).reversed())
                 .toList();
 

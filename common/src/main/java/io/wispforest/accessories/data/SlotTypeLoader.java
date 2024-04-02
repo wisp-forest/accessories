@@ -9,6 +9,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.impl.SlotTypeImpl;
@@ -21,7 +22,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
@@ -75,6 +75,28 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             additionalModifiers.put(modifier.slotType, modifier.amount);
         }
 
+        var uniqueSlots = new HashMap<String, SlotBuilder>();
+
+        UniqueSlotHandling.EVENT.invoker().registerSlots((location, integer, slotPredicate, types) -> {
+            var name = location.toString();
+
+            var builder = new SlotBuilder(name);
+
+            builder.amount(integer);
+
+            uniqueSlots.put(name, builder);
+
+            if(slotPredicate != null) {
+                builder.validator(slotPredicate);
+            } else {
+                builder.validator(Accessories.of("tag"));
+            }
+
+            // TODO: Should be replace with throw?
+
+            return new SlotTypeReference(name);
+        });
+
         var builders = new HashMap<String, SlotBuilder>();
 
         for (var resourceEntry : data.entrySet()) {
@@ -83,37 +105,47 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
             if(!AccessoriesInternals.isValidOnConditions(jsonObject)) continue;
 
-            if(!location.getNamespace().equals(Accessories.MODID)) continue;
+            var isShared = location.getNamespace().equals(Accessories.MODID);
 
-            var slotName = location.getPath();
+            if(!isShared && !uniqueSlots.containsKey(location.toString())) {
+                LOGGER.error("A Unique slot was attempted to be adjust though datapack but was not found to register in the UniqueSlotHandling event, such will be ignored");
 
-            var slotBuilder = new SlotBuilder(slotName);
+                return;
+            }
+
+            var pathParts = location.getPath().split("/");
+
+            String name = pathParts[pathParts.length - 1];
+
+            var slotBuilder = isShared ? new SlotBuilder(name) : uniqueSlots.remove(location.getNamespace() + ":" + name);
 
             slotBuilder.icon(safeHelper((object, s) -> ResourceLocation.tryParse(GsonHelper.getAsString(object, s)), jsonObject, "icon", location));
 
             slotBuilder.order(this.<Integer>safeHelper(GsonHelper::getAsInt, jsonObject, "order", location));
 
-            var amount = this.safeHelper(GsonHelper::getAsInt, jsonObject, "amount", location);
+            if(isShared) {
+                var amount = this.safeHelper(GsonHelper::getAsInt, jsonObject, "amount", location);
 
-            var operation = this.safeHelper((jsonObject1, s) -> GsonHelper.getAsString(jsonObject1, s).toLowerCase(), jsonObject, "operation", "set", location);
+                var operation = this.safeHelper((jsonObject1, s) -> GsonHelper.getAsString(jsonObject1, s).toLowerCase(), jsonObject, "operation", "set", location);
 
-            if("set".equals(operation)) {
-                if(amount != null) slotBuilder.amount(amount);
-            } else if ("add".equals(operation)) {
-                if(amount == null) amount = 1;
+                if ("set".equals(operation)) {
+                    if (amount != null) slotBuilder.amount(amount);
+                } else if ("add".equals(operation)) {
+                    if (amount == null) amount = 1;
 
-                slotBuilder.addAmount(amount);
-            } else if ("sub".equals(operation)) {
-                if(amount == null) amount = 1;
+                    slotBuilder.addAmount(amount);
+                } else if ("sub".equals(operation)) {
+                    if (amount == null) amount = 1;
 
-                slotBuilder.subtractAmount(amount);
+                    slotBuilder.subtractAmount(amount);
+                }
+
+                slotBuilder.addAmount(additionalModifiers.getOrDefault(slotBuilder.name, 0));
+
+                var validators = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "validator_predicates", new JsonArray(), location);
+
+                decodeJsonArray(validators, "validator", location, element -> ResourceLocation.tryParse(element.getAsString()), slotBuilder::validator);
             }
-
-            slotBuilder.addAmount(additionalModifiers.getOrDefault(slotName, 0));
-
-            var validators = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "validator_predicates", new JsonArray(), location);
-
-            decodeJsonArray(validators, "validator", location, element -> ResourceLocation.tryParse(element.getAsString()), slotBuilder::validator);
 
             slotBuilder.dropRule(this.safeHelper((object, s) -> DropRule.valueOf(GsonHelper.getAsString(object, s)), jsonObject, "drop_rule", location));
 
@@ -126,21 +158,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             builders.put(slotBuilder.name, slotBuilder);
         }
 
-        UniqueSlotHandling.EVENT.invoker().initTypes((location, integer) -> {
-            var name = location.toString();
-
-            var builder = builders.remove(name);
-
-            if(builder == null) builder = new SlotBuilder(name);
-
-            builder.amount(integer);
-
-            var slotType = builder.create();
-
-            server.put(slotType.name(), slotType);
-
-            return slotType;
-        });
+        uniqueSlots.forEach((s, slotBuilder) -> server.put(s, slotBuilder.create()));
 
         builders.forEach((s, slotBuilder) -> server.put(s, slotBuilder.create()));
     }
@@ -169,7 +187,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             return this;
         }
 
-        public SlotBuilder order(int value){
+        public SlotBuilder order(Integer value){
             this.order = value;
             return this;
         }

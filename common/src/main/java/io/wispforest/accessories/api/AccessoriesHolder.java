@@ -32,4 +32,8 @@ public interface AccessoriesHolder {
 
     AccessoriesHolder scrolledSlot(int slot);
 
+    boolean showUnusedSlots();
+
+    AccessoriesHolder showUnusedSlots(boolean value);
+
 }

@@ -18,6 +18,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
     protected final List<ItemStack> invalidStacks = new ArrayList<>();
     protected final Set<AccessoriesContainer> containersRequiringUpdates = new HashSet<>();
 
+    private boolean showUnusedSlots = false;
     private boolean cosmeticsShown = false;
 
     private int scrolledSlot = 0;
@@ -73,6 +74,18 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
     @Override
     public AccessoriesHolder linesShown(boolean value) {
         this.linesShown = value;
+
+        return this;
+    }
+
+    @Override
+    public boolean showUnusedSlots() {
+        return this.showUnusedSlots;
+    }
+
+    @Override
+    public AccessoriesHolder showUnusedSlots(boolean value) {
+        this.showUnusedSlots = value;
 
         return this;
     }

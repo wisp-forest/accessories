@@ -48,4 +48,7 @@ public interface SlotType {
      */
     DropRule dropRule();
 
+    default boolean uniqueSlot() {
+        return this.name().contains(":");
+    }
 }

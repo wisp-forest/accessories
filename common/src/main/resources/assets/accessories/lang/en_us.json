@@ -32,6 +32,8 @@
   "accessories.slot.display.toggle.hide": "Hide Accessory",
   "accessories.slot.lines.toggle.show": "Show All Lines",
   "accessories.slot.lines.toggle.hide": "Hide All Lines",
+  "accessories.slot.unused_slots.toggle.show": "Show Unused Slots",
+  "accessories.slot.unused_slots.toggle.hide": "Hide Unused Slots",
   "accessories.open.screen": "Open Accessories",
   "text.autoconfig.accessories.title": "Accessories Config",
   "text.autoconfig.accessories.option.clientData": "Client Options",

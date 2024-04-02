@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import net.minecraft.world.entity.LivingEntity;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -45,7 +47,24 @@ public class AccessoriesSlotGenerator {
     }
 
     @Nullable
-    public AccessoriesSlotGenerator of(Consumer<Slot> slotConsumer, int startX, int startY, LivingEntity livingEntity, SlotType... slotTypes) {
+    public static AccessoriesSlotGenerator of(Consumer<Slot> slotConsumer, int startX, int startY, LivingEntity livingEntity, SlotTypeReference... references) {
+        var level = livingEntity.level();
+
+        var slotTypes = Arrays.stream(references).map(ref -> {
+            var slotType = ref.get(level);
+
+            if(slotType == null) {
+                LOGGER.error("Unable to find the SlotType based on the passed referece! [SlotName: " + ref.slotName()  + "]");
+            }
+
+            return slotType;
+        }).filter(Objects::nonNull).toArray(SlotType[]::new);
+
+        return of(slotConsumer, startX, startY, livingEntity, slotTypes);
+    }
+
+    @Nullable
+    public static AccessoriesSlotGenerator of(Consumer<Slot> slotConsumer, int startX, int startY, LivingEntity livingEntity, SlotType... slotTypes) {
         var capability = livingEntity.accessoriesCapability().orElse(null);
 
         if(capability == null) return null;
@@ -89,11 +108,13 @@ public class AccessoriesSlotGenerator {
     /**
      * Layout the given slots based as a row from the given starting position
      */
-    public void row() {
+    public int row() {
         var containers = capability.getContainers();
 
         int xOffset = this.horizontalPadding / 2;
         int yOffset = this.verticalPadding / 2;
+
+        int slotAddedAmount = 0;
 
         for (var slotType : slotTypes) {
             var container = capability.tryAndGetContainer(slotType).orElse(null);
@@ -108,18 +129,24 @@ public class AccessoriesSlotGenerator {
                 slotConsumer.accept(new AccessoriesBasedSlot(container, container.getAccessories(), i, this.startX + xOffset, this.startY + yOffset));
 
                 xOffset += (this.horizontalPadding / 2) + 18;
+
+                slotAddedAmount++;
             }
         }
+
+        return slotAddedAmount;
     }
 
     /**
      * Layout the given slots based as a column from the given starting position
      */
-    public void column() {
+    public int column() {
         var containers = capability.getContainers();
 
         int xOffset = this.horizontalPadding / 2;
         int yOffset = this.verticalPadding / 2;
+
+        int slotAddedAmount = 0;
 
         for (var slotType : slotTypes) {
             var container = capability.tryAndGetContainer(slotType).orElse(null);
@@ -134,7 +161,11 @@ public class AccessoriesSlotGenerator {
                 slotConsumer.accept(new AccessoriesBasedSlot(container, container.getAccessories(), i, this.startX + xOffset, this.startY + yOffset));
 
                 yOffset += (this.verticalPadding / 2) + 18;
+
+                slotAddedAmount++;
             }
         }
+
+        return slotAddedAmount;
     }
 }

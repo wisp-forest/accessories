@@ -49,7 +49,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
     }
 
     public final List<SlotGroup> getSharedGroups(boolean isClientSide){
-        return getAllGroups(isClientSide).values().stream().filter(group -> !group.uniqueSlot()).toList();
+        return getAllGroups(isClientSide).values().stream().filter(group -> !group.uniqueGroup()).toList();
     }
 
     public final SlotGroup getGroup(boolean isClientSide, String group){
@@ -150,7 +150,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
             slotGroups.put(group.name, group);
         }
 
-        slotGroups.get("any").addSlots(allSlots.keySet());
+        slotGroups.get("any").addSlots(allSlots.keySet().stream().filter(s -> !s.contains(":")).toList());
 
         UniqueSlotHandling.getGroups().forEach((group, slots) -> {
             slotGroups.put(group,

@@ -4,6 +4,7 @@ import com.google.gson.*;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -137,8 +138,18 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
                 }
             }, entities::addAll);
 
-            for (EntityType<?> entity : entities) {
-                server.computeIfAbsent(entity, entityType -> new HashMap<>()).putAll(slots);
+            for (EntityType<?> entityType : entities) {
+                server.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
+                        .putAll(slots);
+            }
+        }
+
+        for (var entry : UniqueSlotHandling.getSlotToTypes().entrySet()) {
+            var slotType = entry.getKey().get(false);
+
+            for (var entityType : entry.getValue()) {
+                server.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
+                        .put(slotType.name(), slotType);
             }
         }
     }

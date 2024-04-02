@@ -345,7 +345,7 @@ public class AccessoriesEventHandler {
         var slotTypes = new HashSet<>(AccessoriesAPI.getValidSlotTypes(entity, stack));
         var allSlotTypes = SlotTypeLoader.getSlotTypes(entity.level()).values()
                 .stream()
-                .filter(slotType -> slotType.amount() > 0)
+                .filter(slotType -> slotType.amount() > 0 && !slotType.uniqueSlot())
                 .collect(Collectors.toSet());
 
         if (slotTypes.isEmpty()) return;
@@ -359,7 +359,7 @@ public class AccessoriesEventHandler {
         var slotsComponent = Component.literal("");
         boolean allSlots = false;
 
-        if (slotTypes.containsAll(allSlotTypes)) {
+        if (allSlotTypes.containsAll(slotTypes)) {
             slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
             allSlots = true;
         } else {

@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
+import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
@@ -13,8 +14,9 @@ import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.mixin.AbstractContainerMenuAccessor;
 import io.wispforest.accessories.mixin.SlotAccessor;
-import io.wispforest.accessories.networking.client.SyncCosmeticsMenuToggle;
-import io.wispforest.accessories.networking.client.SyncLinesMenuToggle;
+import io.wispforest.accessories.networking.client.holder.HolderProperty;
+import io.wispforest.accessories.networking.client.holder.SyncHolderChange;
+import io.wispforest.accessories.networking.server.ScreenOpen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -55,6 +57,8 @@ public class AccessoriesMenu extends AbstractContainerMenu {
     public int accessoriesSlotStartIndex = 0;
     public int cosmeticSlotStartIndex = 0;
 
+    public final Set<SlotGroup> validGroups = new HashSet<>();
+
     private final Map<Integer, Boolean> slotToView = new HashMap<>();
 
     public Runnable onScrollToEvent = () -> {};
@@ -64,6 +68,36 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
         this.active = active;
         this.owner = owner;
+
+        //--
+
+        var slots = new HashSet<SlotType>();
+
+        if(!this.areUnusedSlotsShown()) {
+            for (int i = 0; i < inventory.getContainerSize(); i++) {
+                var stack = inventory.getItem(i);
+
+                if (stack.isEmpty()) continue;
+
+                slots.addAll(AccessoriesAPI.getValidSlotTypes(owner, stack));
+            }
+
+            var capability = owner.accessoriesCapability().get();
+
+            for (var ref : capability.getAllEquipped()) {
+                slots.addAll(AccessoriesAPI.getValidSlotTypes(this.owner, ref.stack()));
+            }
+
+            for (var slot : SlotTypeLoader.getSlotTypes(owner.level()).values()) {
+                var bl = BuiltInRegistries.ITEM.getTag(AccessoriesAPI.getSlotTag(slot))
+                        .map(holders -> holders.size() > 0)
+                        .orElse(false);
+
+                if (bl) slots.add(slot);
+            }
+        }
+
+        //--
 
         for (int i = 0; i < 4; ++i) {
             final EquipmentSlot equipmentSlot = SLOT_IDS[i];
@@ -112,7 +146,6 @@ public class AccessoriesMenu extends AbstractContainerMenu {
                 return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD);
             }
         });
-
 
         var player = inventory.player;
 
@@ -178,6 +211,12 @@ public class AccessoriesMenu extends AbstractContainerMenu {
                     .toList();
 
             for (SlotType slot : slotTypes) {
+                if(!slots.isEmpty() && !slots.contains(slot)) {
+                    continue;
+                } else {
+                    validGroups.add(group);
+                }
+
                 var accessoryContainer = containers.get(slot.name());
 
                 if (accessoryContainer == null) continue;
@@ -356,7 +395,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         if (id == 0) {
             AccessoriesInternals.modifyHolder(player, holder -> holder.cosmeticsShown(!isCosmeticsOpen()));
 
-            AccessoriesInternals.getNetworkHandler().sendToPlayer((ServerPlayer) player, new SyncCosmeticsMenuToggle(isCosmeticsOpen()));
+            AccessoriesInternals.getNetworkHandler().sendToPlayer((ServerPlayer) player, SyncHolderChange.of(HolderProperty.COSMETIC_PROP, isCosmeticsOpen()));
 
             return true;
         }
@@ -364,7 +403,15 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         if (id == 1) {
             AccessoriesInternals.modifyHolder(player, holder -> holder.linesShown(!areLinesShown()));
 
-            AccessoriesInternals.getNetworkHandler().sendToPlayer((ServerPlayer) player, new SyncLinesMenuToggle(areLinesShown()));
+            AccessoriesInternals.getNetworkHandler().sendToPlayer((ServerPlayer) player, SyncHolderChange.of(HolderProperty.LINES_PROP, areLinesShown()));
+
+            return true;
+        }
+
+        if(id == 2) {
+            AccessoriesInternals.modifyHolder(player, holder -> holder.showUnusedSlots(!areUnusedSlotsShown()));
+
+            AccessoriesInternals.getNetworkHandler().sendToPlayer((ServerPlayer) player, SyncHolderChange.of(HolderProperty.UNUSED_PROP, areUnusedSlotsShown()));
 
             return true;
         }
@@ -384,6 +431,14 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
     public boolean areLinesShown() {
         return AccessoriesHolder.get(owner).map(AccessoriesHolder::linesShown).orElse(false);
+    }
+
+    public boolean areUnusedSlotsShown() {
+        return AccessoriesHolder.get(owner).map(AccessoriesHolder::showUnusedSlots).orElse(false);
+    }
+
+    public void reopenMenu() {
+        AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen());
     }
 
     static {

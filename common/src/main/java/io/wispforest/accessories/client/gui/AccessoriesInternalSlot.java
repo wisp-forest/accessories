@@ -5,10 +5,14 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.SlotReference;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 public class AccessoriesInternalSlot extends AccessoriesBasedSlot {
@@ -45,6 +49,20 @@ public class AccessoriesInternalSlot extends AccessoriesBasedSlot {
     @Override
     protected ResourceLocation icon() {
         return (this.isCosmetic) ? Accessories.of("gui/slot/cosmetic") : super.icon();
+    }
+
+    public List<Component> getTooltipData() {
+        List<Component> tooltipData = new ArrayList<>();
+
+        var key = this.isCosmetic ? "cosmetic_" : "";
+
+        var slotType = this.container.slotType().get();
+
+        tooltipData.add(Component.translatable(Accessories.translation(key + "slot.tooltip.singular"))
+                .withStyle(ChatFormatting.GRAY)
+                .append(Component.translatable(slotType.translation()).withStyle(ChatFormatting.BLUE)));
+
+        return tooltipData;
     }
 
     @Override

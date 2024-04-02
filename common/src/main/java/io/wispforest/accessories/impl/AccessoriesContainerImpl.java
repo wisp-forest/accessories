@@ -127,7 +127,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
         for (int i = 0; i < renderOptions.size(); i++) {
             var option = renderOptions.get(i);
 
-            if(i > baseSize){
+            if(i >= baseSize){
                 newRenderOptions.add(i, option);
             } else {
                 newRenderOptions.set(i, option);
