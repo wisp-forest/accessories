@@ -74,7 +74,9 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         this.update = false;
 
-        int baseSize = slotType().map(SlotType::amount).orElse(this.baseSize);
+        var slotType = this.slotType();
+
+        int baseSize = slotType != null ? slotType.amount() : this.baseSize;
 
         for(AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADDITION)){
             baseSize += modifier.getAmount();
@@ -90,9 +92,9 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
             baseSize *= modifier.getAmount();
         }
 
-        var slotAmountModifier = this.slotType()
-                .map(slotType -> SlotAmountAdjustments.INSTANCE.getAmount(slotType, this.capability.getEntity()))
-                .orElse(0);
+        var slotAmountModifier = slotType != null
+                ? SlotAmountAdjustments.INSTANCE.getAmount(slotType, this.capability.getEntity())
+                : 0;
 
         if(slotAmountModifier > baseSize){
             baseSize = slotAmountModifier;
@@ -167,7 +169,10 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
             livingEntity.getAttributes().removeAttributeModifiers(attributes);
             this.capability.removeSlotModifiers(slots);
-            AccessoriesAPI.getAccessory(invalidStack).ifPresent(accessory -> accessory.onUnequip(invalidStack, slotReference));
+
+            var accessory = AccessoriesAPI.getAccessory(invalidStack);
+
+            if(accessory != null) accessory.onUnequip(invalidStack, slotReference);
 
             invalidStacks.add(invalidStack);
         }
@@ -369,9 +374,9 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         var sizeFromTag = (tag.contains(BASE_SIZE_KEY)) ? tag.getInt(BASE_SIZE_KEY) : baseSize;
 
-        this.baseSize = SlotTypeLoader.getSlotType(this.capability.getEntity().level(), this.slotName)
-                .map(SlotType::amount)
-                .orElse(sizeFromTag);
+        var slotType = SlotTypeLoader.getSlotType(this.capability.getEntity().level(), this.slotName);
+
+        this.baseSize = slotType != null ? slotType.amount() : sizeFromTag;
 
         this.renderOptions = Util.make(new ArrayList<>(baseSize), booleans -> {
             for (int i = 0; i < baseSize; i++) booleans.add(i, true);

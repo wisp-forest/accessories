@@ -87,9 +87,9 @@ public class SyncContainerData extends CacheableAccessoriesPacket {
 
         var capability = AccessoriesCapability.get(livingEntity);
 
-        if(capability.isEmpty()) return;
+        if(capability == null) return;
 
-        var containers = capability.get().getContainers();
+        var containers = capability.getContainers();
 
         for (var entry : this.updatedContainers.entrySet()) {
             if(!containers.containsKey(entry.getKey())) continue;

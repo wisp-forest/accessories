@@ -66,7 +66,7 @@ public class CCLayer {
                         if (entity instanceof LivingEntity livingEntity) {
                             var capability = AccessoriesCapability.get(livingEntity);
 
-                            if(capability.isPresent()) return new WrappedCurioItemHandler((AccessoriesCapabilityImpl) capability.get());
+                            if(capability != null) return new WrappedCurioItemHandler((AccessoriesCapabilityImpl) capability);
                         }
 
                         return null;

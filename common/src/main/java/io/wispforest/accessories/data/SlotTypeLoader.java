@@ -19,6 +19,7 @@ import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -42,8 +43,9 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
     /**
      * Attempt to get the given SlotType based on the provided slotName
      */
-    public static Optional<SlotType> getSlotType(Level level, String slotName){
-        return Optional.ofNullable(getSlotTypes(level).get(slotName));
+    @Nullable
+    public static SlotType getSlotType(Level level, String slotName){
+        return getSlotTypes(level).get(slotName);
     }
 
     /**

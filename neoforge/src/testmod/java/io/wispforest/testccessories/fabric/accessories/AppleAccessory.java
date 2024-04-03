@@ -41,7 +41,7 @@ public class AppleAccessory implements Accessory {
         if (player.getFoodData().getFoodLevel() > 16) return;
 
 
-        if (!AccessoriesCapability.get(player).get().isEquipped(Items.APPLE)) return;
+        if (!AccessoriesCapability.get(player).isEquipped(Items.APPLE)) return;
 
         player.getFoodData().eat(Items.APPLE, stack);
         stack.shrink(1);

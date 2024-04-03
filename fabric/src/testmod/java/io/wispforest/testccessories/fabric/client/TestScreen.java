@@ -67,7 +67,7 @@ public class TestScreen extends AbstractContainerScreen<TestMenu> implements Men
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        if (this.hoveredSlot instanceof AccessoriesBasedSlot slot && slot.getItem().isEmpty() && slot.accessoriesContainer.slotType().isPresent()) {
+        if (this.hoveredSlot instanceof AccessoriesBasedSlot slot && slot.getItem().isEmpty() && slot.accessoriesContainer.slotType() != null) {
             var tooltipData = slot.getTooltipData();
 
             guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), mouseX, mouseY);

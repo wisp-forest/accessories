@@ -46,7 +46,7 @@ public class TrinketsApi implements EntityComponentInitializer {
         if(trinket == null) {
             var accessory = AccessoriesAPI.getAccessory(item);
 
-            if(accessory.isPresent()) trinket = new WrappedAccessory(accessory.get());
+            if(accessory != null) trinket = new WrappedAccessory(accessory);
         }
 
         //TODO: Maybe check for valid slots if any and return different wrapped accessory as a way of indicating this item is for sure a valid trinket for things like Compound Accessories
@@ -62,7 +62,9 @@ public class TrinketsApi implements EntityComponentInitializer {
     public static Optional<TrinketComponent> getTrinketComponent(LivingEntity livingEntity) {
         if(livingEntity == null) return Optional.empty();
 
-        return AccessoriesCapability.get(livingEntity).<TrinketComponent>map(LivingEntityTrinketComponent::new).or(() -> Optional.of(new EmptyComponent(livingEntity)));
+        var capability = AccessoriesCapability.get(livingEntity);
+
+        return Optional.of(capability != null ? new LivingEntityTrinketComponent(capability) : new EmptyComponent(livingEntity));
     }
 
     public static void onTrinketBroken(ItemStack stack, SlotReference ref, LivingEntity entity) {
@@ -209,8 +211,11 @@ public class TrinketsApi implements EntityComponentInitializer {
 
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-        var slotType = SlotTypeLoader.getSlotType(entity.level(), slotName)
-                .orElseThrow(() -> {throw new IllegalStateException("Unable to get a SlotType using the WrappedTrinketInventory from the SlotTypeLoader! [Name: " + slotName +"]");});
+        var slotType = SlotTypeLoader.getSlotType(entity.level(), slotName);
+
+        if(slotType == null) {
+            throw new IllegalStateException("Unable to get a SlotType using the WrappedTrinketInventory from the SlotTypeLoader! [Name: " + slotName +"]");
+        }
 
         return AccessoriesAPI.getPredicateResults(convertedSet, slotType, ref.index(), stack);
     }
@@ -231,7 +236,7 @@ public class TrinketsApi implements EntityComponentInitializer {
         });
         TrinketsApi.registerTrinketPredicate(new ResourceLocation("trinkets", "relevant"), (stack, ref, entity) -> {
             UUID uuid = UUID.nameUUIDFromBytes((ref.inventory().getSlotType().getName() + ref.index()).getBytes());
-            var accessory = AccessoriesAPI.getAccessory(stack).get();
+            var accessory = AccessoriesAPI.getAccessory(stack);
 
             var map = accessory.getModifiers(stack, new io.wispforest.accessories.api.slot.SlotReference(ref.inventory().getSlotType().getName(), entity, ref.index()), uuid);
             if (!map.isEmpty()) {

@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface AccessoriesHolder {
 
-    static Optional<AccessoriesHolder> get(@NotNull LivingEntity livingEntity){
+    static AccessoriesHolder get(@NotNull LivingEntity livingEntity){
         return ((AccessoriesAPIAccess) livingEntity).accessoriesHolder();
     }
 

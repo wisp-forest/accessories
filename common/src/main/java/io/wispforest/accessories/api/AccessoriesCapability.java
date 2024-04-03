@@ -24,7 +24,8 @@ public interface AccessoriesCapability {
     /**
      * @return The Capability Bound to the given living entity if such is present
      */
-    static Optional<AccessoriesCapability> get(@NotNull LivingEntity livingEntity){
+    @Nullable
+    static AccessoriesCapability get(@NotNull LivingEntity livingEntity){
         return ((AccessoriesAPIAccess) livingEntity).accessoriesCapability();
     }
 
@@ -55,8 +56,9 @@ public interface AccessoriesCapability {
     /**
      * @return an {@link Optional} representing a given {@link AccessoriesContainer} if found on the given {@link LivingEntity} tied to the Capability
      */
-    default Optional<AccessoriesContainer> tryAndGetContainer(SlotType slotType){
-        return Optional.ofNullable(getContainers().get(slotType.name()));
+    @Nullable
+    default AccessoriesContainer tryAndGetContainer(SlotType slotType){
+        return getContainers().get(slotType.name());
     }
 
     //--

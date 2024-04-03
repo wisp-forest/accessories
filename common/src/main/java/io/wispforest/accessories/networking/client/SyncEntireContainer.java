@@ -45,10 +45,12 @@ public class SyncEntireContainer extends AccessoriesPacket {
 
         if(!(entity instanceof LivingEntity livingEntity)) return;
 
-        AccessoriesCapability.get(livingEntity).ifPresent(capability -> {
-            ((AccessoriesHolderImpl) capability.getHolder()).read(containerTag);
+        var capability = AccessoriesCapability.get(livingEntity);
 
-            ((AccessoriesHolderImpl) capability.getHolder()).init(capability);
-        });
+        if(capability == null) return;
+
+        ((AccessoriesHolderImpl) capability.getHolder()).read(containerTag);
+
+        ((AccessoriesHolderImpl) capability.getHolder()).init(capability);
     }
 }

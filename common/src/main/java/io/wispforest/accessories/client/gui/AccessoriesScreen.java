@@ -4,6 +4,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -600,7 +601,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     public void updateUnusedSlotToggleButton() {
         this.unusedSlotsToggleButton.setTooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()));
-        this.getMenu().reopenMenu();
+        this.menu.reopenMenu();
+        //AccessoriesClient.attemptToOpenScreen();
     }
 
     public void updateAccessoryToggleButtons(){
@@ -665,7 +667,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         if (this.hoveredSlot instanceof AccessoriesInternalSlot accessoriesSlot) {
             forceTooltipLeft = true;
 
-            if (accessoriesSlot.getItem().isEmpty() && accessoriesSlot.container.slotType().isPresent()) {
+            if (accessoriesSlot.getItem().isEmpty() && accessoriesSlot.container.slotType() != null) {
                 var tooltipData = accessoriesSlot.getTooltipData();
 
                 guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
@@ -737,8 +739,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         for (var group : groups) {
             var groupSize = group.slots().stream()
                     .map(s -> SlotTypeLoader.getSlotType(Minecraft.getInstance().player.clientLevel, s))
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
+                    .filter(Objects::nonNull)
                     .mapToInt(SlotType::amount)
                     .sum();
 

@@ -26,32 +26,38 @@ public abstract class InventoryMixin {
 
     @Inject(method = "clearOrCountMatchingItems", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z", shift = At.Shift.AFTER))
     private void clearAccessories(Predicate<ItemStack> stackPredicate, int maxCount, Container inventory, CallbackInfoReturnable<Integer> cir, @Local(ordinal = 1) LocalIntRef i) {
-        AccessoriesCapability.get(player).ifPresent(capability -> {
-            capability.getContainers().forEach((s, container) -> {
-                var accessories = container.getAccessories();
-                i.set(i.get() + ContainerHelper.clearOrCountMatchingItems(accessories, stackPredicate, maxCount - i.get(), maxCount - i.get() == 0));
+        var capability = AccessoriesCapability.get(player);
 
-                var cosmetics = container.getCosmeticAccessories();
-                i.set(i.get() + ContainerHelper.clearOrCountMatchingItems(cosmetics, stackPredicate, maxCount - i.get(), maxCount - i.get() == 0));
-            });
+        if(capability == null) return;
+
+        capability.getContainers().forEach((s, container) -> {
+            var accessories = container.getAccessories();
+            i.set(i.get() + ContainerHelper.clearOrCountMatchingItems(accessories, stackPredicate, maxCount - i.get(), maxCount - i.get() == 0));
+
+            var cosmetics = container.getCosmeticAccessories();
+            i.set(i.get() + ContainerHelper.clearOrCountMatchingItems(cosmetics, stackPredicate, maxCount - i.get(), maxCount - i.get() == 0));
         });
     }
 
     @Inject(method = "contains(Lnet/minecraft/world/item/ItemStack;)Z", at = @At("TAIL"))
-    private void extendContainsCheck(ItemStack stack, CallbackInfoReturnable<Boolean> cir){
-        AccessoriesCapability.get(player).ifPresent(capability -> {
-            var bl = capability.isEquipped(stack1 -> stack1.isEmpty() && ItemStack.isSameItemSameTags(stack1, stack));
+    private void extendContainsCheck(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
+        var capability = AccessoriesCapability.get(player);
 
-            if(bl) cir.setReturnValue(true);
-        });
+        if (capability == null) return;
+
+        var bl = capability.isEquipped(stack1 -> stack1.isEmpty() && ItemStack.isSameItemSameTags(stack1, stack));
+
+        if (bl) cir.setReturnValue(true);
     }
 
     @Inject(method = "contains(Lnet/minecraft/tags/TagKey;)Z", at = @At("TAIL"))
     private void extendContainsCheck(TagKey<Item> tag, CallbackInfoReturnable<Boolean> cir){
-        AccessoriesCapability.get(player).ifPresent(capability -> {
-            var bl = capability.isEquipped(stack1 -> !stack1.isEmpty() && stack1.is(tag));
+        var capability = AccessoriesCapability.get(player);
 
-            if(bl) cir.setReturnValue(true);
-        });
+        if(capability == null) return;
+
+        var bl = capability.isEquipped(stack1 -> !stack1.isEmpty() && stack1.is(tag));
+
+        if(bl) cir.setReturnValue(true);
     }
 }

@@ -4,6 +4,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.events.AccessoriesEvents;
 import io.wispforest.accessories.api.slot.SlotAttribute;
 import io.wispforest.accessories.api.slot.SlotBasedPredicate;
@@ -11,17 +12,18 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import it.unimi.dsi.fastutil.Pair;
+import io.wispforest.accessories.networking.client.AccessoryBreak;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -62,14 +64,16 @@ public class AccessoriesAPI {
     /**
      * Attempt to get a {@link Accessory} bound to an {@link Item} or an Empty {@link Optional}
      */
-    public static Optional<Accessory> getAccessory(Item item) {
-        return Optional.ofNullable(REGISTER.get(item));
+    @Nullable
+    public static Accessory getAccessory(Item item) {
+        return REGISTER.get(item);
     }
 
     /**
      * Attempt to get a {@link Accessory} bound to an {@link ItemStack}'s Item or an Empty {@link Optional}
      */
-    public static Optional<Accessory> getAccessory(ItemStack stack){
+    @Nullable
+    public static Accessory getAccessory(ItemStack stack){
         return getAccessory(stack.getItem());
     }
 
@@ -84,7 +88,7 @@ public class AccessoriesAPI {
      * Get any bound {@link Accessory} to the given {@link Item} or return {@link #DEFAULT} Accessory
      */
     public static Accessory getOrDefaultAccessory(Item item){
-        return getAccessory(item).orElse(defaultAccessory());
+        return REGISTER.getOrDefault(item, defaultAccessory());
     }
 
     /**
@@ -99,7 +103,7 @@ public class AccessoriesAPI {
      * default or if the given stack has valid slots which it can be equipped
      */
     public static boolean isValidAccessory(ItemStack stack, Level level){
-        return getAccessory(stack).isPresent() || (getStackSlotTypes(level, stack).size() > 0);
+        return getAccessory(stack) != null || (getStackSlotTypes(level, stack).size() > 0);
     }
 
     //--
@@ -162,11 +166,13 @@ public class AccessoriesAPI {
 
         if(entity != null) {
             //TODO: Decide if such presents of modifiers prevents the accessory modifiers from existing
-            AccessoriesAPI.getAccessory(stack).ifPresent(accessory -> {
+            var accessory = AccessoriesAPI.getAccessory(stack);
+
+            if(accessory != null) {
                 var data = accessory.getModifiers(stack, new SlotReference(slotName, entity, slot), uuid);
 
                 multimap.putAll(data);
-            });
+            }
         }
 
         return multimap;
@@ -198,12 +204,13 @@ public class AccessoriesAPI {
      * based on {@link SlotBasedPredicate}s bound to the Slot and the {@link Accessory} bound to the stack if present
      */
     public static boolean canInsertIntoSlot(ItemStack stack, SlotReference reference){
-        var predicates = reference.type().map(SlotType::validators).orElse(Set.of());
+        var slotType = reference.type();
 
-        var slotType = reference.type()
-                .orElseThrow(() -> { throw new IllegalStateException("Unable to get the needed SlotType from the SlotReference passed within `canInsertIntoSlot`! [Name: " + reference.slotName() + "]"); });
+        if(slotType == null) {
+            throw new IllegalStateException("Unable to get the needed SlotType from the SlotReference passed within `canInsertIntoSlot`! [Name: " + reference.slotName() + "]");
+        }
 
-        return getPredicateResults(predicates, slotType, 0, stack) && canEquip(stack, reference);
+        return getPredicateResults(slotType.validators(), slotType, 0, stack) && canEquip(stack, reference);
     }
 
     /**
@@ -251,8 +258,8 @@ public class AccessoriesAPI {
 
         var capability = AccessoriesCapability.get(entity);
 
-        if(capability.isPresent()) {
-            var containers = capability.get().getContainers();
+        if(capability != null) {
+            var containers = capability.getContainers();
 
             for (SlotType value : slots.values()) {
                 if (!containers.containsKey(value.name())) continue;
@@ -280,13 +287,53 @@ public class AccessoriesAPI {
         return validSlots;
     }
 
+    public static Collection<SlotType> getUsedSlotsFor(Player player) {
+        return getUsedSlotsFor(player, player.getInventory());
+    }
+
+    public static Collection<SlotType> getUsedSlotsFor(LivingEntity entity, Container container) {
+        var slots = new HashSet<SlotType>();
+
+        for (int i = 0; i < container.getContainerSize(); i++) {
+            var stack = container.getItem(i);
+
+            if (stack.isEmpty()) continue;
+
+            slots.addAll(AccessoriesAPI.getValidSlotTypes(entity, stack));
+        }
+
+        var capability = entity.accessoriesCapability();
+
+        for (var ref : capability.getAllEquipped()) {
+            slots.addAll(AccessoriesAPI.getValidSlotTypes(entity, ref.stack()));
+        }
+
+        for (var slot : SlotTypeLoader.getSlotTypes(entity.level()).values()) {
+            var bl = BuiltInRegistries.ITEM.getTag(AccessoriesAPI.getSlotTag(slot))
+                    .map(holders -> holders.size() > 0)
+                    .orElse(false);
+
+            if (bl) slots.add(slot);
+        }
+
+        return slots;
+    }
+
+    /**
+     * Helper method to trigger effects of a given accessory being broken on any tracking clients for the given entity
+     */
+    public static void breakStack(SlotReference reference){
+        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(reference.entity(), new AccessoryBreak(reference));
+    }
+
     //--
 
     /**
      * @return {@link SlotBasedPredicate} bound to the given {@link ResourceLocation} or an Empty {@link Optional} if absent
      */
-    public static Optional<SlotBasedPredicate> getPredicate(ResourceLocation location) {
-        return Optional.ofNullable(PREDICATE_REGISTRY.get(location));
+    @Nullable
+    public static SlotBasedPredicate getPredicate(ResourceLocation location) {
+        return PREDICATE_REGISTRY.get(location);
     }
 
     public static void registerPredicate(ResourceLocation location, SlotBasedPredicate predicate) {
@@ -305,9 +352,9 @@ public class AccessoriesAPI {
         for (var predicateId : predicateIds) {
             var predicate = getPredicate(predicateId);
 
-            if(predicate.isEmpty()) continue;
+            if(predicate == null) continue;
 
-            result = predicate.get().isValid(slotType, index, stack);
+            result = predicate.isValid(slotType, index, stack);
 
             if(result != TriState.DEFAULT) break;
         }

@@ -35,14 +35,14 @@ public class ImplementedEvents {
         if(damageSource != null && damageSource.getEntity() instanceof LivingEntity targetEntity){
             var capability = AccessoriesCapability.get(entity);
 
-            if(capability.isPresent()){
-                for (var entryRef : capability.get().getAllEquipped()) {
+            if(capability != null){
+                for (var entryRef : capability.getAllEquipped()) {
                     var reference = entryRef.reference();
                     var stack = entryRef.stack();
 
                     var accessory = AccessoriesAPI.getAccessory(stack);
 
-                    if(accessory.isPresent() && accessory.get() instanceof LootingAdjustment lootingAdjustment){
+                    if(accessory instanceof LootingAdjustment lootingAdjustment){
                         currentLevel += lootingAdjustment.getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
                     }
 
@@ -79,14 +79,14 @@ public class ImplementedEvents {
 
         var capability = AccessoriesCapability.get(livingEntity);
 
-        if(capability.isPresent()){
-            for (var entryRef : capability.get().getAllEquipped()) {
+        if(capability != null){
+            for (var entryRef : capability.getAllEquipped()) {
                 var reference = entryRef.reference();
                 var stack = entryRef.stack();
 
                 var accessory = AccessoriesAPI.getAccessory(stack);
 
-                if(accessory.isPresent() && accessory.get() instanceof FortuneAdjustment fortuneAdjustment){
+                if(accessory instanceof FortuneAdjustment fortuneAdjustment){
                     currentLevel += fortuneAdjustment.getFortuneAdjustment(stack, reference, context, currentLevel);
                 }
 
@@ -119,14 +119,14 @@ public class ImplementedEvents {
 
         var capability = AccessoriesCapability.get(entity);
 
-        if(capability.isPresent()){
-            for (var entryRef : capability.get().getAllEquipped()) {
+        if(capability != null){
+            for (var entryRef : capability.getAllEquipped()) {
                 var reference = entryRef.reference();
                 var stack = entryRef.stack();
 
                 var accessory = AccessoriesAPI.getAccessory(stack);
 
-                if(accessory.isPresent() && accessory.get() instanceof PiglinNeutralInducer inducer){
+                if(accessory instanceof PiglinNeutralInducer inducer){
                     state = inducer.makesPiglinsNeutral(stack, reference);
 
                     if(state != TriState.DEFAULT) return state;
@@ -166,14 +166,14 @@ public class ImplementedEvents {
 
         var capability = AccessoriesCapability.get(entity);
 
-        if(capability.isPresent()){
-            for (var entryRef : capability.get().getAllEquipped()) {
+        if(capability != null){
+            for (var entryRef : capability.getAllEquipped()) {
                 var reference = entryRef.reference();
                 var stack = entryRef.stack();
 
                 var accessory = AccessoriesAPI.getAccessory(stack);
 
-                if(accessory.isPresent() && accessory.get() instanceof AllowWalingOnSnow event){
+                if(accessory instanceof AllowWalingOnSnow event){
                     state = event.allowWalkingOnSnow(stack, reference);
 
                     if(state != TriState.DEFAULT) return state;
@@ -226,14 +226,14 @@ public class ImplementedEvents {
 
         var capability = AccessoriesCapability.get(entity);
 
-        if(capability.isPresent()) {
-            for (var entryRef : capability.get().getAllEquipped()) {
+        if(capability != null) {
+            for (var entryRef : capability.getAllEquipped()) {
                 var reference = entryRef.reference();
                 var stack = entryRef.stack();
 
                 var accessory = AccessoriesAPI.getAccessory(stack);
 
-                if(accessory.isPresent() && accessory.get() instanceof EndermanMasked masked){
+                if(accessory instanceof EndermanMasked masked){
                     state = masked.isEndermanMasked(enderMan, stack, reference);
 
                     if(state != TriState.DEFAULT) return state;

@@ -49,7 +49,7 @@ public class WrappedTrinketComponent implements TrinketComponent {
 
                 if(container == null) return;
 
-                var wrappedInv = new WrappedTrinketInventory(WrappedTrinketComponent.this, container, SlotTypeLoader.getSlotType(capability.getEntity().level(), (String) s).get());
+                var wrappedInv = new WrappedTrinketInventory(WrappedTrinketComponent.this, container, SlotTypeLoader.getSlotType(capability.getEntity().level(), (String) s));
 
                 map.put(s, wrappedInv);
             });

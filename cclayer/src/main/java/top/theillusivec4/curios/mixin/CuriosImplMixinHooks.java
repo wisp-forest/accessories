@@ -72,7 +72,7 @@ public class CuriosImplMixinHooks {
 
     if(iCurioItem != null) return Optional.of(iCurioItem);
 
-    return AccessoriesAPI.getAccessory(item).map(WrappedAccessory::new);
+    return Optional.ofNullable(AccessoriesAPI.getAccessory(item)).map(WrappedAccessory::new);
   }
 
   public static Optional<ISlotType> getSlot(String id) {

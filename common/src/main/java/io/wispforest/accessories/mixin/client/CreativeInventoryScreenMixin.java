@@ -2,8 +2,11 @@ package io.wispforest.accessories.mixin.client;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.networking.server.NukeAccessories;
 import io.wispforest.accessories.networking.server.ScreenOpen;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
@@ -36,7 +39,7 @@ public abstract class CreativeInventoryScreenMixin extends EffectRenderingInvent
 
         accessoryButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), button -> {
-                            AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen());
+                            AccessoriesClient.attemptToOpenScreen();
                         }).bounds(this.leftPos + xOffset, this.topPos + yOffset, 8, 8)
                         .tooltip(Tooltip.create(Component.translatable(Accessories.translation("open.screen"))))
                         .build()

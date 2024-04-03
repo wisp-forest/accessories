@@ -48,7 +48,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
 
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (OPEN_SCREEN.consumeClick()){
-                AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen());
+                AccessoriesClient.attemptToOpenScreen();
             }
         });
 

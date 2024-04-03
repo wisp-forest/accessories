@@ -56,7 +56,7 @@ public class AccessoriesInternalSlot extends AccessoriesBasedSlot {
 
         var key = this.isCosmetic ? "cosmetic_" : "";
 
-        var slotType = this.container.slotType().get();
+        var slotType = this.container.slotType();
 
         tooltipData.add(Component.translatable(Accessories.translation(key + "slot.tooltip.singular"))
                 .withStyle(ChatFormatting.GRAY)

@@ -65,7 +65,7 @@ public class AccessoriesSlotGenerator {
 
     @Nullable
     public static AccessoriesSlotGenerator of(Consumer<Slot> slotConsumer, int startX, int startY, LivingEntity livingEntity, SlotType... slotTypes) {
-        var capability = livingEntity.accessoriesCapability().orElse(null);
+        var capability = livingEntity.accessoriesCapability();
 
         if(capability == null) return null;
 
@@ -117,7 +117,7 @@ public class AccessoriesSlotGenerator {
         int slotAddedAmount = 0;
 
         for (var slotType : slotTypes) {
-            var container = capability.tryAndGetContainer(slotType).orElse(null);
+            var container = capability.tryAndGetContainer(slotType);
 
             if(container == null){
                 LOGGER.error("Unable to locate the given container for the passed slotType. [Type:" + slotType.name() + "]");
@@ -149,7 +149,7 @@ public class AccessoriesSlotGenerator {
         int slotAddedAmount = 0;
 
         for (var slotType : slotTypes) {
-            var container = capability.tryAndGetContainer(slotType).orElse(null);
+            var container = capability.tryAndGetContainer(slotType);
 
             if(container == null){
                 LOGGER.error("Unable to locate the given container for the passed slotType. [Type:" + slotType.name() + "]");

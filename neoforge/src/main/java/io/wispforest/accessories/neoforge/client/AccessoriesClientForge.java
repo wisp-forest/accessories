@@ -52,7 +52,7 @@ public class AccessoriesClientForge {
 
     public static void clientTick(TickEvent.ClientTickEvent event){
         if (OPEN_SCREEN.consumeClick()){
-            AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen());
+            AccessoriesClient.attemptToOpenScreen();
         }
     }
 

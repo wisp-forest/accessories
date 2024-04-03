@@ -26,7 +26,7 @@ public class AccessoryNestUtils {
     public static StackData getData(ItemStack stack){
         var accessory = AccessoriesAPI.getAccessory(stack.getItem());
 
-        if(accessory.isEmpty() || !(accessory.get() instanceof AccessoryNest)) return null;
+        if(!(accessory instanceof AccessoryNest)) return null;
 
         var data = CACHE.getUnchecked(stack);
 
@@ -47,7 +47,7 @@ public class AccessoryNestUtils {
         private CompoundTag defensiveNbtData;
 
         private StackData(ItemStack stack) {
-            this.accessoryNest = (AccessoryNest) AccessoriesAPI.getAccessory(stack.getItem()).get();
+            this.accessoryNest = (AccessoryNest) AccessoriesAPI.getAccessory(stack.getItem());
 
             this.stack = stack;
 

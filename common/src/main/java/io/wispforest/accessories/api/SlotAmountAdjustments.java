@@ -46,7 +46,7 @@ public class SlotAmountAdjustments {
     }
 
     public void onSupplierChange(String slotType, ResourceLocation location, LivingEntity livingEntity){
-        var capability = AccessoriesCapability.get(livingEntity).orElse(null);
+        var capability = AccessoriesCapability.get(livingEntity);
 
         if(capability == null) {
             LOGGER.error("[SlotAmountAdjustments]: Unable to update the given LivingEntity slot amount due to not having a AccessoriesCapability. [Slot: {}, Supplier: {}]", slotType, location);
@@ -54,7 +54,7 @@ public class SlotAmountAdjustments {
             return;
         }
 
-        var slot = SlotTypeLoader.getSlotType(livingEntity.level(), slotType).orElse(null);
+        var slot = SlotTypeLoader.getSlotType(livingEntity.level(), slotType);
 
         if(slot == null){
             LOGGER.error("[SlotAmountAdjustments]: Unable to find the given slotType within the Registry to adjust using the given supplier. [Slot: {}, Supplier: {}]", slotType, location);
@@ -62,7 +62,7 @@ public class SlotAmountAdjustments {
             return;
         }
 
-        var container = capability.tryAndGetContainer(slot).orElse(null);
+        var container = capability.tryAndGetContainer(slot);
 
         if(container == null){
             LOGGER.error("[SlotAmountAdjustments] Attempted to update a given slotType's amount but no container was present for the livingEntity. [Slot: {}, Supplier: {}]", slotType, location);

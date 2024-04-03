@@ -46,7 +46,7 @@ public class AccessoriesBasedSlot extends Slot {
 
     @Nullable
     public static AccessoriesBasedSlot of(LivingEntity livingEntity, SlotType slotType, int slot, int x, int y) {
-        var capability = livingEntity.accessoriesCapability().orElse(null);
+        var capability = livingEntity.accessoriesCapability();
 
         if(capability == null) {
             LOGGER.error("Unable to locate a capability for the given livingEntity meaning such dose not have a valid Accessory Inventory [EntityType: " + livingEntity.getType() + "]");
@@ -62,7 +62,7 @@ public class AccessoriesBasedSlot extends Slot {
             return null;
         }
 
-        var container = capability.tryAndGetContainer(slotType).orElse(null);
+        var container = capability.tryAndGetContainer(slotType);
 
         if(container == null){
             LOGGER.error("Unable to locate the given container for the passed slotType. [SlotType:" + slotType.name() + "]");
@@ -106,13 +106,15 @@ public class AccessoriesBasedSlot extends Slot {
     }
 
     protected ResourceLocation icon(){
-        return this.accessoriesContainer.slotType().map(SlotType::icon).orElse(SlotType.EMPTY_SLOT_LOCATION);
+        var slotType = this.accessoriesContainer.slotType();
+
+        return slotType != null ? slotType.icon() : SlotType.EMPTY_SLOT_LOCATION;
     }
 
     public List<Component> getTooltipData() {
         List<Component> tooltipData = new ArrayList<>();
 
-        var slotType = this.accessoriesContainer.slotType().get();
+        var slotType = this.accessoriesContainer.slotType();
 
         tooltipData.add(Component.translatable(Accessories.translation( "slot.tooltip.singular"))
                 .withStyle(ChatFormatting.GRAY)

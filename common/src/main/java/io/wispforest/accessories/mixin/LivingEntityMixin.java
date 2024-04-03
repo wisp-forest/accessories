@@ -6,6 +6,7 @@ import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -14,22 +15,21 @@ import java.util.Optional;
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin implements AccessoriesAPIAccess {
 
-    @Unique
-    private AccessoriesCapability capability = null;
-
     @Override
-    public Optional<AccessoriesCapability> accessoriesCapability() {
+    @Nullable
+    public AccessoriesCapability accessoriesCapability() {
         var slots = EntitySlotLoader.getEntitySlots((LivingEntity) (Object) this);
 
-        if(slots.isEmpty()) return Optional.empty();
+        if(slots.isEmpty()) return null;
 
-        this.capability = new AccessoriesCapabilityImpl((LivingEntity) (Object) this);
-
-        return Optional.of(this.capability);
+        return new AccessoriesCapabilityImpl((LivingEntity) (Object) this);
     }
 
     @Override
-    public Optional<AccessoriesHolder> accessoriesHolder() {
-        return accessoriesCapability().map(AccessoriesCapability::getHolder);
+    @Nullable
+    public AccessoriesHolder accessoriesHolder() {
+        var capability = accessoriesCapability();
+
+        return capability != null ? capability.getHolder() : null;
     }
 }

@@ -140,7 +140,7 @@ public class AccessoriesEvents {
                 return (stack, reference) -> {
                     var state = TriState.DEFAULT;
 
-                    if(AccessoriesAPI.getAccessory(stack.getItem()).orElse(null) instanceof AccessoryNest holdable){
+                    if(AccessoriesAPI.getAccessory(stack.getItem()) instanceof AccessoryNest holdable){
                         var innerStacks = holdable.getInnerStacks(stack);
 
                         for (ItemStack innerStack : innerStacks) {
@@ -212,7 +212,7 @@ public class AccessoriesEvents {
                 return (stack, reference) -> {
                     var state = TriState.DEFAULT;
 
-                    if(AccessoriesAPI.getAccessory(stack.getItem()).orElse(null) instanceof AccessoryNest holdable){
+                    if(AccessoriesAPI.getAccessory(stack.getItem()) instanceof AccessoryNest holdable){
                         var innerStacks = holdable.getInnerStacks(stack);
 
                         for (ItemStack innerStack : innerStacks) {

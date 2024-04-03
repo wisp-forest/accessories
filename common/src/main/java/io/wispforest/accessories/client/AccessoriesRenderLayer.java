@@ -40,13 +40,13 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
         var capability = AccessoriesCapability.get(entity);
 
-        if (capability.isEmpty()) return;
+        if (capability == null) return;
 
         var calendar = Calendar.getInstance();
 
         float scale = (float) (1 + (0.5 * (0.75 + (Math.sin(System.currentTimeMillis() / 250d)))));
 
-        for (var entry : capability.get().getContainers().entrySet()) {
+        for (var entry : capability.getContainers().entrySet()) {
             var container = entry.getValue();
 
             var accessories = container.getAccessories();

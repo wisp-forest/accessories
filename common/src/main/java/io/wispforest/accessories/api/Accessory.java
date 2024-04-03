@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
+import io.wispforest.accessories.mixin.LivingEntityAccessor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
@@ -103,6 +104,10 @@ public interface Accessory {
 
     default boolean canEquipFromUse(ItemStack stack, SlotReference reference){
         return true;
+    }
+
+    default void onBreak(ItemStack stack, SlotReference reference) {
+        ((LivingEntityAccessor) reference.entity()).breakItem(stack);
     }
 
     /**

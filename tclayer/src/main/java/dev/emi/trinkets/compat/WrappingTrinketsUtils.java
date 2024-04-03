@@ -15,13 +15,13 @@ public class WrappingTrinketsUtils {
         try {
             var capability = AccessoriesCapability.get(slotReference.entity());
 
-            if(capability.isEmpty()) return Optional.empty();
+            if(capability == null) return Optional.empty();
 
-            var curiosHandler = capability.get().getContainers().get(TrinketConstants.trinketsToAccessories(slotReference.slotName()));
+            var curiosHandler = capability.getContainers().get(TrinketConstants.trinketsToAccessories(slotReference.slotName()));
 
-            var slotType = SlotTypeLoader.getSlotType(slotReference.entity().level(), curiosHandler.getSlotName()).get();
+            var slotType = SlotTypeLoader.getSlotType(slotReference.entity().level(), curiosHandler.getSlotName());
 
-            var trinketInv = new WrappedTrinketInventory(new LivingEntityTrinketComponent(capability.get()), curiosHandler, slotType);
+            var trinketInv = new WrappedTrinketInventory(new LivingEntityTrinketComponent(capability), curiosHandler, slotType);
 
             return Optional.of(new SlotReference(trinketInv, slotReference.slot()));
         } catch (Exception e){

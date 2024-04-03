@@ -24,7 +24,7 @@ public interface AccessoriesContainer {
     /**
      * @return An Optional of the given slotType based on the {@link #getSlotName} if found or an empty optional
      */
-    default Optional<SlotType> slotType() {
+    default SlotType slotType() {
         return SlotTypeLoader.getSlotType(this.capability().getEntity().level(), this.getSlotName());
     }
 

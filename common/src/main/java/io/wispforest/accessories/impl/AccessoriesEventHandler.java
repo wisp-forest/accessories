@@ -58,17 +58,17 @@ public class AccessoriesEventHandler {
         for (var player : serverLevel.getServer().getPlayerList().getPlayers()) {
             var capability = AccessoriesCapability.get(player);
 
-            if (capability.isEmpty()) continue;
+            if (capability == null) continue;
 
             var validSlotTypes = EntitySlotLoader.getEntitySlots(player).values();
 
-            for (var container : capability.get().getContainers().values()) {
+            for (var container : capability.getContainers().values()) {
                 var slotType = container.slotType();
 
-                if (slotType.isPresent() && validSlotTypes.contains(slotType.get())) {
+                if (slotType != null && validSlotTypes.contains(slotType)) {
                     var baseSize = ((AccessoriesContainerImpl) container).getBaseSize();
 
-                    if (baseSize != slotType.get().amount()) {
+                    if (baseSize != slotType.amount()) {
                         container.markChanged();
                         container.update();
                     }
@@ -117,25 +117,27 @@ public class AccessoriesEventHandler {
     public static void entityLoad(LivingEntity entity, Level level) {
         if (!level.isClientSide() || !(entity instanceof ServerPlayer serverPlayer)) return;
 
-        AccessoriesCapability.get(serverPlayer)
-                .ifPresent(capability -> {
-                    var tag = new CompoundTag();
+        var capability = AccessoriesCapability.get(serverPlayer);
 
-                    ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
+        if(capability == null) return;
 
-                    AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(tag, capability.getEntity().getId()));
-                });
+        var tag = new CompoundTag();
+
+        ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
+
+        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(tag, capability.getEntity().getId()));
     }
 
-    public static void onTracking(LivingEntity entity, ServerPlayer player) {
-        AccessoriesCapability.get(entity)
-                .ifPresent(capability -> {
-                    var tag = new CompoundTag();
+    public static void onTracking(LivingEntity entity, ServerPlayer serverPlayer) {
+        var capability = AccessoriesCapability.get(serverPlayer);
 
-                    ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
+        if(capability == null) return;
 
-                    AccessoriesInternals.getNetworkHandler().sendToPlayer(player, new SyncEntireContainer(tag, capability.getEntity().getId()));
-                });
+        var tag = new CompoundTag();
+
+        ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
+
+        AccessoriesInternals.getNetworkHandler().sendToPlayer(serverPlayer, new SyncEntireContainer(tag, capability.getEntity().getId()));
     }
 
     public static void dataSync(@Nullable PlayerList list, @Nullable ServerPlayer player) {
@@ -150,13 +152,15 @@ public class AccessoriesEventHandler {
             for (var playerEntry : list.getPlayers()) {
                 networkHandler.sendToPlayer(playerEntry, new SyncData(buf));
 
-                AccessoriesCapability.get(playerEntry).ifPresent(capability -> {
-                    var tag = new CompoundTag();
+                var capability = AccessoriesCapability.get(playerEntry);
 
-                    ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
+                if(capability == null) return;
 
-                    networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(tag, capability.getEntity().getId()));
-                });
+                var tag = new CompoundTag();
+
+                ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
+
+                networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(tag, capability.getEntity().getId()));
 
                 if(playerEntry.containerMenu instanceof AccessoriesMenu) {
                     player.openMenu(new SimpleMenuProvider((i, inventory, player1) -> new AccessoriesMenu(i, inventory, true, player1), Component.empty()));
@@ -168,13 +172,15 @@ public class AccessoriesEventHandler {
         } else if (player != null) {
             networkHandler.sendToPlayer(player, syncPacket);
 
-            AccessoriesCapability.get(player).ifPresent(capability -> {
-                var tag = new CompoundTag();
+            var capability = AccessoriesCapability.get(player);
 
-                ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
+            if(capability == null) return;
 
-                networkHandler.sendToPlayer(player, new SyncEntireContainer(tag, capability.getEntity().getId()));
-            });
+            var tag = new CompoundTag();
+
+            ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
+
+            networkHandler.sendToPlayer(player, new SyncEntireContainer(tag, capability.getEntity().getId()));
 
             if(player.containerMenu instanceof AccessoriesMenu) {
                 player.openMenu(new SimpleMenuProvider((i, inventory, player1) -> new AccessoriesMenu(i, inventory, true, player1), Component.empty()));
@@ -185,18 +191,16 @@ public class AccessoriesEventHandler {
     public static void onLivingEntityTick(LivingEntity entity) {
         if(entity.isRemoved()) return;
 
-        var possibleCapability = AccessoriesCapability.get(entity);
+        var capability = AccessoriesCapability.get(entity);
 
-        if (possibleCapability.isEmpty()) return;
-
-        var capability = (AccessoriesCapabilityImpl) possibleCapability.get();
+        if (capability == null) return;
 
         var dirtyStacks = new HashMap<String, ItemStack>();
         var dirtyCosmeticStacks = new HashMap<String, ItemStack>();
 
         for (var containerEntry : capability.getContainers().entrySet()) {
             var container = containerEntry.getValue();
-            var slotType = container.slotType().get();
+            var slotType = container.slotType();
 
             var accessories = (ExpandedSimpleContainer) container.getAccessories();
 
@@ -212,7 +216,9 @@ public class AccessoriesEventHandler {
                     // TODO: Document this behavior to prevent double ticking maybe!!!
                     currentStack.inventoryTick(entity.level(), entity, -1, false);
 
-                    AccessoriesAPI.getAccessory(currentStack).ifPresent(accessory -> accessory.tick(currentStack, slotReference));
+                    var accessory = AccessoriesAPI.getAccessory(currentStack);
+
+                    if(accessory != null) accessory.tick(currentStack, slotReference);
                 }
 
                 var lastStack = accessories.getPreviousItem(i);
@@ -304,7 +310,7 @@ public class AccessoriesEventHandler {
         }
 
         if (!entity.level().isClientSide()) {
-            Set<AccessoriesContainer> updatedContainers = capability.getUpdatingInventories();
+            Set<AccessoriesContainer> updatedContainers = ((AccessoriesCapabilityImpl)capability).getUpdatingInventories();
 
             if (!dirtyStacks.isEmpty() || !dirtyCosmeticStacks.isEmpty() || !updatedContainers.isEmpty()) {
                 var packet = new SyncContainerData(entity.getId(), updatedContainers, dirtyStacks, dirtyCosmeticStacks);
@@ -352,7 +358,7 @@ public class AccessoriesEventHandler {
 
         var capability = AccessoriesCapability.get(entity);
 
-        if (capability.isEmpty()) return;
+        if (capability == null) return;
 
         var slotInfoComponent = Component.literal("");
 
@@ -541,16 +547,16 @@ public class AccessoriesEventHandler {
     public static void onDeath(LivingEntity entity, DamageSource source) {
         var capability = AccessoriesCapability.get(entity);
 
-        if (capability.isEmpty()) return;
+        if (capability == null) return;
 
-        var shouldDrop = AccessoriesEvents.ON_DEATH_EVENT.invoker().shouldDrop(entity, capability.get());
+        var shouldDrop = AccessoriesEvents.ON_DEATH_EVENT.invoker().shouldDrop(entity, capability);
 
         if (!shouldDrop.orElse(true)) return;
 
-        for (var containerEntry : capability.get().getContainers().entrySet()) {
+        for (var containerEntry : capability.getContainers().entrySet()) {
             var slotType = containerEntry.getValue().slotType();
 
-            var slotDropRule = slotType.map(SlotType::dropRule).orElse(DropRule.DEFAULT);
+            var slotDropRule = slotType != null ? slotType.dropRule() : DropRule.DEFAULT;
 
             var container = containerEntry.getValue();
 
@@ -570,11 +576,11 @@ public class AccessoriesEventHandler {
         var stack = container.getItem(reference.slot());
         var accessory = AccessoriesAPI.getAccessory(stack);
 
-        if (accessory.isPresent() && dropRule == DropRule.DEFAULT) {
-            dropRule = accessory.get().getDropRule(stack, reference, source);
+        if (accessory != null && dropRule == DropRule.DEFAULT) {
+            dropRule = accessory.getDropRule(stack, reference, source);
         }
 
-        if (accessory.orElse(null) instanceof AccessoryNest holdable) {
+        if (accessory instanceof AccessoryNest holdable) {
             var dropRules = holdable.getDropRules(stack, reference, source);
 
             for (int i = 0; i < dropRules.size(); i++) {
@@ -634,8 +640,8 @@ public class AccessoriesEventHandler {
 
             var capability = AccessoriesCapability.get(player);
 
-            if (capability.isPresent()) {
-                var unequippedReference = capability.get().equipAccessory(stack, true, Accessory::canEquipFromUse);
+            if (capability != null) {
+                var unequippedReference = capability.equipAccessory(stack, true, Accessory::canEquipFromUse);
 
                 if (unequippedReference != null) {
                     accessory.onEquipFromUse(stack, unequippedReference.reference());

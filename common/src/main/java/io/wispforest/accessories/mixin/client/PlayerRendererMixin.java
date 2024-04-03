@@ -39,9 +39,9 @@ public abstract class PlayerRendererMixin {
         if (currentArm != null) {
             var capability = AccessoriesCapability.get(player);
 
-            if (capability.isEmpty()) return;
+            if (capability == null) return;
 
-            for (var entry : capability.get().getContainers().entrySet()) {
+            for (var entry : capability.getContainers().entrySet()) {
                 var container = entry.getValue();
 
                 var accessories = container.getAccessories();

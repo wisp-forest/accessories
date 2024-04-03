@@ -71,30 +71,10 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
         //--
 
-        var slots = new HashSet<SlotType>();
+        Set<SlotType> slots = null;
 
         if(!this.areUnusedSlotsShown()) {
-            for (int i = 0; i < inventory.getContainerSize(); i++) {
-                var stack = inventory.getItem(i);
-
-                if (stack.isEmpty()) continue;
-
-                slots.addAll(AccessoriesAPI.getValidSlotTypes(owner, stack));
-            }
-
-            var capability = owner.accessoriesCapability().get();
-
-            for (var ref : capability.getAllEquipped()) {
-                slots.addAll(AccessoriesAPI.getValidSlotTypes(this.owner, ref.stack()));
-            }
-
-            for (var slot : SlotTypeLoader.getSlotTypes(owner.level()).values()) {
-                var bl = BuiltInRegistries.ITEM.getTag(AccessoriesAPI.getSlotTag(slot))
-                        .map(holders -> holders.size() > 0)
-                        .orElse(false);
-
-                if (bl) slots.add(slot);
-            }
+            slots = new HashSet<>(AccessoriesAPI.getUsedSlotsFor(owner));
         }
 
         //--
@@ -174,22 +154,18 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         for (var item : BuiltInRegistries.ITEM) {
             var accessory = AccessoriesAPI.getAccessory(item);
 
-            if (accessory.isEmpty()) continue;
-
-//            if(item == Items.APPLE){
-//                System.out.println("APPLE");
-//            }
+            if (accessory == null) continue;
 
             for (var value : entitySlotTypes.values()) {
                 if (AccessoriesAPI.canInsertIntoSlot(item.getDefaultInstance(), new SlotReference(value.name(), player, 0))) {
-                    sortAccessories.computeIfAbsent(value, s -> new HashSet<>()).add(accessory.get());
+                    sortAccessories.computeIfAbsent(value, s -> new HashSet<>()).add(accessory);
                 }
             }
         }
 
-        if (capability.isEmpty()) return;
+        if (capability == null) return;
 
-        var containers = capability.get().getContainers();
+        var containers = capability.getContainers();
 
         int yIndex = 0;
 
@@ -206,12 +182,12 @@ public class AccessoriesMenu extends AbstractContainerMenu {
             var slotNames = group.slots();
 
             var slotTypes = slotNames.stream()
-                    .flatMap(s -> SlotTypeLoader.getSlotType(player.level(), s).stream())
+                    .map(s -> SlotTypeLoader.getSlotType(player.level(), s)) // TODO: FILTER NULLS?
                     .sorted(Comparator.comparingInt(SlotType::order).reversed())
                     .toList();
 
             for (SlotType slot : slotTypes) {
-                if(!slots.isEmpty() && !slots.contains(slot)) {
+                if(slots != null && !slots.contains(slot)) {
                     continue;
                 } else {
                     validGroups.add(group);
@@ -223,7 +199,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
                 var slotType = accessoryContainer.slotType();
 
-                if (slotType.isEmpty()) continue;
+                if (slotType == null) continue;
 
                 var size = accessoryContainer.getSize();
 
@@ -426,15 +402,15 @@ public class AccessoriesMenu extends AbstractContainerMenu {
     }
 
     public boolean isCosmeticsOpen() {
-        return AccessoriesHolder.get(owner).map(AccessoriesHolder::cosmeticsShown).orElse(false);
+        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::cosmeticsShown).orElse(false);
     }
 
     public boolean areLinesShown() {
-        return AccessoriesHolder.get(owner).map(AccessoriesHolder::linesShown).orElse(false);
+        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::linesShown).orElse(false);
     }
 
     public boolean areUnusedSlotsShown() {
-        return AccessoriesHolder.get(owner).map(AccessoriesHolder::showUnusedSlots).orElse(false);
+        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::showUnusedSlots).orElse(false);
     }
 
     public void reopenMenu() {

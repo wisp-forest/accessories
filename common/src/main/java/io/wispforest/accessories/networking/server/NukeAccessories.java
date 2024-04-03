@@ -21,6 +21,8 @@ public class NukeAccessories extends AccessoriesPacket {
     public void handle(Player player) {
         super.handle(player);
 
-        AccessoriesCapability.get(player).ifPresent(AccessoriesCapability::clear);
+        var cap = AccessoriesCapability.get(player);
+
+        if(cap != null) cap.clear();
     }
 }
