@@ -413,8 +413,6 @@ public class AccessoriesEventHandler {
             }
         }
 
-        accessory.getExtraTooltip(stack, tooltip);
-
         Map<SlotType, List<Component>> slotTypeToTooltipInfo = new HashMap<>();
 
         if (allDuplicates) {
