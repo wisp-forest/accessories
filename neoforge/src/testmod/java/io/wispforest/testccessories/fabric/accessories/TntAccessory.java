@@ -23,7 +23,7 @@ public class TntAccessory implements Accessory {
 
     @OnlyIn(Dist.CLIENT)
     public static void clientInit(){
-        AccessoriesRendererRegistery.registerRenderer(Items.TNT, new TntAccessory.Renderer());
+        AccessoriesRendererRegistery.registerRenderer(Items.TNT, Renderer::new);
     }
 
     public static void init(){

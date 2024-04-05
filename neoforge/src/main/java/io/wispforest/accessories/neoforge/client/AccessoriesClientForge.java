@@ -1,6 +1,7 @@
 package io.wispforest.accessories.neoforge.client;
 
 import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
@@ -8,12 +9,16 @@ import io.wispforest.accessories.networking.server.ScreenOpen;
 import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.ConfigScreenHandler;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.TickEvent;
@@ -37,9 +42,21 @@ public class AccessoriesClientForge {
             NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
             NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::itemTooltipCallback);
 
+            NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::registerClientReloadListeners);
+
             ModLoadingContext.get().registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class, () -> {
                 return new ConfigScreenHandler.ConfigScreenFactory((minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get());
             });
+        });
+    }
+
+    public static void registerClientReloadListeners(RegisterClientReloadListenersEvent event) {
+        event.registerReloadListener(new SimplePreparableReloadListener<Void>() {
+            @Override protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) { return null; }
+            @Override
+            protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profiler) {
+                AccessoriesRendererRegistery.onReload();
+            }
         });
     }
 

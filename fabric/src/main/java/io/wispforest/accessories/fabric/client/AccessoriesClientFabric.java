@@ -1,7 +1,9 @@
 package io.wispforest.accessories.fabric.client;
 
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -20,11 +22,16 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import org.lwjgl.glfw.GLFW;
@@ -41,6 +48,19 @@ public class AccessoriesClientFabric implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         AccessoriesClient.init();
+
+        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES)
+                .registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+                    @Override
+                    public ResourceLocation getFabricId() {
+                        return Accessories.of("render_reload");
+                    }
+
+                    @Override
+                    public void onResourceManagerReload(ResourceManager resourceManager) {
+                        AccessoriesRendererRegistery.onReload();
+                    }
+                });
 
         AccessoriesFabricNetworkHandler.INSTANCE.initClient(AccessoriesClientFabric::registerS2C);
 

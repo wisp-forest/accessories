@@ -27,7 +27,7 @@ public class AppleAccessory implements Accessory {
 
     @OnlyIn(Dist.CLIENT)
     public static void clientInit(){
-        AccessoriesRendererRegistery.registerRenderer(Items.APPLE, new AppleAccessory.Renderer());
+        AccessoriesRendererRegistery.registerRenderer(Items.APPLE, Renderer::new);
     }
 
     public static void init(){

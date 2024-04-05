@@ -3,6 +3,7 @@ package io.wispforest.accessories.neoforge;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.impl.InstanceCodecable;
 import io.wispforest.accessories.api.events.extra.ImplementedEvents;
 import io.wispforest.accessories.data.DataLoadingModifications;
@@ -28,6 +29,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.capabilities.EntityCapability;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
@@ -172,6 +174,8 @@ public class AccessoriesForge {
                 AccessoriesInternalsImpl.setContext(null);
             }
         });
+
+
     }
 
     //--

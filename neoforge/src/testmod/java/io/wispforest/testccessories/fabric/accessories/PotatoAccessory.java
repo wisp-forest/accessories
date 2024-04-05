@@ -20,7 +20,7 @@ public class PotatoAccessory implements Accessory {
 
     @OnlyIn(Dist.CLIENT)
     public static void clientInit(){
-        AccessoriesRendererRegistery.registerRenderer(Items.POTATO, new PotatoAccessory.Renderer());
+        AccessoriesRendererRegistery.registerRenderer(Items.POTATO, Renderer::new);
     }
 
     public static void init(){

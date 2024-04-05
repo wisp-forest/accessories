@@ -365,7 +365,7 @@ public class AccessoriesEventHandler {
         var slotsComponent = Component.literal("");
         boolean allSlots = false;
 
-        if (allSlotTypes.containsAll(slotTypes)) {
+        if (slotTypes.containsAll(allSlotTypes)) {
             slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
             allSlots = true;
         } else {
@@ -624,6 +624,8 @@ public class AccessoriesEventHandler {
         }
 
         if (!dropStack) return;
+
+        container.setItem(reference.slot(), ItemStack.EMPTY);
 
         if (entity instanceof Player player) {
             player.drop(stack, true);

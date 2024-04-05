@@ -2,6 +2,7 @@ package io.wispforest.accessories.fabric;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.api.events.extra.ImplementedEvents;
 import io.wispforest.accessories.data.DataLoadingModifications;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -23,6 +24,8 @@ import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;

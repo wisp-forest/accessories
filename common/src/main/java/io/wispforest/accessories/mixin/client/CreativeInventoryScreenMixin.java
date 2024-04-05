@@ -32,12 +32,12 @@ public abstract class CreativeInventoryScreenMixin extends EffectRenderingInvent
     @Unique
     private Button accessoryButton = null;
 
-    @Inject(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/EffectRenderingInventoryScreen;init()V"))
+    @Inject(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/EffectRenderingInventoryScreen;init()V", shift = At.Shift.AFTER))
     private void injectAccessoryButton(CallbackInfo ci) {
         var xOffset = Accessories.getConfig().clientData.creativeInventoryButtonXOffset;
         var yOffset = Accessories.getConfig().clientData.creativeInventoryButtonYOffset;
 
-        accessoryButton = this.addRenderableWidget(
+        this.accessoryButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), button -> {
                             AccessoriesClient.attemptToOpenScreen();
                         }).bounds(this.leftPos + xOffset, this.topPos + yOffset, 8, 8)
@@ -45,12 +45,12 @@ public abstract class CreativeInventoryScreenMixin extends EffectRenderingInvent
                         .build()
         );
 
-        accessoryButton.visible = false;
+        this.accessoryButton.visible = false;
     }
 
     @Inject(method = "selectTab", at = @At(value = "TAIL"))
     private void adjustAccessoryButton(CreativeModeTab tab, CallbackInfo ci){
-        accessoryButton.visible = tab.getType().equals(CreativeModeTab.Type.INVENTORY);
+        this.accessoryButton.visible = tab.getType().equals(CreativeModeTab.Type.INVENTORY);
     }
 
     @Inject(method = "slotClicked",

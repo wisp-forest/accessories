@@ -30,7 +30,7 @@ public class PointedDripstoneAccessory implements Accessory {
 
     @OnlyIn(Dist.CLIENT)
     public static void clientInit() {
-        AccessoriesRendererRegistery.registerRenderer(Items.POINTED_DRIPSTONE, new PointedDripstoneAccessory.Renderer());
+        AccessoriesRendererRegistery.registerRenderer(Items.POINTED_DRIPSTONE, Renderer::new);
     }
 
     public static void init() {
