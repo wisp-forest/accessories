@@ -38,6 +38,8 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
     @Override
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+        //if(true) return;
+
         var capability = AccessoriesCapability.get(entity);
 
         if (capability == null) return;
@@ -58,75 +60,77 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                 if (!cosmeticStack.isEmpty()) stack = cosmeticStack;
 
+                if(stack.isEmpty()) continue;
+
                 var renderer = AccessoriesRendererRegistery.getOrDefaulted(stack.getItem());
 
-//                if (renderer.isEmpty()) {
-//                    AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
-//                    continue;
-//                }
+                if(!renderer.shouldRender(container.shouldRender(i))) {
+                    AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
+
+                    continue;
+                }
 
                 poseStack.pushPose();
 
-                var rendering = container.shouldRender(i);
-
-                var lineRendering = Accessories.getConfig().clientData.showLineRendering;
+                var renderingLines = AccessoriesScreen.IS_RENDERING_PLAYER && Accessories.getConfig().clientData.showLineRendering;
 
                 var mpoatv = new MPOATVConstructingVertexConsumer();
 
                 MultiBufferSource innerBufferSource = renderType -> {
-                    return AccessoriesScreen.IS_RENDERING_PLAYER && lineRendering ?
+                    return renderingLines ?
                             VertexMultiConsumer.create(multiBufferSource.getBuffer(renderType), mpoatv) :
                             multiBufferSource.getBuffer(renderType);
                 };
 
                 renderer.render(
-                                rendering,
-                                stack,
-                                new SlotReference(container.getSlotName(), entity, i),
-                                poseStack,
-                                getParentModel(),
-                                innerBufferSource,
-                                light,
-                                limbSwing,
-                                limbSwingAmount,
-                                partialTicks,
-                                ageInTicks,
-                                netHeadYaw,
-                                headPitch
-                        );
+                    stack,
+                    new SlotReference(container.getSlotName(), entity, i),
+                    poseStack,
+                    getParentModel(),
+                    innerBufferSource,
+                    light,
+                    limbSwing,
+                    limbSwingAmount,
+                    partialTicks,
+                    ageInTicks,
+                    netHeadYaw,
+                    headPitch
+                );
 
-                if(lineRendering) {
-                    if (multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
-                        BUFFER.beginWrite(true, GL30.GL_DEPTH_BUFFER_BIT);
-                        bufferSource.endBatch();
-                        BUFFER.endWrite();
+                if(renderingLines) {
+                    float[] colorValues = null;
 
-                        var colorValues = new float[]{1, 1, 1, 1};
+                    if (AccessoriesScreen.HOVERED_SLOT_TYPE != null && AccessoriesScreen.HOVERED_SLOT_TYPE.equals(container.getSlotName() + i)) {
+                        if (calendar.get(Calendar.MONTH) + 1 == 5 && calendar.get(Calendar.DATE) == 16) {
+                            var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
 
-                        if (AccessoriesScreen.HOVERED_SLOT_TYPE != null && AccessoriesScreen.HOVERED_SLOT_TYPE.equals(container.getSlotName() + i)) {
-                            if (calendar.get(Calendar.MONTH) + 1 == 5 && calendar.get(Calendar.DATE) == 16) {
-                                var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
+                            var color = new Color(Mth.hsvToRgb(hue, 1, 1));
 
-                                var color = new Color(Mth.hsvToRgb(hue, 1, 1));
-
-                                colorValues = new float[]{color.getRed() / 128f, color.getGreen() / 128f, color.getBlue() / 128f, 1};
-                            } else {
-                                colorValues = new float[]{scale, scale, scale, 1};
-                            }
+                            colorValues = new float[]{color.getRed() / 128f, color.getGreen() / 128f, color.getBlue() / 128f, 1};
+                        } else {
+                            colorValues = new float[]{scale, scale, scale, 1};
                         }
-
-                        BUFFER.draw(colorValues);
-
-                        var frameBuffer = BUFFER.buffer();
-
-                        GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, frameBuffer.frameBufferId);
-                        GL30.glBlitFramebuffer(0, 0, frameBuffer.width, frameBuffer.height, 0, 0, frameBuffer.width, frameBuffer.height, GL30.GL_DEPTH_BUFFER_BIT, GL30.GL_NEAREST);
-                        Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
                     }
 
-                    if (!rendering) {
-                        AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
-                    } else if (AccessoriesScreen.IS_RENDERING_PLAYER) {
+                    if(multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
+                        if (colorValues != null ) {
+                            BUFFER.beginWrite(true, GL30.GL_DEPTH_BUFFER_BIT);
+                            bufferSource.endBatch();
+                            BUFFER.endWrite();
+
+                            BUFFER.draw(colorValues);
+
+                            var frameBuffer = BUFFER.buffer();
+
+                            GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, frameBuffer.frameBufferId);
+                            GL30.glBlitFramebuffer(0, 0, frameBuffer.width, frameBuffer.height, 0, 0, frameBuffer.width, frameBuffer.height, GL30.GL_DEPTH_BUFFER_BIT, GL30.GL_NEAREST);
+                            Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
+                        } else {
+                            bufferSource.endBatch();
+                        }
+                    }
+
+                    if (AccessoriesScreen.IS_RENDERING_PLAYER) {
                         AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, mpoatv.meanPos);
                     }
                 }

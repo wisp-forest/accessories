@@ -53,35 +53,24 @@ public abstract class PlayerRendererMixin {
 
                     if (!cosmeticStack.isEmpty()) stack = cosmeticStack;
 
+                    if (stack.isEmpty()) continue;
+
                     var renderer = AccessoriesRendererRegistery.getOrDefaulted(stack.getItem());
 
-//                    if (renderer.isEmpty()) renderer = Optional.of(new DefaultAccessoryRenderer());
+                    if(!renderer.shouldRender(container.shouldRender(i))) continue;
 
                     poseStack.pushPose();
 
-                    var rendering = container.shouldRender(i);
+                    renderer.renderOnFirstPerson(
+                        currentArm,
+                        stack,
+                        new SlotReference(container.getSlotName(), player, i),
+                        poseStack,
+                        playerModel,
+                        buffer,
+                        combinedLight
+                    );
 
-                    if (currentArm == HumanoidArm.LEFT) {
-                        renderer.renderOnFirstPersonLeftArm(
-                                rendering,
-                                stack,
-                                new SlotReference(container.getSlotName(), player, i),
-                                poseStack,
-                                playerModel,
-                                buffer,
-                                combinedLight
-                        );
-                    } else {
-                        renderer.renderOnFirstPersonRightArm(
-                                rendering,
-                                stack,
-                                new SlotReference(container.getSlotName(), player, i),
-                                poseStack,
-                                playerModel,
-                                buffer,
-                                combinedLight
-                        );
-                    }
                     poseStack.popPose();
                 }
             }

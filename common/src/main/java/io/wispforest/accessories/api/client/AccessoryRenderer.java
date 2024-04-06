@@ -34,7 +34,6 @@ public interface AccessoryRenderer {
      * Render method called within the {@link AccessoriesRenderLayer#render(PoseStack, MultiBufferSource, int, LivingEntity, float, float, float, float, float, float)} when
      * rendering a given Accessory on a given {@link LivingEntity}
      *
-     * @param isRendering Weather or not the given Accessory should or should not be rendered
      * @param stack       The current stack
      * @param reference   Reference to the slot based on its type, entity and index within the {@link AccessoriesContainer}
      * @param matrices
@@ -49,7 +48,6 @@ public interface AccessoryRenderer {
      * @param headPitch
      */
     <M extends LivingEntity> void render(
-            boolean isRendering,
             ItemStack stack,
             SlotReference reference,
             PoseStack matrices,
@@ -64,6 +62,12 @@ public interface AccessoryRenderer {
             float headPitch
     );
 
+    /**
+     * @return if the given Accessory should render or not based on the boolean provided
+     */
+    default boolean shouldRender(boolean isRendering) {
+        return isRendering;
+    }
 
     /**
      * Determines if this accessory should render in first person
@@ -73,8 +77,8 @@ public interface AccessoryRenderer {
         return false;
     }
 
-    default <M extends LivingEntity> void renderOnFirstPersonRightArm(
-            boolean isRendering,
+    default <M extends LivingEntity> void renderOnFirstPerson(
+            HumanoidArm arm,
             ItemStack stack,
             SlotReference reference,
             PoseStack matrices,
@@ -82,23 +86,9 @@ public interface AccessoryRenderer {
             MultiBufferSource multiBufferSource,
             int light
     ) {
-        if (!shouldRenderInFirstPerson(HumanoidArm.RIGHT, stack, reference)) return;
+        if (!shouldRenderInFirstPerson(arm, stack, reference)) return;
 
-        this.render(isRendering, stack, reference, matrices, model, multiBufferSource, light, 0, 0, 0, 0, 0, 0);
-    }
-
-    default <M extends LivingEntity> void renderOnFirstPersonLeftArm(
-            boolean isRendering,
-            ItemStack stack,
-            SlotReference reference,
-            PoseStack matrices,
-            EntityModel<M> model,
-            MultiBufferSource multiBufferSource,
-            int light
-    ) {
-        if (!shouldRenderInFirstPerson(HumanoidArm.LEFT, stack, reference)) return;
-
-        this.render(isRendering, stack, reference, matrices, model, multiBufferSource, light, 0, 0, 0, 0, 0, 0);
+        this.render(stack, reference, matrices, model, multiBufferSource, light, 0, 0, 0, 0, 0, 0);
     }
 
     /**
