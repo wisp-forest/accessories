@@ -17,11 +17,15 @@ import io.wispforest.accessories.mixin.SlotAccessor;
 import io.wispforest.accessories.networking.client.holder.HolderProperty;
 import io.wispforest.accessories.networking.client.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -30,6 +34,8 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -43,7 +49,10 @@ public class AccessoriesMenu extends AbstractContainerMenu {
     static final ResourceLocation[] TEXTURE_EMPTY_SLOTS;
     private static final EquipmentSlot[] SLOT_IDS;
     public final boolean active;
+
     private final Player owner;
+    @Nullable
+    private final LivingEntity targetEntity;
 
     public int totalSlots = 0;
     public boolean overMaxVisibleSlots = false;
@@ -63,18 +72,51 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
     public Runnable onScrollToEvent = () -> {};
 
-    public AccessoriesMenu(int containerId, Inventory inventory, boolean active, final Player owner) {
+    public final LivingEntity targetEntity() {
+        return this.targetEntity;
+    }
+
+    public static void writeBufData(FriendlyByteBuf buf, @Nullable LivingEntity targetEntity){
+        var hasTargetEntity = targetEntity != null;
+
+        buf.writeBoolean(hasTargetEntity);
+
+        if(hasTargetEntity) buf.writeInt(targetEntity.getId());
+    }
+
+    public static @Nullable LivingEntity readBufData(FriendlyByteBuf buf, Level level) {
+        LivingEntity targetEntity = null;
+        var hasTargetEntity = buf.readBoolean();
+
+        if(hasTargetEntity) {
+            var entity = level.getEntity(buf.readInt());
+
+            if(entity instanceof LivingEntity livingEntity) targetEntity = livingEntity;
+        }
+
+        return targetEntity;
+    }
+
+    public static AccessoriesMenu of(int containerId, Inventory inventory, boolean active, FriendlyByteBuf buf) {
+        LivingEntity targetEntity = readBufData(buf, inventory.player.level());
+
+        return new AccessoriesMenu(containerId, inventory, active, targetEntity);
+    }
+
+    public AccessoriesMenu(int containerId, Inventory inventory, boolean active, @Nullable LivingEntity targetEntity) {
         super(Accessories.ACCESSORIES_MENU_TYPE, containerId);
 
         this.active = active;
-        this.owner = owner;
+        this.owner = inventory.player;
+
+        this.targetEntity = targetEntity;
 
         //--
 
         Set<SlotType> slots = null;
 
         if(!this.areUnusedSlotsShown()) {
-            slots = new HashSet<>(AccessoriesAPI.getUsedSlotsFor(owner));
+            slots = new HashSet<>(AccessoriesAPI.getUsedSlotsFor(targetEntity != null ? targetEntity : owner, owner.getInventory()));
         }
 
         //--
@@ -129,14 +171,11 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
         var player = inventory.player;
 
-        var accessor = (AbstractContainerMenuAccessor) this;
+        var accessoryTarget = targetEntity != null ? targetEntity : owner;
 
-        accessor.accessories$setMenuType(Accessories.ACCESSORIES_MENU_TYPE);
-        accessor.accessories$setContainerId(containerId);
+        var capability = AccessoriesCapability.get(accessoryTarget);
 
-        var capability = AccessoriesCapability.get(player);
-
-        var entitySlotTypes = EntitySlotLoader.getEntitySlots(player);
+        var entitySlotTypes = EntitySlotLoader.getEntitySlots(accessoryTarget);
 
         int slotScale = 18;
 
@@ -414,7 +453,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
     }
 
     public void reopenMenu() {
-        AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen());
+        AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen(this.targetEntity));
     }
 
     static {

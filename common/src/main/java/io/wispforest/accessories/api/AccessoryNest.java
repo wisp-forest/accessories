@@ -186,6 +186,7 @@ public interface AccessoryNest extends Accessory {
     default Multimap<Attribute, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid) {
         var map = Accessory.super.getModifiers(stack, reference, uuid);
 
+        // TODO: May need to deal with potential collisions when using the specific passed UUID
         attemptConsumer(stack, reference.entity(), innerMap -> innerMap.forEach((stack1, accessory) -> map.putAll(accessory.getModifiers(stack, reference, uuid))));
 
         return map;

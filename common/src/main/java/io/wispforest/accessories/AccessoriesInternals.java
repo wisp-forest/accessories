@@ -6,16 +6,20 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
 import net.minecraft.core.Holder;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
+import org.apache.commons.lang3.function.TriFunction;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -72,7 +76,16 @@ public class AccessoriesInternals {
     }
 
     @ExpectPlatform
-    public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(ResourceLocation location, BiFunction<Integer, Inventory, T> func){
+    public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(ResourceLocation location, TriFunction<Integer, Inventory, FriendlyByteBuf, T> func){
+        throw new AssertionError();
+    }
+
+    public static void openAccessoriesMenu(Player player) {
+        openAccessoriesMenu(player, null);
+    }
+
+    @ExpectPlatform
+    public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity) {
         throw new AssertionError();
     }
 }

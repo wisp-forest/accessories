@@ -33,6 +33,7 @@ import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.TickEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
@@ -86,6 +87,12 @@ public class AccessoriesForge {
         NeoForge.EVENT_BUS.addListener(this::onWorldTick);
 
         eventBus.register(AccessoriesForgeNetworkHandler.INSTANCE);
+
+        NeoForge.EVENT_BUS.addListener(this::registerCommands);
+    }
+
+    public void registerCommands(RegisterCommandsEvent event) {
+        Accessories.registerCommands(event.getDispatcher());
     }
 
     public void registerStuff(RegisterEvent event){
@@ -174,8 +181,6 @@ public class AccessoriesForge {
                 AccessoriesInternalsImpl.setContext(null);
             }
         });
-
-
     }
 
     //--

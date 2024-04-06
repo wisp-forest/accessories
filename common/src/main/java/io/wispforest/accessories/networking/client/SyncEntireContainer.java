@@ -1,5 +1,6 @@
 package io.wispforest.accessories.networking.client;
 
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.networking.AccessoriesPacket;
@@ -9,8 +10,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import org.slf4j.Logger;
 
 public class SyncEntireContainer extends AccessoriesPacket {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     public CompoundTag containerTag;
     public int entityId;
@@ -42,6 +46,12 @@ public class SyncEntireContainer extends AccessoriesPacket {
         super.handle(player);
 
         var entity = player.level().getEntity(entityId);
+
+        if(entity == null) {
+            LOGGER.info("Unable to Sync Container Data for a given Entity as such is null on the Client! [EntityId: {}]", entityId);
+
+            return;
+        }
 
         if(!(entity instanceof LivingEntity livingEntity)) return;
 

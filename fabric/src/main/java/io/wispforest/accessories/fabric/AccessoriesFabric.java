@@ -1,6 +1,11 @@
 package io.wispforest.accessories.fabric;
 
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.api.events.extra.ImplementedEvents;
@@ -15,6 +20,8 @@ import io.wispforest.accessories.impl.InstanceCodecable;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -26,8 +33,15 @@ import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.fabricmc.fabric.mixin.gametest.CommandManagerMixin;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.commands.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.MessageArgument;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
@@ -66,6 +80,10 @@ public class AccessoriesFabric implements ModInitializer {
         Accessories.registerMenuType();
         Accessories.setupConfig();
         Accessories.registerCriteria();
+
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+            Accessories.registerCommands(dispatcher);
+        });
 
         UseItemCallback.EVENT.register(AccessoriesEventHandler::attemptEquipFromUse);
 
@@ -108,7 +126,7 @@ public class AccessoriesFabric implements ModInitializer {
             AccessoriesEventHandler.entityLoad(livingEntity, world);
         });
 
-        EntityTrackingEvents.START_TRACKING.register((trackedEntity, player) -> {
+        ExtraEntityTrackingEvents.POST_START_TRACKING.register((trackedEntity, player) -> {
             if(!(trackedEntity instanceof LivingEntity livingEntity)) return;
 
             AccessoriesEventHandler.onTracking(livingEntity, player);

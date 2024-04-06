@@ -1,7 +1,7 @@
 {
   "replace": false,
   "entities": [
-    "minecraft:player"
+    "#accessories:defaulted_targets"
   ],
   "slots": [
     "hat",

@@ -46,5 +46,6 @@
   "text.autoconfig.accessories.option.modifiers": "Slot Amount Modifiers",
   "text.autoconfig.accessories.option.SlotAmountModifier": "Modifier Entry",
   "text.autoconfig.accessories.option.SlotAmountModifier.slotType": "Slot Type Name",
-  "text.autoconfig.accessories.option.SlotAmountModifier.amount": "Offset Amount"
+  "text.autoconfig.accessories.option.SlotAmountModifier.amount": "Offset Amount",
+  "argument.livingEntities.nonLiving": "Only living entities may be affected by this command, but the provided selector includes non living entities"
 }

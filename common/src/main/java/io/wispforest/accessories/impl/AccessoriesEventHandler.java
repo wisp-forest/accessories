@@ -129,7 +129,7 @@ public class AccessoriesEventHandler {
     }
 
     public static void onTracking(LivingEntity entity, ServerPlayer serverPlayer) {
-        var capability = AccessoriesCapability.get(serverPlayer);
+        var capability = AccessoriesCapability.get(entity);
 
         if(capability == null) return;
 
@@ -162,8 +162,8 @@ public class AccessoriesEventHandler {
 
                 networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(tag, capability.getEntity().getId()));
 
-                if(playerEntry.containerMenu instanceof AccessoriesMenu) {
-                    player.openMenu(new SimpleMenuProvider((i, inventory, player1) -> new AccessoriesMenu(i, inventory, true, player1), Component.empty()));
+                if(playerEntry.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
+                    AccessoriesInternals.openAccessoriesMenu(player, accessoriesMenu.targetEntity());
                 }
             }
 
@@ -182,8 +182,8 @@ public class AccessoriesEventHandler {
 
             networkHandler.sendToPlayer(player, new SyncEntireContainer(tag, capability.getEntity().getId()));
 
-            if(player.containerMenu instanceof AccessoriesMenu) {
-                player.openMenu(new SimpleMenuProvider((i, inventory, player1) -> new AccessoriesMenu(i, inventory, true, player1), Component.empty()));
+            if(player.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
+                AccessoriesInternals.openAccessoriesMenu(player, accessoriesMenu.targetEntity());
             }
         }
     }

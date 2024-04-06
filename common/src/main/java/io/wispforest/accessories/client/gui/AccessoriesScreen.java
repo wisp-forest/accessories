@@ -153,6 +153,10 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             HOVERED_SLOT_TYPE = slot.container.getSlotName() + slot.getContainerSlot();
         }
 
+        var targetEntity = this.getMenu().targetEntity();
+
+        if(targetEntity == null) targetEntity = this.minecraft.player;
+
         renderEntityInInventoryFollowingMouseRotated(
             guiGraphics,
             scissorStart,
@@ -162,7 +166,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             30,
             0.0625F,
             mousePos,
-            this.minecraft.player,
+            targetEntity,
             0
         );
 
@@ -177,7 +181,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 30,
                 0.0625F,
                 mousePos,
-                this.minecraft.player,
+                targetEntity,
                 180
         );
 
