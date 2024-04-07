@@ -37,10 +37,6 @@ dependencies {
 
     modApi("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
 
-//    include forgeRuntimeLibrary(fabricApi.module("fabric-api-base", rootProject.fabric_api_version)){
-//        exclude group: "fabric-api"
-//    }
-
     include modApi("dev.su5ed.sinytra.fabric-api:fabric-api-base:0.4.35+f77bd0ed4f"){
         exclude group: "fabric-api"
     }

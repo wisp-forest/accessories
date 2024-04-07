@@ -70,8 +70,12 @@ public class AccessoriesForge {
         );
     }
 
+    public static IEventBus BUS;
+
     public AccessoriesForge(final IEventBus eventBus) {
         //Accessories.init();
+
+        AccessoriesForge.BUS = eventBus;
 
         Accessories.setupConfig();
 
@@ -113,6 +117,7 @@ public class AccessoriesForge {
 
     public void registerStuff(RegisterEvent event){
         event.register(Registries.MENU, (helper) -> Accessories.registerMenuType());
+        event.register(Registries.TRIGGER_TYPE, (helper) -> Accessories.registerCriteria());
     }
 
     public void onEntityDeath(LivingDeathEvent event){

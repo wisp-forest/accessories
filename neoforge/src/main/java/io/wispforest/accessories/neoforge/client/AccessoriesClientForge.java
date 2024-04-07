@@ -5,6 +5,7 @@ import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
+import io.wispforest.accessories.neoforge.AccessoriesForge;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.KeyMapping;
@@ -42,7 +43,7 @@ public class AccessoriesClientForge {
             NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
             NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::itemTooltipCallback);
 
-            NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::registerClientReloadListeners);
+            AccessoriesForge.BUS.addListener(AccessoriesClientForge::registerClientReloadListeners);
 
             ModLoadingContext.get().registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class, () -> {
                 return new ConfigScreenHandler.ConfigScreenFactory((minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get());
