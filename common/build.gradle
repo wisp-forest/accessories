@@ -27,6 +27,8 @@ dependencies {
     modCompileOnly("net.neoforged:bus:7.2.0")
 }
 
+def ENV = System.getenv()
+
 publishing {
     publications {
         mavenCommon(MavenPublication) {
@@ -35,5 +37,13 @@ publishing {
         }
     }
 
-    repositories {}
+    repositories {
+        maven {
+            url ENV.MAVEN_URL
+            credentials {
+                username ENV.MAVEN_USER
+                password ENV.MAVEN_PASSWORD
+            }
+        }
+    }
 }

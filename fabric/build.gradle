@@ -112,6 +112,8 @@ components.java {
     }
 }
 
+def ENV = System.getenv()
+
 publishing {
     publications {
         mavenFabric(MavenPublication) {
@@ -120,8 +122,13 @@ publishing {
         }
     }
 
-    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
     repositories {
-        // Add repositories to publish to here.
+        maven {
+            url ENV.MAVEN_URL
+            credentials {
+                username ENV.MAVEN_USER
+                password ENV.MAVEN_PASSWORD
+            }
+        }
     }
 }
