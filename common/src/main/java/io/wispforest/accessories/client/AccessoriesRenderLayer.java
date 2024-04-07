@@ -60,19 +60,25 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                 if (!cosmeticStack.isEmpty()) stack = cosmeticStack;
 
-                if(stack.isEmpty()) continue;
+                var renderingLines = AccessoriesScreen.IS_RENDERING_PLAYER && Accessories.getConfig().clientData.showLineRendering;
+
+                if(stack.isEmpty()) {
+                    if(!renderingLines) AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
+
+                    continue;
+                }
 
                 var renderer = AccessoriesRendererRegistery.getOrDefaulted(stack.getItem());
 
                 if(!renderer.shouldRender(container.shouldRender(i))) {
-                    AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
+                    if(!renderingLines) AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
 
                     continue;
                 }
 
                 poseStack.pushPose();
 
-                var renderingLines = AccessoriesScreen.IS_RENDERING_PLAYER && Accessories.getConfig().clientData.showLineRendering;
+
 
                 var mpoatv = new MPOATVConstructingVertexConsumer();
 
@@ -113,7 +119,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                     }
 
                     if(multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
-                        if (colorValues != null ) {
+                        if (colorValues != null) {
                             BUFFER.beginWrite(true, GL30.GL_DEPTH_BUFFER_BIT);
                             bufferSource.endBatch();
                             BUFFER.endWrite();
@@ -132,6 +138,8 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                     if (AccessoriesScreen.IS_RENDERING_PLAYER) {
                         AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, mpoatv.meanPos);
+                    } else {
+                        AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
                     }
                 }
 

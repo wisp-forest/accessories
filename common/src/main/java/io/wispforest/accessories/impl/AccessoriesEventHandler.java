@@ -21,6 +21,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
@@ -54,9 +55,15 @@ public class AccessoriesEventHandler {
     public static boolean dataReloadOccured = false;
 
     public static void onWorldTick(Level level) {
-        if (!dataReloadOccured || !(level instanceof ServerLevel serverLevel)) return;
+        if (!(level instanceof ServerLevel serverLevel)) return;
 
-        for (var player : serverLevel.getServer().getPlayerList().getPlayers()) {
+        revalidatePlayersOnReload(serverLevel.getServer().getPlayerList());
+    }
+
+    public static void revalidatePlayersOnReload(PlayerList playerList) {
+        if(!dataReloadOccured) return;
+
+        for (var player : playerList.getPlayers()) {
             var capability = AccessoriesCapability.get(player);
 
             if (capability == null) continue;
@@ -102,9 +109,9 @@ public class AccessoriesEventHandler {
     }
 
     private static void handleInvalidStacks(Container container, SlotReference reference, ServerPlayer player) {
-        var bl = AccessoriesAPI.canInsertIntoSlot(container.getItem(reference.slot()), reference);
+        var bl = !AccessoriesAPI.canInsertIntoSlot(container.getItem(reference.slot()), reference);
 
-        if (!bl) dropAndRemoveStack(container, reference, player);
+        if (bl) dropAndRemoveStack(container, reference, player);
     }
 
     private static void dropAndRemoveStack(Container container, SlotReference reference, ServerPlayer player) {
@@ -146,6 +153,8 @@ public class AccessoriesEventHandler {
         var syncPacket = SyncData.create();
 
         if (list != null && !list.getPlayers().isEmpty()) {
+            revalidatePlayersOnReload(list);
+
             var buf = AccessoriesNetworkHandler.createBuf();
 
             syncPacket.write(buf);
@@ -169,7 +178,6 @@ public class AccessoriesEventHandler {
             }
 
             buf.release();
-
         } else if (player != null) {
             networkHandler.sendToPlayer(player, syncPacket);
 

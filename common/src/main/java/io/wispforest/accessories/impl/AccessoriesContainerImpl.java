@@ -20,6 +20,7 @@ import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.BooleanUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceCodecable {
 
@@ -63,7 +64,9 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
     public void markChanged(){
         this.update = true;
 
-        var inv = ((AccessoriesCapabilityImpl)this.capability).getUpdatingInventories();
+        if(this.capability.getEntity().level().isClientSide) return;
+
+        var inv = ((AccessoriesCapabilityImpl) this.capability).getUpdatingInventories();
 
         inv.remove(this);
         inv.add(this);
@@ -74,9 +77,15 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         this.update = false;
 
+        if(this.capability.getEntity().level().isClientSide) return;
+
         var slotType = this.slotType();
 
-        int baseSize = slotType != null ? slotType.amount() : this.baseSize;
+        if (slotType != null) {
+            this.baseSize = slotType.amount();
+        }
+
+        int baseSize = this.baseSize;
 
         for(AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADDITION)){
             baseSize += modifier.getAmount();
@@ -89,7 +98,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
         }
 
         for(AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.MULTIPLY_TOTAL)){
-            baseSize *= modifier.getAmount();
+            size *= modifier.getAmount();
         }
 
         var slotAmountModifier = slotType != null
@@ -97,16 +106,16 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
                 : 0;
 
         if(slotAmountModifier > baseSize){
-            baseSize = slotAmountModifier;
+            size = slotAmountModifier;
         }
 
         //--
 
         if(size == accessories.getContainerSize()) return;
 
-        List<Pair<Integer, ItemStack>> invalidAccessories = new ArrayList<>();
+        var invalidAccessories = new ArrayList<Pair<Integer, ItemStack>>();
 
-        List<ItemStack> invalidStacks = new ArrayList<>();
+        var invalidStacks = new ArrayList<ItemStack>();
 
         var newAccessories = new ExpandedSimpleContainer(size, "Accessories");
         var newCosmetics = new ExpandedSimpleContainer(size, "Cosmetic Accessories");
@@ -126,14 +135,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         var newRenderOptions = new ArrayList<Boolean>(size);
 
-        for (int i = 0; i < renderOptions.size(); i++) {
-            var option = renderOptions.get(i);
-
-            if(i >= baseSize){
-                newRenderOptions.add(i, option);
-            } else {
-                newRenderOptions.set(i, option);
-            }
+        for (int i = 0; i < size; i++) {
+            newRenderOptions.add(i < renderOptions.size() ? renderOptions.get(i) : true);
         }
 
         this.renderOptions = newRenderOptions;
@@ -343,6 +346,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
                 tag.put(MODIFIERS_KEY, modifiersTag);
             }
         } else {
+            tag.putInt("size", accessories.getContainerSize());
+
             tag.put(ITEMS_KEY, accessories.createTag());
 
             tag.put(COSMETICS_KEY, cosmeticAccessories.createTag());
@@ -378,23 +383,14 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         this.baseSize = slotType != null ? slotType.amount() : sizeFromTag;
 
-        this.renderOptions = Util.make(new ArrayList<>(baseSize), booleans -> {
-            for (int i = 0; i < baseSize; i++) booleans.add(i, true);
-        });
+        var renderOptionsTag = tag.get(RENDER_OPTIONS_KEY);
 
-        var renderOptionsTag = tag.getByteArray(RENDER_OPTIONS_KEY);
-
-        try {
-            for (int i = 0; i < renderOptionsTag.length; i++) {
-                var option = BooleanUtils.toBoolean(renderOptionsTag[i]);
-
-                if(i > baseSize){
-                    renderOptions.add(i, option);
-                } else {
-                    renderOptions.set(i, option);
-                }
-            }
-        } catch (Exception ignored){}
+        if(renderOptionsTag instanceof ByteArrayTag byteArrayTag) {
+            renderOptions = byteArrayTag.stream()
+                    .map(ByteTag::getAsByte)
+                    .map(BooleanUtils::toBoolean)
+                    .collect(Collectors.toList());
+        }
 
         if(sync) {
             this.modifiers.clear();
@@ -411,8 +407,14 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
                 }
             }
         } else {
-            this.accessories.fromTag(tag.getList(ITEMS_KEY, Tag.TAG_COMPOUND));
+            var size = tag.getInt("size");
 
+            if(this.accessories.getContainerSize() != size) {
+                this.accessories = new ExpandedSimpleContainer(this.baseSize, "Accessories");
+                this.cosmeticAccessories = new ExpandedSimpleContainer(this.baseSize, "Cosmetic Accessories");
+            }
+
+            this.accessories.fromTag(tag.getList(ITEMS_KEY, Tag.TAG_COMPOUND));
             this.cosmeticAccessories.fromTag(tag.getList(COSMETICS_KEY, Tag.TAG_COMPOUND));
 
             if (tag.contains(PERSISTENT_MODIFIERS_KEY)) {

@@ -167,7 +167,17 @@ public class AccessoriesFabric implements ModInitializer {
         manager.registerReloadListener(ENTITY_SLOT_LOADER);
         manager.registerReloadListener(new IdentifiableResourceReloadListenerImpl(SLOT_GROUP_LOADER_LOCATION, SlotGroupLoader.INSTANCE, SLOT_LOADER_LOCATION));
 
-        ServerLifecycleEvents.END_DATA_PACK_RELOAD.register((server, resourceManager, success) -> AccessoriesEventHandler.dataReloadOccured = true);
+        manager.registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+            @Override
+            public ResourceLocation getFabricId() {
+                return Accessories.of("data_reload_hook");
+            }
+
+            @Override
+            public void onResourceManagerReload(ResourceManager resourceManager) {
+                AccessoriesEventHandler.dataReloadOccured = true;
+            }
+        });
     }
 
     private record IdentifiableResourceReloadListenerImpl(ResourceLocation location, PreparableReloadListener listener, Set<ResourceLocation> dependencies) implements IdentifiableResourceReloadListener {
