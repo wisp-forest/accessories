@@ -8,7 +8,9 @@ import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
+import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -163,44 +165,58 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     @Override
     @Nullable
-    public SlotEntryReference equipAccessory(ItemStack stack, boolean allowSwapping, TriFunction<Accessory, ItemStack, SlotReference, Boolean> additionalCheck) {
+    public Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack, boolean allowSwapping, TriFunction<Accessory, ItemStack, SlotReference, Boolean> additionalCheck) {
         var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
         if(accessory == null) return null;
 
         var validContainers = new HashMap<String, AccessoriesContainer>();
 
-        // First attempt to equip an accessory within empty slot
-        for (var continerEntry : this.getContainers().entrySet()) {
-            var slotType = continerEntry.getKey();
-            var container = continerEntry.getValue();
+        if(stack.isEmpty() && allowSwapping) {
+            EntitySlotLoader.getEntitySlots(this.getEntity())
+                    .forEach((s, slotType) -> {
+                        validContainers.put(s, this.tryAndGetContainer(slotType));
+                    });
+        } else {
+            // First attempt to equip an accessory within empty slot
+            for (var continerEntry : this.getContainers().entrySet()) {
+                var slotType = continerEntry.getKey();
+                var container = continerEntry.getValue();
 
-            if(container.getSize() <= 0) continue;
+                if (container.getSize() <= 0) continue;
 
-            var accessories = container.getAccessories();
+                var accessories = container.getAccessories();
 
-            boolean isValid = AccessoriesAPI.canInsertIntoSlot(stack, new SlotReference(slotType, getEntity(), 0));
+                boolean isValid = AccessoriesAPI.canInsertIntoSlot(stack, new SlotReference(slotType, getEntity(), 0));
 
-            if(!isValid) continue;
+                if (!isValid) continue;
 
-            if(allowSwapping) validContainers.put(slotType, container);
+                if (allowSwapping) validContainers.put(slotType, container);
 
-            for (int i = 0; i < container.getSize(); i++) {
-                var slotStack = accessories.getItem(i);
-                var slotReference = new SlotReference(slotType, getEntity(), i);
+                for (int i = 0; i < container.getSize(); i++) {
+                    var slotStack = accessories.getItem(i);
+                    var slotReference = new SlotReference(slotType, getEntity(), i);
 
-                if(!slotStack.isEmpty()) continue;
+                    if (!slotStack.isEmpty()) continue;
 
-                if(!AccessoriesAPI.canUnequip(slotStack, slotReference)) continue;
+                    if (!AccessoriesAPI.canUnequip(slotStack, slotReference)) continue;
 
-                if(additionalCheck.apply(accessory, stack, slotReference) && AccessoriesAPI.canInsertIntoSlot(stack, slotReference)) {
-                    if (!entity.level().isClientSide) {
-                        accessories.setItem(i, stack);
+                    if (additionalCheck.apply(accessory, stack, slotReference) && AccessoriesAPI.canInsertIntoSlot(stack, slotReference)) {
+                        var stackCopy = stack.copy();
 
-                        container.markChanged();
+                        if (!entity.level().isClientSide) {
+                            var splitStack = stackCopy.split(accessory.maxStackSize(stackCopy));
+
+                            accessories.setItem(i, splitStack);
+
+                            container.markChanged();
+                        }
+
+                        return Pair.of(
+                                new SlotReference(container.getSlotName(), getEntity(), i),
+                                List.of(stackCopy.isEmpty() ? ItemStack.EMPTY : stackCopy)
+                        );
                     }
-
-                    return new SlotEntryReference(new SlotReference(container.getSlotName(), getEntity(), i), ItemStack.EMPTY);
                 }
             }
         }
@@ -212,19 +228,28 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
             var accessories = validContainer.getAccessories();
 
-            var slotStack = accessories.getItem(0);
-            var slotReference = new SlotReference(slotType, getEntity(), 0);
+            for (int i = 0; i < accessories.getContainerSize(); i++) {
+                var slotStack = accessories.getItem(i).copy();
+                var slotReference = new SlotReference(slotType, getEntity(), i);
 
-            if(!AccessoriesAPI.canUnequip(slotStack, slotReference)) continue;
+                if(!AccessoriesAPI.canUnequip(slotStack, slotReference) || slotStack.isEmpty()) continue;
 
-            if (additionalCheck.apply(accessory, stack, slotReference) && AccessoriesAPI.canInsertIntoSlot(stack, slotReference)) {
-                if (!entity.level().isClientSide) {
-                    accessories.setItem(0, stack);
+                if (stack.isEmpty() || (additionalCheck.apply(accessory, stack, slotReference) && AccessoriesAPI.canInsertIntoSlot(stack, slotReference))) {
+                    var stackCopy = stack.copy();
 
-                    validContainer.markChanged();
+                    var splitStack = stackCopy.isEmpty() ? ItemStack.EMPTY : stackCopy.split(accessory.maxStackSize(stackCopy));
+
+                    if (!entity.level().isClientSide) {
+                        accessories.setItem(i, splitStack);
+
+                        validContainer.markChanged();
+                    }
+
+                    return Pair.of(
+                            new SlotReference(validContainer.getSlotName(), getEntity(), i),
+                            List.of(stackCopy, slotStack)
+                    );
                 }
-
-                return new SlotEntryReference(new SlotReference(validContainer.getSlotName(), getEntity(), 0), slotStack);
             }
         }
 

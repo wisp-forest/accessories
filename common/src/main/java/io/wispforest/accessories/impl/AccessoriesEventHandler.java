@@ -17,17 +17,18 @@ import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncData;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.world.Container;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
-import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.*;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -632,7 +633,7 @@ public class AccessoriesEventHandler {
         }
     }
 
-    public static InteractionResultHolder<ItemStack> attemptEquipFromUse(Player player, Level world, InteractionHand hand) {
+    public static InteractionResultHolder<ItemStack> attemptEquipFromUse(Player player, InteractionHand hand) {
         var stack = player.getItemInHand(hand);
 
         if (!stack.isEmpty() && !player.isSpectator() && player.isShiftKeyDown()) {
@@ -641,18 +642,69 @@ public class AccessoriesEventHandler {
             var capability = AccessoriesCapability.get(player);
 
             if (capability != null) {
-                var unequippedReference = capability.equipAccessory(stack, true, Accessory::canEquipFromUse);
+                var equipReference = capability.equipAccessory(stack, true, Accessory::canEquipFromUse);
 
-                if (unequippedReference != null) {
-                    accessory.onEquipFromUse(stack, unequippedReference.reference());
+                if (equipReference != null) {
+                    accessory.onEquipFromUse(stack, equipReference.left());
 
-                    player.setItemInHand(hand, unequippedReference.stack());
+                    var stacks = equipReference.second();
 
-                    return InteractionResultHolder.success(unequippedReference.stack());
+                    var newHandStack = stacks.get(0);
+
+                    if(stacks.size() > 1) {
+                        if (newHandStack.isEmpty()) {
+                            newHandStack = stacks.get(1);
+                        } else  {
+                            for (int i = 1; i < stacks.size(); i++) player.addItem(stacks.get(i));
+                        }
+                    }
+
+
+                    return InteractionResultHolder.success(newHandStack);
                 }
             }
         }
 
         return InteractionResultHolder.pass(stack);
+    }
+
+    public static final TagKey<EntityType<?>> EQUIPMENT_MANAGEABLE = TagKey.create(Registries.ENTITY_TYPE, Accessories.of("equipment_manageable"));
+
+    public static InteractionResult attemptEquipOnEntity(Player player, InteractionHand hand, Entity entity) {
+        var stack = player.getItemInHand(hand);
+
+        if (entity.getType().is(EQUIPMENT_MANAGEABLE) && !player.isSpectator() && player.isShiftKeyDown()) {
+            var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+
+            if(entity instanceof LivingEntity livingEntity) {
+                var capability = AccessoriesCapability.get(livingEntity);
+
+                if (capability != null) {
+                    var equipReference = capability.equipAccessory(stack, true, Accessory::canEquipFromUse);
+
+                    if (equipReference != null) {
+                        if(!stack.isEmpty()) accessory.onEquipFromUse(stack, equipReference.left());
+
+                        var stacks = equipReference.second();
+
+                        var newHandStack = stacks.get(0);
+
+                        if(stacks.size() > 1) {
+                            if (newHandStack.isEmpty()) {
+                                newHandStack = stacks.get(1);
+                            } else  {
+                                for (int i = 1; i < stacks.size(); i++) player.addItem(stacks.get(i));
+                            }
+                        }
+
+                        player.setItemInHand(hand, newHandStack);
+
+                        return InteractionResult.SUCCESS;
+                    }
+                }
+            }
+        }
+
+        return InteractionResult.PASS;
     }
 }

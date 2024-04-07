@@ -37,9 +37,11 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.TickEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEntityUseItemEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import net.neoforged.neoforge.event.entity.living.LootingLevelEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforgespi.language.ModFileScanData;
@@ -89,6 +91,20 @@ public class AccessoriesForge {
         eventBus.register(AccessoriesForgeNetworkHandler.INSTANCE);
 
         NeoForge.EVENT_BUS.addListener(this::registerCommands);
+    }
+
+    public void attemptEquipFromUse(PlayerInteractEvent.RightClickItem event){
+        var resultHolder = AccessoriesEventHandler.attemptEquipFromUse(event.getEntity(), event.getHand());
+
+        if(resultHolder.getResult().consumesAction()) {
+            event.getEntity().setItemInHand(event.getHand(), resultHolder.getObject());
+
+            event.setCancellationResult(resultHolder.getResult());
+        }
+    }
+
+    public void attemptEquipOnEntity(PlayerInteractEvent.EntityInteract event) {
+        AccessoriesEventHandler.attemptEquipOnEntity(event.getEntity(), event.getHand(), event.getTarget());
     }
 
     public void registerCommands(RegisterCommandsEvent event) {

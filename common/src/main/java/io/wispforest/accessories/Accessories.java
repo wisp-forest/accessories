@@ -15,7 +15,10 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.Nullable;
 
 public class Accessories {
@@ -74,6 +77,19 @@ public class Accessories {
                                                             return 1;
                                                         })
                                         )
+                                        .executes(context -> {
+                                            var player = context.getSource().getPlayerOrException();
+
+                                            var result = ProjectileUtil.getHitResultOnViewVector(player, e -> e instanceof LivingEntity, (double) Player.getPickRange(player.isCreative()));
+
+                                            if(!(result instanceof EntityHitResult entityHitResult)) {
+                                                return 0;
+                                            }
+
+                                            AccessoriesInternals.openAccessoriesMenu(player, (LivingEntity) entityHitResult.getEntity());
+
+                                            return 1;
+                                        })
                         )
         );
     }

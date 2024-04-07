@@ -5,6 +5,7 @@ import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
+import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -84,7 +85,7 @@ public interface AccessoriesCapability {
      * @return The stack replaced within the slot or null if unable to equip
      */
     @Nullable
-    default SlotEntryReference equipAccessory(ItemStack stack){
+    default Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack){
         return equipAccessory(stack, false, (accessory, stack1, reference) -> true);
     }
 
@@ -97,7 +98,7 @@ public interface AccessoriesCapability {
      * @return The stack replaced within the slot or null if unable to equip
      */
     @Nullable
-    SlotEntryReference equipAccessory(ItemStack stack, boolean allowSwapping, TriFunction<Accessory, ItemStack, SlotReference, Boolean> additionalCheck);
+    Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack, boolean allowSwapping, TriFunction<Accessory, ItemStack, SlotReference, Boolean> additionalCheck);
 
     //--
 

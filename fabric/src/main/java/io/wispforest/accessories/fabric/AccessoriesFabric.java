@@ -26,6 +26,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
@@ -47,8 +48,14 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.EntityHitResult;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -85,7 +92,16 @@ public class AccessoriesFabric implements ModInitializer {
             Accessories.registerCommands(dispatcher);
         });
 
-        UseItemCallback.EVENT.register(AccessoriesEventHandler::attemptEquipFromUse);
+        UseItemCallback.EVENT.register((player, level, hand) -> {
+            var holder = AccessoriesEventHandler.attemptEquipFromUse(player, hand);
+
+            if(holder.getResult().consumesAction()) {
+                player.setItemInHand(hand, holder.getObject());
+            }
+
+            return holder;
+        });
+        UseEntityCallback.EVENT.register((player, level, hand, entity, hitResult) -> AccessoriesEventHandler.attemptEquipOnEntity(player, hand, entity));
 
         AccessoriesFabricNetworkHandler.INSTANCE.register();
         AccessoriesFabricNetworkHandler.INSTANCE.init();
