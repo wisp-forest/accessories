@@ -30,13 +30,13 @@ public class AccessoriesRendererRegistery {
      */
     @Nullable
     public static AccessoryRenderer getRender(Item item){
-        var accessory = AccessoriesAPI.getAccessory(item);
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(item);
 
         if(accessory == AccessoriesAPI.defaultAccessory()) {
             return DefaultAccessoryRenderer.INSTANCE;
         }
 
-        return getRender(item);
+        return CACHED_RENDERERS.get(item);
     }
 
     public static void onReload() {
