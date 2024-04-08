@@ -52,10 +52,12 @@ public class CuriosRendererRegistry {
    * @param renderer The supplier renderer to invoke for the item in the registry
    */
   public static void register(Item item, Supplier<ICurioRenderer> renderer) {
-    AccessoriesRendererRegistery.registerRenderer(item, new AccessoryRenderer() {
+    AccessoriesRendererRegistery.registerRenderer(item, () -> new AccessoryRenderer() {
+      private final ICurioRenderer innerRenderer = renderer.get();
+
       @Override
-      public <M extends LivingEntity> void render(boolean isRendering, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-        var context = CuriosWrappingUtils.create(reference, isRendering);
+      public <M extends LivingEntity> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+        var context = CuriosWrappingUtils.create(reference, true);
         var renderLayer = new RenderLayerParent<M, EntityModel<M>>(){
           @Override
           public EntityModel<M> getModel() {
@@ -68,7 +70,7 @@ public class CuriosRendererRegistry {
           }
         };
 
-        renderer.get().render(stack, context, matrices, renderLayer, multiBufferSource, light, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
+        innerRenderer.render(stack, context, matrices, renderLayer, multiBufferSource, light, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
       }
     });
 

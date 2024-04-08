@@ -24,11 +24,9 @@ public class TrinketRendererRegistry {
      */
     public static void registerRenderer(Item item, TrinketRenderer trinketRenderer) {
         AccessoriesRendererRegistery.registerRenderer(item,
-            new AccessoryRenderer(){
+            () -> new AccessoryRenderer(){
                 @Override
-                public <M extends LivingEntity> void render(boolean isRendering, ItemStack stack, SlotReference ref, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-                    if(!isRendering) return;
-
+                public <M extends LivingEntity> void render(ItemStack stack, SlotReference ref, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
                     matrices.pushPose();
 
                     var reference = WrappingTrinketsUtils.createReference(ref);
@@ -48,13 +46,13 @@ public class TrinketRendererRegistry {
 
     public static Optional<TrinketRenderer> getRenderer(Item item) {
         return Optional.ofNullable(RENDERERS.get(item)).or(() -> {
-            return AccessoriesRendererRegistery.getRender(item).map(accessoryRenderer -> {
+            return Optional.ofNullable(AccessoriesRendererRegistery.getRender(item)).map(accessoryRenderer -> {
                 return (stack, ref, contextModel, matrices, vertexConsumers, light, entity, limbAngle, limbDistance, tickDelta, animationProgress, headYaw, headPitch) -> {
                     var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
                     var reference = new SlotReference(slotName, entity, ref.index());
 
-                    accessoryRenderer.render(true, stack, reference, matrices, contextModel, vertexConsumers, light, limbAngle, limbDistance, tickDelta, animationProgress, headYaw, headPitch);
+                    accessoryRenderer.render(stack, reference, matrices, contextModel, vertexConsumers, light, limbAngle, limbDistance, tickDelta, animationProgress, headYaw, headPitch);
                 };
             });
         });

@@ -55,9 +55,9 @@ public abstract class PlayerRendererMixin {
 
                     if (stack.isEmpty()) continue;
 
-                    var renderer = AccessoriesRendererRegistery.getOrDefaulted(stack.getItem());
+                    var renderer = AccessoriesRendererRegistery.getRender(stack.getItem());
 
-                    if(!renderer.shouldRender(container.shouldRender(i))) continue;
+                    if(renderer == null || !renderer.shouldRender(container.shouldRender(i))) continue;
 
                     poseStack.pushPose();
 

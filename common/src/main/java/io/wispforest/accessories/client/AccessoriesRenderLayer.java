@@ -68,17 +68,15 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                     continue;
                 }
 
-                var renderer = AccessoriesRendererRegistery.getOrDefaulted(stack.getItem());
+                var renderer = AccessoriesRendererRegistery.getRender(stack.getItem());
 
-                if(!renderer.shouldRender(container.shouldRender(i))) {
+                if(renderer == null || !renderer.shouldRender(container.shouldRender(i))) {
                     if(!renderingLines) AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
 
                     continue;
                 }
 
                 poseStack.pushPose();
-
-
 
                 var mpoatv = new MPOATVConstructingVertexConsumer();
 
