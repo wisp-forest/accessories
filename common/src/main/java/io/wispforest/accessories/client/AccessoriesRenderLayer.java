@@ -68,7 +68,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                     continue;
                 }
 
-                var renderer = AccessoriesRendererRegistery.getRender(stack.getItem());
+                var renderer = AccessoriesRendererRegistery.getRender(stack);
 
                 if(renderer == null || !renderer.shouldRender(container.shouldRender(i))) {
                     if(!renderingLines) AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);

@@ -1,7 +1,9 @@
 package io.wispforest.accessories.api.client;
 
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -25,6 +27,29 @@ public class AccessoriesRendererRegistery {
         RENDERERS.put(item, renderer);
     }
 
+    public static void registerDefaultedRenderer(Item item){
+        RENDERERS.put(item, DefaultAccessoryRenderer::new);
+    }
+
+    public static final String defaultRenderOverrideKey = "AccessoriesDefaultRenderOverride";
+
+    @Nullable
+    public static AccessoryRenderer getRender(ItemStack stack){
+        if(stack.hasTag()) {
+            var tag = stack.getTag();
+
+            if(tag.contains(defaultRenderOverrideKey)){
+                if(tag.getBoolean(defaultRenderOverrideKey)) {
+                    return DefaultAccessoryRenderer.INSTANCE;
+                } else if(AccessoriesAPI.getOrDefaultAccessory(stack.getItem()) == AccessoriesAPI.defaultAccessory()) {
+                    return null;
+                }
+            }
+        }
+
+        return getRender(stack.getItem());
+    }
+
     /**
      * @return Either the {@link AccessoryRenderer} bound to the item or the instance of the {@link DefaultAccessoryRenderer}
      */
@@ -32,7 +57,7 @@ public class AccessoriesRendererRegistery {
     public static AccessoryRenderer getRender(Item item){
         var accessory = AccessoriesAPI.getOrDefaultAccessory(item);
 
-        if(accessory == AccessoriesAPI.defaultAccessory()) {
+        if(accessory == AccessoriesAPI.defaultAccessory() || (!CACHED_RENDERERS.containsKey(item)) && Accessories.getConfig().clientData.useDefaultRender) {
             return DefaultAccessoryRenderer.INSTANCE;
         }
 

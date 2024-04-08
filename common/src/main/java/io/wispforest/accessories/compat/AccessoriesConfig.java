@@ -23,6 +23,8 @@ public class AccessoriesConfig implements ConfigData {
 
         public int creativeInventoryButtonXOffset = 319;
         public int creativeInventoryButtonYOffset = 122;
+
+        public boolean useDefaultRender = false;
     }
 
     public List<SlotAmountModifier> modifiers = new ArrayList<>();
