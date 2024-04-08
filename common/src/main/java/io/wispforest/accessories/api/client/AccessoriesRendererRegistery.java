@@ -1,5 +1,6 @@
 package io.wispforest.accessories.api.client;
 
+import io.wispforest.accessories.api.AccessoriesAPI;
 import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,18 +26,17 @@ public class AccessoriesRendererRegistery {
     }
 
     /**
-     * @return An optional representing the {@link AccessoryRenderer} if found within the registry
+     * @return Either the {@link AccessoryRenderer} bound to the item or the instance of the {@link DefaultAccessoryRenderer}
      */
     @Nullable
     public static AccessoryRenderer getRender(Item item){
-        return CACHED_RENDERERS.get(item);
-    }
+        var accessory = AccessoriesAPI.getAccessory(item);
 
-    /**
-     * @return Either the {@link AccessoryRenderer} bound to the item or the instance of the {@link DefaultAccessoryRenderer}
-     */
-    public static AccessoryRenderer getOrDefaulted(Item item){
-        return CACHED_RENDERERS.getOrDefault(item, DefaultAccessoryRenderer.INSTANCE);
+        if(accessory == AccessoriesAPI.defaultAccessory()) {
+            return DefaultAccessoryRenderer.INSTANCE;
+        }
+
+        return getRender(item);
     }
 
     public static void onReload() {
