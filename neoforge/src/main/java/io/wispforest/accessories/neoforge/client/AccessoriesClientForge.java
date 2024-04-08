@@ -1,12 +1,10 @@
 package io.wispforest.accessories.neoforge.client;
 
-import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.neoforge.AccessoriesForge;
-import io.wispforest.accessories.networking.server.ScreenOpen;
 import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.network.chat.Component;
@@ -56,7 +54,7 @@ public class AccessoriesClientForge {
             @Override protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) { return null; }
             @Override
             protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profiler) {
-                AccessoriesRendererRegistery.onReload();
+                AccessoriesRendererRegistry.onReload();
             }
         });
     }

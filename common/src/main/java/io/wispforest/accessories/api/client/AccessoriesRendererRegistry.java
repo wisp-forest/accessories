@@ -35,10 +35,6 @@ public class AccessoriesRendererRegistry {
         RENDERERS.put(item, () -> null);
     }
 
-    public static void registerDefaultedRenderer(Item item){
-        RENDERERS.put(item, DefaultAccessoryRenderer::new);
-    }
-
     public static final String defaultRenderOverrideKey = "AccessoriesDefaultRenderOverride";
 
     @Nullable
@@ -63,13 +59,13 @@ public class AccessoriesRendererRegistry {
      */
     @Nullable
     public static AccessoryRenderer getRender(Item item){
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(item);
+        var renderer = CACHED_RENDERERS.getOrDefault(item, DefaultAccessoryRenderer.INSTANCE);
 
-        if(accessory == AccessoriesAPI.defaultAccessory() || (!CACHED_RENDERERS.containsKey(item)) && Accessories.getConfig().clientData.useDefaultRender) {
-            return DefaultAccessoryRenderer.INSTANCE;
+        if(renderer == null && Accessories.getConfig().clientData.forceNullRenderReplacement) {
+            renderer = DefaultAccessoryRenderer.INSTANCE;
         }
 
-        return CACHED_RENDERERS.get(item);
+        return renderer;
     }
 
     public static void onReload() {
