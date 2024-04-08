@@ -8,13 +8,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
  * Main class used to register and hold {@link AccessoryRenderer}'s for the given items
  */
-public class AccessoriesRendererRegistery {
+public class AccessoriesRendererRegistry {
 
     private static final Map<Item, Supplier<AccessoryRenderer>> RENDERERS = new HashMap<>();
 
@@ -25,6 +24,15 @@ public class AccessoriesRendererRegistery {
      */
     public static void registerRenderer(Item item, Supplier<AccessoryRenderer> renderer){
         RENDERERS.put(item, renderer);
+    }
+
+    /**
+     * Method used to prevent default rendering for the given {@link Item}
+     * <br/>
+     * This should ONLY be used if ABSOLUTELY necessary
+     */
+    public static void registerNoRenderer(Item item){
+        RENDERERS.put(item, () -> null);
     }
 
     public static void registerDefaultedRenderer(Item item){

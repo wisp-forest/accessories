@@ -1,9 +1,7 @@
 package io.wispforest.accessories.fabric.client;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.AccessoriesAPI;
-import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -12,7 +10,6 @@ import io.wispforest.accessories.fabric.AccessoriesFabricNetworkHandler;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.networking.AccessoriesPacket;
-import io.wispforest.accessories.networking.server.ScreenOpen;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -58,7 +55,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
 
                     @Override
                     public void onResourceManagerReload(ResourceManager resourceManager) {
-                        AccessoriesRendererRegistery.onReload();
+                        AccessoriesRendererRegistry.onReload();
                     }
                 });
 

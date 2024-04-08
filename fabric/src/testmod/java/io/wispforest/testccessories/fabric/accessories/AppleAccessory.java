@@ -5,7 +5,7 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
 import io.wispforest.accessories.api.client.SimpleAccessoryRenderer;
 import net.fabricmc.api.EnvType;
@@ -27,7 +27,7 @@ public class AppleAccessory implements Accessory {
 
     @Environment(EnvType.CLIENT)
     public static void clientInit(){
-        AccessoriesRendererRegistery.registerRenderer(Items.APPLE, Renderer::new);
+        AccessoriesRendererRegistry.registerRenderer(Items.APPLE, Renderer::new);
     }
 
     public static void init(){

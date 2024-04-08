@@ -6,7 +6,7 @@ import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
@@ -68,7 +68,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                     continue;
                 }
 
-                var renderer = AccessoriesRendererRegistery.getRender(stack);
+                var renderer = AccessoriesRendererRegistry.getRender(stack);
 
                 if(renderer == null || !renderer.shouldRender(container.shouldRender(i))) {
                     if(!renderingLines) AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);

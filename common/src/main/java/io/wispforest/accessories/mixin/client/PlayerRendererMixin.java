@@ -3,7 +3,7 @@ package io.wispforest.accessories.mixin.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -55,7 +55,7 @@ public abstract class PlayerRendererMixin {
 
                     if (stack.isEmpty()) continue;
 
-                    var renderer = AccessoriesRendererRegistery.getRender(stack);
+                    var renderer = AccessoriesRendererRegistry.getRender(stack);
 
                     if(renderer == null || !renderer.shouldRender(container.shouldRender(i))) continue;
 
