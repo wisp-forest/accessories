@@ -104,6 +104,11 @@ public class AccessoriesInternalsImpl {
             @Override
             public Component getDisplayName() { return Component.empty(); }
 
+            @Override
+            public boolean shouldCloseCurrentScreen() {
+                return false;
+            }
+
             @Nullable
             @Override
             public AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {

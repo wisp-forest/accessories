@@ -448,6 +448,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         return super.handleComponentClicked(style);
     }
 
+    private Button backButton = null;
+
     private Button cosmeticToggleButton = null;
     private Button linesToggleButton = null;
 
@@ -464,6 +466,12 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         this.cosmeticButtons.clear();
 
+        this.backButton = Button.builder(Component.empty(), (btn) -> {
+            this.minecraft.setScreen(new InventoryScreen(minecraft.player));
+        }).bounds(this.leftPos + 141, this.topPos + 8, 8, 8)
+                .tooltip(Tooltip.create(Component.translatable(Accessories.translation("back.screen"))))
+                .build();
+
         this.cosmeticToggleButton = Button.builder(Component.empty(), (btn) -> {
             this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 0);
         }).tooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen()))
@@ -475,6 +483,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 }).tooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()))
                 .bounds(this.leftPos + 154, this.topPos + 7, 12, 12)
                 .build();
+
+        this.addRenderableWidget(backButton);
 
         this.addRenderableWidget(unusedSlotsToggleButton);
 
