@@ -18,11 +18,11 @@ public class AccessoriesConfig implements ConfigData {
         public boolean showGroupTabs = true;
         public boolean showLineRendering = true;
 
-        public int inventoryButtonXOffset = 67;
+        public int inventoryButtonXOffset = 66;
         public int inventoryButtonYOffset = 8;
 
-        public int creativeInventoryButtonXOffset = 319;
-        public int creativeInventoryButtonYOffset = 122;
+        public int creativeInventoryButtonXOffset = 96;
+        public int creativeInventoryButtonYOffset = 6;
 
         public boolean forceNullRenderReplacement = false;
     }
