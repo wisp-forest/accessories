@@ -21,8 +21,14 @@ public class NukeAccessories extends AccessoriesPacket {
     public void handle(Player player) {
         super.handle(player);
 
+        // Only players in creative should be able to nuke their accessories
+        if (!player.getAbilities().instabuild)
+            return;
+
         var cap = AccessoriesCapability.get(player);
 
-        if(cap != null) cap.clear();
+        if (cap != null) cap.clear();
+
+        player.containerMenu.broadcastChanges();
     }
 }
