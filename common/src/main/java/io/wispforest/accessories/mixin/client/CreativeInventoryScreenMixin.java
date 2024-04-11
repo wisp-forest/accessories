@@ -32,6 +32,16 @@ public abstract class CreativeInventoryScreenMixin extends EffectRenderingInvent
     @Unique
     private Button accessoryButton = null;
 
+    @Unique
+    private int nukeCoolDown = 0;
+
+    @Inject(method = "containerTick", at = @At("HEAD"))
+    private void nukeCooldown(CallbackInfo ci){
+        if(this.nukeCoolDown > 0) {
+            this.nukeCoolDown--;
+        }
+    }
+
     @Inject(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/inventory/EffectRenderingInventoryScreen;init()V", shift = At.Shift.AFTER))
     private void injectAccessoryButton(CallbackInfo ci) {
         var xOffset = Accessories.getConfig().clientData.creativeInventoryButtonXOffset;
@@ -56,7 +66,11 @@ public abstract class CreativeInventoryScreenMixin extends EffectRenderingInvent
     @Inject(method = "slotClicked",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/core/NonNullList;size()I", ordinal = 0, shift = At.Shift.BEFORE))
     private void clearAccessoriesWithClearSlot(Slot slot, int slotId, int mouseButton, ClickType type, CallbackInfo ci) {
-        AccessoriesInternals.getNetworkHandler().sendToServer(new NukeAccessories());
+        if(this.nukeCoolDown <= 0) {
+            AccessoriesInternals.getNetworkHandler().sendToServer(new NukeAccessories());
+
+            this.nukeCoolDown = 10;
+        }
     }
 
 }

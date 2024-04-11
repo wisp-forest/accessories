@@ -67,7 +67,7 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
 
     @Override
     public void reset() {
-        this.capability.clear();
+        this.capability.reset(false);
     }
 
     @Override

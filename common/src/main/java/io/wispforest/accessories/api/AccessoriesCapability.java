@@ -4,10 +4,8 @@ import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import it.unimi.dsi.fastutil.Pair;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
@@ -48,7 +46,7 @@ public interface AccessoriesCapability {
     /**
      * Method used to clear all containers bound to the given {@link LivingEntity}
      */
-    void clear();
+    void reset(boolean loadedFromTag);
 
     /**
      * @return A Map containing all the {@link AccessoriesContainer}s with their {@link SlotType#name()} as the key

@@ -27,14 +27,14 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
     public AccessoriesCapabilityImpl(LivingEntity entity) {
         this.entity = entity;
 
-        if (holder().loadedFromTag) this.clear();
+        if (holder().loadedFromTag) this.reset(true);
     }
 
     @Override
     public AccessoriesHolder getHolder() {
         var holder = AccessoriesInternals.getHolder(entity);
 
-        if (((AccessoriesHolderImpl) holder).loadedFromTag) this.clear();
+        if (((AccessoriesHolderImpl) holder).loadedFromTag) this.reset(true);
 
         return holder;
     }
@@ -49,26 +49,36 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
     }
 
     @Override
-    public void clear() {
+    public void reset(boolean loadedFromTag) {
         if (this.entity.level().isClientSide()) return;
 
         var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
 
-        var oldContainers = Map.copyOf(holder.getSlotContainers());
+        if(!loadedFromTag) {
+            var oldContainers = Map.copyOf(holder.getSlotContainers());
 
-        holder.init(this);
+            holder.init(this);
 
-        var currentContainers = holder.getSlotContainers();
+            var currentContainers = holder.getSlotContainers();
 
-        oldContainers.forEach((s, oldContainer) -> currentContainers.get(s).getAccessories().setFromPrev(oldContainer.getAccessories()));
+            oldContainers.forEach((s, oldContainer) -> {
+                var currentContainer = currentContainers.get(s);
 
-        if (!(this.entity instanceof ServerPlayer serverPlayer) || serverPlayer.connection == null) return;
+                currentContainer.getAccessories().setFromPrev(oldContainer.getAccessories());
 
-        var tag = new CompoundTag();
+                currentContainer.markChanged();
+            });
+        } else {
+            holder.init(this);
 
-        holder.write(tag);
+            if (!(this.entity instanceof ServerPlayer serverPlayer) || serverPlayer.connection == null) return;
 
-        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(this.entity(), new SyncEntireContainer(tag, this.entity.getId()));
+            var tag = new CompoundTag();
+
+            holder.write(tag);
+
+            AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(this.entity(), new SyncEntireContainer(tag, this.entity.getId()));
+        }
     }
 
     @Override
