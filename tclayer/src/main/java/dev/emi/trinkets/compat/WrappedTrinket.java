@@ -95,4 +95,15 @@ public class WrappedTrinket implements Accessory {
 
         return TrinketEnums.convert(this.trinket.getDropRule(stack, ref.get(), reference.entity()));
     }
+
+    @Override
+    public void onBreak(ItemStack stack, SlotReference reference) {
+        var ref = WrappingTrinketsUtils.createReference(reference);
+
+        if(ref.isEmpty()) {
+            Accessory.super.onBreak(stack, reference);
+        } else {
+            this.trinket.onBreak(stack, ref.get(), reference.entity());
+        }
+    }
 }

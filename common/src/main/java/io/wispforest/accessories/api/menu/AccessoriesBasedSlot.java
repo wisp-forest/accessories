@@ -8,7 +8,6 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
-import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -22,7 +21,6 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 
 public class AccessoriesBasedSlot extends Slot {
@@ -36,7 +34,7 @@ public class AccessoriesBasedSlot extends Slot {
         super(container, slot, x, y);
 
         this.accessoriesContainer = accessoriesContainer;
-        this.entity = accessoriesContainer.capability().getEntity();
+        this.entity = accessoriesContainer.capability().entity();
     }
 
     @Nullable

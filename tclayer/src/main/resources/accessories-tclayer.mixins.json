@@ -6,11 +6,12 @@
   "client": [
   ],
   "mixins": [
+    "AccessoriesAPIMixin",
     "AccessoriesFabricMixin",
     "AccessoriesForgeMixin",
     "EntitySlotLoaderMixin",
-    "SlotTypeLoaderMixin",
-    "ItemStackMixin"
+    "ItemStackMixin",
+    "SlotTypeLoaderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

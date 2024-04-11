@@ -4,7 +4,6 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
 import java.util.*;
@@ -25,11 +24,11 @@ public interface AccessoriesContainer {
      * @return An Optional of the given slotType based on the {@link #getSlotName} if found or an empty optional
      */
     default SlotType slotType() {
-        return SlotTypeLoader.getSlotType(this.capability().getEntity().level(), this.getSlotName());
+        return SlotTypeLoader.getSlotType(this.capability().entity().level(), this.getSlotName());
     }
 
     default SlotReference createReference(int index){
-        return new SlotReference(getSlotName(), capability().getEntity(), index);
+        return new SlotReference(getSlotName(), capability().entity(), index);
     }
 
     /**

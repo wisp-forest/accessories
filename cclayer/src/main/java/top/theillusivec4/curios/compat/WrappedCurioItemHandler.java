@@ -22,6 +22,7 @@ import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
+import top.theillusivec4.curios.common.CuriosRegistry;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -32,6 +33,14 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
 
     public WrappedCurioItemHandler(AccessoriesCapabilityImpl capability){
         this.capability = capability;
+
+        var entity = this.capability.entity();
+
+        if(entity.hasData(CuriosRegistry.INVENTORY)) {
+            var inv = entity.getData(CuriosRegistry.INVENTORY);
+
+            inv.init(this);
+        }
     }
 
     @Override
@@ -126,7 +135,7 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
 
                     for (var stackEntry : accessories) {
                         var stack = stackEntry.getSecond();
-                        var reference = new SlotReference(container.getSlotName(), container.capability().getEntity(), stackEntry.getFirst());
+                        var reference = new SlotReference(container.getSlotName(), container.capability().entity(), stackEntry.getFirst());
 
                         var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
 
@@ -153,13 +162,13 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
 
                     if(stack.isEmpty()) return Optional.empty();
 
-                    return Optional.of(new SlotResult(new SlotContext(identifier, this.capability.getEntity(), 0, false, true), stack));
+                    return Optional.of(new SlotResult(new SlotContext(identifier, this.capability.entity(), 0, false, true), stack));
                 });
     }
 
     @Override
     public LivingEntity getWearer() {
-        return this.capability.getEntity();
+        return this.capability.entity();
     }
 
     @Override public void loseInvalidStack(ItemStack stack) {}

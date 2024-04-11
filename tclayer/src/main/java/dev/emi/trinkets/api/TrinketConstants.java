@@ -35,7 +35,7 @@ public class TrinketConstants {
 
         var parts = path.split("/");
 
-        if(!parts[0].isBlank()) return path;
+        if(parts.length <= 1) return path;
 
         StringBuilder builder = new StringBuilder();
 

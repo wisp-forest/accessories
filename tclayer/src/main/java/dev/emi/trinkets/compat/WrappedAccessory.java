@@ -86,4 +86,13 @@ public class WrappedAccessory implements Trinket {
 
         return TrinketEnums.convert(accessory.getDropRule(stack, reference, damageSource));
     }
+
+    @Override
+    public void onBreak(ItemStack stack, SlotReference ref, LivingEntity entity) {
+        var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
+
+        var reference = new io.wispforest.accessories.api.slot.SlotReference(slotName, entity, ref.index());
+
+        accessory.onBreak(stack, reference);
+    }
 }

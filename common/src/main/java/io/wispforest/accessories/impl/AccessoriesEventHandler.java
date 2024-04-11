@@ -21,7 +21,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
@@ -133,7 +132,7 @@ public class AccessoriesEventHandler {
 
         ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
 
-        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(tag, capability.getEntity().getId()));
+        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(tag, capability.entity().getId()));
     }
 
     public static void onTracking(LivingEntity entity, ServerPlayer serverPlayer) {
@@ -145,7 +144,7 @@ public class AccessoriesEventHandler {
 
         ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
 
-        AccessoriesInternals.getNetworkHandler().sendToPlayer(serverPlayer, new SyncEntireContainer(tag, capability.getEntity().getId()));
+        AccessoriesInternals.getNetworkHandler().sendToPlayer(serverPlayer, new SyncEntireContainer(tag, capability.entity().getId()));
     }
 
     public static void dataSync(@Nullable PlayerList list, @Nullable ServerPlayer player) {
@@ -170,7 +169,7 @@ public class AccessoriesEventHandler {
 
                 ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
 
-                networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(tag, capability.getEntity().getId()));
+                networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(tag, capability.entity().getId()));
 
                 if(playerEntry.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
                     AccessoriesInternals.openAccessoriesMenu(player, accessoriesMenu.targetEntity());
@@ -189,7 +188,7 @@ public class AccessoriesEventHandler {
 
             ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
 
-            networkHandler.sendToPlayer(player, new SyncEntireContainer(tag, capability.getEntity().getId()));
+            networkHandler.sendToPlayer(player, new SyncEntireContainer(tag, capability.entity().getId()));
 
             if(player.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
                 AccessoriesInternals.openAccessoriesMenu(player, accessoriesMenu.targetEntity());
@@ -214,7 +213,7 @@ public class AccessoriesEventHandler {
             var accessories = (ExpandedSimpleContainer) container.getAccessories();
 
             for (int i = 0; i < accessories.getContainerSize(); i++) {
-                var slotReference = new SlotReference(container.getSlotName(), capability.getEntity(), i);
+                var slotReference = new SlotReference(container.getSlotName(), capability.entity(), i);
 
                 var slotId = slotType.name() + "/" + i;
 
@@ -338,12 +337,14 @@ public class AccessoriesEventHandler {
             updatedContainers.clear();
         }
 
-        if (!entity.level().isClientSide()) {
-            var invalidStacks = ((AccessoriesHolderImpl) capability.getHolder()).invalidStacks;
+        var invalidStacks = ((AccessoriesHolderImpl) capability.getHolder()).invalidStacks;
 
+        if (!entity.level().isClientSide() && !invalidStacks.isEmpty()) {
             for (ItemStack invalidStack : invalidStacks) {
                 if (entity instanceof ServerPlayer serverPlayer) {
                     AccessoriesInternals.giveItemToPlayer(serverPlayer, invalidStack);
+                } else {
+                    entity.spawnAtLocation(invalidStack);
                 }
             }
 

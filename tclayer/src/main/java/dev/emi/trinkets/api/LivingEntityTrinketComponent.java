@@ -3,6 +3,7 @@ package dev.emi.trinkets.api;
 import dev.emi.trinkets.compat.WrappedTrinketComponent;
 import dev.onyxstudios.cca.api.v3.component.sync.AutoSyncedComponent;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.item.ItemStack;
 
@@ -54,5 +55,12 @@ public class LivingEntityTrinketComponent extends WrappedTrinketComponent implem
                 }
             }
         }
+    }
+
+    //--
+
+    @Override
+    public boolean shouldSyncWith(ServerPlayer player) {
+        return false;
     }
 }

@@ -4,6 +4,7 @@ import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.resources.ResourceLocation;
@@ -35,7 +36,7 @@ public interface AccessoriesCapability {
     /**
      * @return The bound entity to the given AccessoriesCapability instance
      */
-    LivingEntity getEntity();
+    LivingEntity entity();
 
     /**
      * @return The bound data holder to the given LivingEntity

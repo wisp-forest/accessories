@@ -20,8 +20,8 @@
 package top.theillusivec4.curios.api.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -52,7 +52,7 @@ public class CuriosRendererRegistry {
    * @param renderer The supplier renderer to invoke for the item in the registry
    */
   public static void register(Item item, Supplier<ICurioRenderer> renderer) {
-    AccessoriesRendererRegistery.registerRenderer(item, () -> new AccessoryRenderer() {
+    AccessoriesRendererRegistry.registerRenderer(item, () -> new AccessoryRenderer() {
       private final ICurioRenderer innerRenderer = renderer.get();
 
       @Override

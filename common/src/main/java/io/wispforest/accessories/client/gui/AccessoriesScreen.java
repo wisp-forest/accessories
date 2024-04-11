@@ -748,7 +748,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         var bottomIndex = this.menu.scrolledIndex;
         var upperIndex = bottomIndex + 8 - 1;
 
-        var scrollRange = Range.of(bottomIndex, upperIndex);
+        var scrollRange = Range.between(bottomIndex, upperIndex, Integer::compareTo);
 
         for (var group : groups) {
             var groupSize = group.slots().stream()
@@ -760,7 +760,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             var groupMinIndex = currentIndexOffset;
             var groupMaxIndex = groupMinIndex + groupSize - 1;
 
-            var groupRange = Range.of(groupMinIndex, groupMaxIndex);
+            var groupRange = Range.between(groupMinIndex, groupMaxIndex, Integer::compareTo);
 
             if(groupRange.isOverlappedBy(scrollRange)) {
                 selectedGroup.add(group.name());

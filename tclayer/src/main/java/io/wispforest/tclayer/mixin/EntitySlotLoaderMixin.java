@@ -27,7 +27,7 @@ public abstract class EntitySlotLoaderMixin {
     private Map<EntityType<?>, Map<String, SlotType>> server;
 
     @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At("TAIL"))
-    private void injectCuriosSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci){
+    private void injectTrinketSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci){
         var map = server;
 
         var loader = dev.emi.trinkets.data.EntitySlotLoader.SERVER;

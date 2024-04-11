@@ -64,7 +64,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
     public void markChanged(){
         this.update = true;
 
-        if(this.capability.getEntity().level().isClientSide) return;
+        if(this.capability.entity().level().isClientSide) return;
 
         var inv = ((AccessoriesCapabilityImpl) this.capability).getUpdatingInventories();
 
@@ -77,7 +77,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         this.update = false;
 
-        if(this.capability.getEntity().level().isClientSide) return;
+        if(this.capability.entity().level().isClientSide) return;
 
         var slotType = this.slotType();
 
@@ -102,7 +102,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
         }
 
         var slotAmountModifier = slotType != null
-                ? SlotAmountAdjustments.INSTANCE.getAmount(slotType, this.capability.getEntity())
+                ? SlotAmountAdjustments.INSTANCE.getAmount(slotType, this.capability.entity())
                 : 0;
 
         if(slotAmountModifier > baseSize){
@@ -141,7 +141,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         this.renderOptions = newRenderOptions;
 
-        var livingEntity = this.capability.getEntity();
+        var livingEntity = this.capability.entity();
 
         //TODO: Confirm if such is needed
         for (var invalidAccessory : invalidAccessories) {
@@ -379,7 +379,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         var sizeFromTag = (tag.contains(BASE_SIZE_KEY)) ? tag.getInt(BASE_SIZE_KEY) : baseSize;
 
-        var slotType = SlotTypeLoader.getSlotType(this.capability.getEntity().level(), this.slotName);
+        var slotType = SlotTypeLoader.getSlotType(this.capability.entity().level(), this.slotName);
 
         this.baseSize = slotType != null ? slotType.amount() : sizeFromTag;
 

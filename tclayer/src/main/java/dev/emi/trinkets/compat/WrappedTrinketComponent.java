@@ -2,9 +2,12 @@ package dev.emi.trinkets.compat;
 
 import com.google.common.collect.Multimap;
 import dev.emi.trinkets.api.*;
+import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.LivingEntity;
@@ -15,9 +18,9 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
-public class WrappedTrinketComponent implements TrinketComponent {
+public abstract class WrappedTrinketComponent implements TrinketComponent {
 
-    private final AccessoriesCapability capability;
+    protected final AccessoriesCapability capability;
 
     public WrappedTrinketComponent(AccessoriesCapability capability){
         this.capability = capability;
@@ -25,7 +28,7 @@ public class WrappedTrinketComponent implements TrinketComponent {
 
     @Override
     public LivingEntity getEntity() {
-        return capability.getEntity();
+        return capability.entity();
     }
 
     @Override
@@ -36,7 +39,7 @@ public class WrappedTrinketComponent implements TrinketComponent {
     @Override
     public Map<String, Map<String, TrinketInventory>> getInventory() {
         //TODO: HANDLE SUCH TRINKET SPECIFIC NAMES AND GROUPS
-        var groups = SlotGroupLoader.INSTANCE.getAllGroups(capability.getEntity().level().isClientSide());
+        var groups = SlotGroupLoader.INSTANCE.getAllGroups(capability.entity().level().isClientSide());
         var containers = capability.getContainers();
 
         var inventories = new HashMap<String, Map<String, TrinketInventory>>();
@@ -49,7 +52,7 @@ public class WrappedTrinketComponent implements TrinketComponent {
 
                 if(container == null) return;
 
-                var wrappedInv = new WrappedTrinketInventory(WrappedTrinketComponent.this, container, SlotTypeLoader.getSlotType(capability.getEntity().level(), (String) s));
+                var wrappedInv = new WrappedTrinketInventory(WrappedTrinketComponent.this, container, SlotTypeLoader.getSlotType(capability.entity().level(), (String) s));
 
                 map.put(s, wrappedInv);
             });
@@ -136,6 +139,71 @@ public class WrappedTrinketComponent implements TrinketComponent {
         capability.clearCachedSlotModifiers();
     }
 
-    @Override public void readFromNbt(CompoundTag tag) {}
+    @Override
+    public void readFromNbt(CompoundTag tag) {
+        System.out.println(tag.toString());
+
+        var dropped = new ArrayList<ItemStack>();
+
+        for (var groupKey : tag.getAllKeys()) {
+            var groupTag = tag.getCompound(groupKey);
+
+            for (var slotKey : groupTag.getAllKeys()) {
+                var slotTag = groupTag.getCompound(slotKey);
+
+                var slotName = TrinketConstants.trinketsToAccessories(slotKey);
+
+                var slotType = SlotTypeLoader.getSlotType(this.getEntity().level(), slotName);
+
+                var list = slotTag.getList("Items", NbtType.COMPOUND)
+                        .stream()
+                        .map(tagEntry -> ItemStack.of((tagEntry instanceof CompoundTag compoundTag) ? compoundTag : new CompoundTag()))
+                        .toList();
+
+                if(slotType == null) {
+                    dropped.addAll(list);
+
+                    continue;
+                }
+
+                var container = this.capability.tryAndGetContainer(slotType);
+
+                if(container == null) {
+                    dropped.addAll(list);
+
+                    System.out.println("Unable to handle the given slotType as a container did not exist");
+
+                    continue;
+                }
+
+                var accessories = container.getAccessories();
+
+                for (var stack : list) {
+                    boolean consumedStack = false;
+
+                    for (int i = 0; i < accessories.getContainerSize(); i++) {
+                        var currentStack = accessories.getItem(i);
+
+                        if(!currentStack.isEmpty()) continue;
+
+                        var ref = new io.wispforest.accessories.api.slot.SlotReference(slotName, this.getEntity(), i);
+
+                        if(!AccessoriesAPI.canInsertIntoSlot(stack, ref)) continue;
+
+                        accessories.setItem(i, stack.copy());
+
+                        consumedStack = true;
+                    }
+
+                    if(!consumedStack) {
+                        dropped.add(stack);
+                    }
+                }
+            }
+        }
+
+        ((AccessoriesHolderImpl) this.capability.getHolder()).invalidStacks.addAll(dropped);
+    }
+
     @Override public void writeToNbt(CompoundTag tag) {}
 }

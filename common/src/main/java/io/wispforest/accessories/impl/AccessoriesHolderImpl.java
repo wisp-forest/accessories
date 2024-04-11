@@ -4,7 +4,6 @@ import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -15,7 +14,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
 
     private final Map<String, AccessoriesContainer> slotContainers = new LinkedHashMap<>();
 
-    protected final List<ItemStack> invalidStacks = new ArrayList<>();
+    public final List<ItemStack> invalidStacks = new ArrayList<>();
     protected final Set<AccessoriesContainer> containersRequiringUpdates = new HashSet<>();
 
     private boolean showUnusedSlots = false;
@@ -91,7 +90,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
     }
 
     public void init(AccessoriesCapability capability) {
-        var livingEntity = capability.getEntity();
+        var livingEntity = capability.entity();
 
         this.slotContainers.clear();
         //this.invalidStacks.clear();

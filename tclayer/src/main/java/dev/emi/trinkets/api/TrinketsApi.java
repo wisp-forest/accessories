@@ -68,7 +68,11 @@ public class TrinketsApi implements EntityComponentInitializer {
     }
 
     public static void onTrinketBroken(ItemStack stack, SlotReference ref, LivingEntity entity) {
-        throw new IllegalStateException("onTrinketBroken not implemented");
+        var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
+
+        var reference = new io.wispforest.accessories.api.slot.SlotReference(slotName, entity, ref.index());
+
+        AccessoriesAPI.breakStack(reference);
     }
 
     @Deprecated
@@ -249,6 +253,7 @@ public class TrinketsApi implements EntityComponentInitializer {
 
     @Override
     public void registerEntityComponentFactories(EntityComponentFactoryRegistry registry) {
+        //System.out.println("WEEEEEEEEEEEEEEEE\nWEEEEEEEEEEEEEEEE\nWEEEEEEEEEEEEEEEE\nWEEEEEEEEEEEEEEEE\nWEEEEEEEEEEEEEEEE\n");
         registry.registerFor(LivingEntity.class, TrinketsApi.TRINKET_COMPONENT, livingEntity -> getTrinketComponent(livingEntity).get());
         registry.registerForPlayers(TrinketsApi.TRINKET_COMPONENT, player -> getTrinketComponent(player).get(), RespawnCopyStrategy.ALWAYS_COPY);
     }

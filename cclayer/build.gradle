@@ -6,7 +6,7 @@ base {
     archivesName = project.archives_base_name
 }
 
-version = project.mod_version
+version = "${project.mod_version}-${project.layer_version}"
 group = project.maven_group
 
 architectury {
@@ -21,6 +21,9 @@ repositories {
     mavenLocal()
 }
 
+evaluationDependsOn(':common')
+evaluationDependsOn(':neoforge')
+
 dependencies {
     neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
 
@@ -33,10 +36,10 @@ dependencies {
 }
 
 processResources {
-    inputs.property "version", project.version
+    inputs.property "version", project.mod_version
 
     filesMatching("META-INF/mods.toml") {
-        expand "version": project.version
+        expand "version": project.mod_version
     }
 }
 

@@ -21,6 +21,7 @@ import top.theillusivec4.curios.api.SlotTypeMessage;
 import top.theillusivec4.curios.api.type.ISlotType;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import top.theillusivec4.curios.common.CuriosHelper;
+import top.theillusivec4.curios.common.CuriosRegistry;
 import top.theillusivec4.curios.common.capability.CurioItemHandler;
 import top.theillusivec4.curios.common.capability.ItemizedCurioCapability;
 import top.theillusivec4.curios.common.data.CuriosSlotManager;
@@ -48,6 +49,8 @@ public class CCLayer {
         CuriosApi.setCuriosHelper(new CuriosHelper());
 
         //ModList.get().isLoaded("curios");
+
+        CuriosRegistry.init(eventBus);
     }
 
     private void registerCapabilities(RegisterCapabilitiesEvent event) {

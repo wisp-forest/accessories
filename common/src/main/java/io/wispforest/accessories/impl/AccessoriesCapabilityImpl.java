@@ -7,12 +7,10 @@ import io.wispforest.accessories.api.slot.SlotAttribute;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -22,58 +20,63 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Predicate;
+import java.util.function.*;
 
-public class AccessoriesCapabilityImpl implements AccessoriesCapability, InstanceCodecable {
+public record AccessoriesCapabilityImpl(LivingEntity entity) implements AccessoriesCapability, InstanceCodecable {
 
-    private final LivingEntity entity;
-    private final AccessoriesHolderImpl holder;
-
-    public AccessoriesCapabilityImpl(LivingEntity entity){
+    public AccessoriesCapabilityImpl(LivingEntity entity) {
         this.entity = entity;
-        this.holder = (AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity);
 
-        if(this.holder.loadedFromTag) this.clear();
-    }
-
-    @Override
-    public LivingEntity getEntity() {
-        return this.entity;
+        if (holder().loadedFromTag) this.clear();
     }
 
     @Override
     public AccessoriesHolder getHolder() {
-        return this.holder;
+        var holder = AccessoriesInternals.getHolder(entity);
+
+        if (((AccessoriesHolderImpl) holder).loadedFromTag) this.clear();
+
+        return holder;
+    }
+
+    private AccessoriesHolderImpl holder() {
+        return (AccessoriesHolderImpl) this.getHolder();
     }
 
     @Override
     public Map<String, AccessoriesContainer> getContainers() {
-        return this.holder.getSlotContainers();
+        return this.holder().getSlotContainers();
     }
 
     @Override
     public void clear() {
-        if(this.entity.level().isClientSide()) return;
+        if (this.entity.level().isClientSide()) return;
 
-        this.holder.init(this);
+        var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
 
-        if(!(this.entity instanceof ServerPlayer serverPlayer) || serverPlayer.connection == null) return;
+        var oldContainers = Map.copyOf(holder.getSlotContainers());
+
+        holder.init(this);
+
+        var currentContainers = holder.getSlotContainers();
+
+        oldContainers.forEach((s, oldContainer) -> currentContainers.get(s).getAccessories().setFromPrev(oldContainer.getAccessories()));
+
+        if (!(this.entity instanceof ServerPlayer serverPlayer) || serverPlayer.connection == null) return;
 
         var tag = new CompoundTag();
 
-        this.holder.write(tag);
+        holder.write(tag);
 
-        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(this.getEntity(), new SyncEntireContainer(tag, this.entity.getId()));
+        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(this.entity(), new SyncEntireContainer(tag, this.entity.getId()));
     }
 
     @Override
     public void addTransientSlotModifiers(Multimap<String, AttributeModifier> modifiers) {
-        var containers = this.holder.getSlotContainers();
+        var containers = this.holder().getSlotContainers();
 
         for (var entry : modifiers.asMap().entrySet()) {
-            if(!containers.containsKey(entry.getKey())) continue;
+            if (!containers.containsKey(entry.getKey())) continue;
 
             var container = containers.get(entry.getKey());
 
@@ -83,10 +86,10 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     @Override
     public void addPersistentSlotModifiers(Multimap<String, AttributeModifier> modifiers) {
-        var containers = this.holder.getSlotContainers();
+        var containers = this.holder().getSlotContainers();
 
         for (var entry : modifiers.asMap().entrySet()) {
-            if(!containers.containsKey(entry.getKey())) continue;
+            if (!containers.containsKey(entry.getKey())) continue;
 
             var container = containers.get(entry.getKey());
 
@@ -96,10 +99,10 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     @Override
     public void removeSlotModifiers(Multimap<String, AttributeModifier> modifiers) {
-        var containers = this.holder.getSlotContainers();
+        var containers = this.holder().getSlotContainers();
 
         for (var entry : modifiers.asMap().entrySet()) {
-            if(!containers.containsKey(entry.getKey())) continue;
+            if (!containers.containsKey(entry.getKey())) continue;
 
             var container = containers.get(entry.getKey());
 
@@ -111,46 +114,47 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     public Multimap<String, AttributeModifier> getSlotModifiers() {
         Multimap<String, AttributeModifier> modifiers = HashMultimap.create();
 
-        this.holder.getSlotContainers().forEach((s, container) -> modifiers.putAll(s, container.getModifiers().values()));
+        this.holder().getSlotContainers().forEach((s, container) -> modifiers.putAll(s, container.getModifiers().values()));
 
         return modifiers;
     }
 
     @Override
     public void clearSlotModifiers() {
-        this.holder.getSlotContainers().forEach((s, container) -> container.clearModifiers());
+        this.holder().getSlotContainers().forEach((s, container) -> container.clearModifiers());
     }
 
     @Override
     public void clearCachedSlotModifiers() {
         var slotModifiers = HashMultimap.<String, AttributeModifier>create();
 
-        var containers = this.holder.getSlotContainers();
+        var containers = this.holder().getSlotContainers();
 
         containers.forEach((name, container) -> {
             var modifiers = container.getCachedModifiers();
 
-            if(modifiers.isEmpty()) return;
+            if (modifiers.isEmpty()) return;
 
             var accessories = container.getAccessories();
 
             for (int i = 0; i < accessories.getContainerSize(); i++) {
                 var stack = accessories.getItem(i);
 
-                if(stack.isEmpty()) continue;
+                if (stack.isEmpty()) continue;
 
                 var slotReference = new SlotReference(container.getSlotName(), this.entity, i);
 
                 var map = AccessoriesAPI.getAttributeModifiers(stack, slotReference, AccessoriesAPI.getOrCreateSlotUUID(container.getSlotName(), i));
 
                 for (Attribute attribute : map.keySet()) {
-                    if(attribute instanceof SlotAttribute slotAttribute) slotModifiers.putAll(slotAttribute.slotName(), map.get(slotAttribute));
+                    if (attribute instanceof SlotAttribute slotAttribute)
+                        slotModifiers.putAll(slotAttribute.slotName(), map.get(slotAttribute));
                 }
             }
         });
 
         slotModifiers.asMap().forEach((name, modifier) -> {
-            if(!containers.containsKey(name)) return;
+            if (!containers.containsKey(name)) return;
 
             var container = containers.get(name);
 
@@ -159,8 +163,8 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
         });
     }
 
-    public Set<AccessoriesContainer> getUpdatingInventories(){
-        return this.holder.containersRequiringUpdates;
+    public Set<AccessoriesContainer> getUpdatingInventories() {
+        return this.holder().containersRequiringUpdates;
     }
 
     @Override
@@ -168,12 +172,12 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     public Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack, boolean allowSwapping, TriFunction<Accessory, ItemStack, SlotReference, Boolean> additionalCheck) {
         var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
-        if(accessory == null) return null;
+        if (accessory == null) return null;
 
         var validContainers = new HashMap<String, AccessoriesContainer>();
 
-        if(stack.isEmpty() && allowSwapping) {
-            EntitySlotLoader.getEntitySlots(this.getEntity())
+        if (stack.isEmpty() && allowSwapping) {
+            EntitySlotLoader.getEntitySlots(this.entity())
                     .forEach((s, slotType) -> {
                         validContainers.put(s, this.tryAndGetContainer(slotType));
                     });
@@ -187,7 +191,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
                 var accessories = container.getAccessories();
 
-                boolean isValid = AccessoriesAPI.canInsertIntoSlot(stack, new SlotReference(slotType, getEntity(), 0));
+                boolean isValid = AccessoriesAPI.canInsertIntoSlot(stack, new SlotReference(slotType, entity(), 0));
 
                 if (!isValid) continue;
 
@@ -195,7 +199,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
                 for (int i = 0; i < container.getSize(); i++) {
                     var slotStack = accessories.getItem(i);
-                    var slotReference = new SlotReference(slotType, getEntity(), i);
+                    var slotReference = new SlotReference(slotType, entity(), i);
 
                     if (!slotStack.isEmpty()) continue;
 
@@ -213,7 +217,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
                         }
 
                         return Pair.of(
-                                new SlotReference(container.getSlotName(), getEntity(), i),
+                                new SlotReference(container.getSlotName(), entity(), i),
                                 List.of(stackCopy.isEmpty() ? ItemStack.EMPTY : stackCopy)
                         );
                     }
@@ -230,9 +234,9 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
             for (int i = 0; i < accessories.getContainerSize(); i++) {
                 var slotStack = accessories.getItem(i).copy();
-                var slotReference = new SlotReference(slotType, getEntity(), i);
+                var slotReference = new SlotReference(slotType, entity(), i);
 
-                if(!AccessoriesAPI.canUnequip(slotStack, slotReference) || slotStack.isEmpty()) continue;
+                if (!AccessoriesAPI.canUnequip(slotStack, slotReference) || slotStack.isEmpty()) continue;
 
                 if (stack.isEmpty() || (additionalCheck.apply(accessory, stack, slotReference) && AccessoriesAPI.canInsertIntoSlot(stack, slotReference))) {
                     var stackCopy = stack.copy();
@@ -246,7 +250,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
                     }
 
                     return Pair.of(
-                            new SlotReference(validContainer.getSlotName(), getEntity(), i),
+                            new SlotReference(validContainer.getSlotName(), entity(), i),
                             List.of(stackCopy, slotStack)
                     );
                 }
@@ -262,25 +266,21 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     }
 
     public Optional<SlotEntryReference> getFirstEquipped(Predicate<ItemStack> predicate) {
-        for (var container : this.holder.getSlotContainers().values()) {
+        for (var container : this.holder().getSlotContainers().values()) {
             for (var stackEntry : container.getAccessories()) {
                 var stack = stackEntry.getSecond();
 
-                if(stack.isEmpty()) continue;
+                var reference = new SlotReference(container.getSlotName(), this.entity(), stackEntry.getFirst());
 
-                var reference = new SlotReference(container.getSlotName(), this.getEntity(), stackEntry.getFirst());
-
-                var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
-
-                if(predicate.test(stack)) return Optional.of(new SlotEntryReference(reference, stack));
-
-                if(accessory instanceof AccessoryNest holdable){
-                    for (ItemStack innerStack : holdable.getInnerStacks(stackEntry.getSecond())) {
-                        if(innerStack.isEmpty()) continue;
-
-                        if(predicate.test(innerStack)) return Optional.of(new SlotEntryReference(reference, innerStack));
+                var entryReference = recursiveStackHandling(stack, reference, (innerStack, ref) -> {
+                    if (!innerStack.isEmpty() && predicate.test(stack)) {
+                        return new SlotEntryReference(reference, stack);
                     }
-                }
+
+                    return null;
+                });
+
+                if(entryReference != null) return Optional.of(entryReference);
             }
         }
 
@@ -296,38 +296,58 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     public List<SlotEntryReference> getAllEquipped() {
         var references = new ArrayList<SlotEntryReference>();
 
-        for (var container : this.holder.getSlotContainers().values()) {
+        for (var container : this.holder().getSlotContainers().values()) {
             for (var stackEntry : container.getAccessories()) {
                 var stack = stackEntry.getSecond();
 
-                if(stack.isEmpty()) continue;
+                if (stack.isEmpty()) continue;
 
-                var reference = new SlotReference(container.getSlotName(), this.getEntity(), stackEntry.getFirst());
+                var reference = new SlotReference(container.getSlotName(), this.entity(), stackEntry.getFirst());
 
-                var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
-
-                references.add(new SlotEntryReference(reference, stack));
-
-                if(accessory instanceof AccessoryNest holdable){
-                    for (ItemStack innerStack : holdable.getInnerStacks(stackEntry.getSecond())) {
-                        if(innerStack.isEmpty()) continue;
-
-                        references.add(new SlotEntryReference(reference, innerStack));
-                    }
-                }
+                recursiveStackConsumption(stack, reference, (innerStack, ref) -> references.add(new SlotEntryReference(ref, innerStack)));
             }
         }
 
         return references;
     }
 
+    private <T> @Nullable T recursiveStackHandling(ItemStack stack, SlotReference reference, BiFunction<ItemStack, SlotReference, @Nullable T> function) {
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
+
+        var value = function.apply(stack, reference);
+
+        if (accessory instanceof AccessoryNest holdable && value == null) {
+            for (ItemStack innerStack : holdable.getInnerStacks(stack)) {
+                if (innerStack.isEmpty()) continue;
+
+                value = recursiveStackHandling(stack, reference, function);
+            }
+        }
+
+        return value;
+    }
+
+    private void recursiveStackConsumption(ItemStack stack, SlotReference reference, BiConsumer<ItemStack, SlotReference> consumer) {
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
+
+        consumer.accept(stack, reference);
+
+        if (accessory instanceof AccessoryNest holdable) {
+            for (ItemStack innerStack : holdable.getInnerStacks(stack)) {
+                if (innerStack.isEmpty()) continue;
+
+                recursiveStackConsumption(stack, reference, consumer);
+            }
+        }
+    }
+
     @Override
     public void write(CompoundTag tag) {
-        this.holder.write(tag);
+        this.holder().write(tag);
     }
 
     @Override
     public void read(CompoundTag tag) {
-        this.holder.read(tag);
+        this.holder().read(tag);
     }
 }

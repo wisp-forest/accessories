@@ -188,5 +188,9 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
             }
         };
     }
+
+    public void setFromPrev(ExpandedSimpleContainer prevContainer) {
+        prevContainer.forEach(pair -> this.setPreviousItem(pair.getFirst(), pair.getSecond()));
+    }
 }
 
