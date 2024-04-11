@@ -501,8 +501,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             this.addRenderableWidget(linesToggleButton);
         }
 
-
-
         int aceesoriesSlots = 0;
 
         for (Slot slot : this.menu.slots) {
@@ -648,19 +646,19 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     }
 
     private static Tooltip linesToggleTooltip(boolean value) {
-        var key = "slot.lines.toggle." + (!value ? "show" : "hide");
+        var key = "lines.toggle." + (!value ? "show" : "hide");
 
         return Tooltip.create(Component.translatable(Accessories.translation(key)));
     }
 
     private static Tooltip unusedSlotsToggleButton(boolean value) {
-        var key = "slot.unused_slots.toggle." + (!value ? "show" : "hide");
+        var key = "unused_slots.toggle." + (!value ? "show" : "hide");
 
         return Tooltip.create(Component.translatable(Accessories.translation(key)));
     }
 
     private static Tooltip toggleTooltip(boolean value) {
-        var key = "slot.display.toggle." + (!value ? "show" : "hide");
+        var key = "display.toggle." + (!value ? "show" : "hide");
 
         return Tooltip.create(Component.translatable(Accessories.translation(key)));
     }
