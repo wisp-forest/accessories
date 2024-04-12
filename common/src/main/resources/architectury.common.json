@@ -3,6 +3,9 @@
   "injected_interfaces": {
     "net/minecraft/class_1309": [
       "io/wispforest/accessories/pond/AccessoriesAPIAccess"
+    ],
+    "net/minecraft/class_4264": [
+      "io/wispforest/accessories/client/gui/AbstractButtonExtension"
     ]
   }
 }

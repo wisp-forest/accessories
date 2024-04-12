@@ -4,21 +4,19 @@
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [
-    "client.AbstractContainerScreenAccessor",
     "client.AbstractContainerScreenMixin",
     "client.CreativeInventoryScreenMixin",
     "client.DefaultTooltipPositionerMixin",
     "client.InventoryScreenMixin",
     "client.MinecraftMixin",
     "client.ModelPartAccessor",
-    "client.PlayerRendererMixin"
+    "client.PlayerRendererMixin",
+    "client.AbstractButtonMixin"
   ],
   "mixins": [
-    "AbstractContainerMenuAccessor",
     "ApplyBonusCountMixin",
     "CriteriaTriggersAccessor",
     "EndermanMixin",
-    "InventoryMenuAccessor",
     "InventoryMixin",
     "LivingEntityAccessor",
     "LivingEntityMixin",

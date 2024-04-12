@@ -16,6 +16,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.WidgetSprites;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.LightTexture;
@@ -424,6 +426,17 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     private Button tabUpButton = null;
     private Button tabDownButton = null;
 
+    private static final WidgetSprites SPRITES_12X12 = new WidgetSprites(Accessories.of("widget/12x12/button"), Accessories.of("widget/12x12/button_disabled"), Accessories.of("widget/12x12/button_highlighted"));
+    public static final WidgetSprites SPRITES_8X8 = new WidgetSprites(Accessories.of("widget/8x8/button"), Accessories.of("widget/8x8/button_disabled"), Accessories.of("widget/8x8/button_highlighted"));
+
+    private static final ResourceLocation BACk_ICON = Accessories.of("widget/back");
+
+    private static final ResourceLocation LINE_HIDDEN = Accessories.of("widget/line_hidden");
+    private static final ResourceLocation LINE_SHOWN = Accessories.of("widget/line_shown");
+
+    private static final ResourceLocation UNUSED_SLOTS_HIDDEN = Accessories.of("widget/unused_slots_hidden");
+    private static final ResourceLocation UNUSED_SLOTS_SHOWN = Accessories.of("widget/unused_slots_shown");
+
     @Override
     protected void init() {
         super.init();
@@ -434,27 +447,53 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         this.backButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), (btn) -> this.minecraft.setScreen(new InventoryScreen(minecraft.player)))
-                        .bounds(this.leftPos + 141, this.topPos + 8, 8, 8)
+                        .bounds(this.leftPos + 141, this.topPos + 9, 8, 8)
                         .tooltip(Tooltip.create(Component.translatable(Accessories.translation("back.screen"))))
-                        .build());
+                        .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
+                            guiGraphics.blitSprite(SPRITES_8X8.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
+
+                            var pose = guiGraphics.pose();
+
+                            pose.pushPose();
+                            pose.translate(0.5, 0.5, 0.0);
+
+                            guiGraphics.blitSprite(BACk_ICON, x, y, width - 1, height - 1);
+
+                            pose.popPose();
+
+                            return true;
+                        });
+
+        var cosmeticsOpen = this.menu.isCosmeticsOpen();
 
         this.cosmeticToggleButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), (btn) -> this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 0))
-                        .tooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen()))
-                        .bounds(this.leftPos - 27, this.topPos + 7, 18, 6)
+                        .tooltip(cosmeticsToggleTooltip(cosmeticsOpen))
+                        .bounds(this.leftPos - 27 + (cosmeticsOpen ? -20 : 0), this.topPos + 7, (cosmeticsOpen ? 38 : 18), 6)
                         .build());
 
         this.unusedSlotsToggleButton = this.addRenderableWidget(
-                Button.builder(Component.empty(), (btn) -> this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 2)).tooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()))
+                Button.builder(Component.empty(), (btn) -> this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 2))
+                        .tooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()))
                         .bounds(this.leftPos + 154, this.topPos + 7, 12, 12)
-                        .build());
+                        .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
+                            guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
+                            guiGraphics.blitSprite((this.menu.areUnusedSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
+
+                            return true;
+                        });
 
         if(Accessories.getConfig().clientData.showLineRendering) {
             this.linesToggleButton = this.addRenderableWidget(
                     Button.builder(Component.empty(), (btn) -> this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 1)).tooltip(linesToggleTooltip(this.menu.areLinesShown()))
                             .bounds(this.leftPos + 154, this.topPos + 7 + 15, 12, 12)
                             //.bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6)
-                            .build());
+                            .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
+                                guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
+                                guiGraphics.blitSprite((this.menu.areLinesShown() ? LINE_SHOWN : LINE_HIDDEN), x, y,  width, height);
+
+                                return true;
+                            });
         }
 
         int aceesoriesSlots = 0;
@@ -554,7 +593,10 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     }
 
     public void updateCosmeticToggleButton() {
-        this.cosmeticToggleButton.setTooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen()));
+        var btn = this.cosmeticToggleButton;
+        btn.setWidth(this.menu.isCosmeticsOpen() ? 38 : 18);
+        btn.setX(btn.getX() + (this.menu.isCosmeticsOpen() ? -20 : 20));
+        btn.setTooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen()));
     }
 
     public void updateUnusedSlotToggleButton() {

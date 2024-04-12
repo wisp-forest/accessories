@@ -19,10 +19,10 @@ public class AccessoriesConfig implements ConfigData {
         public boolean showLineRendering = true;
 
         public int inventoryButtonXOffset = 66;
-        public int inventoryButtonYOffset = 8;
+        public int inventoryButtonYOffset = 9;
 
         public int creativeInventoryButtonXOffset = 96;
-        public int creativeInventoryButtonYOffset = 6;
+        public int creativeInventoryButtonYOffset = 7;
 
         public boolean forceNullRenderReplacement = false;
     }

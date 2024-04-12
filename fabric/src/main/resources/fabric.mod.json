@@ -60,5 +60,15 @@
     "fabric": ">=0.92.0",
     "minecraft": ">=1.20.1",
     "cloth-config": ">=13.0.121"
+  },
+  "custom": {
+    "loom:injected_interfaces": {
+      "net/minecraft/class_1309": [
+        "io/wispforest/accessories/pond/AccessoriesAPIAccess"
+      ],
+      "net/minecraft/class_4264": [
+        "io/wispforest/accessories/client/gui/AbstractButtonExtension"
+      ]
+    }
   }
 }

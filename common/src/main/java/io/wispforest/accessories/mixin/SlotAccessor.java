@@ -7,7 +7,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(Slot.class)
 public interface SlotAccessor {
-    @Mutable @Accessor("x") void accessories$setX(int x);
-
     @Mutable @Accessor("y") void accessories$setY(int y);
 }
