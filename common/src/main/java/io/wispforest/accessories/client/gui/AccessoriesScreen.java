@@ -280,7 +280,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         int height = getPanelHeight() - 22;
         int width = 8;
 
-        return mouseX >= x && mouseY >= y && mouseX < (x + width) && mouseY < (y + height);
+        return this.menu.overMaxVisibleSlots && (mouseX >= x && mouseY >= y && mouseX < (x + width) && mouseY < (y + height));
     }
 
     @Override
