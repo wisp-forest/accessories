@@ -36,50 +36,32 @@ public abstract class ReplaceableJsonResourceReloadListener extends SimplePrepar
 
     @Override
     protected Map<ResourceLocation, JsonObject> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
-        FileToIdConverter fileToIdConverter = FileToIdConverter.json(directory);
+        var fileToIdConverter = FileToIdConverter.json(directory);
 
         var output = new HashMap<ResourceLocation, JsonObject>();
 
-        for(Map.Entry<ResourceLocation, List<Resource>> entry : fileToIdConverter.listMatchingResourceStacks(resourceManager).entrySet()) {
+        for(var entry : fileToIdConverter.listMatchingResourceStacks(resourceManager).entrySet()) {
             var filePath = entry.getKey();
             var resourceLocation = fileToIdConverter.fileToId(entry.getKey());
 
             for (Resource resource : entry.getValue()) {
-                try {
-                    Reader reader = resource.openAsReader();
+                try(Reader reader = resource.openAsReader()) {
+                    var jsonElement = GsonHelper.fromJson(gson, reader, JsonElement.class);
 
-                    try {
-                        JsonElement jsonElement = GsonHelper.fromJson(gson, reader, JsonElement.class);
-
-                        if(!(jsonElement instanceof JsonObject jsonObject)){
-                            logger.warn("File was found not to be parsed as a valid JsonObject, such will be skipped: [Location: " + filePath + "]");
-                            continue;
-                        }
-
-                        if(output.containsKey(resourceLocation)){
-                            var jsonObject2 = output.get(resourceLocation).getAsJsonObject();
-
-                            //TODO: SHOULD THIS OVERWRITE ENTRIES OR REPLACE THE OBJECT????
-                            if(GsonHelper.getAsBoolean(jsonObject, "replace")){
-                                jsonObject.asMap().forEach(jsonObject2::add);
-                            }
-                        } else {
-                            output.put(resourceLocation, jsonObject);
-                        }
-                    } catch (Throwable var13) {
-                        if (reader != null) {
-                            try {
-                                reader.close();
-                            } catch (Throwable var12) {
-                                var13.addSuppressed(var12);
-                            }
-                        }
-
-                        throw var13;
+                    if(!(jsonElement instanceof JsonObject jsonObject)){
+                        logger.warn("File was found not to be parsed as a valid JsonObject, such will be skipped: [Location: " + filePath + "]");
+                        continue;
                     }
 
-                    if (reader != null) {
-                        reader.close();
+                    if(output.containsKey(resourceLocation)){
+                        var jsonObject2 = output.get(resourceLocation).getAsJsonObject();
+
+                        //TODO: SHOULD THIS OVERWRITE ENTRIES OR REPLACE THE OBJECT????
+                        if(GsonHelper.getAsBoolean(jsonObject, "replace")){
+                            jsonObject.asMap().forEach(jsonObject2::add);
+                        }
+                    } else {
+                        output.put(resourceLocation, jsonObject);
                     }
                 } catch (IllegalArgumentException | IOException | JsonParseException var14) {
                     logger.error("Couldn't parse data file {} from {}", resourceLocation, resourceLocation, var14);
@@ -91,7 +73,7 @@ public abstract class ReplaceableJsonResourceReloadListener extends SimplePrepar
     }
 
     public <T> void decodeJsonArray(JsonArray jsonArray, String name, ResourceLocation location, Function<JsonElement, @Nullable T> decoder, Consumer<T> consumer){
-        for (JsonElement element : jsonArray) {
+        for (var element : jsonArray) {
             if(!element.isJsonPrimitive()) {
                 logger.warn("Unable to parse " + name + " as such is not a valid Json Primitive! [Location: " + location + "]");
                 continue;

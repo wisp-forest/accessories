@@ -113,18 +113,6 @@ public interface AccessoryRenderer {
      */
     static void translateToFace(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity entity) {
         transformToFace(poseStack, model.head, Side.FRONT);
-//        if (entity.isVisuallySwimming() || entity.isFallFlying()) {
-//            poseStack.mulPose(Axis.ZP.rotationDegrees(model.head.zRot));
-//            poseStack.mulPose(Axis.YP.rotationDegrees(headYaw));
-//            poseStack.mulPose(Axis.XP.rotationDegrees(-45.0F));
-//        } else {
-//            if (entity.isCrouching() && !model.riding) poseStack.translate(0.0F, 0.25F, 0.0F);
-//
-//            poseStack.mulPose(Axis.YP.rotationDegrees(headYaw));
-//            poseStack.mulPose(Axis.XP.rotationDegrees(headPitch));
-//        }
-//
-//        poseStack.translate(0.0F, -0.25F, -0.3F);
     }
 
     /**
@@ -132,13 +120,6 @@ public interface AccessoryRenderer {
      */
     static void translateToChest(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity livingEntity) {
         transformToModelPart(poseStack, model.body);
-//        if (livingEntity.isCrouching() && !model.riding && !livingEntity.isSwimming()) {
-//            poseStack.translate(0.0F, 0.2F, 0.0F);
-//            poseStack.mulPose(Axis.XP.rotation(model.body.xRot));
-//        }
-//
-//        poseStack.mulPose(Axis.ZP.rotation(model.body.yRot));
-//        poseStack.translate(0.0F, 0.4F, -0.16F);
     }
 
     /**
@@ -146,14 +127,6 @@ public interface AccessoryRenderer {
      */
     static void translateToRightArm(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.rightArm, Side.BOTTOM);
-//        if (player.isCrouching() && !model.riding && !player.isSwimming()) poseStack.translate(0.0F, 0.2F, 0.0F);
-//
-//        poseStack.mulPose(Axis.ZP.rotation(model.body.yRot));
-//        poseStack.translate(-0.3125F, 0.15625F, 0.0F);
-//        poseStack.mulPose(Axis.ZP.rotation(model.rightArm.zRot));
-//        poseStack.mulPose(Axis.ZP.rotation(model.rightArm.yRot));
-//        poseStack.mulPose(Axis.XP.rotation(model.rightArm.xRot));
-//        poseStack.translate(-0.0625F, 0.625F, 0.0F);
     }
 
     /**
@@ -161,15 +134,6 @@ public interface AccessoryRenderer {
      */
     static void translateToLeftArm(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.leftArm, Side.BOTTOM);
-
-//        if (player.isCrouching() && !model.riding && !player.isSwimming()) poseStack.translate(0.0F, 0.2F, 0.0F);
-//
-//        poseStack.mulPose(Axis.ZP.rotation(model.body.yRot));
-//        poseStack.translate(0.3125F, 0.15625F, 0.0F);
-//        poseStack.mulPose(Axis.ZP.rotation(model.leftArm.zRot));
-//        poseStack.mulPose(Axis.ZP.rotation(model.leftArm.yRot));
-//        poseStack.mulPose(Axis.XP.rotation(model.leftArm.xRot));
-//        poseStack.translate(0.0625F, 0.625F, 0.0F);
     }
 
     /**
@@ -177,13 +141,6 @@ public interface AccessoryRenderer {
      */
     static void translateToRightLeg(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.rightLeg, Side.BOTTOM);
-//        if (player.isCrouching() && !model.riding && !player.isSwimming()) poseStack.translate(0.0F, 0.0F, 0.25F);
-//
-//        poseStack.translate(-0.125F, 0.75F, 0.0F);
-//        poseStack.mulPose(Axis.ZP.rotation(model.rightLeg.zRot));
-//        poseStack.mulPose(Axis.ZP.rotation(model.rightLeg.yRot));
-//        poseStack.mulPose(Axis.XP.rotation(model.rightLeg.xRot));
-//        poseStack.translate(0.0F, 0.75F, 0.0F);
     }
 
     /**
@@ -191,13 +148,6 @@ public interface AccessoryRenderer {
      */
     static void translateToLeftLeg(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.leftLeg, Side.BOTTOM);
-//        if (player.isCrouching() && !model.riding && !player.isSwimming()) poseStack.translate(0.0F, 0.0F, 0.25F);
-//
-//        poseStack.translate(0.125F, 0.75F, 0.0F);
-//        poseStack.mulPose(Axis.ZP.rotation(model.leftLeg.zRot));
-//        poseStack.mulPose(Axis.ZP.rotation(model.leftLeg.yRot));
-//        poseStack.mulPose(Axis.XP.rotation(model.leftLeg.xRot));
-//        poseStack.translate(0.0F, 0.75F, 0.0F);
     }
 
     /**

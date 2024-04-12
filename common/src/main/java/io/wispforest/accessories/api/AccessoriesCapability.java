@@ -111,19 +111,22 @@ public interface AccessoriesCapability {
     /**
      * @return If any {@link ItemStack} is equipped based on the passed predicate
      */
-    boolean isEquipped(Predicate<ItemStack> predicate);
+    default boolean isEquipped(Predicate<ItemStack> predicate) {
+        return getFirstEquipped(predicate) != null;
+    }
 
     /**
      * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given {@link Item}
      */
-    default Optional<SlotEntryReference> getFirstEquipped(Item item){
+    @Nullable
+    default SlotEntryReference getFirstEquipped(Item item){
         return getFirstEquipped(stack -> stack.getItem() == item);
     }
 
     /**
      * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given predicate
      */
-    Optional<SlotEntryReference> getFirstEquipped(Predicate<ItemStack> predicate);
+    SlotEntryReference getFirstEquipped(Predicate<ItemStack> predicate);
 
     /**
      * @return A list of all {@link ItemStack}'s formatted within {@link SlotEntryReference} matching the given {@link Item}

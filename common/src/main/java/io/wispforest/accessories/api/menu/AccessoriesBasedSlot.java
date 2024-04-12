@@ -110,7 +110,7 @@ public class AccessoriesBasedSlot extends Slot {
     }
 
     public List<Component> getTooltipData() {
-        List<Component> tooltipData = new ArrayList<>();
+        var tooltipData = new ArrayList<Component>();
 
         var slotType = this.accessoriesContainer.slotType();
 

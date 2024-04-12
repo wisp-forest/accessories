@@ -24,7 +24,7 @@ public interface SlotGroup {
 
     Set<String> slots();
 
-    Pair<Integer, ResourceLocation> iconInfo();
+    ResourceLocation icon();
 
     default boolean uniqueGroup() {
         return UniqueSlotHandling.getGroups().containsKey(name());

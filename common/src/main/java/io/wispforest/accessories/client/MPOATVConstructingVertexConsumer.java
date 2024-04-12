@@ -18,32 +18,31 @@ public class MPOATVConstructingVertexConsumer implements VertexConsumer {
     private double maxY = -Double.MAX_VALUE;
     private double maxZ = -Double.MAX_VALUE;
 
-    public Vec3 meanPos = null;
+    private Vec3 meanPos = null;
 
-    public boolean hasBeenClamped = false;
+    public Vec3 meanPos(){
+        return this.meanPos;
+    }
 
     @Override
     @NotNull
     public VertexConsumer vertex(double x, double y, double z) {
         var leeway = 10;
 
-        boolean xIsGood = x >= AccessoriesScreen.SCISSOR_BOX.x - leeway && x <= AccessoriesScreen.SCISSOR_BOX.z + leeway;
-        boolean yIsGood = y >= AccessoriesScreen.SCISSOR_BOX.y - leeway && y <= AccessoriesScreen.SCISSOR_BOX.w + leeway;
+        var box = AccessoriesScreen.SCISSOR_BOX;
 
-        if (xIsGood && yIsGood) {
-            minX = Math.min(minX, x);
-            maxX = Math.max(maxX, x);
+        if ((x >= box.x - leeway && x <= box.z + leeway) && (y >= box.y - leeway && y <= box.w + leeway)) {
+            this.minX = Math.min(this.minX, x);
+            this.maxX = Math.max(this.maxX, x);
 
-            minY = Math.min(minY, y);
-            maxY = Math.max(maxY, y);
+            this.minY = Math.min(this.minY, y);
+            this.maxY = Math.max(this.maxY, y);
 
-            minZ = Math.min(minZ, z);
-            maxZ = Math.max(maxZ, z);
-        } else {
-            hasBeenClamped = true;
+            this.minZ = Math.min(this.minZ, z);
+            this.maxZ = Math.max(this.maxZ, z);
         }
 
-        meanPos = new Vec3((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2);
+        this.meanPos = new Vec3((this.minX + this.maxX) / 2, (this.minY + this.maxY) / 2, (this.minZ + this.maxZ) / 2);
 
         return this;
     }
@@ -86,8 +85,4 @@ public class MPOATVConstructingVertexConsumer implements VertexConsumer {
 
     @Override
     public void unsetDefaultColor() {}
-
-    public AABB getBoundingBox() {
-        return new AABB(minX, minY, minZ, maxX, maxY, maxZ);
-    }
 }

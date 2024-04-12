@@ -287,6 +287,7 @@ public class AccessoriesEventHandler {
                             if (!currentStack.isEmpty()) {
                                 ACCESSORY_EQUIPPED.trigger(serverPlayer, currentStack, slotReference, false);
                             }
+
                             if (!lastStack.isEmpty()) {
                                 ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, false);
                             }

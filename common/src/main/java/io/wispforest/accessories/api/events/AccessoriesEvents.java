@@ -17,22 +17,20 @@ public class AccessoriesEvents {
      * the given {@link Accessory} found on the entity
      */
     public static final Event<OnDeath> ON_DEATH_EVENT = EventUtils.createEventWithBus(OnDeath.class, AccessoriesInternals::getBus,
-            (bus, invokers) -> {
-                return (livingEntity, capability) -> {
-                    var state = TriState.DEFAULT;
+            (bus, invokers) -> (livingEntity, capability) -> {
+                var state = TriState.DEFAULT;
 
-                    for (var invoker : invokers) {
-                        state = invoker.shouldDrop(livingEntity, capability);
+                for (var invoker : invokers) {
+                    state = invoker.shouldDrop(livingEntity, capability);
 
-                        if (state != TriState.DEFAULT) return state;
-                    }
+                    if (state != TriState.DEFAULT) return state;
+                }
 
-                    if(bus.isEmpty()) return state;
+                if(bus.isEmpty()) return state;
 
-                    return bus.get()
-                            .post(new OnDeathEvent(livingEntity, capability))
-                            .getReturn();
-                };
+                return bus.get()
+                        .post(new OnDeathEvent(livingEntity, capability))
+                        .getReturn();
             }
     );
 
@@ -68,22 +66,20 @@ public class AccessoriesEvents {
      * about to drop such on {@link LivingEntity}'s death
      */
     public static final Event<OnDrop> ON_DROP_EVENT = EventUtils.createEventWithBus(OnDrop.class, AccessoriesInternals::getBus,
-            (bus, invokers) -> {
-                return (dropRule, stack, reference) -> {
-                    var currentRule = dropRule;
+            (bus, invokers) -> (dropRule, stack, reference) -> {
+                var currentRule = dropRule;
 
-                    for (var invoker : invokers) {
-                        currentRule = invoker.onDrop(dropRule, stack, reference);
+                for (var invoker : invokers) {
+                    currentRule = invoker.onDrop(dropRule, stack, reference);
 
-                        if (currentRule != DropRule.DEFAULT) return currentRule;
-                    }
+                    if (currentRule != DropRule.DEFAULT) return currentRule;
+                }
 
-                    if(bus.isEmpty()) return currentRule;
+                if(bus.isEmpty()) return currentRule;
 
-                    return bus.get()
-                            .post(new OnDropEvent(dropRule, stack, reference))
-                            .dropRule();
-                };
+                return bus.get()
+                        .post(new OnDropEvent(dropRule, stack, reference))
+                        .dropRule();
             }
     );
 
@@ -136,42 +132,40 @@ public class AccessoriesEvents {
      * Event fired on the Equip of the following {@link Accessory} for the given {@link LivingEntity}
      */
     public static final Event<CanEquip> CAN_EQUIP_EVENT = EventUtils.createEventWithBus(CanEquip.class, AccessoriesInternals::getBus,
-            (bus, invokers) -> {
-                return (stack, reference) -> {
-                    var state = TriState.DEFAULT;
+            (bus, invokers) -> (stack, reference) -> {
+                var state = TriState.DEFAULT;
 
-                    if(AccessoriesAPI.getAccessory(stack.getItem()) instanceof AccessoryNest holdable){
-                        var innerStacks = holdable.getInnerStacks(stack);
+                if(AccessoriesAPI.getAccessory(stack.getItem()) instanceof AccessoryNest holdable){
+                    var innerStacks = holdable.getInnerStacks(stack);
 
-                        for (ItemStack innerStack : innerStacks) {
-                            for (var invoker : invokers) {
-                                state = invoker.onEquip(innerStack, reference);
-
-                                if(state == TriState.FALSE) return state;
-                            }
-
-                            if(bus.isPresent()) {
-                                state = bus.get()
-                                        .post(new CanUnequipEvent(innerStack, reference))
-                                        .getReturn();
-                            }
+                    for (ItemStack innerStack : innerStacks) {
+                        for (var invoker : invokers) {
+                            state = invoker.onEquip(innerStack, reference);
 
                             if(state == TriState.FALSE) return state;
                         }
+
+                        if(bus.isPresent()) {
+                            state = bus.get()
+                                    .post(new CanUnequipEvent(innerStack, reference))
+                                    .getReturn();
+                        }
+
+                        if(state == TriState.FALSE) return state;
                     }
+                }
 
-                    for (var invoker : invokers) {
-                        state = invoker.onEquip(stack, reference);
+                for (var invoker : invokers) {
+                    state = invoker.onEquip(stack, reference);
 
-                        if(state != TriState.DEFAULT) return state;
-                    }
+                    if(state != TriState.DEFAULT) return state;
+                }
 
-                    if(bus.isEmpty()) return state;
+                if(bus.isEmpty()) return state;
 
-                    return bus.get()
-                            .post(new CanEquipEvent(stack, reference))
-                            .getReturn();
-                };
+                return bus.get()
+                        .post(new CanEquipEvent(stack, reference))
+                        .getReturn();
             }
     );
 
@@ -208,42 +202,40 @@ public class AccessoriesEvents {
      * Event fired on the Unequip of the following {@link Accessory} for the given {@link LivingEntity}
      */
     public static final Event<CanUnequip> CAN_UNEQUIP_EVENT = EventUtils.createEventWithBus(CanUnequip.class, AccessoriesInternals::getBus,
-            (bus, invokers) -> {
-                return (stack, reference) -> {
-                    var state = TriState.DEFAULT;
+            (bus, invokers) -> (stack, reference) -> {
+                var state = TriState.DEFAULT;
 
-                    if(AccessoriesAPI.getAccessory(stack.getItem()) instanceof AccessoryNest holdable){
-                        var innerStacks = holdable.getInnerStacks(stack);
+                if(AccessoriesAPI.getAccessory(stack.getItem()) instanceof AccessoryNest holdable){
+                    var innerStacks = holdable.getInnerStacks(stack);
 
-                        for (ItemStack innerStack : innerStacks) {
-                            for (var invoker : invokers) {
-                                state = invoker.onUnequip(innerStack, reference);
-
-                                if(state == TriState.FALSE) return state;
-                            }
-
-                            if(bus.isPresent()) {
-                                state = bus.get()
-                                        .post(new CanUnequipEvent(innerStack, reference))
-                                        .getReturn();
-                            }
+                    for (ItemStack innerStack : innerStacks) {
+                        for (var invoker : invokers) {
+                            state = invoker.onUnequip(innerStack, reference);
 
                             if(state == TriState.FALSE) return state;
                         }
+
+                        if(bus.isPresent()) {
+                            state = bus.get()
+                                    .post(new CanUnequipEvent(innerStack, reference))
+                                    .getReturn();
+                        }
+
+                        if(state == TriState.FALSE) return state;
                     }
+                }
 
-                    for (var invoker : invokers) {
-                        state = invoker.onUnequip(stack, reference);
+                for (var invoker : invokers) {
+                    state = invoker.onUnequip(stack, reference);
 
-                        if(state != TriState.DEFAULT) return state;
-                    }
+                    if(state != TriState.DEFAULT) return state;
+                }
 
-                    if(bus.isEmpty()) return state;
+                if(bus.isEmpty()) return state;
 
-                    return bus.get()
-                            .post(new CanUnequipEvent(stack, reference))
-                            .getReturn();
-                };
+                return bus.get()
+                        .post(new CanUnequipEvent(stack, reference))
+                        .getReturn();
             }
     );
 

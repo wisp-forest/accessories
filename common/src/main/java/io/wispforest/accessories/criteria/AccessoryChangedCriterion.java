@@ -18,27 +18,13 @@ import java.util.Optional;
 
 public class AccessoryChangedCriterion extends SimpleCriterionTrigger<AccessoryChangedCriterion.Conditions> {
 
-    public void trigger(
-            ServerPlayer player,
-            ItemStack accessory,
-            SlotReference reference,
-            Boolean cosmetic
-    ) {
+    public void trigger(ServerPlayer player, ItemStack accessory, SlotReference reference, Boolean cosmetic) {
         this.trigger(player, conditions -> {
-            if (conditions.itemPredicates().isPresent() && !conditions.itemPredicates().get().stream().allMatch(predicate -> predicate.matches(accessory))) {
-                return false;
-            }
-            var group = SlotGroupLoader.INSTANCE.findGroup(false, reference.slotName());
-            if (group.isPresent() && conditions.groups.isPresent() && conditions.groups().get().stream().noneMatch(s -> s.equals(group.get().name()))) {
-                return false;
-            }
-            if (conditions.slots().isPresent() && conditions.slots().get().stream().noneMatch(reference.slotName()::equals)) {
-                return false;
-            }
-            if (conditions.indices().isPresent() && conditions.indices().get().stream().noneMatch(index -> index == reference.slot())) {
-                return false;
-            }
-            return conditions.cosmetic().isEmpty() || conditions.cosmetic().get().equals(cosmetic);
+            return conditions.itemPredicates().map(predicates -> predicates.stream().allMatch(predicate -> predicate.matches(accessory))).orElse(true)
+                    && conditions.groups().flatMap(groups -> SlotGroupLoader.INSTANCE.findGroup(false, reference.slotName()).map(group -> groups.stream().noneMatch(s -> s.equals(group.name())))).orElse(true)
+                    && conditions.slots().map(slots -> slots.stream().noneMatch(reference.slotName()::equals)).orElse(true)
+                    && conditions.indices().map(indices -> indices.stream().noneMatch(index -> index == reference.slot())).orElse(true)
+                    && conditions.cosmetic().map(isCosmetic -> isCosmetic && cosmetic).orElse(true);
         });
     }
 

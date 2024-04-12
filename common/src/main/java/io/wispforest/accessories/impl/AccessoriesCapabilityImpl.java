@@ -157,8 +157,9 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
                 var map = AccessoriesAPI.getAttributeModifiers(stack, slotReference, AccessoriesAPI.getOrCreateSlotUUID(container.getSlotName(), i));
 
                 for (Attribute attribute : map.keySet()) {
-                    if (attribute instanceof SlotAttribute slotAttribute)
-                        slotModifiers.putAll(slotAttribute.slotName(), map.get(slotAttribute));
+                    if (!(attribute instanceof SlotAttribute slotAttribute)) continue;
+
+                    slotModifiers.putAll(slotAttribute.slotName(), map.get(slotAttribute));
                 }
             }
         });
@@ -270,12 +271,7 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
         return null;
     }
 
-    @Override
-    public boolean isEquipped(Predicate<ItemStack> predicate) {
-        return getFirstEquipped(predicate).isPresent();
-    }
-
-    public Optional<SlotEntryReference> getFirstEquipped(Predicate<ItemStack> predicate) {
+    public SlotEntryReference getFirstEquipped(Predicate<ItemStack> predicate) {
         for (var container : this.holder().getSlotContainers().values()) {
             for (var stackEntry : container.getAccessories()) {
                 var stack = stackEntry.getSecond();
@@ -290,11 +286,11 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
                     return null;
                 });
 
-                if(entryReference != null) return Optional.of(entryReference);
+                if(entryReference != null) return entryReference;
             }
         }
 
-        return Optional.empty();
+        return null;
     }
 
     @Override
@@ -342,12 +338,12 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
 
         consumer.accept(stack, reference);
 
-        if (accessory instanceof AccessoryNest holdable) {
-            for (ItemStack innerStack : holdable.getInnerStacks(stack)) {
-                if (innerStack.isEmpty()) continue;
+        if (!(accessory instanceof AccessoryNest holdable)) return;
 
-                recursiveStackConsumption(stack, reference, consumer);
-            }
+        for (ItemStack innerStack : holdable.getInnerStacks(stack)) {
+            if (innerStack.isEmpty()) continue;
+
+            recursiveStackConsumption(stack, reference, consumer);
         }
     }
 

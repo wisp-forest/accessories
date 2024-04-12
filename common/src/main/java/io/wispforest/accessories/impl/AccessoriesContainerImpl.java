@@ -111,7 +111,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         //--
 
-        if(size == accessories.getContainerSize()) return;
+        if(size == this.accessories.getContainerSize()) return;
 
         var invalidAccessories = new ArrayList<Pair<Integer, ItemStack>>();
 
@@ -120,13 +120,13 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
         var newAccessories = new ExpandedSimpleContainer(size, "Accessories");
         var newCosmetics = new ExpandedSimpleContainer(size, "Cosmetic Accessories");
 
-        for (int i = 0; i < accessories.getContainerSize(); i++) {
+        for (int i = 0; i < this.accessories.getContainerSize(); i++) {
             if(i < newAccessories.getContainerSize()){
-                newAccessories.setItem(i, accessories.getItem(i));
-                newCosmetics.setItem(i, cosmeticAccessories.getItem(i));
+                newAccessories.setItem(i, this.accessories.getItem(i));
+                newCosmetics.setItem(i, this.cosmeticAccessories.getItem(i));
             } else {
-                invalidAccessories.add(Pair.of(i, accessories.getItem(i)));
-                invalidStacks.add(cosmeticAccessories.getItem(i));
+                invalidAccessories.add(Pair.of(i, this.accessories.getItem(i)));
+                invalidStacks.add(this.cosmeticAccessories.getItem(i));
             }
         }
 
@@ -136,7 +136,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
         var newRenderOptions = new ArrayList<Boolean>(size);
 
         for (int i = 0; i < size; i++) {
-            newRenderOptions.add(i < renderOptions.size() ? renderOptions.get(i) : true);
+            newRenderOptions.add(i < this.renderOptions.size() ? this.renderOptions.get(i) : true);
         }
 
         this.renderOptions = newRenderOptions;
@@ -246,7 +246,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
     @Override
     public void removeModifier(UUID uuid) {
-        AttributeModifier modifier = this.modifiers.get(uuid);
+        var modifier = this.modifiers.get(uuid);
 
         if(modifier == null) return;
 
@@ -267,9 +267,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
     @Override
     public void clearCachedModifiers() {
-        for(AttributeModifier cachedModifier : this.cachedModifiers){
-            this.removeModifier(cachedModifier.getId());
-        }
+        this.cachedModifiers.forEach(cachedModifier -> this.removeModifier(cachedModifier.getId()));
         this.cachedModifiers.clear();
     }
 
@@ -353,7 +351,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
             tag.put(COSMETICS_KEY, cosmeticAccessories.createTag());
 
             if(!this.persistentModifiers.isEmpty()){
-                ListTag persistentTag = new ListTag();
+                var persistentTag = new ListTag();
 
                 this.persistentModifiers.forEach(modifier -> persistentTag.add(modifier.save()));
 
@@ -361,7 +359,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
             }
 
             if(!this.modifiers.isEmpty()){
-                ListTag cachedTag = new ListTag();
+                var cachedTag = new ListTag();
 
                 this.modifiers.values().forEach(modifier -> {
                     if(this.persistentModifiers.contains(modifier)) return;
@@ -386,7 +384,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
         var renderOptionsTag = tag.get(RENDER_OPTIONS_KEY);
 
         if(renderOptionsTag instanceof ByteArrayTag byteArrayTag) {
-            renderOptions = byteArrayTag.stream()
+            this.renderOptions = byteArrayTag.stream()
                     .map(ByteTag::getAsByte)
                     .map(BooleanUtils::toBoolean)
                     .collect(Collectors.toList());
@@ -398,10 +396,10 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
             this.modifiersByOperation.clear();
 
             if (tag.contains(MODIFIERS_KEY)) {
-                ListTag persistentTag = tag.getList(MODIFIERS_KEY, Tag.TAG_COMPOUND);
+                var persistentTag = tag.getList(MODIFIERS_KEY, Tag.TAG_COMPOUND);
 
                 for (int i = 0; i < persistentTag.size(); i++) {
-                    AttributeModifier modifier = AttributeModifier.load(persistentTag.getCompound(i));
+                    var modifier = AttributeModifier.load(persistentTag.getCompound(i));
 
                     if (modifier != null) this.addModifier(modifier);
                 }
@@ -418,20 +416,20 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
             this.cosmeticAccessories.fromTag(tag.getList(COSMETICS_KEY, Tag.TAG_COMPOUND));
 
             if (tag.contains(PERSISTENT_MODIFIERS_KEY)) {
-                ListTag persistentTag = tag.getList(PERSISTENT_MODIFIERS_KEY, Tag.TAG_COMPOUND);
+                var persistentTag = tag.getList(PERSISTENT_MODIFIERS_KEY, Tag.TAG_COMPOUND);
 
                 for (int i = 0; i < persistentTag.size(); i++) {
-                    AttributeModifier modifier = AttributeModifier.load(persistentTag.getCompound(i));
+                    var modifier = AttributeModifier.load(persistentTag.getCompound(i));
 
                     if (modifier != null) this.addPersistentModifier(modifier);
                 }
             }
 
             if (tag.contains(CACHED_MODIFIERS_KEY)) {
-                ListTag cachedTag = tag.getList(PERSISTENT_MODIFIERS_KEY, Tag.TAG_COMPOUND);
+                var cachedTag = tag.getList(PERSISTENT_MODIFIERS_KEY, Tag.TAG_COMPOUND);
 
                 for (int i = 0; i < cachedTag.size(); i++) {
-                    AttributeModifier modifier = AttributeModifier.load(cachedTag.getCompound(i));
+                    var modifier = AttributeModifier.load(cachedTag.getCompound(i));
 
                     if (modifier != null) {
                         this.cachedModifiers.add(modifier);
@@ -449,14 +447,12 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
     }
 
     public static List<SimpleContainer> readContainers(CompoundTag tag, String ...keys){
-        List<SimpleContainer> containers = new ArrayList<>();
+        var containers = new ArrayList<SimpleContainer>();
 
         for (String key : keys) {
-            SimpleContainer stacks = new SimpleContainer();
+            var stacks = new SimpleContainer();
 
-            if(tag.contains(key)){
-                stacks.fromTag(tag.getList(key, Tag.TAG_COMPOUND));
-            }
+            if(tag.contains(key)) stacks.fromTag(tag.getList(key, Tag.TAG_COMPOUND));
 
             containers.add(stacks);
         }
@@ -465,8 +461,6 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
     }
 
     public static SimpleContainer copyContainerList(SimpleContainer container){
-        var innerList = container.getItems();
-
-        return new SimpleContainer(innerList.toArray(ItemStack[]::new));
+        return new SimpleContainer(container.getItems().toArray(ItemStack[]::new));
     }
 }

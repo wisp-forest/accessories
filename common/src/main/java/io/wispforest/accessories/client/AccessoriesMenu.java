@@ -72,6 +72,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
     public Runnable onScrollToEvent = () -> {};
 
+    @Nullable
     public final LivingEntity targetEntity() {
         return this.targetEntity;
     }
@@ -86,13 +87,10 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
     public static @Nullable LivingEntity readBufData(FriendlyByteBuf buf, Level level) {
         LivingEntity targetEntity = null;
+
         var hasTargetEntity = buf.readBoolean();
 
-        if(hasTargetEntity) {
-            var entity = level.getEntity(buf.readInt());
-
-            if(entity instanceof LivingEntity livingEntity) targetEntity = livingEntity;
-        }
+        if(hasTargetEntity && level.getEntity(buf.readInt()) instanceof LivingEntity entity) targetEntity = entity;
 
         return targetEntity;
     }
@@ -125,7 +123,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
             final EquipmentSlot equipmentSlot = SLOT_IDS[i];
             this.addSlot(new Slot(inventory, 39 - i, 8, 8 + i * 18) {
                 public void setByPlayer(ItemStack newStack, ItemStack oldStack) {
-                    owner.onEquipItem(equipmentSlot, oldStack, newStack);
+                    AccessoriesMenu.this.owner.onEquipItem(equipmentSlot, oldStack, newStack);
                     super.setByPlayer(newStack, oldStack);
                 }
 
@@ -138,7 +136,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
                 }
 
                 public boolean mayPickup(Player player) {
-                    ItemStack itemStack = this.getItem();
+                    var itemStack = this.getItem();
                     return !itemStack.isEmpty() && !player.isCreative() && EnchantmentHelper.hasBindingCurse(itemStack) ? false : super.mayPickup(player);
                 }
 
@@ -160,7 +158,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
         this.addSlot(new Slot(inventory, 40, 152, 62) {
             public void setByPlayer(ItemStack newStack, ItemStack oldStack) {
-                owner.onEquipItem(EquipmentSlot.OFFHAND, oldStack, newStack);
+                AccessoriesMenu.this.owner.onEquipItem(EquipmentSlot.OFFHAND, oldStack, newStack);
                 super.setByPlayer(newStack, oldStack);
             }
 
@@ -175,7 +173,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
         var capability = AccessoriesCapability.get(accessoryTarget);
 
-        var entitySlotTypes = EntitySlotLoader.getEntitySlots(accessoryTarget);
+        if (capability == null) return;
 
         int slotScale = 18;
 
@@ -188,29 +186,13 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
         int yOffset = 8;
 
-        Map<SlotType, Set<Accessory>> sortAccessories = new HashMap<>();
-
-        for (var item : BuiltInRegistries.ITEM) {
-            var accessory = AccessoriesAPI.getAccessory(item);
-
-            if (accessory == null) continue;
-
-            for (var value : entitySlotTypes.values()) {
-                if (AccessoriesAPI.canInsertIntoSlot(item.getDefaultInstance(), new SlotReference(value.name(), player, 0))) {
-                    sortAccessories.computeIfAbsent(value, s -> new HashSet<>()).add(accessory);
-                }
-            }
-        }
-
-        if (capability == null) return;
-
         var containers = capability.getContainers();
 
         int yIndex = 0;
 
         this.accessoriesSlotStartIndex = this.slots.size();
 
-        var slotVisablity = new HashMap<Slot, Boolean>();
+        var slotVisibility = new HashMap<Slot, Boolean>();
 
         var accessoriesSlots = new ArrayList<AccessoriesInternalSlot>();
         var cosmeticSlots = new ArrayList<AccessoriesInternalSlot>();
@@ -225,20 +207,16 @@ public class AccessoriesMenu extends AbstractContainerMenu {
                     .sorted(Comparator.comparingInt(SlotType::order).reversed())
                     .toList();
 
-            for (SlotType slot : slotTypes) {
+            for (var slot : slotTypes) {
                 if(slots != null && !slots.contains(slot)) {
                     continue;
                 } else {
-                    validGroups.add(group);
+                    this.validGroups.add(group);
                 }
 
                 var accessoryContainer = containers.get(slot.name());
 
-                if (accessoryContainer == null) continue;
-
-                var slotType = accessoryContainer.slotType();
-
-                if (slotType == null) continue;
+                if (accessoryContainer == null || accessoryContainer.slotType() == null) continue;
 
                 var size = accessoryContainer.getSize();
 
@@ -248,27 +226,26 @@ public class AccessoriesMenu extends AbstractContainerMenu {
                     int currentX = minX;
 
                     var cosmeticSlot = new AccessoriesInternalSlot(yIndex, accessoryContainer, true, i, currentX, currentY)
-                                    .isActive((slot1) -> this.isCosmeticsOpen() && slotToView.getOrDefault(slot1.index, true))
+                                    .isActive((slot1) -> this.isCosmeticsOpen() && this.slotToView.getOrDefault(slot1.index, true))
                                     .isAccessible(slot1 -> slot1.isCosmetic && isCosmeticsOpen());
-
 
                     cosmeticSlots.add(cosmeticSlot);
 
-                    slotVisablity.put(cosmeticSlot, !overMaxVisibleSlots);
+                    slotVisibility.put(cosmeticSlot, !this.overMaxVisibleSlots);
 
                     currentX += slotScale + cosmeticPadding;
 
                     var baseSlot = new AccessoriesInternalSlot(yIndex, accessoryContainer, false, i, currentX, currentY)
-                                    .isActive(slot1 -> slotToView.getOrDefault(slot1.index, true));
+                                    .isActive(slot1 -> this.slotToView.getOrDefault(slot1.index, true));
 
                     accessoriesSlots.add(baseSlot);
 
-                    slotVisablity.put(baseSlot, !overMaxVisibleSlots);
+                    slotVisibility.put(baseSlot, !this.overMaxVisibleSlots);
 
                     yIndex++;
 
-                    if (!overMaxVisibleSlots && currentY + Math.max(18, slotScale) > maxY) {
-                        overMaxVisibleSlots = true;
+                    if (!this.overMaxVisibleSlots && currentY + Math.max(18, slotScale) > maxY) {
+                        this.overMaxVisibleSlots = true;
                     }
                 }
             }
@@ -276,19 +253,21 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
         for (var accessoriesSlot : accessoriesSlots) {
             this.addSlot(accessoriesSlot);
-            slotToView.put(accessoriesSlot.index, slotVisablity.getOrDefault(accessoriesSlot, false));
+
+            slotToView.put(accessoriesSlot.index, slotVisibility.getOrDefault(accessoriesSlot, false));
         }
 
-        cosmeticSlotStartIndex = this.slots.size();
+        this.cosmeticSlotStartIndex = this.slots.size();
 
         for (var cosmeticSlot : cosmeticSlots) {
             this.addSlot(cosmeticSlot);
-            slotToView.put(cosmeticSlot.index, slotVisablity.getOrDefault(cosmeticSlot, false));
+
+            this.slotToView.put(cosmeticSlot.index, slotVisibility.getOrDefault(cosmeticSlot, false));
         }
 
-        totalSlots = yIndex;
+        this.totalSlots = yIndex;
 
-        maxScrollableIndex = totalSlots - 8;
+        this.maxScrollableIndex = this.totalSlots - 8;
     }
 
     @Override
@@ -398,7 +377,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
         this.scrolledIndex = index;
 
-        onScrollToEvent.run();
+        this.onScrollToEvent.run();
 
         return true;
     }

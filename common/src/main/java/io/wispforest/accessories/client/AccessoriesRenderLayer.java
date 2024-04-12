@@ -86,20 +86,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                             multiBufferSource.getBuffer(renderType);
                 };
 
-                renderer.render(
-                    stack,
-                    new SlotReference(container.getSlotName(), entity, i),
-                    poseStack,
-                    getParentModel(),
-                    innerBufferSource,
-                    light,
-                    limbSwing,
-                    limbSwingAmount,
-                    partialTicks,
-                    ageInTicks,
-                    netHeadYaw,
-                    headPitch
-                );
+                renderer.render(stack, new SlotReference(container.getSlotName(), entity, i), poseStack, getParentModel(), innerBufferSource, light, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
 
                 if(renderingLines) {
                     float[] colorValues = null;
@@ -135,7 +122,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                     }
 
                     if (AccessoriesScreen.IS_RENDERING_PLAYER) {
-                        AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, mpoatv.meanPos);
+                        AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, mpoatv.meanPos());
                     } else {
                         AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
                     }

@@ -140,7 +140,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
                     var iconLocation = ResourceLocation.tryParse(iconLocationString);
 
                     if(iconLocation != null){
-                        group.icon(iconSize, iconLocation);
+                        group.icon(iconLocation);
                     } else {
                         LOGGER.warn("A given SlotGroup was found to have a invalid Icon Location. [Location: {}]", location);
                     }
@@ -169,7 +169,6 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
         private Integer order = null;
         private final Set<String> slots = new HashSet<>();
 
-        private int iconSize = 16;
         private ResourceLocation iconLocation = SlotGroup.UNKNOWN;
 
         public SlotGroupBuilder(String name){
@@ -194,8 +193,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
             return this;
         }
 
-        public SlotGroupBuilder icon(Integer size, ResourceLocation location) {
-            this.iconSize = size;
+        public SlotGroupBuilder icon(ResourceLocation location) {
             this.iconLocation = location;
 
             return this;
@@ -206,7 +204,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
                     name,
                     Optional.ofNullable(order).orElse(0),
                     slots,
-                    Pair.of(iconSize, iconLocation)
+                    iconLocation
             );
         }
     }

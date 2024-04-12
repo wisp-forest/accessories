@@ -24,11 +24,11 @@ public interface AccessoriesContainer {
      * @return An Optional of the given slotType based on the {@link #getSlotName} if found or an empty optional
      */
     default SlotType slotType() {
-        return SlotTypeLoader.getSlotType(this.capability().entity().level(), this.getSlotName());
+        return SlotTypeLoader.getSlotType(this.capability().entity(), this.getSlotName());
     }
 
     default SlotReference createReference(int index){
-        return new SlotReference(getSlotName(), capability().entity(), index);
+        return new SlotReference(this.getSlotName(), this.capability().entity(), index);
     }
 
     /**
@@ -40,7 +40,7 @@ public interface AccessoriesContainer {
      * @return Either the toggle value for the given index or true if an option is not found
      */
     default boolean shouldRender(int index){
-        var options = renderOptions();
+        var options = this.renderOptions();
 
         return (index < options.size()) ? options.get(index) : true;
     }

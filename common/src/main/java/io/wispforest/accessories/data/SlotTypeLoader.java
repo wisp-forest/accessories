@@ -17,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +40,14 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
     private final Map<String, SlotType> client = new HashMap<>();
 
     //--
+
+    /**
+     * Attempt to get the given SlotType based on the provided slotName
+     */
+    @Nullable
+    public static SlotType getSlotType(LivingEntity entity, String slotName){
+        return getSlotTypes(entity.level()).get(slotName);
+    }
 
     /**
      * Attempt to get the given SlotType based on the provided slotName

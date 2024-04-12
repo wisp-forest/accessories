@@ -74,5 +74,4 @@ public class UniqueSlotHandling {
 
         SlotTypeReference registerSlot(ResourceLocation location, int amount, @Nullable ResourceLocation slotPredicate, EntityType<?> ...types);
     }
-
 }

@@ -49,16 +49,16 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
 
         Consumer<PoseStack> render = (poseStack) -> Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
 
-        var slotName = reference.slotName();
-
-        var helper = slotToHelpers.get(slotName);
+        var helper = slotToHelpers.get(reference.slotName());
 
         if(helper != null) helper.render(render, matrices, humanoidModel, reference);
     }
 
     @Override
     public boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference) {
-        return (reference.slotName().equals("hand") || reference.slotName().equals("wrist") || reference.slotName().equals("ring")) && (reference.slot() % 2 == 0 ? arm == HumanoidArm.RIGHT : arm == HumanoidArm.LEFT);
+        var slotName = reference.slotName();
+
+        return (slotName.equals("hand") || slotName.equals("wrist") || slotName.equals("ring")) && (reference.slot() % 2 == 0 ? arm == HumanoidArm.RIGHT : arm == HumanoidArm.LEFT);
     }
 
     public interface RenderHelper {

@@ -109,8 +109,6 @@ public class AccessoriesSlotGenerator {
      * Layout the given slots based as a row from the given starting position
      */
     public int row() {
-        var containers = capability.getContainers();
-
         int xOffset = this.horizontalPadding / 2;
         int yOffset = this.verticalPadding / 2;
 
@@ -141,8 +139,6 @@ public class AccessoriesSlotGenerator {
      * Layout the given slots based as a column from the given starting position
      */
     public int column() {
-        var containers = capability.getContainers();
-
         int xOffset = this.horizontalPadding / 2;
         int yOffset = this.verticalPadding / 2;
 

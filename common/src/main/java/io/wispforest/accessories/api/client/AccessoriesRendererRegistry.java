@@ -39,15 +39,13 @@ public class AccessoriesRendererRegistry {
 
     @Nullable
     public static AccessoryRenderer getRender(ItemStack stack){
-        if(stack.hasTag()) {
-            var tag = stack.getTag();
+        var tag = stack.getTag();
 
-            if(tag.contains(defaultRenderOverrideKey)){
-                if(tag.getBoolean(defaultRenderOverrideKey)) {
-                    return DefaultAccessoryRenderer.INSTANCE;
-                } else if(AccessoriesAPI.getOrDefaultAccessory(stack.getItem()) == AccessoriesAPI.defaultAccessory()) {
-                    return null;
-                }
+        if(tag != null && tag.contains(defaultRenderOverrideKey)) {
+            if(tag.getBoolean(defaultRenderOverrideKey)) {
+                return DefaultAccessoryRenderer.INSTANCE;
+            } else if(AccessoriesAPI.getOrDefaultAccessory(stack.getItem()) == AccessoriesAPI.defaultAccessory()) {
+                return null;
             }
         }
 

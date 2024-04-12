@@ -64,12 +64,12 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
     @Nullable
     public final Map<String, SlotType> getSlotTypes(boolean isClientSide, EntityType<?> entityType){
-        return getEntitySlotData(isClientSide).get(entityType);
+        return this.getEntitySlotData(isClientSide).get(entityType);
     }
 
     @ApiStatus.Internal
     public final Map<EntityType<?>, Map<String, SlotType>> getEntitySlotData(boolean isClientSide){
-        return isClientSide ? client : server;
+        return isClientSide ? this.client : this.server;
     }
 
     @ApiStatus.Internal
@@ -82,7 +82,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
     @Override
     protected void apply(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler) {
-        server.clear();
+        this.server.clear();
 
         var allSlotTypes = SlotTypeLoader.INSTANCE.getSlotTypes(false);
 
@@ -115,21 +115,14 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
                     var entityTypeTag = TagKey.create(Registries.ENTITY_TYPE, entityTypeTagLocation);
 
                     return AccessoriesInternals.getHolder(entityTypeTag)
-                            .map(holders -> {
-                                return holders.stream()
-                                        .map(Holder::value)
-                                        .collect(Collectors.toSet());
-                            }).orElseGet(() -> {
+                            .map(holders -> holders.stream().map(Holder::value).collect(Collectors.toSet()))
+                            .orElseGet(() -> {
                                 LOGGER.warn("[EntitySlotLoader]: Unable to locate the given EntityType Tag used within a slot entry: [Location: " + string + "]");
                                 return Set.of();
                             });
                 } else {
                     return Optional.ofNullable(ResourceLocation.tryParse(string))
-                            .map(location1 -> {
-                                return BuiltInRegistries.ENTITY_TYPE.getOptional(location1)
-                                        .map(Set::of)
-                                        .orElse(Set.of());
-                            })
+                            .map(location1 -> BuiltInRegistries.ENTITY_TYPE.getOptional(location1).map(Set::of).orElse(Set.of()))
                             .orElseGet(() -> {
                                 LOGGER.warn("[EntitySlotLoader]: Unable to locate the given EntityType within the registries for a slot entrie: [Location: " + string + "]");
 
@@ -139,7 +132,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
             }, entities::addAll);
 
             for (EntityType<?> entityType : entities) {
-                server.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
+                this.server.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
                         .putAll(slots);
             }
         }
@@ -148,7 +141,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
             var slotType = entry.getKey().get(false);
 
             for (var entityType : entry.getValue()) {
-                server.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
+                this.server.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
                         .put(slotType.name(), slotType);
             }
         }
