@@ -8,9 +8,11 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.InterModProcessEvent;
+import net.neoforged.neoforge.capabilities.ICapabilityProvider;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
@@ -19,6 +21,7 @@ import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.CuriosCapability;
 import top.theillusivec4.curios.api.SlotTypeMessage;
 import top.theillusivec4.curios.api.type.ISlotType;
+import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import top.theillusivec4.curios.common.CuriosHelper;
 import top.theillusivec4.curios.common.CuriosRegistry;
@@ -82,28 +85,30 @@ public class CCLayer {
                 CuriosImplMixinHooks.registerCurio(item, iCurioItem);
             }
 
-            event.registerItem(CuriosCapability.ITEM, (stack, ctx) -> {
-                Item it = stack.getItem();
-                ICurioItem curioItem = CuriosImplMixinHooks.getCurioFromRegistry(item).orElse(null);
-
-                if (curioItem == null && it instanceof ICurioItem itemCurio) {
-                    curioItem = itemCurio;
-                }
-
-                if(curioItem == null){
-                    var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
-
-                    curioItem = new WrappedAccessory(accessory);
-                }
-
-                if (curioItem != null && curioItem.hasCurioCapability(stack)) {
-                    return new ItemizedCurioCapability(curioItem, stack);
-                }
-
-                return null;
-            }, item);
+            event.registerItem(CuriosCapability.ITEM, BASE_PROVIDER, item);
         }
     }
+
+    public static final ICapabilityProvider<ItemStack, Void, ICurio> BASE_PROVIDER = (stack, ctx) -> {
+        Item it = stack.getItem();
+        ICurioItem curioItem = CuriosImplMixinHooks.getCurioFromRegistry(it).orElse(null);
+
+        if (curioItem == null && it instanceof ICurioItem itemCurio) {
+            curioItem = itemCurio;
+        }
+
+        if(curioItem == null){
+            var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+
+            curioItem = new WrappedAccessory(accessory);
+        }
+
+        if (curioItem != null && curioItem.hasCurioCapability(stack)) {
+            return new ItemizedCurioCapability(curioItem, stack);
+        }
+
+        return null;
+    };
 
     private void serverAboutToStart(ServerAboutToStartEvent evt) {
         CuriosApi.setSlotHelper(new SlotHelper());

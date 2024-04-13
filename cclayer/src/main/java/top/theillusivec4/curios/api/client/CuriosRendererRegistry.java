@@ -58,16 +58,10 @@ public class CuriosRendererRegistry {
       @Override
       public <M extends LivingEntity> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
         var context = CuriosWrappingUtils.create(reference, true);
-        var renderLayer = new RenderLayerParent<M, EntityModel<M>>(){
-          @Override
-          public EntityModel<M> getModel() {
-            return model;
-          }
 
-          @Override
-          public ResourceLocation getTextureLocation(M entity) {
-            return new ResourceLocation("");
-          }
+        var renderLayer = new RenderLayerParent<M, EntityModel<M>>(){
+          @Override public EntityModel<M> getModel() { return model; }
+          @Override public ResourceLocation getTextureLocation(M entity) { return new ResourceLocation(""); }
         };
 
         innerRenderer.render(stack, context, matrices, renderLayer, multiBufferSource, light, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
@@ -93,7 +87,7 @@ public class CuriosRendererRegistry {
    * This is called in the EntityRenderersEvent.AddLayers event
    */
   public static void load() {
-    for (Map.Entry<Item, Supplier<ICurioRenderer>> entry : RENDERER_REGISTRY.entrySet()) {
+    for (var entry : RENDERER_REGISTRY.entrySet()) {
       RENDERERS.put(entry.getKey(), entry.getValue().get());
     }
   }

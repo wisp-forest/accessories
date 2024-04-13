@@ -15,27 +15,20 @@ import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
 import top.theillusivec4.curios.compat.CuriosWrappingUtils;
+import top.theillusivec4.curios.compat.WrappedCurioItemHandler;
 
 import java.util.*;
 import java.util.function.Function;
 
 public class CurioInventory implements INBTSerializable<CompoundTag> {
 
-    final Map<String, ICurioStacksHandler> curios = new LinkedHashMap<>();
-    ICuriosItemHandler curiosItemHandler;
-    NonNullList<ItemStack> invalidStacks = NonNullList.create();
-    Set<ICurioStacksHandler> updates = new HashSet<>();
     CompoundTag deserialized = new CompoundTag();
     boolean markDeserialized = false;
 
     public void init(final ICuriosItemHandler curiosItemHandler) {
-        this.curiosItemHandler = curiosItemHandler;
-        this.curios.clear();
-        LivingEntity livingEntity = curiosItemHandler.getWearer();
+        var capability = ((WrappedCurioItemHandler) curiosItemHandler).capability();
 
-        var capability = livingEntity.accessoriesCapability();
-
-        if(capability == null) return;
+        var livingEntity = capability.entity();
 
         if (this.markDeserialized) {
             var tagList = this.deserialized.getList("Curios", Tag.TAG_COMPOUND);
@@ -85,7 +78,7 @@ public class CurioInventory implements INBTSerializable<CompoundTag> {
             for (var stack : list) {
                 boolean consumedStack = false;
 
-                for (int i = 0; i < accessories.getContainerSize(); i++) {
+                for (int i = 0; i < accessories.getContainerSize() && !consumedStack; i++) {
                     var currentStack = accessories.getItem(i);
 
                     if (!currentStack.isEmpty()) continue;
@@ -94,27 +87,18 @@ public class CurioInventory implements INBTSerializable<CompoundTag> {
 
                     if (!AccessoriesAPI.canInsertIntoSlot(stack, ref)) continue;
 
-                    accessories.setItem(i, stack);
+                    accessories.setItem(i, stack.copy());
 
                     consumedStack = true;
                 }
 
-                if (!consumedStack) dropped.add(stack);
+                if (!consumedStack) dropped.add(stack.copy());
             }
         } else {
             dropped.addAll(list);
         }
 
         return dropped;
-    }
-
-    public Map<String, ICurioStacksHandler> asMap() {
-        return this.curios;
-    }
-
-    public void replace(Map<String, ICurioStacksHandler> curios) {
-        this.curios.clear();
-        this.curios.putAll(curios);
     }
 
     @Override

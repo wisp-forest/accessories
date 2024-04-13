@@ -27,20 +27,26 @@ import top.theillusivec4.curios.common.CuriosRegistry;
 import java.util.*;
 import java.util.function.Predicate;
 
-public class WrappedCurioItemHandler implements ICuriosItemHandler {
+public record WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) implements ICuriosItemHandler {
 
-    private final AccessoriesCapabilityImpl capability;
-
-    public WrappedCurioItemHandler(AccessoriesCapabilityImpl capability){
+    public WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) {
         this.capability = capability;
 
         var entity = this.capability.entity();
 
-        if(entity.hasData(CuriosRegistry.INVENTORY)) {
+        if (entity.hasData(CuriosRegistry.INVENTORY)) {
             var inv = entity.getData(CuriosRegistry.INVENTORY);
 
             inv.init(this);
+
+            entity.removeData(CuriosRegistry.INVENTORY);
         }
+    }
+
+    public static void attemptConversion(AccessoriesCapabilityImpl capability) {
+        if (!capability.entity().hasData(CuriosRegistry.INVENTORY)) return;
+
+        new WrappedCurioItemHandler(capability);
     }
 
     @Override
@@ -54,7 +60,8 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
     }
 
     @Override
-    public void setCurios(Map<String, ICurioStacksHandler> map) {}
+    public void setCurios(Map<String, ICurioStacksHandler> map) {
+    }
 
     @Override
     public int getSlots() {
@@ -141,7 +148,7 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
 
                         references.add(new SlotEntryReference(reference, stack));
 
-                        if(accessory instanceof AccessoryNest holdable){
+                        if (accessory instanceof AccessoryNest holdable) {
                             for (ItemStack innerStack : holdable.getInnerStacks(stackEntry.getSecond())) {
                                 references.add(new SlotEntryReference(reference, innerStack));
                             }
@@ -160,7 +167,7 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
                 .flatMap(container -> {
                     var stack = container.getAccessories().getItem(index);
 
-                    if(stack.isEmpty()) return Optional.empty();
+                    if (stack.isEmpty()) return Optional.empty();
 
                     return Optional.of(new SlotResult(new SlotContext(identifier, this.capability.entity(), 0, false, true), stack));
                 });
@@ -171,12 +178,28 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
         return this.capability.entity();
     }
 
-    @Override public void loseInvalidStack(ItemStack stack) {}
-    @Override public void handleInvalidStacks() {}
-    @Override public int getFortuneLevel(@Nullable LootContext lootContext) { return 0; }
-    @Override public int getLootingLevel(DamageSource source, LivingEntity target, int baseLooting) { return 0; }
+    @Override
+    public void loseInvalidStack(ItemStack stack) {
+    }
 
-    @Override public Set<ICurioStacksHandler> getUpdatingInventories() { return null; }
+    @Override
+    public void handleInvalidStacks() {
+    }
+
+    @Override
+    public int getFortuneLevel(@Nullable LootContext lootContext) {
+        return 0;
+    }
+
+    @Override
+    public int getLootingLevel(DamageSource source, LivingEntity target, int baseLooting) {
+        return 0;
+    }
+
+    @Override
+    public Set<ICurioStacksHandler> getUpdatingInventories() {
+        return null;
+    }
 
     @Override
     public void addTransientSlotModifiers(Multimap<String, AttributeModifier> modifiers) {
@@ -203,10 +226,23 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
         return this.capability.getSlotModifiers();
     }
 
-    @Override public ListTag saveInventory(boolean clear) { return null; }
-    @Override public void loadInventory(ListTag data) {}
-    @Override public Tag writeTag() { return new CompoundTag(); }
-    @Override public void readTag(Tag tag) {}
+    @Override
+    public ListTag saveInventory(boolean clear) {
+        return null;
+    }
+
+    @Override
+    public void loadInventory(ListTag data) {
+    }
+
+    @Override
+    public Tag writeTag() {
+        return new CompoundTag();
+    }
+
+    @Override
+    public void readTag(Tag tag) {
+    }
 
     @Override
     public void clearCachedSlotModifiers() {
@@ -214,8 +250,10 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
     }
 
     @Override
-    public void growSlotType(String identifier, int amount) {}
+    public void growSlotType(String identifier, int amount) {
+    }
 
     @Override
-    public void shrinkSlotType(String identifier, int amount) {}
+    public void shrinkSlotType(String identifier, int amount) {
+    }
 }

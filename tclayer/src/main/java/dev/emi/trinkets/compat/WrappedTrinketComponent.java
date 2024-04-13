@@ -181,7 +181,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
                 for (var stack : list) {
                     boolean consumedStack = false;
 
-                    for (int i = 0; i < accessories.getContainerSize(); i++) {
+                    for (int i = 0; i < accessories.getContainerSize() && !consumedStack; i++) {
                         var currentStack = accessories.getItem(i);
 
                         if(!currentStack.isEmpty()) continue;
@@ -196,7 +196,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
                     }
 
                     if(!consumedStack) {
-                        dropped.add(stack);
+                        dropped.add(stack.copy());
                     }
                 }
             }
