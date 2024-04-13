@@ -2,7 +2,7 @@ package top.theillusivec4.curios.compat;
 
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.events.extra.ImplementedEvents;
+import io.wispforest.accessories.api.events.extra.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -89,7 +89,7 @@ public class WrappedAccessory implements ICurioItem {
 
     @Override
     public int getFortuneLevel(SlotContext slotContext, LootContext lootContext, ItemStack stack) {
-        if(accessory instanceof ImplementedEvents.FortuneAdjustment fortuneAdjustment){
+        if(accessory instanceof FortuneAdjustment fortuneAdjustment){
             return fortuneAdjustment.getFortuneAdjustment(stack, CuriosWrappingUtils.fromContext(slotContext), lootContext, 0);
         }
 
@@ -98,7 +98,7 @@ public class WrappedAccessory implements ICurioItem {
 
     @Override
     public int getLootingLevel(SlotContext slotContext, DamageSource source, LivingEntity target, int baseLooting, ItemStack stack) {
-        if(accessory instanceof ImplementedEvents.LootingAdjustment lootingAdjustment){
+        if(accessory instanceof LootingAdjustment lootingAdjustment){
             return lootingAdjustment.getLootingAdjustment(stack, CuriosWrappingUtils.fromContext(slotContext), target, source, baseLooting);
         }
 
@@ -107,7 +107,7 @@ public class WrappedAccessory implements ICurioItem {
 
     @Override
     public boolean makesPiglinsNeutral(SlotContext slotContext, ItemStack stack) {
-        if(accessory instanceof ImplementedEvents.PiglinNeutralInducer piglinNeutralInducer){
+        if(accessory instanceof PiglinNeutralInducer piglinNeutralInducer){
             return piglinNeutralInducer.makesPiglinsNeutral(stack, CuriosWrappingUtils.fromContext(slotContext)).orElse(false);
         }
 
@@ -116,7 +116,7 @@ public class WrappedAccessory implements ICurioItem {
 
     @Override
     public boolean canWalkOnPowderedSnow(SlotContext slotContext, ItemStack stack) {
-        if(accessory instanceof ImplementedEvents.AllowWalingOnSnow allowWalingOnSnow){
+        if(accessory instanceof AllowWalingOnSnow allowWalingOnSnow){
             return allowWalingOnSnow.allowWalkingOnSnow(stack, CuriosWrappingUtils.fromContext(slotContext)).orElse(false);
         }
 
@@ -125,7 +125,7 @@ public class WrappedAccessory implements ICurioItem {
 
     @Override
     public boolean isEnderMask(SlotContext slotContext, EnderMan enderMan, ItemStack stack) {
-        if(accessory instanceof ImplementedEvents.EndermanMasked endermanMasked){
+        if(accessory instanceof EndermanMasked endermanMasked){
             return endermanMasked.isEndermanMasked(enderMan, stack, CuriosWrappingUtils.fromContext(slotContext)).orElse(false);
         }
 

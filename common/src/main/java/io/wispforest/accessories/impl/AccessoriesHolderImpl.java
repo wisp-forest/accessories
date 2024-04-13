@@ -7,9 +7,11 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.*;
 
+@ApiStatus.Internal
 public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecable {
 
     private final Map<String, AccessoriesContainer> slotContainers = new LinkedHashMap<>();

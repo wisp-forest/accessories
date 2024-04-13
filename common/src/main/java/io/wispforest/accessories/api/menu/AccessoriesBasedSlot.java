@@ -22,7 +22,11 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * Base slot class implementation for Accessories with static methods that force checks if
+ * such passed entity and type can be found. Primarily used with internal screen and such
+ * within {@link AccessoriesSlotGenerator} for unique slots API
+ */
 public class AccessoriesBasedSlot extends Slot {
 
     private static final Logger LOGGER = LogUtils.getLogger();

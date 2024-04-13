@@ -3,9 +3,9 @@ package top.theillusivec4.curios.compat;
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
+import io.wispforest.accessories.api.events.extra.*;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.SoundEventData;
-import io.wispforest.accessories.api.events.extra.ImplementedEvents;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -18,7 +18,7 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.UUID;
 
-public class WrappedCurio implements Accessory, ImplementedEvents.LootingAdjustment, ImplementedEvents.FortuneAdjustment, ImplementedEvents.AllowWalingOnSnow, ImplementedEvents.EndermanMasked, ImplementedEvents.PiglinNeutralInducer{
+public class WrappedCurio implements Accessory, LootingAdjustment, FortuneAdjustment, AllowWalingOnSnow, EndermanMasked, PiglinNeutralInducer {
 
     private final ICurioItem iCurioItem;
 

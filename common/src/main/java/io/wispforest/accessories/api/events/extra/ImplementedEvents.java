@@ -5,22 +5,15 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.AccessoryNest;
-import io.wispforest.accessories.api.slot.SlotEntryReference;
-import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.impl.AccessoryNestUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.EnderMan;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -66,10 +59,6 @@ public class ImplementedEvents {
         return currentLevel;
     });
 
-    public interface LootingAdjustment {
-        int getLootingAdjustment(ItemStack stack, SlotReference reference, LivingEntity target, DamageSource damageSource, int currentLevel);
-    }
-
     //--
 
     public static int fortuneAdjustment(LootContext context, int currentLevel){
@@ -107,10 +96,6 @@ public class ImplementedEvents {
 
         return currentLevel;
     });
-
-    public interface FortuneAdjustment {
-        int getFortuneAdjustment(ItemStack stack, SlotReference reference, LootContext context, int currentLevel);
-    }
 
     //--
 
@@ -155,10 +140,6 @@ public class ImplementedEvents {
         return TriState.DEFAULT;
     });
 
-    public interface PiglinNeutralInducer {
-        TriState makesPiglinsNeutral(ItemStack stack, SlotReference reference);
-    }
-
     //--
 
     public static TriState allowWalkingOnSnow(LivingEntity entity){
@@ -201,10 +182,6 @@ public class ImplementedEvents {
 
         return TriState.DEFAULT;
     });
-
-    public interface AllowWalingOnSnow {
-        TriState allowWalkingOnSnow(ItemStack stack, SlotReference reference);
-    }
 
     //--
 
@@ -269,7 +246,4 @@ public class ImplementedEvents {
         return TriState.DEFAULT;
     });
 
-    public interface EndermanMasked {
-        TriState isEndermanMasked(EnderMan enderMan, ItemStack stack, SlotReference reference);
-    }
 }

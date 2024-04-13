@@ -4,7 +4,7 @@ import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.SoundEventData;
-import io.wispforest.accessories.api.events.extra.ImplementedEvents;
+import io.wispforest.accessories.api.events.extra.*;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.world.damagesource.DamageSource;
@@ -16,11 +16,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.neoforged.neoforge.capabilities.ICapabilityProvider;
 import top.theillusivec4.curios.api.type.capability.ICurio;
-import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.UUID;
 
-public class WrappedICurioProvider implements Accessory, ImplementedEvents.LootingAdjustment, ImplementedEvents.FortuneAdjustment, ImplementedEvents.AllowWalingOnSnow, ImplementedEvents.EndermanMasked, ImplementedEvents.PiglinNeutralInducer {
+public class WrappedICurioProvider implements Accessory, LootingAdjustment, FortuneAdjustment, AllowWalingOnSnow, EndermanMasked, PiglinNeutralInducer {
 
     private final ICapabilityProvider<ItemStack, Void, ICurio> icurioProvider;
 

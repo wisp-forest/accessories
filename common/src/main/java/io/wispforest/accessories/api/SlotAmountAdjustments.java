@@ -15,42 +15,43 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * An API for adjusting a given slot by setting a target at which the slot amount should attempt to be set at
+ */
 public class SlotAmountAdjustments {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final Event<AfterSlotLoad> EVENT = EventUtils.createEventWithBus(AfterSlotLoad.class, AccessoriesInternals::getBus, (iEventBus, invokers) -> instance -> {
-        instance.allSuppliers.clear();
+    private static final SlotAmountAdjustments INSTANCE = new SlotAmountAdjustments();
 
-        for (var invoker : invokers) invoker.afterLoad(instance);
+    private final Map<String, Map<ResourceLocation, SlotAmountTarget>> allSuppliers = new HashMap<>();
 
-        iEventBus.ifPresent(eventBus -> eventBus.post(new AfterSlotLoadEvent(instance)));
-    });
-
-    public static final SlotAmountAdjustments INSTANCE = new SlotAmountAdjustments();
-
-    private final Map<String, Map<ResourceLocation, Function<LivingEntity, Integer>>> allSuppliers = new HashMap<>();
-
-    public Consumer<LivingEntity> addAmountSupplier(SlotType slotType, ResourceLocation location, Function<LivingEntity, Integer> function){
+    /**
+     * Method used to register an amount at which a given slot's base size should be based on the passed {@link LivingEntity}
+     *
+     * @param slotType Targeted SlotType to apply such function to
+     * @param location The given location for the adjuster
+     * @param targetFunc The passed amount adjustment function
+     * @return A consumer used to update a given {@link LivingEntity}'s slot amount
+     */
+    public Consumer<LivingEntity> addAmountSupplier(SlotType slotType, ResourceLocation location, SlotAmountTarget targetFunc){
         var slotName = slotType.name();
-
         var slotSpecificSuppliers = allSuppliers.computeIfAbsent(slotName, s -> new HashMap<>());
 
         if(slotSpecificSuppliers.containsKey(location)){
             LOGGER.error("[SlotAmountAdjustments]: Unable to register a supplier for SlotType {} for the given location {} as it already exists!", slotName, location);
         }
 
-        slotSpecificSuppliers.put(location, function);
+        slotSpecificSuppliers.put(location, targetFunc);
 
         return livingEntity -> onSupplierChange(slotName, location, livingEntity);
     }
 
-    public void onSupplierChange(String slotType, ResourceLocation location, LivingEntity livingEntity){
+    private void onSupplierChange(String slotType, ResourceLocation location, LivingEntity livingEntity){
         var capability = AccessoriesCapability.get(livingEntity);
 
         if(capability == null) {
             LOGGER.error("[SlotAmountAdjustments]: Unable to update the given LivingEntity slot amount due to not having a AccessoriesCapability. [Slot: {}, Supplier: {}]", slotType, location);
-
             return;
         }
 
@@ -58,7 +59,6 @@ public class SlotAmountAdjustments {
 
         if(slot == null){
             LOGGER.error("[SlotAmountAdjustments]: Unable to find the given slotType within the Registry to adjust using the given supplier. [Slot: {}, Supplier: {}]", slotType, location);
-
             return;
         }
 
@@ -66,19 +66,17 @@ public class SlotAmountAdjustments {
 
         if(container == null){
             LOGGER.error("[SlotAmountAdjustments] Attempted to update a given slotType's amount but no container was present for the livingEntity. [Slot: {}, Supplier: {}]", slotType, location);
-
             return;
         }
 
-        var supplier = INSTANCE.allSuppliers.get(slotType).getOrDefault(location, null);
+        var targetFunc = INSTANCE.allSuppliers.get(slotType).getOrDefault(location, null);
 
-        if(supplier == null){
+        if(targetFunc == null){
             LOGGER.error("[SlotAmountAdjustments]: Attempted to update a given slotType's amount but the given ResourceLocation was not found within the map!. [Slot: {}, Supplier: {}]", slotType, location);
-
             return;
         }
 
-        var slotAmount = supplier.apply(livingEntity);
+        var slotAmount = targetFunc.getAmount(livingEntity);
 
         if(slotAmount > container.getSize()) {
             container.markChanged();
@@ -86,11 +84,11 @@ public class SlotAmountAdjustments {
         }
     }
 
-    public int getAmount(SlotType slotType, LivingEntity livingEntity){
+    public static int getAmount(SlotType slotType, LivingEntity livingEntity){
         int amount = 0;
 
-        for (var supplier : INSTANCE.allSuppliers.getOrDefault(slotType.name(), Map.of()).values()) {
-            var newAmount = supplier.apply(livingEntity);
+        for (var targetFunc : INSTANCE.allSuppliers.getOrDefault(slotType.name(), Map.of()).values()) {
+            var newAmount = targetFunc.getAmount(livingEntity);
 
             if(newAmount > amount) amount = newAmount;
         }
@@ -99,8 +97,24 @@ public class SlotAmountAdjustments {
     }
 
     public static void onReload(){
+        INSTANCE.allSuppliers.clear();
+
         SlotAmountAdjustments.EVENT.invoker().afterLoad(INSTANCE);
     }
+
+    //--
+
+    public interface SlotAmountTarget {
+        int getAmount(LivingEntity livingEntity);
+    }
+
+    public static final Event<AfterSlotLoad> EVENT = EventUtils.createEventWithBus(AfterSlotLoad.class, AccessoriesInternals::getBus, (iEventBus, invokers) -> instance -> {
+        instance.allSuppliers.clear();
+
+        for (var invoker : invokers) invoker.afterLoad(instance);
+
+        iEventBus.ifPresent(eventBus -> eventBus.post(new AfterSlotLoadEvent(instance)));
+    });
 
     public interface AfterSlotLoad {
         void afterLoad(SlotAmountAdjustments instance);

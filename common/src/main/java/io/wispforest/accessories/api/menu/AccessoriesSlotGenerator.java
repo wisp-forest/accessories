@@ -46,6 +46,11 @@ public class AccessoriesSlotGenerator {
         this.capability = capability;
     }
 
+    /**
+     * Attempts to create a given {@link AccessoriesSlotGenerator} using the given start position and the given {@link SlotTypeReference}'s passed.
+     * Such passed consumer will most likely be the {@code addSlot} within the given Menu. The returned {@link AccessoriesSlotGenerator} will only be null
+     * if the entity was found not to have an {@link AccessoriesCapability} bound to such.
+     */
     @Nullable
     public static AccessoriesSlotGenerator of(Consumer<Slot> slotConsumer, int startX, int startY, LivingEntity livingEntity, SlotTypeReference... references) {
         var level = livingEntity.level();
@@ -86,6 +91,9 @@ public class AccessoriesSlotGenerator {
         return new AccessoriesSlotGenerator(slotConsumer, startX, startY, validSlotTypes, capability);
     }
 
+    /**
+     * Adjust the given padding of the generator for all sides of a generated slot
+     */
     public AccessoriesSlotGenerator padding(int value) {
         this.horizontalPadding(value);
         this.verticalPadding(value);
@@ -93,12 +101,18 @@ public class AccessoriesSlotGenerator {
         return this;
     }
 
+    /**
+     * Adjust the given padding of the generator for the left and right of a generated slot
+     */
     public AccessoriesSlotGenerator horizontalPadding(int value) {
         this.horizontalPadding = value;
 
         return this;
     }
 
+    /**
+     * Adjust the given padding of the generator for the top and bottom of a generated slot
+     */
     public AccessoriesSlotGenerator verticalPadding(int value) {
         this.verticalPadding = value;
 
@@ -109,8 +123,8 @@ public class AccessoriesSlotGenerator {
      * Layout the given slots based as a row from the given starting position
      */
     public int row() {
-        int xOffset = this.horizontalPadding / 2;
-        int yOffset = this.verticalPadding / 2;
+        int xOffset = this.horizontalPadding;
+        int yOffset = this.verticalPadding;
 
         int slotAddedAmount = 0;
 
@@ -126,7 +140,7 @@ public class AccessoriesSlotGenerator {
             for (int i = 0; i < container.getSize(); i++) {
                 slotConsumer.accept(new AccessoriesBasedSlot(container, container.getAccessories(), i, this.startX + xOffset, this.startY + yOffset));
 
-                xOffset += (this.horizontalPadding / 2) + 18;
+                xOffset += (this.horizontalPadding) + 18;
 
                 slotAddedAmount++;
             }
@@ -139,8 +153,8 @@ public class AccessoriesSlotGenerator {
      * Layout the given slots based as a column from the given starting position
      */
     public int column() {
-        int xOffset = this.horizontalPadding / 2;
-        int yOffset = this.verticalPadding / 2;
+        int xOffset = this.horizontalPadding;
+        int yOffset = this.verticalPadding;
 
         int slotAddedAmount = 0;
 
@@ -156,7 +170,7 @@ public class AccessoriesSlotGenerator {
             for (int i = 0; i < container.getSize(); i++) {
                 slotConsumer.accept(new AccessoriesBasedSlot(container, container.getAccessories(), i, this.startX + xOffset, this.startY + yOffset));
 
-                yOffset += (this.verticalPadding / 2) + 18;
+                yOffset += (this.verticalPadding) + 18;
 
                 slotAddedAmount++;
             }

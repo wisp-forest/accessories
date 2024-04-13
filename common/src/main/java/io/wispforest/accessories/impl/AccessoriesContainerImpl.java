@@ -18,10 +18,12 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@ApiStatus.Internal
 public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceCodecable {
 
     private final AccessoriesCapability capability;
@@ -87,6 +89,14 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         int baseSize = this.baseSize;
 
+        var slotAmountModifier = slotType != null
+                ? SlotAmountAdjustments.getAmount(slotType, this.capability.entity())
+                : 0;
+
+        if(slotAmountModifier > baseSize){
+            baseSize = slotAmountModifier;
+        }
+
         for(AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADDITION)){
             baseSize += modifier.getAmount();
         }
@@ -99,14 +109,6 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         for(AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.MULTIPLY_TOTAL)){
             size *= modifier.getAmount();
-        }
-
-        var slotAmountModifier = slotType != null
-                ? SlotAmountAdjustments.INSTANCE.getAmount(slotType, this.capability.entity())
-                : 0;
-
-        if(slotAmountModifier > baseSize){
-            size = slotAmountModifier;
         }
 
         //--

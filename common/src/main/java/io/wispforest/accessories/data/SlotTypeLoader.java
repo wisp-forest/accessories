@@ -8,6 +8,7 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.DropRule;
+import io.wispforest.accessories.api.SlotAmountAdjustments;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
@@ -172,6 +173,8 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         uniqueSlots.forEach((s, slotBuilder) -> server.put(s, slotBuilder.create()));
 
         builders.forEach((s, slotBuilder) -> server.put(s, slotBuilder.create()));
+
+        SlotAmountAdjustments.onReload();
     }
 
     public static class SlotBuilder {

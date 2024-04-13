@@ -63,20 +63,6 @@ public interface AccessoriesCapability {
 
     //--
 
-    void addTransientSlotModifiers(Multimap<String, AttributeModifier> modifiers);
-
-    void addPersistentSlotModifiers(Multimap<String, AttributeModifier> modifiers);
-
-    void removeSlotModifiers(Multimap<String, AttributeModifier> modifiers);
-
-    Multimap<String, AttributeModifier> getSlotModifiers();
-
-    void clearSlotModifiers();
-
-    void clearCachedSlotModifiers();
-
-    //--
-
     /**
      * Attempts to equip a given item stack within any valid accessory container without swapping
      *
@@ -145,4 +131,17 @@ public interface AccessoriesCapability {
      */
     List<SlotEntryReference> getAllEquipped();
 
+    //--
+
+    void addTransientSlotModifiers(Multimap<String, AttributeModifier> modifiers);
+
+    void addPersistentSlotModifiers(Multimap<String, AttributeModifier> modifiers);
+
+    void removeSlotModifiers(Multimap<String, AttributeModifier> modifiers);
+
+    Multimap<String, AttributeModifier> getSlotModifiers();
+
+    void clearSlotModifiers();
+
+    void clearCachedSlotModifiers();
 }

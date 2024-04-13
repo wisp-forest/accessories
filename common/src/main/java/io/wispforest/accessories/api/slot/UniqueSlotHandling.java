@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 /**
- * Class uesd to register custom slots for specific mod use cases rather than a sharded area
+ * Class used to register custom slots for specific mod use cases rather than a sharded area
  */
 public class UniqueSlotHandling {
 
@@ -27,7 +27,7 @@ public class UniqueSlotHandling {
     }
 
     /**
-     * Main event used to register
+     * Main event used to register unique slots for your mod
      */
     public static final Event<RegistrationCallback> EVENT = EventUtils.createEventWithBus(RegistrationCallback.class, AccessoriesInternals::getBus, (bus, invokers) -> registrationFunc -> {
         slotGrouped.clear();

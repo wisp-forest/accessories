@@ -6,6 +6,7 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.mixin.LivingEntityAccessor;
+import io.wispforest.accessories.networking.client.AccessoryBreak;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
@@ -19,6 +20,9 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Main interface for implementing an accessory
+ */
 public interface Accessory {
 
     /**
@@ -92,20 +96,45 @@ public interface Accessory {
 
     //--
 
+    /**
+     * Method called when equipping the given accessory from hotbar by right-clicking
+     *
+     * @param stack The Stack being prepared for dropping
+     * @param reference The reference to the targeted {@link LivingEntity}, slot and index
+     */
     default void onEquipFromUse(ItemStack stack, SlotReference reference){
         var sound = getEquipSound(stack, reference);
 
         reference.entity().playSound(sound.event(), sound.volume(), sound.pitch());
     }
 
+    /**
+     * Returns the equipping sound from use for a given stack
+     *
+     * @param stack The Stack being prepared for dropping
+     * @param reference The reference to the targeted {@link LivingEntity}, slot and index
+     */
     default SoundEventData getEquipSound(ItemStack stack, SlotReference reference){
         return new SoundEventData(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
     }
 
+    /**
+     * Returns whether the given stack can be equipped from use
+     *
+     * @param stack The Stack being prepared for dropping
+     * @param reference The reference to the targeted {@link LivingEntity}, slot and index
+     */
     default boolean canEquipFromUse(ItemStack stack, SlotReference reference){
         return true;
     }
 
+    /**
+     * Method used to render client based particles when {@link AccessoriesAPI#breakStack(SlotReference)} is
+     * called on the server and such {@link AccessoryBreak} packet is received
+     *
+     * @param stack The Stack being prepared for dropping
+     * @param reference The reference to the targeted {@link LivingEntity}, slot and index
+     */
     default void onBreak(ItemStack stack, SlotReference reference) {
         ((LivingEntityAccessor) reference.entity()).breakItem(stack);
     }
@@ -134,6 +163,9 @@ public interface Accessory {
      */
     default void getExtraTooltip(ItemStack stack, List<Component> tooltips){}
 
+    /**
+     * @return Return the max stack amount allowed when equipping a given stack into an accessories inventory
+     */
     default int maxStackSize(ItemStack stack){
         return stack.getMaxStackSize();
     }

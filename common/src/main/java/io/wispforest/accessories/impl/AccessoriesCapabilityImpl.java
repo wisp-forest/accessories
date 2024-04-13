@@ -17,11 +17,13 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.function.TriFunction;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.*;
 
+@ApiStatus.Internal
 public record AccessoriesCapabilityImpl(LivingEntity entity) implements AccessoriesCapability, InstanceCodecable {
 
     public AccessoriesCapabilityImpl(LivingEntity entity) {
@@ -152,7 +154,7 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
 
                 if (stack.isEmpty()) continue;
 
-                var slotReference = new SlotReference(container.getSlotName(), this.entity, i);
+                var slotReference = container.createReference(i);
 
                 var map = AccessoriesAPI.getAttributeModifiers(stack, slotReference, AccessoriesAPI.getOrCreateSlotUUID(container.getSlotName(), i));
 
@@ -189,28 +191,23 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
 
         if (stack.isEmpty() && allowSwapping) {
             EntitySlotLoader.getEntitySlots(this.entity())
-                    .forEach((s, slotType) -> {
-                        validContainers.put(s, this.tryAndGetContainer(slotType));
-                    });
+                    .forEach((s, slotType) -> validContainers.put(s, this.tryAndGetContainer(slotType)));
         } else {
             // First attempt to equip an accessory within empty slot
-            for (var continerEntry : this.getContainers().entrySet()) {
-                var slotType = continerEntry.getKey();
-                var container = continerEntry.getValue();
-
+            for (var container : this.getContainers().values()) {
                 if (container.getSize() <= 0) continue;
 
                 var accessories = container.getAccessories();
 
-                boolean isValid = AccessoriesAPI.canInsertIntoSlot(stack, new SlotReference(slotType, entity(), 0));
+                boolean isValid = AccessoriesAPI.canInsertIntoSlot(stack, container.createReference(0));
 
                 if (!isValid) continue;
 
-                if (allowSwapping) validContainers.put(slotType, container);
+                if (allowSwapping) validContainers.put(container.getSlotName(), container);
 
                 for (int i = 0; i < container.getSize(); i++) {
                     var slotStack = accessories.getItem(i);
-                    var slotReference = new SlotReference(slotType, entity(), i);
+                    var slotReference = container.createReference(i);
 
                     if (!slotStack.isEmpty()) continue;
 
@@ -227,25 +224,19 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
                             container.markChanged();
                         }
 
-                        return Pair.of(
-                                new SlotReference(container.getSlotName(), entity(), i),
-                                List.of(stackCopy.isEmpty() ? ItemStack.EMPTY : stackCopy)
-                        );
+                        return Pair.of(container.createReference(i), List.of(stackCopy.isEmpty() ? ItemStack.EMPTY : stackCopy));
                     }
                 }
             }
         }
 
         // Second attempt to equip an accessory within the first slot by swapping if allowed
-        for (var validContainerEntry : validContainers.entrySet()) {
-            var slotType = validContainerEntry.getKey();
-            var validContainer = validContainerEntry.getValue();
-
+        for (var validContainer : validContainers.values()) {
             var accessories = validContainer.getAccessories();
 
             for (int i = 0; i < accessories.getContainerSize(); i++) {
                 var slotStack = accessories.getItem(i).copy();
-                var slotReference = new SlotReference(slotType, entity(), i);
+                var slotReference = validContainer.createReference(i);
 
                 if (!AccessoriesAPI.canUnequip(slotStack, slotReference) || slotStack.isEmpty()) continue;
 
@@ -260,10 +251,7 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
                         validContainer.markChanged();
                     }
 
-                    return Pair.of(
-                            new SlotReference(validContainer.getSlotName(), entity(), i),
-                            List.of(stackCopy, slotStack)
-                    );
+                    return Pair.of(slotReference, List.of(stackCopy, slotStack));
                 }
             }
         }
@@ -275,15 +263,12 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
         for (var container : this.holder().getSlotContainers().values()) {
             for (var stackEntry : container.getAccessories()) {
                 var stack = stackEntry.getSecond();
-
-                var reference = new SlotReference(container.getSlotName(), this.entity(), stackEntry.getFirst());
+                var reference = container.createReference(stackEntry.getFirst());
 
                 var entryReference = recursiveStackHandling(stack, reference, (innerStack, ref) -> {
-                    if (!innerStack.isEmpty() && predicate.test(stack)) {
-                        return new SlotEntryReference(reference, stack);
-                    }
-
-                    return null;
+                    return (!innerStack.isEmpty() && predicate.test(stack))
+                            ? new SlotEntryReference(reference, stack)
+                            : null;
                 });
 
                 if(entryReference != null) return entryReference;
@@ -308,7 +293,7 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
 
                 if (stack.isEmpty()) continue;
 
-                var reference = new SlotReference(container.getSlotName(), this.entity(), stackEntry.getFirst());
+                var reference = container.createReference(stackEntry.getFirst());
 
                 recursiveStackConsumption(stack, reference, (innerStack, ref) -> references.add(new SlotEntryReference(ref, innerStack)));
             }

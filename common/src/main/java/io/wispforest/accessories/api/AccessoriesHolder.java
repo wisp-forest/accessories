@@ -8,6 +8,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Internal Holder object that has all the container data attached to the given player
+ */
 public interface AccessoriesHolder {
 
     static AccessoriesHolder get(@NotNull LivingEntity livingEntity){

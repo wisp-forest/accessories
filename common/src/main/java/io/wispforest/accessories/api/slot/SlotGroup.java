@@ -14,16 +14,28 @@ public interface SlotGroup {
 
     ResourceLocation UNKNOWN = Accessories.of("gui/slot/unknown");
 
+    /**
+     * Name of Group
+     */
     String name();
 
     default String translation(){
         return Accessories.translation("slot_group." + name());
     }
 
+    /**
+     * Priority Order for Group
+     */
     int order();
 
+    /**
+     * All slot names bound to the given group
+     */
     Set<String> slots();
 
+    /**
+     * Location of icon
+     */
     ResourceLocation icon();
 
     default boolean uniqueGroup() {
