@@ -104,7 +104,7 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
 
     @Override
     public Optional<SlotResult> findFirstCurio(Predicate<ItemStack> filter) {
-        return this.capability.getFirstEquipped(filter)
+        return Optional.ofNullable(this.capability.getFirstEquipped(filter))
                 .map(entry -> new SlotResult(CuriosWrappingUtils.create(entry.reference()), entry.stack()));
     }
 

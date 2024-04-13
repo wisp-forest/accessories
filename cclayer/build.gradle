@@ -18,7 +18,9 @@ repositories {
     maven { url "https://maven.neoforged.net/releases/" }
     maven { url "https://maven.su5ed.dev/releases" }
     maven { url "https://maven.shedaniel.me/" }
-    mavenLocal()
+    maven { url 'https://jitpack.io' }
+    mavenCentral()
+    //mavenLocal()
 }
 
 evaluationDependsOn(':common')
@@ -28,11 +30,11 @@ dependencies {
     neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
 
     developmentNeoForge implementation(project(path: ":common", configuration: "namedElements"))
-    modLocalRuntime(project(path: ":neoforge", configuration: "namedElements"))
+    localRuntime(project(path: ":neoforge", configuration: "namedElements"))
 
     modRuntimeOnly ("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
 
-    modImplementation ("dev.su5ed.sinytra.fabric-api:fabric-api-base:0.4.35+f77bd0ed4f") { exclude group: "fabric-api" }
+    modImplementation('com.github.Dragon-Seeker.ForgifiedFabricAPI:fabric-api-base:1.20.4-SNAPSHOT')
 }
 
 processResources {
@@ -45,6 +47,32 @@ processResources {
 
 loom {
     neoForge  {}
+
+    loom.runs.client {
+        var neoForgeProject = project(":neoforge");
+        mods {
+            create("${neoForgeProject.archives_base_name}") {
+                sourceSet neoForgeProject.sourceSets.main
+            }
+            create("${project.archives_base_name}") {
+                sourceSet sourceSets.main
+            }
+        }
+        source sourceSets.main
+    }
+
+    loom.runs.server {
+        var neoForgeProject = project(":neoforge");
+        mods {
+            create("${neoForgeProject.archives_base_name}") {
+                sourceSet neoForgeProject.sourceSets.main
+            }
+            create("${project.archives_base_name}") {
+                sourceSet sourceSets.main
+            }
+        }
+        source sourceSets.main
+    }
 }
 
 publishing {
