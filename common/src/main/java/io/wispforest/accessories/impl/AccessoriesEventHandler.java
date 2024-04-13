@@ -274,22 +274,22 @@ public class AccessoriesEventHandler {
                             entity.getAttributes().addTransientAttributeModifiers(attributes);
                             capability.addTransientSlotModifiers(slotModifiers);
                         }
-                    }
 
-                    /*
-                     * TODO: Dose item check need to exist anymore?
-                     */
-                    if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlaged(i)) {
-                        AccessoriesAPI.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);
-                        AccessoriesAPI.getOrDefaultAccessory(currentStack.getItem()).onEquip(currentStack, slotReference);
+                        /*
+                         * TODO: Dose item check need to exist anymore?
+                         */
+                        if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlaged(i)) {
+                            AccessoriesAPI.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);
+                            AccessoriesAPI.getOrDefaultAccessory(currentStack.getItem()).onEquip(currentStack, slotReference);
 
-                        if (entity instanceof ServerPlayer serverPlayer) {
-                            if (!currentStack.isEmpty()) {
-                                ACCESSORY_EQUIPPED.trigger(serverPlayer, currentStack, slotReference, false);
-                            }
+                            if (entity instanceof ServerPlayer serverPlayer) {
+                                if (!currentStack.isEmpty()) {
+                                    ACCESSORY_EQUIPPED.trigger(serverPlayer, currentStack, slotReference, false);
+                                }
 
-                            if (!lastStack.isEmpty()) {
-                                ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, false);
+                                if (!lastStack.isEmpty()) {
+                                    ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, false);
+                                }
                             }
                         }
                     }
