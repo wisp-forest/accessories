@@ -1,3 +1,5 @@
+![Maven metadata URL](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fmaven.wispforest.io%2Freleases%2Fio%2Fwispforest%2Faccessories-fabric%2Fmaven-metadata.xml&style=for-the-badge)
+
 # Accessories
 
 Accessories is a Data-Driven Accessory mod for NeoForge and Fabric with emphasis on using a Common API for both platforms when possible.
