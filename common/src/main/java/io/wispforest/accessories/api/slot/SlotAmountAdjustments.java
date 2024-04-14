@@ -1,8 +1,8 @@
-package io.wispforest.accessories.api;
+package io.wispforest.accessories.api.slot;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.event.EventUtils;
 import net.fabricmc.fabric.api.event.Event;
@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * An API for adjusting a given slot by setting a target at which the slot amount should attempt to be set at

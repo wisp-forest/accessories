@@ -5,8 +5,8 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.client.AccessoriesRendererRegistery;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
 import io.wispforest.accessories.api.client.SimpleAccessoryRenderer;
 import net.minecraft.client.Minecraft;
@@ -30,7 +30,7 @@ public class PointedDripstoneAccessory implements Accessory {
 
     @OnlyIn(Dist.CLIENT)
     public static void clientInit() {
-        AccessoriesRendererRegistery.registerRenderer(Items.POINTED_DRIPSTONE, Renderer::new);
+        AccessoriesRendererRegistry.registerRenderer(Items.POINTED_DRIPSTONE, Renderer::new);
     }
 
     public static void init() {

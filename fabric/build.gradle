@@ -101,6 +101,13 @@ loom {
             name = "Testmod Server"
             source sourceSets.testmod
         }
+        client_renderDoc {
+            client()
+            ideConfigGenerated true
+            name = "Minecraft Client - (RenderDoc)"
+            source sourceSets.main
+            vmArg "-Dowo.renderdocPath=${System.getenv('renderDocPath')}"
+        }
     }
 
     accessWidenerPath = project(":common").loom.accessWidenerPath

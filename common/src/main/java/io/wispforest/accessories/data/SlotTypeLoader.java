@@ -8,7 +8,7 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.DropRule;
-import io.wispforest.accessories.api.SlotAmountAdjustments;
+import io.wispforest.accessories.api.slot.SlotAmountAdjustments;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
@@ -138,23 +138,27 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             if(isShared) {
                 var amount = this.safeHelper(GsonHelper::getAsInt, jsonObject, "amount", location);
 
-                var operation = this.safeHelper((jsonObject1, s) -> GsonHelper.getAsString(jsonObject1, s).toLowerCase(), jsonObject, "operation", "set", location);
+                if(amount != null) {
+                    var operation = this.safeHelper((jsonObject1, s) -> GsonHelper.getAsString(jsonObject1, s).toLowerCase(), jsonObject, "operation", null, location);
 
-                if ("set".equals(operation)) {
-                    if (amount != null) slotBuilder.amount(amount);
-                } else if ("add".equals(operation)) {
-                    if (amount == null) amount = 1;
+                    if ("set".equals(operation) || operation == null) {
+                        if (amount != null) slotBuilder.amount(amount);
+                    } else if ("add".equals(operation)) {
+                        if (amount == null) amount = 1;
 
-                    slotBuilder.addAmount(amount);
-                } else if ("sub".equals(operation)) {
-                    if (amount == null) amount = 1;
+                        slotBuilder.addAmount(amount);
+                    } else if ("sub".equals(operation)) {
+                        if (amount == null) amount = 1;
 
-                    slotBuilder.subtractAmount(amount);
+                        slotBuilder.subtractAmount(amount);
+                    } else {
+                        LOGGER.error("Unable to understand the passed operation for the given slot type file! [Location: " + location + ", Operation: " + operation + "]");
+                    }
                 }
 
                 slotBuilder.addAmount(additionalModifiers.getOrDefault(slotBuilder.name, 0));
 
-                var validators = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "validator_predicates", new JsonArray(), location);
+                var validators = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "validators", new JsonArray(), location);
 
                 decodeJsonArray(validators, "validator", location, element -> ResourceLocation.tryParse(element.getAsString()), slotBuilder::validator);
             }

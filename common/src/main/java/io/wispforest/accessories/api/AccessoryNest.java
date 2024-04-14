@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Implementation of {@link Accessory} declaring such as a Accessory that holds nested {@link Accessory} in some manor
+ * Implementation of {@link Accessory} declaring such as an Accessory that holds nested {@link Accessory} in some manor
  */
 public interface AccessoryNest extends Accessory {
 
