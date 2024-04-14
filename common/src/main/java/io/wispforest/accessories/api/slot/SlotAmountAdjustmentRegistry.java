@@ -13,17 +13,18 @@ import org.slf4j.Logger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * An API for adjusting a given slot by setting a target at which the slot amount should attempt to be set at
  */
-public class SlotAmountAdjustments {
+public class SlotAmountAdjustmentRegistry {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private static final SlotAmountAdjustments INSTANCE = new SlotAmountAdjustments();
+    private static final SlotAmountAdjustmentRegistry INSTANCE = new SlotAmountAdjustmentRegistry();
 
-    private final Map<String, Map<ResourceLocation, SlotAmountTarget>> allSuppliers = new HashMap<>();
+    private final Map<String, Map<ResourceLocation, SlotAmountAdjustment>> allSuppliers = new HashMap<>();
 
     /**
      * Method used to register an amount at which a given slot's base size should be based on the passed {@link LivingEntity}
@@ -33,7 +34,7 @@ public class SlotAmountAdjustments {
      * @param targetFunc The passed amount adjustment function
      * @return A consumer used to update a given {@link LivingEntity}'s slot amount
      */
-    public Consumer<LivingEntity> addAmountSupplier(SlotType slotType, ResourceLocation location, SlotAmountTarget targetFunc){
+    public Consumer<LivingEntity> addAmountSupplier(SlotType slotType, ResourceLocation location, SlotAmountAdjustment targetFunc){
         var slotName = slotType.name();
         var slotSpecificSuppliers = allSuppliers.computeIfAbsent(slotName, s -> new HashMap<>());
 
@@ -75,21 +76,27 @@ public class SlotAmountAdjustments {
             return;
         }
 
-        var slotAmount = targetFunc.getAmount(livingEntity);
-
-        if(slotAmount > container.getSize()) {
-            container.markChanged();
-            container.update();
-        }
+        container.markChanged();
+        container.update();
     }
 
     public static int getAmount(SlotType slotType, LivingEntity livingEntity){
-        int amount = 0;
+        var operations = INSTANCE.allSuppliers.getOrDefault(slotType.name(), Map.of()).values().stream()
+                .map(targetFunc -> targetFunc.getAmount(livingEntity))
+                .collect(Collectors.toSet());
 
-        for (var targetFunc : INSTANCE.allSuppliers.getOrDefault(slotType.name(), Map.of()).values()) {
-            var newAmount = targetFunc.getAmount(livingEntity);
+        int amount = slotType.amount();
 
-            if(newAmount > amount) amount = newAmount;
+        for (var operation : operations) {
+            if(!operation.type().equals(OperationType.SET)) continue;
+
+            amount = operation.attemptOperation(amount);
+        }
+
+        for (var operation : operations) {
+            if(operation.type().equals(OperationType.SET)) continue;
+
+            amount = operation.attemptOperation(amount);
         }
 
         return amount;
@@ -98,35 +105,45 @@ public class SlotAmountAdjustments {
     public static void onReload(){
         INSTANCE.allSuppliers.clear();
 
-        SlotAmountAdjustments.EVENT.invoker().afterLoad(INSTANCE);
+        SlotAmountAdjustmentRegistry.AFTER_SLOT_LOAD.invoker().registerAdjustments(INSTANCE);
     }
 
     //--
 
-    public interface SlotAmountTarget {
-        int getAmount(LivingEntity livingEntity);
+    public interface SlotAmountAdjustment {
+        ArithmeticOperation getAmount(LivingEntity livingEntity);
     }
 
-    public static final Event<AfterSlotLoad> EVENT = EventUtils.createEventWithBus(AfterSlotLoad.class, AccessoriesInternals::getBus, (iEventBus, invokers) -> instance -> {
+    public record ArithmeticOperation(OperationType type, int amount){
+        public int attemptOperation(int base) {
+            return switch (type) {
+                case ADD -> base + amount;
+                case SUB -> base - amount;
+                case SET -> amount;
+            };
+        }
+    }
+
+    public static final Event<SlotAdjustmentRegister> AFTER_SLOT_LOAD = EventUtils.createEventWithBus(SlotAdjustmentRegister.class, AccessoriesInternals::getBus, (iEventBus, invokers) -> instance -> {
         instance.allSuppliers.clear();
 
-        for (var invoker : invokers) invoker.afterLoad(instance);
+        for (var invoker : invokers) invoker.registerAdjustments(instance);
 
-        iEventBus.ifPresent(eventBus -> eventBus.post(new AfterSlotLoadEvent(instance)));
+        iEventBus.ifPresent(eventBus -> eventBus.post(new SlotAdjustmentRegisterEvent(instance)));
     });
 
-    public interface AfterSlotLoad {
-        void afterLoad(SlotAmountAdjustments instance);
+    public interface SlotAdjustmentRegister {
+        void registerAdjustments(SlotAmountAdjustmentRegistry instance);
     }
 
-    public static final class AfterSlotLoadEvent extends net.neoforged.bus.api.Event {
-        private final SlotAmountAdjustments instance;
+    public static final class SlotAdjustmentRegisterEvent extends net.neoforged.bus.api.Event {
+        private final SlotAmountAdjustmentRegistry instance;
 
-        public AfterSlotLoadEvent(SlotAmountAdjustments instance) {
+        public SlotAdjustmentRegisterEvent(SlotAmountAdjustmentRegistry instance) {
             this.instance = instance;
         }
 
-        public SlotAmountAdjustments instance() {
+        public SlotAmountAdjustmentRegistry instance() {
             return instance;
         }
     }

@@ -8,10 +8,7 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.DropRule;
-import io.wispforest.accessories.api.slot.SlotAmountAdjustments;
-import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.api.slot.SlotTypeReference;
-import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.impl.SlotTypeImpl;
 import net.minecraft.resources.ResourceLocation;
@@ -139,18 +136,20 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
                 var amount = this.safeHelper(GsonHelper::getAsInt, jsonObject, "amount", location);
 
                 if(amount != null) {
-                    var operation = this.safeHelper((jsonObject1, s) -> GsonHelper.getAsString(jsonObject1, s).toLowerCase(), jsonObject, "operation", null, location);
+                    var operation = this.safeHelper((jsonObject1, s) -> {
+                        try {
+                            return OperationType.valueOf(GsonHelper.getAsString(jsonObject1, s).toUpperCase());
+                        } catch (IllegalArgumentException e) {
+                            return null;
+                        }
+                    }, jsonObject, "operation", null, location);
 
-                    if ("set".equals(operation) || operation == null) {
-                        if (amount != null) slotBuilder.amount(amount);
-                    } else if ("add".equals(operation)) {
-                        if (amount == null) amount = 1;
-
-                        slotBuilder.addAmount(amount);
-                    } else if ("sub".equals(operation)) {
-                        if (amount == null) amount = 1;
-
-                        slotBuilder.subtractAmount(amount);
+                    if(operation != null) {
+                        switch (operation) {
+                            case SET -> slotBuilder.amount(amount);
+                            case ADD -> slotBuilder.addAmount(amount);
+                            case SUB -> slotBuilder.subtractAmount(amount);
+                        }
                     } else {
                         LOGGER.error("Unable to understand the passed operation for the given slot type file! [Location: " + location + ", Operation: " + operation + "]");
                     }
@@ -178,7 +177,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
         builders.forEach((s, slotBuilder) -> server.put(s, slotBuilder.create()));
 
-        SlotAmountAdjustments.onReload();
+        SlotAmountAdjustmentRegistry.onReload();
     }
 
     public static class SlotBuilder {
