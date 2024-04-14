@@ -1,10 +1,13 @@
 package io.wispforest.accessories.client.gui;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.client.AccessoriesMenu;
+import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
@@ -20,6 +23,7 @@ import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -34,12 +38,15 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.Range;
+import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.Nullable;
 import org.joml.*;
 import org.lwjgl.glfw.GLFW;
 
 import java.lang.Math;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class AccessoriesScreen extends EffectRenderingInventoryScreen<AccessoriesMenu> implements ContainerScreenExtension {
 
@@ -53,6 +60,17 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     protected static final ResourceLocation SCROLL_BAR = Accessories.of("scroll_bar");
 
     protected static final ResourceLocation HORIZONTAL_TABS = Accessories.of("textures/gui/container/horizontal_tabs_small.png");
+
+    private static final WidgetSprites SPRITES_12X12 = new WidgetSprites(Accessories.of("widget/12x12/button"), Accessories.of("widget/12x12/button_disabled"), Accessories.of("widget/12x12/button_highlighted"));
+    public static final WidgetSprites SPRITES_8X8 = new WidgetSprites(Accessories.of("widget/8x8/button"), Accessories.of("widget/8x8/button_disabled"), Accessories.of("widget/8x8/button_highlighted"));
+
+    private static final ResourceLocation BACk_ICON = Accessories.of("widget/back");
+
+    private static final ResourceLocation LINE_HIDDEN = Accessories.of("widget/line_hidden");
+    private static final ResourceLocation LINE_SHOWN = Accessories.of("widget/line_shown");
+
+    private static final ResourceLocation UNUSED_SLOTS_HIDDEN = Accessories.of("widget/unused_slots_hidden");
+    private static final ResourceLocation UNUSED_SLOTS_SHOWN = Accessories.of("widget/unused_slots_shown");
 
     @Nullable
     public static String HOVERED_SLOT_TYPE = null;
@@ -78,6 +96,58 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         this.titleLabelX = 97;
         this.inventoryLabelX = 42069;
+    }
+
+    private static final int upperPadding = 8;
+
+    public int getPanelHeight() {
+        return getPanelHeight(upperPadding);
+    }
+
+    public int getPanelHeight(int upperPadding) {
+        return 14 + (Math.min(menu.totalSlots, 8) * 18) + upperPadding;
+    }
+
+    public int getPanelWidth() {
+        int width = 8 + 18 + 18;
+
+        if (menu.isCosmeticsOpen()) width += 18 + 2;
+
+        if (!menu.overMaxVisibleSlots) width -= 12;
+
+        return width;
+    }
+
+    private int getStartingPanelX() {
+        int x = this.leftPos - ((menu.isCosmeticsOpen()) ? 72 : 52);
+
+        if (!menu.overMaxVisibleSlots) x += 12;
+
+        return x;
+    }
+
+    public int leftPos(){
+        return this.leftPos;
+    }
+
+    public int topPos(){
+        return this.topPos;
+    }
+
+    public final LivingEntity targetEntityDefaulted() {
+        var targetEntity = this.menu.targetEntity();
+
+        return (targetEntity != null) ? targetEntity : this.minecraft.player;
+    }
+
+    protected boolean insideScrollbar(double mouseX, double mouseY) {
+        int x = getStartingPanelX() + 13;
+        int y = this.topPos + 7 + upperPadding;
+
+        int height = getPanelHeight() - 22;
+        int width = 8;
+
+        return this.menu.overMaxVisibleSlots && (mouseX >= x && mouseY >= y && mouseX < (x + width) && mouseY < (y + height));
     }
 
     @Override
@@ -126,12 +196,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
-    public final LivingEntity targetEntityDefaulted() {
-        var targetEntity = this.menu.targetEntity();
-
-        return (targetEntity != null) ? targetEntity : this.minecraft.player;
-    }
-
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         int leftPos = this.leftPos;
@@ -145,7 +209,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         var scissorEnd = new Vector2i(leftPos + 26 + 124, topPos + 8 + 70);
         var size = new Vector2i((scissorEnd.x - scissorStart.x)/2, scissorEnd.y - scissorStart.y);
 
-        IS_RENDERING_PLAYER = true;
+        IS_RENDERING_PLAYER = this.getMenu().areLinesShown();
 
         SCISSOR_BOX.set(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y);
 
@@ -163,8 +227,10 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         //--
 
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(0.0F, 0.0F, 0);
+        var pose = guiGraphics.pose();
+
+        pose.pushPose();
+        pose.translate(0.0F, 0.0F, 0);
 
         int x = getStartingPanelX();
         int y = this.topPos;
@@ -172,24 +238,23 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         int height = getPanelHeight();
         int width = getPanelWidth();
 
-        guiGraphics.blitSprite(AccessoriesScreen.BACKGROUND_PATCH, x + 6, y, width, height); //147
+        //guiGraphics.blitSprite(AccessoriesScreen.BACKGROUND_PATCH, x + 6, y, width, height); //147
+        GuiGraphicsUtils.blitSpriteBatched(guiGraphics, AccessoriesScreen.BACKGROUND_PATCH, x + 6, y, width, height); //147
 
         if (menu.overMaxVisibleSlots) {
-            guiGraphics.blitSprite(AccessoriesScreen.SCROLL_BAR_PATCH, x + 13, y + 7 + upperPadding, 8, height - 22);
+            //guiGraphics.blitSprite(AccessoriesScreen.SCROLL_BAR_PATCH, x + 13, y + 7 + upperPadding, 8, height - 22);
+            GuiGraphicsUtils.blitSpriteBatched(guiGraphics, AccessoriesScreen.SCROLL_BAR_PATCH, x + 13, y + 7 + upperPadding, 8, height - 22);
         }
 
-        guiGraphics.pose().popPose();
+        pose.popPose();
+
+        //--
+
+        pose.pushPose();
+        pose.translate(-1, -1, 0);
 
         for (Slot slot : this.menu.slots) {
             if (!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) continue;
-
-            var pose = guiGraphics.pose();
-
-            pose.pushPose();
-
-            pose.translate(-1, -1, 0);
-
-            pose.pushPose();
 
             if (slot instanceof AccessoriesInternalSlot accessoriesSlot) {
                 var positionKey = accessoriesSlot.container.getSlotName() + accessoriesSlot.getContainerSlot();
@@ -203,41 +268,15 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                     this.accessoryLines.add(Pair.of(start, vec3));
                 }
             }
-
-            pose.popPose();
-
-            guiGraphics.blit(SLOT_FRAME, slot.x + this.leftPos, slot.y + this.topPos, 0, 0, 18, 18, 18, 18);
-
-            pose.popPose();
         }
-    }
 
-    private static final int upperPadding = 8;
+        GuiGraphicsUtils.batched(guiGraphics, SLOT_FRAME, this.menu.slots, (bufferBuilder, poseStack, slot) -> {
+            if (!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) return;
 
-    private int getPanelHeight() {
-        return getPanelHeight(upperPadding);
-    }
+            GuiGraphicsUtils.blit(bufferBuilder, poseStack, slot.x + this.leftPos, slot.y + this.topPos, 18);
+        });
 
-    private int getPanelHeight(int upperPadding) {
-        return 14 + (Math.min(menu.totalSlots, 8) * 18) + upperPadding;
-    }
-
-    private int getPanelWidth() {
-        int width = 8 + 18 + 18;
-
-        if (menu.isCosmeticsOpen()) width += 18 + 2;
-
-        if (!menu.overMaxVisibleSlots) width -= 12;
-
-        return width;
-    }
-
-    private int getStartingPanelX() {
-        int x = this.leftPos - ((menu.isCosmeticsOpen()) ? 72 : 52);
-
-        if (!menu.overMaxVisibleSlots) x += 12;
-
-        return x;
+        pose.popPose();
     }
 
     @Override
@@ -275,19 +314,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
-    protected boolean insideScrollbar(double mouseX, double mouseY) {
-        int x = getStartingPanelX() + 13;
-        int y = this.topPos + 7 + upperPadding;
-
-        int height = getPanelHeight() - 22;
-        int width = 8;
-
-        return this.menu.overMaxVisibleSlots && (mouseX >= x && mouseY >= y && mouseX < (x + width) && mouseY < (y + height));
-    }
-
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        //this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         for (var cosmeticButton : this.cosmeticButtons.values()) {
@@ -304,10 +332,12 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
             startingY += this.menu.smoothScroll * (panelHeight - 24 - this.scrollBarHeight);
 
-            guiGraphics.blitSprite(AccessoriesScreen.SCROLL_BAR, x + 14, startingY, 6, this.scrollBarHeight);
+            GuiGraphicsUtils.blitSpriteBatched(guiGraphics, AccessoriesScreen.SCROLL_BAR, x + 14, startingY, 6, this.scrollBarHeight);
         }
 
         //--
+
+        var pose = guiGraphics.pose();
 
         if(Accessories.getConfig().clientData.showGroupTabs) {
             for (var entry : getGroups(x, y).entrySet()) {
@@ -322,18 +352,17 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
                 var textureAtlasSprite = this.minecraft.getTextureAtlas(new ResourceLocation("textures/atlas/blocks.png")).apply(group.icon());
 
-                var poseStack = guiGraphics.pose();
+                pose.pushPose();
 
-                poseStack.pushPose();
+                pose.translate(vector.x + 3, vector.y + 3, 0);
+                pose.translate(1, 1, 0);
 
-                poseStack.translate(vector.x + 3, vector.y + 3, 0);
-                poseStack.translate(1, 1, 0);
+                if (pair.isSelected) pose.translate(2, 0, 0);
 
-                if (pair.isSelected) poseStack.translate(2, 0, 0);
-
+                // MultiDraw?
                 guiGraphics.blit(0, 0, 0, 8, 8, textureAtlasSprite);
 
-                poseStack.popPose();
+                pose.popPose();
             }
         }
 
@@ -341,7 +370,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
 
-        if(Accessories.getConfig().clientData.showLineRendering) {
+        if(Accessories.getConfig().clientData.showLineRendering && !this.accessoryLines.isEmpty()) {
             var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
             var normals = guiGraphics.pose().last().normal();
 
@@ -411,11 +440,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         }
     }
 
-    @Override
-    public boolean handleComponentClicked(@Nullable Style style) {
-        return super.handleComponentClicked(style);
-    }
-
     private Button backButton = null;
 
     private Button cosmeticToggleButton = null;
@@ -425,17 +449,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     private Button tabUpButton = null;
     private Button tabDownButton = null;
-
-    private static final WidgetSprites SPRITES_12X12 = new WidgetSprites(Accessories.of("widget/12x12/button"), Accessories.of("widget/12x12/button_disabled"), Accessories.of("widget/12x12/button_highlighted"));
-    public static final WidgetSprites SPRITES_8X8 = new WidgetSprites(Accessories.of("widget/8x8/button"), Accessories.of("widget/8x8/button_disabled"), Accessories.of("widget/8x8/button_highlighted"));
-
-    private static final ResourceLocation BACk_ICON = Accessories.of("widget/back");
-
-    private static final ResourceLocation LINE_HIDDEN = Accessories.of("widget/line_hidden");
-    private static final ResourceLocation LINE_SHOWN = Accessories.of("widget/line_shown");
-
-    private static final ResourceLocation UNUSED_SLOTS_HIDDEN = Accessories.of("widget/unused_slots_hidden");
-    private static final ResourceLocation UNUSED_SLOTS_SHOWN = Accessories.of("widget/unused_slots_shown");
 
     @Override
     protected void init() {
@@ -794,7 +807,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     //--
 
     private void renderEntityInInventoryFollowingMouseRotated(GuiGraphics guiGraphics, Vector2i pos, Vector2i size, Vector2i scissorStart, Vector2i scissorEnd, float mouseX, float mouseY, float rotation) {
-        //30, 0.0625F, mousePos, targetEntity, 0
         int scale = 30;
         float yOffset = 0.0625F;
         var entity = this.targetEntityDefaulted();

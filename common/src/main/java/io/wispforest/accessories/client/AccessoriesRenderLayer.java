@@ -38,8 +38,6 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
     @Override
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-        //if(true) return;
-
         var capability = AccessoriesCapability.get(entity);
 
         if (capability == null) return;
@@ -47,6 +45,12 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
         var calendar = Calendar.getInstance();
 
         float scale = (float) (1 + (0.5 * (0.75 + (Math.sin(System.currentTimeMillis() / 250d)))));
+
+        var renderingLines = AccessoriesScreen.IS_RENDERING_PLAYER && Accessories.getConfig().clientData.showLineRendering;
+
+        if(!renderingLines && !AccessoriesScreen.NOT_VERY_NICE_POSITIONS.isEmpty()) {
+            AccessoriesScreen.NOT_VERY_NICE_POSITIONS.clear();
+        }
 
         for (var entry : capability.getContainers().entrySet()) {
             var container = entry.getValue();
@@ -60,21 +64,11 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                 if (!cosmeticStack.isEmpty()) stack = cosmeticStack;
 
-                var renderingLines = AccessoriesScreen.IS_RENDERING_PLAYER && Accessories.getConfig().clientData.showLineRendering;
-
-                if(stack.isEmpty()) {
-                    if(!renderingLines) AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
-
-                    continue;
-                }
+                if(stack.isEmpty()) continue;
 
                 var renderer = AccessoriesRendererRegistry.getRender(stack);
 
-                if(renderer == null || !renderer.shouldRender(container.shouldRender(i))) {
-                    if(!renderingLines) AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
-
-                    continue;
-                }
+                if(renderer == null || !renderer.shouldRender(container.shouldRender(i))) continue;
 
                 poseStack.pushPose();
 
@@ -121,11 +115,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                         }
                     }
 
-                    if (AccessoriesScreen.IS_RENDERING_PLAYER) {
-                        AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, mpoatv.meanPos());
-                    } else {
-                        AccessoriesScreen.NOT_VERY_NICE_POSITIONS.remove(container.getSlotName() + i);
-                    }
+                    AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, mpoatv.meanPos());
                 }
 
                 poseStack.popPose();
