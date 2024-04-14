@@ -25,6 +25,8 @@ public class AccessoriesConfig implements ConfigData {
         public int creativeInventoryButtonYOffset = 7;
 
         public boolean forceNullRenderReplacement = false;
+
+        public boolean disableEmptySlotScreenError = false;
     }
 
     public List<SlotAmountModifier> modifiers = new ArrayList<>();

@@ -1,6 +1,7 @@
 package io.wispforest.accessories.client;
 
 import com.mojang.blaze3d.platform.Window;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.AccessoriesInternalsClient;
 import io.wispforest.accessories.api.AccessoriesAPI;
@@ -49,7 +50,7 @@ public class AccessoriesClient {
 
         if(holder == null) return false;
 
-        if(slots.isEmpty() && !holder.showUnusedSlots() && !displayUnusedSlotWarning) {
+        if(slots.isEmpty() && !holder.showUnusedSlots() && !displayUnusedSlotWarning && !Accessories.getConfig().clientData.disableEmptySlotScreenError) {
             player.displayClientMessage(Component.literal("[Accessories]: No Used Slots found by any mod directly, such will show empty unless a item is found to implement slots!"), false);
 
             displayUnusedSlotWarning = true;
