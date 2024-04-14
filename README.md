@@ -10,7 +10,7 @@ Accessories is a Data-Driven Accessory mod for NeoForge and Fabric with emphasis
   
 Such API is based on the works of [Curios](https://github.com/TheIllusiveC4/Curios) and [Trinkets](https://github.com/emilyploszaj/trinkets) with credit going to both [TheIllusiveC4](https://github.com/TheIllusiveC4) and [emilyploszaj](https://github.com/emilyploszaj) for their work on Accessory mods for Minecraft.
 
-<center><img width=600 src="https://cdn.modrinth.com/data/jtmvUHXj/images/225eb5f172da0586a1e4ff184c5345d489032214.png" /></center>
+<center><img width=600 src="https://cdn.modrinth.com/data/jtmvUHXj/images/e40c711b48f2962a31f808c34792ba4f71978ca3.png"/></center>
 
 ## Build Setup
 
