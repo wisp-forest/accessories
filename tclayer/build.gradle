@@ -24,8 +24,8 @@ repositories {
     mavenLocal()
 }
 
-evaluationDependsOn(':common')
-evaluationDependsOn(':fabric')
+//evaluationDependsOn(':common')
+//evaluationDependsOn(':fabric')
 
 dependencies {
     modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"

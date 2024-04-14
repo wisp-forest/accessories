@@ -19,9 +19,12 @@ repositories {
     maven { url "https://maven.neoforged.net/releases/" }
     maven { url "https://maven.su5ed.dev/releases" }
     maven { url "https://maven.shedaniel.me/" }
+    maven { url "https://maven.architectury.dev/" }
+    maven { url  "https://maven.terraformersmc.com/" }
+    maven { url "https://maven.blamejared.com/" } // location of the maven that hosts JEI files since January 2023
+    maven { url "https://modmaven.dev" } // location of a maven mirror for JEI files, as a fallback
     maven { url 'https://jitpack.io' }
     mavenCentral()
-    //mavenLocal()
 }
 
 sourceSets {
@@ -39,13 +42,26 @@ dependencies {
 
     modApi("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
 
-//    include modApi("dev.su5ed.sinytra.fabric-api:fabric-api-base:0.4.35+f77bd0ed4f"){
-//        exclude group: "fabric-api"
-//    }
+//    include modApi("dev.su5ed.sinytra.fabric-api:fabric-api-base:0.4.35+f77bd0ed4f"){ exclude group: "fabric-api" }
     include modApi('com.github.Dragon-Seeker.ForgifiedFabricAPI:fabric-api-base:1.20.4-SNAPSHOT')
 
-
     testmodImplementation sourceSets.main.output
+
+    var type = rootProject.properties.get("item_viewer_type");
+
+    modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-neoforge:${rootProject.rei_version}")
+    modCompileOnly("dev.emi:emi-neoforge:${rootProject.emi_version}:api")
+    modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-neoforge-api:${rootProject.jei_version}")
+
+    if(type == "rei") {
+        modRuntimeOnly("me.shedaniel:RoughlyEnoughItems-neoforge:${rootProject.rei_version}")
+    } else if(type == "emi") {
+        modLocalRuntime("dev.emi:emi-neoforge:${rootProject.emi_version}")
+    } else if(type == "jei") {
+        modRuntimeOnly("mezz.jei:jei-${rootProject.minecraft_version}-neoforge:${rootProject.jei_version}")
+    } else {
+        throw new IllegalStateException("Unable to locate the given item viewer!")
+    }
 }
 
 processResources {

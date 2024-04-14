@@ -43,7 +43,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
     private static final EquipmentSlot[] SLOT_IDS;
     public final boolean active;
 
-    private final Player owner;
+    public final Player owner;
     @Nullable
     private final LivingEntity targetEntity;
 
@@ -94,6 +94,13 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         return new AccessoriesMenu(containerId, inventory, active, targetEntity);
     }
 
+    @Nullable
+    public final Set<SlotType> usedSlots;
+
+    public boolean showingSlots() {
+        return this.usedSlots == null || !this.usedSlots.isEmpty();
+    }
+
     public AccessoriesMenu(int containerId, Inventory inventory, boolean active, @Nullable LivingEntity targetEntity) {
         super(Accessories.ACCESSORIES_MENU_TYPE, containerId);
 
@@ -104,11 +111,9 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
         //--
 
-        Set<SlotType> slots = null;
-
-        if(!this.areUnusedSlotsShown()) {
-            slots = new HashSet<>(AccessoriesAPI.getUsedSlotsFor(targetEntity != null ? targetEntity : owner, owner.getInventory()));
-        }
+        this.usedSlots = !this.areUnusedSlotsShown()
+                ? new HashSet<>(AccessoriesAPI.getUsedSlotsFor(targetEntity != null ? targetEntity : owner, owner.getInventory()))
+                : null;
 
         //--
 
@@ -201,7 +206,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
                     .toList();
 
             for (var slot : slotTypes) {
-                if(slots != null && !slots.contains(slot)) {
+                if(this.usedSlots != null && !this.usedSlots.contains(slot)) {
                     continue;
                 } else {
                     this.validGroups.add(group);

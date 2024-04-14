@@ -23,8 +23,8 @@ repositories {
     //mavenLocal()
 }
 
-evaluationDependsOn(':common')
-evaluationDependsOn(':neoforge')
+//evaluationDependsOn(':common')
+//evaluationDependsOn(':neoforge')
 
 dependencies {
     neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"

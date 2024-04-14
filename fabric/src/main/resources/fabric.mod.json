@@ -50,6 +50,15 @@
     ],
     "modmenu": [
       "io.wispforest.accessories.fabric.compat.ModMenuEntry"
+    ],
+    "rei_client": [
+      "io.wispforest.accessories.compat.rei.AccessoriesClientREIPlugin"
+    ],
+    "emi": [
+      "io.wispforest.accessories.compat.emi.AccessoriesClientEMIPlugin"
+    ],
+    "jei": [
+      "io.wispforest.accessories.compat.jei.AccessoriesClientJEIPlugin"
     ]
   },
   "mixins": [
