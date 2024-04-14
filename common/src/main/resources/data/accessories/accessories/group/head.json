@@ -5,8 +5,5 @@
     "hat",
     "face"
   ],
-  "icon":{
-    "location": "accessories:gui/group/head",
-    "size": 16
-  }
+  "icon": "accessories:gui/group/head"
 }

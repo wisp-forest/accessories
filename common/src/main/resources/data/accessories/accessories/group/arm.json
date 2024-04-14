@@ -6,8 +6,5 @@
     "ring",
     "wrist"
   ],
-  "icon":{
-    "location": "accessories:gui/group/arm",
-    "size": 16
-  }
+  "icon": "accessories:gui/group/arm"
 }

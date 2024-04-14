@@ -5,8 +5,5 @@
     "shoes",
     "anklet"
   ],
-  "icon":{
-    "location": "accessories:gui/group/feet",
-    "size": 16
-  }
+  "icon": "accessories:gui/group/feet"
 }

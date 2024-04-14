@@ -130,20 +130,15 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
                 group.order(safeHelper(GsonHelper::getAsInt, jsonObject, "order", 100, location));
             }
 
-            var iconInfo = safeHelper(GsonHelper::getAsJsonObject, jsonObject, "icon", location);
+            var icon = safeHelper(GsonHelper::getAsString, jsonObject, "icon", location);
 
-            if(iconInfo != null){
-                var iconSize = safeHelper(GsonHelper::getAsInt, iconInfo, "size", 8, location);
-                var iconLocationString = safeHelper(GsonHelper::getAsString, iconInfo, "location", location);
+            if(icon != null){
+                var iconLocation = ResourceLocation.tryParse(icon);
 
-                if(iconLocationString != null){
-                    var iconLocation = ResourceLocation.tryParse(iconLocationString);
-
-                    if(iconLocation != null){
-                        group.icon(iconLocation);
-                    } else {
-                        LOGGER.warn("A given SlotGroup was found to have a invalid Icon Location. [Location: {}]", location);
-                    }
+                if(iconLocation != null){
+                    group.icon(iconLocation);
+                } else {
+                    LOGGER.warn("A given SlotGroup was found to have a invalid Icon Location. [Location: {}]", location);
                 }
             }
 

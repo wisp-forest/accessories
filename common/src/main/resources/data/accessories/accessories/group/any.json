@@ -4,8 +4,5 @@
   "slots": [
     "charm"
   ],
-  "icon":{
-    "location": "accessories:gui/group/any",
-    "size": 16
-  }
+  "icon": "accessories:gui/group/any"
 }

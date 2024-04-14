@@ -6,8 +6,5 @@
     "cape",
     "back"
   ],
-  "icon":{
-    "location": "accessories:gui/group/chest",
-    "size": 16
-  }
+  "icon": "accessories:gui/group/chest"
 }
