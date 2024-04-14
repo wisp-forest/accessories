@@ -256,7 +256,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         for (Slot slot : this.menu.slots) {
             if (!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) continue;
 
-            if (slot instanceof AccessoriesInternalSlot accessoriesSlot) {
+            if (slot instanceof AccessoriesInternalSlot accessoriesSlot && !accessoriesSlot.getItem().isEmpty()) {
                 var positionKey = accessoriesSlot.container.getSlotName() + accessoriesSlot.getContainerSlot();
 
                 var vec = NOT_VERY_NICE_POSITIONS.getOrDefault(positionKey, null);

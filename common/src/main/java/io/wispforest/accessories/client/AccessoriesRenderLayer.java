@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.lwjgl.opengl.GL30;
 
 import java.awt.*;
@@ -74,7 +75,11 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                 var mpoatv = new MPOATVConstructingVertexConsumer();
 
+                var bufferedGrabbedFlag = new MutableBoolean(false);
+
                 MultiBufferSource innerBufferSource = renderType -> {
+                    bufferedGrabbedFlag.setValue(true);
+
                     return renderingLines ?
                             VertexMultiConsumer.create(multiBufferSource.getBuffer(renderType), mpoatv) :
                             multiBufferSource.getBuffer(renderType);
@@ -82,7 +87,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                 renderer.render(stack, new SlotReference(container.getSlotName(), entity, i), poseStack, getParentModel(), innerBufferSource, light, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
 
-                if(renderingLines) {
+                if(renderingLines && bufferedGrabbedFlag.getValue()) {
                     float[] colorValues = null;
 
                     if (AccessoriesScreen.HOVERED_SLOT_TYPE != null && AccessoriesScreen.HOVERED_SLOT_TYPE.equals(container.getSlotName() + i)) {
