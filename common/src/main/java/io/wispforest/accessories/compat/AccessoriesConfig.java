@@ -11,7 +11,7 @@ import java.util.List;
 @Config(name = Accessories.MODID)
 public class AccessoriesConfig implements ConfigData {
 
-    @ConfigEntry.Gui.CollapsibleObject
+    @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
     public ClientData clientData = new ClientData();
 
     public static class ClientData {
