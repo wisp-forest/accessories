@@ -1,3 +1,8 @@
+All files within the cclayer submodule found within this project are 
+licensed under the LGPL 3.0 instead of the MIT license for the rest of 
+the repository. Such LGPL 3.0 license can be found within the file name 
+CCLAYER_LICENSE.
+
 MIT License
 
 Copyright (c) 2024 Wisp Forest
