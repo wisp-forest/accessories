@@ -94,7 +94,7 @@ public class AccessoriesInternalsImpl {
         return Registry.register(BuiltInRegistries.MENU, location, new ExtendedScreenHandlerType<>(func::apply));
     }
 
-    public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity) {
+    public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         player.openMenu(new ExtendedScreenHandlerFactory() {
             @Override
             public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
@@ -112,7 +112,11 @@ public class AccessoriesInternalsImpl {
             @Nullable
             @Override
             public AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
-                return new AccessoriesMenu(i, inventory, true, targetEntity);
+                var menu = new AccessoriesMenu(i, inventory, true, targetEntity);
+
+                if(carriedStack != null) menu.setCarried(carriedStack);
+
+                return menu;
             }
         });
     }

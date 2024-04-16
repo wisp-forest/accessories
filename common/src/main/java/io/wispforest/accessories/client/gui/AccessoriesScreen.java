@@ -4,6 +4,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.client.AccessoriesMenu;
@@ -169,7 +170,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             var groups = this.getGroups(x, y);
 
             for (var value : groups.values()) {
-                if (value.isInBounds((int) Math.round(mouseX), (int) Math.round(mouseY))) continue;
+                if (!value.isInBounds((int) Math.round(mouseX), (int) Math.round(mouseY))) continue;
 
                 var index = value.startingIndex;
 
@@ -746,11 +747,20 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         var scrollRange = Range.between(bottomIndex, upperIndex, Integer::compareTo);
 
+        var targetEntity = this.targetEntityDefaulted();
+
+        var capability = targetEntity.accessoriesCapability();
+
+        var slotToSize = new HashMap<String, Integer>();
+
+        for (var container : capability.getContainers().values()) {
+            slotToSize.put(container.getSlotName(), container.getAccessories().getContainerSize());
+        }
+
         for (var group : groups) {
-            var groupSize = group.slots().stream()
-                    .map(s -> SlotTypeLoader.getSlotType(Minecraft.getInstance().player.clientLevel, s))
-                    .filter(Objects::nonNull)
-                    .mapToInt(SlotType::amount)
+            var groupSize = slotToSize.entrySet().stream()
+                    .filter(entry -> group.slots().contains(entry.getKey()))
+                    .mapToInt(Map.Entry::getValue)
                     .sum();
 
             var groupMinIndex = currentIndexOffset;

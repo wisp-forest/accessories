@@ -1,10 +1,7 @@
 package io.wispforest.testccessories.fabric;
 
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
-import io.wispforest.testccessories.fabric.accessories.AppleAccessory;
-import io.wispforest.testccessories.fabric.accessories.PointedDripstoneAccessory;
-import io.wispforest.testccessories.fabric.accessories.PotatoAccessory;
-import io.wispforest.testccessories.fabric.accessories.TntAccessory;
+import io.wispforest.testccessories.fabric.accessories.*;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -26,6 +23,7 @@ public class Testccessories implements ModInitializer {
         PotatoAccessory.init();
         PointedDripstoneAccessory.init();
         TntAccessory.init();
+        RingIncreaserAccessory.init();
 
         UniqueSlotHandling.EVENT.register(UniqueSlotTest.INSTANCE);
 

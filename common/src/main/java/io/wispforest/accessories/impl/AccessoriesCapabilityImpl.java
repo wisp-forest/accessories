@@ -24,12 +24,19 @@ import java.util.*;
 import java.util.function.*;
 
 @ApiStatus.Internal
-public record AccessoriesCapabilityImpl(LivingEntity entity) implements AccessoriesCapability, InstanceCodecable {
+public class AccessoriesCapabilityImpl implements AccessoriesCapability, InstanceCodecable {
+
+    private final LivingEntity entity;
 
     public AccessoriesCapabilityImpl(LivingEntity entity) {
         this.entity = entity;
 
         if (holder().loadedFromTag) this.reset(true);
+    }
+
+    @Override
+    public LivingEntity entity() {
+        return entity;
     }
 
     @Override
@@ -56,7 +63,7 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
 
         var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
 
-        if(!loadedFromTag) {
+        if (!loadedFromTag) {
             var oldContainers = Map.copyOf(holder.getSlotContainers());
 
             holder.init(this);
@@ -83,6 +90,35 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
         }
     }
 
+    private boolean updateContainersLock = false;
+
+    @Override
+    public void updateContainers() {
+        if (updateContainersLock) return;
+
+        boolean hasUpdateOccurred;
+
+        var containers = this.getContainers().values();
+
+        this.updateContainersLock = true;
+
+        do {
+            hasUpdateOccurred = false;
+
+            for (var container : containers) {
+                if (!container.hasChanged()) {
+                    continue;
+                }
+
+                container.update();
+
+                hasUpdateOccurred = true;
+            }
+        } while (hasUpdateOccurred);
+
+        this.updateContainersLock = false;
+    }
+
     @Override
     public void addTransientSlotModifiers(Multimap<String, AttributeModifier> modifiers) {
         var containers = this.holder().getSlotContainers();
@@ -92,7 +128,7 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
 
             var container = containers.get(entry.getKey());
 
-            entry.getValue().forEach(container::addModifier);
+            entry.getValue().forEach(container::addTransientModifier);
         }
     }
 
@@ -271,7 +307,7 @@ public record AccessoriesCapabilityImpl(LivingEntity entity) implements Accessor
                             : null;
                 });
 
-                if(entryReference != null) return entryReference;
+                if (entryReference != null) return entryReference;
             }
         }
 

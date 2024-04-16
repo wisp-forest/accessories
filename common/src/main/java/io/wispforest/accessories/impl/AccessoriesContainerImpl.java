@@ -6,7 +6,6 @@ import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.slot.SlotAmountAdjustmentRegistry;
 import io.wispforest.accessories.api.slot.SlotAttribute;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
@@ -74,6 +73,11 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
         inv.add(this);
     }
 
+    @Override
+    public boolean hasChanged() {
+        return this.update;
+    }
+
     public void update(){
         if(!update) return;
 
@@ -88,14 +92,6 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
         }
 
         int baseSize = this.baseSize;
-
-        var slotAmountModifier = slotType != null
-                ? SlotAmountAdjustmentRegistry.getAmount(slotType, this.capability.entity())
-                : 0;
-
-        if(slotAmountModifier > baseSize){
-            baseSize = slotAmountModifier;
-        }
 
         for(AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADDITION)){
             baseSize += modifier.getAmount();
@@ -131,6 +127,9 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
                 invalidStacks.add(this.cosmeticAccessories.getItem(i));
             }
         }
+
+        newAccessories.copyPrev(this.accessories);
+        newCosmetics.copyPrev(this.cosmeticAccessories);
 
         this.accessories = newAccessories;
         this.cosmeticAccessories = newCosmetics;
@@ -183,6 +182,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
         }
 
         ((AccessoriesHolderImpl) this.capability.getHolder()).invalidStacks.addAll(invalidStacks);
+
+        if(this.update) this.capability.updateContainers();
     }
 
     @Override
@@ -234,7 +235,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
     }
 
     @Override
-    public void addModifier(AttributeModifier modifier) {
+    public void addTransientModifier(AttributeModifier modifier) {
         this.modifiers.put(modifier.getId(), modifier);
         this.getModifiersForOperation(modifier.getOperation()).add(modifier);
         this.markChanged();
@@ -242,7 +243,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
     @Override
     public void addPersistentModifier(AttributeModifier modifier) {
-        this.addModifier(modifier);
+        this.addTransientModifier(modifier);
         this.persistentModifiers.add(modifier);
     }
 
@@ -279,7 +280,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
         this.modifiers.clear();
         this.modifiersByOperation.clear();
         this.persistentModifiers.clear();
-        other.modifiers.values().forEach(this::addModifier);
+        other.modifiers.values().forEach(this::addTransientModifier);
         other.persistentModifiers.forEach(this::addPersistentModifier);
         this.update();
     }
@@ -337,6 +338,13 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         tag.put(RENDER_OPTIONS_KEY, renderOptionsTag);
 
+        if(!sync || this.accessories.wasNewlyConstructed()) {
+            tag.putInt("size", accessories.getContainerSize());
+
+            tag.put(ITEMS_KEY, accessories.createTag());
+            tag.put(COSMETICS_KEY, cosmeticAccessories.createTag());
+        }
+
         if(sync){
             if(!this.modifiers.isEmpty()){
                 ListTag modifiersTag = new ListTag();
@@ -346,12 +354,6 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
                 tag.put(MODIFIERS_KEY, modifiersTag);
             }
         } else {
-            tag.putInt("size", accessories.getContainerSize());
-
-            tag.put(ITEMS_KEY, accessories.createTag());
-
-            tag.put(COSMETICS_KEY, cosmeticAccessories.createTag());
-
             if(!this.persistentModifiers.isEmpty()){
                 var persistentTag = new ListTag();
 
@@ -392,6 +394,18 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
                     .collect(Collectors.toList());
         }
 
+        if(tag.contains("size")) {
+            var size = tag.getInt("size");
+
+            if(this.accessories.getContainerSize() != size) {
+                this.accessories = new ExpandedSimpleContainer(size, "Accessories");
+                this.cosmeticAccessories = new ExpandedSimpleContainer(size, "Cosmetic Accessories");
+            }
+
+            this.accessories.fromTag(tag.getList(ITEMS_KEY, Tag.TAG_COMPOUND));
+            this.cosmeticAccessories.fromTag(tag.getList(COSMETICS_KEY, Tag.TAG_COMPOUND));
+        }
+
         if(sync) {
             this.modifiers.clear();
             this.persistentModifiers.clear();
@@ -403,20 +417,10 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
                 for (int i = 0; i < persistentTag.size(); i++) {
                     var modifier = AttributeModifier.load(persistentTag.getCompound(i));
 
-                    if (modifier != null) this.addModifier(modifier);
+                    if (modifier != null) this.addTransientModifier(modifier);
                 }
             }
         } else {
-            var size = tag.getInt("size");
-
-            if(this.accessories.getContainerSize() != size) {
-                this.accessories = new ExpandedSimpleContainer(this.baseSize, "Accessories");
-                this.cosmeticAccessories = new ExpandedSimpleContainer(this.baseSize, "Cosmetic Accessories");
-            }
-
-            this.accessories.fromTag(tag.getList(ITEMS_KEY, Tag.TAG_COMPOUND));
-            this.cosmeticAccessories.fromTag(tag.getList(COSMETICS_KEY, Tag.TAG_COMPOUND));
-
             if (tag.contains(PERSISTENT_MODIFIERS_KEY)) {
                 var persistentTag = tag.getList(PERSISTENT_MODIFIERS_KEY, Tag.TAG_COMPOUND);
 
@@ -435,7 +439,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
                     if (modifier != null) {
                         this.cachedModifiers.add(modifier);
-                        this.addModifier(modifier);
+                        this.addTransientModifier(modifier);
                     }
 
                     this.update();

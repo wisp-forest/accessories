@@ -176,8 +176,6 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         uniqueSlots.forEach((s, slotBuilder) -> server.put(s, slotBuilder.create()));
 
         builders.forEach((s, slotBuilder) -> server.put(s, slotBuilder.create()));
-
-        SlotAmountAdjustmentRegistry.onReload();
     }
 
     public static class SlotBuilder {

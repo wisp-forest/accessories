@@ -134,6 +134,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
     }
 
     public void read(LivingEntity entity, CompoundTag tag) {
+        this.loadedFromTag = false;
+
         var slots = EntitySlotLoader.getEntitySlots(entity);
 
         this.cosmeticsShown = tag.getBoolean(COSMETICS_SHOWN_KEY);
@@ -181,7 +183,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
             }
         }
 
-        this.loadedFromTag = false;
+        entity.accessoriesCapability().clearCachedSlotModifiers();
+
         this.tag = new CompoundTag();
     }
 

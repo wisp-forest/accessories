@@ -35,6 +35,8 @@ public class AccessoriesRendererRegistry {
         RENDERERS.put(item, () -> null);
     }
 
+    //--
+
     public static final String defaultRenderOverrideKey = "AccessoriesDefaultRenderOverride";
 
     @Nullable

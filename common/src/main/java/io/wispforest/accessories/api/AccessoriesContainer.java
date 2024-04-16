@@ -67,6 +67,8 @@ public interface AccessoriesContainer {
      */
     void markChanged();
 
+    boolean hasChanged();
+
     /**
      * Used to update the container if dirty
      */
@@ -74,21 +76,54 @@ public interface AccessoriesContainer {
 
     //--
 
+    /**
+     * @return All slot modifiers applied to the given Container
+     */
     Map<UUID, AttributeModifier> getModifiers();
 
+    /**
+     * @return All cached modifiers sent within sync packet to the client
+     */
     Set<AttributeModifier> getCachedModifiers();
 
+    /**
+     * @return A collection of attribute modifiers using the specified operation type
+     */
     Collection<AttributeModifier> getModifiersForOperation(AttributeModifier.Operation operation);
 
-    void addModifier(AttributeModifier modifier);
+    /**
+     * Adds a temporary slot modifier to the given container which means it will not be
+     * present on a reload
+     * @param modifier The specific AttributeModifier
+     */
+    void addTransientModifier(AttributeModifier modifier);
 
+    /**
+     * Adds a persistent slot modifier to the given container which means it will be
+     * present on a reload
+     * @param modifier The specific AttributeModifier
+     */
     void addPersistentModifier(AttributeModifier modifier);
 
+    /**
+     * Remove the specific attribute modifier from the map if found
+     * @param uuid The specific UUID
+     */
     void removeModifier(UUID uuid);
 
+    /**
+     * Remove all modifiers from the given container
+     */
     void clearModifiers();
 
+    /**
+     * Remove the specific attribute modifier from the cached map
+     * @param modifier The specific AttributeModifier
+     */
     void removeCachedModifiers(AttributeModifier modifier);
 
+    /**
+     * Remove all cached modifiers from the given container
+     */
     void clearCachedModifiers();
 }

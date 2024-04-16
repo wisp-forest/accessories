@@ -33,7 +33,7 @@ public class WrappedTrinketInventory extends TrinketInventory {
 
     @Override
     public void addModifier(AttributeModifier modifier) {
-        container.addModifier(modifier);
+        container.addTransientModifier(modifier);
     }
 
     @Override

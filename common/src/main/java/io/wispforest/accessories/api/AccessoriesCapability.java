@@ -61,6 +61,8 @@ public interface AccessoriesCapability {
         return getContainers().get(slotType.name());
     }
 
+    void updateContainers();
+
     //--
 
     /**
@@ -133,15 +135,38 @@ public interface AccessoriesCapability {
 
     //--
 
+    /**
+     * Add map containing slot attributes to the given capability based on the keys used referencing specific slots
+     * with being lost on reload
+     * @param modifiers Slot Attribute Modifiers
+     */
     void addTransientSlotModifiers(Multimap<String, AttributeModifier> modifiers);
 
+    /**
+     * Add slot attribute attributes to the given capability based on the keys used referencing specific slots
+     * with being persistent on a reload
+     * @param modifiers Slot Attribute Modifiers
+     */
     void addPersistentSlotModifiers(Multimap<String, AttributeModifier> modifiers);
 
+    /**
+     * Add slot attribute attributes to the given capability based on the keys
+     * @param modifiers Slot Attribute Modifiers
+     */
     void removeSlotModifiers(Multimap<String, AttributeModifier> modifiers);
 
+    /**
+     * Get all modifiers from the given containers bound to the capability
+     */
     Multimap<String, AttributeModifier> getSlotModifiers();
 
+    /**
+     * Remove all modifiers from the given containers bound to the capability
+     */
     void clearSlotModifiers();
 
+    /**
+     * Remove all cached modifiers from the given containers bound to the capability
+     */
     void clearCachedSlotModifiers();
 }

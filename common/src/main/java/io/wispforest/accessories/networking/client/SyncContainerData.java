@@ -1,7 +1,10 @@
 package io.wispforest.accessories.networking.client;
 
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.client.AccessoriesClient;
+import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
 import io.wispforest.accessories.networking.CacheableAccessoriesPacket;
 import net.fabricmc.api.EnvType;
@@ -91,10 +94,16 @@ public class SyncContainerData extends CacheableAccessoriesPacket {
 
         var containers = capability.getContainers();
 
+        var aContainerHasResized = false;
+
         for (var entry : this.updatedContainers.entrySet()) {
             if(!containers.containsKey(entry.getKey())) continue;
 
-            ((AccessoriesContainerImpl)containers.get(entry.getKey())).read(entry.getValue(), true);
+            var container = containers.get(entry.getKey());
+
+            ((AccessoriesContainerImpl) container).read(entry.getValue(), true);
+
+            if(container.getAccessories().wasNewlyConstructed()) aContainerHasResized = true;
         }
 
         for (var entry : dirtyStacks.entrySet()) {
@@ -123,6 +132,11 @@ public class SyncContainerData extends CacheableAccessoriesPacket {
             try {
                 container.getCosmeticAccessories().setItem(Integer.parseInt(parts[1]), entry.getValue());
             } catch (NumberFormatException ignored){}
+        }
+
+        if(player.containerMenu instanceof AccessoriesMenu menu && aContainerHasResized) {
+            menu.reopenMenu();
+            //AccessoriesClient.attemptToOpenScreen();
         }
     }
 }

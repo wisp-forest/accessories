@@ -5,6 +5,7 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.slot.SlotReference;
 import it.unimi.dsi.fastutil.ints.Int2BooleanArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -31,12 +32,16 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     private final NonNullList<ItemStack> previousItems;
     private final Int2BooleanMap setFlags = new Int2BooleanArrayMap();
 
+    private boolean newlyConstructed;
+
     private ExpandedSimpleContainer(int size) {
         this(size, "");
     }
 
     public ExpandedSimpleContainer(int size, String name) {
         super(size);
+
+        this.newlyConstructed = true;
 
         this.name = name;
         this.previousItems = NonNullList.withSize(size, ItemStack.EMPTY);
@@ -45,11 +50,21 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     private ExpandedSimpleContainer(ItemStack... items) {
         super(items);
 
+        this.newlyConstructed = true;
+
         this.name = "";
         this.previousItems = NonNullList.withSize(items.length, ItemStack.EMPTY);
     }
 
     //--
+
+    public boolean wasNewlyConstructed() {
+        var bl = newlyConstructed;
+
+        this.newlyConstructed = false;
+
+        return bl;
+    }
 
     public boolean isSlotFlaged(int slot){
         var bl = setFlags.getOrDefault(slot, false);
@@ -120,8 +135,12 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
         var nameInfo = (this.name != null ? "Container: " + this.name + ", " : "");
 
-        if(!isValid){
-            LOGGER.error("Access to a given Inventory was found to be out of the range valid for the container! [{}Index: {}]", nameInfo, slot);
+        if(!isValid && FabricLoader.getInstance().isDevelopmentEnvironment()){
+            try {
+                throw new IllegalStateException("Access to a given Inventory was found to be out of the range valid for the container! [Name: " + nameInfo + " Index: " + slot + "]");
+            } catch (Exception e) {
+                LOGGER.debug("Full Exception: ", e);
+            }
         }
 
         return isValid;
@@ -191,6 +210,16 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
     public void setFromPrev(ExpandedSimpleContainer prevContainer) {
         prevContainer.forEach(pair -> this.setPreviousItem(pair.getFirst(), pair.getSecond()));
+    }
+
+    public void copyPrev(ExpandedSimpleContainer prevContainer) {
+        for (int i = 0; i < prevContainer.getContainerSize(); i++) {
+            if(i >= this.getContainerSize()) continue;
+
+            var prevItem = prevContainer.getPreviousItem(i);
+
+            if(!prevItem.isEmpty()) this.setPreviousItem(i, prevItem);
+        }
     }
 }
 

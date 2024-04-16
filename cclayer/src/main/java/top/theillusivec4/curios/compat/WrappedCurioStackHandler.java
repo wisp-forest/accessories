@@ -6,7 +6,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.wrapper.InvWrapper;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
@@ -88,12 +87,12 @@ public class WrappedCurioStackHandler implements ICurioStacksHandler {
 
     @Override
     public void addTransientModifier(AttributeModifier modifier) {
-        this.container.addModifier(modifier);
+        this.container.addTransientModifier(modifier);
     }
 
     @Override
     public void addPermanentModifier(AttributeModifier modifier) {
-        this.container.addModifier(modifier);
+        this.container.addTransientModifier(modifier);
     }
 
     @Override

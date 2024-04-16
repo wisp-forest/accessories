@@ -8,6 +8,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 public class ScreenOpen extends AccessoriesPacket {
@@ -46,6 +47,18 @@ public class ScreenOpen extends AccessoriesPacket {
             if(entity instanceof LivingEntity living) livingEntity = living;
         }
 
-        AccessoriesInternals.openAccessoriesMenu(player, livingEntity);
+        ItemStack carriedStack = null;
+
+        if(player.containerMenu instanceof AccessoriesMenu oldMenu) {
+            var currentCarriedStack = oldMenu.getCarried();
+
+            if(!currentCarriedStack.isEmpty()) {
+                carriedStack = currentCarriedStack;
+
+                oldMenu.setCarried(ItemStack.EMPTY);
+            }
+        }
+
+        AccessoriesInternals.openAccessoriesMenu(player, livingEntity, carriedStack);
     }
 }

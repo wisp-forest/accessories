@@ -85,9 +85,15 @@ public class AccessoriesInternalsImpl {
         return Registry.register(BuiltInRegistries.MENU, location, IMenuTypeExtension.create(func::apply));
     }
 
-    public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity) {
+    public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         player.openMenu(
-                new SimpleMenuProvider((i, arg, arg2) -> new AccessoriesMenu(i, arg, true, targetEntity), Component.empty()),
+                new SimpleMenuProvider((i, arg, arg2) -> {
+                    var menu = new AccessoriesMenu(i, arg, true, targetEntity);
+
+                    if(carriedStack != null) menu.setCarried(carriedStack);
+
+                    return menu;
+                }, Component.empty()),
                 buf -> AccessoriesMenu.writeBufData(buf, targetEntity));
     }
 }

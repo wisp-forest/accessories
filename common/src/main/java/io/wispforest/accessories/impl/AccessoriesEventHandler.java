@@ -211,6 +211,7 @@ public class AccessoriesEventHandler {
             var slotType = container.slotType();
 
             var accessories = (ExpandedSimpleContainer) container.getAccessories();
+            var cosmetics = container.getCosmeticAccessories();
 
             for (int i = 0; i < accessories.getContainerSize(); i++) {
                 var slotReference = new SlotReference(container.getSlotName(), capability.entity(), i);
@@ -231,116 +232,118 @@ public class AccessoriesEventHandler {
 
                 var lastStack = accessories.getPreviousItem(i);
 
+                if (entity.level().isClientSide()) continue;
+
                 if (!ItemStack.matches(currentStack, lastStack)) {
-                    if (!entity.level().isClientSide()) {
-                        accessories.setPreviousItem(i, currentStack.copy());
-                        dirtyStacks.put(slotId, currentStack.copy());
-                        var uuid = AccessoriesAPI.getOrCreateSlotUUID(slotType, i);
+                    container.getAccessories().setPreviousItem(i, currentStack.copy());
+                    dirtyStacks.put(slotId, currentStack.copy());
+                    var uuid = AccessoriesAPI.getOrCreateSlotUUID(slotType, i);
 
-                        if (!lastStack.isEmpty()) {
-                            Multimap<Attribute, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(lastStack, slotReference, uuid);
-                            Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
+                    if (!lastStack.isEmpty()) {
+                        Multimap<Attribute, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(lastStack, slotReference, uuid);
+                        Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
 
-                            Set<Attribute> slotAttributes = new HashSet<>();
+                        Set<Attribute> slotAttributes = new HashSet<>();
 
-                            for (var entry : attributes.asMap().entrySet()) {
-                                if (!(entry.getKey() instanceof SlotAttribute slotAttribute)) continue;
+                        for (var entry : attributes.asMap().entrySet()) {
+                            if (!(entry.getKey() instanceof SlotAttribute slotAttribute)) continue;
 
-                                slotModifiers.putAll(slotAttribute.slotName(), entry.getValue());
-                                slotAttributes.add(slotAttribute);
-                            }
-
-                            slotAttributes.forEach(attributes::removeAll);
-
-                            entity.getAttributes().removeAttributeModifiers(attributes);
-                            capability.removeSlotModifiers(slotModifiers);
+                            slotModifiers.putAll(slotAttribute.slotName(), entry.getValue());
+                            slotAttributes.add(slotAttribute);
                         }
 
-                        if (!currentStack.isEmpty()) {
-                            Multimap<Attribute, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(currentStack, slotReference, uuid);
-                            Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
+                        slotAttributes.forEach(attributes::removeAll);
 
-                            Set<Attribute> slotAttributes = new HashSet<>();
-
-                            for (var entry : attributes.asMap().entrySet()) {
-                                if (!(entry.getKey() instanceof SlotAttribute slotAttribute)) continue;
-
-                                slotModifiers.putAll(slotAttribute.slotName(), entry.getValue());
-                                slotAttributes.add(slotAttribute);
-                            }
-
-                            slotAttributes.forEach(attributes::removeAll);
-
-                            entity.getAttributes().addTransientAttributeModifiers(attributes);
-                            capability.addTransientSlotModifiers(slotModifiers);
-                        }
-
-                        /*
-                         * TODO: Dose item check need to exist anymore?
-                         */
-                        if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlaged(i)) {
-                            AccessoriesAPI.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);
-                            AccessoriesAPI.getOrDefaultAccessory(currentStack.getItem()).onEquip(currentStack, slotReference);
-
-                            if (entity instanceof ServerPlayer serverPlayer) {
-                                if (!currentStack.isEmpty()) {
-                                    ACCESSORY_EQUIPPED.trigger(serverPlayer, currentStack, slotReference, false);
-                                }
-
-                                if (!lastStack.isEmpty()) {
-                                    ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, false);
-                                }
-                            }
-                        }
+                        entity.getAttributes().removeAttributeModifiers(attributes);
+                        capability.removeSlotModifiers(slotModifiers);
                     }
-                }
 
-                var cosmetics = container.getCosmeticAccessories();
+                    if (!currentStack.isEmpty()) {
+                        Multimap<Attribute, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(currentStack, slotReference, uuid);
+                        Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
 
-                var currentCosmeticStack = cosmetics.getItem(i);
-                var lastCosmeticStack = cosmetics.getPreviousItem(i);
+                        Set<Attribute> slotAttributes = new HashSet<>();
 
-                if (!ItemStack.matches(currentCosmeticStack, lastCosmeticStack)) {
-                    if (!entity.level().isClientSide()) {
-                        cosmetics.setPreviousItem(i, currentCosmeticStack.copy());
-                        dirtyCosmeticStacks.put(slotId, currentCosmeticStack.copy());
+                        for (var entry : attributes.asMap().entrySet()) {
+                            if (!(entry.getKey() instanceof SlotAttribute slotAttribute)) continue;
+
+                            slotModifiers.putAll(slotAttribute.slotName(), entry.getValue());
+                            slotAttributes.add(slotAttribute);
+                        }
+
+                        slotAttributes.forEach(attributes::removeAll);
+
+                        entity.getAttributes().addTransientAttributeModifiers(attributes);
+                        capability.addTransientSlotModifiers(slotModifiers);
+                    }
+
+                    /*
+                     * TODO: Dose item check need to exist anymore?
+                     */
+                    if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlaged(i)) {
+                        AccessoriesAPI.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);
+                        AccessoriesAPI.getOrDefaultAccessory(currentStack.getItem()).onEquip(currentStack, slotReference);
 
                         if (entity instanceof ServerPlayer serverPlayer) {
                             if (!currentStack.isEmpty()) {
-                                ACCESSORY_EQUIPPED.trigger(serverPlayer, currentStack, slotReference, true);
+                                ACCESSORY_EQUIPPED.trigger(serverPlayer, currentStack, slotReference, false);
                             }
+
                             if (!lastStack.isEmpty()) {
-                                ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, true);
+                                ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, false);
                             }
+                        }
+                    }
+                }
+
+                var currentCosmeticStack = cosmetics.getItem(i);
+                var lastCosmeticStack = container.getCosmeticAccessories().getPreviousItem(i);
+
+                if (!ItemStack.matches(currentCosmeticStack, lastCosmeticStack)) {
+                    cosmetics.setPreviousItem(i, currentCosmeticStack.copy());
+                    dirtyCosmeticStacks.put(slotId, currentCosmeticStack.copy());
+
+                    if (entity instanceof ServerPlayer serverPlayer) {
+                        if (!currentStack.isEmpty()) {
+                            ACCESSORY_EQUIPPED.trigger(serverPlayer, currentStack, slotReference, true);
+                        }
+                        if (!lastStack.isEmpty()) {
+                            ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, true);
                         }
                     }
                 }
             }
         }
 
-        if (!entity.level().isClientSide()) {
-            Set<AccessoriesContainer> updatedContainers = ((AccessoriesCapabilityImpl)capability).getUpdatingInventories();
+        if (entity.level().isClientSide()) return;
 
-            if (!dirtyStacks.isEmpty() || !dirtyCosmeticStacks.isEmpty() || !updatedContainers.isEmpty()) {
-                var packet = new SyncContainerData(entity.getId(), updatedContainers, dirtyStacks, dirtyCosmeticStacks);
+        //--
 
-                var bufData = AccessoriesNetworkHandler.createBuf();
+        var updatedContainers = ((AccessoriesCapabilityImpl)capability).getUpdatingInventories();
 
-                packet.write(bufData);
+        capability.updateContainers();
 
-                var networkHandler = AccessoriesInternals.getNetworkHandler();
+        if (!dirtyStacks.isEmpty() || !dirtyCosmeticStacks.isEmpty() || !updatedContainers.isEmpty()) {
+            var packet = new SyncContainerData(entity.getId(), updatedContainers, dirtyStacks, dirtyCosmeticStacks);
 
-                networkHandler.sendToTrackingAndSelf(entity, (Supplier<SyncContainerData>) () -> new SyncContainerData(bufData));
+            var bufData = AccessoriesNetworkHandler.createBuf();
 
-                bufData.release();
-            }
+            packet.write(bufData);
 
-            updatedContainers.clear();
+            var networkHandler = AccessoriesInternals.getNetworkHandler();
+
+            networkHandler.sendToTrackingAndSelf(entity, (Supplier<SyncContainerData>) () -> new SyncContainerData(bufData));
+
+            bufData.release();
         }
+
+        updatedContainers.clear();
+
+        //--
 
         var invalidStacks = ((AccessoriesHolderImpl) capability.getHolder()).invalidStacks;
 
-        if (!entity.level().isClientSide() && !invalidStacks.isEmpty()) {
+        if (!invalidStacks.isEmpty()) {
             for (ItemStack invalidStack : invalidStacks) {
                 if (entity instanceof ServerPlayer serverPlayer) {
                     AccessoriesInternals.giveItemToPlayer(serverPlayer, invalidStack);
@@ -662,13 +665,25 @@ public class AccessoriesEventHandler {
                     var newHandStack = stacks.get(0);
 
                     if(stacks.size() > 1) {
-                        if (newHandStack.isEmpty()) {
-                            newHandStack = stacks.get(1);
-                        } else  {
-                            for (int i = 1; i < stacks.size(); i++) player.addItem(stacks.get(i));
-                        }
-                    }
+                        var otherStack = stacks.get(1);
 
+                        if (newHandStack.isEmpty()) {
+                            newHandStack = otherStack;
+                        } else if(ItemStack.isSameItemSameTags(newHandStack, otherStack)) {
+                            int resizingAmount = 0;
+
+                            if((newHandStack.getCount() + otherStack.getCount()) < newHandStack.getMaxStackSize()) {
+                                resizingAmount = otherStack.getCount();
+                            } else if((newHandStack.getMaxStackSize() - newHandStack.getCount()) > 0) {
+                                resizingAmount = newHandStack.getMaxStackSize() - newHandStack.getCount();
+                            }
+
+                            otherStack.shrink(resizingAmount);
+                            newHandStack.grow(resizingAmount);
+                        }
+
+                        player.addItem(otherStack);
+                    }
 
                     return InteractionResultHolder.success(newHandStack);
                 }
@@ -700,11 +715,24 @@ public class AccessoriesEventHandler {
                         var newHandStack = stacks.get(0);
 
                         if(stacks.size() > 1) {
+                            var otherStack = stacks.get(1);
+
                             if (newHandStack.isEmpty()) {
-                                newHandStack = stacks.get(1);
-                            } else  {
-                                for (int i = 1; i < stacks.size(); i++) player.addItem(stacks.get(i));
+                                newHandStack = otherStack;
+                            } else if(ItemStack.isSameItemSameTags(newHandStack, otherStack)) {
+                                int resizingAmount = 0;
+
+                                if((newHandStack.getCount() + otherStack.getCount()) < newHandStack.getMaxStackSize()) {
+                                    resizingAmount = otherStack.getCount();
+                                } else if((newHandStack.getMaxStackSize() - newHandStack.getCount()) > 0) {
+                                    resizingAmount = newHandStack.getMaxStackSize() - newHandStack.getCount();
+                                }
+
+                                otherStack.shrink(resizingAmount);
+                                newHandStack.grow(resizingAmount);
                             }
+
+                            player.addItem(otherStack);
                         }
 
                         player.setItemInHand(hand, newHandStack);
