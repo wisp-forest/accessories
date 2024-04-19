@@ -27,6 +27,9 @@ public interface AccessoriesContainer {
         return SlotTypeLoader.getSlotType(this.capability().entity(), this.getSlotName());
     }
 
+    /**
+     * @return A SlotReference based on the containers linked entity and slot name with the given index
+     */
     default SlotReference createReference(int index){
         return new SlotReference(this.getSlotName(), this.capability().entity(), index);
     }
@@ -58,7 +61,7 @@ public interface AccessoriesContainer {
     ExpandedSimpleContainer getCosmeticAccessories();
 
     /**
-     * @return The max size of the given Container refering to the max number of slots available
+     * @return The max size of the given Container referring to the max number of slots available
      */
     int getSize();
 
@@ -67,10 +70,13 @@ public interface AccessoriesContainer {
      */
     void markChanged();
 
+    /**
+     * @return if the given container has had a change occurred
+     */
     boolean hasChanged();
 
     /**
-     * Used to update the container if dirty
+     * Used to update the container if marked as changed
      */
     void update();
 

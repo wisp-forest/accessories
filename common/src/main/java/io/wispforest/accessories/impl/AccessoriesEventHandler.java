@@ -172,7 +172,7 @@ public class AccessoriesEventHandler {
                 networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(tag, capability.entity().getId()));
 
                 if(playerEntry.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
-                    AccessoriesInternals.openAccessoriesMenu(player, accessoriesMenu.targetEntity());
+                    Accessories.openAccessoriesMenu(player, accessoriesMenu.targetEntity());
                 }
             }
 
@@ -191,7 +191,7 @@ public class AccessoriesEventHandler {
             networkHandler.sendToPlayer(player, new SyncEntireContainer(tag, capability.entity().getId()));
 
             if(player.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
-                AccessoriesInternals.openAccessoriesMenu(player, accessoriesMenu.targetEntity());
+                Accessories.openAccessoriesMenu(player, accessoriesMenu.targetEntity());
             }
         }
     }

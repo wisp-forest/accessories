@@ -65,7 +65,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
 
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (OPEN_SCREEN.consumeClick()){
-                AccessoriesClient.attemptToOpenScreen();
+                AccessoriesClient.attemptToOpenScreen(client.player.isShiftKeyDown());
             }
         });
 

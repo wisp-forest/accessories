@@ -301,7 +301,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
                 var stack = stackEntry.getSecond();
                 var reference = container.createReference(stackEntry.getFirst());
 
-                var entryReference = recursiveStackHandling(stack, reference, (innerStack, ref) -> {
+                var entryReference = AccessoryNestUtils.recursiveStackHandling(stack, reference, (innerStack, ref) -> {
                     return (!innerStack.isEmpty() && predicate.test(stack))
                             ? new SlotEntryReference(reference, stack)
                             : null;
@@ -331,41 +331,11 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
                 var reference = container.createReference(stackEntry.getFirst());
 
-                recursiveStackConsumption(stack, reference, (innerStack, ref) -> references.add(new SlotEntryReference(ref, innerStack)));
+                AccessoryNestUtils.recursiveStackConsumption(stack, reference, (innerStack, ref) -> references.add(new SlotEntryReference(ref, innerStack)));
             }
         }
 
         return references;
-    }
-
-    private <T> @Nullable T recursiveStackHandling(ItemStack stack, SlotReference reference, BiFunction<ItemStack, SlotReference, @Nullable T> function) {
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
-
-        var value = function.apply(stack, reference);
-
-        if (accessory instanceof AccessoryNest holdable && value == null) {
-            for (ItemStack innerStack : holdable.getInnerStacks(stack)) {
-                if (innerStack.isEmpty()) continue;
-
-                value = recursiveStackHandling(stack, reference, function);
-            }
-        }
-
-        return value;
-    }
-
-    private void recursiveStackConsumption(ItemStack stack, SlotReference reference, BiConsumer<ItemStack, SlotReference> consumer) {
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
-
-        consumer.accept(stack, reference);
-
-        if (!(accessory instanceof AccessoryNest holdable)) return;
-
-        for (ItemStack innerStack : holdable.getInnerStacks(stack)) {
-            if (innerStack.isEmpty()) continue;
-
-            recursiveStackConsumption(stack, reference, consumer);
-        }
     }
 
     @Override

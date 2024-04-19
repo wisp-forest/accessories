@@ -95,7 +95,7 @@ public class AccessoriesInternalSlot extends AccessoriesBasedSlot {
 
     @Override
     public boolean allowModification(Player player) {
-        return this.isAccessible.apply(this);
+        return this.isAccessible.apply(this) && super.allowModification(player);
     }
 
     @Override

@@ -80,14 +80,6 @@ public class AccessoriesInternals {
         throw new AssertionError();
     }
 
-    public static void openAccessoriesMenu(Player player) {
-        openAccessoriesMenu(player, null);
-    }
-
-    public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity) {
-        openAccessoriesMenu(player, targetEntity, null);
-    }
-
     @ExpectPlatform
     public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         throw new AssertionError();

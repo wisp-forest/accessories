@@ -6,12 +6,15 @@ import com.google.common.cache.LoadingCache;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.AccessoryNest;
+import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 public class AccessoryNestUtils {
 
@@ -36,6 +39,36 @@ public class AccessoryNestUtils {
         }
 
         return data;
+    }
+
+    public static <T> @Nullable T recursiveStackHandling(ItemStack stack, SlotReference reference, BiFunction<ItemStack, SlotReference, @Nullable T> function) {
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
+
+        var value = function.apply(stack, reference);
+
+        if (accessory instanceof AccessoryNest holdable && value == null) {
+            for (ItemStack innerStack : holdable.getInnerStacks(stack)) {
+                if (innerStack.isEmpty()) continue;
+
+                value = recursiveStackHandling(stack, reference, function);
+            }
+        }
+
+        return value;
+    }
+
+    public static void recursiveStackConsumption(ItemStack stack, SlotReference reference, BiConsumer<ItemStack, SlotReference> consumer) {
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
+
+        consumer.accept(stack, reference);
+
+        if (!(accessory instanceof AccessoryNest holdable)) return;
+
+        for (ItemStack innerStack : holdable.getInnerStacks(stack)) {
+            if (innerStack.isEmpty()) continue;
+
+            recursiveStackConsumption(stack, reference, consumer);
+        }
     }
 
     public static class StackData {

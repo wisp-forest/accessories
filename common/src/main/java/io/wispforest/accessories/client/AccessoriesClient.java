@@ -6,6 +6,7 @@ import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.AccessoriesInternalsClient;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.compat.AccessoriesConfig;
+import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.gui.registry.api.GuiProvider;
@@ -17,6 +18,10 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.phys.EntityHitResult;
 
 import java.lang.reflect.Field;
 import java.time.Instant;
@@ -43,20 +48,37 @@ public class AccessoriesClient {
     private static boolean displayUnusedSlotWarning = false;
 
     public static boolean attemptToOpenScreen() {
+        return attemptToOpenScreen(false);
+    }
+
+    public static boolean attemptToOpenScreen(boolean targetingLookingEntity) {
         var player = Minecraft.getInstance().player;
-        var slots = AccessoriesAPI.getUsedSlotsFor(player);
 
-        var holder = player.accessoriesHolder();
+        if(targetingLookingEntity) {
+            var result = ProjectileUtil.getHitResultOnViewVector(player, e -> e instanceof LivingEntity, (double) Player.getPickRange(player.isCreative()));
 
-        if(holder == null) return false;
+            var bl = !(result instanceof EntityHitResult entityHitResult) ||
+                    !(entityHitResult.getEntity() instanceof LivingEntity living)
+                    || EntitySlotLoader.getEntitySlots(living).isEmpty();
 
-        if(slots.isEmpty() && !holder.showUnusedSlots() && !displayUnusedSlotWarning && !Accessories.getConfig().clientData.disableEmptySlotScreenError) {
-            player.displayClientMessage(Component.literal("[Accessories]: No Used Slots found by any mod directly, such will show empty unless a item is found to implement slots!"), false);
+            if(bl) return false;
 
-            displayUnusedSlotWarning = true;
+            AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen(true));
+        } else {
+            var slots = AccessoriesAPI.getUsedSlotsFor(player);
+
+            var holder = player.accessoriesHolder();
+
+            if(holder == null) return false;
+
+            if(slots.isEmpty() && !holder.showUnusedSlots() && !displayUnusedSlotWarning && !Accessories.getConfig().clientData.disableEmptySlotScreenError) {
+                player.displayClientMessage(Component.literal("[Accessories]: No Used Slots found by any mod directly, such will show empty unless a item is found to implement slots!"), false);
+
+                displayUnusedSlotWarning = true;
+            }
+
+            AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen());
         }
-
-        AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen());
 
         return true;
     }

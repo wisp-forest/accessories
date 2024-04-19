@@ -5,10 +5,12 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.events.AccessoriesEvents;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
+import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -104,6 +106,14 @@ public class AccessoriesBasedSlot extends Slot {
 
     @Override
     public boolean mayPickup(Player player) {
+        if(this.entity != player) {
+            var ref = this.accessoriesContainer.createReference(this.getContainerSlot());
+
+            var result = AccessoriesEvents.ENTITY_MODIFICATION_CHECK.invoker().checkModifiability(this.entity, player, ref);
+
+            if(!result.orElse(false)) return false;
+        }
+
         return AccessoriesAPI.canUnequip(this.getItem(), new SlotReference(this.accessoriesContainer.getSlotName(), this.entity, this.getContainerSlot()));
     }
 
