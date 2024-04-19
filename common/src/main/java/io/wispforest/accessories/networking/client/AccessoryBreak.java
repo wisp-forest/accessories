@@ -49,7 +49,7 @@ public class AccessoryBreak extends AccessoriesPacket {
 
         var capability = livingEntity.accessoriesCapability();
 
-        var container = capability.tryAndGetContainer(slotReference.type());
+        var container = capability.getContainer(slotReference.type());
 
         var stack = container.getAccessories().getItem(slotReference.slot());
 

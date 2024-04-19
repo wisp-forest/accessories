@@ -166,7 +166,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
                     continue;
                 }
 
-                var container = this.capability.tryAndGetContainer(slotType);
+                var container = this.capability.getContainer(slotType);
 
                 if(container == null) {
                     dropped.addAll(list);

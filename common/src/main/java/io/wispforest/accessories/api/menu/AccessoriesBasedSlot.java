@@ -10,7 +10,6 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
-import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -66,7 +65,7 @@ public class AccessoriesBasedSlot extends Slot {
             return null;
         }
 
-        var container = capability.tryAndGetContainer(slotType);
+        var container = capability.getContainer(slotType);
 
         if(container == null){
             LOGGER.error("Unable to locate the given container for the passed slotType. [SlotType:" + slotType.name() + "]");

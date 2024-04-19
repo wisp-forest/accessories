@@ -1,7 +1,6 @@
 package io.wispforest.accessories.api.menu;
 
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
@@ -129,7 +128,7 @@ public class AccessoriesSlotGenerator {
         int slotAddedAmount = 0;
 
         for (var slotType : slotTypes) {
-            var container = capability.tryAndGetContainer(slotType);
+            var container = capability.getContainer(slotType);
 
             if(container == null){
                 LOGGER.error("Unable to locate the given container for the passed slotType. [Type:" + slotType.name() + "]");
@@ -159,7 +158,7 @@ public class AccessoriesSlotGenerator {
         int slotAddedAmount = 0;
 
         for (var slotType : slotTypes) {
-            var container = capability.tryAndGetContainer(slotType);
+            var container = capability.getContainer(slotType);
 
             if(container == null){
                 LOGGER.error("Unable to locate the given container for the passed slotType. [Type:" + slotType.name() + "]");

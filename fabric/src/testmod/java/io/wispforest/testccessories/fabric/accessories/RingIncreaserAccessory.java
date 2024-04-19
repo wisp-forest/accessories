@@ -1,23 +1,10 @@
 package io.wispforest.testccessories.fabric.accessories;
 
 import com.google.common.collect.HashMultimap;
-import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
-import io.wispforest.accessories.api.client.AccessoryRenderer;
-import io.wispforest.accessories.api.client.SimpleAccessoryRenderer;
 import io.wispforest.accessories.api.slot.SlotReference;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.HeadedModel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -36,7 +23,7 @@ public class RingIncreaserAccessory implements Accessory {
         var map = HashMultimap.<String, AttributeModifier>create();
 
         map.put("ring", new AttributeModifier(ringAdditonUUID, "additional_rings", 100, AttributeModifier.Operation.ADDITION));
-
+        
         reference.capability().addPersistentSlotModifiers(map);
     }
 

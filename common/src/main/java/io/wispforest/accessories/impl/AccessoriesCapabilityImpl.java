@@ -227,7 +227,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
         if (stack.isEmpty() && allowSwapping) {
             EntitySlotLoader.getEntitySlots(this.entity())
-                    .forEach((s, slotType) -> validContainers.put(s, this.tryAndGetContainer(slotType)));
+                    .forEach((s, slotType) -> validContainers.put(s, this.getContainer(slotType)));
         } else {
             // First attempt to equip an accessory within empty slot
             for (var container : this.getContainers().values()) {

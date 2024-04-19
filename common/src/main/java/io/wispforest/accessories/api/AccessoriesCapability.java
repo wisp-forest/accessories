@@ -57,7 +57,7 @@ public interface AccessoriesCapability {
      * @return an {@link Optional} representing a given {@link AccessoriesContainer} if found on the given {@link LivingEntity} tied to the Capability
      */
     @Nullable
-    default AccessoriesContainer tryAndGetContainer(SlotType slotType){
+    default AccessoriesContainer getContainer(SlotType slotType){
         return getContainers().get(slotType.name());
     }
 

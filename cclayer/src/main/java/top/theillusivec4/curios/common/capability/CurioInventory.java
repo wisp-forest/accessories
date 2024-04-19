@@ -4,16 +4,13 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.Container;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
-import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
 import top.theillusivec4.curios.compat.CuriosWrappingUtils;
 import top.theillusivec4.curios.compat.WrappedCurioItemHandler;
 
@@ -39,7 +36,7 @@ public class CurioInventory implements INBTSerializable<CompoundTag> {
 
                 var slotType = SlotTypeLoader.getSlotType(livingEntity.level(), CuriosWrappingUtils.curiosToAccessories(identifier));
 
-                var container = (slotType != null) ? capability.tryAndGetContainer(slotType) : null;
+                var container = (slotType != null) ? capability.getContainer(slotType) : null;
 
                 ((AccessoriesHolderImpl) capability.getHolder()).invalidStacks
                         .addAll(deserializeNBT_StackHandler(container, tag.getCompound("StacksHandler")));
