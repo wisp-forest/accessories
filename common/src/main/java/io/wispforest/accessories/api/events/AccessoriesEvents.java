@@ -136,7 +136,7 @@ public class AccessoriesEvents {
      */
     public static final Event<CanEquip> CAN_EQUIP_EVENT = EventUtils.createEventWithBus(CanEquip.class, AccessoriesInternals::getBus,
             (bus, invokers) -> (stack, reference) -> {
-                return AccessoryNestUtils.recursiveStackHandling(stack, reference, (stack1, reference1) -> {
+                var finalState = AccessoryNestUtils.recursiveStackHandling(stack, reference, (stack1, reference1) -> {
                     var state = TriState.DEFAULT;
 
                     for (var invoker : invokers) {
@@ -153,6 +153,8 @@ public class AccessoriesEvents {
 
                     return state != TriState.DEFAULT ? state : null;
                 });
+
+                return finalState != null ? finalState : TriState.DEFAULT;
             }
     );
 
@@ -190,7 +192,7 @@ public class AccessoriesEvents {
      */
     public static final Event<CanUnequip> CAN_UNEQUIP_EVENT = EventUtils.createEventWithBus(CanUnequip.class, AccessoriesInternals::getBus,
             (bus, invokers) -> (stack, reference) -> {
-                return AccessoryNestUtils.recursiveStackHandling(stack, reference, (stack1, reference1) -> {
+                var finalState = AccessoryNestUtils.recursiveStackHandling(stack, reference, (stack1, reference1) -> {
                     var state = TriState.DEFAULT;
 
                     for (var invoker : invokers) {
@@ -207,6 +209,8 @@ public class AccessoriesEvents {
 
                     return state != TriState.DEFAULT ? state : null;
                 });
+
+                return finalState != null ? finalState : TriState.DEFAULT;
             }
     );
 
