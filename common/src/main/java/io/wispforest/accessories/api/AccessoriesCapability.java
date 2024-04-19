@@ -54,7 +54,7 @@ public interface AccessoriesCapability {
     Map<String, AccessoriesContainer> getContainers();
 
     /**
-     * @return an {@link Optional} representing a given {@link AccessoriesContainer} if found on the given {@link LivingEntity} tied to the Capability
+     * @return a given {@link AccessoriesContainer} if found on the given {@link LivingEntity} tied to the Capability or null if not
      */
     @Nullable
     default AccessoriesContainer getContainer(SlotType slotType){
