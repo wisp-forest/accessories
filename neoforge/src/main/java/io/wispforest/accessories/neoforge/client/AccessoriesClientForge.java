@@ -7,6 +7,7 @@ import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.neoforge.AccessoriesForge;
 import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
@@ -68,7 +69,7 @@ public class AccessoriesClientForge {
 
     public static void clientTick(TickEvent.ClientTickEvent event){
         if (OPEN_SCREEN.consumeClick()){
-            AccessoriesClient.attemptToOpenScreen();
+            AccessoriesClient.attemptToOpenScreen(Minecraft.getInstance().player.isShiftKeyDown());
         }
     }
 
