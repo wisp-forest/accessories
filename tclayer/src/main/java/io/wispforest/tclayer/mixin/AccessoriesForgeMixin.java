@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 public abstract class AccessoriesForgeMixin {
 
     @Inject(method = "intermediateRegisterListeners", at = @At("HEAD"))
-    private void registerAdditionalResourceLoaders(Consumer<PreparableReloadListener> registrationMethod) {
+    private void registerAdditionalResourceLoaders(Consumer<PreparableReloadListener> registrationMethod, CallbackInfo ci) {
         registrationMethod.accept(SlotLoader.INSTANCE);
         registrationMethod.accept(dev.emi.trinkets.data.EntitySlotLoader.SERVER);
     }
