@@ -1,14 +1,16 @@
 {
   "required": true,
   "package": "io.wispforest.tclayer.mixin",
+  "plugin": "io.wispforest.tclayer.mixin.AccessoriesTCLayerMixinConfig",
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [
   ],
   "mixins": [
     "AccessoriesAPIMixin",
-    "AccessoriesFabricMixin",
     "AccessoriesForgeMixin",
+    "DataLoaderImplMixin",
+    "ResourceManagerHelperImplAccessor",
     "EntitySlotLoaderMixin",
     "ItemStackMixin",
     "SlotTypeLoaderMixin"
