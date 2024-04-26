@@ -1,6 +1,9 @@
 <a href="https://maven.wispforest.io/#/releases/io/wispforest/accessories-fabric">
   <img alt="Maven metadata URL" src="https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fmaven.wispforest.io%2Freleases%2Fio%2Fwispforest%2Faccessories-fabric%2Fmaven-metadata.xml&style=for-the-badge">
 </a>
+<a href="https://discord.gg/xrwHKktV2d">
+    <img src="https://img.shields.io/discord/825828008644313089?label=wisp%20forest&logo=discord&logoColor=white&style=for-the-badge">
+</a>
 
 # Accessories
 
