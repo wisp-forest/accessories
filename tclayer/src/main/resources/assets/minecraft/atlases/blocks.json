@@ -4,6 +4,11 @@
       "type": "directory",
       "source": "gui/slots",
       "prefix": "gui/slots/"
+    },
+    {
+      "type": "directory",
+      "source": "gui/trinkets/slots",
+      "prefix": "gui/trinkets/slots/"
     }
   ]
 }
