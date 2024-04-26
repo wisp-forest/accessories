@@ -1,5 +1,6 @@
 package io.wispforest.accessories.data;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.*;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.AccessoriesInternals;
@@ -35,8 +36,8 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
     public static final EntitySlotLoader INSTANCE = new EntitySlotLoader();
 
-    private final Map<EntityType<?>, Map<String, SlotType>> server = new HashMap<>();
-    private final Map<EntityType<?>, Map<String, SlotType>> client = new HashMap<>();
+    private Map<EntityType<?>, Map<String, SlotType>> server = new HashMap<>();
+    private Map<EntityType<?>, Map<String, SlotType>> client = new HashMap<>();
 
     protected EntitySlotLoader() {
         super(GSON, LOGGER, "accessories/entity");
@@ -74,17 +75,16 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
     @ApiStatus.Internal
     public final void setEntitySlotData(Map<EntityType<?>, Map<String, SlotType>> data){
-        this.client.clear();
-        this.client.putAll(data);
+        this.client = ImmutableMap.copyOf(data);
     }
 
     //--
 
     @Override
     protected void apply(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler) {
-        this.server.clear();
-
         var allSlotTypes = SlotTypeLoader.INSTANCE.getSlotTypes(false);
+
+        var tempMap = new HashMap<EntityType<?>, Map<String, SlotType>>();
 
         for (var resourceEntry : data.entrySet()) {
             var location = resourceEntry.getKey();
@@ -132,7 +132,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
             }, entities::addAll);
 
             for (EntityType<?> entityType : entities) {
-                this.server.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
+                tempMap.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
                         .putAll(slots);
             }
         }
@@ -141,9 +141,11 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
             var slotType = entry.getKey().get(false);
 
             for (var entityType : entry.getValue()) {
-                this.server.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
+                tempMap.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
                         .put(slotType.name(), slotType);
             }
         }
+        
+        this.server = ImmutableMap.copyOf(tempMap);
     }
 }

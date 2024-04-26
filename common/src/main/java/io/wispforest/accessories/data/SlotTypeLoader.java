@@ -1,5 +1,6 @@
 package io.wispforest.accessories.data;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -34,8 +35,8 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         super(GSON, LOGGER, "accessories/slot");
     }
 
-    private final Map<String, SlotType> server = new HashMap<>();
-    private final Map<String, SlotType> client = new HashMap<>();
+    private Map<String, SlotType> server = new HashMap<>();
+    private Map<String, SlotType> client = new HashMap<>();
 
     //--
 
@@ -70,14 +71,11 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
     @ApiStatus.Internal
     public void setSlotType(Map<String, SlotType> slotTypes){
-        this.client.clear();
-        this.client.putAll(slotTypes);
+        this.client = ImmutableMap.copyOf(slotTypes);
     }
 
     @Override
     protected void apply(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler) {
-        server.clear();
-
         var additionalModifiers = new HashMap<String, Integer>();
 
         for (AccessoriesConfig.SlotAmountModifier modifier : Accessories.getConfig().modifiers) {
@@ -173,9 +171,12 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             builders.put(slotBuilder.name, slotBuilder);
         }
 
-        uniqueSlots.forEach((s, slotBuilder) -> server.put(s, slotBuilder.create()));
+        var tempMap = ImmutableMap.<String, SlotType>builder();
 
-        builders.forEach((s, slotBuilder) -> server.put(s, slotBuilder.create()));
+        uniqueSlots.forEach((s, slotBuilder) -> tempMap.put(s, slotBuilder.create()));
+        builders.forEach((s, slotBuilder) -> tempMap.put(s, slotBuilder.create()));
+
+        this.server = tempMap.build();
     }
 
     public static class SlotBuilder {

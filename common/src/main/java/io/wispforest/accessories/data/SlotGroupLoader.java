@@ -1,5 +1,6 @@
 package io.wispforest.accessories.data;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.*;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
@@ -25,8 +26,8 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
     public static final SlotGroupLoader INSTANCE = new SlotGroupLoader();
 
-    private final Map<String, SlotGroup> server = new HashMap<>();
-    private final Map<String, SlotGroup> client = new HashMap<>();
+    private Map<String, SlotGroup> server = new HashMap<>();
+    private Map<String, SlotGroup> client = new HashMap<>();
 
     protected SlotGroupLoader() {
         super(GSON, LOGGER, "accessories/group");
@@ -75,14 +76,11 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
     }
 
     public final void setGroups(Map<String, SlotGroup> groups){
-        this.client.clear();
-        this.client.putAll(groups);
+        this.client = ImmutableMap.copyOf(groups);
     }
 
     @Override
     protected void apply(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler) {
-        this.server.clear();
-
         var slotGroups = new HashMap<String, SlotGroupBuilder>();
 
         slotGroups.put("any", new SlotGroupBuilder("any").order(120));
@@ -155,7 +153,11 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
             );
         });
 
-        slotGroups.forEach((s, builder) -> server.put(s, builder.build()));
+        var tempMap = ImmutableMap.<String, SlotGroup>builder();
+
+        slotGroups.forEach((s, builder) -> tempMap.put(s, builder.build()));
+
+        this.server = tempMap.build();
     }
 
     public static class SlotGroupBuilder {
