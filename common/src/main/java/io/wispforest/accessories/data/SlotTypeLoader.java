@@ -171,12 +171,12 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             builders.put(slotBuilder.name, slotBuilder);
         }
 
-        var tempMap = ImmutableMap.<String, SlotType>builder();
+        var tempMap = new HashMap<String, SlotType>();
 
         uniqueSlots.forEach((s, slotBuilder) -> tempMap.put(s, slotBuilder.create()));
         builders.forEach((s, slotBuilder) -> tempMap.put(s, slotBuilder.create()));
 
-        this.server = tempMap.build();
+        this.server = ImmutableMap.copyOf(tempMap);
     }
 
     public static class SlotBuilder {

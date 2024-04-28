@@ -1,6 +1,8 @@
 package io.wispforest.cclayer.mixin;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonObject;
+import com.llamalad7.mixinextras.sugar.Local;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.resources.ResourceLocation;
@@ -21,46 +23,40 @@ import java.util.Map;
 @Mixin(SlotTypeLoader.class)
 public abstract class SlotTypeLoaderMixin {
 
-    @Shadow
-    @Mutable
-    private Map<String, SlotType> server;
-
-    @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At("TAIL"))
-    private void injectCuriosSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci){
-        var map = this.server;
-
+    @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/ImmutableMap;copyOf(Ljava/util/Map;)Lcom/google/common/collect/ImmutableMap;"), remap = false)
+    private void injectCuriosSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "tempMap") HashMap<String, SlotType> tempMap){
         for (var entry : CuriosSlotManager.INSTANCE.slotTypeBuilders.entrySet()) {
             var accessoryType = CuriosWrappingUtils.curiosToAccessories(entry.getKey());
 
-            if (!map.containsKey(accessoryType)) {
-                var builder = new SlotTypeLoader.SlotBuilder(accessoryType);
+            if (tempMap.containsKey(accessoryType)) continue;
 
-                var curiosBuilder = entry.getValue();
+            var builder = new SlotTypeLoader.SlotBuilder(accessoryType);
 
-                if (curiosBuilder.size != null) {
-                    builder.amount(curiosBuilder.size);
-                }
+            var curiosBuilder = entry.getValue();
 
-                if (curiosBuilder.sizeMod != 0) {
-                    builder.addAmount(curiosBuilder.sizeMod);
-                }
-
-                if (curiosBuilder.icon != null) {
-                    builder.icon(curiosBuilder.icon);
-                }
-
-                if (curiosBuilder.order != null) {
-                    builder.order(curiosBuilder.order);
-                }
-
-                if (curiosBuilder.dropRule != null) {
-                    builder.dropRule(CuriosWrappingUtils.convert(curiosBuilder.dropRule));
-                }
-
-                builder.alternativeTranslation("curios.identifier." + entry.getKey());
-
-                map.put(accessoryType, builder.create());
+            if (curiosBuilder.size != null) {
+                builder.amount(curiosBuilder.size);
             }
+
+            if (curiosBuilder.sizeMod != 0) {
+                builder.addAmount(curiosBuilder.sizeMod);
+            }
+
+            if (curiosBuilder.icon != null) {
+                builder.icon(curiosBuilder.icon);
+            }
+
+            if (curiosBuilder.order != null) {
+                builder.order(curiosBuilder.order);
+            }
+
+            if (curiosBuilder.dropRule != null) {
+                builder.dropRule(CuriosWrappingUtils.convert(curiosBuilder.dropRule));
+            }
+
+            builder.alternativeTranslation("curios.identifier." + entry.getKey());
+
+            tempMap.put(accessoryType, builder.create());
         }
     }
 }

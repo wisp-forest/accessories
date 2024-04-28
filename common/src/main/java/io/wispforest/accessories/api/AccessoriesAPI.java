@@ -16,6 +16,7 @@ import io.wispforest.accessories.networking.client.AccessoryBreak;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -176,6 +177,31 @@ public class AccessoriesAPI {
         }
 
         return multimap;
+    }
+
+    public static void addAttribute(ItemStack stack, String slotName, Attribute attribute, String name, UUID id, double amount, AttributeModifier.Operation operation) {
+        addAttribute(stack.getOrCreateTag(), slotName, attribute, name, id, amount, operation);
+    }
+
+    public static void addAttribute(CompoundTag tag, String slotName, Attribute attribute, String name, UUID id, double amount, AttributeModifier.Operation operation) {
+        var attributes = tag.getList("AccessoriesAttributeModifiers", Tag.TAG_COMPOUND);
+
+        var attributeTag = new CompoundTag();
+
+        attributeTag.putString("Name", name);
+        attributeTag.putUUID("UUID", id);
+        attributeTag.putDouble("Amount", amount);
+        attributeTag.putInt("Operation", operation.toValue());
+
+        attributeTag.putString("Slot", slotName);
+
+        var attributeId = (attribute instanceof SlotAttribute slotAttribute)
+                ? Accessories.of(slotAttribute.slotName())
+                : BuiltInRegistries.ATTRIBUTE.getKey(attribute);
+
+        attributeTag.putString("AttributeName", attributeId.toString());
+
+        attributes.add(attributeTag);
     }
 
     //--

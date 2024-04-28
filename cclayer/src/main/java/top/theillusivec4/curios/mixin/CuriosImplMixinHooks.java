@@ -202,8 +202,7 @@ public class CuriosImplMixinHooks {
         slots.contains("curio");
   }
 
-  public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(
-      SlotContext slotContext, UUID uuid, ItemStack stack) {
+  public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
     Multimap<Attribute, AttributeModifier> multimap = HashMultimap.create();
 
     if (stack.getTag() != null && stack.getTag().contains("CurioAttributeModifiers", 9)) {
@@ -230,7 +229,7 @@ public class CuriosImplMixinHooks {
               String name = compoundnbt.getString("Name");
 
               if (rl.getNamespace().equals("curios")) {
-                String identifier1 = rl.getPath();
+                String identifier1 = CuriosWrappingUtils.curiosToAccessories(rl.getPath());
 
                 if (CuriosApi.getSlot(identifier1).isPresent()) {
                   CuriosApi.addSlotModifier(multimap, identifier1, id, amount, operation);
@@ -250,65 +249,24 @@ public class CuriosImplMixinHooks {
       multimap = getCurio(stack).map(curio -> curio.getAttributeModifiers(slotContext, uuid))
           .orElse(multimap);
     }
-    CurioAttributeModifierEvent evt =
-        new CurioAttributeModifierEvent(stack, slotContext, uuid, multimap);
+    CurioAttributeModifierEvent evt = new CurioAttributeModifierEvent(stack, slotContext, uuid, multimap);
     NeoForge.EVENT_BUS.post(evt);
     return HashMultimap.create(evt.getModifiers());
   }
 
-  public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String identifier,
-                                     UUID uuid, double amount,
-                                     AttributeModifier.Operation operation) {
-    map.put(SlotAttribute.getOrCreate(identifier),
-        new AttributeModifier(uuid, identifier, amount, operation));
+  public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String identifier, UUID uuid, double amount, AttributeModifier.Operation operation) {
+    map.put(io.wispforest.accessories.api.slot.SlotAttribute.getSlotAttribute(CuriosWrappingUtils.curiosToAccessories(identifier)), new AttributeModifier(uuid, identifier, amount, operation));
   }
 
-  public static void addSlotModifier(ItemStack stack, String identifier, String name, UUID uuid,
-                                     double amount, AttributeModifier.Operation operation,
-                                     String slot) {
-    addModifier(stack, SlotAttribute.getOrCreate(identifier), name, uuid, amount, operation, slot);
+  public static void addSlotModifier(ItemStack stack, String identifier, String name, UUID uuid, double amount, AttributeModifier.Operation operation, String slot) {
+    io.wispforest.accessories.api.slot.SlotAttribute.addSlotAttribute(stack, CuriosWrappingUtils.curiosToAccessories(identifier), slot, name, uuid, amount, operation);
   }
 
-  public static void addModifier(ItemStack stack, Attribute attribute, String name, UUID uuid,
-                                 double amount, AttributeModifier.Operation operation,
-                                 String slot) {
-    CompoundTag tag = stack.getOrCreateTag();
-
-    if (!tag.contains("CurioAttributeModifiers", 9)) {
-      tag.put("CurioAttributeModifiers", new ListTag());
-    }
-    ListTag listtag = tag.getList("CurioAttributeModifiers", 10);
-    CompoundTag compoundtag = new CompoundTag();
-    compoundtag.putString("Name", name);
-    compoundtag.putDouble("Amount", amount);
-    compoundtag.putInt("Operation", operation.toValue());
-
-    if (uuid != null) {
-      compoundtag.putUUID("UUID", uuid);
-    }
-    String id = "";
-
-    if (attribute instanceof SlotAttribute wrapper) {
-      id = "curios:" + wrapper.getIdentifier();
-    } else {
-      ResourceLocation rl = BuiltInRegistries.ATTRIBUTE.getKey(attribute);
-
-      if (rl != null) {
-        id = rl.toString();
-      }
-    }
-
-    if (!id.isEmpty()) {
-      compoundtag.putString("AttributeName", id);
-    }
-    compoundtag.putString("Slot", slot);
-    listtag.add(compoundtag);
+  public static void addModifier(ItemStack stack, Attribute attribute, String name, UUID uuid, double amount, AttributeModifier.Operation operation, String slot) {
+    AccessoriesAPI.addAttribute(stack, slot, attribute, name, uuid, amount, operation);
   }
 
   public static void broadcastCurioBreakEvent(SlotContext slotContext) {
-//    NetworkHandler.INSTANCE.send(
-//        PacketDistributor.TRACKING_ENTITY_AND_SELF.with(slotContext::entity),
-//        new SPacketBreak(slotContext.entity().getId(), slotContext.identifier(),
-//            slotContext.index()));
+    AccessoriesAPI.breakStack(CuriosWrappingUtils.fromContext(slotContext));
   }
 }

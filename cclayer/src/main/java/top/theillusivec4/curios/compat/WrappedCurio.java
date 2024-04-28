@@ -7,6 +7,10 @@ import io.wispforest.accessories.api.events.extra.*;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.SoundEventData;
 import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -14,6 +18,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
+import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
 import java.util.UUID;
@@ -67,7 +72,13 @@ public class WrappedCurio implements Accessory, LootingAdjustment, FortuneAdjust
 
         var modifiers = Accessory.super.getModifiers(stack, reference, uuid);
 
+        //--
+
         modifiers.putAll(this.iCurioItem.getAttributeModifiers(context, uuid, stack));
+
+        modifiers = CuriosWrappingUtils.getAttributeModifiers(modifiers, context, uuid, stack);
+
+        //--
 
         return modifiers;
     }
@@ -100,6 +111,13 @@ public class WrappedCurio implements Accessory, LootingAdjustment, FortuneAdjust
         var context = CuriosWrappingUtils.create(reference);
 
         return this.iCurioItem.canEquipFromUse(context, stack);
+    }
+
+    @Override
+    public void onBreak(ItemStack stack, SlotReference reference) {
+        var context = CuriosWrappingUtils.create(reference);
+
+        this.iCurioItem.curioBreak(context, stack);
     }
 
     //--

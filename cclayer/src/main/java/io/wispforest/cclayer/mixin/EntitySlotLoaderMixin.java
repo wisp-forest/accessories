@@ -1,6 +1,7 @@
 package io.wispforest.cclayer.mixin;
 
 import com.google.gson.JsonObject;
+import com.llamalad7.mixinextras.sugar.Local;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -23,27 +24,21 @@ import java.util.Map;
 @Mixin(EntitySlotLoader.class)
 public abstract class EntitySlotLoaderMixin {
 
-    @Shadow
-    @Mutable
-    private Map<EntityType<?>, Map<String, SlotType>> server;
-
-    @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At("TAIL"))
-    private void injectCuriosSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci){
-        var map = server;
-
+    @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/ImmutableMap;copyOf(Ljava/util/Map;)Lcom/google/common/collect/ImmutableMap;"), remap = false)
+    private void injectCuriosSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "tempMap") HashMap<EntityType<?>, Map<String, SlotType>> tempMap){
         for (var entry : CuriosEntityManager.INSTANCE.entityTypeSlotData.entrySet()) {
-            var slotTypes = map.computeIfAbsent(entry.getKey(), entityType -> new HashMap<>());
+            var slotTypes = tempMap.computeIfAbsent(entry.getKey(), entityType -> new HashMap<>());
 
             for (String s : entry.getValue().build()) {
                 var typeid = CuriosWrappingUtils.curiosToAccessories(s);
 
-                if (!slotTypes.containsKey(typeid)) {
-                    var type = SlotTypeLoader.INSTANCE.getSlotTypes(false).get(typeid);
+                if (slotTypes.containsKey(typeid)) continue;
 
-                    //TODO: ERROR ABOUT INFO?
-                    if (type != null) {
-                        slotTypes.put(typeid, type);
-                    }
+                var type = SlotTypeLoader.INSTANCE.getSlotTypes(false).get(typeid);
+
+                //TODO: ERROR ABOUT INFO?
+                if (type != null) {
+                    slotTypes.put(typeid, type);
                 }
             }
         }

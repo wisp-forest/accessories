@@ -1,6 +1,7 @@
 package io.wispforest.tclayer.mixin;
 
 import com.google.gson.JsonObject;
+import com.llamalad7.mixinextras.sugar.Local;
 import dev.emi.trinkets.api.TrinketConstants;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -22,20 +23,14 @@ import java.util.Map;
 @Mixin(EntitySlotLoader.class)
 public abstract class EntitySlotLoaderMixin {
 
-    @Shadow
-    @Mutable
-    private Map<EntityType<?>, Map<String, SlotType>> server;
-
-    @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At("TAIL"))
-    private void injectTrinketSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci){
-        var map = server;
-
+    @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/ImmutableMap;copyOf(Ljava/util/Map;)Lcom/google/common/collect/ImmutableMap;"), remap = false)
+    private void injectTrinketSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "tempMap") HashMap<EntityType<?>, Map<String, SlotType>> tempMap){
         var loader = dev.emi.trinkets.data.EntitySlotLoader.SERVER;
 
         var slotTypes = SlotTypeLoader.INSTANCE.getSlotTypes(false);
 
         for (var entry : loader.slotInfo.entrySet()) {
-            var innerMap = map.computeIfAbsent(entry.getKey(), entityType -> new HashMap<>());
+            var innerMap = tempMap.computeIfAbsent(entry.getKey(), entityType -> new HashMap<>());
 
             for (String s : entry.getValue()) {
                 var convertedType = TrinketConstants.trinketsToAccessories(s);

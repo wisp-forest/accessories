@@ -38,13 +38,13 @@ public abstract class ItemStackMixin {
             isInTag = this.getItem().builtInRegistryHolder().is(accessoryTag) || this.getItem().builtInRegistryHolder().is(tag);
         }
 
-        var trinketsPath = CuriosWrappingUtils.accessoriesToCurios(path);
+        var curiosPath = CuriosWrappingUtils.accessoriesToCurios(path);
 
         for (TagKey<Item> itemTagKey : this.getTags().toList()) {
             var namespace1 = itemTagKey.location().getNamespace();
             var path1 = itemTagKey.location().getPath();
 
-            if((namespace1.equals(CuriosConstants.MOD_ID) && path1.contains(trinketsPath)) || (namespace1.equals(Accessories.MODID) && path1.contains(path))) {
+            if((namespace1.equals(CuriosConstants.MOD_ID) && path1.contains(curiosPath)) || (namespace1.equals(Accessories.MODID) && path1.contains(path))) {
                 isInTag = isInTag || this.getItem().builtInRegistryHolder().is(itemTagKey);
 
                 if (isInTag) break;

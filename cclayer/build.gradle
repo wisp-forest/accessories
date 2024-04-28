@@ -19,6 +19,8 @@ repositories {
     maven { url "https://maven.su5ed.dev/releases" }
     maven { url "https://maven.shedaniel.me/" }
     maven { url 'https://jitpack.io' }
+    maven { url "https://api.modrinth.com/maven" }
+    maven { url "https://maven.florens.be/releases" }
     mavenCentral()
     //mavenLocal()
 }
