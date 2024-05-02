@@ -74,6 +74,8 @@ public class WrappedICurioProvider implements Accessory, LootingAdjustment, Fort
 
         modifiers.putAll(this.iCurio(stack).getAttributeModifiers(context, uuid));
 
+        modifiers = CuriosWrappingUtils.getAttributeModifiers(modifiers, context, uuid, stack);
+
         return modifiers;
     }
 
