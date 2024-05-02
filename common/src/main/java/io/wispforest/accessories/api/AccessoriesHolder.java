@@ -19,10 +19,6 @@ public interface AccessoriesHolder {
 
     //--
 
-    Map<String, AccessoriesContainer> getSlotContainers();
-
-    //--
-
     boolean cosmeticsShown();
 
     AccessoriesHolder cosmeticsShown(boolean value);

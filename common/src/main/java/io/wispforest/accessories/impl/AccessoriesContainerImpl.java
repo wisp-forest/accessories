@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @ApiStatus.Internal
 public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceCodecable {
 
-    private final AccessoriesCapability capability;
+    protected AccessoriesCapability capability;
     private String slotName;
 
     protected final Map<UUID, AttributeModifier> modifiers = new HashMap<>();

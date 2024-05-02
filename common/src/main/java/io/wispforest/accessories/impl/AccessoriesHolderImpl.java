@@ -38,8 +38,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
         return holder;
     }
 
-    @Override
-    public Map<String, AccessoriesContainer> getSlotContainers() {
+    @ApiStatus.Internal
+    protected Map<String, AccessoriesContainer> getSlotContainers() {
         return this.slotContainers;
     }
 

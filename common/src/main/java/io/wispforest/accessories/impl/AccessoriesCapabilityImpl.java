@@ -54,7 +54,15 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     @Override
     public Map<String, AccessoriesContainer> getContainers() {
-        return this.holder().getSlotContainers();
+        var containers = this.holder().getSlotContainers();
+
+        // Dirty patch to handle capability mismatch on containers when transferring such
+        // TODO: Wonder if such is the best solution to the problem of desynced when data is copied
+        containers.forEach((s, container) -> {
+            if(!container.capability().entity().equals(this.entity())) ((AccessoriesContainerImpl) container).capability = this;
+        });
+
+        return containers;
     }
 
     @Override
@@ -121,7 +129,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     @Override
     public void addTransientSlotModifiers(Multimap<String, AttributeModifier> modifiers) {
-        var containers = this.holder().getSlotContainers();
+        var containers = this.getContainers();
 
         for (var entry : modifiers.asMap().entrySet()) {
             if (!containers.containsKey(entry.getKey())) continue;
@@ -134,7 +142,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     @Override
     public void addPersistentSlotModifiers(Multimap<String, AttributeModifier> modifiers) {
-        var containers = this.holder().getSlotContainers();
+        var containers = this.getContainers();
 
         for (var entry : modifiers.asMap().entrySet()) {
             if (!containers.containsKey(entry.getKey())) continue;
@@ -147,7 +155,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     @Override
     public void removeSlotModifiers(Multimap<String, AttributeModifier> modifiers) {
-        var containers = this.holder().getSlotContainers();
+        var containers = this.getContainers();
 
         for (var entry : modifiers.asMap().entrySet()) {
             if (!containers.containsKey(entry.getKey())) continue;
@@ -162,21 +170,21 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     public Multimap<String, AttributeModifier> getSlotModifiers() {
         Multimap<String, AttributeModifier> modifiers = HashMultimap.create();
 
-        this.holder().getSlotContainers().forEach((s, container) -> modifiers.putAll(s, container.getModifiers().values()));
+        this.getContainers().forEach((s, container) -> modifiers.putAll(s, container.getModifiers().values()));
 
         return modifiers;
     }
 
     @Override
     public void clearSlotModifiers() {
-        this.holder().getSlotContainers().forEach((s, container) -> container.clearModifiers());
+        this.getContainers().forEach((s, container) -> container.clearModifiers());
     }
 
     @Override
     public void clearCachedSlotModifiers() {
         var slotModifiers = HashMultimap.<String, AttributeModifier>create();
 
-        var containers = this.holder().getSlotContainers();
+        var containers = this.getContainers();
 
         containers.forEach((name, container) -> {
             var modifiers = container.getCachedModifiers();
@@ -296,7 +304,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     }
 
     public SlotEntryReference getFirstEquipped(Predicate<ItemStack> predicate) {
-        for (var container : this.holder().getSlotContainers().values()) {
+        for (var container : this.getContainers().values()) {
             for (var stackEntry : container.getAccessories()) {
                 var stack = stackEntry.getSecond();
                 var reference = container.createReference(stackEntry.getFirst());
@@ -323,7 +331,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     public List<SlotEntryReference> getAllEquipped() {
         var references = new ArrayList<SlotEntryReference>();
 
-        for (var container : this.holder().getSlotContainers().values()) {
+        for (var container : this.getContainers().values()) {
             for (var stackEntry : container.getAccessories()) {
                 var stack = stackEntry.getSecond();
 
