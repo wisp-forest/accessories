@@ -11,12 +11,6 @@ import java.util.ServiceLoader;
 
 public class Services {
 
-  public static final ICuriosPlatform CURIOS = load(ICuriosPlatform.class);
-
-  public static <T> T load(Class<T> clazz) {
-    return (T) INSTANCE;
-  }
-
   private static final ICuriosPlatform INSTANCE = new ICuriosPlatform() {
     @Override
     public boolean makesPiglinsNeutral(ItemStack stack, LivingEntity livingEntity) {
@@ -33,4 +27,10 @@ public class Services {
       return false;
     }
   };
+
+  public static final ICuriosPlatform CURIOS = load(ICuriosPlatform.class);
+
+  public static <T> T load(Class<T> clazz) {
+    return (T) INSTANCE;
+  }
 }

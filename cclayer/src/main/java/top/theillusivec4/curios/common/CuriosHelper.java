@@ -52,8 +52,7 @@ public class CuriosHelper implements ICuriosHelper {
   }
 
   @Override
-  public Optional<ICuriosItemHandler> getCuriosHandler(
-      @Nonnull final LivingEntity livingEntity) {
+  public Optional<ICuriosItemHandler> getCuriosHandler(@Nonnull final LivingEntity livingEntity) {
     return CuriosApi.getCuriosInventory(livingEntity);
   }
 
