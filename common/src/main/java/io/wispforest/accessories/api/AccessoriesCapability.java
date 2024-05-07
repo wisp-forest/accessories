@@ -93,14 +93,22 @@ public interface AccessoriesCapability {
      * @return If any {@link ItemStack} is equipped based on the given {@link Item} entry
      */
     default boolean isEquipped(Item item){
-        return isEquipped(stack -> stack.getItem() == item);
+        return isEquipped(item, EquipmentChecking.ACCESSORIES_ONLY);
+    }
+
+    default boolean isEquipped(Item item, EquipmentChecking check){
+        return isEquipped(stack -> stack.getItem() == item, check);
     }
 
     /**
      * @return If any {@link ItemStack} is equipped based on the passed predicate
      */
     default boolean isEquipped(Predicate<ItemStack> predicate) {
-        return getFirstEquipped(predicate) != null;
+        return isEquipped(predicate, EquipmentChecking.ACCESSORIES_ONLY);
+    }
+
+    default boolean isEquipped(Predicate<ItemStack> predicate, EquipmentChecking check) {
+        return getFirstEquipped(predicate, check) != null;
     }
 
     /**
@@ -108,13 +116,22 @@ public interface AccessoriesCapability {
      */
     @Nullable
     default SlotEntryReference getFirstEquipped(Item item){
-        return getFirstEquipped(stack -> stack.getItem() == item);
+        return getFirstEquipped(item, EquipmentChecking.ACCESSORIES_ONLY);
+    }
+
+    @Nullable
+    default SlotEntryReference getFirstEquipped(Item item, EquipmentChecking check){
+        return getFirstEquipped(stack -> stack.getItem() == item, check);
     }
 
     /**
      * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given predicate
      */
-    SlotEntryReference getFirstEquipped(Predicate<ItemStack> predicate);
+    default SlotEntryReference getFirstEquipped(Predicate<ItemStack> predicate) {
+        return getFirstEquipped(predicate, EquipmentChecking.ACCESSORIES_ONLY);
+    }
+
+    SlotEntryReference getFirstEquipped(Predicate<ItemStack> predicate, EquipmentChecking check);
 
     /**
      * @return A list of all {@link ItemStack}'s formatted within {@link SlotEntryReference} matching the given {@link Item}

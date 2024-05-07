@@ -236,7 +236,7 @@ public class AccessoriesAPI {
             throw new IllegalStateException("Unable to get the needed SlotType from the SlotReference passed within `canInsertIntoSlot`! [Name: " + reference.slotName() + "]");
         }
 
-        return getPredicateResults(slotType.validators(), slotType, 0, stack) && canEquip(stack, reference);
+        return getPredicateResults(slotType.validators(), reference.entity().level(), slotType, 0, stack) && canEquip(stack, reference);
     }
 
     /**
@@ -307,7 +307,7 @@ public class AccessoriesAPI {
         var validSlots = new ArrayList<SlotType>();
 
         for (SlotType value : SlotTypeLoader.getSlotTypes(level).values()) {
-            if(getPredicateResults(value.validators(), value, 0, stack)) validSlots.add(value);
+            if(getPredicateResults(value.validators(), level, value, 0, stack)) validSlots.add(value);
         }
 
         return validSlots;
@@ -372,7 +372,7 @@ public class AccessoriesAPI {
         PREDICATE_REGISTRY.put(location, predicate);
     }
 
-    public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, SlotType slotType, int index, ItemStack stack){
+    public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, Level level, SlotType slotType, int index, ItemStack stack){
         var result = TriState.DEFAULT;
 
         for (var predicateId : predicateIds) {
@@ -380,7 +380,7 @@ public class AccessoriesAPI {
 
             if(predicate == null) continue;
 
-            result = predicate.isValid(slotType, index, stack);
+            result = predicate.isValid(level, slotType, index, stack);
 
             if(result != TriState.DEFAULT) break;
         }
@@ -406,17 +406,17 @@ public class AccessoriesAPI {
     }
 
     static {
-        registerPredicate(Accessories.of("all"), (slotType, i, stack) -> TriState.TRUE);
-        registerPredicate(Accessories.of("none"), (slotType, i, stack) -> TriState.FALSE);
-        registerPredicate(Accessories.of("tag"), (slotType, i, stack) -> {
+        registerPredicate(Accessories.of("all"), (level, slotType, i, stack) -> TriState.TRUE);
+        registerPredicate(Accessories.of("none"), (level, slotType, i, stack) -> TriState.FALSE);
+        registerPredicate(Accessories.of("tag"), (level, slotType, i, stack) -> {
             return (stack.is(getSlotTag(slotType)) || stack.is(ALL_ACCESSORIES)) ? TriState.TRUE : TriState.DEFAULT;
         });
-        registerPredicate(Accessories.of("relevant"), (slotType, i, stack) -> {
+        registerPredicate(Accessories.of("relevant"), (level, slotType, i, stack) -> {
             var bl = !getAttributeModifiers(stack, slotType.name(), i, getOrCreateSlotUUID(slotType.name(), i)).isEmpty();
 
             return bl ? TriState.TRUE : TriState.DEFAULT;
         });
-        registerPredicate(Accessories.of("compound"), (slotType, index, stack) -> {
+        registerPredicate(Accessories.of("compound"), (level, slotType, index, stack) -> {
             var tag = stack.getTag();
             var name = slotType.name();
 

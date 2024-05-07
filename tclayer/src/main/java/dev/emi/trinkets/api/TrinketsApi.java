@@ -2,6 +2,7 @@ package dev.emi.trinkets.api;
 
 import com.google.common.collect.ImmutableMap;
 import com.mojang.datafixers.util.Function3;
+import com.mojang.logging.LogUtils;
 import dev.emi.trinkets.compat.*;
 import dev.onyxstudios.cca.api.v3.component.ComponentKey;
 import dev.onyxstudios.cca.api.v3.component.ComponentRegistryV3;
@@ -11,6 +12,7 @@ import dev.onyxstudios.cca.api.v3.entity.RespawnCopyStrategy;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.slot.SlotBasedPredicate;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.fabricmc.fabric.api.util.TriState;
@@ -24,8 +26,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public class TrinketsApi implements EntityComponentInitializer {
     public static final ComponentKey<TrinketComponent> TRINKET_COMPONENT = ComponentRegistryV3.INSTANCE
@@ -172,26 +176,7 @@ public class TrinketsApi implements EntityComponentInitializer {
     public static void registerTrinketPredicate(ResourceLocation id, Function3<ItemStack, SlotReference, LivingEntity, TriState> predicate) {
         PREDICATES.put(id, predicate);
 
-//        AccessoriesAPI.registerPredicate(id, (slotName, index, stack) -> {
-//            var capability = AccessoriesCapability.get(reference.entity());
-//
-//            if(capability.isEmpty()) return TriState.DEFAULT;
-//
-//            var container = capability.get().getContainers().get(reference.slotName());
-//
-//            if(container == null) return TriState.DEFAULT;
-//
-//            var ref = new SlotReference(
-//                    new WrappedTrinketInventory(
-//                            new LivingEntityTrinketComponent(capability.get()),
-//                            container,
-//                            container.slotType().get()
-//                    ),
-//                    0
-//            );
-//
-//            return predicate.apply(stack, ref, reference.entity());
-//        });
+        AccessoriesAPI.registerPredicate(id, new SafeSlotBasedPredicate(id, predicate));
     }
 
     public static Optional<Function3<ItemStack, SlotReference, LivingEntity, TriState>> getTrinketPredicate(ResourceLocation id) {
@@ -221,7 +206,7 @@ public class TrinketsApi implements EntityComponentInitializer {
             throw new IllegalStateException("Unable to get a SlotType using the WrappedTrinketInventory from the SlotTypeLoader! [Name: " + slotName +"]");
         }
 
-        return AccessoriesAPI.getPredicateResults(convertedSet, slotType, ref.index(), stack);
+        return AccessoriesAPI.getPredicateResults(convertedSet, entity.level(), slotType, ref.index(), stack);
     }
 
     static {
@@ -256,5 +241,38 @@ public class TrinketsApi implements EntityComponentInitializer {
         //System.out.println("WEEEEEEEEEEEEEEEE\nWEEEEEEEEEEEEEEEE\nWEEEEEEEEEEEEEEEE\nWEEEEEEEEEEEEEEEE\nWEEEEEEEEEEEEEEEE\n");
         registry.registerFor(LivingEntity.class, TrinketsApi.TRINKET_COMPONENT, livingEntity -> getTrinketComponent(livingEntity).get());
         registry.registerForPlayers(TrinketsApi.TRINKET_COMPONENT, player -> getTrinketComponent(player).get(), RespawnCopyStrategy.ALWAYS_COPY);
+    }
+
+    private final static class SafeSlotBasedPredicate implements SlotBasedPredicate {
+        private static final Logger LOGGER = LogUtils.getLogger();
+        private boolean hasErrored = false;
+
+        private final ResourceLocation location;
+        private final Function3<ItemStack, SlotReference, LivingEntity, TriState> trinketPredicate;
+
+        public SafeSlotBasedPredicate(ResourceLocation location, Function3<ItemStack, SlotReference, LivingEntity, TriState> trinketPredicate) {
+            this.location = location;
+            this.trinketPredicate = trinketPredicate;
+        }
+
+        @Override
+        public TriState isValid(Level level, io.wispforest.accessories.api.slot.SlotType slotType, int slot, ItemStack stack) {
+            if(hasErrored) return TriState.DEFAULT;
+
+            try {
+                return this.trinketPredicate.apply(stack, new SlotReference(new CursedTrinketInventory(slotType), slot), null);
+            } catch (Exception e) {
+                this.hasErrored = true;
+                LOGGER.warn("Unable to handle Trinket Slot Predicate converted to Accessories Slot Predicate due to fundamental incompatibility, issues may be present with such! [Slot: {}, Predicate ID: {}]", slotType.name(), this.location);
+            }
+
+            return TriState.DEFAULT;
+        }
+    }
+
+    private static final class CursedTrinketInventory extends TrinketInventory {
+        public CursedTrinketInventory(io.wispforest.accessories.api.slot.SlotType slotType) {
+            super(new WrappedSlotType(slotType), null, inv -> {});
+        }
     }
 }
