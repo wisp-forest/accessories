@@ -10,8 +10,8 @@ import io.wispforest.accessories.client.gui.AccessoriesInternalSlot;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.mixin.SlotAccessor;
-import io.wispforest.accessories.networking.client.holder.HolderProperty;
-import io.wispforest.accessories.networking.client.holder.SyncHolderChange;
+import io.wispforest.accessories.networking.holder.HolderProperty;
+import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -378,43 +378,6 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         this.onScrollToEvent.run();
 
         return true;
-    }
-
-    @Override
-    public boolean clickMenuButton(Player player, int id) {
-        if (player.level().isClientSide) return true;
-
-        if (id == 0) {
-            AccessoriesInternals.modifyHolder(player, holder -> holder.cosmeticsShown(!isCosmeticsOpen()));
-
-            AccessoriesInternals.getNetworkHandler().sendToPlayer((ServerPlayer) player, SyncHolderChange.of(HolderProperty.COSMETIC_PROP, isCosmeticsOpen()));
-
-            return true;
-        }
-
-        if (id == 1) {
-            AccessoriesInternals.modifyHolder(player, holder -> holder.linesShown(!areLinesShown()));
-
-            AccessoriesInternals.getNetworkHandler().sendToPlayer((ServerPlayer) player, SyncHolderChange.of(HolderProperty.LINES_PROP, areLinesShown()));
-
-            return true;
-        }
-
-        if(id == 2) {
-            AccessoriesInternals.modifyHolder(player, holder -> holder.showUnusedSlots(!areUnusedSlotsShown()));
-
-            AccessoriesInternals.getNetworkHandler().sendToPlayer((ServerPlayer) player, SyncHolderChange.of(HolderProperty.UNUSED_PROP, areUnusedSlotsShown()));
-
-            return true;
-        }
-
-        if (this.slots.get(id) instanceof AccessoriesInternalSlot slot) {
-            var renderOptions = slot.container.renderOptions();
-            renderOptions.set(slot.getContainerSlot(), !slot.container.shouldRender(slot.getContainerSlot()));
-            slot.container.markChanged();
-        }
-
-        return super.clickMenuButton(player, id);
     }
 
     public boolean isCosmeticsOpen() {

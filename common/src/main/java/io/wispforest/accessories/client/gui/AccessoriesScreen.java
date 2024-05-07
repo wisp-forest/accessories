@@ -13,6 +13,9 @@ import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.impl.SlotGroupImpl;
+import io.wispforest.accessories.networking.server.SyncCosmeticToggle;
+import io.wispforest.accessories.networking.holder.HolderProperty;
+import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.MenuScroll;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
 import it.unimi.dsi.fastutil.Pair;
@@ -215,7 +218,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         SCISSOR_BOX.set(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y);
 
         if (hoveredSlot instanceof AccessoriesInternalSlot slot) {
-            HOVERED_SLOT_TYPE = slot.container.getSlotName() + slot.getContainerSlot();
+            HOVERED_SLOT_TYPE = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
         }
 
         renderEntityInInventoryFollowingMouseRotated(guiGraphics, scissorStart, size, scissorStart, scissorEnd, mouseX, mouseY, 0);
@@ -258,7 +261,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             if (!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) continue;
 
             if (slot instanceof AccessoriesInternalSlot accessoriesSlot && !accessoriesSlot.getItem().isEmpty()) {
-                var positionKey = accessoriesSlot.container.getSlotName() + accessoriesSlot.getContainerSlot();
+                var positionKey = accessoriesSlot.accessoriesContainer.getSlotName() + accessoriesSlot.getContainerSlot();
 
                 var vec = NOT_VERY_NICE_POSITIONS.getOrDefault(positionKey, null);
 
@@ -481,13 +484,19 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         var cosmeticsOpen = this.menu.isCosmeticsOpen();
 
         this.cosmeticToggleButton = this.addRenderableWidget(
-                Button.builder(Component.empty(), (btn) -> this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 0))
+                Button.builder(Component.empty(), (btn) -> {
+                            AccessoriesInternals.getNetworkHandler()
+                                    .sendToServer(SyncHolderChange.of(HolderProperty.COSMETIC_PROP, this.getMenu().owner, bl -> !bl));
+                        })
                         .tooltip(cosmeticsToggleTooltip(cosmeticsOpen))
                         .bounds(this.leftPos - 27 + (cosmeticsOpen ? -20 : 0), this.topPos + 7, (cosmeticsOpen ? 38 : 18), 6)
                         .build());
 
         this.unusedSlotsToggleButton = this.addRenderableWidget(
-                Button.builder(Component.empty(), (btn) -> this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 2))
+                Button.builder(Component.empty(), (btn) -> {
+                            AccessoriesInternals.getNetworkHandler()
+                                    .sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, this.getMenu().owner, bl -> !bl));
+                        })
                         .tooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()))
                         .bounds(this.leftPos + 154, this.topPos + 7, 12, 12)
                         .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
@@ -499,7 +508,10 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         if(Accessories.getConfig().clientData.showLineRendering) {
             this.linesToggleButton = this.addRenderableWidget(
-                    Button.builder(Component.empty(), (btn) -> this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, 1)).tooltip(linesToggleTooltip(this.menu.areLinesShown()))
+                    Button.builder(Component.empty(), (btn) -> {
+                                AccessoriesInternals.getNetworkHandler()
+                                        .sendToServer(SyncHolderChange.of(HolderProperty.LINES_PROP, this.getMenu().owner, bl -> !bl));
+                            })
                             .bounds(this.leftPos + 154, this.topPos + 7 + 15, 12, 12)
                             //.bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6)
                             .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
@@ -515,18 +527,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         for (Slot slot : this.menu.slots) {
             if (!(slot instanceof AccessoriesInternalSlot accessoriesSlot && !accessoriesSlot.isCosmetic)) continue;
 
-            var slotButton = ToggleButton.toggleBuilder(Component.empty(), btn -> this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, slot.index)).onRender(btn -> {
-                var bl = accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot());
-
-                if (bl != btn.toggled()) {
-                    btn.toggled(bl);
-                    btn.setTooltip(toggleTooltip(bl));
-                }
-            }).tooltip(toggleTooltip(accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot())))
-                    .zIndex(300)
-                    .bounds(slot.x + this.leftPos + 13, slot.y + this.topPos - 2, 5, 5)
-                    .build()
-                    .toggled(accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot()));
+            var slotButton = ToggleButton.ofSlot(slot.x + this.leftPos + 13, slot.y + this.topPos - 2, 300, accessoriesSlot);
 
             slotButton.visible = accessoriesSlot.isActive();
             slotButton.active = accessoriesSlot.isActive();
@@ -628,12 +629,12 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 btn.active = false;
                 btn.visible = false;
             } else {
-                btn.setTooltip(toggleTooltip(accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot())));
+                btn.setTooltip(toggleTooltip(accessoriesSlot.accessoriesContainer.shouldRender(accessoriesSlot.getContainerSlot())));
 
                 btn.setX(accessoriesSlot.x + this.leftPos + 13);
                 btn.setY(accessoriesSlot.y + this.topPos - 2);
 
-                btn.toggled(accessoriesSlot.container.shouldRender(accessoriesSlot.getContainerSlot()));
+                btn.toggled(accessoriesSlot.accessoriesContainer.shouldRender(accessoriesSlot.getContainerSlot()));
 
                 btn.active = true;
                 btn.visible = true;
@@ -679,7 +680,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         if (this.hoveredSlot instanceof AccessoriesInternalSlot slot) {
             FORCE_TOOLTIP_LEFT = true;
 
-            if (slot.getItem().isEmpty() && slot.container.slotType() != null) {
+            if (slot.getItem().isEmpty() && slot.accessoriesContainer.slotType() != null) {
                 guiGraphics.renderTooltip(Minecraft.getInstance().font, slot.getTooltipData(), Optional.empty(), x, y);
 
                 return;

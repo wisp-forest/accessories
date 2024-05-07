@@ -19,7 +19,6 @@ public class AccessoriesInternalSlot extends AccessoriesBasedSlot {
 
     public final int menuIndex;
 
-    public final AccessoriesContainer container;
     public final boolean isCosmetic;
 
     private Function<AccessoriesInternalSlot, Boolean> isActive = (slot) -> true;
@@ -31,7 +30,6 @@ public class AccessoriesInternalSlot extends AccessoriesBasedSlot {
         this.menuIndex = menuIndex;
 
         this.isCosmetic = isCosmetic;
-        this.container = container;
     }
 
     public AccessoriesInternalSlot isActive(Function<AccessoriesInternalSlot, Boolean> isActive){
@@ -56,7 +54,7 @@ public class AccessoriesInternalSlot extends AccessoriesBasedSlot {
 
         var key = this.isCosmetic ? "cosmetic_" : "";
 
-        var slotType = this.container.slotType();
+        var slotType = this.accessoriesContainer.slotType();
 
         tooltipData.add(Component.translatable(Accessories.translation(key + "slot.tooltip.singular"))
                 .withStyle(ChatFormatting.GRAY)

@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Base slot class implementation for Accessories with static methods that force checks if

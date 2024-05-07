@@ -13,7 +13,8 @@
     "ResourceManagerHelperImplAccessor",
     "EntitySlotLoaderMixin",
     "ItemStackMixin",
-    "SlotTypeLoaderMixin"
+    "SlotTypeLoaderMixin",
+    "SlotGroupLoaderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

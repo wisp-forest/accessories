@@ -1,12 +1,16 @@
-package io.wispforest.accessories.networking.client.holder;
+package io.wispforest.accessories.networking.holder;
 
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.networking.AccessoriesPacket;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+
+import java.util.function.Function;
 
 public class SyncHolderChange extends AccessoriesPacket {
 
@@ -24,6 +28,10 @@ public class SyncHolderChange extends AccessoriesPacket {
 
     public static <T> SyncHolderChange of(HolderProperty<T> property, T data) {
         return new SyncHolderChange(property, data);
+    }
+
+    public static <T> SyncHolderChange of(HolderProperty<T> property, Player player, Function<T, T> operation) {
+        return new SyncHolderChange(property, operation.apply(property.getter().apply(player.accessoriesHolder())));
     }
 
     @Override
@@ -45,9 +53,16 @@ public class SyncHolderChange extends AccessoriesPacket {
 
         this.property.setData(player, this.data);
 
+        if(player.level().isClientSide()) {
+            handleClient(player);
+        } else {
+            AccessoriesInternals.getNetworkHandler().sendToPlayer((ServerPlayer) player, SyncHolderChange.of((HolderProperty<Object>) this.property, (Object) this.property.getter().apply(player.accessoriesHolder())));
+        }
+    }
+
+    public void handleClient(Player player) {
         if(Minecraft.getInstance().screen instanceof AccessoriesScreen accessoriesScreen) {
             accessoriesScreen.updateButtons(this.property.name());
         }
     }
-
 }

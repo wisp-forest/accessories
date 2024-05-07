@@ -14,22 +14,6 @@ public class TrinketConstants {
     public static final String MOD_ID = "trinkets";
     public static final Logger LOGGER = LogManager.getLogger();
 
-    public static String trinketsToAccessories(String trinketType){
-        return switch (trinketType){
-            case "glove" -> "hand";
-            case "aglet" -> "anklet";
-            default -> trinketType;
-        };
-    }
-
-    public static String accessoriesToTrinkets(String accessoryType){
-        return switch (accessoryType){
-            case "hand" -> "glove";
-            case "anklet" -> "aglet";
-            default -> accessoryType;
-        };
-    }
-
     public static String filterGroup(String path){
         if(!path.contains("/")) return path;
 

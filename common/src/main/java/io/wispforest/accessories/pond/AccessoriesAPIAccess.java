@@ -13,6 +13,7 @@ public interface AccessoriesAPIAccess {
         throw new IllegalStateException("[AccessoriesAPIAccess]: Default interface method not implemented!");
     }
 
+    @Nullable
     default AccessoriesHolder accessoriesHolder() {
         throw new IllegalStateException("[AccessoriesAPIAccess]: Default interface method not implemented!");
     }

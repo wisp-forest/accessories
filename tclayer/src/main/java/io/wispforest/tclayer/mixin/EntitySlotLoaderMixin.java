@@ -2,7 +2,7 @@ package io.wispforest.tclayer.mixin;
 
 import com.google.gson.JsonObject;
 import com.llamalad7.mixinextras.sugar.Local;
-import dev.emi.trinkets.api.TrinketConstants;
+import dev.emi.trinkets.compat.WrappingTrinketsUtils;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -11,8 +11,6 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Mutable;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -33,7 +31,7 @@ public abstract class EntitySlotLoaderMixin {
             var innerMap = tempMap.computeIfAbsent(entry.getKey(), entityType -> new HashMap<>());
 
             for (String s : entry.getValue()) {
-                var convertedType = TrinketConstants.trinketsToAccessories(s);
+                var convertedType = WrappingTrinketsUtils.trinketsToAccessories_Slot(s);
 
                 if (innerMap.containsKey(convertedType)) continue;
 

@@ -1,6 +1,7 @@
 package io.wispforest.tclayer.mixin;
 
 import dev.emi.trinkets.api.TrinketConstants;
+import dev.emi.trinkets.compat.WrappingTrinketsUtils;
 import io.wispforest.accessories.Accessories;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -33,14 +34,14 @@ public abstract class ItemStackMixin {
         if(namespace.equals(TrinketConstants.MOD_ID)) {
             var filteredPath = TrinketConstants.filterGroup(path);
 
-            var accessoryTag = TagKey.create(Registries.ITEM, new ResourceLocation(Accessories.MODID, TrinketConstants.trinketsToAccessories(filteredPath)));
+            var accessoryTag = TagKey.create(Registries.ITEM, new ResourceLocation(Accessories.MODID, WrappingTrinketsUtils.trinketsToAccessories_Slot(filteredPath)));
 
             isInTag = this.getItem().builtInRegistryHolder().is(accessoryTag) || this.getItem().builtInRegistryHolder().is(tag);
         }
 
         var filteredPath = TrinketConstants.filterGroup(path);
 
-        var trinketsPath = TrinketConstants.accessoriesToTrinkets(filteredPath);
+        var trinketsPath = WrappingTrinketsUtils.accessoriesToTrinkets_Slot(filteredPath);
 
         for (TagKey<Item> itemTagKey : this.getTags().toList()) {
             var namespace1 = itemTagKey.location().getNamespace();

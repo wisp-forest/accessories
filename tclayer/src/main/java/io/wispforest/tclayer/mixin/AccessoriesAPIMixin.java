@@ -5,13 +5,13 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import dev.emi.trinkets.api.TrinketConstants;
+import dev.emi.trinkets.compat.WrappingTrinketsUtils;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.slot.SlotType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -46,7 +46,7 @@ public abstract class AccessoriesAPIMixin {
         for (var itemTagKey : trinketTagsRef.get()) {
             var filterPath = TrinketConstants.filterGroup(itemTagKey.location().getPath());
 
-            var accessoryVersion = TrinketConstants.trinketsToAccessories(filterPath);
+            var accessoryVersion = WrappingTrinketsUtils.trinketsToAccessories_Slot(filterPath);
 
             if((filterPath.equals(slotType.name()) || accessoryVersion.equals(slotType.name())) && !BuiltInRegistries.ITEM.getTag(itemTagKey).isEmpty()) {
                 //System.out.println("Match: " + slotType.name() + " - Tag: " + itemTagKey + " / " + "Path: " + filterPath + " / " + accessoryVersion);

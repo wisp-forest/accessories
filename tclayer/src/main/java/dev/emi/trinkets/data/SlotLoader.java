@@ -6,6 +6,7 @@ import com.google.gson.*;
 import dev.emi.trinkets.api.SlotType;
 import dev.emi.trinkets.api.TrinketConstants;
 import dev.emi.trinkets.api.TrinketEnums;
+import dev.emi.trinkets.compat.WrappingTrinketsUtils;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
@@ -49,7 +50,7 @@ public class SlotLoader extends SimplePreparableReloadListener<Map<String, SlotL
                             String[] parsed = path.substring(dataType.length() + 1, path.length() - FILE_SUFFIX_LENGTH).split("/");
                             String groupName = parsed[0];
                             String fileName = parsed[parsed.length - 1];
-                            GroupData group = map.computeIfAbsent(groupName, (k) -> new GroupData());
+                            GroupData group = map.computeIfAbsent(WrappingTrinketsUtils.trinketsToAccessories_Group(groupName), (k) -> new GroupData());
 
                             try {
                                 if (fileName.equals("group")) {

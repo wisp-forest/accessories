@@ -2,12 +2,12 @@ package io.wispforest.accessories.networking;
 
 import io.netty.buffer.Unpooled;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.networking.client.*;
-import io.wispforest.accessories.networking.client.holder.SyncHolderChange;
+import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.NukeAccessories;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.accessories.networking.server.MenuScroll;
+import io.wispforest.accessories.networking.server.SyncCosmeticToggle;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.network.FriendlyByteBuf;
@@ -38,6 +38,7 @@ public abstract class AccessoriesNetworkHandler {
         registerBuilderC2S(ScreenOpen.class, ScreenOpen::new);
         registerBuilderC2S(MenuScroll.class, MenuScroll::new);
         registerBuilderC2S(NukeAccessories.class, NukeAccessories::new);
+        registerBuilderC2S(SyncCosmeticToggle.class, SyncCosmeticToggle::new);
 
         registerBuilderS2C(SyncEntireContainer.class, SyncEntireContainer::new);
         registerBuilderS2C(SyncContainerData.class, SyncContainerData::new);
@@ -45,6 +46,7 @@ public abstract class AccessoriesNetworkHandler {
         registerBuilderS2C(MenuScroll.class, MenuScroll::new);
 
         registerBuilderS2C(SyncHolderChange.class, SyncHolderChange::new);
+        registerBuilderC2S(SyncHolderChange.class, SyncHolderChange::new);
     }
 
     protected <M extends AccessoriesPacket> void registerBuilderC2S(Class<M> messageType, Supplier<M> supplier){

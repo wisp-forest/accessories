@@ -1,6 +1,8 @@
 package top.theillusivec4.curios.compat;
 
+import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
+import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
@@ -26,12 +28,12 @@ public class WrappedCurioStackHandler implements ICurioStacksHandler {
 
     @Override
     public IDynamicStackHandler getStacks() {
-        return new HandlerImpl(this.container.getAccessories());
+        return new HandlerImpl(this.container, false);
     }
 
     @Override
     public IDynamicStackHandler getCosmeticStacks() {
-        return new HandlerImpl(this.container.getCosmeticAccessories());
+        return new HandlerImpl(this.container, true);
     }
 
     @Override
@@ -126,11 +128,21 @@ public class WrappedCurioStackHandler implements ICurioStacksHandler {
     @Override public void grow(int amount) {}
     @Override public void shrink(int amount) {}
 
-    private static class HandlerImpl implements IDynamicStackHandler {
-        private final InvWrapper wrapper;
+    public static class HandlerImpl implements IDynamicStackHandler {
+        public final AccessoriesContainer container;
+        public final ExpandedSimpleContainer accessories;
 
-        public HandlerImpl(Container container){
-            this.wrapper = new InvWrapper(container);
+        public final boolean isCosmetic;
+
+        public final InvWrapper wrapper;
+
+        public HandlerImpl(AccessoriesContainer container, boolean isCosmetic){
+            this.container = container;
+            this.accessories = (isCosmetic ? container.getCosmeticAccessories() : container.getAccessories());
+
+            this.isCosmetic = isCosmetic;
+
+            this.wrapper = new InvWrapper(accessories);
         }
 
         //--

@@ -303,15 +303,21 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
         return null;
     }
 
-    public SlotEntryReference getFirstEquipped(Predicate<ItemStack> predicate) {
+    public SlotEntryReference getFirstEquipped(Predicate<ItemStack> predicate, EquipmentChecking check) {
         for (var container : this.getContainers().values()) {
             for (var stackEntry : container.getAccessories()) {
                 var stack = stackEntry.getSecond();
                 var reference = container.createReference(stackEntry.getFirst());
 
+                if(check == EquipmentChecking.COSMETICALLY_OVERRIDABLE) {
+                    var cosmetic = container.getCosmeticAccessories().getItem(reference.slot());
+
+                    if(!cosmetic.isEmpty()) stack = cosmetic;
+                }
+
                 var entryReference = AccessoryNestUtils.recursiveStackHandling(stack, reference, (innerStack, ref) -> {
-                    return (!innerStack.isEmpty() && predicate.test(stack))
-                            ? new SlotEntryReference(reference, stack)
+                    return (!innerStack.isEmpty() && predicate.test(innerStack))
+                            ? new SlotEntryReference(reference, innerStack)
                             : null;
                 });
 

@@ -83,7 +83,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
     protected void apply(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler) {
         var slotGroups = new HashMap<String, SlotGroupBuilder>();
 
-        slotGroups.put("any", new SlotGroupBuilder("any").order(120));
+        slotGroups.put("unsorted", new SlotGroupBuilder("unsorted").order(30));
 
         var allSlots = new HashMap<>(SlotTypeLoader.INSTANCE.getSlotTypes(false));
 
@@ -143,12 +143,12 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
             slotGroups.put(group.name, group);
         }
 
-        slotGroups.get("any").addSlots(allSlots.keySet().stream().filter(s -> !s.contains(":")).toList());
+        slotGroups.get("unsorted").addSlots(allSlots.keySet().stream().filter(s -> !s.contains(":")).toList());
 
         UniqueSlotHandling.getGroups().forEach((group, slots) -> {
             slotGroups.put(group,
                     slotGroups.computeIfAbsent(group, SlotGroupBuilder::new)
-                            .order(300)
+                            .order(5)
                             .addSlots(slots)
             );
         });

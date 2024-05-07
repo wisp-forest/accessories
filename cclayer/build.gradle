@@ -32,9 +32,11 @@ dependencies {
     neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
 
     developmentNeoForge implementation(project(path: ":common", configuration: "namedElements"))
-    localRuntime(project(path: ":neoforge", configuration: "namedElements"))
+    localRuntime compileOnly(project(path: ":neoforge", configuration: "namedElements"))
 
     modRuntimeOnly ("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
+
+    modCompileOnly ("maven.modrinth:aether:1.20.4-1.4.1-neoforge")
 
     modImplementation('com.github.Dragon-Seeker.ForgifiedFabricAPI:fabric-api-base:1.20.4-SNAPSHOT')
 }

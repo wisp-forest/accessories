@@ -2,8 +2,6 @@ package dev.emi.trinkets.compat;
 
 import dev.emi.trinkets.api.LivingEntityTrinketComponent;
 import dev.emi.trinkets.api.SlotReference;
-import dev.emi.trinkets.api.TrinketConstants;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.data.SlotTypeLoader;
 
@@ -17,7 +15,7 @@ public class WrappingTrinketsUtils {
 
             if(capability == null) return Optional.empty();
 
-            var curiosHandler = capability.getContainers().get(TrinketConstants.trinketsToAccessories(slotReference.slotName()));
+            var curiosHandler = capability.getContainers().get(trinketsToAccessories_Slot(slotReference.slotName()));
 
             var slotType = SlotTypeLoader.getSlotType(slotReference.entity().level(), curiosHandler.getSlotName());
 
@@ -27,5 +25,39 @@ public class WrappingTrinketsUtils {
         } catch (Exception e){
             return Optional.empty();
         }
+    }
+
+    public static String trinketsToAccessories_Slot(String trinketType){
+        return switch (trinketType){
+            case "glove" -> "hand";
+            case "aglet" -> "anklet";
+            default -> trinketType;
+        };
+    }
+
+    public static String accessoriesToTrinkets_Slot(String accessoryType){
+        return switch (accessoryType){
+            case "hand" -> "glove";
+            case "anklet" -> "aglet";
+            default -> accessoryType;
+        };
+    }
+
+    public static String trinketsToAccessories_Group(String trinketType){
+        return switch (trinketType){
+            case "leg" -> "legs";
+            case "offhand", "hand" -> "arm";
+            case "charm" -> "misc";
+            default -> trinketType;
+        };
+    }
+
+    public static String accessoriesToTrinkets_Group(String accessoryType){
+        return switch (accessoryType){
+            case "legs" -> "leg";
+            case "arm" -> "hand";
+            case "misc" -> "charm";
+            default -> accessoryType;
+        };
     }
 }

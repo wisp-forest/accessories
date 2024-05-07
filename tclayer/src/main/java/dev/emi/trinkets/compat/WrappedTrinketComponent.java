@@ -57,7 +57,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
                 map.put(s, wrappedInv);
             });
 
-            inventories.put(entry.getKey(), map);
+            inventories.put(WrappingTrinketsUtils.accessoriesToTrinkets_Group(entry.getKey()), map);
         }
 
         return inventories;
@@ -151,7 +151,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
             for (var slotKey : groupTag.getAllKeys()) {
                 var slotTag = groupTag.getCompound(slotKey);
 
-                var slotName = TrinketConstants.trinketsToAccessories(slotKey);
+                var slotName = WrappingTrinketsUtils.trinketsToAccessories_Slot(slotKey);
 
                 var slotType = SlotTypeLoader.getSlotType(this.getEntity().level(), slotName);
 
