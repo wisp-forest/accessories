@@ -10,7 +10,6 @@
     "AccessoriesForgeMixin",
     "EntitySlotLoaderMixin",
     "ItemStackMixin",
-    "NetworkInstanceAccessor",
     "RegisterCapabilitiesEventMixin",
     "SlotTypeLoaderMixin",
     "compat.AetherAccessoriesMenuMixin"
