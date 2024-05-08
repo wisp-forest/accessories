@@ -37,7 +37,7 @@ public record WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) impl
         if (entity.hasData(CuriosRegistry.INVENTORY)) {
             var inv = entity.getData(CuriosRegistry.INVENTORY);
 
-            inv.init(this);
+            inv.init(capability);
 
             entity.removeData(CuriosRegistry.INVENTORY);
         }
