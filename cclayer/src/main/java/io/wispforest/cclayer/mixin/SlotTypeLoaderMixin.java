@@ -31,7 +31,7 @@ public abstract class SlotTypeLoaderMixin {
             if (tempMap.containsKey(accessoryType)) {
                 var existingSlot = tempMap.get(accessoryType);
 
-                if(curiosBuilder.size > existingSlot.amount()) {
+                if(curiosBuilder.size != null && curiosBuilder.size > existingSlot.amount()) {
                     var newSlot = new SlotTypeImpl(existingSlot.name(), existingSlot.icon(), existingSlot.order(), curiosBuilder.size, existingSlot.validators(), existingSlot.dropRule());
 
                     tempMap.put(accessoryType, newSlot);
