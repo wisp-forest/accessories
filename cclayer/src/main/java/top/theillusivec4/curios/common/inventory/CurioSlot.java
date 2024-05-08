@@ -19,26 +19,20 @@
 
 package top.theillusivec4.curios.common.inventory;
 
-import javax.annotation.Nonnull;
-
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.client.gui.AccessoriesInternalSlot;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.SlotItemHandler;
-import top.theillusivec4.curios.api.CuriosApi;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 import top.theillusivec4.curios.compat.CuriosWrappingUtils;
 import top.theillusivec4.curios.compat.WrappedCurioStackHandler;
-import top.theillusivec4.curios.mixin.core.AccessorEntity;
+
+import javax.annotation.Nonnull;
 
 public class CurioSlot extends AccessoriesInternalSlot {
 

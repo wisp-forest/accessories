@@ -29,12 +29,13 @@ import net.minecraft.world.entity.player.StackedContents;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraftforge.common.util.LazyOptional;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.ICuriosMenu;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 public class CuriosContainer extends InventoryMenu implements ICuriosMenu {
 
@@ -45,7 +46,7 @@ public class CuriosContainer extends InventoryMenu implements ICuriosMenu {
             EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS,
             EquipmentSlot.FEET};
 
-    public final LazyOptional<ICuriosItemHandler> curiosHandler;
+    public final Optional<ICuriosItemHandler> curiosHandler;
     public final Player player;
 
     private final boolean isLocalWorld;
@@ -142,9 +143,9 @@ public class CuriosContainer extends InventoryMenu implements ICuriosMenu {
     }
 
     @Override
-    public boolean recipeMatches(Recipe<? super CraftingContainer> recipeIn) {
+    public boolean recipeMatches(RecipeHolder<? extends Recipe<CraftingContainer>> recipe) {
         // NO-OP
-        return recipeIn.matches(this.craftMatrix, this.player.level());
+        return recipe.value().matches(this.craftMatrix, this.player.level());
     }
 
     @Override
