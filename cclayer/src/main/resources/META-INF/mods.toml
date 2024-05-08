@@ -4,6 +4,10 @@ loaderVersion = "[1,)"
 license = "LGPL-3.0"
 
 [[mods]]
+modId = "curios"
+version = "${version}"
+
+[[mods]]
 modId = "cclayer"
 version = "${version}"
 displayName = "Accessories Curios Compat Layer"
@@ -16,10 +20,6 @@ logoFile = "icon.png"
 
 [[mixins]]
 config = 'cclayer.mixins.json'
-
-[[mods]]
-modId = "curios"
-version = "${version}"
 
 [[mixins]]
 config = 'cclayer_curios.mixins.json'
