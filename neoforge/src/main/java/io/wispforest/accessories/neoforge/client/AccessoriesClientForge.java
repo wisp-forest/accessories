@@ -36,20 +36,17 @@ public class AccessoriesClientForge {
 
     @SubscribeEvent
     public static void onInitializeClient(FMLClientSetupEvent event) {
-        event.enqueueWork(() -> {
-            AccessoriesClient.init();
+        AccessoriesClient.init();
 
-            NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
-            NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::itemTooltipCallback);
+        NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
+        NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::itemTooltipCallback);
 
-            AccessoriesForge.BUS.addListener(AccessoriesClientForge::registerClientReloadListeners);
-
-            ModLoadingContext.get().registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class, () -> {
-                return new ConfigScreenHandler.ConfigScreenFactory((minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get());
-            });
+        ModLoadingContext.get().registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class, () -> {
+            return new ConfigScreenHandler.ConfigScreenFactory((minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get());
         });
     }
 
+    @SubscribeEvent
     public static void registerClientReloadListeners(RegisterClientReloadListenersEvent event) {
         event.registerReloadListener(new SimplePreparableReloadListener<Void>() {
             @Override protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) { return null; }
