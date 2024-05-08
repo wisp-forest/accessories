@@ -4,7 +4,9 @@ plugins {
 
 architectury {
     platformSetupLoomIde()
-    fabric()
+    fabric {
+        platformPackage = "fabric"
+    }
 }
 
 configurations {
@@ -21,7 +23,7 @@ repositories {
     maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
     maven { url "https://maven.shedaniel.me/" }
     maven { url "https://maven.architectury.dev/" }
-    maven { url  "https://maven.terraformersmc.com/" }
+    maven { url "https://maven.terraformersmc.com/" }
     maven { url "https://maven.blamejared.com/" } // location of the maven that hosts JEI files since January 2023
     maven { url "https://modmaven.dev" } // location of a maven mirror for JEI files, as a fallback
 }
@@ -124,6 +126,7 @@ remapJar {
     injectAccessWidener = true
     input.set shadowJar.archiveFile
     dependsOn shadowJar
+    archiveClassifier.set "fabric"
 }
 
 sourcesJar {
@@ -143,7 +146,7 @@ def ENV = System.getenv()
 publishing {
     publications {
         mavenFabric(MavenPublication) {
-            artifactId = rootProject.archives_base_name + "-" + project.name
+            artifactId = "${rootProject.archives_base_name}-${project.name}-fabric"
             from components.java
         }
     }
