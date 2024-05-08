@@ -102,7 +102,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
                 slotContainers.putIfAbsent(s, new AccessoriesContainerImpl(capability, slotType));
             });
 
-            read(livingEntity, this.tag);
+            read(capability, livingEntity, this.tag);
         } else {
             EntitySlotLoader.getEntitySlots(livingEntity).forEach((s, slotType) -> {
                 slotContainers.put(s, new AccessoriesContainerImpl(capability, slotType));
@@ -118,6 +118,10 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
 
     @Override
     public void write(CompoundTag tag) {
+        if(slotContainers.size() == 0) {
+            return;
+        }
+
         tag.putBoolean(COSMETICS_SHOWN_KEY, cosmeticsShown);
 
         tag.putBoolean(LINES_SHOWN_KEY, linesShown);
@@ -134,6 +138,10 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
     }
 
     public void read(LivingEntity entity, CompoundTag tag) {
+        read(entity.accessoriesCapability(), entity, tag);
+    }
+
+    public void read(AccessoriesCapability capability, LivingEntity entity, CompoundTag tag) {
         this.loadedFromTag = false;
 
         var slots = EntitySlotLoader.getEntitySlots(entity);
@@ -183,7 +191,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
             }
         }
 
-        entity.accessoriesCapability().clearCachedSlotModifiers();
+        capability.clearCachedSlotModifiers();
 
         this.tag = new CompoundTag();
     }

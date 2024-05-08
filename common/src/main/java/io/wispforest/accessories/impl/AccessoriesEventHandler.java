@@ -201,147 +201,153 @@ public class AccessoriesEventHandler {
 
         var capability = AccessoriesCapability.get(entity);
 
-        if (capability == null) return;
+        if (capability != null) {
+            var dirtyStacks = new HashMap<String, ItemStack>();
+            var dirtyCosmeticStacks = new HashMap<String, ItemStack>();
 
-        var dirtyStacks = new HashMap<String, ItemStack>();
-        var dirtyCosmeticStacks = new HashMap<String, ItemStack>();
+            for (var containerEntry : capability.getContainers().entrySet()) {
+                var container = containerEntry.getValue();
+                var slotType = container.slotType();
 
-        for (var containerEntry : capability.getContainers().entrySet()) {
-            var container = containerEntry.getValue();
-            var slotType = container.slotType();
+                var accessories = (ExpandedSimpleContainer) container.getAccessories();
+                var cosmetics = container.getCosmeticAccessories();
 
-            var accessories = (ExpandedSimpleContainer) container.getAccessories();
-            var cosmetics = container.getCosmeticAccessories();
+                for (int i = 0; i < accessories.getContainerSize(); i++) {
+                    var slotReference = new SlotReference(container.getSlotName(), capability.entity(), i);
 
-            for (int i = 0; i < accessories.getContainerSize(); i++) {
-                var slotReference = new SlotReference(container.getSlotName(), capability.entity(), i);
+                    var slotId = slotType.name() + "/" + i;
 
-                var slotId = slotType.name() + "/" + i;
+                    var currentStack = accessories.getItem(i);
 
-                var currentStack = accessories.getItem(i);
-
-                // TODO: Move ticking below checks?
-                if (!currentStack.isEmpty()) {
-                    // TODO: Document this behavior to prevent double ticking maybe!!!
-                    currentStack.inventoryTick(entity.level(), entity, -1, false);
-
-                    var accessory = AccessoriesAPI.getAccessory(currentStack);
-
-                    if(accessory != null) accessory.tick(currentStack, slotReference);
-                }
-
-                var lastStack = accessories.getPreviousItem(i);
-
-                if (entity.level().isClientSide()) continue;
-
-                if (!ItemStack.matches(currentStack, lastStack)) {
-                    container.getAccessories().setPreviousItem(i, currentStack.copy());
-                    dirtyStacks.put(slotId, currentStack.copy());
-                    var uuid = AccessoriesAPI.getOrCreateSlotUUID(slotType, i);
-
-                    if (!lastStack.isEmpty()) {
-                        Multimap<Attribute, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(lastStack, slotReference, uuid);
-                        Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
-
-                        Set<Attribute> slotAttributes = new HashSet<>();
-
-                        for (var entry : attributes.asMap().entrySet()) {
-                            if (!(entry.getKey() instanceof SlotAttribute slotAttribute)) continue;
-
-                            slotModifiers.putAll(slotAttribute.slotName(), entry.getValue());
-                            slotAttributes.add(slotAttribute);
-                        }
-
-                        slotAttributes.forEach(attributes::removeAll);
-
-                        entity.getAttributes().removeAttributeModifiers(attributes);
-                        capability.removeSlotModifiers(slotModifiers);
-                    }
-
+                    // TODO: Move ticking below checks?
                     if (!currentStack.isEmpty()) {
-                        Multimap<Attribute, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(currentStack, slotReference, uuid);
-                        Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
+                        // TODO: Document this behavior to prevent double ticking maybe!!!
+                        currentStack.inventoryTick(entity.level(), entity, -1, false);
 
-                        Set<Attribute> slotAttributes = new HashSet<>();
+                        var accessory = AccessoriesAPI.getAccessory(currentStack);
 
-                        for (var entry : attributes.asMap().entrySet()) {
-                            if (!(entry.getKey() instanceof SlotAttribute slotAttribute)) continue;
-
-                            slotModifiers.putAll(slotAttribute.slotName(), entry.getValue());
-                            slotAttributes.add(slotAttribute);
-                        }
-
-                        slotAttributes.forEach(attributes::removeAll);
-
-                        entity.getAttributes().addTransientAttributeModifiers(attributes);
-                        capability.addTransientSlotModifiers(slotModifiers);
+                        if (accessory != null) accessory.tick(currentStack, slotReference);
                     }
 
-                    /*
-                     * TODO: Dose item check need to exist anymore?
-                     */
-                    if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlaged(i)) {
-                        AccessoriesAPI.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);
-                        AccessoriesAPI.getOrDefaultAccessory(currentStack.getItem()).onEquip(currentStack, slotReference);
+                    var lastStack = accessories.getPreviousItem(i);
+
+                    if (entity.level().isClientSide()) continue;
+
+                    if (!ItemStack.matches(currentStack, lastStack)) {
+                        container.getAccessories().setPreviousItem(i, currentStack.copy());
+                        dirtyStacks.put(slotId, currentStack.copy());
+                        var uuid = AccessoriesAPI.getOrCreateSlotUUID(slotType, i);
+
+                        if (!lastStack.isEmpty()) {
+                            Multimap<Attribute, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(lastStack, slotReference, uuid);
+                            Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
+
+                            Set<Attribute> slotAttributes = new HashSet<>();
+
+                            for (var entry : attributes.asMap().entrySet()) {
+                                if (!(entry.getKey() instanceof SlotAttribute slotAttribute)) continue;
+
+                                slotModifiers.putAll(slotAttribute.slotName(), entry.getValue());
+                                slotAttributes.add(slotAttribute);
+                            }
+
+                            slotAttributes.forEach(attributes::removeAll);
+
+                            entity.getAttributes().removeAttributeModifiers(attributes);
+                            capability.removeSlotModifiers(slotModifiers);
+                        }
+
+                        if (!currentStack.isEmpty()) {
+                            Multimap<Attribute, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(currentStack, slotReference, uuid);
+                            Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
+
+                            Set<Attribute> slotAttributes = new HashSet<>();
+
+                            for (var entry : attributes.asMap().entrySet()) {
+                                if (!(entry.getKey() instanceof SlotAttribute slotAttribute)) continue;
+
+                                slotModifiers.putAll(slotAttribute.slotName(), entry.getValue());
+                                slotAttributes.add(slotAttribute);
+                            }
+
+                            slotAttributes.forEach(attributes::removeAll);
+
+                            entity.getAttributes().addTransientAttributeModifiers(attributes);
+                            capability.addTransientSlotModifiers(slotModifiers);
+                        }
+
+                        /*
+                         * TODO: Dose item check need to exist anymore?
+                         */
+                        if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlaged(i)) {
+                            AccessoriesAPI.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);
+                            AccessoriesAPI.getOrDefaultAccessory(currentStack.getItem()).onEquip(currentStack, slotReference);
+
+                            if (entity instanceof ServerPlayer serverPlayer) {
+                                if (!currentStack.isEmpty()) {
+                                    ACCESSORY_EQUIPPED.trigger(serverPlayer, currentStack, slotReference, false);
+                                }
+
+                                if (!lastStack.isEmpty()) {
+                                    ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, false);
+                                }
+                            }
+                        }
+                    }
+
+                    var currentCosmeticStack = cosmetics.getItem(i);
+                    var lastCosmeticStack = container.getCosmeticAccessories().getPreviousItem(i);
+
+                    if (!ItemStack.matches(currentCosmeticStack, lastCosmeticStack)) {
+                        cosmetics.setPreviousItem(i, currentCosmeticStack.copy());
+                        dirtyCosmeticStacks.put(slotId, currentCosmeticStack.copy());
 
                         if (entity instanceof ServerPlayer serverPlayer) {
                             if (!currentStack.isEmpty()) {
-                                ACCESSORY_EQUIPPED.trigger(serverPlayer, currentStack, slotReference, false);
+                                ACCESSORY_EQUIPPED.trigger(serverPlayer, currentStack, slotReference, true);
                             }
-
                             if (!lastStack.isEmpty()) {
-                                ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, false);
+                                ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, true);
                             }
-                        }
-                    }
-                }
-
-                var currentCosmeticStack = cosmetics.getItem(i);
-                var lastCosmeticStack = container.getCosmeticAccessories().getPreviousItem(i);
-
-                if (!ItemStack.matches(currentCosmeticStack, lastCosmeticStack)) {
-                    cosmetics.setPreviousItem(i, currentCosmeticStack.copy());
-                    dirtyCosmeticStacks.put(slotId, currentCosmeticStack.copy());
-
-                    if (entity instanceof ServerPlayer serverPlayer) {
-                        if (!currentStack.isEmpty()) {
-                            ACCESSORY_EQUIPPED.trigger(serverPlayer, currentStack, slotReference, true);
-                        }
-                        if (!lastStack.isEmpty()) {
-                            ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, true);
                         }
                     }
                 }
             }
-        }
 
-        if (entity.level().isClientSide()) return;
+            if (entity.level().isClientSide()) return;
+
+            //--
+
+            var updatedContainers = ((AccessoriesCapabilityImpl) capability).getUpdatingInventories();
+
+            capability.updateContainers();
+
+            if (!dirtyStacks.isEmpty() || !dirtyCosmeticStacks.isEmpty() || !updatedContainers.isEmpty()) {
+                var packet = new SyncContainerData(entity.getId(), updatedContainers, dirtyStacks, dirtyCosmeticStacks);
+
+                var bufData = AccessoriesNetworkHandler.createBuf();
+
+                packet.write(bufData);
+
+                var networkHandler = AccessoriesInternals.getNetworkHandler();
+
+                networkHandler.sendToTrackingAndSelf(entity, (Supplier<SyncContainerData>) () -> new SyncContainerData(bufData));
+
+                bufData.release();
+            }
+
+            updatedContainers.clear();
+        }
 
         //--
 
-        var updatedContainers = ((AccessoriesCapabilityImpl)capability).getUpdatingInventories();
+        var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
 
-        capability.updateContainers();
-
-        if (!dirtyStacks.isEmpty() || !dirtyCosmeticStacks.isEmpty() || !updatedContainers.isEmpty()) {
-            var packet = new SyncContainerData(entity.getId(), updatedContainers, dirtyStacks, dirtyCosmeticStacks);
-
-            var bufData = AccessoriesNetworkHandler.createBuf();
-
-            packet.write(bufData);
-
-            var networkHandler = AccessoriesInternals.getNetworkHandler();
-
-            networkHandler.sendToTrackingAndSelf(entity, (Supplier<SyncContainerData>) () -> new SyncContainerData(bufData));
-
-            bufData.release();
+        if(holder.loadedFromTag && capability == null) {
+            var tempCapability = new AccessoriesCapabilityImpl(entity);
         }
 
-        updatedContainers.clear();
-
-        //--
-
-        var invalidStacks = ((AccessoriesHolderImpl) capability.getHolder()).invalidStacks;
+        var invalidStacks = (holder).invalidStacks;
 
         if (!invalidStacks.isEmpty()) {
             for (ItemStack invalidStack : invalidStacks) {
