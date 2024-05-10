@@ -29,6 +29,9 @@ dependencies {
     
     // Neoforge 
     fg.deobf("io.wispforest:accessories-neoforge:${project.accessories_version}")
+
+    // Arch Common
+    modImplementation("io.wispforest:accessories-common:${project.accessories_version}")
 }
 ```
 <details>
@@ -45,6 +48,9 @@ dependencies {
     
     // Neoforge 
     fg.deobf("io.wispforest:accessories-neoforge:${properties["accessories_version"]}")
+
+    // Arch Common
+    modImplementation("io.wispforest:accessories-common:${properties["accessories_version"]}")
 }
 ```
 </details>
