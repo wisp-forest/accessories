@@ -146,7 +146,7 @@ def ENV = System.getenv()
 publishing {
     publications {
         mavenFabric(MavenPublication) {
-            artifactId = "${rootProject.archives_base_name}-${project.name}-fabric"
+            artifactId = "${rootProject.archives_base_name}-${project.name}"
             from components.java
         }
     }
