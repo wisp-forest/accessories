@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Pseudo
-@Mixin(targets = "io/wispforest/accessories/DataLoaderImpl", remap = false)
+@Mixin(targets = "io/wispforest/accessories/DataLoaderImplBase", remap = false)
 public abstract class DataLoaderImplMixin {
 
     @Inject(method = "registerListeners", at = @At("TAIL"))

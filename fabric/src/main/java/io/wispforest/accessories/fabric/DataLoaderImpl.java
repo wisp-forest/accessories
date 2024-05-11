@@ -1,5 +1,7 @@
-package io.wispforest.accessories;
+package io.wispforest.accessories.fabric;
 
+import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.DataLoaderImplBase;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -20,13 +22,15 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-public class DataLoaderImpl {
+public class DataLoaderImpl extends DataLoaderImplBase {
 
     public static final ResourceLocation SLOT_LOADER_LOCATION = Accessories.of("slot_loader");
     public static final ResourceLocation ENTITY_SLOT_LOADER_LOCATION = Accessories.of("entity_slot_loader");
     public static final ResourceLocation SLOT_GROUP_LOADER_LOCATION = Accessories.of("slot_group_loader");
 
-    public static void registerListeners() {
+    public void registerListeners() {
+        super.registerListeners();
+
         var manager = ResourceManagerHelper.get(PackType.SERVER_DATA);
 
 //        FabricLoader.getInstance().getEntrypoints("data_loading_modifications", DataLoadingModifications.class)
