@@ -127,15 +127,20 @@ public class AccessoriesSlotGenerator {
 
         int slotAddedAmount = 0;
 
-        for (var slotType : slotTypes) {
-            var container = capability.getContainer(slotType);
+        var allContainers = capability.getContainers();
 
-            if(container == null){
-                LOGGER.error("Unable to locate the given container for the passed slotType. [Type:" + slotType.name() + "]");
+        var containers = slotTypes.stream()
+                .map(slotType -> {
+                    var container = allContainers.getOrDefault(slotType.name(), null);
 
-                continue;
-            }
+                    if(container == null){
+                        LOGGER.error("Unable to locate the given container for the passed slotType. [Type:" + slotType.name() + "]");
+                    }
 
+                    return container;
+                }).filter(Objects::nonNull).toList();
+
+        for (var container : containers) {
             for (int i = 0; i < container.getSize(); i++) {
                 slotConsumer.accept(new AccessoriesBasedSlot(container, container.getAccessories(), i, this.startX + xOffset, this.startY + yOffset));
 
@@ -157,15 +162,20 @@ public class AccessoriesSlotGenerator {
 
         int slotAddedAmount = 0;
 
-        for (var slotType : slotTypes) {
-            var container = capability.getContainer(slotType);
+        var allContainers = capability.getContainers();
 
-            if(container == null){
-                LOGGER.error("Unable to locate the given container for the passed slotType. [Type:" + slotType.name() + "]");
+        var containers = slotTypes.stream()
+                .map(slotType -> {
+                    var container = allContainers.getOrDefault(slotType.name(), null);
 
-                continue;
-            }
+                    if(container == null){
+                        LOGGER.error("Unable to locate the given container for the passed slotType. [Type:" + slotType.name() + "]");
+                    }
 
+                    return container;
+                }).filter(Objects::nonNull).toList();
+
+        for (var container : containers) {
             for (int i = 0; i < container.getSize(); i++) {
                 slotConsumer.accept(new AccessoriesBasedSlot(container, container.getAccessories(), i, this.startX + xOffset, this.startY + yOffset));
 
