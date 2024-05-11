@@ -107,6 +107,4 @@ public class AccessoriesFabric implements ModInitializer {
 
         DataLoaderImplBase.INSTANCE.registerListeners();
     }
-
-
 }
