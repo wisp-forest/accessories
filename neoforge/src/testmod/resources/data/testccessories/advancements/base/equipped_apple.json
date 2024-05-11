@@ -1,0 +1,32 @@
+{
+  "display": {
+    "icon": {
+      "item": "minecraft:apple"
+    },
+    "title": {
+      "translate": "advancement.testccessories.base.equipped_apple.title"
+    },
+    "description": {
+      "translate": "advancement.testccessories.base.equipped_apple.desc"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "testccessories:base/root",
+  "criteria": {
+    "equipped_apple": {
+      "trigger": "accessories:equip_accessory",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:apple"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

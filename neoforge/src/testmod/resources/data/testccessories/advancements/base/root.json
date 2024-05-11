@@ -1,0 +1,25 @@
+{
+  "display": {
+    "icon": {
+      "item": "minecraft:potato"
+    },
+    "title": {
+      "translate": "advancement.testccessories.base.root.title"
+    },
+    "description": {
+      "translate": "advancement.testccessories.base.root.desc"
+    },
+    "background": "minecraft:textures/block/stone.png",
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "equipped_accessory": {
+      "trigger": "accessories:equip_accessory",
+      "conditions": {
+      }
+    }
+  }
+}

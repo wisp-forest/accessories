@@ -1,0 +1,38 @@
+{
+  "display": {
+    "icon": {
+      "item": "minecraft:pointed_dripstone"
+    },
+    "title": {
+      "translate": "advancement.testccessories.base.lefthanded_drip.title"
+    },
+    "description": {
+      "translate": "advancement.testccessories.base.lefthanded_drip.desc"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "testccessories:base/root",
+  "criteria": {
+    "equipped_pointed_dripstone_left": {
+      "trigger": "accessories:equip_accessory",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "minecraft:pointed_dripstone"
+            ]
+          }
+        ],
+        "slots": [
+          "hand"
+        ],
+        "indices": [
+          1
+        ]
+      }
+    }
+  }
+}

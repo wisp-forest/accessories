@@ -1,4 +1,4 @@
-package io.wispforest.testccessories.fabric.accessories;
+package io.wispforest.testccessories.neoforge.accessories;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
