@@ -47,7 +47,9 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
         float scale = (float) (1 + (0.5 * (0.75 + (Math.sin(System.currentTimeMillis() / 250d)))));
 
-        var renderingLines = AccessoriesScreen.IS_RENDERING_PLAYER && Accessories.getConfig().clientData.showLineRendering;
+        var renderingLines = AccessoriesScreen.HOLD_LINE_INFO;
+
+        var useCustomerBuffer = AccessoriesScreen.IS_RENDERING_TARGETS;
 
         if(!renderingLines && !AccessoriesScreen.NOT_VERY_NICE_POSITIONS.isEmpty()) {
             AccessoriesScreen.NOT_VERY_NICE_POSITIONS.clear();
@@ -77,32 +79,32 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                 var bufferedGrabbedFlag = new MutableBoolean(false);
 
-                MultiBufferSource innerBufferSource = renderType -> {
+                MultiBufferSource innerBufferSource = (renderType) -> {
                     bufferedGrabbedFlag.setValue(true);
 
-                    return renderingLines ?
+                    return useCustomerBuffer ?
                             VertexMultiConsumer.create(multiBufferSource.getBuffer(renderType), mpoatv) :
                             multiBufferSource.getBuffer(renderType);
                 };
 
                 renderer.render(stack, new SlotReference(container.getSlotName(), entity, i), poseStack, getParentModel(), innerBufferSource, light, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
 
-                if(renderingLines && bufferedGrabbedFlag.getValue()) {
-                    float[] colorValues = null;
+                float[] colorValues = null;
 
-                    if (AccessoriesScreen.HOVERED_SLOT_TYPE != null && AccessoriesScreen.HOVERED_SLOT_TYPE.equals(container.getSlotName() + i)) {
-                        if (calendar.get(Calendar.MONTH) + 1 == 5 && calendar.get(Calendar.DATE) == 16) {
-                            var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
-
-                            var color = new Color(Mth.hsvToRgb(hue, 1, 1));
-
-                            colorValues = new float[]{color.getRed() / 128f, color.getGreen() / 128f, color.getBlue() / 128f, 1};
-                        } else {
-                            colorValues = new float[]{scale, scale, scale, 1};
-                        }
-                    }
-
+                if(useCustomerBuffer && bufferedGrabbedFlag.getValue()) {
                     if(multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
+                        if (AccessoriesScreen.HOVERED_SLOT_TYPE != null && AccessoriesScreen.HOVERED_SLOT_TYPE.equals(container.getSlotName() + i)) {
+                            if (calendar.get(Calendar.MONTH) + 1 == 5 && calendar.get(Calendar.DATE) == 16) {
+                                var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
+
+                                var color = new Color(Mth.hsvToRgb(hue, 1, 1));
+
+                                colorValues = new float[]{color.getRed() / 128f, color.getGreen() / 128f, color.getBlue() / 128f, 1};
+                            } else {
+                                colorValues = new float[]{scale, scale, scale, 1};
+                            }
+                        }
+
                         if (colorValues != null) {
                             BUFFER.beginWrite(true, GL30.GL_DEPTH_BUFFER_BIT);
                             bufferSource.endBatch();
@@ -120,7 +122,9 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                         }
                     }
 
-                    AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, mpoatv.meanPos());
+                    if(renderingLines && AccessoriesScreen.IS_RENDERING_LINE_TARGET) {
+                        AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, mpoatv.meanPos());
+                    }
                 }
 
                 poseStack.popPose();

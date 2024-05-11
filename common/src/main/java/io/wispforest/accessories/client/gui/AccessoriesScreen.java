@@ -13,7 +13,6 @@ import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.impl.SlotGroupImpl;
-import io.wispforest.accessories.networking.server.SyncCosmeticToggle;
 import io.wispforest.accessories.networking.holder.HolderProperty;
 import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.MenuScroll;
@@ -80,7 +79,11 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     public static String HOVERED_SLOT_TYPE = null;
     public static Vector4i SCISSOR_BOX = new Vector4i();
 
-    public static boolean IS_RENDERING_PLAYER = false;
+    public static boolean IS_RENDERING_TARGETS;
+    public static boolean IS_RENDERING_LINE_TARGET = false;
+
+    public static boolean HOLD_LINE_INFO = false;
+
     public static final Map<String, Vec3> NOT_VERY_NICE_POSITIONS = new HashMap<>();
 
     public static boolean FORCE_TOOLTIP_LEFT = false;
@@ -213,19 +216,29 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         var scissorEnd = new Vector2i(leftPos + 26 + 124, topPos + 8 + 70);
         var size = new Vector2i((scissorEnd.x - scissorStart.x)/2, scissorEnd.y - scissorStart.y);
 
-        IS_RENDERING_PLAYER = this.getMenu().areLinesShown();
-
         SCISSOR_BOX.set(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y);
 
         if (hoveredSlot instanceof AccessoriesInternalSlot slot) {
             HOVERED_SLOT_TYPE = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
         }
 
+        // --
+
+        HOLD_LINE_INFO = this.getMenu().areLinesShown() && Accessories.getConfig().clientData.showLineRendering;
+
+        IS_RENDERING_TARGETS = true;
+
+        IS_RENDERING_LINE_TARGET = true;
+
         renderEntityInInventoryFollowingMouseRotated(guiGraphics, scissorStart, size, scissorStart, scissorEnd, mouseX, mouseY, 0);
+
+        IS_RENDERING_LINE_TARGET = false;
 
         renderEntityInInventoryFollowingMouseRotated(guiGraphics, new Vector2i(scissorStart).add(size.x, 0), size, scissorStart, scissorEnd, mouseX, mouseY, 180);
 
-        IS_RENDERING_PLAYER = false;
+        IS_RENDERING_TARGETS = false;
+
+        HOLD_LINE_INFO = false;
 
         HOVERED_SLOT_TYPE = null;
 
