@@ -58,9 +58,12 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
         // Dirty patch to handle capability mismatch on containers when transferring such
         // TODO: Wonder if such is the best solution to the problem of desynced when data is copied
-        containers.forEach((s, container) -> {
-            if(!container.capability().entity().equals(this.entity())) ((AccessoriesContainerImpl) container).capability = this;
-        });
+        for (var container : containers.values()) {
+            if(!container.capability().entity().isRemoved()) break;
+            if(this.entity.isRemoved()) break;
+
+            ((AccessoriesContainerImpl) container).capability = this;
+        }
 
         return containers;
     }
@@ -234,8 +237,10 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
         var validContainers = new HashMap<String, AccessoriesContainer>();
 
         if (stack.isEmpty() && allowSwapping) {
+            var allContainers = this.getContainers();
+
             EntitySlotLoader.getEntitySlots(this.entity())
-                    .forEach((s, slotType) -> validContainers.put(s, this.getContainer(slotType)));
+                    .forEach((s, slotType) -> validContainers.put(s, allContainers.get(slotType.name())));
         } else {
             // First attempt to equip an accessory within empty slot
             for (var container : this.getContainers().values()) {
