@@ -5,10 +5,12 @@ import com.mojang.blaze3d.vertex.*;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
+import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
@@ -737,10 +739,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     // MAX 9
     private Map<SlotGroup, SlotGroupData> getGroups(int x, int y){
-        Set<String> selectedGroup = new HashSet<>();
-
-        int currentIndexOffset = 0;
-
         var groups = this.getMenu().validGroups.stream()
                 .sorted(Comparator.comparingInt(SlotGroup::order).reversed())
                 .toList();
@@ -754,22 +752,24 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             groups = groups.subList(lowerBound, upperBound);
         }
 
-        var groupToIndex = new HashMap<SlotGroup, Integer>();
-
         var bottomIndex = this.menu.scrolledIndex;
         var upperIndex = bottomIndex + 8 - 1;
 
         var scrollRange = Range.between(bottomIndex, upperIndex, Integer::compareTo);
 
         var targetEntity = this.targetEntityDefaulted();
-
-        var capability = targetEntity.accessoriesCapability();
+        var containers = targetEntity.accessoriesCapability().getContainers();
 
         var slotToSize = new HashMap<String, Integer>();
 
-        for (var container : capability.getContainers().values()) {
-            slotToSize.put(container.getSlotName(), container.getAccessories().getContainerSize());
+        for (var slotType : EntitySlotLoader.getEntitySlots(targetEntity).values()) {
+            slotToSize.put(slotType.name(), containers.get(slotType.name()).getAccessories().getContainerSize());
         }
+
+        int currentIndexOffset = 0;
+
+        var groupToIndex = new HashMap<SlotGroup, Integer>();
+        var selectedGroup = new HashSet<String>();
 
         for (var group : groups) {
             var groupSize = slotToSize.entrySet().stream()
