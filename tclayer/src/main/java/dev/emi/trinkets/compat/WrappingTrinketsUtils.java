@@ -2,8 +2,10 @@ package dev.emi.trinkets.compat;
 
 import dev.emi.trinkets.api.LivingEntityTrinketComponent;
 import dev.emi.trinkets.api.SlotReference;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
 
@@ -58,6 +60,16 @@ public class WrappingTrinketsUtils {
             case "arm" -> "hand";
             case "misc" -> "charm";
             default -> accessoryType;
+        };
+    }
+
+    public static ResourceLocation trinketsToAccessories_Validators(ResourceLocation location) {
+        return switch (location.toString()){
+            case "trinkets:all" -> Accessories.of("all");
+            case "trinkets:none" -> Accessories.of("none");
+            case "trinkets:tag" -> Accessories.of("tag");
+            case "trinkets:relevant" -> Accessories.of("relevant");
+            default -> location;
         };
     }
 }

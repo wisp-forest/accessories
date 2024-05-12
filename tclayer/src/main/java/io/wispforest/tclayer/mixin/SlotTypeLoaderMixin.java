@@ -51,7 +51,7 @@ public abstract class SlotTypeLoaderMixin {
 
                     if(location == null) continue;
 
-                    builder.validator(location);
+                    builder.validator(WrappingTrinketsUtils.trinketsToAccessories_Validators(location));
                 }
 
                 var slotType = builder.create();
