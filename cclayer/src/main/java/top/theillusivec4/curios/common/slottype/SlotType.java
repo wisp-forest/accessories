@@ -25,7 +25,9 @@ import top.theillusivec4.curios.CuriosConstants;
 import top.theillusivec4.curios.api.type.ISlotType;
 import top.theillusivec4.curios.api.type.capability.ICurio;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public final class SlotType implements ISlotType {
 
@@ -37,6 +39,7 @@ public final class SlotType implements ISlotType {
   private final ResourceLocation icon;
   private final ICurio.DropRule dropRule;
   private final boolean renderToggle;
+  private final Set<ResourceLocation> validators;
 
   private SlotType(Builder builder) {
     this.identifier = builder.identifier;
@@ -47,6 +50,7 @@ public final class SlotType implements ISlotType {
     this.icon = builder.icon;
     this.dropRule = builder.dropRule;
     this.renderToggle = builder.renderToggle;
+    this.validators = builder.validators;
   }
 
   @Override
@@ -129,6 +133,7 @@ public final class SlotType implements ISlotType {
     public Boolean renderToggle = null;
     public ResourceLocation icon = null;
     public ICurio.DropRule dropRule = null;
+    public Set<ResourceLocation> validators = null;
 
     public Builder(String identifier) {
       this.identifier = identifier;
@@ -256,6 +261,14 @@ public final class SlotType implements ISlotType {
       } else {
         this.dropRule = newRule;
       }
+      return this;
+    }
+
+    public Builder validator(ResourceLocation slotResultPredicate) {
+      if (this.validators == null) {
+        this.validators = new HashSet<>();
+      }
+      this.validators.add(slotResultPredicate);
       return this;
     }
 

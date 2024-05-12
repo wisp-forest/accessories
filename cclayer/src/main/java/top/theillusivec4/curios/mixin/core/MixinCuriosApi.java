@@ -34,6 +34,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
+import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.ISlotType;
 import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
@@ -42,7 +43,9 @@ import top.theillusivec4.curios.mixin.CuriosImplMixinHooks;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
 
 @Mixin(value = CuriosApi.class, remap = false)
 public class MixinCuriosApi {
@@ -64,32 +67,23 @@ public class MixinCuriosApi {
     cir.setReturnValue(CuriosImplMixinHooks.getSlotIcon(id));
   }
 
-  @Inject(at = @At("HEAD"), method = "getSlots", cancellable = true)
-  private static void curios$getSlots(CallbackInfoReturnable<Map<String, ISlotType>> cir) {
-    cir.setReturnValue(CuriosImplMixinHooks.getSlots());
+  @Inject(at = @At("HEAD"), method = "getSlots(Z)Ljava/util/Map;", cancellable = true)
+  private static void curios$getSlots(boolean isClient, CallbackInfoReturnable<Map<String, ISlotType>> cir) {
+    cir.setReturnValue(CuriosImplMixinHooks.getSlots(isClient));
   }
 
-  @Inject(at = @At("HEAD"), method = "getPlayerSlots", cancellable = true)
-  private static void curios$getPlayerSlots(CallbackInfoReturnable<Map<String, ISlotType>> cir) {
-    cir.setReturnValue(CuriosImplMixinHooks.getPlayerSlots());
+  @Inject(at = @At("HEAD"), method = "getEntitySlots(Lnet/minecraft/world/entity/EntityType;Z)Ljava/util/Map;", cancellable = true)
+  private static void curios$getEntitySlots(EntityType<?> type, boolean isClient, CallbackInfoReturnable<Map<String, ISlotType>> cir) {
+    cir.setReturnValue(CuriosImplMixinHooks.getEntitySlots(type, isClient));
   }
 
-  @Inject(at = @At("HEAD"), method = "getEntitySlots", cancellable = true)
-  private static void curios$getEntitySlots(EntityType<?> type,
-                                            CallbackInfoReturnable<Map<String, ISlotType>> cir) {
-    cir.setReturnValue(CuriosImplMixinHooks.getEntitySlots(type));
-  }
-
-  @Inject(at = @At("HEAD"), method = "getItemStackSlots(Lnet/minecraft/world/item/ItemStack;)Ljava/util/Map;", cancellable = true)
-  private static void curios$getItemStackSlots(ItemStack stack,
-                                               CallbackInfoReturnable<Map<String, ISlotType>> cir) {
-
-    cir.setReturnValue(CuriosImplMixinHooks.getItemStackSlots(stack));
+  @Inject(at = @At("HEAD"), method = "getItemStackSlots(Lnet/minecraft/world/item/ItemStack;Z)Ljava/util/Map;", cancellable = true)
+  private static void curios$getItemStackSlots(ItemStack stack, boolean isClient, CallbackInfoReturnable<Map<String, ISlotType>> cir) {
+    cir.setReturnValue(CuriosImplMixinHooks.getItemStackSlots(stack, isClient));
   }
 
   @Inject(at = @At("HEAD"), method = "getItemStackSlots(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/LivingEntity;)Ljava/util/Map;", cancellable = true)
-  private static void curios$getItemStackSlots(ItemStack stack, LivingEntity livingEntity,
-                                               CallbackInfoReturnable<Map<String, ISlotType>> cir) {
+  private static void curios$getItemStackSlots(ItemStack stack, LivingEntity livingEntity, CallbackInfoReturnable<Map<String, ISlotType>> cir) {
     cir.setReturnValue(CuriosImplMixinHooks.getItemStackSlots(stack, livingEntity));
   }
 
@@ -145,6 +139,33 @@ public class MixinCuriosApi {
     CuriosImplMixinHooks.addModifier(stack, attribute, name, uuid, amount, operation, slot);
     ci.cancel();
   }
+
+  @Inject(at = @At("HEAD"), method = "registerCurioPredicate", cancellable = true)
+  private static void curios$registerCurioPredicate(ResourceLocation resourceLocation, Predicate<SlotResult> validator, CallbackInfo ci) {
+    CuriosImplMixinHooks.registerCurioPredicate(resourceLocation, validator);
+    ci.cancel();
+  }
+
+  @Inject(at = @At("HEAD"), method = "getCurioPredicate", cancellable = true)
+  private static void curios$getCurioPredicate(ResourceLocation resourceLocation, CallbackInfoReturnable<Optional<Predicate<SlotResult>>> ci) {
+    ci.setReturnValue(CuriosImplMixinHooks.getCurioPredicate(resourceLocation));
+  }
+
+  @Inject(at = @At("HEAD"), method = "getCurioPredicates", cancellable = true)
+  private static void curios$getCurioPredicates(CallbackInfoReturnable<Map<ResourceLocation, Predicate<SlotResult>>> ci) {
+    ci.setReturnValue(CuriosImplMixinHooks.getCurioPredicates());
+  }
+
+  @Inject(at = @At("HEAD"), method = "testCurioPredicates", cancellable = true)
+  private static void curios$testCurioPredicates(Set<ResourceLocation> predicates, SlotResult slotResult, CallbackInfoReturnable<Boolean> ci) {
+    ci.setReturnValue(CuriosImplMixinHooks.testCurioPredicates(predicates, slotResult));
+  }
+
+  @Inject(at = @At("HEAD"), method = "getSlotUuid", cancellable = true)
+  private static void curios$getSlotUuid(SlotContext slotContext, CallbackInfoReturnable<UUID> ci) {
+    ci.setReturnValue(CuriosImplMixinHooks.getUuid(slotContext));
+  }
+
 
   @Inject(at = @At("HEAD"), method = "broadcastCurioBreakEvent", cancellable = true)
   private static void curios$broadcastCurioBreakEvent(SlotContext slotContext, CallbackInfo ci) {

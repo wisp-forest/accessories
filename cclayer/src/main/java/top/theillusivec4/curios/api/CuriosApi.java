@@ -29,6 +29,8 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import top.theillusivec4.curios.api.type.ISlotType;
@@ -40,11 +42,9 @@ import top.theillusivec4.curios.api.type.util.IIconHelper;
 import top.theillusivec4.curios.api.type.util.ISlotHelper;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public final class CuriosApi {
 
@@ -73,9 +73,14 @@ public final class CuriosApi {
    * @param id The slot type identifier
    * @return The registered slot type or empty if it doesn't exist
    */
+  @Deprecated
   public static Optional<ISlotType> getSlot(String id) {
     apiError();
     return Optional.empty();
+  }
+
+  public static Optional<ISlotType> getSlot(String id, Level level) {
+    return CuriosApi.getSlot(id, level.isClientSide());
   }
 
   /**
@@ -101,8 +106,20 @@ public final class CuriosApi {
    * @return The registered slot types
    */
   public static Map<String, ISlotType> getSlots() {
+    return CuriosApi.getSlots(false);
+  }
+
+  public static Optional<ISlotType> getSlot(String id, boolean isClient) {
+    return Optional.ofNullable(CuriosApi.getSlots(isClient).get(id));
+  }
+
+  public static Map<String, ISlotType> getSlots(Level level) {
+    return CuriosApi.getSlots(level.isClientSide());
+  }
+
+  public static Map<String, ISlotType> getSlots(boolean isClient) {
     apiError();
-    return new HashMap<>();
+    return Map.of();
   }
 
   /**
@@ -113,8 +130,15 @@ public final class CuriosApi {
    * @return The slot types provided to player entities
    */
   public static Map<String, ISlotType> getPlayerSlots() {
-    apiError();
-    return new HashMap<>();
+    return getPlayerSlots(false);
+  }
+
+  public static Map<String, ISlotType> getPlayerSlots(Level level) {
+    return CuriosApi.getPlayerSlots(level.isClientSide());
+  }
+
+  public static Map<String, ISlotType> getPlayerSlots(boolean isClient) {
+    return CuriosApi.getEntitySlots(EntityType.PLAYER, isClient);
   }
 
   /**
@@ -126,36 +150,32 @@ public final class CuriosApi {
    * @return The slot types provided to the entity type
    */
   public static Map<String, ISlotType> getEntitySlots(EntityType<?> type) {
+    return CuriosApi.getEntitySlots(type, false);
+  }
+
+  public static Map<String, ISlotType> getEntitySlots(LivingEntity livingEntity) {
+    return CuriosApi.getEntitySlots(livingEntity.getType(), livingEntity.level());
+  }
+
+  public static Map<String, ISlotType> getEntitySlots(EntityType<?> type, Level level) {
+    return CuriosApi.getEntitySlots(type, level.isClientSide());
+  }
+
+  public static Map<String, ISlotType> getEntitySlots(EntityType<?> type, boolean isClient) {
     apiError();
     return new HashMap<>();
   }
 
-  /**
-   * Gets all the registered slot types for the provided ItemStack server-side.
-   * <br>
-   * Client-side, the map will be populated by filler {@link ISlotType} that contain only the
-   * identifier and the rest of the information is placeholder.
-   *
-   * @param stack The ItemStack for the slot types
-   * @return The slot types for the provided ItemStack
-   */
   public static Map<String, ISlotType> getItemStackSlots(ItemStack stack) {
+    return getItemStackSlots(stack, false);
+  }
+
+  public static Map<String, ISlotType> getItemStackSlots(ItemStack stack, boolean isClient) {
     apiError();
     return new HashMap<>();
   }
 
-  /**
-   * Gets all the registered slot types for the provided ItemStack and entity server-side.
-   * <br>
-   * Client-side, the map will be populated by filler {@link ISlotType} that contain only the
-   * identifier and the rest of the information is placeholder.
-   *
-   * @param stack        The ItemStack for the slot types
-   * @param livingEntity The entity with the slot types
-   * @return The slot types for the provided ItemStack and entity
-   */
-  public static Map<String, ISlotType> getItemStackSlots(ItemStack stack,
-                                                         LivingEntity livingEntity) {
+  public static Map<String, ISlotType> getItemStackSlots(ItemStack stack, LivingEntity livingEntity) {
     apiError();
     return new HashMap<>();
   }
@@ -260,6 +280,63 @@ public final class CuriosApi {
                                  double amount, AttributeModifier.Operation operation,
                                  String slot) {
     apiError();
+  }
+
+  /**
+   * Registers a new predicate keyed to a {@link ResourceLocation} for deciding which slots are
+   * assigned to a given {@link ItemStack}.
+   *
+   * @param resourceLocation The unique {@link ResourceLocation} of the validator
+   * @param predicate        The predicate to register for a given stack and {@link SlotResult}
+   */
+  public static void registerCurioPredicate(ResourceLocation resourceLocation,
+                                            Predicate<SlotResult> predicate) {
+    apiError();
+  }
+
+  /**
+   * Gets an existing predicate, or empty if none found, keyed to a {@link ResourceLocation} for
+   * deciding which slots are assigned to a given {@link ItemStack}.
+   *
+   * @param resourceLocation The unique {@link ResourceLocation} of the validator
+   * @return An Optional of the predicate found for the ResourceLocation, or empty otherwise
+   */
+  public static Optional<Predicate<SlotResult>> getCurioPredicate(ResourceLocation resourceLocation) {
+    apiError();
+    return Optional.empty();
+  }
+
+  /**
+   * Gets all registered predicates deciding which slots are assigned to a given {@link ItemStack}.
+   *
+   * @return A map of the registered predicates keyed by {@link ResourceLocation}
+   */
+  public static Map<ResourceLocation, Predicate<SlotResult>> getCurioPredicates() {
+    apiError();
+    return Map.of();
+  }
+
+  /**
+   * Evaluates a set of predicates to determine if a given {@link SlotResult} is a valid assignment.
+   *
+   * @param predicates A set of ResourceLocations representing the predicates to iterate
+   * @param slotResult The SlotResult containing the {@link SlotContext} and {@link ItemStack}
+   * @return True if any of the predicates pass, false otherwise
+   */
+  public static boolean testCurioPredicates(Set<ResourceLocation> predicates, SlotResult slotResult) {
+    apiError();
+    return true;
+  }
+
+  /**
+   * Gets a UUID based on the provided {@link SlotContext}.
+   *
+   * @param slotContext The SlotContext to base the UUID on
+   * @return The UUID based on the SlotContext
+   */
+  public static UUID getSlotUuid(SlotContext slotContext) {
+    apiError();
+    return UUID.randomUUID();
   }
 
   /**

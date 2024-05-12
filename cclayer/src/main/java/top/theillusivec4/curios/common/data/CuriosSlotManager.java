@@ -206,6 +206,14 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
     Boolean jsonNative =
         jsonObject.has("use_native_gui") ? GsonHelper.getAsBoolean(jsonObject, "use_native_gui") :
             null;
+    JsonArray jsonSlotResultPredicate = jsonObject.has("validators") ?
+            GsonHelper.getAsJsonArray(jsonObject, "validators") : null;
+
+    if(jsonSlotResultPredicate == null) {
+      jsonSlotResultPredicate = new JsonArray();
+
+      jsonSlotResultPredicate.add("curios:tag");
+    }
 
     if (jsonOrder != null) {
       builder.order(jsonOrder, replace);
@@ -233,6 +241,13 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
 
     if (jsonToggle != null) {
       builder.renderToggle(jsonToggle, replace);
+    }
+
+    if (jsonSlotResultPredicate != null) {
+
+      for (JsonElement jsonElement : jsonSlotResultPredicate) {
+        builder.validator(new ResourceLocation(jsonElement.getAsString()));
+      }
     }
   }
 }

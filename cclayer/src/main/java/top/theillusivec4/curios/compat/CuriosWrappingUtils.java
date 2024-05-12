@@ -2,6 +2,7 @@ package top.theillusivec4.curios.compat;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.slot.SlotReference;
@@ -89,6 +90,15 @@ public class CuriosWrappingUtils {
             case "hand" -> "hands";
             case "shoes" -> "feet"; // Special Case for artifacts
             default -> accessoryType;
+        };
+    }
+
+    public static ResourceLocation curiosToAccessories_Validators(ResourceLocation location) {
+        return switch (location.toString()){
+            case "curios:all" -> Accessories.of("all");
+            case "curios:none" -> Accessories.of("none");
+            case "curios:tag" -> Accessories.of("tag");
+            default -> location;
         };
     }
 

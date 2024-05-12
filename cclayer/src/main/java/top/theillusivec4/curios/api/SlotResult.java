@@ -21,5 +21,44 @@ package top.theillusivec4.curios.api;
 
 import net.minecraft.world.item.ItemStack;
 
-public record SlotResult(SlotContext slotContext, ItemStack stack) {
+import java.util.Objects;
+
+public class SlotResult {
+    private final SlotContext slotContext;
+    private final ItemStack stack;
+
+    public SlotResult(SlotContext slotContext, ItemStack stack) {
+        this.slotContext = slotContext;
+        this.stack = stack;
+    }
+
+    public SlotContext slotContext() {
+        return slotContext;
+    }
+
+    public ItemStack stack() {
+        return stack;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (SlotResult) obj;
+        return Objects.equals(this.slotContext, that.slotContext) &&
+                Objects.equals(this.stack, that.stack);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(slotContext, stack);
+    }
+
+    @Override
+    public String toString() {
+        return "SlotResult[" +
+                "slotContext=" + slotContext + ", " +
+                "stack=" + stack + ']';
+    }
+
 }

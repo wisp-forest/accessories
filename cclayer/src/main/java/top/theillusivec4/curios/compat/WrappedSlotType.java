@@ -6,6 +6,8 @@ import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.type.ISlotType;
 import top.theillusivec4.curios.api.type.capability.ICurio;
 
+import java.util.Set;
+
 public class WrappedSlotType implements ISlotType {
 
     private final SlotType slotType;
@@ -54,6 +56,11 @@ public class WrappedSlotType implements ISlotType {
     @Override
     public ICurio.DropRule getDropRule() {
         return CuriosWrappingUtils.convert(this.slotType.dropRule());
+    }
+
+    @Override
+    public Set<ResourceLocation> getValidators() {
+        return this.slotType.validators();
     }
 
     @Override
