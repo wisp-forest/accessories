@@ -2,6 +2,7 @@ package io.wispforest.tclayer.mixin;
 
 import dev.emi.trinkets.data.SlotLoader;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.DataLoaderBase;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.server.packs.PackType;
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,10 +12,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Pseudo
-@Mixin(targets = "io/wispforest/accessories/DataLoaderImplBase", remap = false)
-public abstract class DataLoaderImplMixin {
+@Mixin(targets = "io/wispforest/accessories/DataLoaderBase", remap = false)
+public abstract class DataLoaderBaseMixin {
 
-    @Inject(method = "registerListeners", at = @At("TAIL"))
+    @Inject(method = "registerListeners", at = @At("HEAD"), cancellable = true)
     private void adjustDependenciesAndAddListeners(CallbackInfo ci){
         var manager = ResourceManagerHelper.get(PackType.SERVER_DATA);
 
@@ -32,5 +33,9 @@ public abstract class DataLoaderImplMixin {
                 listener.getFabricDependencies().add(dev.emi.trinkets.data.EntitySlotLoader.SERVER.getFabricId());
             }
         }
+
+        DataLoaderBase.LOGGER.info("Registered Trinkets Reloaded Listeners");
+
+        ci.cancel();
     }
 }

@@ -9,7 +9,7 @@
   "mixins": [
     "AccessoriesAPIMixin",
     "AccessoriesForgeMixin",
-    "DataLoaderImplMixin",
+    "DataLoaderBaseMixin",
     "ResourceManagerHelperImplAccessor",
     "EntitySlotLoaderMixin",
     "ItemStackMixin",

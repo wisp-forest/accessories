@@ -1,7 +1,7 @@
 package io.wispforest.accessories.fabric;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.DataLoaderImplBase;
+import io.wispforest.accessories.DataLoaderBase;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -22,25 +22,15 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-public class DataLoaderImpl extends DataLoaderImplBase {
+public class DataLoaderImpl extends DataLoaderBase {
 
     public static final ResourceLocation SLOT_LOADER_LOCATION = Accessories.of("slot_loader");
     public static final ResourceLocation ENTITY_SLOT_LOADER_LOCATION = Accessories.of("entity_slot_loader");
     public static final ResourceLocation SLOT_GROUP_LOADER_LOCATION = Accessories.of("slot_group_loader");
 
+    @Override
     public void registerListeners() {
-        super.registerListeners();
-
         var manager = ResourceManagerHelper.get(PackType.SERVER_DATA);
-
-//        FabricLoader.getInstance().getEntrypoints("data_loading_modifications", DataLoadingModifications.class)
-//                .forEach(dataLoadingModifications -> {
-//                    dataLoadingModifications.beforeRegistration(preparableReloadListener -> {
-//                        if(preparableReloadListener instanceof IdentifiableResourceReloadListener identifiableResourceReloadListener){
-//                            manager.registerReloadListener(identifiableResourceReloadListener);
-//                        }
-//                    });
-//                });
 
         var SLOT_TYPE_LOADER = (IdentifiableResourceReloadListener) new IdentifiableResourceReloadListenerImpl(SLOT_LOADER_LOCATION, SlotTypeLoader.INSTANCE);
 
@@ -61,6 +51,8 @@ public class DataLoaderImpl extends DataLoaderImplBase {
                 AccessoriesEventHandler.dataReloadOccured = true;
             }
         });
+
+        super.registerListeners();
     }
 
     private record IdentifiableResourceReloadListenerImpl(ResourceLocation location, PreparableReloadListener listener, Set<ResourceLocation> dependencies) implements IdentifiableResourceReloadListener {

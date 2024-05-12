@@ -1,7 +1,7 @@
 package io.wispforest.accessories.fabric;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.DataLoaderImplBase;
+import io.wispforest.accessories.DataLoaderBase;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
@@ -103,8 +103,8 @@ public class AccessoriesFabric implements ModInitializer {
             AccessoriesEventHandler.onTracking(livingEntity, player);
         });
 
-        DataLoaderImplBase.INSTANCE = new DataLoaderImpl();
+        DataLoaderBase.INSTANCE = new DataLoaderImpl();
 
-        DataLoaderImplBase.INSTANCE.registerListeners();
+        DataLoaderBase.INSTANCE.registerListeners();
     }
 }
