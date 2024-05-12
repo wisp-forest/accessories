@@ -6,6 +6,7 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -96,8 +97,18 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
             var slotElements = this.safeHelper(GsonHelper::getAsJsonArray, jsonObject, "slots", new JsonArray(), location);
 
-            this.decodeJsonArray(slotElements, "slot", location, element -> allSlotTypes.get(element.getAsString()), slotType -> {
-                slots.put(slotType.name(), slotType);
+            this.decodeJsonArray(slotElements, "slot", location, element -> {
+                var slotName = element.getAsString();
+
+                return Pair.of(slotName, allSlotTypes.get(slotName));
+            }, slotInfo -> {
+                var slotType = slotInfo.right();
+
+                if(slotType != null) {
+                    slots.put(slotType.name(), slotType);
+                } else {
+                    LOGGER.warn("Unable to locate a given slot to add to a given entity('s) as such was not registered: [Slot: {}]", slotInfo.first());
+                }
             });
 
             //--
