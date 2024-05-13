@@ -29,11 +29,15 @@ public class AccessoriesEvents {
                     if (state != TriState.DEFAULT) return state;
                 }
 
-                if(bus.isEmpty()) return state;
+                if(bus.isPresent()) {
+                    var busState = bus.get()
+                            .post(new OnDeathEvent(livingEntity, capability))
+                            .getReturn();
 
-                return bus.get()
-                        .post(new OnDeathEvent(livingEntity, capability))
-                        .getReturn();
+                    if(busState != TriState.DEFAULT) state = busState;
+                }
+
+                return state;
             }
     );
 
@@ -146,9 +150,11 @@ public class AccessoriesEvents {
                     }
 
                     if(bus.isPresent()) {
-                        state = bus.get()
+                        var busState = bus.get()
                                 .post(new CanEquipEvent(stack1, reference1))
                                 .getReturn();
+
+                        if(busState != TriState.DEFAULT) state = busState;
                     }
 
                     return state != TriState.DEFAULT ? state : null;
@@ -202,9 +208,11 @@ public class AccessoriesEvents {
                     }
 
                     if(bus.isPresent()) {
-                        state = bus.get()
+                        var busState = bus.get()
                                 .post(new CanUnequipEvent(stack1, reference1))
                                 .getReturn();
+
+                        if(busState != TriState.DEFAULT) state = busState;
                     }
 
                     return state != TriState.DEFAULT ? state : null;
@@ -254,12 +262,12 @@ public class AccessoriesEvents {
                 }
 
                 if(bus.isPresent()) {
-                    state = bus.get()
+                    var busState = bus.get()
                             .post(new OnEntityModificationEvent(targetEntity, player, reference))
                             .getReturn();
-                }
 
-                if(state == TriState.FALSE) return state;
+                    if(busState != TriState.DEFAULT) state = busState;
+                }
 
                 return state;
             }
