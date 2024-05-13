@@ -39,9 +39,13 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     }
 
     public ExpandedSimpleContainer(int size, String name) {
+        this(size, name, true);
+    }
+
+    public ExpandedSimpleContainer(int size, String name, boolean toggleNewlyConstructed) {
         super(size);
 
-        this.newlyConstructed = true;
+        if(toggleNewlyConstructed) this.newlyConstructed = true;
 
         this.name = name;
         this.previousItems = NonNullList.withSize(size, ItemStack.EMPTY);

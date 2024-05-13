@@ -49,8 +49,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
         this.slotName = slotType.name();
         this.baseSize = slotType.amount();
 
-        this.accessories = new ExpandedSimpleContainer(this.baseSize, "Accessories");
-        this.cosmeticAccessories = new ExpandedSimpleContainer(this.baseSize, "Cosmetic Accessories");
+        this.accessories = new ExpandedSimpleContainer(this.baseSize, "Accessories", false);
+        this.cosmeticAccessories = new ExpandedSimpleContainer(this.baseSize, "Cosmetic Accessories", false);
 
         this.renderOptions = Util.make(new ArrayList<>(baseSize), booleans -> {
             for (int i = 0; i < baseSize; i++) booleans.add(i, true);
