@@ -4,6 +4,7 @@ import dev.emi.trinkets.TrinketSlot;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.Item;
@@ -31,6 +32,10 @@ public class TrinketItem extends Item implements Trinket {
     }
 
     public static boolean equipItem(Player user, ItemStack stack) {
+        return equipItem((LivingEntity) user, stack);
+    }
+
+    public static boolean equipItem(LivingEntity user, ItemStack stack) {
         var optional = TrinketsApi.getTrinketComponent(user);
         if (optional.isPresent()) {
             TrinketComponent comp = optional.get();
@@ -42,7 +47,8 @@ public class TrinketItem extends Item implements Trinket {
                             if (TrinketSlot.canInsert(stack, ref, user)) {
                                 ItemStack newStack = stack.copy();
                                 inv.setItem(i, newStack);
-                                SoundEvent soundEvent = stack.getItem() instanceof Equipable eq ? eq.getEquipSound() : null;
+                                Trinket trinket = TrinketsApi.getTrinket(stack.getItem());
+                                SoundEvent soundEvent = trinket.getEquipSound(stack, ref, user);
                                 if (!stack.isEmpty() && soundEvent != null) {
                                     user.gameEvent(GameEvent.EQUIP);
                                     user.playSound(soundEvent, 1.0F, 1.0F);

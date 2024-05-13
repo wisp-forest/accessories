@@ -8,9 +8,12 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 
@@ -71,7 +74,31 @@ public interface Trinket {
      * @return Whether the stack can be unequipped
      */
     default boolean canUnequip(ItemStack stack, SlotReference slot, LivingEntity entity) {
-        return !EnchantmentHelper.hasBindingCurse(stack);
+        return !EnchantmentHelper.hasBindingCurse(stack) || (entity instanceof Player player && player.isCreative());
+    }
+
+    /**
+     * Determines whether a trinket can automatically attempt to equip into the first available
+     * slot when used
+     *
+     * @param stack The stack being equipped
+     * @param entity The entity that is using the stack
+     * @return Whether the stack can be equipped from use
+     */
+    default boolean canEquipFromUse(ItemStack stack, LivingEntity entity) {
+        return false;
+    }
+
+    /**
+     * Determines the equip sound of a trinket
+     *
+     * @param stack The stack for the equip sound
+     * @param slot The slot the stack is being equipped to
+     * @param entity The entity that is equipping the stack
+     * @return The {@link SoundEvent} to play for equipping
+     */
+    default SoundEvent getEquipSound(ItemStack stack, SlotReference slot, LivingEntity entity) {
+        return stack.getItem() instanceof Equipable eq ? eq.getEquipSound() : null;
     }
 
     /**
