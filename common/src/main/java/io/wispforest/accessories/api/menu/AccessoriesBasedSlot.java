@@ -106,7 +106,7 @@ public class AccessoriesBasedSlot extends Slot {
 
     @Override
     public boolean mayPickup(Player player) {
-        if(this.entity != player) {
+        if(!this.entity.equals(player)/*this.entity != player*/) {
             var ref = this.accessoriesContainer.createReference(this.getContainerSlot());
 
             var result = AccessoriesEvents.ENTITY_MODIFICATION_CHECK.invoker().checkModifiability(this.entity, player, ref);

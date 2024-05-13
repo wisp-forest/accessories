@@ -56,11 +56,11 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     public Map<String, AccessoriesContainer> getContainers() {
         var containers = this.holder().getSlotContainers();
 
+
         // Dirty patch to handle capability mismatch on containers when transferring such
         // TODO: Wonder if such is the best solution to the problem of desynced when data is copied
         for (var container : containers.values()) {
-            if(!container.capability().entity().isRemoved()) break;
-            if(this.entity.isRemoved()) break;
+            if(this.entity == container.capability().entity()) break;
 
             ((AccessoriesContainerImpl) container).capability = this;
         }
