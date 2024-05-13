@@ -13,6 +13,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterClientCommandsEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.CommandEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -32,18 +33,9 @@ public class TestccessoriesClient {
         PointedDripstoneAccessory.clientInit();
         TntAccessory.clientInit();
 
-        Testccessories.LOGGER.info("CLIENT");
-        Testccessories.LOGGER.info("CLIENT");
-        Testccessories.LOGGER.info("CLIENT");
-        Testccessories.LOGGER.info("CLIENT");
-        Testccessories.LOGGER.info("CLIENT");
-        Testccessories.LOGGER.info("CLIENT");
-        Testccessories.LOGGER.info("CLIENT");
-        Testccessories.LOGGER.info("CLIENT");
-        Testccessories.LOGGER.info("CLIENT");
+        MinecraftForge.EVENT_BUS.addListener(TestccessoriesClient::initCommand);
     }
 
-    @SubscribeEvent
     public static void initCommand(RegisterClientCommandsEvent event){
         var dispatcher = event.getDispatcher();
 
