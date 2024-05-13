@@ -54,7 +54,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
 
                 var wrappedInv = new WrappedTrinketInventory(WrappedTrinketComponent.this, container, SlotTypeLoader.getSlotType(capability.entity().level(), (String) s));
 
-                map.put(s, wrappedInv);
+                map.put(WrappingTrinketsUtils.accessoriesToTrinkets_Slot(s), wrappedInv);
             });
 
             inventories.put(WrappingTrinketsUtils.accessoriesToTrinkets_Group(entry.getKey()), map);

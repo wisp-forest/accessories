@@ -26,7 +26,7 @@ public class WrappedSlotType extends SlotType {
 
     @Override
     public String getName() {
-        return slotType.name();
+        return WrappingTrinketsUtils.accessoriesToTrinkets_Slot(slotType.name());
     }
 
     @Override
