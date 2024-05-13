@@ -1,7 +1,6 @@
 package io.wispforest.testccessories.neoforge.client;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import dev.architectury.event.events.common.CommandRegistrationEvent;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.testccessories.neoforge.Testccessories;
 import io.wispforest.testccessories.neoforge.accessories.AppleAccessory;
@@ -10,16 +9,12 @@ import io.wispforest.testccessories.neoforge.accessories.PotatoAccessory;
 import io.wispforest.testccessories.neoforge.accessories.TntAccessory;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterClientCommandsEvent;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.CommandEvent;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import org.lwjgl.glfw.GLFW;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
+import net.neoforged.neoforge.common.NeoForge;
 
 import static io.wispforest.accessories.Accessories.MODID;
 
@@ -33,7 +28,7 @@ public class TestccessoriesClient {
         PointedDripstoneAccessory.clientInit();
         TntAccessory.clientInit();
 
-        MinecraftForge.EVENT_BUS.addListener(TestccessoriesClient::initCommand);
+        NeoForge.EVENT_BUS.addListener(TestccessoriesClient::initCommand);
     }
 
     public static void initCommand(RegisterClientCommandsEvent event){
