@@ -318,6 +318,10 @@ public class AccessoriesAPI {
     }
 
     public static Collection<SlotType> getUsedSlotsFor(LivingEntity entity, Container container) {
+        var capability = entity.accessoriesCapability();
+
+        if(capability == null) return Set.of();
+
         var slots = new HashSet<SlotType>();
 
         for (int i = 0; i < container.getContainerSize(); i++) {
@@ -327,8 +331,6 @@ public class AccessoriesAPI {
 
             slots.addAll(AccessoriesAPI.getValidSlotTypes(entity, stack));
         }
-
-        var capability = entity.accessoriesCapability();
 
         for (var ref : capability.getAllEquipped()) {
             slots.addAll(AccessoriesAPI.getValidSlotTypes(entity, ref.stack()));
