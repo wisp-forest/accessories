@@ -64,7 +64,7 @@ public class WrappedCurioStackHandler implements ICurioStacksHandler {
 
     @Override
     public String getIdentifier() {
-        return this.container.getSlotName();
+        return CuriosWrappingUtils.accessoriesToCurios(this.container.getSlotName());
     }
 
     @Override

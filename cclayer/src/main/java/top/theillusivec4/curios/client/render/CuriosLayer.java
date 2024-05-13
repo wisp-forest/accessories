@@ -21,6 +21,8 @@ package top.theillusivec4.curios.client.render;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import javax.annotation.Nonnull;
+
+import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
@@ -33,8 +35,7 @@ import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.client.CuriosRendererRegistry;
 import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
-public class CuriosLayer<T extends LivingEntity, M extends EntityModel<T>> extends
-        RenderLayer<T, M> {
+public class CuriosLayer<T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M> {
 
     private final RenderLayerParent<T, M> renderLayerParent;
 
@@ -44,9 +45,9 @@ public class CuriosLayer<T extends LivingEntity, M extends EntityModel<T>> exten
     }
 
     @Override
-    public void render(@Nonnull PoseStack matrixStack, @Nonnull MultiBufferSource renderTypeBuffer,
-                       int light, @Nonnull T livingEntity, float limbSwing, float limbSwingAmount,
-                       float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+    public void render(@Nonnull PoseStack matrixStack, @Nonnull MultiBufferSource renderTypeBuffer, int light, @Nonnull T livingEntity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+        if(true) return;
+
         matrixStack.pushPose();
         CuriosApi.getCuriosInventory(livingEntity)
                 .ifPresent(handler -> handler.getCurios().forEach((id, stacksHandler) -> {

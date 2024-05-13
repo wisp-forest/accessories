@@ -57,7 +57,7 @@ public class CuriosRendererRegistry {
 
       @Override
       public <M extends LivingEntity> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-        var context = CuriosWrappingUtils.create(reference, true);
+        var context = CuriosWrappingUtils.create(reference);
 
         var renderLayer = new RenderLayerParent<M, EntityModel<M>>(){
           @Override public EntityModel<M> getModel() { return model; }
