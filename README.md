@@ -16,8 +16,10 @@
 </h1>
 
 ## Overview
-Accessories is a Data-Driven Accessory mod for NeoForge and Fabric with emphasis on using a Common API for both platforms when possible.
+Accessories is a Data-Driven Accessory mod for NeoForge and Fabric with emphasis on using a Common API for both platforms when possible
+
 <p/>
+  
 Such API is based on the works of [Curios](https://github.com/TheIllusiveC4/Curios) and [Trinkets](https://github.com/emilyploszaj/trinkets) with credit going to both [TheIllusiveC4](https://github.com/TheIllusiveC4) and [emilyploszaj](https://github.com/emilyploszaj) for their work on Accessory mods for Minecraft.
 
 <p align="center">
