@@ -2,7 +2,7 @@ package io.wispforest.accessories.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import io.wispforest.accessories.mixin.GuiGraphicsAccessor;
+import io.wispforest.accessories.mixin.client.GuiGraphicsAccessor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;

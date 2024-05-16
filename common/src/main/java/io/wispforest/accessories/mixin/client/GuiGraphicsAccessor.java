@@ -1,4 +1,4 @@
-package io.wispforest.accessories.mixin;
+package io.wispforest.accessories.mixin.client;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;

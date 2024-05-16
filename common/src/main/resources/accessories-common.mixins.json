@@ -12,7 +12,7 @@
     "client.MinecraftMixin",
     "client.ModelPartAccessor",
     "client.PlayerRendererMixin",
-    "GuiGraphicsAccessor"
+    "client.GuiGraphicsAccessor"
   ],
   "mixins": [
     "ApplyBonusCountMixin",
