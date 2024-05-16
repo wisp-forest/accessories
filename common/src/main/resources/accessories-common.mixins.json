@@ -11,13 +11,17 @@
     "client.InventoryScreenMixin",
     "client.MinecraftMixin",
     "client.ModelPartAccessor",
-    "client.PlayerRendererMixin"
+    "client.PlayerRendererMixin",
+    "GuiGraphicsAccessor"
   ],
   "mixins": [
     "ApplyBonusCountMixin",
     "CriteriaTriggersAccessor",
+    "EnchantmentHelperMixin",
     "EndermanMixin",
-    "GuiGraphicsAccessor",
+    "EquipmentSlotMixin",
+    "EquipmentSlotTypeMixin",
+    "EntityMixin",
     "InventoryMixin",
     "LivingEntityAccessor",
     "LivingEntityMixin",

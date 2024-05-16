@@ -2,8 +2,6 @@ package io.wispforest.accessories;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import dev.architectury.injectables.annotations.ExpectPlatform;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.events.AccessoriesEvents;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.compat.AccessoriesConfig;
@@ -16,20 +14,23 @@ import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.OwnableEntity;
-import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.phys.EntityHitResult;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 public class Accessories {
@@ -56,6 +57,24 @@ public class Accessories {
 
             return TriState.DEFAULT;
         });
+    }
+
+    @Nullable
+    @ApiStatus.Internal
+    public static EquipmentSlot INTERNAL_SLOT = null;
+
+    @Nullable
+    @ApiStatus.Internal
+    public static EquipmentSlot.Type ACCESSORIES_TYPE = null;
+
+    public static EquipmentSlot getInternalSlot() {
+        return INTERNAL_SLOT;
+    }
+
+    public static final TagKey<Enchantment> VALID_FOR_REDIRECTION = TagKey.create(Registries.ENCHANTMENT, of("valid_for_redirection"));
+
+    public static boolean enchantmentValidForRedirect(Enchantment enchantment) {
+        return BuiltInRegistries.ENCHANTMENT.getHolder(BuiltInRegistries.ENCHANTMENT.getResourceKey(enchantment).orElseThrow()).orElseThrow().is(Accessories.VALID_FOR_REDIRECTION);
     }
 
     public static void registerCriteria(){
