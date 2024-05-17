@@ -21,11 +21,11 @@ repositories {
     maven { url = "https://api.modrinth.com/maven" }
     maven { url = "https://maven.wispforest.io/releases" }
     maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
-    maven { url "https://maven.shedaniel.me/" }
-    maven { url "https://maven.architectury.dev/" }
-    maven { url "https://maven.terraformersmc.com/" }
-    maven { url "https://maven.blamejared.com/" } // location of the maven that hosts JEI files since January 2023
-    maven { url "https://modmaven.dev" } // location of a maven mirror for JEI files, as a fallback
+    maven { url = "https://maven.shedaniel.me/" }
+    maven { url = "https://maven.architectury.dev/" }
+    maven { url = "https://maven.terraformersmc.com/" }
+    maven { url = "https://maven.blamejared.com/" } // location of the maven that hosts JEI files since January 2023
+    maven { url = "https://modmaven.dev" } // location of a maven mirror for JEI files, as a fallback
 }
 
 sourceSets {

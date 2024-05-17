@@ -20,7 +20,8 @@ repositories {
     maven { url = "https://api.modrinth.com/maven" }
     maven { url = "https://maven.wispforest.io/releases" }
     maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
-    maven { url "https://maven.shedaniel.me/" }
+    maven { url = "https://maven.shedaniel.me/" }
+    maven { url = "https://maven.terraformersmc.com/" }
     mavenLocal()
 }
 
@@ -38,6 +39,7 @@ dependencies {
 
     modLocalRuntime("net.neoforged:bus:7.2.0")
 
+    modLocalRuntime("com.terraformersmc:modmenu:${rootProject.modmenu_version}")
 
     modLocalRuntime("maven.modrinth:ok-boomer:0.1.3+1.20.2")
     modLocalRuntime("io.wispforest:owo-lib:0.12.4-pre.2+1.20.3")
