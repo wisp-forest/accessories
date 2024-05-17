@@ -763,6 +763,9 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         var slotToSize = new HashMap<String, Integer>();
 
         for (var slotType : EntitySlotLoader.getEntitySlots(targetEntity).values()) {
+            var usedSlots = this.getMenu().usedSlots;
+            if(usedSlots != null && !usedSlots.contains(slotType)) continue;
+
             slotToSize.put(slotType.name(), containers.get(slotType.name()).getAccessories().getContainerSize());
         }
 
@@ -776,6 +779,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                     .filter(entry -> group.slots().contains(entry.getKey()))
                     .mapToInt(Map.Entry::getValue)
                     .sum();
+
+            if(groupSize <= 0) continue;
 
             var groupMinIndex = currentIndexOffset;
             var groupMaxIndex = groupMinIndex + groupSize - 1;
