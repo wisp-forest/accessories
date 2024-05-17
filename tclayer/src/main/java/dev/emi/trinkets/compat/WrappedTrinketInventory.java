@@ -113,7 +113,7 @@ public class WrappedTrinketInventory extends TrinketInventory {
 
     @Override
     public void setItem(int slot, ItemStack stack) {
-        container.getAccessories().setItem(slot, ItemStack.EMPTY);
+        container.getAccessories().setItem(slot, stack);
     }
 
     //--
