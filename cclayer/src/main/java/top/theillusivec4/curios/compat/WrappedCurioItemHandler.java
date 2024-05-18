@@ -1,11 +1,13 @@
 package top.theillusivec4.curios.compat;
 
 import com.google.common.collect.Multimap;
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
+import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -18,16 +20,21 @@ import net.minecraft.world.level.storage.loot.LootContext;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.wrapper.CombinedInvWrapper;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import top.theillusivec4.curios.api.CuriosCapability;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
 import top.theillusivec4.curios.common.CuriosRegistry;
+import top.theillusivec4.curios.common.capability.CurioInventory;
 
 import java.util.*;
 import java.util.function.Predicate;
 
 public record WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) implements ICuriosItemHandler {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     public WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) {
         this.capability = capability;
@@ -228,11 +235,37 @@ public record WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) impl
 
     @Override
     public ListTag saveInventory(boolean clear) {
-        return null;
+        var compound = new CompoundTag();
+
+        ((AccessoriesHolderImpl)this.capability().getHolder())
+                .write(compound);
+
+        var outerCompound = new CompoundTag();
+
+        outerCompound.put("main_data", compound);
+        outerCompound.putBoolean("is_accessories_data", true);
+
+        var list = new ListTag();
+
+        list.add(outerCompound);
+
+        return list;
     }
 
     @Override
     public void loadInventory(ListTag data) {
+        var compound = data.getCompound(0);
+
+        try {
+            if(compound.contains("is_accessories_data")){
+                ((AccessoriesHolderImpl)this.capability().getHolder())
+                        .read(compound.getCompound("main_data"));
+            } else {
+                CurioInventory.readData(this.getWearer(), this.capability(), data);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Unable to load a wrapped curio inventory as a error occurred, such will not be loaded!", e);
+        }
     }
 
     @Override

@@ -1,13 +1,16 @@
 package top.theillusivec4.curios.common.capability;
 
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
@@ -33,20 +36,24 @@ public class CurioInventory implements INBTSerializable<CompoundTag> {
         if (this.markDeserialized) {
             var tagList = this.deserialized.getList("Curios", Tag.TAG_COMPOUND);
 
-            for (int i = 0; i < tagList.size(); i++) {
-                var tag = tagList.getCompound(i);
-                var identifier = tag.getString("Identifier");
-
-                var slotType = SlotTypeLoader.getSlotType(livingEntity.level(), CuriosWrappingUtils.curiosToAccessories(identifier));
-
-                var container = (slotType != null) ? capability.getContainer(slotType) : null;
-
-                ((AccessoriesHolderImpl) capability.getHolder()).invalidStacks
-                        .addAll(deserializeNBT_StackHandler(container, tag.getCompound("StacksHandler")));
-            }
+            readData(livingEntity, capability, tagList);
 
             this.deserialized = new CompoundTag();
             this.markDeserialized = false;
+        }
+    }
+
+    public static void readData(LivingEntity livingEntity, AccessoriesCapability capability, ListTag data) {
+        for (int i = 0; i < data.size(); i++) {
+            var tag = data.getCompound(i);
+            var identifier = tag.getString("Identifier");
+
+            var slotType = SlotTypeLoader.getSlotType(livingEntity.level(), CuriosWrappingUtils.curiosToAccessories(identifier));
+
+            var container = (slotType != null) ? capability.getContainer(slotType) : null;
+
+            ((AccessoriesHolderImpl) capability.getHolder()).invalidStacks
+                    .addAll(deserializeNBT_StackHandler(container, tag.getCompound("StacksHandler")));
         }
     }
 
