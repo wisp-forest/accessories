@@ -20,7 +20,9 @@
 package top.theillusivec4.curios.common.slottype;
 
 import com.google.common.collect.ImmutableMap;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.InterModComms;
+import top.theillusivec4.curios.Curios;
 import top.theillusivec4.curios.api.SlotTypeMessage;
 import top.theillusivec4.curios.api.SlotTypePreset;
 import top.theillusivec4.curios.common.slottype.SlotType.Builder;
@@ -41,9 +43,9 @@ public class LegacySlotManager {
     return ImmutableMap.copyOf(IMC_BUILDERS);
   }
 
-  public static void buildImcSlotTypes(Stream<InterModComms.IMCMessage> register,
-                                       Stream<InterModComms.IMCMessage> modify) {
+  public static void buildImcSlotTypes(Stream<InterModComms.IMCMessage> register, Stream<InterModComms.IMCMessage> modify) {
     IMC_BUILDERS.clear();
+
     processImc(register, true);
     processImc(modify, false);
   }
@@ -84,7 +86,7 @@ public class LegacySlotManager {
         Builder builder = IMC_BUILDERS.get(id);
 
         if (builder == null && create) {
-          builder = new Builder(id);
+          builder = new Builder(id).validator(new ResourceLocation(Curios.MODID, "tag"));
           IMC_BUILDERS.put(id, builder);
           IDS_TO_MODS.computeIfAbsent(id, (k) -> new HashSet<>()).add(modId);
         }

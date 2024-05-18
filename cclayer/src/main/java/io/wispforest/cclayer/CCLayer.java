@@ -19,7 +19,6 @@ import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.CuriosCapability;
-import top.theillusivec4.curios.api.SlotTypeMessage;
 import top.theillusivec4.curios.api.type.ISlotType;
 import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
@@ -28,7 +27,6 @@ import top.theillusivec4.curios.common.CuriosRegistry;
 import top.theillusivec4.curios.common.capability.CurioItemHandler;
 import top.theillusivec4.curios.common.capability.ItemizedCurioCapability;
 import top.theillusivec4.curios.common.data.CuriosSlotManager;
-import top.theillusivec4.curios.common.slottype.LegacySlotManager;
 import top.theillusivec4.curios.compat.WrappedAccessory;
 import top.theillusivec4.curios.compat.WrappedCurioItemHandler;
 import top.theillusivec4.curios.mixin.CuriosImplMixinHooks;
@@ -45,7 +43,6 @@ public class CCLayer {
 
     public CCLayer(IEventBus eventBus){
         eventBus.addListener(this::registerCapabilities);
-        eventBus.addListener(this::process);
         NeoForge.EVENT_BUS.addListener(this::serverAboutToStart);
         NeoForge.EVENT_BUS.addListener(this::serverStopped);
 
@@ -123,10 +120,5 @@ public class CCLayer {
 
     private void serverStopped(ServerStoppedEvent evt) {
         CuriosApi.setSlotHelper(null);
-    }
-
-    private void process(InterModProcessEvent evt) {
-        LegacySlotManager.buildImcSlotTypes(evt.getIMCStream(SlotTypeMessage.REGISTER_TYPE::equals),
-                evt.getIMCStream(SlotTypeMessage.MODIFY_TYPE::equals));
     }
 }

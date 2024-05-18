@@ -174,6 +174,10 @@ public final class SlotType implements ISlotType {
       if (builder.dropRule != null) {
         this.dropRule(builder.dropRule);
       }
+
+      if(builder.validators != null) {
+        this.validators = builder.validators;
+      }
     }
 
     public Builder icon(ResourceLocation icon) {
