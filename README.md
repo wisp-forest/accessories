@@ -32,6 +32,9 @@ Such API is based on the works of [Curios](https://github.com/TheIllusiveC4/Curi
 ```groovy
 repositories {
     maven { url 'https://maven.wispforest.io' }
+    maven { url "https://maven.su5ed.dev/releases" }
+    maven { url 'https://maven.fabricmc.net' }
+    maven { url 'https://maven.minecraftforge.net' }
 }
 
 dependencies {
@@ -51,6 +54,9 @@ dependencies {
 ```kotlin
 repositories {
     maven("https://maven.wispforest.io")
+    maven("https://maven.su5ed.dev/releases")
+    maven("https://maven.fabricmc.net")
+    maven("https://maven.minecraftforge.net")
 }
 
 dependencies {
