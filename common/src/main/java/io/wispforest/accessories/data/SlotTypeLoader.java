@@ -117,7 +117,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             if(!isShared && !uniqueSlots.containsKey(location.toString())) {
                 LOGGER.error("A Unique slot was attempted to be adjust though datapack but was not found to register in the UniqueSlotHandling event, such will be ignored");
 
-                return;
+                continue;
             }
 
             var pathParts = location.getPath().split("/");

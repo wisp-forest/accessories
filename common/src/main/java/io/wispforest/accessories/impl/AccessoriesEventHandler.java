@@ -567,7 +567,7 @@ public class AccessoriesEventHandler {
 
         if (capability == null) return;
 
-        var shouldDrop = AccessoriesEvents.ON_DEATH_EVENT.invoker().shouldDrop(entity, capability);
+        var shouldDrop = AccessoriesEvents.ON_DEATH_EVENT.invoker().shouldDrop(entity, capability, source);
 
         if (!shouldDrop.orElse(true)) return;
 

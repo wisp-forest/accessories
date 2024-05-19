@@ -36,7 +36,7 @@ public class AccessoriesBasedSlot extends Slot {
     public final LivingEntity entity;
     public final AccessoriesContainer accessoriesContainer;
 
-    protected AccessoriesBasedSlot(AccessoriesContainer accessoriesContainer, ExpandedSimpleContainer container, int slot, int x, int y) {
+    public AccessoriesBasedSlot(AccessoriesContainer accessoriesContainer, ExpandedSimpleContainer container, int slot, int x, int y) {
         super(container, slot, x, y);
 
         this.accessoriesContainer = accessoriesContainer;

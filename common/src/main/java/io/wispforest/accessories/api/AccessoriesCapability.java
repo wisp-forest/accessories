@@ -127,10 +127,12 @@ public interface AccessoriesCapability {
     /**
      * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given predicate
      */
+    @Nullable
     default SlotEntryReference getFirstEquipped(Predicate<ItemStack> predicate) {
         return getFirstEquipped(predicate, EquipmentChecking.ACCESSORIES_ONLY);
     }
 
+    @Nullable
     SlotEntryReference getFirstEquipped(Predicate<ItemStack> predicate, EquipmentChecking check);
 
     /**

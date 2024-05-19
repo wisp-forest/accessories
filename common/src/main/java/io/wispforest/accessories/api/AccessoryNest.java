@@ -58,14 +58,24 @@ public interface AccessoryNest extends Accessory {
      * @param index The target index
      * @param newStack The new stack replacing the given index
      */
-    default void setInnerStack(ItemStack holderStack, int index, ItemStack newStack) {
-        var tag = holderStack.getTag();
+    default boolean setInnerStack(ItemStack holderStack, int index, ItemStack newStack) {
+        if(AccessoryNest.isAccessoryNest(holderStack) && !this.allowDeepRecursion()) return false;
 
-        var listTag = tag.getList(ACCESSORY_NEST_ITEMS_KEY, 10);
+        var listTag = holderStack.getTag().getList(ACCESSORY_NEST_ITEMS_KEY, 10);
 
-        var newTag = ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, newStack);
+        ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, newStack).result()
+                .ifPresent(tag1 -> listTag.set(index, tag1));
 
-        newTag.result().ifPresent(tag1 -> listTag.set(index, tag1));
+        return true;
+    }
+
+    /**
+     * By default, accessory nests can only go one layer deep as it's hard to track the stack modifications any further
+     *
+     * @return Whether such implementation of the Accessory nest allows for further nesting of other Nests
+     */
+    default boolean allowDeepRecursion() {
+        return false;
     }
 
     default List<Pair<DropRule, ItemStack>> getDropRules(ItemStack stack, SlotReference reference, DamageSource source) {
@@ -121,6 +131,10 @@ public interface AccessoryNest extends Accessory {
         consumer.accept(data.getMap());
 
         data.getNest().checkAndHandleStackChanges(holderStack, data, livingEntity);
+    }
+
+    static boolean isAccessoryNest(ItemStack holderStack) {
+        return AccessoriesAPI.getAccessory(holderStack) instanceof AccessoryNest;
     }
 
     /**
