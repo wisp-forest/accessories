@@ -99,9 +99,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
             String name = pathParts[pathParts.length - 1];
 
-            if(!isShared) {
-                name = location.getNamespace() + ":" + name;
-            }
+            if(!isShared) name = location.getNamespace() + ":" + name;
 
             var group = new SlotGroupBuilder(name);
 

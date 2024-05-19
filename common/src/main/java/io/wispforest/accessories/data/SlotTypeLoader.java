@@ -112,7 +112,14 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
             if(!AccessoriesInternals.isValidOnConditions(jsonObject)) continue;
 
-            var isShared = location.getNamespace().equals(Accessories.MODID);
+            var pathParts = location.getPath().split("/");
+
+            String name = pathParts[pathParts.length - 1];
+
+            @Nullable
+            String uniqueId = pathParts.length > 1 ? pathParts[0] : null;
+
+            var isShared = uniqueId != null;
 
             if(!isShared && !uniqueSlots.containsKey(location.toString())) {
                 LOGGER.error("A Unique slot was attempted to be adjust though datapack but was not found to register in the UniqueSlotHandling event, such will be ignored");
@@ -120,11 +127,9 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
                 continue;
             }
 
-            var pathParts = location.getPath().split("/");
-
-            String name = pathParts[pathParts.length - 1];
-
-            var slotBuilder = isShared ? new SlotBuilder(name) : uniqueSlots.remove(location.getNamespace() + ":" + name);
+            var slotBuilder = isShared
+                    ? builders.computeIfAbsent(name, SlotBuilder::new)
+                    : uniqueSlots.remove(location.getNamespace() + ":" + name);
 
             slotBuilder.icon(safeHelper((object, s) -> ResourceLocation.tryParse(GsonHelper.getAsString(object, s)), jsonObject, "icon", location));
 
@@ -161,12 +166,6 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             }
 
             slotBuilder.dropRule(this.safeHelper((object, s) -> DropRule.valueOf(GsonHelper.getAsString(object, s)), jsonObject, "drop_rule", location));
-
-            if(server.containsKey(slotBuilder.name)){
-                LOGGER.warn("Found duplicate slotType with the same name, not registering newly made type! [Location: " + location + "]");
-
-                return;
-            }
 
             builders.put(slotBuilder.name, slotBuilder);
         }
