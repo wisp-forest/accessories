@@ -1,41 +1,28 @@
 package top.theillusivec4.curios.common.network.client;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraftforge.network.NetworkEvent;
-import top.theillusivec4.curios.common.inventory.container.CuriosContainerV2;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import top.theillusivec4.curios.CuriosConstants;
 
-import java.util.function.Supplier;
+import javax.annotation.Nonnull;
 
-public class CPacketToggleCosmetics  {
+public record CPacketToggleCosmetics(int windowId) implements CustomPacketPayload {
 
-    private final int windowId;
+    public static final ResourceLocation ID = new ResourceLocation(CuriosConstants.MOD_ID, "toggle_cosmetics");
 
-    public CPacketToggleCosmetics(int windowId) {
-        this.windowId = windowId;
+    public CPacketToggleCosmetics(final FriendlyByteBuf buf) {
+        this(buf.readInt());
     }
 
-    public static void encode(CPacketToggleCosmetics msg, FriendlyByteBuf buf) {
-        buf.writeInt(msg.windowId);
+    @Override
+    public void write(@Nonnull FriendlyByteBuf buf) {
+        buf.writeInt(this.windowId());
     }
 
-    public static CPacketToggleCosmetics decode(FriendlyByteBuf buf) {
-        return new CPacketToggleCosmetics(buf.readInt());
-    }
-
-    public static void handle(CPacketToggleCosmetics msg, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            ServerPlayer sender = ctx.get().getSender();
-
-            if (sender != null) {
-                AbstractContainerMenu container = sender.containerMenu;
-
-                if (container instanceof CuriosContainerV2 && container.containerId == msg.windowId) {
-                    ((CuriosContainerV2) container).toggleCosmetics();
-                }
-            }
-        });
-        ctx.get().setPacketHandled(true);
+    @Nonnull
+    @Override
+    public ResourceLocation id() {
+        return ID;
     }
 }

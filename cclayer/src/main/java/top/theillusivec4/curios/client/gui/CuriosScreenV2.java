@@ -144,7 +144,7 @@ public class CuriosScreenV2 extends EffectRenderingInventoryScreen<CuriosContain
     private static int scrollCooldown = 0;
 
     @Override
-    public boolean mouseScrolled(double pMouseScrolled1, double pMouseScrolled3, double pMouseScrolled5) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         // NO-OP
         return false;
     }

@@ -32,7 +32,7 @@ public class AccessoriesEvents {
 
                 if(bus.isPresent()) {
                     var busState = bus.get()
-                            .post(new OnDeathEvent(livingEntity, capability))
+                            .post(new OnDeathEvent(livingEntity, capability, damageSource))
                             .getReturn();
 
                     if(busState != TriState.DEFAULT) state = busState;
