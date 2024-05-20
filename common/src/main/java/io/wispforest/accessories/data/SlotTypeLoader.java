@@ -119,7 +119,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             @Nullable
             String uniqueId = pathParts.length > 1 ? pathParts[0] : null;
 
-            var isShared = uniqueId != null;
+            var isShared = uniqueId == null;
 
             if(!isShared && !uniqueSlots.containsKey(location.toString())) {
                 LOGGER.error("A Unique slot was attempted to be adjust though datapack but was not found to register in the UniqueSlotHandling event, such will be ignored");
