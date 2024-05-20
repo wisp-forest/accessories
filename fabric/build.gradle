@@ -46,7 +46,7 @@ dependencies {
         exclude(group: "net.fabricmc.fabric-api")
     }
 
-    include compileOnly("net.minecraftforge:eventbus:6.0.5")
+    include modImplementation("net.minecraftforge:eventbus:6.0.5")
 
     include modImplementation("net.neoforged:bus:7.2.0")
 
