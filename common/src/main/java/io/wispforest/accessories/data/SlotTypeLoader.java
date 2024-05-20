@@ -76,12 +76,6 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
     @Override
     protected void apply(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler) {
-        var additionalModifiers = new HashMap<String, Integer>();
-
-        for (AccessoriesConfig.SlotAmountModifier modifier : Accessories.getConfig().modifiers) {
-            additionalModifiers.put(modifier.slotType, modifier.amount);
-        }
-
         var uniqueSlots = new HashMap<String, SlotBuilder>();
 
         UniqueSlotHandling.EVENT.invoker().registerSlots((location, integer, slotPredicate, types) -> {
@@ -158,8 +152,6 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
                     }
                 }
 
-                slotBuilder.addAmount(additionalModifiers.getOrDefault(slotBuilder.name, 0));
-
                 var validators = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "validators", new JsonArray(), location);
 
                 decodeJsonArray(validators, "validator", location, element -> ResourceLocation.tryParse(element.getAsString()), slotBuilder::validator);
@@ -168,6 +160,14 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             slotBuilder.dropRule(this.safeHelper((object, s) -> DropRule.valueOf(GsonHelper.getAsString(object, s)), jsonObject, "drop_rule", location));
 
             builders.put(slotBuilder.name, slotBuilder);
+        }
+
+        for (AccessoriesConfig.SlotAmountModifier modifier : Accessories.getConfig().modifiers) {
+            var builder = builders.getOrDefault(modifier.slotType, null);
+
+            if(builder == null) continue;
+
+            builder.addAmount(modifier.amount);
         }
 
         var tempMap = new HashMap<String, SlotType>();
