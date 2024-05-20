@@ -28,14 +28,16 @@ public abstract class EquipmentSlotTypeMixin {
 
     @Inject(method = "<clinit>", at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/EquipmentSlot$Type;$VALUES:[Lnet/minecraft/world/entity/EquipmentSlot$Type;", shift = At.Shift.AFTER, opcode = Opcodes.PUTSTATIC))
     private static void addInternalAccessoriesEquipmentSlot(CallbackInfo ci) {
-        $VALUES = ArrayUtils.buildWith(EquipmentSlot.Type.class, $VALUES,
-                index -> {
-                    var type = EquipmentSlotTypeMixin.invokeNew("ACCESSORIES", index);
+        Accessories.ACCESSORIES_TYPE = EquipmentSlotTypeMixin.invokeNew("ACCESSORIES", -1);
 
-                    Accessories.ACCESSORIES_TYPE = type;
-
-                    return type;
-                }
-        );
+//        $VALUES = ArrayUtils.buildWith(EquipmentSlot.Type.class, $VALUES,
+//                index -> {
+//                    var type = EquipmentSlotTypeMixin.invokeNew("ACCESSORIES", index);
+//
+//                    Accessories.ACCESSORIES_TYPE = type;
+//
+//                    return type;
+//                }
+//        );
     }
 }
