@@ -21,54 +21,51 @@ import java.util.Map;
 @Mixin(SlotTypeLoader.class)
 public abstract class SlotTypeLoaderMixin {
 
-    @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/ImmutableMap;copyOf(Ljava/util/Map;)Lcom/google/common/collect/ImmutableMap;"), remap = false)
-    private void injectCuriosSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "tempMap") HashMap<String, SlotType> tempMap){
+    @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Ljava/util/HashMap;<init>()V", shift = At.Shift.AFTER, ordinal = 2), remap = false)
+    private void injectCuriosSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "builders") HashMap<String, SlotTypeLoader.SlotBuilder> tempMap){
         for (var entry : CuriosSlotManager.INSTANCE.slotTypeBuilders.entrySet()) {
             var accessoryType = CuriosWrappingUtils.curiosToAccessories(entry.getKey());
 
             var curiosBuilder = entry.getValue();
+            SlotTypeLoader.SlotBuilder builder;
 
             if (tempMap.containsKey(accessoryType)) {
-                var existingSlot = tempMap.get(accessoryType);
+                builder = tempMap.get(accessoryType);
 
-                if(curiosBuilder.size != null && curiosBuilder.size > existingSlot.amount()) {
-                    var newSlot = new SlotTypeImpl(existingSlot.name(), existingSlot.icon(), existingSlot.order(), curiosBuilder.size, existingSlot.validators(), existingSlot.dropRule());
+                if(curiosBuilder.size != null && curiosBuilder.size > ((SlotTypeLoaderBuilderAccessor) builder).getAmount()) {
+                    builder.amount(curiosBuilder.size);
+                }
+            } else {
+                builder = new SlotTypeLoader.SlotBuilder(accessoryType);
 
-                    tempMap.put(accessoryType, newSlot);
+                if (curiosBuilder.size != null) {
+                    builder.amount(curiosBuilder.size);
                 }
 
-                continue;
+                if (curiosBuilder.sizeMod != 0) {
+                    builder.addAmount(curiosBuilder.sizeMod);
+                }
+
+                if (curiosBuilder.icon != null) {
+                    builder.icon(curiosBuilder.icon);
+                }
+
+                if (curiosBuilder.order != null) {
+                    builder.order(curiosBuilder.order);
+                }
+
+                if (curiosBuilder.dropRule != null) {
+                    builder.dropRule(CuriosWrappingUtils.convert(curiosBuilder.dropRule));
+                }
+
+                builder.alternativeTranslation("curios.identifier." + entry.getKey());
+
+                tempMap.put(accessoryType, builder);
             }
 
-            var builder = new SlotTypeLoader.SlotBuilder(accessoryType);
-
-            if (curiosBuilder.size != null) {
-                builder.amount(curiosBuilder.size);
+            for (ResourceLocation validatorPredicate : curiosBuilder.validators) {
+                builder.validator(CuriosWrappingUtils.curiosToAccessories_Validators(validatorPredicate));
             }
-
-            if (curiosBuilder.sizeMod != 0) {
-                builder.addAmount(curiosBuilder.sizeMod);
-            }
-
-            if (curiosBuilder.icon != null) {
-                builder.icon(curiosBuilder.icon);
-            }
-
-            if (curiosBuilder.order != null) {
-                builder.order(curiosBuilder.order);
-            }
-
-            if (curiosBuilder.dropRule != null) {
-                builder.dropRule(CuriosWrappingUtils.convert(curiosBuilder.dropRule));
-            }
-
-            for (ResourceLocation location : curiosBuilder.validators) {
-                builder.validator(CuriosWrappingUtils.curiosToAccessories_Validators(location));
-            }
-
-            builder.alternativeTranslation("curios.identifier." + entry.getKey());
-
-            tempMap.put(accessoryType, builder.create());
         }
     }
 }

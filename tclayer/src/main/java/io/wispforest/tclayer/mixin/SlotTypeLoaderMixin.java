@@ -21,30 +21,35 @@ import java.util.Map;
 @Mixin(SlotTypeLoader.class)
 public abstract class SlotTypeLoaderMixin {
 
-    @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/ImmutableMap;copyOf(Ljava/util/Map;)Lcom/google/common/collect/ImmutableMap;"), remap = false)
-    private void injectTrinketSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci,  @Local(name = "tempMap") HashMap<String, SlotType> tempMap){
+    @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Ljava/util/HashMap;<init>()V", shift = At.Shift.AFTER, ordinal = 2))
+    private void injectTrinketSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "builders") HashMap<String, SlotTypeLoader.SlotBuilder> tempMap){
         for (var groupsData : SlotLoader.INSTANCE.getSlots().entrySet()) {
             var groupData = groupsData.getValue();
             var slots = groupData.slots;
 
+            SlotTypeLoader.SlotBuilder builder;
+
             for (var entry : slots.entrySet()) {
                 var accessoryType = WrappingTrinketsUtils.trinketsToAccessories_Slot(entry.getKey());
-
-                if (tempMap.containsKey(accessoryType)) continue;
-
-                var builder = new SlotTypeLoader.SlotBuilder(accessoryType);
-
                 var slotData = entry.getValue();
 
-                if (slotData.amount != -1) builder.amount(slotData.amount);
+                if (tempMap.containsKey(accessoryType)) {
+                    builder = tempMap.get(accessoryType);
+                } else {
+                    builder = new SlotTypeLoader.SlotBuilder(accessoryType);
 
-                builder.order(slotData.order);
+                    if (slotData.amount != -1) builder.amount(slotData.amount);
 
-                builder.icon(new ResourceLocation(slotData.icon));
+                    builder.order(slotData.order);
 
-                builder.dropRule(TrinketEnums.convert(TrinketEnums.DropRule.valueOf(slotData.dropRule)));
+                    builder.icon(new ResourceLocation(slotData.icon));
 
-                builder.alternativeTranslation("trinkets.slot." + WrappingTrinketsUtils.accessoriesToTrinkets_Group(groupsData.getKey()) + "." + entry.getKey());
+                    builder.dropRule(TrinketEnums.convert(TrinketEnums.DropRule.valueOf(slotData.dropRule)));
+
+                    builder.alternativeTranslation("trinkets.slot." + WrappingTrinketsUtils.accessoriesToTrinkets_Group(groupsData.getKey()) + "." + entry.getKey());
+
+                    tempMap.put(accessoryType, builder);
+                }
 
                 for (String validatorPredicate : slotData.validatorPredicates) {
                     var location = ResourceLocation.tryParse(validatorPredicate);
@@ -53,10 +58,6 @@ public abstract class SlotTypeLoaderMixin {
 
                     builder.validator(WrappingTrinketsUtils.trinketsToAccessories_Validators(location));
                 }
-
-                var slotType = builder.create();
-
-                tempMap.put(accessoryType, slotType);
             }
         }
     }
