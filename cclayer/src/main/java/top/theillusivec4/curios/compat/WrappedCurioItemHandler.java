@@ -63,6 +63,8 @@ public record WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) impl
         this.capability().getContainers()
                 .forEach((s, container) -> handlers.put(CuriosWrappingUtils.accessoriesToCurios(s), new WrappedCurioStackHandler((AccessoriesContainerImpl) container)));
 
+        handlers.put("curio", new EmptyCuriosStackHandler("curio"));
+
         return handlers;
     }
 
