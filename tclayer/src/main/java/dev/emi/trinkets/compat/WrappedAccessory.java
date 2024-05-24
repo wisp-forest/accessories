@@ -24,7 +24,7 @@ public class WrappedAccessory implements Trinket {
     public void tick(ItemStack stack, SlotReference ref, LivingEntity entity) {
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-        var reference = new io.wispforest.accessories.api.slot.SlotReference(slotName, entity, ref.index());
+        var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());
 
         accessory.tick(stack, reference);
     }
@@ -33,7 +33,7 @@ public class WrappedAccessory implements Trinket {
     public void onEquip(ItemStack stack, SlotReference ref, LivingEntity entity) {
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-        var reference = new io.wispforest.accessories.api.slot.SlotReference(slotName, entity, ref.index());
+        var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());
 
         accessory.onEquip(stack, reference);
     }
@@ -42,7 +42,7 @@ public class WrappedAccessory implements Trinket {
     public void onUnequip(ItemStack stack, SlotReference ref, LivingEntity entity) {
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-        var reference = new io.wispforest.accessories.api.slot.SlotReference(slotName, entity, ref.index());
+        var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());
 
         accessory.onUnequip(stack, reference);
     }
@@ -51,7 +51,7 @@ public class WrappedAccessory implements Trinket {
     public boolean canEquip(ItemStack stack, SlotReference ref, LivingEntity entity) {
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-        var reference = new io.wispforest.accessories.api.slot.SlotReference(slotName, entity, ref.index());
+        var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());
 
         return accessory.canEquip(stack, reference);
     }
@@ -60,7 +60,7 @@ public class WrappedAccessory implements Trinket {
     public boolean canUnequip(ItemStack stack, SlotReference ref, LivingEntity entity) {
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-        var reference = new io.wispforest.accessories.api.slot.SlotReference(slotName, entity, ref.index());
+        var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());
 
         return accessory.canUnequip(stack, reference);
     }
@@ -69,7 +69,7 @@ public class WrappedAccessory implements Trinket {
     public Multimap<Attribute, AttributeModifier> getModifiers(ItemStack stack, SlotReference ref, LivingEntity entity, UUID uuid) {
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-        var reference = new io.wispforest.accessories.api.slot.SlotReference(slotName, entity, ref.index());
+        var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());
 
         return accessory.getModifiers(stack, reference, uuid);
     }
@@ -78,7 +78,7 @@ public class WrappedAccessory implements Trinket {
     public TrinketEnums.DropRule getDropRule(ItemStack stack, SlotReference ref, LivingEntity entity) {
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-        var reference = new io.wispforest.accessories.api.slot.SlotReference(slotName, entity, ref.index());
+        var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());
 
         var damageSource = entity.getLastDamageSource();
 
@@ -91,7 +91,7 @@ public class WrappedAccessory implements Trinket {
     public void onBreak(ItemStack stack, SlotReference ref, LivingEntity entity) {
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-        var reference = new io.wispforest.accessories.api.slot.SlotReference(slotName, entity, ref.index());
+        var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());
 
         accessory.onBreak(stack, reference);
     }

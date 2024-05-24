@@ -74,7 +74,7 @@ public class TrinketsApi implements EntityComponentInitializer {
     public static void onTrinketBroken(ItemStack stack, SlotReference ref, LivingEntity entity) {
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-        var reference = new io.wispforest.accessories.api.slot.SlotReference(slotName, entity, ref.index());
+        var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());
 
         AccessoriesAPI.breakStack(reference);
     }
@@ -227,7 +227,7 @@ public class TrinketsApi implements EntityComponentInitializer {
             UUID uuid = UUID.nameUUIDFromBytes((ref.inventory().getSlotType().getName() + ref.index()).getBytes());
             var accessory = AccessoriesAPI.getAccessory(stack);
 
-            var map = accessory.getModifiers(stack, new io.wispforest.accessories.api.slot.SlotReference(ref.inventory().getSlotType().getName(), entity, ref.index()), uuid);
+            var map = accessory.getModifiers(stack, io.wispforest.accessories.api.slot.SlotReference.of(entity, ref.inventory().getSlotType().getName(), ref.index()), uuid);
             if (!map.isEmpty()) {
                 return TriState.TRUE;
             }

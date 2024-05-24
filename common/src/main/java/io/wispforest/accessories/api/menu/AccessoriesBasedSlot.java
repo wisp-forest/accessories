@@ -101,7 +101,7 @@ public class AccessoriesBasedSlot extends Slot {
 
     @Override
     public boolean mayPlace(ItemStack stack) {
-        return AccessoriesAPI.canInsertIntoSlot(stack, new SlotReference(this.accessoriesContainer.getSlotName(), this.entity, this.getContainerSlot()));
+        return AccessoriesAPI.canInsertIntoSlot(stack, SlotReference.of(this.entity, this.accessoriesContainer.getSlotName(), this.getContainerSlot()));
     }
 
     @Override
@@ -114,7 +114,7 @@ public class AccessoriesBasedSlot extends Slot {
             if(!result.orElse(false)) return false;
         }
 
-        return AccessoriesAPI.canUnequip(this.getItem(), new SlotReference(this.accessoriesContainer.getSlotName(), this.entity, this.getContainerSlot()));
+        return AccessoriesAPI.canUnequip(this.getItem(), SlotReference.of(this.entity, this.accessoriesContainer.getSlotName(), this.getContainerSlot()));
     }
 
     protected ResourceLocation icon(){

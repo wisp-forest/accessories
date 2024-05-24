@@ -84,7 +84,7 @@ public class AccessoriesEventHandler {
                     var cosmeticStacks = container.getCosmeticAccessories();
 
                     for (int i = 0; i < container.getSize(); i++) {
-                        var reference = new SlotReference(container.getSlotName(), player, i);
+                        var reference = container.createReference(i);
 
                         handleInvalidStacks(stacks, reference, player);
                         handleInvalidStacks(cosmeticStacks, reference, player);
@@ -95,7 +95,7 @@ public class AccessoriesEventHandler {
                     var cosmeticStacks = container.getCosmeticAccessories();
 
                     for (int i = 0; i < container.getSize(); i++) {
-                        var reference = new SlotReference(container.getSlotName(), player, i);
+                        var reference = container.createReference(i);
 
                         dropAndRemoveStack(stacks, reference, player);
                         dropAndRemoveStack(cosmeticStacks, reference, player);
@@ -213,7 +213,7 @@ public class AccessoriesEventHandler {
                 var cosmetics = container.getCosmeticAccessories();
 
                 for (int i = 0; i < accessories.getContainerSize(); i++) {
-                    var slotReference = new SlotReference(container.getSlotName(), capability.entity(), i);
+                    var slotReference = container.createReference(i);
 
                     var slotId = slotType.name() + "/" + i;
 
@@ -418,7 +418,7 @@ public class AccessoriesEventHandler {
         boolean allDuplicates = true;
 
         for (SlotType slotType : slotTypes) {
-            var reference = new SlotReference(slotType.name(), entity, 0);
+            var reference = SlotReference.of(entity, slotType.name(), 0);
             var uuid = AccessoriesAPI.getOrCreateSlotUUID(slotType, 0);
 
             var slotModifiers = AccessoriesAPI.getAttributeModifiers(stack, reference, uuid);
@@ -582,7 +582,7 @@ public class AccessoriesEventHandler {
             var cosmeticStacks = container.getCosmeticAccessories();
 
             for (int i = 0; i < container.getSize(); i++) {
-                var reference = new SlotReference(container.getSlotName(), entity, i);
+                var reference = SlotReference.of(entity, container.getSlotName(), i);
 
                 dropStack(slotDropRule, entity, stacks, reference, source);
                 dropStack(slotDropRule, entity, cosmeticStacks, reference, source);

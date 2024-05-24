@@ -64,7 +64,7 @@ public abstract class PlayerRendererMixin {
                     renderer.renderOnFirstPerson(
                         currentArm,
                         stack,
-                        new SlotReference(container.getSlotName(), player, i),
+                        SlotReference.of(player, container.getSlotName(), i),
                         poseStack,
                         playerModel,
                         buffer,

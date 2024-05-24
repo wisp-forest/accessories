@@ -188,7 +188,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
 
                             if (!currentStack.isEmpty()) continue;
 
-                            var ref = new io.wispforest.accessories.api.slot.SlotReference(slotName, this.getEntity(), i);
+                            var ref = io.wispforest.accessories.api.slot.SlotReference.of(this.getEntity(), slotName, i);
 
                             if (!AccessoriesAPI.canInsertIntoSlot(stack, ref)) continue;
 

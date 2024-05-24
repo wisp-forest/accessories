@@ -230,7 +230,7 @@ public class CuriosImplMixinHooks {
   }
 
   public static boolean isStackValid(SlotContext slotContext, ItemStack stack) {
-    boolean isValid = AccessoriesAPI.canInsertIntoSlot(stack, new SlotReference(slotContext.identifier(), slotContext.entity(), slotContext.index()));;
+    boolean isValid = AccessoriesAPI.canInsertIntoSlot(stack, SlotReference.of(slotContext.entity(), slotContext.identifier(), slotContext.index()));
     if(isValid) return true;
 
     String id = slotContext.identifier();

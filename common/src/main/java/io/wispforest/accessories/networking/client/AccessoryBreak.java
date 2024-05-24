@@ -45,7 +45,7 @@ public class AccessoryBreak extends AccessoriesPacket {
             throw new IllegalStateException("Unable to handle a Break call due to the passed entity id not corresponding to a LivingEntity!");
         }
 
-        var slotReference = new SlotReference(this.slotName, livingEntity, this.slot);
+        var slotReference = SlotReference.of(livingEntity, this.slotName, this.slot);
 
         var capability = livingEntity.accessoriesCapability();
 

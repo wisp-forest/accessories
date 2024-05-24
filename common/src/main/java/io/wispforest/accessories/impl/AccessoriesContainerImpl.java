@@ -154,7 +154,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
             if(invalidStack.isEmpty()) continue;
 
-            var slotReference = new SlotReference(this.slotName, livingEntity, index);
+            var slotReference = SlotReference.of(livingEntity, this.slotName, index);
 
             var attributes = AccessoriesAPI.getAttributeModifiers(invalidStack, slotReference, uuid);
 

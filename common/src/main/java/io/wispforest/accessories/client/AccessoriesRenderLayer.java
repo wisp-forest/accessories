@@ -87,7 +87,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                             multiBufferSource.getBuffer(renderType);
                 };
 
-                renderer.render(stack, new SlotReference(container.getSlotName(), entity, i), poseStack, getParentModel(), innerBufferSource, light, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
+                renderer.render(stack, SlotReference.of(entity, container.getSlotName(), i), poseStack, getParentModel(), innerBufferSource, light, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
 
                 float[] colorValues = null;
 

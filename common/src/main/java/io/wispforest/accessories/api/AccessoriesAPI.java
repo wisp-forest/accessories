@@ -170,7 +170,7 @@ public class AccessoriesAPI {
             var accessory = AccessoriesAPI.getAccessory(stack);
 
             if(accessory != null) {
-                var data = accessory.getModifiers(stack, new SlotReference(slotName, entity, slot), uuid);
+                var data = accessory.getModifiers(stack, SlotReference.of(entity, slotName, slot), uuid);
 
                 multimap.putAll(data);
             }
@@ -293,7 +293,7 @@ public class AccessoriesAPI {
                 var container = containers.get(value.name());
 
                 for (var accessory : containers.get(value.name()).getAccessories()) {
-                    var reference = new SlotReference(container.getSlotName(), entity, accessory.getFirst());
+                    var reference = SlotReference.of(entity, container.getSlotName(), accessory.getFirst());
 
                     if (canInsertIntoSlot(stack, reference)) validSlots.add(value);
                 }

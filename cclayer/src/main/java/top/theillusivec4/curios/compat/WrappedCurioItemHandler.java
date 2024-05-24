@@ -151,7 +151,7 @@ public record WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) impl
 
                     for (var stackEntry : accessories) {
                         var stack = stackEntry.getSecond();
-                        var reference = new SlotReference(container.getSlotName(), container.capability().entity(), stackEntry.getFirst());
+                        var reference = container.createReference(stackEntry.getFirst());
 
                         var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
 

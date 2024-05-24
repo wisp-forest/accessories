@@ -31,7 +31,7 @@ public interface AccessoriesContainer {
      * @return A SlotReference based on the containers linked entity and slot name with the given index
      */
     default SlotReference createReference(int index){
-        return new SlotReference(this.getSlotName(), this.capability().entity(), index);
+        return SlotReference.of(this.capability().entity(), this.getSlotName(), index);
     }
 
     /**

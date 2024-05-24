@@ -90,7 +90,7 @@ public class CurioInventory implements INBTSerializable<CompoundTag> {
 
                     if (!currentStack.isEmpty()) continue;
 
-                    var ref = new io.wispforest.accessories.api.slot.SlotReference(container.getSlotName(), container.capability().entity(), i);
+                    var ref = container.createReference(i);
 
                     if (!AccessoriesAPI.canInsertIntoSlot(stack, ref)) continue;
 

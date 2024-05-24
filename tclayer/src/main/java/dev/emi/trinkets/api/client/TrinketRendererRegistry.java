@@ -50,7 +50,7 @@ public class TrinketRendererRegistry {
                 return (stack, ref, contextModel, matrices, vertexConsumers, light, entity, limbAngle, limbDistance, tickDelta, animationProgress, headYaw, headPitch) -> {
                     var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-                    var reference = new SlotReference(slotName, entity, ref.index());
+                    var reference = SlotReference.of(entity, slotName, ref.index());
 
                     accessoryRenderer.render(stack, reference, matrices, contextModel, vertexConsumers, light, limbAngle, limbDistance, tickDelta, animationProgress, headYaw, headPitch);
                 };

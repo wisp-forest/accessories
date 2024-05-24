@@ -1,6 +1,7 @@
 package io.wispforest.accessories.api;
 
 import com.google.common.collect.Multimap;
+import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
@@ -99,21 +100,38 @@ public interface AccessoryNest extends Accessory {
     /**
      * Method used to perform some action on a possible {@link AccessoryNest} and return a result from such action or a default value if none found
      *
-     * @param holderStack  Potential stack linked to a AccessoryNest
-     * @param livingEntity Potential Living Entity involved with any stack changes
-     * @param func         Action being done
-     * @param defaultValue Default value if stack is not a AccessoryNest
+     * @param holderStack   Potential stack linked to a AccessoryNest
+     * @param slotReference The primary SlotReference used from the given call
+     * @param func          Action being done
+     * @param defaultValue  Default value if stack is not a AccessoryNest
      */
-    static <T> T attemptFunction(ItemStack holderStack, @Nullable LivingEntity livingEntity, Function<Map<ItemStack, Accessory>, T> func, T defaultValue){
+    static <T> T attemptFunction(ItemStack holderStack, SlotReference slotReference, Function<Map<SlotEntryReference, Accessory>, T> func, T defaultValue){
         var data = AccessoryNestUtils.getData(holderStack);
 
         if(data == null) return defaultValue;
 
-        var t = func.apply(data.getMap());
+        var t = func.apply(data.getMap(slotReference));
 
-        data.getNest().checkAndHandleStackChanges(holderStack, data, livingEntity);
+        data.getNest().checkAndHandleStackChanges(holderStack, data, slotReference.entity());
 
         return t;
+    }
+
+    /**
+     * Method used to perform some action on a possible {@link AccessoryNest}
+     *
+     * @param holderStack   Potential stack linked to a AccessoryNest
+     * @param slotReference Potential Living Entity involved with any stack changes
+     * @param consumer      Action being done
+     */
+    static void attemptConsumer(ItemStack holderStack, SlotReference slotReference, Consumer<Map<SlotEntryReference, Accessory>> consumer){
+        var data = AccessoryNestUtils.getData(holderStack);
+
+        if(data == null) return;
+
+        consumer.accept(data.getMap(slotReference));
+
+        data.getNest().checkAndHandleStackChanges(holderStack, data, slotReference.entity());
     }
 
     /**
@@ -123,15 +141,17 @@ public interface AccessoryNest extends Accessory {
      * @param livingEntity Potential Living Entity involved with any stack changes
      * @param consumer     Action being done
      */
-    static void attemptConsumer(ItemStack holderStack, @Nullable LivingEntity livingEntity, Consumer<Map<ItemStack, Accessory>> consumer){
+    static void attemptConsumer(ItemStack holderStack, @Nullable LivingEntity livingEntity, Consumer<Map<ItemStack, Accessory>> consumer) {
         var data = AccessoryNestUtils.getData(holderStack);
 
-        if(data == null) return;
+        if (data == null) return;
 
         consumer.accept(data.getMap());
 
         data.getNest().checkAndHandleStackChanges(holderStack, data, livingEntity);
     }
+
+    //--
 
     static boolean isAccessoryNest(ItemStack holderStack) {
         return AccessoriesAPI.getAccessory(holderStack) instanceof AccessoryNest;
@@ -161,25 +181,25 @@ public interface AccessoryNest extends Accessory {
 
     @Override
     default void tick(ItemStack stack, SlotReference reference) {
-        attemptConsumer(stack, reference.entity(), map -> map.forEach((stack1, accessory) -> accessory.tick(stack1, reference)));
+        attemptConsumer(stack, reference, map -> map.forEach((entryRef, accessory) -> accessory.tick(entryRef.stack(), entryRef.reference())));
     }
 
     @Override
     default void onEquip(ItemStack stack, SlotReference reference) {
-        attemptConsumer(stack, reference.entity(), map -> map.forEach((stack1, accessory) -> accessory.onEquip(stack1, reference)));
+        attemptConsumer(stack, reference, map -> map.forEach((entryRef, accessory) -> accessory.onEquip(entryRef.stack(), entryRef.reference())));
     }
 
     @Override
     default void onUnequip(ItemStack stack, SlotReference reference) {
-        attemptConsumer(stack, reference.entity(), map -> map.forEach((stack1, accessory) -> accessory.onUnequip(stack1, reference)));
+        attemptConsumer(stack, reference, map -> map.forEach((entryRef, accessory) -> accessory.onUnequip(entryRef.stack(), entryRef.reference())));
     }
 
     @Override
     default boolean canEquip(ItemStack stack, SlotReference reference) {
-        return attemptFunction(stack, reference.entity(), map -> {
+        return attemptFunction(stack, reference, map -> {
             MutableBoolean canEquip = new MutableBoolean(true);
 
-            map.forEach((stack1, accessory) -> canEquip.setValue(canEquip.booleanValue() && accessory.canEquip(stack1, reference)));
+            map.forEach((entryRef, accessory) -> canEquip.setValue(canEquip.booleanValue() && accessory.canEquip(entryRef.stack(), entryRef.reference())));
 
             return canEquip.getValue();
         }, false);
@@ -187,10 +207,10 @@ public interface AccessoryNest extends Accessory {
 
     @Override
     default boolean canUnequip(ItemStack stack, SlotReference reference) {
-        return attemptFunction(stack, reference.entity(), map -> {
+        return attemptFunction(stack, reference, map -> {
             MutableBoolean canUnequip = new MutableBoolean(true);
 
-            map.forEach((stack1, accessory) -> canUnequip.setValue(canUnequip.booleanValue() && accessory.canUnequip(stack1, reference)));
+            map.forEach((entryRef, accessory) -> canUnequip.setValue(canUnequip.booleanValue() && accessory.canUnequip(entryRef.stack(), entryRef.reference())));
 
             return canUnequip.getValue();
         }, false);
@@ -201,18 +221,18 @@ public interface AccessoryNest extends Accessory {
         var map = Accessory.super.getModifiers(stack, reference, uuid);
 
         // TODO: May need to deal with potential collisions when using the specific passed UUID
-        attemptConsumer(stack, reference.entity(), innerMap -> innerMap.forEach((stack1, accessory) -> map.putAll(accessory.getModifiers(stack, reference, uuid))));
+        attemptConsumer(stack, reference, innerMap -> innerMap.forEach((entryRef, accessory) -> map.putAll(accessory.getModifiers(entryRef.stack(), entryRef.reference(), uuid))));
 
         return map;
     }
 
     @Override
     default void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips) {
-        attemptConsumer(stack, null, map -> map.forEach((stack1, accessory) -> accessory.getAttributesTooltip(stack1, type, tooltips)));
+        attemptConsumer(stack, (LivingEntity) null, map -> map.forEach((stack1, accessory) -> accessory.getAttributesTooltip(stack1, type, tooltips)));
     }
 
     @Override
     default void getExtraTooltip(ItemStack stack, List<Component> tooltips) {
-        attemptConsumer(stack, null, map -> map.forEach((stack1, accessory) -> accessory.getExtraTooltip(stack1, tooltips)));
+        attemptConsumer(stack, (LivingEntity) null, map -> map.forEach((stack1, accessory) -> accessory.getExtraTooltip(stack1, tooltips)));
     }
 }

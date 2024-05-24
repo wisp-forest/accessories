@@ -6,6 +6,8 @@ import com.google.common.cache.LoadingCache;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.AccessoryNest;
+import io.wispforest.accessories.api.slot.NestedSlotReferenceImpl;
+import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
@@ -47,10 +49,14 @@ public class AccessoryNestUtils {
         var value = function.apply(stack, reference);
 
         if (accessory instanceof AccessoryNest holdable && value == null) {
-            for (ItemStack innerStack : holdable.getInnerStacks(stack)) {
+            var innerStacks = holdable.getInnerStacks(stack);
+
+            for (int i = 0; i < innerStacks.size(); i++) {
+                var innerStack = innerStacks.get(i);
+
                 if (innerStack.isEmpty()) continue;
 
-                value = recursiveStackHandling(stack, reference, function);
+                value = recursiveStackHandling(stack, create(reference, i), function);
             }
         }
 
@@ -64,11 +70,27 @@ public class AccessoryNestUtils {
 
         if (!(accessory instanceof AccessoryNest holdable)) return;
 
-        for (ItemStack innerStack : holdable.getInnerStacks(stack)) {
+        var innerStacks = holdable.getInnerStacks(stack);
+
+        for (int i = 0; i < innerStacks.size(); i++) {
+            var innerStack = innerStacks.get(i);
+
             if (innerStack.isEmpty()) continue;
 
-            recursiveStackConsumption(stack, reference, consumer);
+            recursiveStackConsumption(stack, create(reference, i), consumer);
         }
+    }
+
+    private static NestedSlotReferenceImpl create(SlotReference reference, int innerIndex) {
+        var innerSlotIndices = new ArrayList<Integer>();
+
+        if(reference instanceof NestedSlotReferenceImpl nestedSlotReference) {
+            innerSlotIndices.addAll(nestedSlotReference.innerSlotIndices());
+        }
+
+        innerSlotIndices.add(innerIndex);
+
+        return SlotReference.ofNest(reference.entity(), reference.slotName(), reference.slot(), innerSlotIndices);
     }
 
     public static class StackData {
@@ -111,6 +133,22 @@ public class AccessoryNestUtils {
             var map = new LinkedHashMap<ItemStack, Accessory>();
 
             this.getStacks().forEach(stack1 -> map.put(stack1, AccessoriesAPI.getOrDefaultAccessory(stack1)));
+
+            return map;
+        }
+
+        public final Map<SlotEntryReference, Accessory> getMap(SlotReference slotReference) {
+            var map = new LinkedHashMap<SlotEntryReference, Accessory>();
+
+            var innerStacks = this.getStacks();
+
+            for (int i = 0; i < innerStacks.size(); i++) {
+                var innerStack = innerStacks.get(i);
+
+                if (innerStack.isEmpty()) continue;
+
+                map.put(new SlotEntryReference(create(slotReference, i), innerStack), AccessoriesAPI.getOrDefaultAccessory(innerStack));
+            }
 
             return map;
         }
