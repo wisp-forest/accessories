@@ -47,11 +47,11 @@ dependencies {
 
 processResources {
     inputs.property "version", "${project.mod_version}+${rootProject.minecraft_base_version}"
-    inputs.property "layer_version", project.layer_version
+    inputs.property "layer_version", "0.${project.layer_version}"
 
     filesMatching("META-INF/mods.toml") {
         expand "version": "${project.mod_version}+${rootProject.minecraft_base_version}",
-                "layer_version": project.layer_version
+                "layer_version": "0.${project.layer_version}"
     }
 }
 
