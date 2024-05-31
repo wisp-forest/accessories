@@ -4,7 +4,7 @@
   "provides": [
     "trinkets"
   ],
-  "version": "${version}",
+  "version": "${version}-${layer_version}",
   "name": "Accessories Trinkets Compat Layer",
   "description": "Adds Compatibility layer between Trinkets Based Mods and Accessories API",
   "authors": [

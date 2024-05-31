@@ -9,7 +9,7 @@ version = "${version}"
 
 [[mods]]
 modId = "cclayer"
-version = "${version}"
+version = "${layer_version}"
 displayName = "Accessories Curios Compat Layer"
 authors = "Blodhgarm"
 credits = "Special thanks to C4 for the creation of Curios"
