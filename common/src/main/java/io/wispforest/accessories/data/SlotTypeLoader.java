@@ -78,7 +78,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
     protected void apply(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler) {
         var uniqueSlots = new HashMap<String, SlotBuilder>();
 
-        UniqueSlotHandling.EVENT.invoker().registerSlots((location, integer, slotPredicate, types) -> {
+        UniqueSlotHandling.gatherUniqueSlots((location, integer, slotPredicates) -> {
             var name = location.toString();
 
             var builder = new SlotBuilder(name);
@@ -87,13 +87,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
             uniqueSlots.put(name, builder);
 
-            if(slotPredicate != null) {
-                builder.validator(slotPredicate);
-            } else {
-                builder.validator(Accessories.of("tag"));
-            }
-
-            // TODO: Should be replace with throw?
+            slotPredicates.forEach(builder::validator);
 
             return new SlotTypeReference(name);
         });

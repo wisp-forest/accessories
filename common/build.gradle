@@ -27,9 +27,7 @@ dependencies {
     modCompileOnly(fabricApi.module("fabric-api-base", rootProject.fabric_api_version)){
         exclude group: "fabric-api"
     }
-
-    modCompileOnly("net.neoforged:bus:7.2.0")
-
+    
     modCompileOnly ("me.shedaniel:RoughlyEnoughItems-api:${rootProject.rei_version}")
     modCompileOnly ("me.shedaniel:RoughlyEnoughItems-default-plugin:${rootProject.rei_version}")
 

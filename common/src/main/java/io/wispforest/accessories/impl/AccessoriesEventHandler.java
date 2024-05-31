@@ -567,9 +567,11 @@ public class AccessoriesEventHandler {
 
         if (capability == null) return;
 
-        var shouldDrop = AccessoriesEvents.ON_DEATH_EVENT.invoker().shouldDrop(entity, capability, source);
+        var event = new AccessoriesEvents.OnDeathEvent(entity, capability, source);
 
-        if (!shouldDrop.orElse(true)) return;
+        AccessoriesEvents.ON_DEATH_EVENT.invoker().shouldDrop(event);
+
+        if (!event.getReturnOrDefault(true)) return;
 
         for (var containerEntry : capability.getContainers().entrySet()) {
             var slotType = containerEntry.getValue().slotType();
@@ -607,7 +609,11 @@ public class AccessoriesEventHandler {
                 var rule = rulePair.left();
                 var innerStack = rulePair.right();
 
-                rule = AccessoriesEvents.ON_DROP_EVENT.invoker().onDrop(rule, innerStack, reference);
+                var eventContext = new AccessoriesEvents.OnDropEvent(rule, innerStack, reference);
+
+                AccessoriesEvents.ON_DROP_EVENT.invoker().onDrop(eventContext);
+
+                rule = eventContext.getReturnOrDefault(rule);
 
                 var breakInnerStack = (rule == DropRule.DEFAULT && EnchantmentHelper.hasVanishingCurse(innerStack))
                         || (rule == DropRule.DESTROY);
@@ -621,7 +627,11 @@ public class AccessoriesEventHandler {
             }
         }
 
-        dropRule = AccessoriesEvents.ON_DROP_EVENT.invoker().onDrop(dropRule, stack, reference);
+        var eventContext = new AccessoriesEvents.OnDropEvent(dropRule, stack, reference);
+
+        AccessoriesEvents.ON_DROP_EVENT.invoker().onDrop(eventContext);
+
+        dropRule = eventContext.getReturnOrDefault(dropRule);
 
         boolean dropStack = true;
 

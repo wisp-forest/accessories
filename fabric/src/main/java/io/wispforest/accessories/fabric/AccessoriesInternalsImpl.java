@@ -31,7 +31,6 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.IEventBus;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
@@ -86,11 +85,7 @@ public class AccessoriesInternalsImpl {
         return ResourceConditions.objectMatchesConditions(object);
     }
 
-    public static Optional<IEventBus> getBus() {
-        return Optional.empty();
-    }
-
-    public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(ResourceLocation location, TriFunction<Integer, Inventory, FriendlyByteBuf, T> func) {
+    public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType( ResourceLocation location, TriFunction<Integer, Inventory, FriendlyByteBuf, T> func) {
         return Registry.register(BuiltInRegistries.MENU, location, new ExtendedScreenHandlerType<>(func::apply));
     }
 

@@ -118,6 +118,30 @@ public class AccessoriesSlotGenerator {
         return this;
     }
 
+    public AccessoriesSlotGenerator setX(int x) {
+        this.startX = x;
+
+        return this;
+    }
+
+    public AccessoriesSlotGenerator setY(int y) {
+        this.startY = y;
+
+        return this;
+    }
+
+    public AccessoriesSlotGenerator moveX(int x) {
+        this.startX += x;
+
+        return this;
+    }
+
+    public AccessoriesSlotGenerator moveY(int y) {
+        this.startY += y;
+
+        return this;
+    }
+
     /**
      * Layout the given slots based as a row from the given starting position
      */

@@ -249,9 +249,11 @@ public class AccessoriesAPI {
     public static boolean canEquip(ItemStack stack, SlotReference reference){
         var accessory = getOrDefaultAccessory(stack);
 
-        var state = AccessoriesEvents.CAN_EQUIP_EVENT.invoker().onEquip(stack, reference);
+        var eventContext = new AccessoriesEvents.CanEquipEvent(stack, reference);
 
-        if(state != TriState.DEFAULT) return state.get();
+        AccessoriesEvents.CAN_EQUIP_EVENT.invoker().onEquip(eventContext);
+
+        if(eventContext.getReturn() != null) return eventContext.getReturn();
 
         return accessory.canEquip(stack, reference);
     }
@@ -266,9 +268,11 @@ public class AccessoriesAPI {
     public static boolean canUnequip(ItemStack stack, SlotReference reference){
         var accessory = getOrDefaultAccessory(stack);
 
-        var state = AccessoriesEvents.CAN_UNEQUIP_EVENT.invoker().onUnequip(stack, reference);
+        var eventContext = new AccessoriesEvents.CanUnequipEvent(stack, reference);
 
-        if(state != TriState.DEFAULT) return state.get();
+        AccessoriesEvents.CAN_UNEQUIP_EVENT.invoker().onUnequip(eventContext);
+
+        if(eventContext.getReturn() != null) return eventContext.getReturn();
 
         return accessory.canUnequip(stack, reference);
     }

@@ -1,12 +1,12 @@
 package io.wispforest.accessories.api.slot;
 
 import com.google.common.collect.ImmutableMap;
-import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.impl.event.EventUtils;
+import io.wispforest.accessories.Accessories;
 import net.fabricmc.fabric.api.event.Event;
+import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
-import org.jetbrains.annotations.Nullable;
+import org.apache.commons.lang3.function.TriFunction;
 
 import java.util.*;
 
@@ -26,14 +26,11 @@ public class UniqueSlotHandling {
         return ImmutableMap.copyOf(slotToTypes);
     }
 
-    /**
-     * Main event used to register unique slots for your mod
-     */
-    public static final Event<RegistrationCallback> EVENT = EventUtils.createEventWithBus(RegistrationCallback.class, AccessoriesInternals::getBus, (bus, invokers) -> registrationFunc -> {
+    public static void gatherUniqueSlots(TriFunction<ResourceLocation, Integer, Collection<ResourceLocation>, SlotTypeReference> slotRegistration) {
         slotGrouped.clear();
 
-        UniqueSlotRegistration registration = (location, integer, slotPredicate, types) -> {
-            var slotType = registrationFunc.registerSlot(location, integer, slotPredicate);
+        UniqueSlotRegistration eventRegistration = (location, integer, slotPredicates, types) -> {
+            var slotType = slotRegistration.apply(location, integer, slotPredicates);
 
             slotGrouped.computeIfAbsent(location.getNamespace(), s -> new ArrayList<>())
                     .add(location.toString());
@@ -43,25 +40,17 @@ public class UniqueSlotHandling {
             return slotType;
         };
 
-        for (var invoker : invokers) {
-            invoker.registerSlots(registration);
-        }
-
-        bus.ifPresent(eventBus -> eventBus.post(new InitializeSlotTypesEvent(registration)));
-    });
-
-    public static final class InitializeSlotTypesEvent extends net.neoforged.bus.api.Event implements UniqueSlotRegistration {
-        private final UniqueSlotRegistration registration;
-
-        public InitializeSlotTypesEvent(UniqueSlotRegistration registration){
-            this.registration = registration;
-        }
-
-        @Override
-        public SlotTypeReference registerSlot(ResourceLocation location, int amount, @Nullable ResourceLocation slotPredicate, EntityType<?> ...types) {
-            return registration.registerSlot(location, amount, slotPredicate, types);
-        }
+        EVENT.invoker().registerSlots(eventRegistration);
     }
+
+    /**
+     * Main event used to register unique slots for your mod
+     */
+    public static final Event<RegistrationCallback> EVENT = EventFactory.createArrayBacked(RegistrationCallback.class, (invokers) -> registrationFunction -> {
+        for (var invoker : invokers) {
+            invoker.registerSlots(registrationFunction);
+        }
+    });
 
     public interface RegistrationCallback {
         void registerSlots(UniqueSlotRegistration registration);
@@ -69,9 +58,13 @@ public class UniqueSlotHandling {
 
     public interface UniqueSlotRegistration {
         default SlotTypeReference registerSlot(ResourceLocation location, int amount, EntityType<?> ...types) {
-            return registerSlot(location, amount, null, types);
+            return registerSlot(location, amount, Set.of(Accessories.of("tag")), types);
         }
 
-        SlotTypeReference registerSlot(ResourceLocation location, int amount, @Nullable ResourceLocation slotPredicate, EntityType<?> ...types);
+        default SlotTypeReference registerSlot(ResourceLocation location, int amount, ResourceLocation slotPredicate, EntityType<?> ...types) {
+            return registerSlot(location, amount, Set.of(slotPredicate), types);
+        }
+
+        SlotTypeReference registerSlot(ResourceLocation location, int amount, Collection<ResourceLocation> slotPredicates, EntityType<?> ...types);
     }
 }

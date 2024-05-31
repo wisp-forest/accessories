@@ -3,7 +3,7 @@ package io.wispforest.accessories.mixin;
 import com.google.common.collect.Iterables;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
@@ -44,7 +44,7 @@ public abstract class LivingEntityMixin implements AccessoriesAPIAccess {
 
     @Inject(method = "broadcastBreakEvent(Lnet/minecraft/world/entity/EquipmentSlot;)V", at = @At("HEAD"), cancellable = true)
     private void sendAccessoriesBreakInstead(EquipmentSlot slot, CallbackInfo ci){
-        if(slot.equals(Accessories.getInternalSlot())) ci.cancel();
+        if(slot.equals(AccessoriesInternals.INTERNAL_SLOT)) ci.cancel();
     }
 
     @WrapOperation(method = "getDamageAfterMagicAbsorb", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getArmorSlots()Ljava/lang/Iterable;"))

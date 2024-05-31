@@ -109,9 +109,11 @@ public class AccessoriesBasedSlot extends Slot {
         if(!this.entity.equals(player)/*this.entity != player*/) {
             var ref = this.accessoriesContainer.createReference(this.getContainerSlot());
 
-            var result = AccessoriesEvents.ENTITY_MODIFICATION_CHECK.invoker().checkModifiability(this.entity, player, ref);
+            var eventContext = new AccessoriesEvents.OnEntityModificationEvent(this.entity, player, ref);
 
-            if(!result.orElse(false)) return false;
+            AccessoriesEvents.ENTITY_MODIFICATION_CHECK.invoker().checkModifiability(eventContext);
+
+            if(!eventContext.getReturnOrDefault(false)) return false;
         }
 
         return AccessoriesAPI.canUnequip(this.getItem(), SlotReference.of(this.entity, this.accessoriesContainer.getSlotName(), this.getContainerSlot()));

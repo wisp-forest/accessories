@@ -1,7 +1,6 @@
 package io.wispforest.accessories.mixin;
 
-import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.utils.ArrayUtils;
+import io.wispforest.accessories.AccessoriesInternals;
 import net.minecraft.world.entity.EquipmentSlot;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Final;
@@ -28,7 +27,7 @@ public abstract class EquipmentSlotTypeMixin {
 
     @Inject(method = "<clinit>", at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/EquipmentSlot$Type;$VALUES:[Lnet/minecraft/world/entity/EquipmentSlot$Type;", shift = At.Shift.AFTER, opcode = Opcodes.PUTSTATIC))
     private static void addInternalAccessoriesEquipmentSlot(CallbackInfo ci) {
-        Accessories.ACCESSORIES_TYPE = EquipmentSlotTypeMixin.invokeNew("ACCESSORIES", -1);
+        AccessoriesInternals.ACCESSORIES_TYPE = EquipmentSlotTypeMixin.invokeNew("ACCESSORIES", -1);
 
 //        $VALUES = ArrayUtils.buildWith(EquipmentSlot.Type.class, $VALUES,
 //                index -> {

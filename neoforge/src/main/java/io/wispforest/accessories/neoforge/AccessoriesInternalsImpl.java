@@ -77,10 +77,6 @@ public class AccessoriesInternalsImpl {
         return ICondition.conditionsMatched(JsonOps.INSTANCE, object);
     }
 
-    public static Optional<IEventBus> getBus() {
-        return Optional.of(NeoForge.EVENT_BUS);
-    }
-
     public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(ResourceLocation location, TriFunction<Integer, Inventory, FriendlyByteBuf, T> func) {
         return Registry.register(BuiltInRegistries.MENU, location, IMenuTypeExtension.create(func::apply));
     }

@@ -39,8 +39,9 @@ public class AccessoriesFabric implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        Accessories.init();
+
         Accessories.registerMenuType();
-        Accessories.setupConfig();
         Accessories.registerCriteria();
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
