@@ -175,9 +175,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             int x = getStartingPanelX();
             int y = this.topPos;
 
-            var groups = this.getGroups(x, y);
-
-            for (var value : groups.values()) {
+            for (var value : this.getGroups(x, y).values()) {
                 if (!value.isInBounds((int) Math.round(mouseX), (int) Math.round(mouseY))) continue;
 
                 var index = value.startingIndex;
@@ -815,7 +813,11 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
             int xOffset = (selected) ? 0 : 2;
 
-            groupValues.put(group, new SlotGroupData(new Vector4i(tabX + xOffset, tabY + yOffset, width - xOffset, height), selected, groupToIndex.get(group)));
+            var index = groupToIndex.get(group);
+
+            if(index == null) continue;
+
+            groupValues.put(group, new SlotGroupData(new Vector4i(tabX + xOffset, tabY + yOffset, width - xOffset, height), selected, index));
 
             yOffset += height + 1;
         }
