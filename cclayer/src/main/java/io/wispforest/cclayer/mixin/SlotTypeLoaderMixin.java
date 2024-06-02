@@ -9,9 +9,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import top.theillusivec4.curios.Curios;
 import top.theillusivec4.curios.common.data.CuriosSlotManager;
 import top.theillusivec4.curios.compat.CuriosWrappingUtils;
 
@@ -20,6 +22,9 @@ import java.util.Map;
 
 @Mixin(SlotTypeLoader.class)
 public abstract class SlotTypeLoaderMixin {
+
+    @Unique
+    private final ResourceLocation EMPTY_TEXTURE = new ResourceLocation(Curios.MODID, "slot/empty_curio_slot");
 
     @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Ljava/util/HashMap;<init>()V", shift = At.Shift.AFTER, ordinal = 2), remap = false)
     private void injectCuriosSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "builders") HashMap<String, SlotTypeLoader.SlotBuilder> tempMap){
@@ -46,9 +51,9 @@ public abstract class SlotTypeLoaderMixin {
                     builder.addAmount(curiosBuilder.sizeMod);
                 }
 
-                if (curiosBuilder.icon != null) {
-                    builder.icon(curiosBuilder.icon);
-                }
+                var icon = curiosBuilder.icon;
+
+                if(icon != null && !icon.equals(EMPTY_TEXTURE)) builder.icon(icon);
 
                 if (curiosBuilder.order != null) {
                     builder.order(curiosBuilder.order);

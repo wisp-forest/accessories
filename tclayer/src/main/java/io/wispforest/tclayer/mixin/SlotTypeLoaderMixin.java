@@ -2,6 +2,7 @@ package io.wispforest.tclayer.mixin;
 
 import com.google.gson.JsonObject;
 import com.llamalad7.mixinextras.sugar.Local;
+import dev.emi.trinkets.api.TrinketConstants;
 import dev.emi.trinkets.api.TrinketEnums;
 import dev.emi.trinkets.compat.WrappingTrinketsUtils;
 import dev.emi.trinkets.data.SlotLoader;
@@ -11,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -20,6 +22,8 @@ import java.util.Map;
 
 @Mixin(SlotTypeLoader.class)
 public abstract class SlotTypeLoaderMixin {
+
+    @Unique private final ResourceLocation EMPTY_TEXTURE = new ResourceLocation(TrinketConstants.MOD_ID, "gui/slots/empty.png");
 
     @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Ljava/util/HashMap;<init>()V", shift = At.Shift.AFTER, ordinal = 2))
     private void injectTrinketSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "builders") HashMap<String, SlotTypeLoader.SlotBuilder> tempMap){
@@ -42,7 +46,9 @@ public abstract class SlotTypeLoaderMixin {
 
                     builder.order(slotData.order);
 
-                    builder.icon(new ResourceLocation(slotData.icon));
+                    var icon = new ResourceLocation(slotData.icon);
+
+                    if(!icon.equals(EMPTY_TEXTURE)) builder.icon(icon);
 
                     builder.dropRule(TrinketEnums.convert(TrinketEnums.DropRule.valueOf(slotData.dropRule)));
 
