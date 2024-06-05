@@ -19,7 +19,7 @@ import top.theillusivec4.curios.api.type.capability.ICurio;
 
 import java.util.UUID;
 
-public class WrappedICurioProvider implements Accessory, LootingAdjustment, FortuneAdjustment, AllowWalingOnSnow, EndermanMasked, PiglinNeutralInducer {
+public class WrappedICurioProvider implements Accessory, LootingAdjustment, FortuneAdjustment, AllowWalkingOnSnow, EndermanMasked, PiglinNeutralInducer {
 
     private final ICapabilityProvider<ItemStack, Void, ICurio> icurioProvider;
 
@@ -133,7 +133,7 @@ public class WrappedICurioProvider implements Accessory, LootingAdjustment, Fort
     }
 
     @Override
-    public TriState makesPiglinsNeutral(ItemStack stack, SlotReference reference) {
+    public TriState makePiglinsNeutral(ItemStack stack, SlotReference reference) {
         var context = CuriosWrappingUtils.create(reference);
 
         return this.iCurio(stack).makesPiglinsNeutral(context) ? TriState.TRUE : TriState.DEFAULT;

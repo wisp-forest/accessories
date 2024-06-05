@@ -1,6 +1,6 @@
 package io.wispforest.accessories.mixin;
 
-import io.wispforest.accessories.api.events.extra.ImplementedEvents;
+import io.wispforest.accessories.api.events.extra.ExtraEventHandler;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -16,7 +16,7 @@ public abstract class PowderSnowBlockMixin {
     @Inject(method = "canEntityWalkOnPowderSnow", at = @At("HEAD"))
     private static void adjustSnowWalkingAbility(Entity entity, CallbackInfoReturnable<Boolean> cir){
         if(entity instanceof LivingEntity livingEntity){
-            var state = ImplementedEvents.allowWalkingOnSnow(livingEntity);
+            var state = ExtraEventHandler.allowWalkingOnSnow(livingEntity);
 
             if(state != TriState.DEFAULT) cir.setReturnValue(state.orElse(false));
         }

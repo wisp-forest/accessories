@@ -2,7 +2,7 @@ package io.wispforest.accessories;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
-import io.wispforest.accessories.api.events.AccessoriesEvents;
+import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.criteria.AccessoryChangedCriterion;
@@ -11,6 +11,7 @@ import io.wispforest.accessories.mixin.CriteriaTriggersAccessor;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
+import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -60,11 +61,9 @@ public class Accessories {
 
     public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         if(targetEntity != null) {
-            var eventContext = new AccessoriesEvents.OnEntityModificationEvent(targetEntity, player, null);
+            var result = AllowEntityModificationCallback.EVENT.invoker().allowModifications(targetEntity, player, null);
 
-            AccessoriesEvents.ENTITY_MODIFICATION_CHECK.invoker().checkModifiability(eventContext);
-
-            if(!eventContext.getReturnOrDefault(false)) return;
+            if(!result.orElse(false)) return;
         }
 
         AccessoriesInternals.openAccessoriesMenu(player, targetEntity, carriedStack);
@@ -83,13 +82,13 @@ public class Accessories {
     public static void init() {
         CONFIG_HOLDER = AutoConfig.register(AccessoriesConfig.class, JanksonConfigSerializer::new);
 
-        AccessoriesEvents.ENTITY_MODIFICATION_CHECK.register((eventContext) -> {
-            var target = eventContext.getTargetEntity();
-
+        AllowEntityModificationCallback.EVENT.register((target, player, reference) -> {
             var type = target.getType();
 
-            if(type.is(AccessoriesTags.MODIFIABLE_ENTITY_BLACKLIST)) eventContext.setReturn(false);
-            if(target instanceof OwnableEntity || type.is(AccessoriesTags.MODIFIABLE_ENTITY_WHITELIST)) eventContext.setReturn(true);
+            if(type.is(AccessoriesTags.MODIFIABLE_ENTITY_BLACKLIST)) return TriState.FALSE;
+            if(target instanceof OwnableEntity || type.is(AccessoriesTags.MODIFIABLE_ENTITY_WHITELIST)) return TriState.TRUE;
+
+            return TriState.DEFAULT;
         });
     }
 

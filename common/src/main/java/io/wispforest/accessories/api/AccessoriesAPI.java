@@ -5,7 +5,9 @@ import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.events.AccessoriesEvents;
+import io.wispforest.accessories.api.events.AdjustAttributeModifierCallback;
+import io.wispforest.accessories.api.events.CanEquipCallback;
+import io.wispforest.accessories.api.events.CanUnequipCallback;
 import io.wispforest.accessories.api.slot.SlotAttribute;
 import io.wispforest.accessories.api.slot.SlotBasedPredicate;
 import io.wispforest.accessories.api.slot.SlotReference;
@@ -62,6 +64,11 @@ public class AccessoriesAPI {
         REGISTER.put(item, accessory);
     }
 
+    @Nullable
+    public static Accessory getAccessory(ItemStack stack){
+        return getAccessory(stack.getItem());
+    }
+
     /**
      * Attempt to get a {@link Accessory} bound to an {@link Item} or an Empty {@link Optional}
      */
@@ -70,17 +77,6 @@ public class AccessoriesAPI {
         return REGISTER.get(item);
     }
 
-    /**
-     * Attempt to get a {@link Accessory} bound to an {@link ItemStack}'s Item or an Empty {@link Optional}
-     */
-    @Nullable
-    public static Accessory getAccessory(ItemStack stack){
-        return getAccessory(stack.getItem());
-    }
-
-    /**
-     * Get any bound {@link Accessory} to the given {@link ItemStack}'s Item or return {@link #DEFAULT} Accessory
-     */
     public static Accessory getOrDefaultAccessory(ItemStack stack){
         return getOrDefaultAccessory(stack.getItem());
     }
@@ -122,7 +118,7 @@ public class AccessoriesAPI {
      * to the {@link ItemStack}'s item
      */
     public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot, UUID uuid){
-        Multimap<Attribute, AttributeModifier> multimap = HashMultimap.create();
+        Multimap<Attribute, AttributeModifier> attributeModifiers = HashMultimap.create();
 
         if(stack.getTag() != null && stack.getTag().contains("AccessoriesAttributeModifiers", Tag.TAG_LIST)){
             var attributes = stack.getTag().getList("AccessoriesAttributeModifiers", Tag.TAG_COMPOUND);
@@ -154,29 +150,37 @@ public class AccessoriesAPI {
 
                     if(entity != null && !SlotTypeLoader.getSlotTypes(entity.level()).containsKey(attributeSlotName)) continue;
 
-                    multimap.put(SlotAttribute.getSlotAttribute(attributeSlotName), attributeModifier);
+                    attributeModifiers.put(SlotAttribute.getSlotAttribute(attributeSlotName), attributeModifier);
                 } else {
                     var attribute = BuiltInRegistries.ATTRIBUTE.getOptional(attributeType);
 
                     if(attribute.isEmpty()) continue;
 
-                    multimap.put(attribute.get(), attributeModifier);
+                    attributeModifiers.put(attribute.get(), attributeModifier);
                 }
             }
         }
 
         if(entity != null) {
+            var reference = SlotReference.of(entity, slotName, slot);
+
             //TODO: Decide if such presents of modifiers prevents the accessory modifiers from existing
             var accessory = AccessoriesAPI.getAccessory(stack);
 
             if(accessory != null) {
-                var data = accessory.getModifiers(stack, SlotReference.of(entity, slotName, slot), uuid);
+                var data = accessory.getModifiers(stack, reference, uuid);
 
-                multimap.putAll(data);
+                attributeModifiers.putAll(data);
             }
+
+            var attributeCopy = HashMultimap.create(attributeModifiers);
+
+            AdjustAttributeModifierCallback.EVENT.invoker().adjustAttributes(stack, reference, uuid, attributeCopy);
+
+            attributeModifiers = attributeCopy;
         }
 
-        return multimap;
+        return attributeModifiers;
     }
 
     public static void addAttribute(ItemStack stack, String slotName, Attribute attribute, String name, UUID id, double amount, AttributeModifier.Operation operation) {
@@ -247,15 +251,11 @@ public class AccessoriesAPI {
      * @return if the stack can be equipped or not
      */
     public static boolean canEquip(ItemStack stack, SlotReference reference){
-        var accessory = getOrDefaultAccessory(stack);
+        var result = CanEquipCallback.EVENT.invoker().canEquip(stack, reference);
 
-        var eventContext = new AccessoriesEvents.CanEquipEvent(stack, reference);
+        if(!result.equals(TriState.DEFAULT)) return result.orElse(true);
 
-        AccessoriesEvents.CAN_EQUIP_EVENT.invoker().onEquip(eventContext);
-
-        if(eventContext.getReturn() != null) return eventContext.getReturn();
-
-        return accessory.canEquip(stack, reference);
+        return getOrDefaultAccessory(stack).canEquip(stack, reference);
     }
 
     /**
@@ -266,15 +266,11 @@ public class AccessoriesAPI {
      * @return if the stack can be unequipped or not
      */
     public static boolean canUnequip(ItemStack stack, SlotReference reference){
-        var accessory = getOrDefaultAccessory(stack);
+        var result = CanUnequipCallback.EVENT.invoker().canUnequip(stack, reference);
 
-        var eventContext = new AccessoriesEvents.CanUnequipEvent(stack, reference);
+        if(!result.equals(TriState.DEFAULT)) return result.orElse(true);
 
-        AccessoriesEvents.CAN_UNEQUIP_EVENT.invoker().onUnequip(eventContext);
-
-        if(eventContext.getReturn() != null) return eventContext.getReturn();
-
-        return accessory.canUnequip(stack, reference);
+        return getOrDefaultAccessory(stack).canUnequip(stack, reference);
     }
 
     /**

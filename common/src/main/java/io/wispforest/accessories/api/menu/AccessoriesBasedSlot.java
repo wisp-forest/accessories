@@ -5,7 +5,7 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.events.AccessoriesEvents;
+import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Base slot class implementation for Accessories with static methods that force checks if
@@ -109,11 +108,9 @@ public class AccessoriesBasedSlot extends Slot {
         if(!this.entity.equals(player)/*this.entity != player*/) {
             var ref = this.accessoriesContainer.createReference(this.getContainerSlot());
 
-            var eventContext = new AccessoriesEvents.OnEntityModificationEvent(this.entity, player, ref);
+            var result = AllowEntityModificationCallback.EVENT.invoker().allowModifications(this.entity, player, ref);
 
-            AccessoriesEvents.ENTITY_MODIFICATION_CHECK.invoker().checkModifiability(eventContext);
-
-            if(!eventContext.getReturnOrDefault(false)) return false;
+            if(!result.orElse(false)) return false;
         }
 
         return AccessoriesAPI.canUnequip(this.getItem(), SlotReference.of(this.entity, this.accessoriesContainer.getSlotName(), this.getContainerSlot()));

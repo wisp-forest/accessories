@@ -5,7 +5,7 @@ import com.google.common.collect.Multimap;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
-import io.wispforest.accessories.api.events.AccessoriesEvents;
+import io.wispforest.accessories.api.events.*;
 import io.wispforest.accessories.api.slot.SlotAttribute;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
@@ -16,6 +16,7 @@ import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncData;
+import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -276,6 +277,8 @@ public class AccessoriesEventHandler {
                             capability.addTransientSlotModifiers(slotModifiers);
                         }
 
+                        boolean equipmentChange = false;
+
                         /*
                          * TODO: Dose item check need to exist anymore?
                          */
@@ -292,7 +295,11 @@ public class AccessoriesEventHandler {
                                     ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, false);
                                 }
                             }
+
+                            equipmentChange = true;
                         }
+
+                        AccessoryChangeCallback.EVENT.invoker().onChange(lastStack, currentStack, slotReference, equipmentChange ? SlotStateChange.REPLACEMENT : SlotStateChange.MUTATION);
                     }
 
                     var currentCosmeticStack = cosmetics.getItem(i);
@@ -567,11 +574,9 @@ public class AccessoriesEventHandler {
 
         if (capability == null) return;
 
-        var event = new AccessoriesEvents.OnDeathEvent(entity, capability, source);
+        var result = OnDeathCallback.EVENT.invoker().shouldDrop(TriState.DEFAULT, entity, capability, source);
 
-        AccessoriesEvents.ON_DEATH_EVENT.invoker().shouldDrop(event);
-
-        if (!event.getReturnOrDefault(true)) return;
+        if (!result.orElse(true)) return;
 
         for (var containerEntry : capability.getContainers().entrySet()) {
             var slotType = containerEntry.getValue().slotType();
@@ -606,14 +611,9 @@ public class AccessoriesEventHandler {
             for (int i = 0; i < dropRules.size(); i++) {
                 var rulePair = dropRules.get(i);
 
-                var rule = rulePair.left();
                 var innerStack = rulePair.right();
 
-                var eventContext = new AccessoriesEvents.OnDropEvent(rule, innerStack, reference);
-
-                AccessoriesEvents.ON_DROP_EVENT.invoker().onDrop(eventContext);
-
-                rule = eventContext.getReturnOrDefault(rule);
+                var rule = OnDropCallback.EVENT.invoker().onDrop(rulePair.left(), innerStack, reference);
 
                 var breakInnerStack = (rule == DropRule.DEFAULT && EnchantmentHelper.hasVanishingCurse(innerStack))
                         || (rule == DropRule.DESTROY);
@@ -627,11 +627,7 @@ public class AccessoriesEventHandler {
             }
         }
 
-        var eventContext = new AccessoriesEvents.OnDropEvent(dropRule, stack, reference);
-
-        AccessoriesEvents.ON_DROP_EVENT.invoker().onDrop(eventContext);
-
-        dropRule = eventContext.getReturnOrDefault(dropRule);
+        dropRule = OnDropCallback.EVENT.invoker().onDrop(dropRule, stack, reference);
 
         boolean dropStack = true;
 

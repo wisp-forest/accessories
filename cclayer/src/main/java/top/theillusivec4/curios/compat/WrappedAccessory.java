@@ -108,7 +108,7 @@ public class WrappedAccessory implements ICurioItem {
     @Override
     public boolean makesPiglinsNeutral(SlotContext slotContext, ItemStack stack) {
         if(accessory instanceof PiglinNeutralInducer piglinNeutralInducer){
-            return piglinNeutralInducer.makesPiglinsNeutral(stack, CuriosWrappingUtils.fromContext(slotContext)).orElse(false);
+            return piglinNeutralInducer.makePiglinsNeutral(stack, CuriosWrappingUtils.fromContext(slotContext)).orElse(false);
         }
 
         return false;
@@ -116,7 +116,7 @@ public class WrappedAccessory implements ICurioItem {
 
     @Override
     public boolean canWalkOnPowderedSnow(SlotContext slotContext, ItemStack stack) {
-        if(accessory instanceof AllowWalingOnSnow allowWalingOnSnow){
+        if(accessory instanceof AllowWalkingOnSnow allowWalingOnSnow){
             return allowWalingOnSnow.allowWalkingOnSnow(stack, CuriosWrappingUtils.fromContext(slotContext)).orElse(false);
         }
 

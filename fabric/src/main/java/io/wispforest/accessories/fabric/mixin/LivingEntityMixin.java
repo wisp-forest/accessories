@@ -3,7 +3,7 @@ package io.wispforest.accessories.fabric.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import io.wispforest.accessories.api.events.extra.ImplementedEvents;
+import io.wispforest.accessories.api.events.extra.ExtraEventHandler;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -32,6 +32,6 @@ public abstract class LivingEntityMixin {
 
     @ModifyVariable(method = "dropAllDeathLoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/enchantment/EnchantmentHelper;getMobLooting(Lnet/minecraft/world/entity/LivingEntity;)I", shift = At.Shift.BY, by = 2))
     private int accessories$adjustLooting(int original, @Local(argsOnly = true) DamageSource source){
-        return ImplementedEvents.lootingAdjustments((LivingEntity)(Object) this, source, original);
+        return ExtraEventHandler.lootingAdjustments((LivingEntity)(Object) this, source, original);
     }
 }

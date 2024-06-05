@@ -63,7 +63,7 @@ public class AccessoryNestUtils {
         return value;
     }
 
-    public static void recursiveStackConsumption(ItemStack stack, SlotReference reference, BiConsumer<ItemStack, SlotReference> consumer) {
+    public static void recursiveStackConsumption(ItemStack stack, SlotReference reference,  BiConsumer<ItemStack, SlotReference> consumer) {
         var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
 
         consumer.accept(stack, reference);
