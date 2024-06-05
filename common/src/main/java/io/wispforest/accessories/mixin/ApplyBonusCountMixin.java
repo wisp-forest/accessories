@@ -2,6 +2,7 @@ package io.wispforest.accessories.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import io.wispforest.accessories.api.events.extra.ExtraEventHandler;
+import net.minecraft.core.Holder;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.storage.loot.LootContext;
