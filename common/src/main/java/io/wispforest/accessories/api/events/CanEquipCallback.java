@@ -22,7 +22,7 @@ public interface CanEquipCallback {
 
     Event<CanEquipCallback> EVENT = EventFactory.createArrayBacked(CanEquipCallback.class,
             (invokers) -> (stack, reference) -> {
-                return AccessoryNestUtils.recursiveStackHandling(stack, reference, (stack1, reference1) -> {
+                var result =  AccessoryNestUtils.recursiveStackHandling(stack, reference, (stack1, reference1) -> {
                     TriState finalResult = null;
 
                     for (var invoker : invokers) {
@@ -37,6 +37,8 @@ public interface CanEquipCallback {
 
                     return finalResult;
                 });
+
+                return result != null ? result : TriState.DEFAULT;
             }
     );
 

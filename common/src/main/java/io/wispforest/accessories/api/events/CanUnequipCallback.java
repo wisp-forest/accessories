@@ -16,7 +16,7 @@ public interface CanUnequipCallback {
 
     Event<CanUnequipCallback> EVENT = EventFactory.createArrayBacked(CanUnequipCallback.class,
             (invokers) -> (stack, reference) -> {
-                return AccessoryNestUtils.recursiveStackHandling(stack, reference, (stack1, reference1) -> {
+                var result = AccessoryNestUtils.recursiveStackHandling(stack, reference, (stack1, reference1) -> {
                     TriState finalResult = null;
 
                     for (var invoker : invokers) {
@@ -31,6 +31,8 @@ public interface CanUnequipCallback {
 
                     return finalResult;
                 });
+
+                return result != null ? result : TriState.DEFAULT;
             }
     );
 
