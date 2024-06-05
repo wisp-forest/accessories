@@ -48,6 +48,9 @@ dependencies {
     include modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-base:5.4.0")
     include modImplementation("dev.onyxstudios.cardinal-components-api:cardinal-components-entity:5.4.0")
 
+    modCompileOnly("maven.modrinth:sophisticated-backpacks-(unoffical-fabric-port):3.19.5+mc1.20.1-build.76")
+    modCompileOnly("maven.modrinth:sophisticated-core-(unofficial-fabric-port):0.5.109+mc1.20.1-build.76")
+
 //    modCompileOnly ("maven.modrinth:things:0.3.3+1.20.3") {
 //        exclude group: "dev.emi"
 //        exclude group: "com.terraformersmc"
