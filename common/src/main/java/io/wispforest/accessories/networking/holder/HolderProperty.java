@@ -18,6 +18,7 @@ public record HolderProperty<T>(String name, BiConsumer<FriendlyByteBuf, T> writ
     public static HolderProperty<Boolean> LINES_PROP;
     public static HolderProperty<Boolean> COSMETIC_PROP;
     public static HolderProperty<Boolean> UNUSED_PROP;
+    public static HolderProperty<Boolean> UNIQUE_PROP;
 
     static { init(); }
 
@@ -60,5 +61,6 @@ public record HolderProperty<T>(String name, BiConsumer<FriendlyByteBuf, T> writ
         LINES_PROP = new HolderProperty<>("lines", FriendlyByteBuf::writeBoolean, FriendlyByteBuf::readBoolean, AccessoriesHolder::linesShown, AccessoriesHolder::linesShown);
         COSMETIC_PROP = new HolderProperty<>("cosmetic", FriendlyByteBuf::writeBoolean, FriendlyByteBuf::readBoolean, AccessoriesHolder::cosmeticsShown, AccessoriesHolder::cosmeticsShown);
         UNUSED_PROP = new HolderProperty<>("unused_slots", FriendlyByteBuf::writeBoolean, FriendlyByteBuf::readBoolean, AccessoriesHolder::showUnusedSlots, AccessoriesHolder::showUnusedSlots);
+        UNIQUE_PROP = new HolderProperty<>("unique_slots", FriendlyByteBuf::writeBoolean, FriendlyByteBuf::readBoolean, AccessoriesHolder::showUniqueSlots, AccessoriesHolder::showUniqueSlots);
     }
 }

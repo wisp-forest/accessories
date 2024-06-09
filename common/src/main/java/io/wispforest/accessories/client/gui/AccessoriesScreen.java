@@ -8,6 +8,7 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -20,6 +21,7 @@ import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.MenuScroll;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
 import it.unimi.dsi.fastutil.Pair;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -463,6 +465,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     private Button linesToggleButton = null;
 
     private Button unusedSlotsToggleButton = null;
+    private Button uniqueSlotsToggleButton = null;
 
     private Button tabUpButton = null;
     private Button tabDownButton = null;
@@ -505,13 +508,15 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                         .bounds(this.leftPos - 27 + (cosmeticsOpen ? -20 : 0), this.topPos + 7, (cosmeticsOpen ? 38 : 18), 6)
                         .build());
 
+        var btnOffset = this.topPos + 7;
+
         this.unusedSlotsToggleButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), (btn) -> {
                             AccessoriesInternals.getNetworkHandler()
                                     .sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, this.getMenu().owner, bl -> !bl));
                         })
                         .tooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()))
-                        .bounds(this.leftPos + 154, this.topPos + 7, 12, 12)
+                        .bounds(this.leftPos + 154, btnOffset, 12, 12)
                         .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
                             guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
                             guiGraphics.blitSprite((this.menu.areUnusedSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
@@ -519,13 +524,39 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                             return true;
                         });
 
+        btnOffset += 15;
+
+        if(Accessories.getConfig().clientData.showUniqueRendering) {
+            var anyUniqueSlots = EntitySlotLoader.getEntitySlots(this.targetEntityDefaulted()).values()
+                    .stream()
+                    .anyMatch(slotType -> UniqueSlotHandling.isUniqueSlot(slotType.name()));
+
+            if(anyUniqueSlots) {
+                this.uniqueSlotsToggleButton = this.addRenderableWidget(
+                        Button.builder(Component.empty(), (btn) -> {
+                                    AccessoriesInternals.getNetworkHandler()
+                                            .sendToServer(SyncHolderChange.of(HolderProperty.UNIQUE_PROP, this.getMenu().owner, bl -> !bl));
+                                })
+                                .tooltip(uniqueSlotsToggleButton(this.menu.areUniqueSlotsShown()))
+                                .bounds(this.leftPos + 154, btnOffset, 12, 12)
+                                .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
+                                    guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
+                                    guiGraphics.blitSprite((this.menu.areUniqueSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
+
+                                    return true;
+                                });
+
+                btnOffset += 15;
+            }
+        }
+
         if(Accessories.getConfig().clientData.showLineRendering) {
             this.linesToggleButton = this.addRenderableWidget(
                     Button.builder(Component.empty(), (btn) -> {
                                 AccessoriesInternals.getNetworkHandler()
                                         .sendToServer(SyncHolderChange.of(HolderProperty.LINES_PROP, this.getMenu().owner, bl -> !bl));
                             })
-                            .bounds(this.leftPos + 154, this.topPos + 7 + 15, 12, 12)
+                            .bounds(this.leftPos + 154, btnOffset, 12, 12)
                             //.bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6)
                             .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
                                 guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
@@ -611,6 +642,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             case "lines" -> updateLinesButton();
             case "cosmetic" -> updateCosmeticToggleButton();
             case "unused_slots" -> updateUnusedSlotToggleButton();
+            case "unique_slots" -> updateUniqueSlotToggleButton();
         }
     }
 
@@ -630,7 +662,11 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     public void updateUnusedSlotToggleButton() {
         this.unusedSlotsToggleButton.setTooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()));
         this.menu.reopenMenu();
-        //AccessoriesClient.attemptToOpenScreen();
+    }
+
+    public void updateUniqueSlotToggleButton() {
+        this.uniqueSlotsToggleButton.setTooltip(uniqueSlotsToggleButton(this.menu.areUniqueSlotsShown()));
+        this.menu.reopenMenu();
     }
 
     public void updateAccessoryToggleButtons(){
@@ -656,25 +692,27 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     }
 
     private static Tooltip cosmeticsToggleTooltip(boolean value) {
-        var key = "slot.cosmetics.toggle." + (!value ? "show" : "hide");
-
-        return Tooltip.create(Component.translatable(Accessories.translation(key)));
+        return createToggleTooltip("slot.cosmetics", value);
     }
 
     private static Tooltip linesToggleTooltip(boolean value) {
-        var key = "lines.toggle." + (!value ? "show" : "hide");
-
-        return Tooltip.create(Component.translatable(Accessories.translation(key)));
+        return createToggleTooltip("lines", value);
     }
 
     private static Tooltip unusedSlotsToggleButton(boolean value) {
-        var key = "unused_slots.toggle." + (!value ? "show" : "hide");
+        return createToggleTooltip("unused_slots", value);
+    }
 
-        return Tooltip.create(Component.translatable(Accessories.translation(key)));
+    private static Tooltip uniqueSlotsToggleButton(boolean value) {
+        return createToggleTooltip("unique_slots", value);
     }
 
     private static Tooltip toggleTooltip(boolean value) {
-        var key = "display.toggle." + (!value ? "show" : "hide");
+        return createToggleTooltip("display", value);
+    }
+
+    private static Tooltip createToggleTooltip(String type, boolean value) {
+        var key = type + ".toggle." + (!value ? "show" : "hide");
 
         return Tooltip.create(Component.translatable(Accessories.translation(key)));
     }
@@ -708,8 +746,10 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 if (!entry.getValue().isInBounds(x, y)) continue;
 
                 var tooltipData = new ArrayList<Component>();
+                var group = entry.getKey();
 
-                tooltipData.add(Component.translatable(entry.getKey().translation()));
+                tooltipData.add(Component.translatable(group.translation()));
+                if(group.uniqueGroup()) tooltipData.add(Component.literal(group.name()).withStyle(ChatFormatting.BLUE, ChatFormatting.ITALIC));
 
                 guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
 
@@ -730,7 +770,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     }
 
     public static int tabPageCount() {
-        var groups = SlotGroupLoader.INSTANCE.getSharedGroups(true);
+        var groups = SlotGroupLoader.INSTANCE.getGroups(true, true);
 
         return (int) Math.ceil(groups.size() / 9f);
     }

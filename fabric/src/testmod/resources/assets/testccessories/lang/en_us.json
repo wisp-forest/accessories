@@ -6,5 +6,8 @@
   "advancement.testccessories.base.lefthanded_drip.title": "Left Handed Drip",
   "advancement.testccessories.base.lefthanded_drip.desc": "how ambidextrous of you",
   "advancement.testccessories.base.no_longer_lefthanded_drip.title": "No Longer Left Handed Drip",
-  "advancement.testccessories.base.no_longer_lefthanded_drip.desc": "very cringe"
+  "advancement.testccessories.base.no_longer_lefthanded_drip.desc": "very cringe",
+  "accessories.slot_group.testccessories": "Testccessories",
+  "accessories.slot.testccessories.test_slot_1": "Test Slot 1",
+  "accessories.slot.testccessories.test_slot_2": "Test Slot 2"
 }

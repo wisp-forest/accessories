@@ -20,6 +20,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
     protected final Set<AccessoriesContainer> containersRequiringUpdates = new HashSet<>();
 
     private boolean showUnusedSlots = false;
+    private boolean showUniqueSlots = false;
+
     private boolean cosmeticsShown = false;
 
     private int scrolledSlot = 0;
@@ -91,6 +93,18 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
         return this;
     }
 
+    @Override
+    public boolean showUniqueSlots() {
+        return this.showUniqueSlots;
+    }
+
+    @Override
+    public AccessoriesHolder showUniqueSlots(boolean value) {
+        this.showUniqueSlots = value;
+
+        return this;
+    }
+
     public void init(AccessoriesCapability capability) {
         var livingEntity = capability.entity();
 
@@ -118,9 +132,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
 
     @Override
     public void write(CompoundTag tag) {
-        if(slotContainers.size() == 0) {
-            return;
-        }
+        if(slotContainers.isEmpty()) return;
 
         tag.putBoolean(COSMETICS_SHOWN_KEY, cosmeticsShown);
 

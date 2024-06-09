@@ -12,7 +12,7 @@ import java.util.Set;
  */
 public interface SlotGroup {
 
-    ResourceLocation UNKNOWN = Accessories.of("gui/slot/unknown");
+    ResourceLocation UNKNOWN = Accessories.of("gui/group/unknown");
 
     /**
      * Name of Group
@@ -39,6 +39,6 @@ public interface SlotGroup {
     ResourceLocation icon();
 
     default boolean uniqueGroup() {
-        return UniqueSlotHandling.getGroups().containsKey(name());
+        return UniqueSlotHandling.getGroups().contains(name());
     }
 }

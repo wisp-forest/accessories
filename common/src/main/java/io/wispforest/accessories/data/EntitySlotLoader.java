@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -104,9 +103,9 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
             }, slotInfo -> {
                 var slotType = slotInfo.right();
 
-                if(slotType != null) {
+                if(!UniqueSlotHandling.isStrict(slotInfo.left()) && slotType != null) {
                     slots.put(slotType.name(), slotType);
-                } else {
+                } else if (slotType == null) {
                     LOGGER.warn("Unable to locate a given slot to add to a given entity('s) as such was not registered: [Slot: {}]", slotInfo.first());
                 }
             });
@@ -128,14 +127,14 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
                     return AccessoriesInternals.getHolder(entityTypeTag)
                             .map(holders -> holders.stream().map(Holder::value).collect(Collectors.toSet()))
                             .orElseGet(() -> {
-                                LOGGER.warn("[EntitySlotLoader]: Unable to locate the given EntityType Tag used within a slot entry: [Location: " + string + "]");
+                                LOGGER.warn("[EntitySlotLoader]: Unable to locate the given EntityType Tag used within a slot entry: [Location: {}]", string);
                                 return Set.of();
                             });
                 } else {
                     return Optional.ofNullable(ResourceLocation.tryParse(string))
                             .map(location1 -> BuiltInRegistries.ENTITY_TYPE.getOptional(location1).map(Set::of).orElse(Set.of()))
                             .orElseGet(() -> {
-                                LOGGER.warn("[EntitySlotLoader]: Unable to locate the given EntityType within the registries for a slot entrie: [Location: " + string + "]");
+                                LOGGER.warn("[EntitySlotLoader]: Unable to locate the given EntityType within the registries for a slot entrie: [Location: {}]", string);
 
                                 return Set.of();
                             });
@@ -148,8 +147,8 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
             }
         }
 
-        for (var entry : UniqueSlotHandling.getSlotToTypes().entrySet()) {
-            var slotType = entry.getKey().get(false);
+        for (var entry : UniqueSlotHandling.getSlotToEntities().entrySet()) {
+            var slotType = SlotTypeLoader.INSTANCE.getSlotTypes(false).get(entry.getKey());
 
             for (var entityType : entry.getValue()) {
                 tempMap.computeIfAbsent(entityType, entityType1 -> new HashMap<>())

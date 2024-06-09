@@ -94,6 +94,8 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
         var builders = new HashMap<String, SlotBuilder>();
 
+        builders.putAll(uniqueSlots);
+
         for (var resourceEntry : data.entrySet()) {
             var location = resourceEntry.getKey();
             var jsonObject = resourceEntry.getValue();
@@ -102,28 +104,16 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
             var pathParts = location.getPath().split("/");
 
-            String name = pathParts[pathParts.length - 1];
+            String slotName = pathParts[pathParts.length - 1];
+            String namespace = pathParts.length > 1 ? pathParts[0] + ":" : "";
 
-            @Nullable
-            String namespace = pathParts.length > 1 ? pathParts[0] : null;
-
-            var isShared = namespace == null;
-
-            if(!isShared && !uniqueSlots.containsKey(namespace + ":" + name)) {
-                LOGGER.error("A Unique slot was attempted to be adjust though datapack but was not found to register in the UniqueSlotHandling event, such will be ignored");
-
-                continue;
-            }
-
-            var slotBuilder = isShared
-                    ? builders.computeIfAbsent(name, SlotBuilder::new)
-                    : uniqueSlots.remove(location.getNamespace() + ":" + name);
+            var slotBuilder = builders.computeIfAbsent(namespace + slotName, SlotBuilder::new);
 
             slotBuilder.icon(safeHelper((object, s) -> ResourceLocation.tryParse(GsonHelper.getAsString(object, s)), jsonObject, "icon", location));
 
             slotBuilder.order(this.<Integer>safeHelper(GsonHelper::getAsInt, jsonObject, "order", location));
 
-            if(isShared) {
+            if(UniqueSlotHandling.allowResizing(slotBuilder.name)){
                 var amount = this.safeHelper(GsonHelper::getAsInt, jsonObject, "amount", location);
 
                 if(amount != null) {
@@ -142,10 +132,12 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
                             case SUB -> slotBuilder.subtractAmount(amount);
                         }
                     } else {
-                        LOGGER.error("Unable to understand the passed operation for the given slot type file! [Location: " + location + ", Operation: " + operation + "]");
+                        LOGGER.error("Unable to understand the passed operation for the given slot type file! [Location: {}, Operation: {}]", location, operation);
                     }
                 }
+            }
 
+            if(UniqueSlotHandling.isStrict(slotBuilder.name)) {
                 var validators = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "validators", new JsonArray(), location);
 
                 decodeJsonArray(validators, "validator", location, element -> ResourceLocation.tryParse(element.getAsString()), slotBuilder::validator);

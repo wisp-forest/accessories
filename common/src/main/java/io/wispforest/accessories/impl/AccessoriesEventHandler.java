@@ -9,6 +9,7 @@ import io.wispforest.accessories.api.events.*;
 import io.wispforest.accessories.api.slot.SlotAttribute;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -374,29 +375,34 @@ public class AccessoriesEventHandler {
 
         if (accessory == null) return;
 
+        if (AccessoriesCapability.get(entity) == null) return;
+
         // TODO: MAYBE DEPENDING ON ENTITY OR SOMETHING SHOW ALL VALID SLOTS BUT COLOR CODE THEM IF NOT VALID FOR ENTITY?
-        var slotTypes = new HashSet<>(AccessoriesAPI.getValidSlotTypes(entity, stack));
-        var allSlotTypes = SlotTypeLoader.getSlotTypes(entity.level()).values()
-                .stream()
-                .filter(slotType -> slotType.amount() > 0 && !slotType.uniqueSlot())
+        var validSlotTypes = new HashSet<>(AccessoriesAPI.getValidSlotTypes(entity, stack));
+
+        var validUniqueSlots = validSlotTypes.stream()
+                .filter(slotType -> UniqueSlotHandling.isUniqueSlot(slotType.name()))
                 .collect(Collectors.toSet());
 
-        if (slotTypes.isEmpty()) return;
+        if (validSlotTypes.isEmpty()) return;
 
-        var capability = AccessoriesCapability.get(entity);
+        validSlotTypes.removeAll(validUniqueSlots);
 
-        if (capability == null) return;
+        var sharedSlotTypes = SlotTypeLoader.getSlotTypes(entity.level()).values()
+                .stream()
+                .filter(slotType -> /*slotType.amount() > 0 &&*/ !UniqueSlotHandling.isUniqueSlot(slotType.name()))
+                .collect(Collectors.toSet());
 
         var slotInfoComponent = Component.literal("");
 
         var slotsComponent = Component.literal("");
         boolean allSlots = false;
 
-        if (slotTypes.containsAll(allSlotTypes)) {
+        if (validSlotTypes.containsAll(sharedSlotTypes)) {
             slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
             allSlots = true;
         } else {
-            var slotTypesList = List.copyOf(slotTypes);
+            var slotTypesList = List.copyOf(validSlotTypes);
 
             for (int i = 0; i < slotTypesList.size(); i++) {
                 var type = slotTypesList.get(i);
@@ -409,7 +415,23 @@ public class AccessoriesEventHandler {
             }
         }
 
-        var slotTranslationKey = "slot.tooltip." + ((slotTypes.size() > 1 && !allSlots) ? "plural" : "singular");
+        if(!validUniqueSlots.isEmpty()) {
+            var uniqueSlotTypes = List.copyOf(validUniqueSlots);
+
+            for (int i = 0; i < uniqueSlotTypes.size(); i++) {
+                var type = uniqueSlotTypes.get(i);
+
+                slotsComponent.append(Component.translatable(type.translation()));
+
+                if (i + 1 != uniqueSlotTypes.size()) {
+                    slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                }
+            }
+
+            validSlotTypes.addAll(validUniqueSlots);
+        }
+
+        var slotTranslationKey = "slot.tooltip." + ((validSlotTypes.size() > 1 && !allSlots) ? "plural" : "singular");
 
         slotInfoComponent.append(
                 Component.translatable(Accessories.translation(slotTranslationKey))
@@ -424,7 +446,7 @@ public class AccessoriesEventHandler {
 
         boolean allDuplicates = true;
 
-        for (SlotType slotType : slotTypes) {
+        for (SlotType slotType : validSlotTypes) {
             var reference = SlotReference.of(entity, slotType.name(), 0);
             var uuid = AccessoriesAPI.getOrCreateSlotUUID(slotType, 0);
 
@@ -470,7 +492,7 @@ public class AccessoriesEventHandler {
 
         boolean allDuplicatesExtras = true;
 
-        for (SlotType slotType : slotTypes) {
+        for (SlotType slotType : validSlotTypes) {
             var extraAttributeTooltip = new ArrayList<Component>();
             accessory.getAttributesTooltip(stack, slotType, extraAttributeTooltip);
 
@@ -635,16 +657,16 @@ public class AccessoriesEventHandler {
             container.setItem(reference.slot(), ItemStack.EMPTY);
             dropStack = false;
             // TODO: Do we call break here for the accessory?
+        } else if (dropRule == DropRule.KEEP) {
+            dropStack = false;
         } else if (dropRule == DropRule.DEFAULT) {
             if (entity.level().getGameRules().getRule(GameRules.RULE_KEEPINVENTORY).get()) {
-                dropStack = true;
+                dropStack = false;
             } else if (EnchantmentHelper.hasVanishingCurse(stack)) {
                 container.setItem(reference.slot(), ItemStack.EMPTY);
                 dropStack = false;
                 // TODO: Do we call break here for the accessory?
             }
-        } else if (dropRule == DropRule.KEEP) {
-            dropStack = false;
         }
 
         if (!dropStack) return;

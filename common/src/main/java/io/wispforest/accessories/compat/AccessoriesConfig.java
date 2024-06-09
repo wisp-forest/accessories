@@ -16,6 +16,8 @@ public class AccessoriesConfig implements ConfigData {
 
     public static class ClientData {
         public boolean showGroupTabs = true;
+
+        public boolean showUniqueRendering = false;
         public boolean showLineRendering = true;
 
         public int inventoryButtonXOffset = 66;

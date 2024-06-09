@@ -8,10 +8,7 @@ import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.events.AdjustAttributeModifierCallback;
 import io.wispforest.accessories.api.events.CanEquipCallback;
 import io.wispforest.accessories.api.events.CanUnequipCallback;
-import io.wispforest.accessories.api.slot.SlotAttribute;
-import io.wispforest.accessories.api.slot.SlotBasedPredicate;
-import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
@@ -402,7 +399,7 @@ public class AccessoriesAPI {
     public static final String ACCESSORY_INVALID_SLOTS_KEY = "InvalidSlotOverrides";
 
     public static TagKey<Item> getSlotTag(SlotType slotType) {
-        var location = slotType.uniqueSlot() ? new ResourceLocation(slotType.name()) : Accessories.of(slotType.name());
+        var location = UniqueSlotHandling.isUniqueSlot(slotType.name()) ? new ResourceLocation(slotType.name()) : Accessories.of(slotType.name());
 
         return TagKey.create(Registries.ITEM, location);
     }

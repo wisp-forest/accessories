@@ -35,4 +35,8 @@ public interface AccessoriesHolder {
 
     AccessoriesHolder showUnusedSlots(boolean value);
 
+    boolean showUniqueSlots();
+
+    AccessoriesHolder showUniqueSlots(boolean value);
+
 }

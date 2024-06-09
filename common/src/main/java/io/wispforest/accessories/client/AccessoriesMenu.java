@@ -10,12 +10,9 @@ import io.wispforest.accessories.client.gui.AccessoriesInternalSlot;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.mixin.SlotAccessor;
-import io.wispforest.accessories.networking.holder.HolderProperty;
-import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -78,7 +75,8 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         if(hasTargetEntity) buf.writeInt(targetEntity.getId());
     }
 
-    public static @Nullable LivingEntity readBufData(FriendlyByteBuf buf, Level level) {
+    @Nullable
+    public static LivingEntity readBufData(FriendlyByteBuf buf, Level level) {
         LivingEntity targetEntity = null;
 
         var hasTargetEntity = buf.readBoolean();
@@ -195,7 +193,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         var accessoriesSlots = new ArrayList<AccessoriesInternalSlot>();
         var cosmeticSlots = new ArrayList<AccessoriesInternalSlot>();
 
-        var groups = SlotGroupLoader.INSTANCE.getSharedGroups(inventory.player.level().isClientSide);
+        var groups = SlotGroupLoader.getGroups(inventory.player.level(), !this.areUniqueSlotsShown());
 
         for (var group : groups.stream().sorted(Comparator.comparingInt(SlotGroup::order).reversed()).toList()) {
             var slotNames = group.slots();
@@ -390,6 +388,10 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
     public boolean areUnusedSlotsShown() {
         return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::showUnusedSlots).orElse(false);
+    }
+
+    public boolean areUniqueSlotsShown() {
+        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::showUniqueSlots).orElse(false);
     }
 
     public void reopenMenu() {

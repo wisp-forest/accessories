@@ -39,15 +39,15 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
     @Override
     public Map<String, Map<String, TrinketInventory>> getInventory() {
         //TODO: HANDLE SUCH TRINKET SPECIFIC NAMES AND GROUPS
-        var groups = SlotGroupLoader.INSTANCE.getAllGroups(capability.entity().level().isClientSide());
+        var groups = SlotGroupLoader.getGroups(capability.entity().level(), false);
         var containers = capability.getContainers();
 
         var inventories = new HashMap<String, Map<String, TrinketInventory>>();
 
-        for (var entry : groups.entrySet()) {
+        for (var group : groups) {
             var map = new HashMap<String, TrinketInventory>();
 
-            entry.getValue().slots().forEach(s -> {
+            group.slots().forEach(s -> {
                 var container = containers.get(s);
 
                 if(container == null) return;
@@ -57,7 +57,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
                 map.put(WrappingTrinketsUtils.accessoriesToTrinkets_Slot(s), wrappedInv);
             });
 
-            inventories.put(WrappingTrinketsUtils.accessoriesToTrinkets_Group(entry.getKey()), map);
+            inventories.put(WrappingTrinketsUtils.accessoriesToTrinkets_Group(group.name()), map);
         }
 
         return inventories;

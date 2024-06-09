@@ -20,7 +20,7 @@ public interface SlotType {
     String name();
 
     default String translation(){
-        return Accessories.translation("slot." + name());
+        return Accessories.translation("slot." + name().replace(":", "."));
     }
 
     /**
@@ -47,8 +47,4 @@ public interface SlotType {
      * Drop Rule used to result in item drops on Death
      */
     DropRule dropRule();
-
-    default boolean uniqueSlot() {
-        return this.name().contains(":");
-    }
 }

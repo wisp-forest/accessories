@@ -8,16 +8,15 @@ import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.impl.SlotGroupImpl;
-import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
@@ -35,8 +34,12 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
     //--
 
-    public static Map<String, SlotGroup> getAllGroups(Level level){
-        return INSTANCE.getAllGroups(level.isClientSide());
+    public static List<SlotGroup> getGroups(Level level){
+        return INSTANCE.getGroups(level.isClientSide(), true);
+    }
+
+    public static List<SlotGroup> getGroups(Level level, boolean filterUniqueGroups){
+        return INSTANCE.getGroups(level.isClientSide(), filterUniqueGroups);
     }
 
     public static Optional<SlotGroup> getGroup(Level level, String group){
@@ -45,20 +48,25 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
     //--
 
-    public final Map<String, SlotGroup> getAllGroups(boolean isClientSide){
-        return isClientSide ? this.client : this.server;
+    @ApiStatus.Internal
+    public final Map<String, SlotGroup> getGroupMap(boolean isClientSide) {
+        return (isClientSide ? this.client : this.server);
     }
 
-    public final List<SlotGroup> getSharedGroups(boolean isClientSide){
-        return getAllGroups(isClientSide).values().stream().filter(group -> !group.uniqueGroup()).toList();
+    public final List<SlotGroup> getGroups(boolean isClientSide, boolean filterUniqueGroups){
+        var groups = getGroupMap(isClientSide).values();
+
+        if(filterUniqueGroups) groups = groups.stream().filter(group -> !group.uniqueGroup()).toList();
+
+        return List.copyOf(groups);
     }
 
     public final SlotGroup getGroup(boolean isClientSide, String group){
-        return getAllGroups(isClientSide).get(group);
+        return getGroupMap(isClientSide).get(group);
     }
 
     public final Optional<SlotGroup> findGroup(boolean isClientSide, String slot){
-        for (var entry : getAllGroups(isClientSide).values()) {
+        for (var entry : getGroups(isClientSide, false)) {
             if(entry.slots().contains(slot)) return Optional.of(entry);
         }
 
@@ -66,7 +74,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
     }
 
     public final SlotGroup getOrDefaultGroup(boolean isClientSide, String slot){
-        var groups = getAllGroups(isClientSide);
+        var groups = getGroupMap(isClientSide);
 
         for (var entry : groups.values()) {
             if(entry.slots().contains(slot)) return entry;
@@ -103,28 +111,26 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
             var group = new SlotGroupBuilder(name);
 
-            if(isShared) {
-                var slotElements = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "slots", new JsonArray(), location);
+            var slotElements = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "slots", new JsonArray(), location);
 
-                decodeJsonArray(slotElements, "slot", location, JsonElement::getAsString, s -> {
-                    for (var builderEntry : slotGroups.entrySet()) {
-                        if (builderEntry.getValue().slots.contains(s)) {
-                            LOGGER.error("Unable to assign a give slot [" + s + "] to the group [" + group + "] as it already exists within the group [" + builderEntry.getKey() + "]");
-                            return;
-                        }
+            decodeJsonArray(slotElements, "slot", location, JsonElement::getAsString, s -> {
+                for (var builderEntry : slotGroups.entrySet()) {
+                    if (builderEntry.getValue().slots.contains(s)) {
+                        LOGGER.error("Unable to assign a give slot [" + s + "] to the group [" + group + "] as it already exists within the group [" + builderEntry.getKey() + "]");
+                        return;
                     }
+                }
 
-                    var slotType = allSlots.remove(s);
+                var slotType = allSlots.remove(s);
 
-                    if (slotType == null) {
-                        LOGGER.warn("SlotType added to a given group without being in the main map for slots!");
-                    }
+                if (slotType == null) {
+                    LOGGER.warn("SlotType added to a given group without being in the main map for slots!");
+                }
 
-                    group.addSlot(s);
-                });
+                group.addSlot(s);
+            });
 
-                group.order(safeHelper(GsonHelper::getAsInt, jsonObject, "order", 100, location));
-            }
+            if(isShared) group.order(safeHelper(GsonHelper::getAsInt, jsonObject, "order", 100, location));
 
             var icon = safeHelper(GsonHelper::getAsString, jsonObject, "icon", location);
 
@@ -141,15 +147,27 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
             slotGroups.put(group.name, group);
         }
 
-        slotGroups.get("unsorted").addSlots(allSlots.keySet().stream().filter(s -> !s.contains(":")).toList());
+        var remainSlots = new HashSet<String>();
 
-        UniqueSlotHandling.getGroups().forEach((group, slots) -> {
-            slotGroups.put(group,
-                    slotGroups.computeIfAbsent(group, SlotGroupBuilder::new)
-                            .order(5)
-                            .addSlots(slots)
-            );
-        });
+        for (var value : allSlots.values()) {
+            var slotName = value.name();
+
+            if(!UniqueSlotHandling.isUniqueSlot(slotName)) {
+                remainSlots.add(slotName);
+
+                continue;
+            }
+
+            var group = slotName.split(":")[0];
+
+            slotGroups.computeIfAbsent(group, SlotGroupBuilder::new)
+                    .order(5)
+                    .addSlot(slotName);
+
+            UniqueSlotHandling.addGroup(group);
+        }
+
+        slotGroups.get("unsorted").addSlots(remainSlots);
 
         var tempMap = ImmutableMap.<String, SlotGroup>builder();
 

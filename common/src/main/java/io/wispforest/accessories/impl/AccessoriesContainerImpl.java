@@ -9,6 +9,7 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.SlotAttribute;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.Util;
 import net.minecraft.nbt.*;
@@ -93,18 +94,24 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         int baseSize = this.baseSize;
 
-        for(AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADDITION)){
-            baseSize += modifier.getAmount();
-        }
+        int size;
 
-        var size = baseSize;
+        if(UniqueSlotHandling.allowResizing(this.slotName)) {
+            for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADDITION)) {
+                baseSize += modifier.getAmount();
+            }
 
-        for(AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.MULTIPLY_BASE)){
-            size += this.baseSize * modifier.getAmount();
-        }
+            size = baseSize;
 
-        for(AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.MULTIPLY_TOTAL)){
-            size *= modifier.getAmount();
+            for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.MULTIPLY_BASE)) {
+                size += this.baseSize * modifier.getAmount();
+            }
+
+            for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.MULTIPLY_TOTAL)) {
+                size *= modifier.getAmount();
+            }
+        } else {
+            size = baseSize;
         }
 
         //--

@@ -7,28 +7,17 @@ import io.wispforest.accessories.AccessoriesInternalsClient;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.networking.holder.HolderProperty;
+import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
-import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.gui.registry.api.GuiProvider;
-import me.shedaniel.autoconfig.gui.registry.api.GuiRegistryAccess;
-import me.shedaniel.autoconfig.util.Utils;
-import me.shedaniel.clothconfig2.api.AbstractConfigListEntry;
-import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.phys.EntityHitResult;
-
-import java.lang.reflect.Field;
-import java.time.Instant;
-import java.time.temporal.TemporalField;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 public class AccessoriesClient {
     public static final Event<WindowResizeCallback> WINDOW_RESIZE_CALLBACK_EVENT = EventFactory.createArrayBacked(WindowResizeCallback.class, callbacks -> (client, window) -> {
@@ -39,6 +28,28 @@ public class AccessoriesClient {
 
     public static void init(){
         AccessoriesInternalsClient.registerToMenuTypes();
+
+        Accessories.CONFIG_HOLDER.registerSaveListener((manager, data) -> {
+            handleConfigLoad(data);
+
+            return InteractionResult.SUCCESS;
+        });
+
+        Accessories.CONFIG_HOLDER.registerLoadListener((manager, data) -> {
+            handleConfigLoad(data);
+
+            return InteractionResult.SUCCESS;
+        });
+    }
+
+    private static void handleConfigLoad(AccessoriesConfig config) {
+        var currentPlayer = Minecraft.getInstance().player;
+
+        if(currentPlayer != null && Minecraft.getInstance().level != null) {
+            if(currentPlayer.accessoriesHolder().showUniqueSlots() && !config.clientData.showUniqueRendering) {
+                AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.UNIQUE_PROP, false));
+            }
+        }
     }
 
     public interface WindowResizeCallback {

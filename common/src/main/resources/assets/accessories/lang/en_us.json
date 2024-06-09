@@ -35,6 +35,8 @@
   "accessories.lines.toggle.hide": "Hide All Lines",
   "accessories.unused_slots.toggle.show": "Show Unused Slots",
   "accessories.unused_slots.toggle.hide": "Hide Unused Slots",
+  "accessories.unique_slots.toggle.show": "Show Unique Slots",
+  "accessories.unique_slots.toggle.hide": "Hide Unique Slots",
   "accessories.back.screen": "To Previous Screen",
   "accessories.open.screen": "Open Accessories",
   "text.autoconfig.accessories.title": "Accessories Config",

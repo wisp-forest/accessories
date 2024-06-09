@@ -2,10 +2,7 @@ package io.wispforest.accessories.api.slot;
 
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Supplier;
 
 /**
  * Helper Class used to hold a reference for a SlotType to use later if needed

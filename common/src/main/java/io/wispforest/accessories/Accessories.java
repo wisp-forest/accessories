@@ -72,7 +72,7 @@ public class Accessories {
     //--
 
     @Nullable
-    private static ConfigHolder<AccessoriesConfig> CONFIG_HOLDER = null;
+    public static ConfigHolder<AccessoriesConfig> CONFIG_HOLDER = null;
 
     public static MenuType<AccessoriesMenu> ACCESSORIES_MENU_TYPE;
 
