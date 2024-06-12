@@ -150,7 +150,11 @@ public interface AccessoriesCapability {
     /**
      * @return A list of all {@link ItemStack}'s formatted within {@link SlotEntryReference}
      */
-    List<SlotEntryReference> getAllEquipped();
+    default List<SlotEntryReference> getAllEquipped() {
+        return getAllEquipped(true);
+    }
+
+    List<SlotEntryReference> getAllEquipped(boolean recursiveStackLookup);
 
     //--
 

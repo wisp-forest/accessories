@@ -53,6 +53,6 @@ public class SyncCosmeticToggle extends AccessoriesPacket {
 
         renderOptions.set(this.slotIndex, !container.shouldRender(this.slotIndex));
 
-        container.markChanged();
+        container.markChanged(false);
     }
 }

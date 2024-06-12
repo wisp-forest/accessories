@@ -1,6 +1,7 @@
 package io.wispforest.accessories.impl;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
@@ -330,8 +331,10 @@ public class AccessoriesEventHandler {
 
             capability.updateContainers();
 
+            ContainersChangeCallback.EVENT.invoker().onChange(entity, capability, ImmutableMap.copyOf(updatedContainers));
+
             if (!dirtyStacks.isEmpty() || !dirtyCosmeticStacks.isEmpty() || !updatedContainers.isEmpty()) {
-                var packet = new SyncContainerData(entity.getId(), updatedContainers, dirtyStacks, dirtyCosmeticStacks);
+                var packet = new SyncContainerData(entity.getId(), updatedContainers.keySet(), dirtyStacks, dirtyCosmeticStacks);
 
                 var bufData = AccessoriesNetworkHandler.createBuf();
 

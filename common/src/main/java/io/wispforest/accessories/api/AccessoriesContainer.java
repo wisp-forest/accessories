@@ -68,7 +68,11 @@ public interface AccessoriesContainer {
     /**
      * Used to mark the container dirty for any call made to {@link #update}
      */
-    void markChanged();
+    void markChanged(boolean resizingUpdate);
+
+    default void markChanged() {
+        markChanged(true);
+    }
 
     /**
      * @return if the given container has had a change occurred

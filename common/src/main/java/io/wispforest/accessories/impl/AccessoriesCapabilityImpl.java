@@ -86,7 +86,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
                 currentContainer.getAccessories().setFromPrev(oldContainer.getAccessories());
 
-                currentContainer.markChanged();
+                currentContainer.markChanged(false);
             });
         } else {
             holder.init(this);
@@ -223,7 +223,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
         });
     }
 
-    public Set<AccessoriesContainer> getUpdatingInventories() {
+    public Map<AccessoriesContainer, Boolean> getUpdatingInventories() {
         return this.holder().containersRequiringUpdates;
     }
 
@@ -339,7 +339,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     }
 
     @Override
-    public List<SlotEntryReference> getAllEquipped() {
+    public List<SlotEntryReference> getAllEquipped(boolean recursiveStackLookup) {
         var references = new ArrayList<SlotEntryReference>();
 
         for (var container : this.getContainers().values()) {
@@ -350,7 +350,11 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
                 var reference = container.createReference(stackEntry.getFirst());
 
-                AccessoryNestUtils.recursiveStackConsumption(stack, reference, (innerStack, ref) -> references.add(new SlotEntryReference(ref, innerStack)));
+                if(recursiveStackLookup) {
+                    AccessoryNestUtils.recursiveStackConsumption(stack, reference, (innerStack, ref) -> references.add(new SlotEntryReference(ref, innerStack)));
+                } else {
+                    references.add(new SlotEntryReference(reference, stack));
+                }
             }
         }
 

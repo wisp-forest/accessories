@@ -17,7 +17,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
     private final Map<String, AccessoriesContainer> slotContainers = new LinkedHashMap<>();
 
     public final List<ItemStack> invalidStacks = new ArrayList<>();
-    protected final Set<AccessoriesContainer> containersRequiringUpdates = new HashSet<>();
+    protected final Map<AccessoriesContainer, Boolean> containersRequiringUpdates = new HashMap<>();
 
     private boolean showUnusedSlots = false;
     private boolean showUniqueSlots = false;

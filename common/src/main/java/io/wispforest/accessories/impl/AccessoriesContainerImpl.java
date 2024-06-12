@@ -43,6 +43,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
     private ExpandedSimpleContainer cosmeticAccessories;
 
     private boolean update = false;
+    private boolean resizingUpdate = false;
 
     public AccessoriesContainerImpl(AccessoriesCapability capability, SlotType slotType){
         this.capability = capability;
@@ -63,15 +64,16 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
     }
 
     @Override
-    public void markChanged(){
+    public void markChanged(boolean resizingUpdate){
         this.update = true;
+        this.resizingUpdate = resizingUpdate;
 
         if(this.capability.entity().level().isClientSide) return;
 
         var inv = ((AccessoriesCapabilityImpl) this.capability).getUpdatingInventories();
 
         inv.remove(this);
-        inv.add(this);
+        inv.put(this, resizingUpdate);
     }
 
     @Override
@@ -80,6 +82,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
     }
 
     public void update(){
+        var hasChangeOccurred = !this.resizingUpdate;
+
         if(!update) return;
 
         this.update = false;
@@ -88,8 +92,10 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         var slotType = this.slotType();
 
-        if (slotType != null) {
+        if (slotType != null && this.baseSize != slotType.amount()) {
             this.baseSize = slotType.amount();
+
+            hasChangeOccurred = true;
         }
 
         int baseSize = this.baseSize;
@@ -116,81 +122,89 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         //--
 
-        if(size == this.accessories.getContainerSize()) return;
+        if(size != this.accessories.getContainerSize()) {
+            hasChangeOccurred = true;
 
-        var invalidAccessories = new ArrayList<Pair<Integer, ItemStack>>();
+            var invalidAccessories = new ArrayList<Pair<Integer, ItemStack>>();
 
-        var invalidStacks = new ArrayList<ItemStack>();
+            var invalidStacks = new ArrayList<ItemStack>();
 
-        var newAccessories = new ExpandedSimpleContainer(size, "Accessories");
-        var newCosmetics = new ExpandedSimpleContainer(size, "Cosmetic Accessories");
+            var newAccessories = new ExpandedSimpleContainer(size, "Accessories");
+            var newCosmetics = new ExpandedSimpleContainer(size, "Cosmetic Accessories");
 
-        for (int i = 0; i < this.accessories.getContainerSize(); i++) {
-            if(i < newAccessories.getContainerSize()){
-                newAccessories.setItem(i, this.accessories.getItem(i));
-                newCosmetics.setItem(i, this.cosmeticAccessories.getItem(i));
-            } else {
-                invalidAccessories.add(Pair.of(i, this.accessories.getItem(i)));
-                invalidStacks.add(this.cosmeticAccessories.getItem(i));
+            for (int i = 0; i < this.accessories.getContainerSize(); i++) {
+                if (i < newAccessories.getContainerSize()) {
+                    newAccessories.setItem(i, this.accessories.getItem(i));
+                    newCosmetics.setItem(i, this.cosmeticAccessories.getItem(i));
+                } else {
+                    invalidAccessories.add(Pair.of(i, this.accessories.getItem(i)));
+                    invalidStacks.add(this.cosmeticAccessories.getItem(i));
+                }
             }
+
+            newAccessories.copyPrev(this.accessories);
+            newCosmetics.copyPrev(this.cosmeticAccessories);
+
+            this.accessories = newAccessories;
+            this.cosmeticAccessories = newCosmetics;
+
+            var newRenderOptions = new ArrayList<Boolean>(size);
+
+            for (int i = 0; i < size; i++) {
+                newRenderOptions.add(i < this.renderOptions.size() ? this.renderOptions.get(i) : true);
+            }
+
+            this.renderOptions = newRenderOptions;
+
+            var livingEntity = this.capability.entity();
+
+            //TODO: Confirm if such is needed
+            for (var invalidAccessory : invalidAccessories) {
+                var index = invalidAccessory.getFirst();
+
+                UUID uuid = UUID.nameUUIDFromBytes((slotName + invalidAccessory.getFirst()).getBytes());
+
+                var invalidStack = invalidAccessory.getSecond();
+
+                if (invalidStack.isEmpty()) continue;
+
+                var slotReference = SlotReference.of(livingEntity, this.slotName, index);
+
+                var attributes = AccessoriesAPI.getAttributeModifiers(invalidStack, slotReference, uuid);
+
+                Multimap<String, AttributeModifier> slots = HashMultimap.create();
+
+                Set<Attribute> toBeRemoved = new HashSet<>();
+
+                attributes.asMap().forEach((attribute, modifier) -> {
+                    if (!(attribute instanceof SlotAttribute slotAttribute)) return;
+
+                    slots.putAll(slotAttribute.slotName(), modifier);
+                    toBeRemoved.add(slotAttribute);
+                });
+
+                for (Attribute attribute : toBeRemoved) attributes.removeAll(attribute);
+
+                livingEntity.getAttributes().removeAttributeModifiers(attributes);
+                this.capability.removeSlotModifiers(slots);
+
+                var accessory = AccessoriesAPI.getAccessory(invalidStack);
+
+                if (accessory != null) accessory.onUnequip(invalidStack, slotReference);
+
+                invalidStacks.add(invalidStack);
+            }
+
+            ((AccessoriesHolderImpl) this.capability.getHolder()).invalidStacks.addAll(invalidStacks);
+
+            if (this.update) this.capability.updateContainers();
         }
 
-        newAccessories.copyPrev(this.accessories);
-        newCosmetics.copyPrev(this.cosmeticAccessories);
+        if(!hasChangeOccurred) {
+            var inv = ((AccessoriesCapabilityImpl) this.capability).getUpdatingInventories();
 
-        this.accessories = newAccessories;
-        this.cosmeticAccessories = newCosmetics;
-
-        var newRenderOptions = new ArrayList<Boolean>(size);
-
-        for (int i = 0; i < size; i++) {
-            newRenderOptions.add(i < this.renderOptions.size() ? this.renderOptions.get(i) : true);
+            inv.remove(this);
         }
-
-        this.renderOptions = newRenderOptions;
-
-        var livingEntity = this.capability.entity();
-
-        //TODO: Confirm if such is needed
-        for (var invalidAccessory : invalidAccessories) {
-            var index = invalidAccessory.getFirst();
-
-            UUID uuid = UUID.nameUUIDFromBytes((slotName + invalidAccessory.getFirst()).getBytes());
-
-            var invalidStack = invalidAccessory.getSecond();
-
-            if(invalidStack.isEmpty()) continue;
-
-            var slotReference = SlotReference.of(livingEntity, this.slotName, index);
-
-            var attributes = AccessoriesAPI.getAttributeModifiers(invalidStack, slotReference, uuid);
-
-            Multimap<String, AttributeModifier> slots = HashMultimap.create();
-
-            Set<Attribute> toBeRemoved = new HashSet<>();
-
-            attributes.asMap().forEach((attribute, modifier) -> {
-                if(!(attribute instanceof SlotAttribute slotAttribute)) return;
-
-                slots.putAll(slotAttribute.slotName(), modifier);
-                toBeRemoved.add(slotAttribute);
-            });
-
-            for (Attribute attribute : toBeRemoved) attributes.removeAll(attribute);
-
-            livingEntity.getAttributes().removeAttributeModifiers(attributes);
-            this.capability.removeSlotModifiers(slots);
-
-            var accessory = AccessoriesAPI.getAccessory(invalidStack);
-
-            if(accessory != null) accessory.onUnequip(invalidStack, slotReference);
-
-            invalidStacks.add(invalidStack);
-        }
-
-        ((AccessoriesHolderImpl) this.capability.getHolder()).invalidStacks.addAll(invalidStacks);
-
-        if(this.update) this.capability.updateContainers();
     }
 
     @Override

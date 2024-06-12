@@ -63,7 +63,7 @@ public class WrappedTrinketInventory extends TrinketInventory {
 
     @Override
     public void markUpdate() {
-        container.markChanged();
+        container.markChanged(false);
     }
 
     //--
