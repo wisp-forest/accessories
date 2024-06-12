@@ -61,6 +61,8 @@ public class CuriosWrappingUtils {
     }
 
     public static TriState convert(Event.Result result){
+        if(result == null) return TriState.DEFAULT;
+
         return switch (result){
             case DENY -> TriState.FALSE;
             case ALLOW -> TriState.TRUE;
