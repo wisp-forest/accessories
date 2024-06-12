@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
 
 public interface TrinketDropCallback {
     Event<TrinketDropCallback> EVENT = new WrappedEvent<>(OnDropCallback.EVENT, callback -> {
-        return (dropRule, stack, reference) -> {
+        return (dropRule, stack, reference, damageSource) -> {
             var slotReference = WrappingTrinketsUtils.createReference(reference);
 
             if(slotReference.isEmpty()) return DropRule.DEFAULT;

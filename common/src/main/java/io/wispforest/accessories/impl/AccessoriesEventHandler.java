@@ -635,7 +635,7 @@ public class AccessoriesEventHandler {
 
                 var innerStack = rulePair.right();
 
-                var rule = OnDropCallback.EVENT.invoker().onDrop(rulePair.left(), innerStack, reference);
+                var rule = OnDropCallback.EVENT.invoker().onDrop(rulePair.left(), innerStack, reference, source);
 
                 var breakInnerStack = (rule == DropRule.DEFAULT && EnchantmentHelper.hasVanishingCurse(innerStack))
                         || (rule == DropRule.DESTROY);
@@ -649,7 +649,7 @@ public class AccessoriesEventHandler {
             }
         }
 
-        dropRule = OnDropCallback.EVENT.invoker().onDrop(dropRule, stack, reference);
+        dropRule = OnDropCallback.EVENT.invoker().onDrop(dropRule, stack, reference, source);
 
         boolean dropStack = true;
 

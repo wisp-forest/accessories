@@ -19,9 +19,9 @@ import org.jetbrains.annotations.Nullable;
 public interface OnDropCallback {
 
     Event<OnDropCallback> EVENT = EventFactory.createArrayBacked(OnDropCallback.class,
-            (invokers) -> (dropRule, stack, reference) -> {
+            (invokers) -> (dropRule, stack, reference, damageSource) -> {
                 for (var invoker : invokers) {
-                    var returnRule = invoker.onDrop(dropRule, stack, reference);
+                    var returnRule = invoker.onDrop(dropRule, stack, reference, damageSource);
 
                     if(returnRule != DropRule.DEFAULT) dropRule = returnRule;
                 }
@@ -36,5 +36,5 @@ public interface OnDropCallback {
      * @param reference The reference to the specific location within the Accessories Inventory
      * @return The override dropRule for the given stack
      */
-    @Nullable DropRule onDrop(DropRule dropRule, ItemStack stack, SlotReference reference);
+    @Nullable DropRule onDrop(DropRule dropRule, ItemStack stack, SlotReference reference, DamageSource damageSource);
 }
