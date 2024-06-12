@@ -1,7 +1,12 @@
 package io.wispforest.cclayer;
 
+import com.google.common.collect.HashMultimap;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.events.AccessoryChangeCallback;
+import io.wispforest.accessories.api.events.AdjustAttributeModifierCallback;
+import io.wispforest.accessories.api.events.CanEquipCallback;
+import io.wispforest.accessories.api.events.CanUnequipCallback;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -19,6 +24,7 @@ import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.CuriosCapability;
+import top.theillusivec4.curios.api.event.*;
 import top.theillusivec4.curios.api.type.ISlotType;
 import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
@@ -27,6 +33,8 @@ import top.theillusivec4.curios.common.CuriosRegistry;
 import top.theillusivec4.curios.common.capability.CurioItemHandler;
 import top.theillusivec4.curios.common.capability.ItemizedCurioCapability;
 import top.theillusivec4.curios.common.data.CuriosSlotManager;
+import top.theillusivec4.curios.compat.CuriosWrappingUtils;
+import top.theillusivec4.curios.compat.WrappedCurioItemHandler;
 import top.theillusivec4.curios.compat.WrappedAccessory;
 import top.theillusivec4.curios.compat.WrappedCurioItemHandler;
 import top.theillusivec4.curios.mixin.CuriosImplMixinHooks;
@@ -51,6 +59,39 @@ public class CCLayer {
         //ModList.get().isLoaded("curios");
 
         CuriosRegistry.init(eventBus);
+
+        AccessoryChangeCallback.EVENT.register((prevStack, currentStack, reference, stateChange) -> {
+            NeoForge.EVENT_BUS.post(new CurioChangeEvent(reference.entity(), reference.slotName(), reference.slot(), prevStack, currentStack));
+        });
+
+        DeathWrapperEventsImpl.init();
+
+        CanEquipCallback.EVENT.register((stack, reference) -> {
+            var event = new CurioEquipEvent(stack, CuriosWrappingUtils.create(reference));
+
+            NeoForge.EVENT_BUS.post(event);
+
+            return CuriosWrappingUtils.convert(event.getEquipResult());
+        });
+
+        CanUnequipCallback.EVENT.register((stack, reference) -> {
+            var event = new CurioUnequipEvent(stack, CuriosWrappingUtils.create(reference));
+
+            NeoForge.EVENT_BUS.post(event);
+
+            return CuriosWrappingUtils.convert(event.getUnequipResult());
+        });
+
+        AdjustAttributeModifierCallback.EVENT.register((stack, reference, uuid, modifiers) -> {
+            var modifiersCopy = HashMultimap.create(modifiers);
+
+            var event = new CurioAttributeModifierEvent(stack, CuriosWrappingUtils.create(reference), uuid, modifiersCopy);
+
+            NeoForge.EVENT_BUS.post(event);
+
+            modifiers.clear();
+            modifiers.putAll(event.getModifiers());
+        });
     }
 
     private void registerCapabilities(RegisterCapabilitiesEvent event) {

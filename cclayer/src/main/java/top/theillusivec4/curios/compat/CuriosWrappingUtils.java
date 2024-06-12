@@ -6,6 +6,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.slot.SlotReference;
+import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -13,8 +14,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.bus.api.Event;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.NeoForgeMod;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.event.CurioAttributeModifierEvent;
@@ -56,6 +57,14 @@ public class CuriosWrappingUtils {
             case ALWAYS_DROP -> DropRule.DROP;
             case ALWAYS_KEEP -> DropRule.KEEP;
             case DESTROY -> DropRule.DESTROY;
+        };
+    }
+
+    public static TriState convert(Event.Result result){
+        return switch (result){
+            case DENY -> TriState.FALSE;
+            case ALLOW -> TriState.TRUE;
+            case DEFAULT -> TriState.DEFAULT;
         };
     }
 
