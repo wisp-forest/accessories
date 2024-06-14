@@ -56,7 +56,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
     public final List<SlotGroup> getGroups(boolean isClientSide, boolean filterUniqueGroups){
         var groups = getGroupMap(isClientSide).values();
 
-        if(filterUniqueGroups) groups = groups.stream().filter(group -> !group.uniqueGroup()).toList();
+        if(filterUniqueGroups) groups = groups.stream().filter(group -> !UniqueSlotHandling.isUniqueGroup(group.name())).toList();
 
         return List.copyOf(groups);
     }

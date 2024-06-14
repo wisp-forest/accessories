@@ -3,6 +3,7 @@ package io.wispforest.accessories.api.slot;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.DropRule;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Set;
@@ -15,36 +16,39 @@ public interface SlotType {
     ResourceLocation EMPTY_SLOT_LOCATION = Accessories.of("gui/slot/empty");
 
     /**
-     * Name of Slot
+     * @return The name of the given slot type.
      */
     String name();
 
+    /**
+     * @return The {@link Component} Translation key for the given slot type.
+     */
     default String translation(){
         return Accessories.translation("slot." + name().replace(":", "."));
     }
 
     /**
-     * Location of icon
+     * @return The location for the given icon within the Block Atlas for the given slot type.
      */
     ResourceLocation icon();
 
     /**
-     * Priority Order for Slot
+     * @return The priority order for the given slot type.
      */
     int order();
 
     /**
-     * Amount of slots of a given type
+     * @return The base amout for a given slot type.
      */
     int amount();
 
     /**
-     * Set of ResourceLocation used to check if such is a valid slot for given entry. Check {@link AccessoriesAPI#canInsertIntoSlot}
+     * @return A set of ResourceLocation used to check if such is an accessory is valid for the given slot used within {@link AccessoriesAPI#canInsertIntoSlot}.
      */
     Set<ResourceLocation> validators();
 
     /**
-     * Drop Rule used to result in item drops on Death
+     * @return The given {@link DropRule} used to upon an entity's death to handle accessory's equipped.
      */
     DropRule dropRule();
 }

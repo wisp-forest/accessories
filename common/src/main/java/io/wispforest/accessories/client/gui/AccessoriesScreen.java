@@ -749,7 +749,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 var group = entry.getKey();
 
                 tooltipData.add(Component.translatable(group.translation()));
-                if(group.uniqueGroup()) tooltipData.add(Component.literal(group.name()).withStyle(ChatFormatting.BLUE, ChatFormatting.ITALIC));
+                if(UniqueSlotHandling.isUniqueGroup(group.name())) tooltipData.add(Component.literal(group.name()).withStyle(ChatFormatting.BLUE, ChatFormatting.ITALIC));
 
                 guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
 

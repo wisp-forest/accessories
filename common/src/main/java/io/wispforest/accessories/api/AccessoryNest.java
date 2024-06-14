@@ -34,7 +34,7 @@ public interface AccessoryNest extends Accessory {
     String ACCESSORY_NEST_ITEMS_KEY = "AccessoryNestItems";
 
     /**
-     * @Return Gets all inner {@link ItemStack}'s with the passed holderStack
+     * @Return Gets all the inner {@link ItemStack}'s from the passed holderStack
      */
     default List<ItemStack> getInnerStacks(ItemStack holderStack) {
         var tag = holderStack.getTag();
@@ -53,11 +53,11 @@ public interface AccessoryNest extends Accessory {
     }
 
     /**
-     * Method used to modify the inner stacks of given AccessoryNest Stack
+     * Sets a given stack at the specified index for the passed holder stack
      *
      * @param holderStack The given HolderStack
-     * @param index The target index
-     * @param newStack The new stack replacing the given index
+     * @param index       The target index
+     * @param newStack    The new stack replacing the given index
      */
     default boolean setInnerStack(ItemStack holderStack, int index, ItemStack newStack) {
         if(AccessoryNest.isAccessoryNest(holderStack) && !this.allowDeepRecursion()) return false;

@@ -2,6 +2,7 @@ package io.wispforest.accessories.api.slot;
 
 import io.wispforest.accessories.Accessories;
 import it.unimi.dsi.fastutil.Pair;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Set;
@@ -15,30 +16,29 @@ public interface SlotGroup {
     ResourceLocation UNKNOWN = Accessories.of("gui/group/unknown");
 
     /**
-     * Name of Group
+     * @return The name of the given group
      */
     String name();
 
+    /**
+     * @return The {@link Component} Translation key for the given group
+     */
     default String translation(){
         return Accessories.translation("slot_group." + name());
     }
 
     /**
-     * Priority Order for Group
+     * @return The priority order for the given group
      */
     int order();
 
     /**
-     * All slot names bound to the given group
+     * @return All slot names bound to the given group
      */
     Set<String> slots();
 
     /**
-     * Location of icon
+     * @return The location for the given icon within the Block Atlas for the given slot group
      */
     ResourceLocation icon();
-
-    default boolean uniqueGroup() {
-        return UniqueSlotHandling.getGroups().contains(name());
-    }
 }

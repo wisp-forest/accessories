@@ -5,24 +5,26 @@ import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public interface AccessoriesContainer {
 
     /**
-     * @return the given AccessoriesCapability from which such was initialized with
+     * @return The bound {@link AccessoriesCapability} such belongs to
      */
     AccessoriesCapability capability();
 
     /**
-     * @return The Containers slot name
+     * @return The containers {@link SlotType} name
      */
     String getSlotName();
 
     /**
-     * @return An Optional of the given slotType based on the {@link #getSlotName} if found or an empty optional
+     * @return The given {@link SlotType} of the given container or null if not found
      */
+    @Nullable
     default SlotType slotType() {
         return SlotTypeLoader.getSlotType(this.capability().entity(), this.getSlotName());
     }
@@ -35,12 +37,12 @@ public interface AccessoriesContainer {
     }
 
     /**
-     * @return List containing if a given accessories slot should render or not
+     * @return List containing toggle values for if a given Accessory Slot should be rendered on the entity or not
      */
     List<Boolean> renderOptions();
 
     /**
-     * @return Either the toggle value for the given index or true if an option is not found
+     * @return If the given index for the container should render on the entity
      */
     default boolean shouldRender(int index){
         var options = this.renderOptions();
@@ -61,7 +63,7 @@ public interface AccessoriesContainer {
     ExpandedSimpleContainer getCosmeticAccessories();
 
     /**
-     * @return The max size of the given Container referring to the max number of slots available
+     * @return The max size of the given Container
      */
     int getSize();
 

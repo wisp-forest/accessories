@@ -16,13 +16,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 public interface AccessoriesCapability {
 
     /**
-     * @return The Capability Bound to the given living entity if such is present
+     * @return The {@link AccessoriesCapability} Bound to the given living entity if present
      */
     @Nullable
     static AccessoriesCapability get(@NotNull LivingEntity livingEntity){
@@ -32,12 +31,12 @@ public interface AccessoriesCapability {
     //--
 
     /**
-     * @return The bound entity to the given AccessoriesCapability instance
+     * @return The entity bound to the given {@link AccessoriesCapability} instance
      */
     LivingEntity entity();
 
     /**
-     * @return The bound data holder to the given LivingEntity
+     * @return The {@link AccessoriesHolder} bound to the given {@link LivingEntity}
      */
     AccessoriesHolder getHolder();
 

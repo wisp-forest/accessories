@@ -1,7 +1,6 @@
 package io.wispforest.accessories.api.slot;
 
 import net.fabricmc.fabric.api.util.TriState;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -13,6 +12,15 @@ import java.util.function.Predicate;
  */
 public interface SlotBasedPredicate {
 
+    /**
+     * Predicate method used to check if the given stack is valid for the given slot
+     *
+     * @param level    The current level for the predicate
+     * @param slotType The given slot type being checked
+     * @param slot     The given index being referenced
+     * @param stack    The stack being checked
+     * @return Whether the stack can be equipped into the given slot
+     */
     TriState isValid(Level level, SlotType slotType, int slot, ItemStack stack);
 
     /**
