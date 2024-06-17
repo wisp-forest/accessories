@@ -593,9 +593,7 @@ public class AccessoriesEventHandler {
 
         if (capability == null) return;
 
-        var result = OnDeathCallback.EVENT.invoker().shouldDrop(TriState.DEFAULT, entity, capability, source);
-
-        if (!result.orElse(true)) return;
+        var droppedStacks = new ArrayList<ItemStack>();
 
         for (var containerEntry : capability.getContainers().entrySet()) {
             var slotType = containerEntry.getValue().slotType();
@@ -610,13 +608,29 @@ public class AccessoriesEventHandler {
             for (int i = 0; i < container.getSize(); i++) {
                 var reference = SlotReference.of(entity, container.getSlotName(), i);
 
-                dropStack(slotDropRule, entity, stacks, reference, source);
-                dropStack(slotDropRule, entity, cosmeticStacks, reference, source);
+                var stack = dropStack(slotDropRule, entity, stacks, reference, source);
+                if (stack != null) droppedStacks.add(stack);
+
+                var cosmeticStack = dropStack(slotDropRule, entity, cosmeticStacks, reference, source);
+                if (cosmeticStack != null) droppedStacks.add(cosmeticStack);
+            }
+        }
+
+        var result = OnDeathCallback.EVENT.invoker().shouldDrop(TriState.DEFAULT, entity, capability, source, droppedStacks);
+
+        if (!result.orElse(true)) return;
+
+        for (var droppedStack : droppedStacks) {
+            if (entity instanceof Player player) {
+                player.drop(droppedStack, true);
+            } else {
+                entity.spawnAtLocation(droppedStack);
             }
         }
     }
 
-    private static void dropStack(DropRule dropRule, LivingEntity entity, Container container, SlotReference reference, DamageSource source) {
+    @Nullable
+    private static ItemStack dropStack(DropRule dropRule, LivingEntity entity, Container container, SlotReference reference, DamageSource source) {
         var stack = container.getItem(reference.slot());
         var accessory = AccessoriesAPI.getAccessory(stack);
 
@@ -666,15 +680,11 @@ public class AccessoriesEventHandler {
             }
         }
 
-        if (!dropStack) return;
+        if (!dropStack) return null;
 
         container.setItem(reference.slot(), ItemStack.EMPTY);
 
-        if (entity instanceof Player player) {
-            player.drop(stack, true);
-        } else {
-            entity.spawnAtLocation(stack);
-        }
+        return stack;
     }
 
     public static InteractionResultHolder<ItemStack> attemptEquipFromUse(Player player, InteractionHand hand) {

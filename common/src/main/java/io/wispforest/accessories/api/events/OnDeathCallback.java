@@ -7,6 +7,9 @@ import net.fabricmc.fabric.api.event.EventFactory;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+
+import java.util.List;
 
 /**
  * Event callback used to change if the given entity death will use default accessory behvaior to drop
@@ -15,9 +18,9 @@ import net.minecraft.world.entity.LivingEntity;
 public interface OnDeathCallback {
 
     Event<OnDeathCallback> EVENT = EventFactory.createArrayBacked(OnDeathCallback.class,
-            (invokers) -> (currentState, entity, capability, damageSource) -> {
+            (invokers) -> (currentState, entity, capability, damageSource, droppedStacks) -> {
                 for (var invoker : invokers) {
-                    var returnState = invoker.shouldDrop(currentState, entity, capability, damageSource);
+                    var returnState = invoker.shouldDrop(currentState, entity, capability, damageSource, droppedStacks);
 
                     if(returnState != TriState.DEFAULT) currentState = returnState;
                 }
@@ -33,7 +36,8 @@ public interface OnDeathCallback {
      * @param entity The given target entity
      * @param capability The given capability bound to the entity
      * @param damageSource
+     * @param droppedStacks
      * @return If default dropping behavior should occur
      */
-    TriState shouldDrop(TriState currentState, LivingEntity entity, AccessoriesCapability capability, DamageSource damageSource);
+    TriState shouldDrop(TriState currentState, LivingEntity entity, AccessoriesCapability capability, DamageSource damageSource, List<ItemStack> droppedStacks);
 }

@@ -18,6 +18,7 @@ import top.theillusivec4.curios.api.event.DropRulesEvent;
 import top.theillusivec4.curios.compat.CuriosWrappingUtils;
 import top.theillusivec4.curios.compat.WrappedCurioItemHandler;
 
+import java.util.List;
 import java.util.Objects;
 
 public class DeathWrapperEventsImpl implements OnDeathCallback, OnDropCallback {
@@ -33,17 +34,16 @@ public class DeathWrapperEventsImpl implements OnDeathCallback, OnDropCallback {
     private DropRulesEvent latestDropRules = null;
 
     @Override
-    public TriState shouldDrop(TriState currentState, LivingEntity entity, AccessoriesCapability capability, DamageSource damageSource) {
+    public TriState shouldDrop(TriState currentState, LivingEntity entity, AccessoriesCapability capability, DamageSource damageSource, List<ItemStack> droppedStacks) {
         var handler = new WrappedCurioItemHandler((AccessoriesCapabilityImpl) capability);
 
-        var itemEntities = capability.getAllEquipped(false)
-                .stream()
-                .map(entryRef -> {
+        var itemEntities = droppedStacks.stream()
+                .map(stack -> {
                     var itemEntity = EntityType.ITEM.create(entity.level());
 
                     if(itemEntity == null) return null;
 
-                    itemEntity.setItem(entryRef.stack());
+                    itemEntity.setItem(stack);
 
                     return itemEntity;
                 }).filter(Objects::nonNull)
