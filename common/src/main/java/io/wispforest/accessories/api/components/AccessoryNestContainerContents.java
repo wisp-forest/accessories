@@ -20,7 +20,7 @@ public record AccessoryNestContainerContents(List<ItemStack> accessories) {
     public static final AccessoryNestContainerContents EMPTY = new AccessoryNestContainerContents(List.of());
 
     public static final Endec<AccessoryNestContainerContents> ENDEC = StructEndecBuilder.of(
-            CodecUtils.ofCodec(ItemStack.CODEC).listOf().fieldOf("accessories", AccessoryNestContainerContents::accessories),
+            CodecUtils.ofCodec(ItemStack.OPTIONAL_CODEC).listOf().fieldOf("accessories", AccessoryNestContainerContents::accessories),
             AccessoryNestContainerContents::new
     );
 

@@ -35,8 +35,8 @@ public record SyncContainerData(int entityId, Map<String, EdmMap> updatedContain
     public static Endec<SyncContainerData> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", SyncContainerData::entityId),
             EdmEndec.MAP.mapOf().fieldOf("updatedContainers", SyncContainerData::updatedContainers),
-            CodecUtils.ofCodec(ItemStack.CODEC).mapOf().fieldOf("dirtyStacks", SyncContainerData::dirtyStacks),
-            CodecUtils.ofCodec(ItemStack.CODEC).mapOf().fieldOf("dirtyCosmeticStacks", SyncContainerData::dirtyCosmeticStacks),
+            CodecUtils.ofCodec(ItemStack.OPTIONAL_CODEC).mapOf().fieldOf("dirtyStacks", SyncContainerData::dirtyStacks),
+            CodecUtils.ofCodec(ItemStack.OPTIONAL_CODEC).mapOf().fieldOf("dirtyCosmeticStacks", SyncContainerData::dirtyCosmeticStacks),
             SyncContainerData::new
     );
 
