@@ -113,8 +113,8 @@ public class TrinketInventory implements Container {
     }
 
     public void addModifier(AttributeModifier modifier) {
-        this.modifiers.put(modifier.getId(), modifier);
-        this.getModifiersByOperation(modifier.getOperation()).add(modifier);
+        this.modifiers.put(modifier.id(), modifier);
+        this.getModifiersByOperation(modifier.operation()).add(modifier);
         this.markUpdate();
     }
 
@@ -127,7 +127,7 @@ public class TrinketInventory implements Container {
         AttributeModifier modifier = this.modifiers.remove(uuid);
         if (modifier != null) {
             this.persistentModifiers.remove(modifier);
-            this.getModifiersByOperation(modifier.getOperation()).remove(modifier);
+            this.getModifiersByOperation(modifier.operation()).remove(modifier);
             this.markUpdate();
         }
     }
@@ -146,7 +146,7 @@ public class TrinketInventory implements Container {
 
     public void clearCachedModifiers() {
         for (AttributeModifier cachedModifier : this.cachedModifiers) {
-            this.removeModifier(cachedModifier.getId());
+            this.removeModifier(cachedModifier.id());
         }
         this.cachedModifiers.clear();
     }
@@ -155,17 +155,17 @@ public class TrinketInventory implements Container {
         if (this.update) {
             this.update = false;
             double baseSize = this.baseSize;
-            for (AttributeModifier mod : this.getModifiersByOperation(AttributeModifier.Operation.ADDITION)) {
-                baseSize += mod.getAmount();
+            for (AttributeModifier mod : this.getModifiersByOperation(AttributeModifier.Operation.ADD_VALUE)) {
+                baseSize += mod.amount();
             }
 
             double size = baseSize;
-            for (AttributeModifier mod : this.getModifiersByOperation(AttributeModifier.Operation.MULTIPLY_BASE)) {
-                size += this.baseSize * mod.getAmount();
+            for (AttributeModifier mod : this.getModifiersByOperation(AttributeModifier.Operation.ADD_MULTIPLIED_BASE)) {
+                size += this.baseSize * mod.amount();
             }
 
-            for (AttributeModifier mod : this.getModifiersByOperation(AttributeModifier.Operation.MULTIPLY_TOTAL)) {
-                size *= mod.getAmount();
+            for (AttributeModifier mod : this.getModifiersByOperation(AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)) {
+                size *= mod.amount();
             }
             LivingEntity entity = this.component.getEntity();
 

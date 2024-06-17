@@ -48,9 +48,9 @@ dependencies {
 
     modImplementation("com.terraformersmc:modmenu:${rootProject.modmenu_version}")
 
-    modLocalRuntime("maven.modrinth:ok-boomer:0.1.3+1.20.2")
-    modLocalRuntime("io.wispforest:owo-lib:0.12.4-pre.2+1.20.3")
-    modLocalRuntime("io.wispforest:gadget:0.2.3+1.20.3")
+//    modLocalRuntime("maven.modrinth:ok-boomer:0.1.3+1.20.2")
+//    modLocalRuntime("io.wispforest:owo-lib:0.12.4-pre.2+1.20.3")
+//    modLocalRuntime("io.wispforest:gadget:0.2.3+1.20.3")
 
     testmodImplementation sourceSets.main.output
 

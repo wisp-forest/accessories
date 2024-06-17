@@ -1,11 +1,14 @@
 package io.wispforest.accessories.api;
 
 import com.google.common.collect.Multimap;
+import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
 import it.unimi.dsi.fastutil.Pair;
+import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -31,25 +34,13 @@ import java.util.function.Function;
  */
 public interface AccessoryNest extends Accessory {
 
-    String ACCESSORY_NEST_ITEMS_KEY = "AccessoryNestItems";
-
     /**
      * @Return Gets all the inner {@link ItemStack}'s from the passed holderStack
      */
     default List<ItemStack> getInnerStacks(ItemStack holderStack) {
-        var tag = holderStack.getTag();
+        var data = holderStack.get(AccessoriesDataComponents.NESTED_ACCESSORIES);
 
-        if(tag == null) return List.of();
-
-        var listTag = tag.getList(ACCESSORY_NEST_ITEMS_KEY, 10);
-
-        var list = NonNullList.withSize(listTag.size(), ItemStack.EMPTY);
-
-        for (Tag tag1 : listTag) {
-            if(tag1 instanceof CompoundTag compoundTag) list.add(ItemStack.of(compoundTag));
-        }
-
-        return list;
+        return data == null ? List.of() : data.accessories();
     }
 
     /**
@@ -60,12 +51,13 @@ public interface AccessoryNest extends Accessory {
      * @param newStack    The new stack replacing the given index
      */
     default boolean setInnerStack(ItemStack holderStack, int index, ItemStack newStack) {
-        if(AccessoryNest.isAccessoryNest(holderStack) && !this.allowDeepRecursion()) return false;
+        if(!AccessoryNest.isAccessoryNest(holderStack)) return false;
+        if(AccessoryNest.isAccessoryNest(newStack) && !this.allowDeepRecursion()) return false;
 
-        var listTag = holderStack.getTag().getList(ACCESSORY_NEST_ITEMS_KEY, 10);
-
-        ItemStack.CODEC.encodeStart(NbtOps.INSTANCE, newStack).result()
-                .ifPresent(tag1 -> listTag.set(index, tag1));
+        holderStack.update(
+                AccessoriesDataComponents.NESTED_ACCESSORIES,
+                new AccessoryNestContainerContents(List.of()),
+                contents -> contents.setStack(index, newStack));
 
         return true;
     }
@@ -110,9 +102,13 @@ public interface AccessoryNest extends Accessory {
 
         if(data == null) return defaultValue;
 
+        var nest = (AccessoryNest) AccessoriesAPI.getAccessory(holderStack);
+
         var t = func.apply(data.getMap(slotReference));
 
-        data.getNest().checkAndHandleStackChanges(holderStack, data, slotReference.entity());
+        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
+
+        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), slotReference.entity());
 
         return t;
     }
@@ -129,9 +125,13 @@ public interface AccessoryNest extends Accessory {
 
         if(data == null) return;
 
+        var nest = (AccessoryNest) AccessoriesAPI.getAccessory(holderStack);
+
         consumer.accept(data.getMap(slotReference));
 
-        data.getNest().checkAndHandleStackChanges(holderStack, data, slotReference.entity());
+        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
+
+        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), slotReference.entity());
     }
 
     /**
@@ -146,9 +146,13 @@ public interface AccessoryNest extends Accessory {
 
         if (data == null) return;
 
+        var nest = (AccessoryNest) AccessoriesAPI.getAccessory(holderStack);
+
         consumer.accept(data.getMap());
 
-        data.getNest().checkAndHandleStackChanges(holderStack, data, livingEntity);
+        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
+
+        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), livingEntity);
     }
 
     //--
@@ -164,18 +168,7 @@ public interface AccessoryNest extends Accessory {
      * @param data         StackData linked to the given HolderStack
      * @param livingEntity Potential Living Entity involved with any stack changes
      */
-    default void checkAndHandleStackChanges(ItemStack holderStack, AccessoryNestUtils.StackData data, @Nullable LivingEntity livingEntity){
-        var prevStacks = data.getDefensiveCopies();
-        var currentStacks = data.getStacks();
-
-        for (int i = 0; i < prevStacks.size(); i++) {
-            var currentStack = currentStacks.get(i);
-
-            if(ItemStack.matches(prevStacks.get(i), currentStack)) continue;
-
-            this.setInnerStack(holderStack, i, currentStack);
-        }
-    }
+    default void onStackChanges(ItemStack holderStack, AccessoryNestContainerContents data,  @Nullable LivingEntity livingEntity){}
 
     //--
 
@@ -217,7 +210,7 @@ public interface AccessoryNest extends Accessory {
     }
 
     @Override
-    default Multimap<Attribute, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid) {
+    default Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid) {
         var map = Accessory.super.getModifiers(stack, reference, uuid);
 
         // TODO: May need to deal with potential collisions when using the specific passed UUID

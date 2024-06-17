@@ -4,8 +4,11 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.testccessories.fabric.TestItems;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 
 public class WaterBreathingAccessory implements Accessory {
 
@@ -21,18 +24,22 @@ public class WaterBreathingAccessory implements Accessory {
 
         if(currentDamage >= 63) return;
 
-        var tag = stack.getOrCreateTag();
+        var customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
+
+        var tag = customData.getUnsafe();
 
         var refillTimeout = tag.contains(REFILL_TIME_OUT_KEY) ? tag.getInt(REFILL_TIME_OUT_KEY) : -1;
 
         if(refillTimeout != -1) {
-            refillTimeout -= 1;
+            CustomData.update(DataComponents.CUSTOM_DATA, stack, tag1 -> {
+                var newRefillTimeout = refillTimeout - 1;
 
-            if(refillTimeout > 0) {
-                tag.putInt(REFILL_TIME_OUT_KEY, refillTimeout);
-            } else {
-                tag.remove(REFILL_TIME_OUT_KEY);
-            }
+                if(newRefillTimeout > 0) {
+                    tag1.putInt(REFILL_TIME_OUT_KEY, newRefillTimeout);
+                } else {
+                    tag1.remove(REFILL_TIME_OUT_KEY);
+                }
+            });
 
             return;
         }
@@ -45,8 +52,9 @@ public class WaterBreathingAccessory implements Accessory {
 
                 serverPlayer.setAirSupply(currentAirSupply + 20);
 
-
-                tag.putInt(REFILL_TIME_OUT_KEY, 4);
+                CustomData.update(DataComponents.CUSTOM_DATA, stack, tag1 -> {
+                    tag1.putInt(REFILL_TIME_OUT_KEY, 4);
+                });
             }
         }
     }

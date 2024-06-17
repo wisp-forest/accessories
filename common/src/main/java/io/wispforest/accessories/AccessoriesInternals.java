@@ -3,8 +3,10 @@ package io.wispforest.accessories;
 import com.google.gson.JsonObject;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import io.wispforest.accessories.api.AccessoriesHolder;
+import io.wispforest.accessories.client.AccessoriesMenuData;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -71,12 +73,12 @@ public class AccessoriesInternals {
     }
 
     @ExpectPlatform
-    public static boolean isValidOnConditions(JsonObject object){
+    public static boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, @Nullable HolderLookup.Provider registryLookup){
         throw new AssertionError();
     }
 
     @ExpectPlatform
-    public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(ResourceLocation location, TriFunction<Integer, Inventory, FriendlyByteBuf, T> func){
+    public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(ResourceLocation location, TriFunction<Integer, Inventory, AccessoriesMenuData, T> func){
         throw new AssertionError();
     }
 

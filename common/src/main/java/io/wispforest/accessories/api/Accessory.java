@@ -7,6 +7,7 @@ import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.mixin.LivingEntityAccessor;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
@@ -80,7 +81,7 @@ public interface Accessory {
      * @param reference The reference to the targeted {@link LivingEntity}, slot and index
      * @param uuid The UUID used for creating Modifiers
      */
-    default Multimap<Attribute, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid){
+    default Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid){
         return HashMultimap.create();
     }
 
@@ -105,7 +106,7 @@ public interface Accessory {
     default void onEquipFromUse(ItemStack stack, SlotReference reference){
         var sound = getEquipSound(stack, reference);
 
-        reference.entity().playSound(sound.event(), sound.volume(), sound.pitch());
+        reference.entity().playSound(sound.event().value(), sound.volume(), sound.pitch());
     }
 
     /**

@@ -3,11 +3,14 @@ package io.wispforest.accessories.fabric;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.DataLoaderBase;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.AccessoryNest;
+import io.wispforest.accessories.api.components.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
-import io.wispforest.accessories.impl.InstanceCodecable;
+import io.wispforest.accessories.impl.InstanceEndec;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
@@ -18,7 +21,9 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
+import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
+import net.fabricmc.fabric.impl.item.DefaultItemComponentImpl;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -32,7 +37,7 @@ public class AccessoriesFabric implements ModInitializer {
     static {
         HOLDER_ATTACHMENT_TYPE = AttachmentRegistry.<AccessoriesHolderImpl>builder()
                 .initializer(AccessoriesHolderImpl::of)
-                .persistent(InstanceCodecable.constructed(AccessoriesHolderImpl::new))
+                .persistent(CodecUtils.ofEndec(InstanceEndec.constructed(AccessoriesHolderImpl::new)))
                 .copyOnDeath()
                 .buildAndRegister(Accessories.of("inventory_holder"));
     }
@@ -40,6 +45,20 @@ public class AccessoriesFabric implements ModInitializer {
     @Override
     public void onInitialize() {
         Accessories.init();
+
+        AccessoriesDataComponents.init();
+
+        DefaultItemComponentEvents.MODIFY.register(context -> {
+            context.modify(item -> item instanceof AccessoryNest, (builder, item) -> {
+                builder.set(AccessoriesDataComponents.NESTED_ACCESSORIES, AccessoryNestContainerContents.EMPTY);
+            });
+
+            context.modify(item -> true, (builder, item) -> {
+                builder.set(AccessoriesDataComponents.RENDER_OVERRIDE, AccessoryRenderOverrideComponent.DEFAULT);
+                builder.set(AccessoriesDataComponents.SLOT_VALIDATION, AccessorySlotValidationComponent.EMPTY);
+                builder.set(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
+            });
+        });
 
         Accessories.registerMenuType();
         Accessories.registerCriteria();

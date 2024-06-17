@@ -2,8 +2,15 @@ package io.wispforest.accessories.networking.client;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.endec.RegistriesAttribute;
+import io.wispforest.accessories.endec.format.nbt.NbtEndec;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.endec.Endec;
+import io.wispforest.endec.SerializationContext;
+import io.wispforest.endec.format.edm.EdmEndec;
+import io.wispforest.endec.format.edm.EdmMap;
+import io.wispforest.endec.impl.StructEndecBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.nbt.CompoundTag;
@@ -12,39 +19,19 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.slf4j.Logger;
 
-public class SyncEntireContainer extends AccessoriesPacket {
+public record SyncEntireContainer(int entityId, EdmMap containerMap) implements AccessoriesPacket {
+
+    public static final Endec<SyncEntireContainer> ENDEC = StructEndecBuilder.of(
+            Endec.VAR_INT.fieldOf("entityId", SyncEntireContainer::entityId),
+            EdmEndec.MAP.fieldOf("containerTag", SyncEntireContainer::containerMap),
+            SyncEntireContainer::new
+    );
 
     private static final Logger LOGGER = LogUtils.getLogger();
-
-    public CompoundTag containerTag;
-    public int entityId;
-
-    public SyncEntireContainer(){}
-
-    public SyncEntireContainer(CompoundTag containerTag, int entityId){
-        super(false);
-
-        this.containerTag = containerTag;
-        this.entityId = entityId;
-    }
-
-    @Override
-    public void write(FriendlyByteBuf buf) {
-        buf.writeNbt(this.containerTag);
-        buf.writeVarInt(this.entityId);
-    }
-
-    @Override
-    protected void read(FriendlyByteBuf buf) {
-        this.containerTag = buf.readNbt();
-        this.entityId = buf.readVarInt();
-    }
 
     @Environment(EnvType.CLIENT)
     @Override
     public void handle(Player player) {
-        super.handle(player);
-
         var entity = player.level().getEntity(entityId);
 
         if(entity == null) {
@@ -59,7 +46,7 @@ public class SyncEntireContainer extends AccessoriesPacket {
 
         if(capability == null) return;
 
-        ((AccessoriesHolderImpl) capability.getHolder()).read(containerTag);
+        ((AccessoriesHolderImpl) capability.getHolder()).read(containerMap, SerializationContext.attributes(RegistriesAttribute.of(player.level().registryAccess())));
 
         ((AccessoriesHolderImpl) capability.getHolder()).init(capability);
     }

@@ -11,7 +11,18 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.endec.EdmUtils;
+import io.wispforest.accessories.endec.RegistriesAttribute;
+import io.wispforest.accessories.endec.format.nbt.NbtEndec;
+import io.wispforest.accessories.utils.AttributeUtils;
+import io.wispforest.endec.Endec;
+import io.wispforest.endec.SerializationContext;
+import io.wispforest.endec.format.edm.EdmEndec;
+import io.wispforest.endec.format.edm.EdmMap;
+import io.wispforest.endec.impl.KeyedEndec;
+import io.wispforest.endec.util.MapCarrier;
 import net.minecraft.Util;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.*;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -24,7 +35,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @ApiStatus.Internal
-public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceCodecable {
+public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceEndec {
 
     protected AccessoriesCapability capability;
     private String slotName;
@@ -98,23 +109,23 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
             hasChangeOccurred = true;
         }
 
-        int baseSize = this.baseSize;
+        double baseSize = this.baseSize;
 
-        int size;
+        double size;
 
         if(UniqueSlotHandling.allowResizing(this.slotName)) {
-            for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADDITION)) {
-                baseSize += modifier.getAmount();
+            for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADD_VALUE)) {
+                baseSize += modifier.amount();
             }
 
             size = baseSize;
 
-            for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.MULTIPLY_BASE)) {
-                size += this.baseSize * modifier.getAmount();
+            for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADD_MULTIPLIED_BASE)) {
+                size += (this.baseSize * modifier.amount());
             }
 
-            for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.MULTIPLY_TOTAL)) {
-                size *= modifier.getAmount();
+            for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)) {
+                size *= modifier.amount();
             }
         } else {
             size = baseSize;
@@ -122,15 +133,17 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
         //--
 
-        if(size != this.accessories.getContainerSize()) {
+        var currentSize = (int) Math.round(size);
+
+        if(currentSize != this.accessories.getContainerSize()) {
             hasChangeOccurred = true;
 
             var invalidAccessories = new ArrayList<Pair<Integer, ItemStack>>();
 
             var invalidStacks = new ArrayList<ItemStack>();
 
-            var newAccessories = new ExpandedSimpleContainer(size, "Accessories");
-            var newCosmetics = new ExpandedSimpleContainer(size, "Cosmetic Accessories");
+            var newAccessories = new ExpandedSimpleContainer(currentSize, "Accessories");
+            var newCosmetics = new ExpandedSimpleContainer(currentSize, "Cosmetic Accessories");
 
             for (int i = 0; i < this.accessories.getContainerSize(); i++) {
                 if (i < newAccessories.getContainerSize()) {
@@ -148,9 +161,9 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
             this.accessories = newAccessories;
             this.cosmeticAccessories = newCosmetics;
 
-            var newRenderOptions = new ArrayList<Boolean>(size);
+            var newRenderOptions = new ArrayList<Boolean>(currentSize);
 
-            for (int i = 0; i < size; i++) {
+            for (int i = 0; i < currentSize; i++) {
                 newRenderOptions.add(i < this.renderOptions.size() ? this.renderOptions.get(i) : true);
             }
 
@@ -174,18 +187,18 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
                 Multimap<String, AttributeModifier> slots = HashMultimap.create();
 
-                Set<Attribute> toBeRemoved = new HashSet<>();
+                Set<Holder<Attribute>> toBeRemoved = new HashSet<>();
 
                 attributes.asMap().forEach((attribute, modifier) -> {
                     if (!(attribute instanceof SlotAttribute slotAttribute)) return;
 
                     slots.putAll(slotAttribute.slotName(), modifier);
-                    toBeRemoved.add(slotAttribute);
+                    toBeRemoved.add(attribute);
                 });
 
-                for (Attribute attribute : toBeRemoved) attributes.removeAll(attribute);
+                for (Holder<Attribute> attribute : toBeRemoved) attributes.removeAll(attribute);
 
-                livingEntity.getAttributes().removeAttributeModifiers(attributes);
+                AttributeUtils.removeAttributes(livingEntity, attributes);
                 this.capability.removeSlotModifiers(slots);
 
                 var accessory = AccessoriesAPI.getAccessory(invalidStack);
@@ -257,8 +270,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
     @Override
     public void addTransientModifier(AttributeModifier modifier) {
-        this.modifiers.put(modifier.getId(), modifier);
-        this.getModifiersForOperation(modifier.getOperation()).add(modifier);
+        this.modifiers.put(modifier.id(), modifier);
+        this.getModifiersForOperation(modifier.operation()).add(modifier);
         this.markChanged();
     }
 
@@ -275,7 +288,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
         if(modifier == null) return;
 
         this.persistentModifiers.remove(modifier);
-        this.getModifiersForOperation(modifier.getOperation()).remove(modifier);
+        this.getModifiersForOperation(modifier.operation()).remove(modifier);
         this.markChanged();
     }
 
@@ -291,7 +304,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
     @Override
     public void clearCachedModifiers() {
-        this.cachedModifiers.forEach(cachedModifier -> this.removeModifier(cachedModifier.getId()));
+        this.cachedModifiers.forEach(cachedModifier -> this.removeModifier(cachedModifier.id()));
         this.cachedModifiers.clear();
     }
 
@@ -323,68 +336,66 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
 
     //--
 
-    public static final String SLOT_NAME_KEY = "SlotName";
+    public static final KeyedEndec<String> SLOT_NAME_KEY = Endec.STRING.keyed("SlotName", "UNKNOWN");
 
-    public static final String BASE_SIZE_KEY = "BaseSize";
+    public static final KeyedEndec<Integer> BASE_SIZE_KEY = Endec.INT.keyed("BaseSize", 0);
 
-    public static final String RENDER_OPTIONS_KEY = "RenderOptions";
+    public static final KeyedEndec<Integer> CURRENT_SIZE_KEY = Endec.INT.keyed("CurrentSize", 0);
 
-    public static final String MODIFIERS_KEY = "Modifiers";
-    public static final String PERSISTENT_MODIFIERS_KEY = "PersistentModifiers";
-    public static final String CACHED_MODIFIERS_KEY = "CachedModifiers";
+    public static final KeyedEndec<List<Boolean>> RENDER_OPTIONS_KEY = Endec.BOOLEAN.listOf().keyed("RenderOptions", ArrayList::new);
 
-    public static final String ITEMS_KEY = "Items";
-    public static final String COSMETICS_KEY = "Cosmetics";
+    public static final KeyedEndec<List<CompoundTag>> MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("Modifiers", ArrayList::new);
+    public static final KeyedEndec<List<CompoundTag>> PERSISTENT_MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("PersistentModifiers", ArrayList::new);
+    public static final KeyedEndec<List<CompoundTag>> CACHED_MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("CachedModifiers", ArrayList::new);
+
+    public static final KeyedEndec<ListTag> ITEMS_KEY = NbtEndec.LIST.keyed("Items", ListTag::new);
+    public static final KeyedEndec<ListTag> COSMETICS_KEY = NbtEndec.LIST.keyed("Cosmetics", ListTag::new);
 
     @Override
-    public void write(CompoundTag tag) {
-        write(tag, false);
+    public void write(MapCarrier carrier, SerializationContext ctx) {
+        write(carrier, ctx, false);
     }
 
     @Override
-    public void read(CompoundTag tag) {
-        read(tag, false);
+    public void read(MapCarrier carrier, SerializationContext ctx) {
+        read(carrier, ctx, false);
     }
 
-    public void write(CompoundTag tag, boolean sync){
-        tag.putString(SLOT_NAME_KEY, this.slotName);
+    public void write(MapCarrier carrier, SerializationContext ctx, boolean sync){
+        var registryAccess = ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager();
 
-        tag.putInt(BASE_SIZE_KEY, this.baseSize);
+        carrier.put(SLOT_NAME_KEY, this.slotName);
 
-        ByteArrayTag renderOptionsTag = new ByteArrayTag(new byte[renderOptions.size()]);
+        carrier.put(BASE_SIZE_KEY, this.baseSize);
 
-        for (int i = 0; i < this.renderOptions.size(); i++) {
-            renderOptionsTag.set(i, ByteTag.valueOf(this.renderOptions.get(i)));
-        }
-
-        tag.put(RENDER_OPTIONS_KEY, renderOptionsTag);
+        carrier.put(RENDER_OPTIONS_KEY, this.renderOptions);
 
         if(!sync || this.accessories.wasNewlyConstructed()) {
-            tag.putInt("size", accessories.getContainerSize());
+            carrier.put(CURRENT_SIZE_KEY, accessories.getContainerSize());
 
-            tag.put(ITEMS_KEY, accessories.createTag());
-            tag.put(COSMETICS_KEY, cosmeticAccessories.createTag());
+            carrier.put(ITEMS_KEY, accessories.createTag(registryAccess));
+            carrier.put(COSMETICS_KEY, cosmeticAccessories.createTag(registryAccess));
         }
 
         if(sync){
             if(!this.modifiers.isEmpty()){
-                ListTag modifiersTag = new ListTag();
+                var modifiersTag = new ArrayList<CompoundTag>();
 
                 this.modifiers.values().forEach(modifier -> modifiersTag.add(modifier.save()));
 
-                tag.put(MODIFIERS_KEY, modifiersTag);
+                carrier.put(MODIFIERS_KEY, modifiersTag);
             }
         } else {
             if(!this.persistentModifiers.isEmpty()){
-                var persistentTag = new ListTag();
+                var persistentTag = new ArrayList<CompoundTag>();
 
                 this.persistentModifiers.forEach(modifier -> persistentTag.add(modifier.save()));
 
-                tag.put(PERSISTENT_MODIFIERS_KEY, persistentTag);
+                carrier.put(PERSISTENT_MODIFIERS_KEY, persistentTag);
             }
 
             if(!this.modifiers.isEmpty()){
-                var cachedTag = new ListTag();
+                var cachedTag = new ArrayList<CompoundTag>();
 
                 this.modifiers.values().forEach(modifier -> {
                     if(this.persistentModifiers.contains(modifier)) return;
@@ -392,39 +403,34 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
                     cachedTag.add(modifier.save());
                 });
 
-                tag.put(CACHED_MODIFIERS_KEY, cachedTag);
+                carrier.put(CACHED_MODIFIERS_KEY, cachedTag);
             }
         }
     }
 
-    public void read(CompoundTag tag, boolean sync){
-        this.slotName = tag.getString(SLOT_NAME_KEY);
+    public void read(MapCarrier carrier, SerializationContext ctx, boolean sync){
+        var registryAccess = ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager();
 
-        var sizeFromTag = (tag.contains(BASE_SIZE_KEY)) ? tag.getInt(BASE_SIZE_KEY) : baseSize;
+        this.slotName = carrier.get(SLOT_NAME_KEY);
+
+        var sizeFromTag = (carrier.has(BASE_SIZE_KEY)) ? carrier.get(BASE_SIZE_KEY) : baseSize;
 
         var slotType = SlotTypeLoader.getSlotType(this.capability.entity().level(), this.slotName);
 
         this.baseSize = slotType != null ? slotType.amount() : sizeFromTag;
 
-        var renderOptionsTag = tag.get(RENDER_OPTIONS_KEY);
+        this.renderOptions = carrier.get(RENDER_OPTIONS_KEY);
 
-        if(renderOptionsTag instanceof ByteArrayTag byteArrayTag) {
-            this.renderOptions = byteArrayTag.stream()
-                    .map(ByteTag::getAsByte)
-                    .map(BooleanUtils::toBoolean)
-                    .collect(Collectors.toList());
-        }
-
-        if(tag.contains("size")) {
-            var size = tag.getInt("size");
+        if(carrier.has(CURRENT_SIZE_KEY)) {
+            var size = carrier.get(CURRENT_SIZE_KEY);
 
             if(this.accessories.getContainerSize() != size) {
                 this.accessories = new ExpandedSimpleContainer(size, "Accessories");
                 this.cosmeticAccessories = new ExpandedSimpleContainer(size, "Cosmetic Accessories");
             }
 
-            this.accessories.fromTag(tag.getList(ITEMS_KEY, Tag.TAG_COMPOUND));
-            this.cosmeticAccessories.fromTag(tag.getList(COSMETICS_KEY, Tag.TAG_COMPOUND));
+            this.accessories.fromTag(carrier.get(ITEMS_KEY), registryAccess);
+            this.cosmeticAccessories.fromTag(carrier.get(COSMETICS_KEY), registryAccess);
         }
 
         if(sync) {
@@ -432,31 +438,31 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
             this.persistentModifiers.clear();
             this.modifiersByOperation.clear();
 
-            if (tag.contains(MODIFIERS_KEY)) {
-                var persistentTag = tag.getList(MODIFIERS_KEY, Tag.TAG_COMPOUND);
+            if (carrier.has(MODIFIERS_KEY)) {
+                var persistentTag = carrier.get(MODIFIERS_KEY);
 
-                for (int i = 0; i < persistentTag.size(); i++) {
-                    var modifier = AttributeModifier.load(persistentTag.getCompound(i));
+                for (var compoundTag : persistentTag) {
+                    var modifier = AttributeModifier.load(compoundTag);
 
                     if (modifier != null) this.addTransientModifier(modifier);
                 }
             }
         } else {
-            if (tag.contains(PERSISTENT_MODIFIERS_KEY)) {
-                var persistentTag = tag.getList(PERSISTENT_MODIFIERS_KEY, Tag.TAG_COMPOUND);
+            if (carrier.has(PERSISTENT_MODIFIERS_KEY)) {
+                var persistentTag = carrier.get(PERSISTENT_MODIFIERS_KEY);
 
-                for (int i = 0; i < persistentTag.size(); i++) {
-                    var modifier = AttributeModifier.load(persistentTag.getCompound(i));
+                for (var compoundTag : persistentTag) {
+                    var modifier = AttributeModifier.load(compoundTag);
 
                     if (modifier != null) this.addPersistentModifier(modifier);
                 }
             }
 
-            if (tag.contains(CACHED_MODIFIERS_KEY)) {
-                var cachedTag = tag.getList(PERSISTENT_MODIFIERS_KEY, Tag.TAG_COMPOUND);
+            if (carrier.has(CACHED_MODIFIERS_KEY)) {
+                var cachedTag = carrier.get(PERSISTENT_MODIFIERS_KEY);
 
-                for (int i = 0; i < cachedTag.size(); i++) {
-                    var modifier = AttributeModifier.load(cachedTag.getCompound(i));
+                for (CompoundTag compoundTag : cachedTag) {
+                    var modifier = AttributeModifier.load(compoundTag);
 
                     if (modifier != null) {
                         this.cachedModifiers.add(modifier);
@@ -469,17 +475,20 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceC
         }
     }
 
-    public static SimpleContainer readContainer(CompoundTag tag, String key){
-        return readContainers(tag, key).get(0);
+    public static SimpleContainer readContainer(MapCarrier carrier, SerializationContext ctx, KeyedEndec<ListTag> key){
+        return readContainers(carrier, ctx, key).get(0);
     }
 
-    public static List<SimpleContainer> readContainers(CompoundTag tag, String ...keys){
+    @SafeVarargs
+    public static List<SimpleContainer> readContainers(MapCarrier carrier, SerializationContext ctx, KeyedEndec<ListTag> ...keys){
         var containers = new ArrayList<SimpleContainer>();
 
-        for (String key : keys) {
+        var registryAccess = ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager();
+
+        for (var key : keys) {
             var stacks = new SimpleContainer();
 
-            if(tag.contains(key)) stacks.fromTag(tag.getList(key, Tag.TAG_COMPOUND));
+            if(carrier.has(key)) stacks.fromTag(carrier.get(key), registryAccess);
 
             containers.add(stacks);
         }

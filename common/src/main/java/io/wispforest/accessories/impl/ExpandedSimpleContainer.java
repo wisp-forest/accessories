@@ -6,6 +6,7 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import it.unimi.dsi.fastutil.ints.Int2BooleanArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -153,7 +154,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     //--
 
     @Override
-    public void fromTag(ListTag containerNbt) {
+    public void fromTag(ListTag containerNbt, HolderLookup.Provider provider) {
         for(int i = 0; i < this.getContainerSize(); ++i) {
             this.setItem(i, ItemStack.EMPTY);
         }
@@ -164,13 +165,13 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
             int j = compoundTag.getInt("Slot");
 
             if (j >= 0 && j < this.getContainerSize()) {
-                this.setItem(j, ItemStack.of(compoundTag));
+                this.setItem(j, ItemStack.parseOptional(provider, compoundTag));
             }
         }
     }
 
     @Override
-    public ListTag createTag() {
+    public ListTag createTag(HolderLookup.Provider provider) {
         ListTag listTag = new ListTag();
 
         for(int i = 0; i < this.getContainerSize(); ++i) {
@@ -181,7 +182,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
                 compoundTag.putInt("Slot", i);
 
-                listTag.add(itemStack.save(compoundTag));
+                listTag.add(itemStack.save(provider, compoundTag));
             }
         }
 

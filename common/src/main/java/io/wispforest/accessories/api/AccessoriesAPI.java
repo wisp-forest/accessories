@@ -5,6 +5,8 @@ import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.events.AdjustAttributeModifierCallback;
 import io.wispforest.accessories.api.events.CanEquipCallback;
 import io.wispforest.accessories.api.events.CanUnequipCallback;
@@ -13,6 +15,7 @@ import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
 import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -102,11 +105,11 @@ public class AccessoriesAPI {
 
     //--
 
-    public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(ItemStack stack, SlotReference slotReference, UUID uuid){
+    public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(ItemStack stack, SlotReference slotReference, UUID uuid){
         return getAttributeModifiers(stack, slotReference.entity(), slotReference.slotName(), slotReference.slot(), uuid);
     }
 
-    public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(ItemStack stack, String slotName, int slot, UUID uuid){
+    public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(ItemStack stack, String slotName, int slot, UUID uuid){
         return getAttributeModifiers(stack, null, slotName, slot, uuid);
     }
 
@@ -114,47 +117,20 @@ public class AccessoriesAPI {
      * Attempts to get any at all AttributeModifier's found on the stack either though NBT or the Accessory bound
      * to the {@link ItemStack}'s item
      */
-    public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot, UUID uuid){
-        Multimap<Attribute, AttributeModifier> attributeModifiers = HashMultimap.create();
+    public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot, UUID uuid){
+        Multimap<Holder<Attribute>, AttributeModifier> attributeModifiers = HashMultimap.create();
 
-        if(stack.getTag() != null && stack.getTag().contains("AccessoriesAttributeModifiers", Tag.TAG_LIST)){
-            var attributes = stack.getTag().getList("AccessoriesAttributeModifiers", Tag.TAG_COMPOUND);
+        if(stack.has(AccessoriesDataComponents.ATTRIBUTES)){
+            var slots = (entity != null) ? SlotTypeLoader.getSlotTypes(entity.level()) : Map.of();
 
-            for (int i = 0; i < attributes.size(); i++) {
-                var attributeTag = attributes.getCompound(i);
+            for (var entry : stack.get(AccessoriesDataComponents.ATTRIBUTES).modifiers()) {
+                var attributeModifier = entry.modifier();
 
-                if(attributeTag.contains("Slot") && !attributeTag.getString("Slot").equals(slotName)){
+                if(entry.attribute().value() instanceof SlotAttribute slotAttribute && !slots.containsKey(slotAttribute.slotName())){
                     continue;
                 }
 
-                var attributeType = ResourceLocation.tryParse(attributeTag.getString("AttributeName"));
-                var id = uuid;
-
-                if(attributeType == null) continue;
-
-                if(attributeTag.contains("UUID")) id = attributeTag.getUUID("UUID");
-
-                if(id.getLeastSignificantBits() == 0 || id.getMostSignificantBits() == 0) continue;
-
-                var operation = AttributeModifier.Operation.fromValue(attributeTag.getInt("Operation"));
-                var amount = attributeTag.getDouble("Amount");
-                var name = attributeTag.getString("Name");
-
-                var attributeModifier = new AttributeModifier(id, name, amount, operation);
-
-                if(attributeType.getNamespace().equals(Accessories.MODID)){
-                    var attributeSlotName = attributeType.getPath();
-
-                    if(entity != null && !SlotTypeLoader.getSlotTypes(entity.level()).containsKey(attributeSlotName)) continue;
-
-                    attributeModifiers.put(SlotAttribute.getSlotAttribute(attributeSlotName), attributeModifier);
-                } else {
-                    var attribute = BuiltInRegistries.ATTRIBUTE.getOptional(attributeType);
-
-                    if(attribute.isEmpty()) continue;
-
-                    attributeModifiers.put(attribute.get(), attributeModifier);
-                }
+                attributeModifiers.put(entry.attribute(), attributeModifier);
             }
         }
 
@@ -165,9 +141,7 @@ public class AccessoriesAPI {
             var accessory = AccessoriesAPI.getAccessory(stack);
 
             if(accessory != null) {
-                var data = accessory.getModifiers(stack, reference, uuid);
-
-                attributeModifiers.putAll(data);
+                attributeModifiers.putAll(accessory.getModifiers(stack, reference, uuid));
             }
 
             var attributeCopy = HashMultimap.create(attributeModifiers);
@@ -180,29 +154,12 @@ public class AccessoriesAPI {
         return attributeModifiers;
     }
 
-    public static void addAttribute(ItemStack stack, String slotName, Attribute attribute, String name, UUID id, double amount, AttributeModifier.Operation operation) {
-        addAttribute(stack.getOrCreateTag(), slotName, attribute, name, id, amount, operation);
-    }
-
-    public static void addAttribute(CompoundTag tag, String slotName, Attribute attribute, String name, UUID id, double amount, AttributeModifier.Operation operation) {
-        var attributes = tag.getList("AccessoriesAttributeModifiers", Tag.TAG_COMPOUND);
-
-        var attributeTag = new CompoundTag();
-
-        attributeTag.putString("Name", name);
-        attributeTag.putUUID("UUID", id);
-        attributeTag.putDouble("Amount", amount);
-        attributeTag.putInt("Operation", operation.toValue());
-
-        attributeTag.putString("Slot", slotName);
-
-        var attributeId = (attribute instanceof SlotAttribute slotAttribute)
-                ? Accessories.of(slotAttribute.slotName())
-                : BuiltInRegistries.ATTRIBUTE.getKey(attribute);
-
-        attributeTag.putString("AttributeName", attributeId.toString());
-
-        attributes.add(attributeTag);
+    public static void addAttribute(ItemStack stack, String slotName, Holder<Attribute> attribute, String name, UUID id, double amount, AttributeModifier.Operation operation) {
+        stack.update(
+                AccessoriesDataComponents.ATTRIBUTES,
+                new AccessoryItemAttributeModifiers(List.of()),
+                modifiers -> modifiers.withModifierAdded(attribute, new AttributeModifier(id, name, amount, operation), slotName)
+        );
     }
 
     //--
@@ -348,7 +305,7 @@ public class AccessoriesAPI {
      * Helper method to trigger effects of a given accessory being broken on any tracking clients for the given entity
      */
     public static void breakStack(SlotReference reference){
-        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(reference.entity(), new AccessoryBreak(reference));
+        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(reference.entity(), AccessoryBreak.of(reference));
     }
 
     //--
@@ -416,28 +373,24 @@ public class AccessoriesAPI {
             return bl ? TriState.TRUE : TriState.DEFAULT;
         });
         registerPredicate(Accessories.of("compound"), (level, slotType, index, stack) -> {
-            var tag = stack.getTag();
-            var name = slotType.name();
+            if(stack.has(AccessoriesDataComponents.SLOT_VALIDATION)) {
+                var slotValidationData = stack.get(AccessoriesDataComponents.SLOT_VALIDATION);
+                var name = slotType.name();
 
-            if(tag != null && tag.contains(ACCESSORY_PREDICATES_KEY)) {
-                var extraData = tag.getCompound(ACCESSORY_PREDICATES_KEY);
+                //--
 
-                var invalidSlots = extraData.getList(ACCESSORY_INVALID_SLOTS_KEY, Tag.TAG_STRING);
+                var invalidSlots = slotValidationData.invalidSlotOverrides();
 
-                for (int i = 0; i < invalidSlots.size(); i++) {
-                    var invalidSlot = invalidSlots.getString(i);
-
+                for (var invalidSlot : invalidSlots) {
                     if (name.equals(invalidSlot)) return TriState.FALSE;
                 }
 
                 //--
 
-                var validSlots = extraData.getList(ACCESSORY_VALID_SLOTS_KEY, Tag.TAG_STRING);
+                var validSlots = slotValidationData.validSlotOverrides();
 
-                for (int i = 0; i < validSlots.size(); i++) {
-                    var validSlot = validSlots.getString(i);
-
-                    if(validSlot.equals("any")) return TriState.TRUE;
+                for (var validSlot : validSlots) {
+                    if (validSlot.equals("any")) return TriState.TRUE;
 
                     if (name.equals(validSlot)) return TriState.TRUE;
                 }

@@ -9,7 +9,9 @@ import io.wispforest.accessories.fabric.AccessoriesFabric;
 import io.wispforest.accessories.fabric.AccessoriesFabricNetworkHandler;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
+import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
 import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.endec.Endec;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -69,7 +71,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
             }
         });
 
-        ItemTooltipCallback.EVENT.register((stack, context, lines) -> {
+        ItemTooltipCallback.EVENT.register((stack, context, type, lines) -> {
             var player = Minecraft.getInstance().player;
 
             if(player == null) return;
@@ -107,7 +109,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
     }
 
     @Environment(EnvType.CLIENT)
-    protected static <M extends AccessoriesPacket> void registerS2C(Class<M> messageType, Supplier<M> supplier) {
-        ClientPlayNetworking.registerGlobalReceiver(AccessoriesFabricNetworkHandler.INSTANCE.getOrCreate(messageType, supplier), (packet, player, sender) -> packet.innerPacket().handle(player));
+    protected static <M extends AccessoriesPacket> void registerS2C(Class<M> messageType, Endec<M> endec) {
+        ClientPlayNetworking.registerGlobalReceiver(AccessoriesNetworkHandler.getId(messageType), (packet, context) -> packet.handle(context.player()));
     }
 }

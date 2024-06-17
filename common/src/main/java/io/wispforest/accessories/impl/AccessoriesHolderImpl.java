@@ -1,9 +1,19 @@
 package io.wispforest.accessories.impl;
 
+import com.google.common.collect.ImmutableMap;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.endec.EdmUtils;
+import io.wispforest.endec.Endec;
+import io.wispforest.endec.SerializationAttribute;
+import io.wispforest.endec.SerializationContext;
+import io.wispforest.endec.format.edm.EdmElement;
+import io.wispforest.endec.format.edm.EdmEndec;
+import io.wispforest.endec.format.edm.EdmMap;
+import io.wispforest.endec.impl.KeyedEndec;
+import io.wispforest.endec.util.MapCarrier;
 import net.minecraft.Util;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -12,7 +22,9 @@ import org.jetbrains.annotations.ApiStatus;
 import java.util.*;
 
 @ApiStatus.Internal
-public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecable {
+public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
+
+    private static final EdmMap EMPTY = EdmElement.wrapMap(ImmutableMap.of()).asMap();
 
     private final Map<String, AccessoriesContainer> slotContainers = new LinkedHashMap<>();
 
@@ -28,14 +40,14 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
 
     private boolean linesShown = false;
 
-    private CompoundTag tag;
+    private MapCarrier carrier;
     protected boolean loadedFromTag = false;
 
     public static AccessoriesHolderImpl of(){
         var holder = new AccessoriesHolderImpl();
 
         holder.loadedFromTag = true;
-        holder.tag = new CompoundTag();
+        holder.carrier = EMPTY;
 
         return holder;
     }
@@ -116,7 +128,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
                 slotContainers.putIfAbsent(s, new AccessoriesContainerImpl(capability, slotType));
             });
 
-            read(capability, livingEntity, this.tag);
+            read(capability, livingEntity, this.carrier, SerializationContext.attributes(new EntityAttribute(livingEntity)));
         } else {
             EntitySlotLoader.getEntitySlots(livingEntity).forEach((s, slotType) -> {
                 slotContainers.put(s, new AccessoriesContainerImpl(capability, slotType));
@@ -124,93 +136,120 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceCodecab
         }
     }
 
-    public static final String CONTAINERS_KEY = "AccessoriesContainers";
+    private static final KeyedEndec<Map<String, AccessoriesContainer>> CONTAINERS_KEY = EdmEndec.MAP.xmapWithContext(
+            (ctx, containersMap) -> {
+                var entity = ctx.requireAttributeValue(EntityAttribute.ENTITY).livingEntity();
+                var slotContainers = ctx.requireAttributeValue(ContainersAttribute.CONTAINERS).slotContainers();
+                var invalidStacks = ctx.requireAttributeValue(InvalidStacksAttribute.INVALID_STACKS).invalidStacks();
 
-    public static final String COSMETICS_SHOWN_KEY = "CosmeticsShown";
+                var slots = EntitySlotLoader.getEntitySlots(entity);
 
-    public static final String LINES_SHOWN_KEY = "LinesShown";
+                var mapValue = containersMap.value();
+
+                for (var key : mapValue.keySet()) {
+                    var containerElement = mapValue.get(key);
+
+                    if (!containerElement.type().equals(EdmElement.Type.MAP)) continue; // TODO: Handle such case?
+
+                    if (slots.containsKey(key)) {
+                        var container = slotContainers.get(key);
+
+                        var prevAccessories = AccessoriesContainerImpl.copyContainerList(container.getAccessories());
+                        var prevCosmetics = AccessoriesContainerImpl.copyContainerList(container.getCosmeticAccessories());
+
+                        ((AccessoriesContainerImpl) container).read(containerElement.asMap(), ctx);
+
+                        if (prevAccessories.getContainerSize() > container.getSize()) {
+                            for (int i = container.getSize() - 1; i < prevAccessories.getContainerSize(); i++) {
+                                var prevStack = prevAccessories.getItem(i);
+
+                                if (!prevStack.isEmpty()) invalidStacks.add(prevStack);
+
+                                var prevCosmetic = prevCosmetics.getItem(i);
+
+                                if (!prevCosmetic.isEmpty()) invalidStacks.add(prevCosmetic);
+                            }
+                        }
+                    } else {
+                        var containers = AccessoriesContainerImpl.readContainers(containerElement.asMap(), ctx, AccessoriesContainerImpl.COSMETICS_KEY, AccessoriesContainerImpl.ITEMS_KEY);
+
+                        for (var simpleContainer : containers) {
+                            for (int i = 0; i < simpleContainer.getContainerSize(); i++) {
+                                var stack = simpleContainer.getItem(i);
+
+                                if (!stack.isEmpty()) invalidStacks.add(stack);
+                            }
+                        }
+                    }
+                }
+
+                return slotContainers;
+            }, (ctx, containers) -> {
+                var containerMap = new HashMap<String, EdmElement<?>>();
+
+                containers.forEach((s, container) -> {
+                    containerMap.put(s, Util.make(EdmUtils.newMap(), innerCarrier -> ((AccessoriesContainerImpl) container).write(innerCarrier, ctx)));
+                });
+
+                return EdmMap.wrapMap(containerMap).asMap();
+            }).keyed("AccessoriesContainers", new HashMap<>());
+
+    private static final KeyedEndec<Boolean> COSMETICS_SHOWN_KEY = Endec.BOOLEAN.keyed("CosmeticsShown", false);
+
+    private static final KeyedEndec<Boolean> LINES_SHOWN_KEY = Endec.BOOLEAN.keyed("LinesShown", false);
 
     @Override
-    public void write(CompoundTag tag) {
+    public void write(MapCarrier carrier, SerializationContext ctx) {
         if(slotContainers.isEmpty()) return;
 
-        tag.putBoolean(COSMETICS_SHOWN_KEY, cosmeticsShown);
+        carrier.put(COSMETICS_SHOWN_KEY, this.cosmeticsShown);
 
-        tag.putBoolean(LINES_SHOWN_KEY, linesShown);
+        carrier.put(LINES_SHOWN_KEY, this.linesShown);
 
-        //--
-
-        CompoundTag main = new CompoundTag();
-
-        this.slotContainers.forEach((s, container) -> {
-            main.put(s, Util.make(new CompoundTag(), innerTag -> ((AccessoriesContainerImpl) container).write(innerTag)));
-        });
-
-        tag.put(CONTAINERS_KEY, main);
+        carrier.put(ctx, CONTAINERS_KEY, this.slotContainers);
     }
 
-    public void read(LivingEntity entity, CompoundTag tag) {
-        read(entity.accessoriesCapability(), entity, tag);
+    public void read(LivingEntity entity, MapCarrier carrier, SerializationContext ctx) {
+        read(entity.accessoriesCapability(), entity, carrier, ctx);
     }
 
-    public void read(AccessoriesCapability capability, LivingEntity entity, CompoundTag tag) {
+    public void read(AccessoriesCapability capability, LivingEntity entity, MapCarrier carrier, SerializationContext ctx) {
         this.loadedFromTag = false;
 
-        var slots = EntitySlotLoader.getEntitySlots(entity);
+        this.cosmeticsShown = carrier.get(COSMETICS_SHOWN_KEY);
+        this.linesShown = carrier.get(LINES_SHOWN_KEY);
 
-        this.cosmeticsShown = tag.getBoolean(COSMETICS_SHOWN_KEY);
-
-        this.linesShown = tag.getBoolean(LINES_SHOWN_KEY);
-
-        var containersTag = tag.contains(CONTAINERS_KEY) ? tag.getCompound(CONTAINERS_KEY) : tag.getCompound("Accessories");
-
-        for (String key : containersTag.getAllKeys()) {
-            var containerTag = containersTag.getCompound(key);
-
-            if (slots.containsKey(key)) {
-                var container = slotContainers.get(key);
-
-                var prevAccessories = AccessoriesContainerImpl.copyContainerList(container.getAccessories());
-                var prevCosmetics = AccessoriesContainerImpl.copyContainerList(container.getCosmeticAccessories());
-
-                ((AccessoriesContainerImpl) container).read(containerTag);
-
-                if (prevAccessories.getContainerSize() > container.getSize()) {
-                    for (int i = container.getSize() - 1; i < prevAccessories.getContainerSize(); i++) {
-                        var prevStack = prevAccessories.getItem(i);
-
-                        if (!prevStack.isEmpty()) {
-                            this.invalidStacks.add(prevStack);
-                        }
-
-                        var prevCosmetic = prevCosmetics.getItem(i);
-
-                        if (!prevCosmetic.isEmpty()) {
-                            this.invalidStacks.add(prevCosmetic);
-                        }
-                    }
-                }
-            } else {
-                var containers = AccessoriesContainerImpl.readContainers(containerTag, AccessoriesContainerImpl.COSMETICS_KEY, AccessoriesContainerImpl.ITEMS_KEY);
-
-                for (SimpleContainer simpleContainer : containers) {
-                    for (int i = 0; i < simpleContainer.getContainerSize(); i++) {
-                        var stack = simpleContainer.getItem(i);
-
-                        if (!stack.isEmpty()) this.invalidStacks.add(stack);
-                    }
-                }
-            }
-        }
+        carrier.get(ctx.withAttributes(new ContainersAttribute(this.slotContainers), new InvalidStacksAttribute(this.invalidStacks)), CONTAINERS_KEY);
 
         capability.clearCachedSlotModifiers();
 
-        this.tag = new CompoundTag();
+        this.carrier = EMPTY;
     }
 
     @Override
-    public void read(CompoundTag tag) {
+    public void read(MapCarrier carrier, SerializationContext context) {
         this.loadedFromTag = true;
-        this.tag = tag;
+        this.carrier = carrier;
+    }
+
+    private record ContainersAttribute(Map<String, AccessoriesContainer> slotContainers) implements SerializationAttribute.Instance {
+        public static final SerializationAttribute.WithValue<ContainersAttribute> CONTAINERS = SerializationAttribute.withValue(Accessories.translation("containers"));
+
+        @Override public SerializationAttribute attribute() { return CONTAINERS; }
+        @Override public Object value() { return this; }
+    }
+
+    private record InvalidStacksAttribute(List<ItemStack> invalidStacks) implements SerializationAttribute.Instance {
+        public static final SerializationAttribute.WithValue<InvalidStacksAttribute> INVALID_STACKS = SerializationAttribute.withValue(Accessories.translation("invalidStacks"));
+
+        @Override public SerializationAttribute attribute() { return INVALID_STACKS; }
+        @Override public Object value() { return this; }
+    }
+
+    private record EntityAttribute(LivingEntity livingEntity) implements SerializationAttribute.Instance{
+        public static final SerializationAttribute.WithValue<EntityAttribute> ENTITY = SerializationAttribute.withValue("entity");
+
+        @Override public SerializationAttribute attribute() { return ENTITY; }
+        @Override public Object value() { return this;}
     }
 }

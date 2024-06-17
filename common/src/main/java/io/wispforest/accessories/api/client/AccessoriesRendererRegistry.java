@@ -2,6 +2,7 @@ package io.wispforest.accessories.api.client;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -41,10 +42,8 @@ public class AccessoriesRendererRegistry {
 
     @Nullable
     public static AccessoryRenderer getRender(ItemStack stack){
-        var tag = stack.getTag();
-
-        if(tag != null && tag.contains(defaultRenderOverrideKey)) {
-            if(tag.getBoolean(defaultRenderOverrideKey)) {
+        if(stack.has(AccessoriesDataComponents.RENDER_OVERRIDE)) {
+            if(stack.get(AccessoriesDataComponents.RENDER_OVERRIDE).defaultRenderOverride()) {
                 return DefaultAccessoryRenderer.INSTANCE;
             } else if(AccessoriesAPI.getOrDefaultAccessory(stack.getItem()) == AccessoriesAPI.defaultAccessory()) {
                 return null;

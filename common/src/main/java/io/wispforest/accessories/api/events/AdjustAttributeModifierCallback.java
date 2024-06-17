@@ -8,6 +8,7 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -37,5 +38,5 @@ public interface AdjustAttributeModifierCallback {
      * @param uuid      The UUID create from the given referenced slot type and index
      * @param modifiers The current attribute modifiers
      */
-    void adjustAttributes(ItemStack stack, SlotReference reference, UUID uuid, Multimap<Attribute, AttributeModifier> modifiers);
+    void adjustAttributes(ItemStack stack, SlotReference reference, UUID uuid, Multimap<Holder<Attribute>, AttributeModifier> modifiers);
 }

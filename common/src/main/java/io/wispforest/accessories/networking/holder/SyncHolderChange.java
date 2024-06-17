@@ -3,6 +3,7 @@ package io.wispforest.accessories.networking.holder;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.endec.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -13,19 +14,22 @@ import net.minecraft.world.entity.player.Player;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class SyncHolderChange extends AccessoriesPacket {
+public record SyncHolderChange(HolderProperty<?> property, Object data) implements AccessoriesPacket {
 
-    private HolderProperty<?> property;
-    private Object data;
+    public static final Endec<SyncHolderChange> ENDEC = new StructEndec<SyncHolderChange>() {
+        @Override
+        public void encodeStruct(SerializationContext ctx, Serializer<?> serializer, Serializer.Struct struct, SyncHolderChange value) {
+            struct.field("property", ctx, HolderProperty.ENDEC, value.property());
+            struct.field("value", ctx, (Endec) value.property().endec(), value.data());
+        }
 
-    public SyncHolderChange() {}
+        @Override
+        public SyncHolderChange decodeStruct(SerializationContext ctx, Deserializer<?> deserializer, Deserializer.Struct struct) {
+            var prop = struct.field("property", ctx, HolderProperty.ENDEC);
 
-    private SyncHolderChange(HolderProperty<?> property, Object data){
-        super(false);
-
-        this.property = property;
-        this.data = data;
-    }
+            return new SyncHolderChange(prop, struct.field("value", ctx, prop.endec()));
+        }
+    };
 
     public static <T> SyncHolderChange of(HolderProperty<T> property, T data) {
         return new SyncHolderChange(property, data);
@@ -35,23 +39,9 @@ public class SyncHolderChange extends AccessoriesPacket {
         return new SyncHolderChange(property, operation.apply(property.getter().apply(player.accessoriesHolder())));
     }
 
-    @Override
-    public void write(FriendlyByteBuf buf) {
-        buf.writeUtf(this.property.name());
-        this.property.write(buf, this.data);
-    }
-
-    @Override
-    protected void read(FriendlyByteBuf buf) {
-        this.property = HolderProperty.getProperty(buf.readUtf());
-        this.data = this.property.reader().apply(buf);
-    }
-
     @Environment(EnvType.CLIENT)
     @Override
     public void handle(Player player) {
-        super.handle(player);
-
         this.property.setData(player, this.data);
 
         if(player.level().isClientSide()) {
@@ -61,6 +51,7 @@ public class SyncHolderChange extends AccessoriesPacket {
         }
     }
 
+    @Environment(EnvType.CLIENT)
     public void handleClient(Player player) {
         if(Minecraft.getInstance().screen instanceof AccessoriesScreen accessoriesScreen) {
             accessoriesScreen.updateButtons(this.property.name());

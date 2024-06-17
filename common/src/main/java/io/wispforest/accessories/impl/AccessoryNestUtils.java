@@ -4,8 +4,10 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.AccessoryNest;
+import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
 import io.wispforest.accessories.api.slot.NestedSlotReferenceImpl;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
@@ -20,27 +22,13 @@ import java.util.function.BiFunction;
 
 public class AccessoryNestUtils {
 
-    private final static LoadingCache<ItemStack, StackData> CACHE = CacheBuilder.newBuilder()
-            .concurrencyLevel(1)
-            .expireAfterAccess(Duration.ofSeconds(1))
-            //.maximumSize(1000)
-            .weakKeys()
-            .build(CacheLoader.from(StackData::new));
-
     @Nullable
-    public static StackData getData(ItemStack stack){
+    public static AccessoryNestContainerContents getData(ItemStack stack){
         var accessory = AccessoriesAPI.getAccessory(stack.getItem());
 
         if(!(accessory instanceof AccessoryNest)) return null;
 
-        var data = CACHE.getUnchecked(stack);
-
-        if (data.isInvalid()) {
-            CACHE.refresh(stack);
-            data = CACHE.getUnchecked(stack);
-        }
-
-        return data;
+        return stack.get(AccessoriesDataComponents.NESTED_ACCESSORIES);
     }
 
     public static <T> @Nullable T recursiveStackHandling(ItemStack stack, SlotReference reference, BiFunction<ItemStack, SlotReference, @Nullable T> function) {
@@ -81,7 +69,7 @@ public class AccessoryNestUtils {
         }
     }
 
-    private static NestedSlotReferenceImpl create(SlotReference reference, int innerIndex) {
+    public static NestedSlotReferenceImpl create(SlotReference reference, int innerIndex) {
         var innerSlotIndices = new ArrayList<Integer>();
 
         if(reference instanceof NestedSlotReferenceImpl nestedSlotReference) {
@@ -91,70 +79,5 @@ public class AccessoryNestUtils {
         innerSlotIndices.add(innerIndex);
 
         return SlotReference.ofNest(reference.entity(), reference.slotName(), reference.slot(), innerSlotIndices);
-    }
-
-    public static class StackData {
-        private final AccessoryNest accessoryNest;
-        private final ItemStack stack;
-
-        private final List<ItemStack> subStacks = new ArrayList<>();
-        private final List<ItemStack> defensiveCopies = new ArrayList<>();
-        private CompoundTag defensiveNbtData;
-
-        private StackData(ItemStack stack) {
-            this.accessoryNest = (AccessoryNest) AccessoriesAPI.getAccessory(stack.getItem());
-
-            this.stack = stack;
-
-            if (stack.hasTag()) {
-                this.defensiveNbtData = stack.getTag().copy();
-
-                var items = accessoryNest.getInnerStacks(stack);
-                for (var item : items) {
-                    this.subStacks.add(item);
-                    this.defensiveCopies.add(item.copy());
-                }
-            }
-        }
-
-        public final boolean isInvalid() {
-            return !Objects.equals(stack.getTag(), defensiveNbtData);
-        }
-
-        public final List<ItemStack> getStacks() {
-            return subStacks;
-        }
-
-        public final List<ItemStack> getDefensiveCopies() {
-            return defensiveCopies;
-        }
-
-        public final Map<ItemStack, Accessory> getMap() {
-            var map = new LinkedHashMap<ItemStack, Accessory>();
-
-            this.getStacks().forEach(stack1 -> map.put(stack1, AccessoriesAPI.getOrDefaultAccessory(stack1)));
-
-            return map;
-        }
-
-        public final Map<SlotEntryReference, Accessory> getMap(SlotReference slotReference) {
-            var map = new LinkedHashMap<SlotEntryReference, Accessory>();
-
-            var innerStacks = this.getStacks();
-
-            for (int i = 0; i < innerStacks.size(); i++) {
-                var innerStack = innerStacks.get(i);
-
-                if (innerStack.isEmpty()) continue;
-
-                map.put(new SlotEntryReference(create(slotReference, i), innerStack), AccessoriesAPI.getOrDefaultAccessory(innerStack));
-            }
-
-            return map;
-        }
-
-        public final AccessoryNest getNest() {
-            return this.accessoryNest;
-        }
     }
 }

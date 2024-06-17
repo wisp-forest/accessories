@@ -14,14 +14,17 @@ import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
+import io.wispforest.accessories.endec.EdmUtils;
+import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncData;
+import io.wispforest.accessories.utils.AttributeUtils;
+import io.wispforest.endec.SerializationContext;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -38,6 +41,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -45,7 +49,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static io.wispforest.accessories.Accessories.ACCESSORY_EQUIPPED;
@@ -131,11 +134,11 @@ public class AccessoriesEventHandler {
 
         if(capability == null) return;
 
-        var tag = new CompoundTag();
+        var carrier = EdmUtils.newMap();
 
-        ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
+        ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(level.registryAccess())));
 
-        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(tag, capability.entity().getId()));
+        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
     }
 
     public static void onTracking(LivingEntity entity, ServerPlayer serverPlayer) {
@@ -143,11 +146,11 @@ public class AccessoriesEventHandler {
 
         if(capability == null) return;
 
-        var tag = new CompoundTag();
+        var carrier = EdmUtils.newMap();
 
-        ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
+        ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(entity.level().registryAccess())));
 
-        AccessoriesInternals.getNetworkHandler().sendToPlayer(serverPlayer, new SyncEntireContainer(tag, capability.entity().getId()));
+        AccessoriesInternals.getNetworkHandler().sendToPlayer(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
     }
 
     public static void dataSync(@Nullable PlayerList list, @Nullable ServerPlayer player) {
@@ -157,29 +160,24 @@ public class AccessoriesEventHandler {
         if (list != null && !list.getPlayers().isEmpty()) {
             revalidatePlayersOnReload(list);
 
-            var buf = AccessoriesNetworkHandler.createBuf();
-
-            syncPacket.write(buf);
-
+            // TODO: OPTIMIZE SUCH?
             for (var playerEntry : list.getPlayers()) {
-                networkHandler.sendToPlayer(playerEntry, new SyncData(buf));
+                networkHandler.sendToPlayer(playerEntry, syncPacket);
 
                 var capability = AccessoriesCapability.get(playerEntry);
 
                 if(capability == null) return;
 
-                var tag = new CompoundTag();
+                var carrier = EdmUtils.newMap();
 
-                ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
+                ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(playerEntry.level().registryAccess())));
 
-                networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(tag, capability.entity().getId()));
+                networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(capability.entity().getId(), carrier));
 
                 if(playerEntry.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
                     Accessories.openAccessoriesMenu(player, accessoriesMenu.targetEntity());
                 }
             }
-
-            buf.release();
         } else if (player != null) {
             networkHandler.sendToPlayer(player, syncPacket);
 
@@ -187,11 +185,11 @@ public class AccessoriesEventHandler {
 
             if(capability == null) return;
 
-            var tag = new CompoundTag();
+            var carrier = EdmUtils.newMap();
 
-            ((AccessoriesHolderImpl) capability.getHolder()).write(tag);
+            ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(player.level().registryAccess())));
 
-            networkHandler.sendToPlayer(player, new SyncEntireContainer(tag, capability.entity().getId()));
+            networkHandler.sendToPlayer(player, new SyncEntireContainer(capability.entity().getId(), carrier));
 
             if(player.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
                 Accessories.openAccessoriesMenu(player, accessoriesMenu.targetEntity());
@@ -242,40 +240,42 @@ public class AccessoriesEventHandler {
                         var uuid = AccessoriesAPI.getOrCreateSlotUUID(slotType, i);
 
                         if (!lastStack.isEmpty()) {
-                            Multimap<Attribute, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(lastStack, slotReference, uuid);
+                            Multimap<Holder<Attribute>, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(lastStack, slotReference, uuid);
                             Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
 
-                            Set<Attribute> slotAttributes = new HashSet<>();
+                            Set<Holder<Attribute>> slotAttributes = new HashSet<>();
 
                             for (var entry : attributes.asMap().entrySet()) {
-                                if (!(entry.getKey() instanceof SlotAttribute slotAttribute)) continue;
+                                var attribute = entry.getKey();
+                                if (!(attribute.value() instanceof SlotAttribute slotAttribute)) continue;
 
                                 slotModifiers.putAll(slotAttribute.slotName(), entry.getValue());
-                                slotAttributes.add(slotAttribute);
+                                slotAttributes.add(attribute);
                             }
 
                             slotAttributes.forEach(attributes::removeAll);
 
-                            entity.getAttributes().removeAttributeModifiers(attributes);
+                            AttributeUtils.removeAttributes(entity, attributes);
                             capability.removeSlotModifiers(slotModifiers);
                         }
 
                         if (!currentStack.isEmpty()) {
-                            Multimap<Attribute, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(currentStack, slotReference, uuid);
+                            Multimap<Holder<Attribute>, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(currentStack, slotReference, uuid);
                             Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
 
-                            Set<Attribute> slotAttributes = new HashSet<>();
+                            Set<Holder<Attribute>> slotAttributes = new HashSet<>();
 
                             for (var entry : attributes.asMap().entrySet()) {
-                                if (!(entry.getKey() instanceof SlotAttribute slotAttribute)) continue;
+                                var attribute = entry.getKey();
+                                if (!(entry.getKey().value() instanceof SlotAttribute slotAttribute)) continue;
 
                                 slotModifiers.putAll(slotAttribute.slotName(), entry.getValue());
-                                slotAttributes.add(slotAttribute);
+                                slotAttributes.add(attribute);
                             }
 
                             slotAttributes.forEach(attributes::removeAll);
 
-                            entity.getAttributes().addTransientAttributeModifiers(attributes);
+                            AttributeUtils.addTransientAttributeModifiers(entity, attributes);
                             capability.addTransientSlotModifiers(slotModifiers);
                         }
 
@@ -334,17 +334,11 @@ public class AccessoriesEventHandler {
             ContainersChangeCallback.EVENT.invoker().onChange(entity, capability, ImmutableMap.copyOf(updatedContainers));
 
             if (!dirtyStacks.isEmpty() || !dirtyCosmeticStacks.isEmpty() || !updatedContainers.isEmpty()) {
-                var packet = new SyncContainerData(entity.getId(), updatedContainers.keySet(), dirtyStacks, dirtyCosmeticStacks);
-
-                var bufData = AccessoriesNetworkHandler.createBuf();
-
-                packet.write(bufData);
+                var packet = SyncContainerData.of(entity, updatedContainers.keySet(), dirtyStacks, dirtyCosmeticStacks);
 
                 var networkHandler = AccessoriesInternals.getNetworkHandler();
 
-                networkHandler.sendToTrackingAndSelf(entity, (Supplier<SyncContainerData>) () -> new SyncContainerData(bufData));
-
-                bufData.release();
+                networkHandler.sendToTrackingAndSelf(entity, packet);
             }
 
             updatedContainers.clear();
@@ -444,8 +438,8 @@ public class AccessoriesEventHandler {
 
         tooltip.add(slotInfoComponent);
 
-        Map<SlotType, Multimap<Attribute, AttributeModifier>> slotSpecificModifiers = new HashMap<>();
-        Multimap<Attribute, AttributeModifier> defaultModifiers = null;
+        Map<SlotType, Multimap<Holder<Attribute>, AttributeModifier>> slotSpecificModifiers = new HashMap<>();
+        Multimap<Holder<Attribute>, AttributeModifier> defaultModifiers = null;
 
         boolean allDuplicates = true;
 
@@ -557,15 +551,15 @@ public class AccessoriesEventHandler {
         accessory.getExtraTooltip(stack, tooltip);
     }
 
-    private static void addAttributeTooltip(Multimap<Attribute, AttributeModifier> multimap, List<Component> tooltip) {
+    private static void addAttributeTooltip(Multimap<Holder<Attribute>, AttributeModifier> multimap, List<Component> tooltip) {
         if (multimap.isEmpty()) return;
 
-        for (Map.Entry<Attribute, AttributeModifier> entry : multimap.entries()) {
+        for (Map.Entry<Holder<Attribute>, AttributeModifier> entry : multimap.entries()) {
             AttributeModifier attributeModifier = entry.getValue();
-            double d = attributeModifier.getAmount();
+            double d = attributeModifier.amount();
 
-            if (attributeModifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE
-                    || attributeModifier.getOperation() == AttributeModifier.Operation.MULTIPLY_TOTAL) {
+            if (attributeModifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE
+                    || attributeModifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL) {
                 d *= 100.0;
             } else if (entry.getKey().equals(Attributes.KNOCKBACK_RESISTANCE)) {
                 d *= 10.0;
@@ -574,9 +568,9 @@ public class AccessoriesEventHandler {
             if (d > 0.0) {
                 tooltip.add(
                         Component.translatable(
-                                        "attribute.modifier.plus." + attributeModifier.getOperation().toValue(),
-                                        ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d),
-                                        Component.translatable(entry.getKey().getDescriptionId())
+                                        "attribute.modifier.plus." + attributeModifier.operation().id(),
+                                        ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(d),
+                                        Component.translatable(entry.getKey().value().getDescriptionId())
                                 )
                                 .withStyle(ChatFormatting.BLUE)
                 );
@@ -584,9 +578,9 @@ public class AccessoriesEventHandler {
                 d *= -1.0;
                 tooltip.add(
                         Component.translatable(
-                                        "attribute.modifier.take." + attributeModifier.getOperation().toValue(),
-                                        ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d),
-                                        Component.translatable(entry.getKey().getDescriptionId())
+                                        "attribute.modifier.take." + attributeModifier.operation().id(),
+                                        ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(d),
+                                        Component.translatable(entry.getKey().value().getDescriptionId())
                                 )
                                 .withStyle(ChatFormatting.RED)
                 );
@@ -706,7 +700,7 @@ public class AccessoriesEventHandler {
 
                         if (newHandStack.isEmpty()) {
                             newHandStack = otherStack;
-                        } else if(ItemStack.isSameItemSameTags(newHandStack, otherStack)) {
+                        } else if(ItemStack.isSameItemSameComponents(newHandStack, otherStack)) {
                             int resizingAmount = 0;
 
                             if((newHandStack.getCount() + otherStack.getCount()) < newHandStack.getMaxStackSize()) {
@@ -756,7 +750,7 @@ public class AccessoriesEventHandler {
 
                             if (newHandStack.isEmpty()) {
                                 newHandStack = otherStack;
-                            } else if(ItemStack.isSameItemSameTags(newHandStack, otherStack)) {
+                            } else if(ItemStack.isSameItemSameComponents(newHandStack, otherStack)) {
                                 int resizingAmount = 0;
 
                                 if((newHandStack.getCount() + otherStack.getCount()) < newHandStack.getMaxStackSize()) {

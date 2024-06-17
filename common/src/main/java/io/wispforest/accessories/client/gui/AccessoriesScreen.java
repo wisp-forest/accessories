@@ -391,7 +391,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         if(Accessories.getConfig().clientData.showLineRendering && !this.accessoryLines.isEmpty()) {
             var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
-            var normals = guiGraphics.pose().last().normal();
+            var lastPose = guiGraphics.pose().last();
 
             for (Pair<Vec3, Vec3> line : this.accessoryLines) {
                 var normalVec = line.second().subtract(line.first()).normalize().toVector3f();
@@ -407,7 +407,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                             .color(255, 255, 255, 255)
                             .overlayCoords(OverlayTexture.NO_OVERLAY)
                             .uv2(LightTexture.FULL_BLOCK)
-                            .normal(normals, normalVec.x, normalVec.y, normalVec.z)
+                            .normal(lastPose, normalVec.x, normalVec.y, normalVec.z)
                             .endVertex();
 
                     var pos = new Vec3(
@@ -420,7 +420,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                             .color(255, 255, 255, 255)
                             .overlayCoords(OverlayTexture.NO_OVERLAY)
                             .uv2(LightTexture.FULL_BLOCK)
-                            .normal(normals, normalVec.x, normalVec.y, normalVec.z)
+                            .normal(lastPose, normalVec.x, normalVec.y, normalVec.z)
                             .endVertex();
                 }
                 for (int i = 0; i < segments / 2; i++) {
@@ -442,13 +442,13 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                             .color(255, 255, 255, 255)
                             .overlayCoords(OverlayTexture.NO_OVERLAY)
                             .uv2(LightTexture.FULL_BLOCK)
-                            .normal(normals, normalVec.x, normalVec.y, normalVec.z)
+                            .normal(lastPose, normalVec.x, normalVec.y, normalVec.z)
                             .endVertex();
                     buf.vertex(pos2.x, pos2.y, pos2.z)
                             .color(255, 255, 255, 255)
                             .overlayCoords(OverlayTexture.NO_OVERLAY)
                             .uv2(LightTexture.FULL_BLOCK)
-                            .normal(normals, normalVec.x, normalVec.y, normalVec.z)
+                            .normal(lastPose, normalVec.x, normalVec.y, normalVec.z)
                             .endVertex();
                 }
             }

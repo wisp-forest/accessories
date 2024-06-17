@@ -67,7 +67,7 @@ public class AccessoriesClient {
         var player = Minecraft.getInstance().player;
 
         if(targetingLookingEntity) {
-            var result = ProjectileUtil.getHitResultOnViewVector(player, e -> e instanceof LivingEntity, (double) Player.getPickRange(player.isCreative()));
+            var result = ProjectileUtil.getHitResultOnViewVector(player, e -> e instanceof LivingEntity, player.entityInteractionRange());
 
             var bl = !(result instanceof EntityHitResult entityHitResult) ||
                     !(entityHitResult.getEntity() instanceof LivingEntity living)
@@ -75,7 +75,7 @@ public class AccessoriesClient {
 
             if(bl) return false;
 
-            AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen(true));
+            AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(true));
         } else {
             var slots = AccessoriesAPI.getUsedSlotsFor(player);
 
@@ -89,7 +89,7 @@ public class AccessoriesClient {
                 displayUnusedSlotWarning = true;
             }
 
-            AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen());
+            AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(false));
         }
 
         return true;

@@ -4,6 +4,8 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.endec.Endec;
+import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,38 +17,20 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.Nullable;
 
-public class ScreenOpen extends AccessoriesPacket {
+public record ScreenOpen(int entityId, boolean targetLookEntity) implements AccessoriesPacket {
 
-    private int entityId = -1;
+    public static final Endec<ScreenOpen> ENDEC = StructEndecBuilder.of(
+            Endec.VAR_INT.fieldOf("entityId", ScreenOpen::entityId),
+            Endec.BOOLEAN.fieldOf("targetLookEntity", ScreenOpen::targetLookEntity),
+            ScreenOpen::new
+    );
 
-    private boolean targetLookEntity = false;
-
-    public ScreenOpen(){
-        super(false);
+    public static ScreenOpen of(@Nullable LivingEntity livingEntity){
+        return new ScreenOpen(livingEntity != null ? livingEntity.getId() : -1, false);
     }
 
-    public ScreenOpen(@Nullable LivingEntity livingEntity){
-        this();
-
-        if(livingEntity != null) this.entityId = livingEntity.getId();
-    }
-
-    public ScreenOpen(boolean targetLookEntity) {
-        this();
-
-        this.targetLookEntity = targetLookEntity;
-    }
-
-    @Override
-    public void write(FriendlyByteBuf buf) {
-        buf.writeInt(this.entityId);
-        buf.writeBoolean(this.targetLookEntity);
-    }
-
-    @Override
-    protected void read(FriendlyByteBuf buf) {
-        this.entityId = buf.readInt();
-        this.targetLookEntity = buf.readBoolean();
+    public static ScreenOpen of(boolean targetLookEntity){
+        return new ScreenOpen(-1, targetLookEntity);
     }
 
     @Override

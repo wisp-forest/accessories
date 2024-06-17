@@ -8,9 +8,12 @@ import io.wispforest.accessories.networking.server.NukeAccessories;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.accessories.networking.server.MenuScroll;
 import io.wispforest.accessories.networking.server.SyncCosmeticToggle;
+import io.wispforest.endec.Endec;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -25,8 +28,8 @@ public abstract class AccessoriesNetworkHandler {
 
     public static Supplier<MinecraftServer> server = () -> null;
 
-    protected final Map<ResourceLocation, NetworkPacketBuilder<?>> c2sBuilders = new HashMap<>();
-    protected final Map<ResourceLocation, NetworkPacketBuilder<?>> s2cBuilders = new HashMap<>();
+    protected final Map<CustomPacketPayload.Type<?>, NetworkPacketBuilder<?>> c2sBuilders = new HashMap<>();
+    protected final Map<CustomPacketPayload.Type<?>, NetworkPacketBuilder<?>> s2cBuilders = new HashMap<>();
 
     public static FriendlyByteBuf createBuf() {
         return new FriendlyByteBuf(Unpooled.buffer());
@@ -35,30 +38,35 @@ public abstract class AccessoriesNetworkHandler {
     public abstract void init();
 
     public final void register() {
-        registerBuilderC2S(ScreenOpen.class, ScreenOpen::new);
-        registerBuilderC2S(MenuScroll.class, MenuScroll::new);
-        registerBuilderC2S(NukeAccessories.class, NukeAccessories::new);
-        registerBuilderC2S(SyncCosmeticToggle.class, SyncCosmeticToggle::new);
+        registerBuilderC2S(ScreenOpen.class, ScreenOpen.ENDEC);
+        registerBuilderC2S(NukeAccessories.class, NukeAccessories.ENDEC);
+        registerBuilderC2S(SyncCosmeticToggle.class, SyncCosmeticToggle.ENDEC);
 
-        registerBuilderS2C(SyncEntireContainer.class, SyncEntireContainer::new);
-        registerBuilderS2C(SyncContainerData.class, SyncContainerData::new);
-        registerBuilderS2C(SyncData.class, SyncData::new);
-        registerBuilderS2C(MenuScroll.class, MenuScroll::new);
+        registerBuilderS2C(SyncEntireContainer.class, SyncEntireContainer.ENDEC);
+        registerBuilderS2C(SyncContainerData.class, SyncContainerData.ENDEC);
+        registerBuilderS2C(SyncData.class, SyncData.ENDEC);
 
-        registerBuilderS2C(SyncHolderChange.class, SyncHolderChange::new);
-        registerBuilderC2S(SyncHolderChange.class, SyncHolderChange::new);
+        registerBuilderBiDi(MenuScroll.class, MenuScroll.ENDEC);
+        registerBuilderBiDi(SyncHolderChange.class, SyncHolderChange.ENDEC);
     }
 
-    protected <M extends AccessoriesPacket> void registerBuilderC2S(Class<M> messageType, Supplier<M> supplier){
-        var builder = NetworkPacketBuilder.of(messageType, supplier);
+    protected <M extends AccessoriesPacket> void registerBuilderC2S(Class<M> messageType, Endec<M> endec){
+        var builder = NetworkPacketBuilder.of(messageType, endec);
 
-        this.c2sBuilders.put(builder.location(), builder);
+        this.c2sBuilders.put(builder.id(), builder);
     }
 
-    protected <M extends AccessoriesPacket> void registerBuilderS2C(Class<M> messageType, Supplier<M> supplier){
-        var builder = NetworkPacketBuilder.of(messageType, supplier);
+    protected <M extends AccessoriesPacket> void registerBuilderS2C(Class<M> messageType, Endec<M> endec){
+        var builder = NetworkPacketBuilder.of(messageType, endec);
 
-        this.s2cBuilders.put(builder.location(), builder);
+        this.s2cBuilders.put(builder.id(), builder);
+    }
+
+    protected <M extends AccessoriesPacket> void registerBuilderBiDi(Class<M> messageType, Endec<M> endec){
+        var builder = NetworkPacketBuilder.of(messageType, endec);
+
+        this.c2sBuilders.put(builder.id(), builder);
+        this.s2cBuilders.put(builder.id(), builder);
     }
 
     @Environment(EnvType.CLIENT)
@@ -76,17 +84,17 @@ public abstract class AccessoriesNetworkHandler {
 
     public abstract <M extends AccessoriesPacket> void sendToTrackingAndSelf(Entity entity, Supplier<M> packet);
 
-    public record NetworkPacketBuilder<M extends AccessoriesPacket>(ResourceLocation location, Class<M> clazz, Supplier<M> supplier) {
-        public static <M extends AccessoriesPacket> NetworkPacketBuilder<M> of(Class<M> clazz, Supplier<M> supplier){
-            return new NetworkPacketBuilder<>(getId(clazz), clazz, supplier);
+    public record NetworkPacketBuilder<M extends AccessoriesPacket>(CustomPacketPayload.Type<M> id, Class<M> clazz, Endec<M> endec) {
+        public static <M extends AccessoriesPacket> NetworkPacketBuilder<M> of(Class<M> clazz, Endec<M> endec){
+            return new NetworkPacketBuilder<>(getId(clazz), clazz, endec);
         }
 
-        public void registerPacket(BiConsumer<Class<M>, Supplier<M>> registerFunc){
-            registerFunc.accept(clazz(), supplier());
+        public void registerPacket(BiConsumer<Class<M>, Endec<M>> registerFunc){
+            registerFunc.accept(clazz(), endec());
         }
     }
 
-    public static <M extends AccessoriesPacket> ResourceLocation getId(Class<M> mClass){
-        return new ResourceLocation(Accessories.MODID, mClass.getName().toLowerCase());
+    public static <M extends AccessoriesPacket> CustomPacketPayload.Type<M> getId(Class<M> mClass){
+        return new CustomPacketPayload.Type<>(Accessories.of(mClass.getName().toLowerCase()));
     }
 }

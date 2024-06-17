@@ -90,7 +90,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
             var location = resourceEntry.getKey();
             var jsonObject = resourceEntry.getValue();
 
-            if(!AccessoriesInternals.isValidOnConditions(jsonObject)) continue;
+            if(!AccessoriesInternals.isValidOnConditions(jsonObject, this.directory, location, null)) continue;
 
             var slots = new HashMap<String, SlotType>();
 

@@ -1,6 +1,7 @@
 package io.wispforest.accessories.mixin;
 
 import com.google.common.collect.Iterables;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.wispforest.accessories.AccessoriesInternals;
@@ -47,7 +48,7 @@ public abstract class LivingEntityMixin implements AccessoriesAPIAccess {
         if(slot.equals(AccessoriesInternals.INTERNAL_SLOT)) ci.cancel();
     }
 
-    @WrapOperation(method = "getDamageAfterMagicAbsorb", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getArmorSlots()Ljava/lang/Iterable;"))
+    @WrapOperation(method = "getDamageAfterMagicAbsorb", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getArmorAndBodyArmorSlots()Ljava/lang/Iterable;"))
     private Iterable<ItemStack> addAccessories(LivingEntity instance, Operation<Iterable<ItemStack>> original){
         var iterable = original.call(instance);
 
@@ -58,5 +59,16 @@ public abstract class LivingEntityMixin implements AccessoriesAPIAccess {
         }
 
         return iterable;
+    }
+
+    @ModifyReturnValue(method = "getAllSlots", at = @At("RETURN"))
+    private Iterable<ItemStack> addAccessories(Iterable<ItemStack> original){
+        if((Object) this instanceof LivingEntity livingEntity && !livingEntity.isRemoved()) {
+            var capability = livingEntity.accessoriesCapability();
+
+            if(capability != null) return Iterables.concat(original, capability.getAllEquipped().stream().map(SlotEntryReference::stack).toList());
+        }
+
+        return original;
     }
 }

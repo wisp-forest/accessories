@@ -1,12 +1,19 @@
 package io.wispforest.accessories.networking.client;
 
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesMenu;
+import io.wispforest.accessories.endec.CodecUtils;
+import io.wispforest.accessories.endec.EdmUtils;
+import io.wispforest.accessories.endec.RegistriesAttribute;
+import io.wispforest.accessories.endec.format.nbt.NbtEndec;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
-import io.wispforest.accessories.networking.CacheableAccessoriesPacket;
+import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.endec.Endec;
+import io.wispforest.endec.SerializationContext;
+import io.wispforest.endec.format.edm.EdmEndec;
+import io.wispforest.endec.format.edm.EdmMap;
+import io.wispforest.endec.impl.StructEndecBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.nbt.CompoundTag;
@@ -18,71 +25,38 @@ import net.minecraft.world.item.ItemStack;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Catch all packet for handling syncing of containers and accessories within the main container
  * and cosmetic variant with the ability for such to be sync separately
  */
-public class SyncContainerData extends CacheableAccessoriesPacket {
+public record SyncContainerData(int entityId, Map<String, EdmMap> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks) implements AccessoriesPacket {
 
-    private int entityId;
-    private Map<String, CompoundTag> updatedContainers;
-    private Map<String, ItemStack> dirtyStacks;
-    private Map<String, ItemStack> dirtyCosmeticStacks;
+    public static Endec<SyncContainerData> ENDEC = StructEndecBuilder.of(
+            Endec.VAR_INT.fieldOf("entityId", SyncContainerData::entityId),
+            EdmEndec.MAP.mapOf().fieldOf("updatedContainers", SyncContainerData::updatedContainers),
+            CodecUtils.ofCodec(ItemStack.CODEC).mapOf().fieldOf("dirtyStacks", SyncContainerData::dirtyStacks),
+            CodecUtils.ofCodec(ItemStack.CODEC).mapOf().fieldOf("dirtyCosmeticStacks", SyncContainerData::dirtyCosmeticStacks),
+            SyncContainerData::new
+    );
 
-    public SyncContainerData(){ super(); }
-
-    public SyncContainerData(FriendlyByteBuf buf){
-        super(buf);
-    }
-
-    public SyncContainerData(int entityId, Collection<AccessoriesContainer> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks){
-        super(false);
-
-        this.entityId = entityId;
-
-        var updatedContainerTags = new HashMap<String, CompoundTag>();
+    public static SyncContainerData of(LivingEntity livingEntity, Collection<AccessoriesContainer> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks){
+        var updatedContainerTags = new HashMap<String, EdmMap>();
 
         for (AccessoriesContainer updatedContainer : updatedContainers) {
-            var syncTag = new CompoundTag();
+            var syncCarrier = EdmUtils.newMap();
 
-            ((AccessoriesContainerImpl) updatedContainer).write(syncTag, true);
+            ((AccessoriesContainerImpl) updatedContainer).write(syncCarrier, SerializationContext.attributes(RegistriesAttribute.of(livingEntity.registryAccess())), true);
 
-            updatedContainerTags.put(updatedContainer.getSlotName(), syncTag);
+            updatedContainerTags.put(updatedContainer.getSlotName(), syncCarrier);
         }
 
-        this.updatedContainers = updatedContainerTags;
-
-        this.dirtyStacks = dirtyStacks;
-        this.dirtyCosmeticStacks = dirtyCosmeticStacks;
-    }
-
-    @Override
-    public void read(FriendlyByteBuf buf) {
-        this.entityId = buf.readVarInt();
-
-        this.updatedContainers = buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readNbt);
-
-        this.dirtyStacks = buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readItem);
-        this.dirtyCosmeticStacks = buf.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readItem);
-    }
-
-    @Override
-    protected void writeUncached(FriendlyByteBuf buf) {
-        buf.writeVarInt(entityId);
-
-        buf.writeMap(this.updatedContainers, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeNbt);
-
-        buf.writeMap(this.dirtyStacks, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeItem);
-        buf.writeMap(this.dirtyCosmeticStacks, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeItem);
+        return new SyncContainerData(livingEntity.getId(), updatedContainerTags, dirtyStacks, dirtyCosmeticStacks);
     }
 
     @Environment(EnvType.CLIENT)
     @Override
     public void handle(Player player) {
-        super.handle(player);
-
         var level = player.level();
 
         var entity = level.getEntity(entityId);
@@ -102,7 +76,7 @@ public class SyncContainerData extends CacheableAccessoriesPacket {
 
             var container = containers.get(entry.getKey());
 
-            ((AccessoriesContainerImpl) container).read(entry.getValue(), true);
+            ((AccessoriesContainerImpl) container).read(entry.getValue(), SerializationContext.attributes(RegistriesAttribute.of(player.level().registryAccess())), true);
 
             if(container.getAccessories().wasNewlyConstructed()) aContainerHasResized = true;
         }

@@ -10,42 +10,16 @@ import org.slf4j.Logger;
 
 import java.util.function.Supplier;
 
-public abstract class AccessoriesPacket implements CustomPacketPayload {
+public interface AccessoriesPacket extends CustomPacketPayload {
 
-    private static final Logger LOGGER = LogUtils.getLogger();
-
-    protected boolean emptyPacket;
-
-    public AccessoriesPacket(){
-        this(true);
-    }
-
-    public AccessoriesPacket(boolean emptyPacket){
-        this.emptyPacket = emptyPacket;
-    }
-
-    public static <A extends AccessoriesPacket> A read(Supplier<A> supplier, FriendlyByteBuf buf){
-        var packet = supplier.get();
-
-        packet.emptyPacket = false;
-
-        packet.read(buf);
-
-        return packet;
-    }
+    Logger LOGGER = LogUtils.getLogger();
 
     @Override
-    public ResourceLocation id() {
+    default Type<? extends CustomPacketPayload> type() {
         return AccessoriesNetworkHandler.getId(this.getClass());
     }
 
-    public abstract void write(FriendlyByteBuf buf);
-
-    protected abstract void read(FriendlyByteBuf buf);
-
-    public void handle(Player player){
-        if(emptyPacket) {
-            throw new IllegalStateException("Unable to handle Packet due to the required read call not happening before handle! [Class: " + this.getClass().getName() + "]");
-        }
+    default void handle(Player player){
+        //NOOP
     }
 }

@@ -6,7 +6,10 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.endec.EdmUtils;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.endec.SerializationContext;
+import io.wispforest.endec.format.edm.EdmMap;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Tuple;
@@ -210,12 +213,12 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
 
     @Override
     public void writeToNbt(CompoundTag tag) {
-        var innerCompound = new CompoundTag();
+        var innerCarrier = EdmUtils.newMap();
 
         ((AccessoriesHolderImpl)this.capability.getHolder())
-                .write(innerCompound);
+                .write(innerCarrier, SerializationContext.empty());
 
-        tag.put("main_data", innerCompound);
+        tag.put("main_data", innerCarrier);
         tag.putBoolean("is_accessories_data", true);
     }
 }

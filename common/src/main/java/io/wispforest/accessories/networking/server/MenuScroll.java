@@ -3,42 +3,24 @@ package io.wispforest.accessories.networking.server;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.endec.Endec;
+import io.wispforest.endec.impl.StructEndecBuilder;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
-public class MenuScroll extends AccessoriesPacket {
+public record MenuScroll(int index, boolean smooth) implements AccessoriesPacket {
 
-    private int index;
-    private boolean smooth;
-
-    public MenuScroll(){
-        super();
-    }
-
-    public MenuScroll(int index, boolean smooth){
-        super(false);
-
-        this.index = index;
-        this.smooth = smooth;
-    }
-
-    @Override
-    public void write(FriendlyByteBuf buf) {
-        buf.writeVarInt(this.index);
-        buf.writeBoolean(this.smooth);
-    }
-
-    @Override
-    protected void read(FriendlyByteBuf buf) {
-        this.index = buf.readVarInt();
-        this.smooth = buf.readBoolean();
-    }
+    public static final Endec<MenuScroll> ENDEC = StructEndecBuilder.of(
+            Endec.VAR_INT.fieldOf("index", MenuScroll::index),
+            Endec.BOOLEAN.fieldOf("smooth", MenuScroll::smooth),
+            MenuScroll::new
+    );
 
     @Override
     public void handle(Player player) {
-        super.handle(player);
-
         if(player.containerMenu instanceof AccessoriesMenu menu && menu.scrollTo(this.index, this.smooth) && player instanceof ServerPlayer serverPlayer){
             AccessoriesInternals.getNetworkHandler().sendToPlayer(serverPlayer, new MenuScroll(this.index, this.smooth));
         }

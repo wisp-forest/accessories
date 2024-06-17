@@ -20,7 +20,7 @@ public class AccessoryChangedCriterion extends SimpleCriterionTrigger<AccessoryC
 
     public void trigger(ServerPlayer player, ItemStack accessory, SlotReference reference, Boolean cosmetic) {
         this.trigger(player, conditions -> {
-            return conditions.itemPredicates().map(predicates -> predicates.stream().allMatch(predicate -> predicate.matches(accessory))).orElse(true)
+            return conditions.itemPredicates().map(predicates -> predicates.stream().allMatch(predicate -> predicate.test(accessory))).orElse(true)
                     && conditions.groups().flatMap(groups -> SlotGroupLoader.INSTANCE.findGroup(false, reference.slotName()).map(group -> groups.stream().noneMatch(s -> s.equals(group.name())))).orElse(true)
                     && conditions.slots().map(slots -> slots.stream().noneMatch(reference.slotName()::equals)).orElse(true)
                     && conditions.indices().map(indices -> indices.stream().noneMatch(index -> index == reference.slot())).orElse(true)
@@ -42,12 +42,12 @@ public class AccessoryChangedCriterion extends SimpleCriterionTrigger<AccessoryC
             Optional<Boolean> cosmetic
     ) implements SimpleInstance {
         public static final Codec<Conditions> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                ExtraCodecs.strictOptionalField(EntityPredicate.ADVANCEMENT_CODEC, "player").forGetter(Conditions::player),
-                ExtraCodecs.strictOptionalField(ItemPredicate.CODEC.listOf(), "items").forGetter(Conditions::itemPredicates),
-                ExtraCodecs.strictOptionalField(Codec.STRING.listOf(), "groups").forGetter(Conditions::groups),
-                ExtraCodecs.strictOptionalField(Codec.STRING.listOf(), "slots").forGetter(Conditions::slots),
-                ExtraCodecs.strictOptionalField(Codec.INT.listOf(), "indices").forGetter(Conditions::indices),
-                ExtraCodecs.strictOptionalField(Codec.BOOL, "cosmetic").forGetter(Conditions::cosmetic)
+                EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(Conditions::player),
+                ItemPredicate.CODEC.listOf().optionalFieldOf("items").forGetter(Conditions::itemPredicates),
+                Codec.STRING.listOf().optionalFieldOf("groups").forGetter(Conditions::groups),
+                Codec.STRING.listOf().optionalFieldOf("slots").forGetter(Conditions::slots),
+                Codec.INT.listOf().optionalFieldOf("indices").forGetter(Conditions::indices),
+                Codec.BOOL.optionalFieldOf("cosmetic").forGetter(Conditions::cosmetic)
                 ).apply(instance, Conditions::new));
     }
 }

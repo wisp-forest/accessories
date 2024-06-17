@@ -8,8 +8,13 @@ import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.endec.EdmUtils;
+import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
+import io.wispforest.endec.SerializationContext;
+import io.wispforest.endec.util.MapCarrier;
 import it.unimi.dsi.fastutil.Pair;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -24,7 +29,7 @@ import java.util.*;
 import java.util.function.*;
 
 @ApiStatus.Internal
-public class AccessoriesCapabilityImpl implements AccessoriesCapability, InstanceCodecable {
+public class AccessoriesCapabilityImpl implements AccessoriesCapability, InstanceEndec {
 
     private final LivingEntity entity;
 
@@ -93,11 +98,11 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
             if (!(this.entity instanceof ServerPlayer serverPlayer) || serverPlayer.connection == null) return;
 
-            var tag = new CompoundTag();
+            var carrier = EdmUtils.newMap();
 
-            holder.write(tag);
+            holder.write(carrier, SerializationContext.attributes(RegistriesAttribute.of(this.entity.level().registryAccess())));
 
-            AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(this.entity(), new SyncEntireContainer(tag, this.entity.getId()));
+            AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(this.entity(), new SyncEntireContainer(this.entity.getId(), carrier));
         }
     }
 
@@ -165,7 +170,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
             var container = containers.get(entry.getKey());
 
-            entry.getValue().forEach(modifier -> container.removeModifier(modifier.getId()));
+            entry.getValue().forEach(modifier -> container.removeModifier(modifier.id()));
         }
     }
 
@@ -205,10 +210,10 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
                 var map = AccessoriesAPI.getAttributeModifiers(stack, slotReference, AccessoriesAPI.getOrCreateSlotUUID(container.getSlotName(), i));
 
-                for (Attribute attribute : map.keySet()) {
-                    if (!(attribute instanceof SlotAttribute slotAttribute)) continue;
+                for (Holder<Attribute> attribute : map.keySet()) {
+                    if (!(attribute.value() instanceof SlotAttribute slotAttribute)) continue;
 
-                    slotModifiers.putAll(slotAttribute.slotName(), map.get(slotAttribute));
+                    slotModifiers.putAll(slotAttribute.slotName(), map.get(attribute));
                 }
             }
         });
@@ -362,12 +367,12 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     }
 
     @Override
-    public void write(CompoundTag tag) {
-        this.holder().write(tag);
+    public void write(MapCarrier carrier, SerializationContext ctx) {
+        this.holder().write(carrier, ctx);
     }
 
     @Override
-    public void read(CompoundTag tag) {
-        this.holder().read(tag);
+    public void read(MapCarrier carrier, SerializationContext ctx) {
+        this.holder().read(carrier, ctx);
     }
 }

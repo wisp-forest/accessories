@@ -21,13 +21,14 @@
     "EndermanMixin",
     "EquipmentSlotMixin",
     "EquipmentSlotTypeMixin",
-    "EntityMixin",
     "InventoryMixin",
     "LivingEntityAccessor",
     "LivingEntityMixin",
     "PiglinAiMixin",
     "PowderSnowBlockMixin",
-    "SlotAccessor"
+    "SlotAccessor",
+    "RegistryOpsAccessor",
+    "DelegatingOpsAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

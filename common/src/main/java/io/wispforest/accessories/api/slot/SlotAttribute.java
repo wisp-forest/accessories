@@ -2,6 +2,7 @@ package io.wispforest.accessories.api.slot;
 
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -44,10 +45,6 @@ public class SlotAttribute extends Attribute {
     }
 
     public static void addSlotAttribute(ItemStack stack, String targetSlot, String boundSlot, String name, UUID id, double amount, AttributeModifier.Operation operation) {
-        addSlotAttribute(stack.getOrCreateTag(), targetSlot, boundSlot, name, id, amount, operation);
-    }
-
-    public static void addSlotAttribute(CompoundTag tag, String targetSlot, String boundSlot, String name, UUID id, double amount, AttributeModifier.Operation operation) {
-        AccessoriesAPI.addAttribute(tag, boundSlot, SlotAttribute.getSlotAttribute(targetSlot), name, id, amount, operation);
+        AccessoriesAPI.addAttribute(stack, boundSlot, Holder.direct(SlotAttribute.getSlotAttribute(targetSlot)), name, id, amount, operation);
     }
 }

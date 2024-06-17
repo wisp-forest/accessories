@@ -3,7 +3,7 @@ architectury {
 }
 
 loom {
-    if(accessWidenerPath == null) accessWidenerPath = file("src/main/resources/accessories.accesswidener")
+    accessWidenerPath = file("src/main/resources/accessories.accesswidener")
 }
 
 repositories {

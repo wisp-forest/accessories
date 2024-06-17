@@ -46,7 +46,7 @@ public class Accessories {
     }
 
     public static boolean attemptOpenScreenPlayer(ServerPlayer player) {
-        var result = ProjectileUtil.getHitResultOnViewVector(player, e -> e instanceof LivingEntity, (double) Player.getPickRange(player.isCreative()));
+        var result = ProjectileUtil.getHitResultOnViewVector(player, e -> e instanceof LivingEntity, player.entityInteractionRange());
 
         if(!(result instanceof EntityHitResult entityHitResult)) return false;
 

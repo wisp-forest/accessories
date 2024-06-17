@@ -25,7 +25,7 @@ public abstract class ReplaceableJsonResourceReloadListener extends SimplePrepar
     private final Logger logger;
     private final Gson gson;
 
-    private final String directory;
+    protected final String directory;
 
     protected ReplaceableJsonResourceReloadListener(Gson gson, Logger logger, String directory){
         this.logger = logger;

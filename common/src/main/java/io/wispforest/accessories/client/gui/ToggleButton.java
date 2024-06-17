@@ -39,7 +39,7 @@ public class ToggleButton extends Button {
 
     public static ToggleButton ofSlot(int x, int y, int z, AccessoriesBasedSlot slot) {
         return ToggleButton.toggleBuilder(Component.empty(), btn -> {
-                    AccessoriesInternals.getNetworkHandler().sendToServer(new SyncCosmeticToggle(slot.accessoriesContainer.slotType(), slot.getContainerSlot()));
+                    AccessoriesInternals.getNetworkHandler().sendToServer(SyncCosmeticToggle.of(slot.accessoriesContainer.slotType(), slot.getContainerSlot()));
                 }).onRender(btn -> {
                     var bl = slot.accessoriesContainer.shouldRender(slot.getContainerSlot());
 

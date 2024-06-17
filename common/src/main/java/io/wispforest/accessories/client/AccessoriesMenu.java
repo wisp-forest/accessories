@@ -86,8 +86,14 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         return targetEntity;
     }
 
-    public static AccessoriesMenu of(int containerId, Inventory inventory, boolean active, FriendlyByteBuf buf) {
-        LivingEntity targetEntity = readBufData(buf, inventory.player.level());
+    public static AccessoriesMenu of(int containerId, Inventory inventory, boolean active, AccessoriesMenuData data) {
+        @Nullable var targetEntity = data.targetEntityId().map(i -> {
+            var entity = inventory.player.level().getEntity(i);
+
+            if(entity instanceof LivingEntity livingEntity) return livingEntity;
+
+            return null;
+        }).orElse(null);
 
         return new AccessoriesMenu(containerId, inventory, active, targetEntity);
     }
@@ -395,7 +401,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
     }
 
     public void reopenMenu() {
-        AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen(this.targetEntity));
+        AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(this.targetEntity));
     }
 
     static {
@@ -420,7 +426,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
                 //Check if the slot dose not permit the given amount
                 if(slot.getMaxStackSize(itemStack) < itemStack.getCount()) {
-                    if (!itemStack.isEmpty() && ItemStack.isSameItemSameTags(stack, itemStack)) {
+                    if (!itemStack.isEmpty() && ItemStack.isSameItemSameComponents(stack, itemStack)) {
                         int j = itemStack.getCount() + stack.getCount();
                         if (j <= stack.getMaxStackSize()) {
                             stack.setCount(0);

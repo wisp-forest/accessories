@@ -2,6 +2,7 @@ package io.wispforest.accessories.networking.holder;
 
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesHolder;
+import io.wispforest.endec.Endec;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 
@@ -11,7 +12,9 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public record HolderProperty<T>(String name, BiConsumer<FriendlyByteBuf, T> writer, Function<FriendlyByteBuf, T> reader, BiConsumer<AccessoriesHolder, T> setter, Function<AccessoriesHolder, T> getter) {
+public record HolderProperty<T>(String name, Endec<T> endec, BiConsumer<AccessoriesHolder, T> setter, Function<AccessoriesHolder, T> getter) {
+
+    public static final Endec<HolderProperty<?>> ENDEC = Endec.STRING.xmap(HolderProperty::getProperty, HolderProperty::name);
 
     private static final Map<String, HolderProperty<?>> ALL_PROPERTIES = new HashMap<>();
 
@@ -38,10 +41,6 @@ public record HolderProperty<T>(String name, BiConsumer<FriendlyByteBuf, T> writ
         ALL_PROPERTIES.put(name, this);
     }
 
-    public void write(FriendlyByteBuf buf, Object data) {
-        writer.accept(buf, (T) data);
-    }
-
     public void setData(Player player, Object data) {
         AccessoriesInternals.modifyHolder(player, holder -> {
             setter.accept(holder, (T) data);
@@ -58,9 +57,9 @@ public record HolderProperty<T>(String name, BiConsumer<FriendlyByteBuf, T> writ
     public static void init() {
         if(!ALL_PROPERTIES.isEmpty()) return;
 
-        LINES_PROP = new HolderProperty<>("lines", FriendlyByteBuf::writeBoolean, FriendlyByteBuf::readBoolean, AccessoriesHolder::linesShown, AccessoriesHolder::linesShown);
-        COSMETIC_PROP = new HolderProperty<>("cosmetic", FriendlyByteBuf::writeBoolean, FriendlyByteBuf::readBoolean, AccessoriesHolder::cosmeticsShown, AccessoriesHolder::cosmeticsShown);
-        UNUSED_PROP = new HolderProperty<>("unused_slots", FriendlyByteBuf::writeBoolean, FriendlyByteBuf::readBoolean, AccessoriesHolder::showUnusedSlots, AccessoriesHolder::showUnusedSlots);
-        UNIQUE_PROP = new HolderProperty<>("unique_slots", FriendlyByteBuf::writeBoolean, FriendlyByteBuf::readBoolean, AccessoriesHolder::showUniqueSlots, AccessoriesHolder::showUniqueSlots);
+        LINES_PROP = new HolderProperty<>("lines", Endec.BOOLEAN, AccessoriesHolder::linesShown, AccessoriesHolder::linesShown);
+        COSMETIC_PROP = new HolderProperty<>("cosmetic", Endec.BOOLEAN, AccessoriesHolder::cosmeticsShown, AccessoriesHolder::cosmeticsShown);
+        UNUSED_PROP = new HolderProperty<>("unused_slots", Endec.BOOLEAN, AccessoriesHolder::showUnusedSlots, AccessoriesHolder::showUnusedSlots);
+        UNIQUE_PROP = new HolderProperty<>("unique_slots", Endec.BOOLEAN, AccessoriesHolder::showUniqueSlots, AccessoriesHolder::showUniqueSlots);
     }
 }
