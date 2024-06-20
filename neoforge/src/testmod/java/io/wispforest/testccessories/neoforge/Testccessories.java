@@ -27,7 +27,7 @@ public class Testccessories {
     public static IEventBus EVENT_BUS;
 
     public Testccessories(IEventBus bus) {
-        this.EVENT_BUS = bus;
+        EVENT_BUS = bus;
         bus.addListener(Testccessories::onInitialize);
 
         TestItems.REGISTER.register(bus);

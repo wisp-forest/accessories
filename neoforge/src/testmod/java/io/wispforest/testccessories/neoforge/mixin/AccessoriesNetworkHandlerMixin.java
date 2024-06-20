@@ -2,6 +2,7 @@ package io.wispforest.testccessories.neoforge.mixin;
 
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
 import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.endec.Endec;
 import io.wispforest.testccessories.neoforge.client.TestScreenPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -14,10 +15,10 @@ import java.util.function.Supplier;
 @Mixin(AccessoriesNetworkHandler.class)
 public abstract class AccessoriesNetworkHandlerMixin {
 
-    @Shadow(remap = false) protected <M extends AccessoriesPacket> void registerBuilderC2S(Class<M> messageType, Supplier<M> supplier){}
+    @Shadow(remap = false) protected <M extends AccessoriesPacket> void registerBuilderC2S(Class<M> messageType, Endec<M> endec){}
 
     @Inject(method = "register", at = @At("TAIL"), remap = false)
     private void addTestPacket(CallbackInfo ci) {
-        this.registerBuilderC2S(TestScreenPacket.class, TestScreenPacket::new);
+        this.registerBuilderC2S(TestScreenPacket.class, TestScreenPacket.ENDEC);
     }
 }

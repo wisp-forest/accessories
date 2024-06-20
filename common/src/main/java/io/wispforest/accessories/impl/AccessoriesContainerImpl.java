@@ -356,11 +356,6 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         write(carrier, ctx, false);
     }
 
-    @Override
-    public void read(MapCarrier carrier, SerializationContext ctx) {
-        read(carrier, ctx, false);
-    }
-
     public void write(MapCarrier carrier, SerializationContext ctx, boolean sync){
         var registryAccess = ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager();
 
@@ -406,6 +401,11 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                 carrier.put(CACHED_MODIFIERS_KEY, cachedTag);
             }
         }
+    }
+
+    @Override
+    public void read(MapCarrier carrier, SerializationContext ctx) {
+        read(carrier, ctx, false);
     }
 
     public void read(MapCarrier carrier, SerializationContext ctx, boolean sync){

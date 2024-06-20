@@ -5,6 +5,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.EdmUtils;
+import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationAttribute;
 import io.wispforest.endec.SerializationContext;
@@ -128,7 +129,12 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
                 slotContainers.putIfAbsent(s, new AccessoriesContainerImpl(capability, slotType));
             });
 
-            read(capability, livingEntity, this.carrier, SerializationContext.attributes(new EntityAttribute(livingEntity)));
+            var ctx = SerializationContext.attributes(
+                    new EntityAttribute(livingEntity),
+                    RegistriesAttribute.of(livingEntity.registryAccess())
+            );
+
+            read(capability, livingEntity, this.carrier, ctx);
         } else {
             EntitySlotLoader.getEntitySlots(livingEntity).forEach((s, slotType) -> {
                 slotContainers.put(s, new AccessoriesContainerImpl(capability, slotType));
@@ -192,7 +198,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
                 });
 
                 return EdmMap.wrapMap(containerMap).asMap();
-            }).keyed("AccessoriesContainers", new HashMap<>());
+            }).keyed("AccessoriesContainers", HashMap::new);
 
     private static final KeyedEndec<Boolean> COSMETICS_SHOWN_KEY = Endec.BOOLEAN.keyed("CosmeticsShown", false);
 
@@ -219,7 +225,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         this.cosmeticsShown = carrier.get(COSMETICS_SHOWN_KEY);
         this.linesShown = carrier.get(LINES_SHOWN_KEY);
 
-        carrier.get(ctx.withAttributes(new ContainersAttribute(this.slotContainers), new InvalidStacksAttribute(this.invalidStacks)), CONTAINERS_KEY);
+        carrier.getWithErrors(ctx.withAttributes(new ContainersAttribute(this.slotContainers), new InvalidStacksAttribute(this.invalidStacks)), CONTAINERS_KEY);
 
         capability.clearCachedSlotModifiers();
 

@@ -1,10 +1,12 @@
 package io.wispforest.accessories;
 
 import com.google.gson.JsonObject;
+import com.mojang.brigadier.arguments.ArgumentType;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.client.AccessoriesMenuData;
 import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
+import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.FriendlyByteBuf;
@@ -79,6 +81,11 @@ public class AccessoriesInternals {
 
     @ExpectPlatform
     public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(ResourceLocation location, TriFunction<Integer, Inventory, AccessoriesMenuData, T> func){
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    public static <A extends ArgumentType<?>, T extends ArgumentTypeInfo.Template<A>, I extends ArgumentTypeInfo<A, T>> I registerCommandArgumentType(ResourceLocation location, Class<A> clazz, I info) {
         throw new AssertionError();
     }
 

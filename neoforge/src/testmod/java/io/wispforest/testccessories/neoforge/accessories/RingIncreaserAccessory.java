@@ -22,7 +22,7 @@ public class RingIncreaserAccessory implements Accessory {
     public void onEquip(ItemStack stack, SlotReference reference) {
         var map = HashMultimap.<String, AttributeModifier>create();
 
-        map.put("ring", new AttributeModifier(ringAdditonUUID, "additional_rings", 100, AttributeModifier.Operation.ADDITION));
+        map.put("ring", new AttributeModifier(ringAdditonUUID, "additional_rings", 100, AttributeModifier.Operation.ADD_VALUE));
         
         reference.capability().addPersistentSlotModifiers(map);
     }
@@ -31,7 +31,7 @@ public class RingIncreaserAccessory implements Accessory {
     public void onUnequip(ItemStack stack, SlotReference reference) {
         var map = HashMultimap.<String, AttributeModifier>create();
 
-        map.put("ring", new AttributeModifier(ringAdditonUUID, "additional_rings", 100, AttributeModifier.Operation.ADDITION));
+        map.put("ring", new AttributeModifier(ringAdditonUUID, "additional_rings", 100, AttributeModifier.Operation.ADD_VALUE));
 
        reference.capability().removeSlotModifiers(map);
     }

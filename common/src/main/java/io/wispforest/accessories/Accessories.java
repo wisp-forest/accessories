@@ -1,20 +1,38 @@
 package io.wispforest.accessories;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.LiteralMessage;
+import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.api.components.AccessorySlotValidationComponent;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.client.AccessoriesMenu;
+import io.wispforest.accessories.commands.RecordArgumentTypeInfo;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.criteria.AccessoryChangedCriterion;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoriesTags;
 import io.wispforest.accessories.mixin.CriteriaTriggersAccessor;
+import io.wispforest.accessories.utils.EndecUtils;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.synchronization.ArgumentTypeInfo;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -26,6 +44,10 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.concurrent.CompletableFuture;
 
 public class Accessories {
 
@@ -98,18 +120,24 @@ public class Accessories {
     }
 
     public static void registerMenuType() {
-        ACCESSORIES_MENU_TYPE = AccessoriesInternals.registerMenuType(of("accessories_menu"), (i, inv, buf) -> AccessoriesMenu.of(i, inv, false, buf));
+        ACCESSORIES_MENU_TYPE = AccessoriesInternals.registerMenuType(of("accessories_menu"), (i, inv, menuData) -> AccessoriesMenu.of(i, inv, false, menuData));
+    }
+
+    public static void registerCommandArgTypes() {
+        AccessoriesInternals.registerCommandArgumentType(Accessories.of("slot_type"), SlotArgumentType.class, SLOT_ARGUMENT_TYPE_INFO);
     }
 
     private static final SimpleCommandExceptionType NON_LIVING_ENTITY_TARGET = new SimpleCommandExceptionType(Component.translatable("argument.livingEntities.nonLiving"));
+
+    private static final SimpleCommandExceptionType INVALID_SLOT_TYPE = new SimpleCommandExceptionType(new LiteralMessage("Invalid Slot Type"));
 
     //accessories edit {}
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("accessories")
+                        .requires(commandSourceStack -> commandSourceStack.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(
                                 Commands.literal("edit")
-                                        .requires(commandSourceStack -> commandSourceStack.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                         .then(
                                                 Commands.argument("entity", EntityArgument.entity())
                                                         .executes((context) -> {
@@ -132,6 +160,88 @@ public class Accessories {
                                                     : 0;
                                         })
                         )
+                        .then(
+                                Commands.literal("slot")
+                                        .then(
+                                                Commands.literal("add")
+                                                        .then(
+                                                                Commands.literal("valid")
+                                                                        .then(Commands.argument("slot", SlotArgumentType.INSTANCE)
+                                                                                .executes(ctx -> adjustSlotValidationOnStack(0, ctx.getSource().getPlayerOrException(), ctx))
+                                                                        ))
+                                                        .then(
+                                                                Commands.literal("invalid")
+                                                                        .then(Commands.argument("slot", SlotArgumentType.INSTANCE)
+                                                                                .executes(ctx -> adjustSlotValidationOnStack(1, ctx.getSource().getPlayerOrException(), ctx))
+                                                                        ))
+
+                                        ).then(
+                                                Commands.literal("remove")
+                                                        .then(
+                                                                Commands.literal("valid")
+                                                                        .then(Commands.argument("slot", SlotArgumentType.INSTANCE)
+                                                                                .executes(ctx -> adjustSlotValidationOnStack(2, ctx.getSource().getPlayerOrException(), ctx))
+                                                                        ))
+                                                        .then(
+                                                                Commands.literal("invalid")
+                                                                        .then(Commands.argument("slot", SlotArgumentType.INSTANCE)
+                                                                                .executes(ctx -> adjustSlotValidationOnStack(3, ctx.getSource().getPlayerOrException(), ctx))
+                                                                        ))
+                                        )
+                        )
         );
+    }
+
+    public static int adjustSlotValidationOnStack(int operation, ServerPlayer player, CommandContext<CommandSourceStack> ctx) {
+        var slotName = ctx.getArgument("slot", String.class);
+
+        player.getMainHandItem().update(AccessoriesDataComponents.SLOT_VALIDATION, AccessorySlotValidationComponent.EMPTY, component -> {
+            return switch (operation) {
+                case 0 -> component.addValidSlot(slotName);
+                case 1 -> component.addInvalidSlot(slotName);
+                case 2 -> component.removeValidSlot(slotName);
+                case 3 -> component.removeInvalidSlot(slotName);
+                default -> throw new IllegalStateException("Unexpected value: " + operation);
+            };
+        });
+
+        return 1;
+    }
+
+    public static final RecordArgumentTypeInfo<SlotArgumentType, Void> SLOT_ARGUMENT_TYPE_INFO = RecordArgumentTypeInfo.of(ctx -> SlotArgumentType.INSTANCE);
+
+    public static final class SlotArgumentType implements ArgumentType<String> {
+
+        public static final SlotArgumentType INSTANCE = new SlotArgumentType();
+
+        @Override
+        public String parse(StringReader reader) throws CommandSyntaxException {
+            var slot = reader.readUnquotedString();
+
+            if(slot.equals("any")) return "any";
+
+            var slotType = SlotTypeLoader.INSTANCE.getSlotTypes(false).getOrDefault(slot, null);
+
+            if(slotType == null) throw INVALID_SLOT_TYPE.create();
+
+            return slotType.name();
+        }
+
+        @Override
+        public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
+            if (context.getSource() instanceof SharedSuggestionProvider) {
+                var stringReader = new StringReader(builder.getInput());
+
+                stringReader.setCursor(builder.getStart());
+
+                var validSlots = new ArrayList<>(SlotTypeLoader.INSTANCE.getSlotTypes(false).keySet());
+
+                validSlots.addFirst("any");
+
+                return SharedSuggestionProvider.suggest(validSlots, builder);
+            }
+
+            return Suggestions.empty();
+        }
     }
 }

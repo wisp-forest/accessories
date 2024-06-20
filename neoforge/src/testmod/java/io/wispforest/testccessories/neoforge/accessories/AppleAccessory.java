@@ -43,7 +43,7 @@ public class AppleAccessory implements Accessory {
 
         if (!AccessoriesCapability.get(player).isEquipped(Items.APPLE)) return;
 
-        player.getFoodData().eat(Items.APPLE, stack);
+        player.getFoodData().eat(stack);
         stack.shrink(1);
 
         player.playNotifySound(SoundEvents.PLAYER_BURP, SoundSource.PLAYERS, 1, 1);

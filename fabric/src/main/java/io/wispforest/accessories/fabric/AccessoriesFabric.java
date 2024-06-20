@@ -49,19 +49,14 @@ public class AccessoriesFabric implements ModInitializer {
         AccessoriesDataComponents.init();
 
         DefaultItemComponentEvents.MODIFY.register(context -> {
-            context.modify(item -> item instanceof AccessoryNest, (builder, item) -> {
-                builder.set(AccessoriesDataComponents.NESTED_ACCESSORIES, AccessoryNestContainerContents.EMPTY);
-            });
-
-            context.modify(item -> true, (builder, item) -> {
-                builder.set(AccessoriesDataComponents.RENDER_OVERRIDE, AccessoryRenderOverrideComponent.DEFAULT);
-                builder.set(AccessoriesDataComponents.SLOT_VALIDATION, AccessorySlotValidationComponent.EMPTY);
-                builder.set(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
+            AccessoriesDataComponents.adjustDefaultComponents((itemPredicate, builderConsumer) -> {
+                context.modify(itemPredicate, (builder, item) -> builderConsumer.accept(builder::set));
             });
         });
 
         Accessories.registerMenuType();
         Accessories.registerCriteria();
+        Accessories.registerCommandArgTypes();
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             Accessories.registerCommands(dispatcher);

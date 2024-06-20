@@ -17,7 +17,6 @@ subprojects {
     repositories {
         maven { url "https://maven.parchmentmc.org" }
         maven { url "https://maven.wispforest.io/releases" }
-
     }
 
     dependencies {
@@ -29,14 +28,14 @@ subprojects {
         }
 
         if(!project.name.contains("common")) {
-            include("io.wispforest:endec:0.1.0-pre.9")
-            include("io.wispforest.endec:gson:0.1.0-pre.3")
-            include("io.wispforest.endec:netty:0.1.0-pre.2")
+            include("io.wispforest:endec:${rootProject.endec_version}")
+            include("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
+            include("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
         }
 
-        implementation("io.wispforest:endec:0.1.0-pre.9")
-        implementation("io.wispforest.endec:gson:0.1.0-pre.3")
-        implementation("io.wispforest.endec:netty:0.1.0-pre.2")
+        implementation("io.wispforest:endec:${rootProject.endec_version}")
+        implementation("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
+        implementation("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
     }
 }
 

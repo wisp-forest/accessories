@@ -1,12 +1,19 @@
 package io.wispforest.accessories.api.components;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.AccessoryNest;
 import io.wispforest.accessories.endec.CodecUtils;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
 
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 public class AccessoriesDataComponents {
@@ -40,4 +47,20 @@ public class AccessoriesDataComponents {
     }
 
     public static void init() {}
+
+    public static void adjustDefaultComponents(BiConsumer<Predicate<Item>, Consumer<AdditionCallback>> modifyCallback) {
+        modifyCallback.accept(item -> item instanceof AccessoryNest, (addConsumer) -> {
+            addConsumer.addTo(AccessoriesDataComponents.NESTED_ACCESSORIES, AccessoryNestContainerContents.EMPTY);
+        });
+
+        modifyCallback.accept(item -> true, (addConsumer) -> {
+            addConsumer.addTo(AccessoriesDataComponents.RENDER_OVERRIDE, AccessoryRenderOverrideComponent.DEFAULT);
+            addConsumer.addTo(AccessoriesDataComponents.SLOT_VALIDATION, AccessorySlotValidationComponent.EMPTY);
+            addConsumer.addTo(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
+        });
+    }
+
+    public interface AdditionCallback {
+        <T> void addTo(DataComponentType<T> type, T defaultValue);
+    }
 }

@@ -1,8 +1,10 @@
 package io.wispforest.accessories.api.components;
 
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public record AccessorySlotValidationComponent(Set<String> validSlotOverrides, Set<String> invalidSlotOverrides) {
@@ -13,4 +15,36 @@ public record AccessorySlotValidationComponent(Set<String> validSlotOverrides, S
             Endec.STRING.setOf().fieldOf("invalid_slot_overrides", AccessorySlotValidationComponent::invalidSlotOverrides),
             AccessorySlotValidationComponent::new
     );
+
+    public AccessorySlotValidationComponent addValidSlot(String slotName) {
+        var validSlotOverrides = new HashSet<>(this.validSlotOverrides);
+
+        validSlotOverrides.add(slotName);
+
+        return new AccessorySlotValidationComponent(validSlotOverrides, this.invalidSlotOverrides);
+    }
+
+    public AccessorySlotValidationComponent addInvalidSlot(String slotName) {
+        var invalidSlotOverrides = new HashSet<>(this.invalidSlotOverrides);
+
+        invalidSlotOverrides.add(slotName);
+
+        return new AccessorySlotValidationComponent(this.validSlotOverrides, invalidSlotOverrides);
+    }
+
+    public AccessorySlotValidationComponent removeValidSlot(String slotName) {
+        var validSlotOverrides = new HashSet<>(this.validSlotOverrides);
+
+        validSlotOverrides.remove(slotName);
+
+        return new AccessorySlotValidationComponent(validSlotOverrides, this.invalidSlotOverrides);
+    }
+
+    public AccessorySlotValidationComponent removeInvalidSlot(String slotName) {
+        var invalidSlotOverrides = new HashSet<>(this.invalidSlotOverrides);
+
+        invalidSlotOverrides.remove(slotName);
+
+        return new AccessorySlotValidationComponent(this.validSlotOverrides, invalidSlotOverrides);
+    }
 }

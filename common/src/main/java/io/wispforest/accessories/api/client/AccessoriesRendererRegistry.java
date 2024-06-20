@@ -3,6 +3,8 @@ package io.wispforest.accessories.api.client;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.api.components.AccessoryRenderOverrideComponent;
+import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -42,8 +44,10 @@ public class AccessoriesRendererRegistry {
 
     @Nullable
     public static AccessoryRenderer getRender(ItemStack stack){
-        if(stack.has(AccessoriesDataComponents.RENDER_OVERRIDE)) {
-            if(stack.get(AccessoriesDataComponents.RENDER_OVERRIDE).defaultRenderOverride()) {
+        var shouldOverride = stack.getOrDefault(AccessoriesDataComponents.RENDER_OVERRIDE, AccessoryRenderOverrideComponent.DEFAULT).defaultRenderOverride();
+
+        if(shouldOverride != TriState.DEFAULT) {
+            if(shouldOverride.get()) {
                 return DefaultAccessoryRenderer.INSTANCE;
             } else if(AccessoriesAPI.getOrDefaultAccessory(stack.getItem()) == AccessoriesAPI.defaultAccessory()) {
                 return null;

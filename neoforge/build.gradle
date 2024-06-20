@@ -22,11 +22,12 @@ repositories {
     maven { url "https://maven.su5ed.dev/releases" }
     maven { url "https://maven.shedaniel.me/" }
     maven { url "https://maven.architectury.dev/" }
-    maven { url "https://maven.terraformersmc.com/" }
+    maven { url "https://maven.terraformersmc.com/releases" }
     maven { url "https://maven.blamejared.com/" } // location of the maven that hosts JEI files since January 2023
     maven { url "https://modmaven.dev" } // location of a maven mirror for JEI files, as a fallback
-    maven { url 'https://jitpack.io' }
     mavenCentral()
+//    maven { url 'https://jitpack.io' }
+    mavenLocal()
 }
 
 sourceSets {
@@ -44,8 +45,11 @@ dependencies {
 
     modApi("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
 
-//    include modApi("dev.su5ed.sinytra.fabric-api:fabric-api-base:0.4.35+f77bd0ed4f"){ exclude group: "fabric-api" }
-    include modApi('com.github.Dragon-Seeker.ForgifiedFabricAPI:fabric-api-base:1.20.4-SNAPSHOT')
+    include modApi("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.40+95f95167b0"){ exclude group: "fabric-api" }
+
+    forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")
+    forgeRuntimeLibrary("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
+    forgeRuntimeLibrary("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
 
     testmodImplementation sourceSets.main.output
 
@@ -57,6 +61,7 @@ dependencies {
 
     if(type == "rei") {
         modRuntimeOnly("me.shedaniel:RoughlyEnoughItems-neoforge:${rootProject.rei_version}")
+        modRuntimeOnly("dev.architectury:architectury-neoforge:${rootProject.arch_api}")
     } else if(type == "emi") {
         modLocalRuntime("dev.emi:emi-neoforge:${rootProject.emi_version}")
     } else if(type == "jei") {
@@ -67,19 +72,17 @@ dependencies {
 }
 
 processResources {
-    inputs.property "version", project.version
-
-    filesMatching("META-INF/mods.toml") {
+    filesMatching("META-INF/neoforge.mods.toml") {
         expand "version": project.version
     }
+    inputs.property "META-INF/neoforge.mods.toml", project.version
 }
 
 processTestmodResources {
-    inputs.property "version", project.version
-
-    filesMatching("META-INF/mods.toml") {
+    filesMatching("META-INF/neoforge.mods.toml") {
         expand "version": project.version
     }
+    inputs.property "META-INF/neoforge.mods.toml", project.version
 }
 
 loom {

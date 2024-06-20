@@ -5,7 +5,7 @@ license = "MIT"
 
 [[mods]]
 modId = "testccessories"
-version = "${version}"
+version = "1.0.0"
 displayName = "Testccessories"
 authors = "chyzman"
 description = '''
