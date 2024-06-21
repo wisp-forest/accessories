@@ -1,5 +1,6 @@
 package top.theillusivec4.curios.compat;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -53,7 +54,7 @@ public record EmptyCuriosStackHandler(String identifier) implements ICurioStacks
         @Override public int getSlots() { return 0;}
         @Override public void grow(int amount) {}
         @Override public void shrink(int amount) {}
-        @Override public CompoundTag serializeNBT() { return new CompoundTag(); }
-        @Override public void deserializeNBT(CompoundTag nbt) {}
+        @Override public CompoundTag serializeNBT(HolderLookup.Provider provider) { return new CompoundTag(); }
+        @Override public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {}
     }
 }

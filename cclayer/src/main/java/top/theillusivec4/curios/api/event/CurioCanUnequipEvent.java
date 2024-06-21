@@ -20,53 +20,52 @@
 package top.theillusivec4.curios.api.event;
 
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import top.theillusivec4.curios.api.SlotContext;
 
 /**
- * CurioEquipEvent is fired when a curio item is about to be equipped and allows an event listener
- * to specify whether it should or not. <br>
- * This event is fired when ever the {@link top.theillusivec4.curios.api.type.capability.ICurio#canEquip(SlotContext)}
+ * CurioUnequipEvent is fired when a curio item is about to be unequipped and allows an event
+ * listener to specify whether it should or not. <br>
+ * This event is fired when ever the {@link top.theillusivec4.curios.api.type.capability.ICurio#canUnequip(SlotContext)}
  * is checked. <br>
  * <br>
- * This event has a {@link Result result}:
- * <ul><li>{@link Result#ALLOW} means the curio item can be equipped.</li>
- * <li>{@link Result#DEFAULT} means the item tags and {@link top.theillusivec4.curios.api.type.capability.ICurio#canEquip(SlotContext)}
+ * This event has a {@link TriState result}:
+ * <ul><li>{@link TriState#TRUE} means the curio item can be unequipped.</li>
+ * <li>{@link TriState#DEFAULT} means {@link top.theillusivec4.curios.api.type.capability.ICurio#canUnequip(SlotContext)}
  * determines the result.</li>
- * <li>{@link Result#DENY} means the curio item cannot be equipped.</li></ul><br>
+ * <li>{@link TriState#FALSE} means the curio item cannot be unequipped.</li></ul><br>
  * This event is fired on the {@link net.neoforged.neoforge.common.NeoForge#EVENT_BUS}.
  */
-public class CurioEquipEvent extends LivingEvent {
+public class CurioCanUnequipEvent extends LivingEvent {
 
   private final SlotContext slotContext;
   private final ItemStack stack;
-  private Result result;
+  private TriState result;
 
-  public CurioEquipEvent(ItemStack stack, SlotContext slotContext) {
+  public CurioCanUnequipEvent(ItemStack stack, SlotContext slotContext) {
     super(slotContext.entity());
     this.slotContext = slotContext;
     this.stack = stack;
-    this.result = Result.DEFAULT;
   }
 
-  public Result getEquipResult() {
+  public TriState getUnequipResult() {
     return this.result;
   }
 
-  public void setEquipResult(Result result) {
+  public void setUnequipResult(TriState result) {
     this.result = result;
   }
 
-  @Override
-  public void setResult(Result result) {
-    this.setEquipResult(result);
+  public void setResult(TriState result) {
+    this.setUnequipResult(result);
   }
 
   public SlotContext getSlotContext() {
-    return this.slotContext;
+    return slotContext;
   }
 
   public ItemStack getStack() {
-    return this.stack;
+    return stack;
   }
 }

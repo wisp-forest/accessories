@@ -15,7 +15,7 @@ public interface AccessoriesPacket extends CustomPacketPayload {
     Logger LOGGER = LogUtils.getLogger();
 
     @Override
-    default Type<? extends CustomPacketPayload> type() {
+    default Type<? extends AccessoriesPacket> type() {
         return AccessoriesNetworkHandler.getId(this.getClass());
     }
 

@@ -20,6 +20,7 @@
 package top.theillusivec4.curios.api.type.capability;
 
 import com.google.common.collect.Multimap;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -150,8 +151,8 @@ public interface ICurioItem {
    * @param uuid        Slot-unique UUID
    * @return A map of attribute modifiers to apply
    */
-  default Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext,
-                                                                       UUID uuid, ItemStack stack) {
+  default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext,
+                                                                               UUID uuid, ItemStack stack) {
     return getAttributeModifiers(slotContext.identifier(), stack);
   }
 
@@ -442,7 +443,7 @@ public interface ICurioItem {
    */
   @Deprecated(forRemoval = true)
   @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
-  default Multimap<Attribute, AttributeModifier> getAttributeModifiers(String identifier,
+  default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(String identifier,
                                                                        ItemStack stack) {
     return defaultInstance.getAttributeModifiers(identifier);
   }

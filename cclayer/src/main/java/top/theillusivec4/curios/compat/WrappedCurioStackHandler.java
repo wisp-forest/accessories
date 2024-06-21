@@ -3,6 +3,7 @@ package top.theillusivec4.curios.compat;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Container;
@@ -151,8 +152,8 @@ public class WrappedCurioStackHandler implements ICurioStacksHandler {
         @Override public ItemStack getPreviousStackInSlot(int slot) { return ItemStack.EMPTY; }
         @Override public void grow(int amount) {}
         @Override public void shrink(int amount) {}
-        @Override public CompoundTag serializeNBT() { return new CompoundTag();}
-        @Override public void deserializeNBT(CompoundTag nbt) {}
+        @Override public CompoundTag serializeNBT(HolderLookup.Provider provider) { return new CompoundTag();}
+        @Override public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {}
 
         //--
 

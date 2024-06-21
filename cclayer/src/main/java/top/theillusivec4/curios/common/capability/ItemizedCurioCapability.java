@@ -20,6 +20,7 @@
 package top.theillusivec4.curios.common.capability;
 
 import com.google.common.collect.Multimap;
+import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
@@ -118,8 +119,8 @@ public class ItemizedCurioCapability implements ICurio {
   }
 
   @Override
-  public Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext,
-                                                                      UUID uuid) {
+  public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext,
+                                                                              UUID uuid) {
     return this.curioItem.getAttributeModifiers(slotContext, uuid, this.getStack());
   }
 

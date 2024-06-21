@@ -72,7 +72,7 @@ public class CuriosScreenV2 extends EffectRenderingInventoryScreen<CuriosContain
 
     @Override
     public void init() {
-        AccessoriesInternals.getNetworkHandler().sendToServer(new ScreenOpen());
+        AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(null));
         this.onClose();
         // NO-OP
     }

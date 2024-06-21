@@ -20,6 +20,7 @@
 package top.theillusivec4.curios.api.type.util;
 
 import com.google.common.collect.Multimap;
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -130,7 +131,7 @@ public interface ICuriosHelper {
    */
   @Deprecated(since = "1.20.1", forRemoval = true)
   @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
-  Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid,
+  Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid,
                                                                ItemStack stack);
 
   /**
@@ -138,7 +139,7 @@ public interface ICuriosHelper {
    */
   @Deprecated(since = "1.20.1", forRemoval = true)
   @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
-  void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String identifier, UUID uuid,
+  void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String identifier, UUID uuid,
                        double amount, AttributeModifier.Operation operation);
 
   /**
@@ -154,7 +155,7 @@ public interface ICuriosHelper {
    */
   @Deprecated(since = "1.20.1", forRemoval = true)
   @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
-  void addModifier(ItemStack stack, Attribute attribute, String name, UUID uuid, double amount,
+  void addModifier(ItemStack stack, Holder<Attribute> attribute, String name, UUID uuid, double amount,
                    AttributeModifier.Operation operation, String slot);
 
   /**
@@ -217,5 +218,5 @@ public interface ICuriosHelper {
    */
   @Deprecated(forRemoval = true)
   @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
-  Multimap<Attribute, AttributeModifier> getAttributeModifiers(String identifier, ItemStack stack);
+  Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(String identifier, ItemStack stack);
 }

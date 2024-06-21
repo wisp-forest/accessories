@@ -6,6 +6,7 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -53,28 +54,28 @@ public class CurioInventory implements INBTSerializable<CompoundTag> {
             var container = (slotType != null) ? capability.getContainer(slotType) : null;
 
             ((AccessoriesHolderImpl) capability.getHolder()).invalidStacks
-                    .addAll(deserializeNBT_StackHandler(container, tag.getCompound("StacksHandler")));
+                    .addAll(deserializeNBT_StackHandler(livingEntity, container, tag.getCompound("StacksHandler")));
         }
     }
 
-    private static List<ItemStack> deserializeNBT_StackHandler(@Nullable AccessoriesContainer container, CompoundTag nbt){
+    private static List<ItemStack> deserializeNBT_StackHandler(LivingEntity livingEntity, @Nullable AccessoriesContainer container, CompoundTag nbt){
         var dropped = new ArrayList<ItemStack>();
 
         if (nbt.contains("Stacks")) {
-            dropped.addAll(deserializeNBT_Stacks(container, AccessoriesContainer::getAccessories, nbt.getCompound("Stacks")));
+            dropped.addAll(deserializeNBT_Stacks(livingEntity, container, AccessoriesContainer::getAccessories, nbt.getCompound("Stacks")));
         }
 
         if (nbt.contains("Cosmetics")) {
-            dropped.addAll(deserializeNBT_Stacks(container, AccessoriesContainer::getCosmeticAccessories, nbt.getCompound("Cosmetics")));
+            dropped.addAll(deserializeNBT_Stacks(livingEntity, container, AccessoriesContainer::getCosmeticAccessories, nbt.getCompound("Cosmetics")));
         }
 
         return dropped;
     }
 
-    private static List<ItemStack> deserializeNBT_Stacks(@Nullable AccessoriesContainer container, Function<AccessoriesContainer, Container> containerFunc, CompoundTag nbt){
+    private static List<ItemStack> deserializeNBT_Stacks(LivingEntity livingEntity, @Nullable AccessoriesContainer container, Function<AccessoriesContainer, Container> containerFunc, CompoundTag nbt){
         var list = nbt.getList("Items", Tag.TAG_COMPOUND)
                 .stream()
-                .map(tagEntry -> ItemStack.of((tagEntry instanceof CompoundTag compoundTag) ? compoundTag : new CompoundTag()))
+                .map(tagEntry -> ItemStack.parseOptional(livingEntity.registryAccess(), (tagEntry instanceof CompoundTag compoundTag) ? compoundTag : new CompoundTag()))
                 .toList();
 
         var dropped = new ArrayList<ItemStack>();
@@ -109,12 +110,12 @@ public class CurioInventory implements INBTSerializable<CompoundTag> {
     }
 
     @Override
-    public CompoundTag serializeNBT() {
+    public CompoundTag serializeNBT(HolderLookup.Provider provider) {
         return new CompoundTag();
     }
 
     @Override
-    public void deserializeNBT(CompoundTag nbt) {
+    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
         this.deserialized = nbt;
         this.markDeserialized = true;
     }

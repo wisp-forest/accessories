@@ -22,7 +22,7 @@ repositories {
     maven { url "https://api.modrinth.com/maven" }
     maven { url "https://maven.florens.be/releases" }
     mavenCentral()
-    //mavenLocal()
+    mavenLocal()
 }
 
 //evaluationDependsOn(':common')
@@ -36,9 +36,13 @@ dependencies {
 
     modRuntimeOnly ("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
 
+    forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")
+    forgeRuntimeLibrary("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
+    forgeRuntimeLibrary("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
+
     modCompileOnly ("maven.modrinth:aether:1.20.4-1.4.1-neoforge")
 
-    modImplementation('com.github.Dragon-Seeker.ForgifiedFabricAPI:fabric-api-base:1.20.4-SNAPSHOT')
+    modImplementation("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.40+95f95167b0"){ exclude group: "fabric-api" }
 
     //modRuntimeOnly ("dev.architectury:architectury-forge:9.2.14")
     //modRuntimeOnly ("maven.modrinth:artifacts:9.5.4")
@@ -46,13 +50,11 @@ dependencies {
 }
 
 processResources {
-    inputs.property "version", "${project.mod_version}+${rootProject.minecraft_base_version}"
-    inputs.property "layer_version", "0.${project.layer_version}"
-
-    filesMatching("META-INF/mods.toml") {
+    filesMatching("META-INF/neoforge.mods.toml") {
         expand "version": "${project.mod_version}+${rootProject.minecraft_base_version}",
                 "layer_version": "0.${project.layer_version}"
     }
+    inputs.property "META-INF/neoforge.mods.toml", ["${project.mod_version}+${rootProject.minecraft_base_version}", "0.${project.layer_version}"]
 }
 
 loom {

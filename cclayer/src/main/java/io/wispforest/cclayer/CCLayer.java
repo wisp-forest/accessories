@@ -16,7 +16,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.InterModProcessEvent;
 import net.neoforged.neoforge.capabilities.ICapabilityProvider;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -36,7 +35,6 @@ import top.theillusivec4.curios.common.data.CuriosSlotManager;
 import top.theillusivec4.curios.compat.CuriosWrappingUtils;
 import top.theillusivec4.curios.compat.WrappedCurioItemHandler;
 import top.theillusivec4.curios.compat.WrappedAccessory;
-import top.theillusivec4.curios.compat.WrappedCurioItemHandler;
 import top.theillusivec4.curios.mixin.CuriosImplMixinHooks;
 import top.theillusivec4.curios.server.SlotHelper;
 import top.theillusivec4.curios.server.command.CurioArgumentType;
@@ -67,7 +65,7 @@ public class CCLayer {
         DeathWrapperEventsImpl.init();
 
         CanEquipCallback.EVENT.register((stack, reference) -> {
-            var event = new CurioEquipEvent(stack, CuriosWrappingUtils.create(reference));
+            var event = new CurioCanEquipEvent(stack, CuriosWrappingUtils.create(reference));
 
             NeoForge.EVENT_BUS.post(event);
 
@@ -75,7 +73,7 @@ public class CCLayer {
         });
 
         CanUnequipCallback.EVENT.register((stack, reference) -> {
-            var event = new CurioUnequipEvent(stack, CuriosWrappingUtils.create(reference));
+            var event = new CurioCanUnequipEvent(stack, CuriosWrappingUtils.create(reference));
 
             NeoForge.EVENT_BUS.post(event);
 

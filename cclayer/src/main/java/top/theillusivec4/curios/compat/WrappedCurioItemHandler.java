@@ -5,9 +5,12 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.endec.NbtMapCarrier;
+import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.endec.SerializationContext;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -240,7 +243,7 @@ public record WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) impl
         var compound = new CompoundTag();
 
         ((AccessoriesHolderImpl)this.capability().getHolder())
-                .write(compound);
+                .write(new NbtMapCarrier(compound), SerializationContext.attributes(RegistriesAttribute.of(this.capability.entity().registryAccess())));
 
         var outerCompound = new CompoundTag();
 
@@ -261,7 +264,7 @@ public record WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) impl
         try {
             if(compound.contains("is_accessories_data")){
                 ((AccessoriesHolderImpl)this.capability().getHolder())
-                        .read(compound.getCompound("main_data"));
+                        .read(new NbtMapCarrier(compound), SerializationContext.attributes(RegistriesAttribute.of(this.capability.entity().registryAccess())));
             } else {
                 CurioInventory.readData(this.getWearer(), this.capability(), data);
             }

@@ -7,6 +7,7 @@ import io.wispforest.accessories.api.SoundEventData;
 import io.wispforest.accessories.api.events.extra.*;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.core.Holder;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -67,7 +68,7 @@ public class WrappedICurioProvider implements Accessory, LootingAdjustment, Fort
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid) {
+    public Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid) {
         var context = CuriosWrappingUtils.create(reference);
 
         var modifiers = Accessory.super.getModifiers(stack, reference, uuid);

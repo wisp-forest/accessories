@@ -9,20 +9,15 @@ import javax.annotation.Nonnull;
 
 public record CPacketToggleCosmetics(int windowId) implements CustomPacketPayload {
 
-    public static final ResourceLocation ID = new ResourceLocation(CuriosConstants.MOD_ID, "toggle_cosmetics");
+    public static final Type<CPacketToggleCosmetics> ID = new Type<>(new ResourceLocation(CuriosConstants.MOD_ID, "toggle_cosmetics"));
 
     public CPacketToggleCosmetics(final FriendlyByteBuf buf) {
         this(buf.readInt());
     }
 
-    @Override
-    public void write(@Nonnull FriendlyByteBuf buf) {
-        buf.writeInt(this.windowId());
-    }
-
     @Nonnull
     @Override
-    public ResourceLocation id() {
+    public Type<CPacketToggleCosmetics> type() {
         return ID;
     }
 }

@@ -7,6 +7,6 @@ import io.wispforest.cclayer.WrappedAccessoriesPacket;
 public class CPacketToggleRender extends WrappedAccessoriesPacket {
 
     public CPacketToggleRender(String id, int index) {
-        super(new SyncCosmeticToggle(SlotTypeLoader.INSTANCE.getSlotTypes(true).get(id), index));
+        super(new SyncCosmeticToggle(null, SlotTypeLoader.INSTANCE.getSlotTypes(true).get(id).name(), index));
     }
 }

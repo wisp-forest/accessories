@@ -20,6 +20,7 @@
 package top.theillusivec4.curios.mixin.core;
 
 import com.google.common.collect.Multimap;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -108,12 +109,12 @@ public class MixinCuriosApi {
   @Inject(at = @At("HEAD"), method = "getAttributeModifiers", cancellable = true)
   private static void curios$getAttributeModifiers(SlotContext slotContext, UUID uuid,
                                                    ItemStack stack,
-                                                   CallbackInfoReturnable<Multimap<Attribute, AttributeModifier>> cir) {
+                                                   CallbackInfoReturnable<Multimap<Holder<Attribute>, AttributeModifier>> cir) {
     cir.setReturnValue(CuriosImplMixinHooks.getAttributeModifiers(slotContext, uuid, stack));
   }
 
   @Inject(at = @At("HEAD"), method = "addSlotModifier(Lcom/google/common/collect/Multimap;Ljava/lang/String;Ljava/util/UUID;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)V", cancellable = true)
-  private static void curios$addSlotModifier(Multimap<Attribute, AttributeModifier> map,
+  private static void curios$addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map,
                                              String identifier,
                                              UUID uuid, double amount,
                                              AttributeModifier.Operation operation,
@@ -132,7 +133,7 @@ public class MixinCuriosApi {
   }
 
   @Inject(at = @At("HEAD"), method = "addModifier", cancellable = true)
-  private static void curios$addModifier(ItemStack stack, Attribute attribute, String name,
+  private static void curios$addModifier(ItemStack stack, Holder<Attribute> attribute, String name,
                                          UUID uuid, double amount,
                                          AttributeModifier.Operation operation, String slot,
                                          CallbackInfo ci) {

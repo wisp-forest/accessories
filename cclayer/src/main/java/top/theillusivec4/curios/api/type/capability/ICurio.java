@@ -21,6 +21,7 @@ package top.theillusivec4.curios.api.type.capability;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -131,8 +132,8 @@ public interface ICurio {
    * @param uuid        Slot-unique UUID
    * @return A map of attribute modifiers to apply
    */
-  default Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext,
-                                                                       UUID uuid) {
+  default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext,
+                                                                               UUID uuid) {
     return getAttributeModifiers(slotContext.identifier());
   }
 
@@ -327,12 +328,12 @@ public interface ICurio {
     DEFAULT, ALWAYS_DROP, ALWAYS_KEEP, DESTROY
   }
 
-  record SoundInfo(SoundEvent soundEvent, float volume, float pitch) {
+  record SoundInfo(Holder<SoundEvent> soundEvent, float volume, float pitch) {
 
     @Deprecated(forRemoval = true, since = "1.20.1")
     @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
     public SoundEvent getSoundEvent() {
-      return soundEvent;
+      return soundEvent.value();
     }
 
     @Deprecated(forRemoval = true, since = "1.20.1")
@@ -462,7 +463,7 @@ public interface ICurio {
   @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
   default int getFortuneBonus(String identifier, LivingEntity livingEntity, ItemStack curio,
                               int index) {
-    return EnchantmentHelper.getItemEnchantmentLevel(Enchantments.BLOCK_FORTUNE, curio);
+    return EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FORTUNE, curio);
   }
 
   /**
@@ -472,7 +473,7 @@ public interface ICurio {
   @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
   default int getLootingBonus(String identifier, LivingEntity livingEntity, ItemStack curio,
                               int index) {
-    return EnchantmentHelper.getItemEnchantmentLevel(Enchantments.MOB_LOOTING, curio);
+    return EnchantmentHelper.getItemEnchantmentLevel(Enchantments.LOOTING, curio);
   }
 
   /**
@@ -553,7 +554,7 @@ public interface ICurio {
    */
   @Deprecated(forRemoval = true)
   @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
-  default Multimap<Attribute, AttributeModifier> getAttributeModifiers(String identifier) {
+  default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(String identifier) {
     return HashMultimap.create();
   }
 }

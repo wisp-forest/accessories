@@ -22,6 +22,7 @@ package top.theillusivec4.curios.api.event;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
@@ -49,13 +50,12 @@ public class CurioAttributeModifierEvent extends Event {
   private final ItemStack stack;
   private final SlotContext slotContext;
   private final UUID uuid;
-  private final Multimap<Attribute, AttributeModifier> originalModifiers;
-  private Multimap<Attribute, AttributeModifier> unmodifiableModifiers;
+  private final Multimap<Holder<Attribute>, AttributeModifier> originalModifiers;
+  private Multimap<Holder<Attribute>, AttributeModifier> unmodifiableModifiers;
   @Nullable
-  private Multimap<Attribute, AttributeModifier> modifiableModifiers;
+  private Multimap<Holder<Attribute>, AttributeModifier> modifiableModifiers;
 
-  public CurioAttributeModifierEvent(ItemStack stack, SlotContext slotContext, UUID uuid,
-                                     Multimap<Attribute, AttributeModifier> modifiers) {
+  public CurioAttributeModifierEvent(ItemStack stack, SlotContext slotContext, UUID uuid, Multimap<Holder<Attribute>, AttributeModifier> modifiers) {
     this.stack = stack;
     this.slotContext = slotContext;
     this.unmodifiableModifiers = this.originalModifiers = modifiers;
@@ -67,21 +67,21 @@ public class CurioAttributeModifierEvent extends Event {
    * Note that adding attributes based on existing attributes may lead to inconsistent results between the tooltip (client)
    * and the actual attributes (server) if the listener order is different. Using {@link #getOriginalModifiers()} instead will give more consistent results.
    */
-  public Multimap<Attribute, AttributeModifier> getModifiers() {
+  public Multimap<Holder<Attribute>, AttributeModifier> getModifiers() {
     return this.unmodifiableModifiers;
   }
 
   /**
    * Returns the attribute map before any changes from other event listeners was made.
    */
-  public Multimap<Attribute, AttributeModifier> getOriginalModifiers() {
+  public Multimap<Holder<Attribute>, AttributeModifier> getOriginalModifiers() {
     return this.originalModifiers;
   }
 
   /**
    * Gets a modifiable map instance, creating it if the current map is currently unmodifiable
    */
-  private Multimap<Attribute, AttributeModifier> getModifiableMap() {
+  private Multimap<Holder<Attribute>, AttributeModifier> getModifiableMap() {
 
     if (this.modifiableModifiers == null) {
       this.modifiableModifiers = HashMultimap.create(this.originalModifiers);
@@ -99,7 +99,7 @@ public class CurioAttributeModifierEvent extends Event {
    * @param modifier  Modifier instance.
    * @return True if the attribute was added, false if it was already present
    */
-  public boolean addModifier(Attribute attribute, AttributeModifier modifier) {
+  public boolean addModifier(Holder<Attribute> attribute, AttributeModifier modifier) {
     return getModifiableMap().put(attribute, modifier);
   }
 
@@ -110,7 +110,7 @@ public class CurioAttributeModifierEvent extends Event {
    * @param modifier  Modifier instance
    * @return True if an attribute was removed, false if no change
    */
-  public boolean removeModifier(Attribute attribute, AttributeModifier modifier) {
+  public boolean removeModifier(Holder<Attribute> attribute, AttributeModifier modifier) {
     return getModifiableMap().remove(attribute, modifier);
   }
 
@@ -120,7 +120,7 @@ public class CurioAttributeModifierEvent extends Event {
    * @param attribute Attribute
    * @return Collection of removed modifiers
    */
-  public Collection<AttributeModifier> removeAttribute(Attribute attribute) {
+  public Collection<AttributeModifier> removeAttribute(Holder<Attribute> attribute) {
     return getModifiableMap().removeAll(attribute);
   }
 

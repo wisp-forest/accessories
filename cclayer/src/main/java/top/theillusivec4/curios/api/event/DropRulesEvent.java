@@ -53,8 +53,7 @@ public class DropRulesEvent extends LivingEvent {
   private final List<Tuple<Predicate<ItemStack>, DropRule>> overrides = new ArrayList<>();
   // List of drop rule overrides
 
-  public DropRulesEvent(LivingEntity entity, ICuriosItemHandler handler, DamageSource source,
-                        int lootingLevel, boolean recentlyHit) {
+  public DropRulesEvent(LivingEntity entity, ICuriosItemHandler handler, DamageSource source, int lootingLevel, boolean recentlyHit) {
     super(entity);
     this.source = source;
     this.lootingLevel = lootingLevel;

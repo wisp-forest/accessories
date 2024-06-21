@@ -22,6 +22,7 @@ package top.theillusivec4.curios.api;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -227,7 +228,7 @@ public final class CuriosApi {
    * @param stack       The ItemStack in question
    * @return A map of attribute modifiers
    */
-  public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(
+  public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(
       SlotContext slotContext, UUID uuid, ItemStack stack) {
     apiError();
     return HashMultimap.create();
@@ -242,7 +243,7 @@ public final class CuriosApi {
    * @param amount     The amount of the modifier
    * @param operation  The operation of the modifier
    */
-  public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String identifier,
+  public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String identifier,
                                      UUID uuid, double amount,
                                      AttributeModifier.Operation operation) {
     apiError();
@@ -276,7 +277,7 @@ public final class CuriosApi {
    * @param operation The operation of the modifier
    * @param slot      The slot that the ItemStack provides the modifier from
    */
-  public static void addModifier(ItemStack stack, Attribute attribute, String name, UUID uuid,
+  public static void addModifier(ItemStack stack, Holder<Attribute> attribute, String name, UUID uuid,
                                  double amount, AttributeModifier.Operation operation,
                                  String slot) {
     apiError();

@@ -47,8 +47,7 @@ public class CurioChangeEvent extends LivingEvent {
   private final ItemStack to;
   private final int index;
 
-  public CurioChangeEvent(LivingEntity living, String type, int index, @Nonnull ItemStack from,
-                          @Nonnull ItemStack to) {
+  public CurioChangeEvent(LivingEntity living, String type, int index, @Nonnull ItemStack from, @Nonnull ItemStack to) {
     super(living);
     this.type = type;
     this.from = from;
