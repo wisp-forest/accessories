@@ -419,7 +419,13 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
         this.baseSize = slotType != null ? slotType.amount() : sizeFromTag;
 
-        this.renderOptions = carrier.get(RENDER_OPTIONS_KEY);
+        this.renderOptions = Util.make(new ArrayList<>(baseSize), booleans -> {
+            for (int i = 0; i < baseSize; i++) booleans.add(i, true);
+        });
+
+        var readOptions = carrier.get(RENDER_OPTIONS_KEY);
+
+        for (int i = 0; i < readOptions.size(); i++) this.renderOptions.set(i, readOptions.get(i));
 
         if(carrier.has(CURRENT_SIZE_KEY)) {
             var size = carrier.get(CURRENT_SIZE_KEY);
