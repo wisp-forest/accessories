@@ -48,7 +48,7 @@ public class TrinketItem extends Item implements Trinket {
                                 ItemStack newStack = stack.copy();
                                 inv.setItem(i, newStack);
                                 Trinket trinket = TrinketsApi.getTrinket(stack.getItem());
-                                SoundEvent soundEvent = trinket.getEquipSound(stack, ref, user);
+                                SoundEvent soundEvent = trinket.getEquipSound(stack, ref, user).value();
                                 if (!stack.isEmpty() && soundEvent != null) {
                                     user.gameEvent(GameEvent.EQUIP);
                                     user.playSound(soundEvent, 1.0F, 1.0F);

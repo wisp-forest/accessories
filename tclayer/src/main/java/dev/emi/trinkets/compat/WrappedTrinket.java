@@ -5,7 +5,9 @@ import dev.emi.trinkets.api.Trinket;
 import dev.emi.trinkets.api.TrinketEnums;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
+import io.wispforest.accessories.api.SoundEventData;
 import io.wispforest.accessories.api.slot.SlotReference;
+import net.minecraft.core.Holder;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -79,7 +81,7 @@ public class WrappedTrinket implements Accessory {
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid) {
+    public Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid) {
         var ref = WrappingTrinketsUtils.createReference(reference);
 
         if(ref.isEmpty()) return Accessory.super.getModifiers(stack, reference, uuid);
@@ -104,6 +106,28 @@ public class WrappedTrinket implements Accessory {
             Accessory.super.onBreak(stack, reference);
         } else {
             this.trinket.onBreak(stack, ref.get(), reference.entity());
+        }
+    }
+
+    @Override
+    public boolean canEquipFromUse(ItemStack stack, SlotReference reference) {
+        var ref = WrappingTrinketsUtils.createReference(reference);
+
+        if (ref.isEmpty()) {
+            return Accessory.super.canEquipFromUse(stack, reference);
+        } else {
+            return this.trinket.canEquipFromUse(stack, reference.entity());
+        }
+    }
+
+    @Override
+    public SoundEventData getEquipSound(ItemStack stack, SlotReference reference) {
+        var ref = WrappingTrinketsUtils.createReference(reference);
+
+        if (ref.isEmpty()) {
+            return Accessory.super.getEquipSound(stack, reference);
+        } else {
+            return new SoundEventData(this.trinket.getEquipSound(stack, ref.get(), reference.entity()), 1.0f, 1.0f);
         }
     }
 }

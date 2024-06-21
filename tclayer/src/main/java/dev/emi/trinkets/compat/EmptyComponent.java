@@ -6,6 +6,7 @@ import dev.emi.trinkets.api.SlotGroup;
 import dev.emi.trinkets.api.SlotReference;
 import dev.emi.trinkets.api.TrinketComponent;
 import dev.emi.trinkets.api.TrinketInventory;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.LivingEntity;
@@ -83,8 +84,8 @@ public class EmptyComponent implements TrinketComponent {
     public void clearCachedModifiers() {}
 
     @Override
-    public void readFromNbt(CompoundTag tag) {}
+    public void readFromNbt(CompoundTag tag, HolderLookup.Provider registryLookup) {}
 
     @Override
-    public void writeToNbt(CompoundTag tag) {}
+    public void writeToNbt(CompoundTag tag, HolderLookup.Provider registryLookup) {}
 }

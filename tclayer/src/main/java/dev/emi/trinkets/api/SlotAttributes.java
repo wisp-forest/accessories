@@ -3,6 +3,7 @@ package dev.emi.trinkets.api;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import dev.emi.trinkets.compat.WrappingTrinketsUtils;
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
@@ -11,13 +12,12 @@ import java.util.UUID;
 
 public class SlotAttributes {
     private static Map<String, UUID> CACHED_UUIDS = Maps.newHashMap();
-    private static Map<String, SlotAttribute> CACHED_ATTRIBUTES = Maps.newHashMap();
+    private static Map<String, Holder<Attribute>> CACHED_ATTRIBUTES = Maps.newHashMap();
 
     /**
      * Adds an Entity Attribute Nodifier for slot count to the provided multimap
      */
-    public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String slot, UUID uuid, double amount,
-                                       AttributeModifier.Operation operation) {
+    public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String slot, UUID uuid, double amount, AttributeModifier.Operation operation) {
         io.wispforest.accessories.api.slot.SlotAttribute.addSlotModifier(map, WrappingTrinketsUtils.trinketsToAccessories_Slot(TrinketConstants.filterGroup(slot)), uuid, amount, operation);
     }
 
@@ -31,7 +31,7 @@ public class SlotAttributes {
         public String slot;
 
         private SlotAttribute(String slot) {
-            super("curios.slot." + slot, 0);
+            super("trinkets.slot." + slot, 0);
             this.slot = slot;
         }
     }

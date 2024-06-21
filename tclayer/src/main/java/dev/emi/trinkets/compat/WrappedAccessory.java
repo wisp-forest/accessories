@@ -5,6 +5,8 @@ import dev.emi.trinkets.api.SlotReference;
 import dev.emi.trinkets.api.Trinket;
 import dev.emi.trinkets.api.TrinketEnums;
 import io.wispforest.accessories.api.Accessory;
+import net.minecraft.core.Holder;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -66,7 +68,7 @@ public class WrappedAccessory implements Trinket {
     }
 
     @Override
-    public Multimap<Attribute, AttributeModifier> getModifiers(ItemStack stack, SlotReference ref, LivingEntity entity, UUID uuid) {
+    public Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference ref, LivingEntity entity, UUID uuid) {
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
         var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());
@@ -94,5 +96,19 @@ public class WrappedAccessory implements Trinket {
         var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());
 
         accessory.onBreak(stack, reference);
+    }
+
+    @Override
+    public boolean canEquipFromUse(ItemStack stack, LivingEntity entity) {
+        return accessory.canEquipFromUse(stack, io.wispforest.accessories.api.slot.SlotReference.of(entity, "", 0));
+    }
+
+    @Override
+    public Holder<SoundEvent> getEquipSound(ItemStack stack, SlotReference ref, LivingEntity entity) {
+        var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
+
+        var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());
+
+        return accessory.getEquipSound(stack, reference).event();
     }
 }

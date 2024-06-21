@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import net.fabricmc.fabric.api.util.NbtType;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -97,7 +98,7 @@ public interface Trinket {
      * @param entity The entity that is equipping the stack
      * @return The {@link SoundEvent} to play for equipping
      */
-    default SoundEvent getEquipSound(ItemStack stack, SlotReference slot, LivingEntity entity) {
+    default Holder<SoundEvent> getEquipSound(ItemStack stack, SlotReference slot, LivingEntity entity) {
         return stack.getItem() instanceof Equipable eq ? eq.getEquipSound() : null;
     }
 
@@ -110,34 +111,17 @@ public interface Trinket {
      *
      * @param uuid The UUID to use for creating attributes
      */
-    default Multimap<Attribute, AttributeModifier> getModifiers(ItemStack stack,
-                                                                SlotReference slot, LivingEntity entity, UUID uuid) {
+    default Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference slot, LivingEntity entity, UUID uuid) {
+        Multimap<Holder<Attribute>, AttributeModifier> map = Multimaps.newMultimap(Maps.newLinkedHashMap(), ArrayList::new);
 
-        Multimap<Attribute, AttributeModifier> map = Multimaps.newMultimap(Maps.newLinkedHashMap(), ArrayList::new);
-
-        if (stack.hasTag() && stack.getTag().contains("TrinketAttributeModifiers", 9)) {
-            ListTag list = stack.getTag().getList("TrinketAttributeModifiers", 10);
-
-            for (int i = 0; i < list.size(); i++) {
-                CompoundTag tag = list.getCompound(i);
-
-                if (!tag.contains("Slot", NbtType.STRING) || tag.getString("Slot")
-                        .equals(slot.inventory().getSlotType().getName())) {
-                    Optional<Attribute> optional = BuiltInRegistries.ATTRIBUTE
-                            .getOptional(ResourceLocation.tryParse(tag.getString("AttributeName")));
-
-                    if (optional.isPresent()) {
-                        AttributeModifier entityAttributeModifier = AttributeModifier.load(tag);
-
-                        if (entityAttributeModifier != null
-                                && entityAttributeModifier.getId().getLeastSignificantBits() != 0L
-                                && entityAttributeModifier.getId().getMostSignificantBits() != 0L) {
-                            map.put(optional.get(), entityAttributeModifier);
-                        }
-                    }
+        if (stack.has(TrinketsAttributeModifiersComponent.TYPE)) {
+            for (var entry : stack.getOrDefault(TrinketsAttributeModifiersComponent.TYPE, TrinketsAttributeModifiersComponent.DEFAULT).modifiers()) {
+                if (entry.slot().isEmpty() || entry.slot().get().equals(slot.inventory().getSlotType().getGroup() + "/" + slot.inventory().getSlotType().getName())) {
+                    map.put(entry.attribute(), entry.modifier());
                 }
             }
         }
+
         return map;
     }
 

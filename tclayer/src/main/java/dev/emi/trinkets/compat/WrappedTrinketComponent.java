@@ -7,10 +7,19 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.EdmUtils;
+import io.wispforest.accessories.endec.NbtMapCarrier;
+import io.wispforest.accessories.endec.RegistriesAttribute;
+import io.wispforest.accessories.endec.format.nbt.NbtDeserializer;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.accessories.impl.InstanceEndec;
+import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
+import io.wispforest.endec.format.edm.EdmEndec;
 import io.wispforest.endec.format.edm.EdmMap;
+import io.wispforest.endec.format.edm.LenientEdmDeserializer;
 import net.fabricmc.fabric.api.util.NbtType;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.LivingEntity;
@@ -142,11 +151,13 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
         capability.clearCachedSlotModifiers();
     }
 
+    private final Endec<AccessoriesHolderImpl> ENDEC = InstanceEndec.constructed(AccessoriesHolderImpl::new);
+
     @Override
-    public void readFromNbt(CompoundTag tag) {
+    public void readFromNbt(CompoundTag tag, HolderLookup.Provider registryLookup) {
         if(tag.getBoolean("is_accessories_data")) {
             ((AccessoriesHolderImpl)this.capability.getHolder())
-                    .read(tag.getCompound("main_data"));
+                    .read(new NbtMapCarrier(tag), SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) registryLookup)));
         } else {
             var dropped = new ArrayList<ItemStack>();
 
@@ -162,7 +173,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
 
                     var list = slotTag.getList("Items", NbtType.COMPOUND)
                             .stream()
-                            .map(tagEntry -> ItemStack.of((tagEntry instanceof CompoundTag compoundTag) ? compoundTag : new CompoundTag()))
+                            .map(tagEntry -> ItemStack.parseOptional(registryLookup, (tagEntry instanceof CompoundTag compoundTag) ? compoundTag : new CompoundTag()))
                             .toList();
 
                     if (slotType == null) {
@@ -212,13 +223,13 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
     }
 
     @Override
-    public void writeToNbt(CompoundTag tag) {
-        var innerCarrier = EdmUtils.newMap();
+    public void writeToNbt(CompoundTag tag, HolderLookup.Provider registryLookup) {
+        var innerCarrier = NbtMapCarrier.of();
 
         ((AccessoriesHolderImpl)this.capability.getHolder())
-                .write(innerCarrier, SerializationContext.empty());
+                .write(innerCarrier, SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) registryLookup)));
 
-        tag.put("main_data", innerCarrier);
+        tag.put("main_data", innerCarrier.compoundTag());
         tag.putBoolean("is_accessories_data", true);
     }
 }
