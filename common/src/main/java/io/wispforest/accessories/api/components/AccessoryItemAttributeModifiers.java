@@ -10,6 +10,7 @@ import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.endec.MinecraftEndecs;
 import io.wispforest.accessories.endec.RegistriesAttribute;
+import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.BuiltInEndecs;
@@ -86,17 +87,9 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
                 }
         );
 
-        public static final StructEndec<AttributeModifier> ATTRIBUTE_MODIFIER_ENDEC = StructEndecBuilder.of(
-                BuiltInEndecs.UUID.fieldOf("uuid", AttributeModifier::id),
-                Endec.STRING.fieldOf("name", AttributeModifier::name),
-                Endec.DOUBLE.fieldOf("amount", AttributeModifier::amount),
-                Endec.forEnum(AttributeModifier.Operation.class).fieldOf("operation", AttributeModifier::operation),
-                AttributeModifier::new
-        );
-
         public static final Endec<Entry> ENDEC = StructEndecBuilder.of(
                 ATTRIBUTE_ENDEC.fieldOf("type", AccessoryItemAttributeModifiers.Entry::attribute),
-                ATTRIBUTE_MODIFIER_ENDEC.flatFieldOf(AccessoryItemAttributeModifiers.Entry::modifier),
+                AttributeUtils.ATTRIBUTE_MODIFIER_ENDEC.flatFieldOf(AccessoryItemAttributeModifiers.Entry::modifier),
                 Endec.STRING.fieldOf("slot_name", AccessoryItemAttributeModifiers.Entry::slotName),
                 AccessoryItemAttributeModifiers.Entry::new
         );

@@ -82,13 +82,10 @@ public class AccessoriesForge {
 
                             @Override
                             public AccessoriesHolderImpl read(IAttachmentHolder holder, Tag tag, HolderLookup.Provider provider) {
-                                var ctx = SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) provider));
-                                var edmData = EdmEndec.INSTANCE.decodeFully(ctx, NbtDeserializer::of, tag);
-
                                 return ENDEC.decodeFully(
-                                        ctx,
-                                        LenientEdmDeserializer::of,
-                                        edmData);
+                                        SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) provider)),
+                                        NbtDeserializer::of,
+                                        tag);
                             }
 
                             @Override
