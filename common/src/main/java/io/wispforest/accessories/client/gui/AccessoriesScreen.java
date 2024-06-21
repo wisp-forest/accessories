@@ -764,9 +764,30 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     @Override
     protected boolean hasClickedOutside(double mouseX, double mouseY, int x, int y, int mouseButton) {
-        boolean flag = mouseX < (double) x || mouseY < (double) y || mouseX >= (double) (x + width) || mouseY >= (double) (y + height);
-        boolean flag1 = (double) (x - 147) < mouseX && mouseX < (double) x && (double) y < mouseY && mouseY < (double) (y + height);
-        return flag && !flag1;
+        int leftPos = this.leftPos;
+        int topPos = this.topPos;
+
+        boolean insideMainPanel = (mouseX >= leftPos && mouseX <= leftPos + this.imageWidth)
+                && (mouseY >= topPos && mouseY <= topPos + this.imageHeight);
+
+        int sidePanelX = getStartingPanelX();
+        int sidePanelY = topPos;
+
+        boolean insideSidePanel = (mouseX >= sidePanelX && mouseX <= sidePanelX + this.getPanelWidth() + this.imageWidth)
+                && (mouseY >= sidePanelY && mouseY <= sidePanelY + this.getPanelHeight());
+
+        boolean insideGroupPanel = false;
+
+        if(Accessories.getConfig().clientData.showGroupTabs && this.menu.maxScrollableIndex > 0) {
+            for (var value : this.getGroups(sidePanelX, sidePanelY).values()) {
+                if (value.isInBounds((int) Math.round(mouseX), (int) Math.round(mouseY))) {
+                    insideGroupPanel = true;
+                    break;
+                }
+            }
+        }
+
+        return !(insideMainPanel || insideSidePanel || insideGroupPanel);
     }
 
     public static int tabPageCount() {
