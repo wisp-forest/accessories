@@ -47,12 +47,17 @@ public class DeathWrapperEventsImpl implements OnDeathCallback, OnDropCallback {
                     itemEntity.setItem(stack);
 
                     return itemEntity;
-                }).filter(Objects::nonNull)
+                })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
+
+        droppedStacks.clear();
 
         var dropEventTest = new CurioDropsEvent(entity, handler, damageSource, itemEntities, 0, false);
 
         NeoForge.EVENT_BUS.post(dropEventTest);
+
+        droppedStacks.addAll(itemEntities.stream().map(ItemEntity::getItem).toList());
 
         if(dropEventTest.isCanceled()) return TriState.FALSE;
 
