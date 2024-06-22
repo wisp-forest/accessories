@@ -127,7 +127,11 @@ public class WrappedTrinket implements Accessory {
         if (ref.isEmpty()) {
             return Accessory.super.getEquipSound(stack, reference);
         } else {
-            return new SoundEventData(this.trinket.getEquipSound(stack, ref.get(), reference.entity()), 1.0f, 1.0f);
+            var holder = this.trinket.getEquipSound(stack, ref.get(), reference.entity());
+
+            if(holder == null) return null;
+
+            return new SoundEventData(holder, 1.0f, 1.0f);
         }
     }
 }

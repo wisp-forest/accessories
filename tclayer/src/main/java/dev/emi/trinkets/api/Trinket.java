@@ -17,6 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -98,6 +99,7 @@ public interface Trinket {
      * @param entity The entity that is equipping the stack
      * @return The {@link SoundEvent} to play for equipping
      */
+    @Nullable
     default Holder<SoundEvent> getEquipSound(ItemStack stack, SlotReference slot, LivingEntity entity) {
         return stack.getItem() instanceof Equipable eq ? eq.getEquipSound() : null;
     }

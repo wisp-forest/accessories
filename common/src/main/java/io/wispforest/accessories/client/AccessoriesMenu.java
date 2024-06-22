@@ -212,9 +212,9 @@ public class AccessoriesMenu extends AbstractContainerMenu {
             for (var slot : slotTypes) {
                 if(this.usedSlots != null && !this.usedSlots.contains(slot)) {
                     continue;
-                } else {
-                    this.validGroups.add(group);
                 }
+
+                this.validGroups.add(group);
 
                 var accessoryContainer = containers.get(slot.name());
 

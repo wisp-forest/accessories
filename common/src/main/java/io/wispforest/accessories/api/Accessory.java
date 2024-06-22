@@ -17,6 +17,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
@@ -106,6 +107,8 @@ public interface Accessory {
     default void onEquipFromUse(ItemStack stack, SlotReference reference){
         var sound = getEquipSound(stack, reference);
 
+        if(sound == null) return;
+
         reference.entity().playSound(sound.event().value(), sound.volume(), sound.pitch());
     }
 
@@ -115,6 +118,7 @@ public interface Accessory {
      * @param stack The Stack being prepared for dropping
      * @param reference The reference to the targeted {@link LivingEntity}, slot and index
      */
+    @Nullable
     default SoundEventData getEquipSound(ItemStack stack, SlotReference reference){
         return new SoundEventData(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
     }

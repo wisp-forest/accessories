@@ -5,6 +5,7 @@ import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.events.extra.*;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -67,6 +68,8 @@ public class WrappedAccessory implements ICurioItem {
     @Override
     public ICurio.SoundInfo getEquipSound(SlotContext slotContext, ItemStack stack) {
         var data = accessory.getEquipSound(stack, CuriosWrappingUtils.fromContext(slotContext));
+
+        if(data == null) return new ICurio.SoundInfo(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
 
         return new ICurio.SoundInfo(data.event(), data.volume(), data.pitch());
     }

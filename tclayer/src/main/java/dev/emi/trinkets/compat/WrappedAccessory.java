@@ -109,6 +109,10 @@ public class WrappedAccessory implements Trinket {
 
         var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());
 
-        return accessory.getEquipSound(stack, reference).event();
+        var data = accessory.getEquipSound(stack, reference);
+
+        if(data == null) return null;
+
+        return data.event();
     }
 }
