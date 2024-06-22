@@ -47,7 +47,7 @@ public class UniqueSlotHandling {
     }
 
     public static boolean isUniqueGroup(String group) {
-        return UNIQUE_SLOT_GROUPS.add(group);
+        return UNIQUE_SLOT_GROUPS.contains(group);
     }
 
     public static void gatherUniqueSlots(TriFunction<ResourceLocation, Integer, Collection<ResourceLocation>, SlotTypeReference> slotRegistration) {
