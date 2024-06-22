@@ -1,5 +1,6 @@
 package io.wispforest.accessories.endec;
 
+import io.wispforest.accessories.mixin.HolderLookupAdapterAccessor;
 import io.wispforest.endec.SerializationAttribute;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -33,7 +34,13 @@ public class RegistriesAttribute implements SerializationAttribute.Instance {
 
     @ApiStatus.Internal
     public static RegistriesAttribute infoGetterOnly(RegistryOps.RegistryInfoLookup lookup) {
-        return new RegistriesAttribute(lookup, null);
+        RegistryAccess registryManager = null;
+
+        if(lookup instanceof RegistryOps.HolderLookupAdapter holderLookupAdapter && ((HolderLookupAdapterAccessor) holderLookupAdapter).getLookupProvider() instanceof RegistryAccess registryAccess) {
+            registryManager = registryAccess;
+        }
+
+        return new RegistriesAttribute(lookup, registryManager);
     }
 
     public RegistryOps.RegistryInfoLookup infoGetter() {

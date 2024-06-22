@@ -8,27 +8,28 @@
     "client.AbstractContainerScreenMixin",
     "client.CreativeInventoryScreenMixin",
     "client.DefaultTooltipPositionerMixin",
+    "client.GuiGraphicsAccessor",
     "client.InventoryScreenMixin",
     "client.MinecraftMixin",
     "client.ModelPartAccessor",
-    "client.PlayerRendererMixin",
-    "client.GuiGraphicsAccessor"
+    "client.PlayerRendererMixin"
   ],
   "mixins": [
     "ApplyBonusCountMixin",
     "CriteriaTriggersAccessor",
+    "DelegatingOpsAccessor",
     "EnchantmentHelperMixin",
     "EndermanMixin",
     "EquipmentSlotMixin",
     "EquipmentSlotTypeMixin",
+    "HolderLookupAdapterAccessor",
     "InventoryMixin",
     "LivingEntityAccessor",
     "LivingEntityMixin",
     "PiglinAiMixin",
     "PowderSnowBlockMixin",
-    "SlotAccessor",
     "RegistryOpsAccessor",
-    "DelegatingOpsAccessor"
+    "SlotAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
