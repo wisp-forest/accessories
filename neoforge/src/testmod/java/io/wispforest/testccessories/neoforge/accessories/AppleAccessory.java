@@ -13,6 +13,7 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HeadedModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -43,7 +44,8 @@ public class AppleAccessory implements Accessory {
 
         if (!AccessoriesCapability.get(player).isEquipped(Items.APPLE)) return;
 
-        player.getFoodData().eat(stack);
+        var foodProperties = stack.get(DataComponents.FOOD);
+        player.getFoodData().eat(foodProperties);
         stack.shrink(1);
 
         player.playNotifySound(SoundEvents.PLAYER_BURP, SoundSource.PLAYERS, 1, 1);

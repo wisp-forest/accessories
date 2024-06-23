@@ -51,7 +51,6 @@ import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.living.LootingLevelEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
@@ -121,7 +120,6 @@ public class AccessoriesForge {
 
         eventBus.addListener(this::registerStuff);
 
-        NeoForge.EVENT_BUS.addListener(this::adjustLooting);
         NeoForge.EVENT_BUS.addListener(this::onWorldTick);
 
         eventBus.register(AccessoriesForgeNetworkHandler.INSTANCE);
@@ -252,10 +250,6 @@ public class AccessoriesForge {
     }
 
     //--
-
-    public void adjustLooting(LootingLevelEvent event){
-        event.setLootingLevel(ExtraEventHandler.lootingAdjustments(event.getEntity(), event.getDamageSource(), event.getLootingLevel()));
-    }
 
     public void onWorldTick(LevelTickEvent.Pre event){
         AccessoriesEventHandler.onWorldTick(event.getLevel());

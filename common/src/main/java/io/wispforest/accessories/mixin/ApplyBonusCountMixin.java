@@ -3,6 +3,7 @@ package io.wispforest.accessories.mixin;
 import com.llamalad7.mixinextras.sugar.Local;
 import io.wispforest.accessories.api.events.extra.ExtraEventHandler;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.storage.loot.LootContext;
@@ -20,7 +21,7 @@ public abstract class ApplyBonusCountMixin {
 
     @ModifyArg(method = "run", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/storage/loot/functions/ApplyBonusCount$Formula;calculateNewCount(Lnet/minecraft/util/RandomSource;II)I"), index = 2)
     private int test(int value, @Local(argsOnly = true) LootContext context){
-        return (this.enchantment.value() == Enchantments.FORTUNE)
+        return (this.enchantment.value() == context.getLevel().registryAccess().registry(Registries.ENCHANTMENT).orElseThrow().getHolderOrThrow(Enchantments.FORTUNE).value())
                 ? ExtraEventHandler.fortuneAdjustment(context, value)
                 : value;
     }

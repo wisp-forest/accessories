@@ -16,28 +16,35 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.inventory.ArmorSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class AccessoriesMenu extends AbstractContainerMenu {
-    public static final ResourceLocation BLOCK_ATLAS = new ResourceLocation("textures/atlas/blocks.png");
-    public static final ResourceLocation EMPTY_ARMOR_SLOT_HELMET = new ResourceLocation("item/empty_armor_slot_helmet");
-    public static final ResourceLocation EMPTY_ARMOR_SLOT_CHESTPLATE = new ResourceLocation("item/empty_armor_slot_chestplate");
-    public static final ResourceLocation EMPTY_ARMOR_SLOT_LEGGINGS = new ResourceLocation("item/empty_armor_slot_leggings");
-    public static final ResourceLocation EMPTY_ARMOR_SLOT_BOOTS = new ResourceLocation("item/empty_armor_slot_boots");
-    public static final ResourceLocation EMPTY_ARMOR_SLOT_SHIELD = new ResourceLocation("item/empty_armor_slot_shield");
-    static final ResourceLocation[] TEXTURE_EMPTY_SLOTS;
-    private static final EquipmentSlot[] SLOT_IDS;
+    public static final ResourceLocation BLOCK_ATLAS = ResourceLocation.withDefaultNamespace("textures/atlas/blocks.png");
+    public static final ResourceLocation EMPTY_ARMOR_SLOT_HELMET = ResourceLocation.withDefaultNamespace("item/empty_armor_slot_helmet");
+    public static final ResourceLocation EMPTY_ARMOR_SLOT_CHESTPLATE = ResourceLocation.withDefaultNamespace("item/empty_armor_slot_chestplate");
+    public static final ResourceLocation EMPTY_ARMOR_SLOT_LEGGINGS = ResourceLocation.withDefaultNamespace("item/empty_armor_slot_leggings");
+    public static final ResourceLocation EMPTY_ARMOR_SLOT_BOOTS = ResourceLocation.withDefaultNamespace("item/empty_armor_slot_boots");
+    public static final ResourceLocation EMPTY_ARMOR_SLOT_SHIELD = ResourceLocation.withDefaultNamespace("item/empty_armor_slot_shield");
+    private static final Map<EquipmentSlot, ResourceLocation> TEXTURE_EMPTY_SLOTS = Map.of(
+            EquipmentSlot.FEET,
+            EMPTY_ARMOR_SLOT_BOOTS,
+            EquipmentSlot.LEGS,
+            EMPTY_ARMOR_SLOT_LEGGINGS,
+            EquipmentSlot.CHEST,
+            EMPTY_ARMOR_SLOT_CHESTPLATE,
+            EquipmentSlot.HEAD,
+            EMPTY_ARMOR_SLOT_HELMET
+    );
+    private static final EquipmentSlot[] SLOT_IDS = new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
     public final boolean active;
 
     public final Player owner;
@@ -121,51 +128,32 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
         //--
 
-        for (int i = 0; i < 4; ++i) {
-            final EquipmentSlot equipmentSlot = SLOT_IDS[i];
-            this.addSlot(new Slot(inventory, 39 - i, 8, 8 + i * 18) {
-                public void setByPlayer(ItemStack newStack, ItemStack oldStack) {
-                    AccessoriesMenu.this.owner.onEquipItem(equipmentSlot, oldStack, newStack);
-                    super.setByPlayer(newStack, oldStack);
-                }
-
-                public int getMaxStackSize() {
-                    return 1;
-                }
-
-                public boolean mayPlace(ItemStack stack) {
-                    return equipmentSlot == Mob.getEquipmentSlotForItem(stack);
-                }
-
-                public boolean mayPickup(Player player) {
-                    var itemStack = this.getItem();
-                    return !itemStack.isEmpty() && !player.isCreative() && EnchantmentHelper.hasBindingCurse(itemStack) ? false : super.mayPickup(player);
-                }
-
-                public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-                    return Pair.of(BLOCK_ATLAS, TEXTURE_EMPTY_SLOTS[equipmentSlot.getIndex()]);
-                }
-            });
+        for (int i = 0; i < 4; i++) {
+            var equipmentSlot = SLOT_IDS[i];
+            ResourceLocation resourceLocation = TEXTURE_EMPTY_SLOTS.get(equipmentSlot);
+            this.addSlot(new ArmorSlot(inventory, owner, equipmentSlot, 39 - i, 8, 8 + i * 18, resourceLocation));
         }
 
-        for (int i = 0; i < 3; ++i) {
-            for (int j = 0; j < 9; ++j) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 9; j++) {
                 this.addSlot(new Slot(inventory, j + (i + 1) * 9, 8 + j * 18, 84 + i * 18));
             }
         }
 
-        for (int i = 0; i < 9; ++i) {
+        for (int i = 0; i < 9; i++) {
             this.addSlot(new Slot(inventory, i, 8 + i * 18, 142));
         }
 
         this.addSlot(new Slot(inventory, 40, 152, 62) {
+            @Override
             public void setByPlayer(ItemStack newStack, ItemStack oldStack) {
-                AccessoriesMenu.this.owner.onEquipItem(EquipmentSlot.OFFHAND, oldStack, newStack);
+                owner.onEquipItem(EquipmentSlot.OFFHAND, oldStack, newStack);
                 super.setByPlayer(newStack, oldStack);
             }
 
+            @Override
             public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-                return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD);
+                return Pair.of(BLOCK_ATLAS, EMPTY_ARMOR_SLOT_SHIELD);
             }
         });
 
@@ -280,7 +268,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
         ItemStack clickedStack = clickedSlot.getItem();
         var oldStack = clickedStack.copy();
-        EquipmentSlot equipmentSlot = Mob.getEquipmentSlotForItem(oldStack);
+        EquipmentSlot equipmentSlot = player.getEquipmentSlotForItem(oldStack);
 
         int armorSlots = 4;
         int hotbarSlots = 9;
@@ -305,7 +293,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
                         return ItemStack.EMPTY;
                     }
                     // If the clicked slot can go into an armor slot and said armor slot is empty
-                } else if (equipmentSlot.getType() == EquipmentSlot.Type.ARMOR && !this.slots.get(armorEnd - equipmentSlot.getIndex()).hasItem()) {
+                } else if (equipmentSlot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR && !this.slots.get(armorEnd - equipmentSlot.getIndex()).hasItem()) {
                     // Try to move to the armor slot
                     int targetArmorSlotIndex = armorEnd - equipmentSlot.getIndex();
                     if (!this.moveItemStackTo(clickedStack, targetArmorSlotIndex, targetArmorSlotIndex + 1, false)) {
@@ -402,11 +390,6 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
     public void reopenMenu() {
         AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(this.targetEntity));
-    }
-
-    static {
-        TEXTURE_EMPTY_SLOTS = new ResourceLocation[]{EMPTY_ARMOR_SLOT_BOOTS, EMPTY_ARMOR_SLOT_LEGGINGS, EMPTY_ARMOR_SLOT_CHESTPLATE, EMPTY_ARMOR_SLOT_HELMET};
-        SLOT_IDS = new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
     }
 
     //--

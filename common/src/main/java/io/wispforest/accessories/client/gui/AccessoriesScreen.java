@@ -88,11 +88,11 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     public static boolean HOLD_LINE_INFO = false;
 
-    public static final Map<String, Vec3> NOT_VERY_NICE_POSITIONS = new HashMap<>();
+    public static final Map<String, Vector3d> NOT_VERY_NICE_POSITIONS = new HashMap<>();
 
     public static boolean FORCE_TOOLTIP_LEFT = false;
 
-    private final List<Pair<Vec3, Vec3>> accessoryLines = new ArrayList<>();
+    private final List<Pair<Vector3d, Vector3d>> accessoryLines = new ArrayList<>();
 
     private final Map<AccessoriesInternalSlot, ToggleButton> cosmeticButtons = new LinkedHashMap<>();
 
@@ -281,7 +281,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 var vec = NOT_VERY_NICE_POSITIONS.getOrDefault(positionKey, null);
 
                 if (!accessoriesSlot.isCosmetic && vec != null && (menu.areLinesShown())) {
-                    var start = new Vec3(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
+                    var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
                     var vec3 = vec.add(0, 0, 5000);
 
                     this.accessoryLines.add(Pair.of(start, vec3));
@@ -369,7 +369,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
                 guiGraphics.blit(HORIZONTAL_TABS, vector.x, vector.y, 0, v, vector.z, vector.w, 19, vector.w * 4); //32,128
 
-                var textureAtlasSprite = this.minecraft.getTextureAtlas(new ResourceLocation("textures/atlas/blocks.png")).apply(group.icon());
+                var textureAtlasSprite = this.minecraft.getTextureAtlas(ResourceLocation.withDefaultNamespace("textures/atlas/blocks.png")).apply(group.icon());
 
                 pose.pushPose();
 
@@ -393,63 +393,65 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
             var lastPose = guiGraphics.pose().last();
 
-            for (Pair<Vec3, Vec3> line : this.accessoryLines) {
-                var normalVec = line.second().subtract(line.first()).normalize().toVector3f();
+            for (Pair<Vector3d, Vector3d> line : this.accessoryLines) {
+                var normalVec = line.second().sub(line.first(), new Vector3d()).normalize().get(new Vector3f());
 
-                double segments = Math.max(10, ((int) (line.first().distanceTo(line.second()) * 10)) / 100);
+                double segments = Math.max(10, ((int) (line.first().distance(line.second()) * 10)) / 100);
                 segments *= 2;
 
                 var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
                 var delta = movement % (2 / (segments)) % segments;
 
-                if (delta > 0.05) {
-                    buf.vertex(line.first().x, line.first().y, line.first().z)
-                            .color(255, 255, 255, 255)
-                            .overlayCoords(OverlayTexture.NO_OVERLAY)
-                            .uv2(LightTexture.FULL_BLOCK)
-                            .normal(lastPose, normalVec.x, normalVec.y, normalVec.z)
-                            .endVertex();
+                var firstVec = line.first().get(new Vector3f());
 
-                    var pos = new Vec3(
+                if (delta > 0.05) {
+                    buf.addVertex(firstVec)
+                            .setColor(255, 255, 255, 255)
+                            .setOverlay(OverlayTexture.NO_OVERLAY)
+                            //.uv2(LightTexture.FULL_BLOCK)
+                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
+                            //.endVertex();
+
+                    var pos = new Vector3d(
                             Mth.lerp(delta - 0.05, line.first().x, line.second().x),
                             Mth.lerp(delta - 0.05, line.first().y, line.second().y),
                             Mth.lerp(delta - 0.05, line.first().z, line.second().z)
-                    );
+                    ).get(new Vector3f());
 
-                    buf.vertex(pos.x, pos.y, pos.z)
-                            .color(255, 255, 255, 255)
-                            .overlayCoords(OverlayTexture.NO_OVERLAY)
-                            .uv2(LightTexture.FULL_BLOCK)
-                            .normal(lastPose, normalVec.x, normalVec.y, normalVec.z)
-                            .endVertex();
+                    buf.addVertex(pos)
+                            .setColor(255, 255, 255, 255)
+                            .setOverlay(OverlayTexture.NO_OVERLAY)
+                            //.uv2(LightTexture.FULL_BLOCK)
+                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
+                            //.endVertex();
                 }
                 for (int i = 0; i < segments / 2; i++) {
                     var delta1 = ((i * 2) / segments + movement) % 1;
                     var delta2 = ((i * 2 + 1) / segments + movement) % 1;
 
-                    var pos1 = new Vec3(
+                    var pos1 = new Vector3d(
                             Mth.lerp(delta1, line.first().x, line.second().x),
                             Mth.lerp(delta1, line.first().y, line.second().y),
                             Mth.lerp(delta1, line.first().z, line.second().z)
-                    );
-                    var pos2 = delta2 > delta1 ? new Vec3(
+                    ).get(new Vector3f());
+                    var pos2 = (delta2 > delta1 ? new Vector3d(
                             Mth.lerp(delta2, line.first().x, line.second().x),
                             Mth.lerp(delta2, line.first().y, line.second().y),
                             Mth.lerp(delta2, line.first().z, line.second().z)
-                    ) : line.second();
+                    ) : line.second()).get(new Vector3f());
 
-                    buf.vertex(pos1.x, pos1.y, pos1.z)
-                            .color(255, 255, 255, 255)
-                            .overlayCoords(OverlayTexture.NO_OVERLAY)
-                            .uv2(LightTexture.FULL_BLOCK)
-                            .normal(lastPose, normalVec.x, normalVec.y, normalVec.z)
-                            .endVertex();
-                    buf.vertex(pos2.x, pos2.y, pos2.z)
-                            .color(255, 255, 255, 255)
-                            .overlayCoords(OverlayTexture.NO_OVERLAY)
-                            .uv2(LightTexture.FULL_BLOCK)
-                            .normal(lastPose, normalVec.x, normalVec.y, normalVec.z)
-                            .endVertex();
+                    buf.addVertex(pos1)
+                            .setColor(255, 255, 255, 255)
+                            .setOverlay(OverlayTexture.NO_OVERLAY)
+                            //.setUv2(LightTexture.FULL_BLOCK)
+                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
+                            //.endVertex();
+                    buf.addVertex(pos2)
+                            .setColor(255, 255, 255, 255)
+                            .setOverlay(OverlayTexture.NO_OVERLAY)
+                            //.setUv2(LightTexture.FULL_BLOCK)
+                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
+                            //.endVertex();
                 }
             }
 

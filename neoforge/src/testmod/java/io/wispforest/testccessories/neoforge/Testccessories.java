@@ -36,7 +36,7 @@ public class Testccessories {
     }
 
     public static void registerStuff(RegisterEvent event) {
-        event.register(Registries.MENU, helper -> helper.register(new ResourceLocation(MODID, "test_menu"), new MenuType<>(TestMenu::new, FeatureFlags.DEFAULT_FLAGS)));
+        event.register(Registries.MENU, helper -> helper.register(of("test_menu"), new MenuType<>(TestMenu::new, FeatureFlags.DEFAULT_FLAGS)));
         event.register(Registries.ITEM, TestItems::init);
     }
 
@@ -48,5 +48,9 @@ public class Testccessories {
         RingIncreaserAccessory.init();
 
         UniqueSlotHandling.EVENT.register(UniqueSlotTest.INSTANCE);
+    }
+
+    public static ResourceLocation of(String path) {
+        return ResourceLocation.fromNamespaceAndPath(MODID, path);
     }
 }

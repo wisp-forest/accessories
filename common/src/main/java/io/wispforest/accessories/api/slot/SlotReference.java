@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Interface representing a reference to a given {@link AccessoriesContainer} based on the given

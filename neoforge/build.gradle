@@ -45,7 +45,7 @@ dependencies {
 
     modApi("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
 
-    include modApi("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.40+95f95167b0"){ exclude group: "fabric-api" }
+    include modApi("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+e0539096d1"){ exclude group: "fabric-api" }
 
     forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")
     forgeRuntimeLibrary("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
@@ -57,7 +57,8 @@ dependencies {
 
     modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-neoforge:${rootProject.rei_version}")
     modCompileOnly("dev.emi:emi-neoforge:${rootProject.emi_version}:api")
-    modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-neoforge-api:${rootProject.jei_version}")
+    modCompileOnlyApi("mezz.jei:jei-1.20.6-neoforge-api:${rootProject.jei_version}")
+    //modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-neoforge-api:${rootProject.jei_version}")
 
     if(type == "rei") {
         modRuntimeOnly("me.shedaniel:RoughlyEnoughItems-neoforge:${rootProject.rei_version}")
@@ -65,7 +66,7 @@ dependencies {
     } else if(type == "emi") {
         modLocalRuntime("dev.emi:emi-neoforge:${rootProject.emi_version}")
     } else if(type == "jei") {
-        modRuntimeOnly("mezz.jei:jei-${rootProject.minecraft_version}-neoforge:${rootProject.jei_version}")
+        //modRuntimeOnly("mezz.jei:jei-${rootProject.minecraft_version}-neoforge:${rootProject.jei_version}")
     } else {
         throw new IllegalStateException("Unable to locate the given item viewer!")
     }

@@ -93,33 +93,33 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                 if(useCustomerBuffer && bufferedGrabbedFlag.getValue()) {
                     if(multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
-                        if (AccessoriesScreen.HOVERED_SLOT_TYPE != null && AccessoriesScreen.HOVERED_SLOT_TYPE.equals(container.getSlotName() + i)) {
-                            if (calendar.get(Calendar.MONTH) + 1 == 5 && calendar.get(Calendar.DATE) == 16) {
-                                var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
-
-                                var color = new Color(Mth.hsvToRgb(hue, 1, 1));
-
-                                colorValues = new float[]{color.getRed() / 128f, color.getGreen() / 128f, color.getBlue() / 128f, 1};
-                            } else {
-                                colorValues = new float[]{scale, scale, scale, 1};
-                            }
-                        }
-
-                        if (colorValues != null) {
-                            BUFFER.beginWrite(true, GL30.GL_DEPTH_BUFFER_BIT);
-                            bufferSource.endBatch();
-                            BUFFER.endWrite();
-
-                            BUFFER.draw(colorValues);
-
-                            var frameBuffer = BUFFER.buffer();
-
-                            GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, frameBuffer.frameBufferId);
-                            GL30.glBlitFramebuffer(0, 0, frameBuffer.width, frameBuffer.height, 0, 0, frameBuffer.width, frameBuffer.height, GL30.GL_DEPTH_BUFFER_BIT, GL30.GL_NEAREST);
-                            Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
-                        } else {
-                            bufferSource.endBatch();
-                        }
+//                        if (AccessoriesScreen.HOVERED_SLOT_TYPE != null && AccessoriesScreen.HOVERED_SLOT_TYPE.equals(container.getSlotName() + i)) {
+//                            if (calendar.get(Calendar.MONTH) + 1 == 5 && calendar.get(Calendar.DATE) == 16) {
+//                                var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
+//
+//                                var color = new Color(Mth.hsvToRgb(hue, 1, 1));
+//
+//                                colorValues = new float[]{color.getRed() / 128f, color.getGreen() / 128f, color.getBlue() / 128f, 1};
+//                            } else {
+//                                colorValues = new float[]{scale, scale, scale, 1};
+//                            }
+//                        }
+//
+//                        if (colorValues != null) {
+//                            BUFFER.beginWrite(true, GL30.GL_DEPTH_BUFFER_BIT);
+//                            bufferSource.endBatch();
+//                            BUFFER.endWrite();
+//
+//                            BUFFER.draw(colorValues);
+//
+//                            var frameBuffer = BUFFER.buffer();
+//
+//                            GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, frameBuffer.frameBufferId);
+//                            GL30.glBlitFramebuffer(0, 0, frameBuffer.width, frameBuffer.height, 0, 0, frameBuffer.width, frameBuffer.height, GL30.GL_DEPTH_BUFFER_BIT, GL30.GL_NEAREST);
+//                            Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
+//                        } else {
+//                            bufferSource.endBatch();
+//                        }
                     }
 
                     if(renderingLines && AccessoriesScreen.IS_RENDERING_LINE_TARGET) {

@@ -42,6 +42,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -237,10 +238,10 @@ public class AccessoriesEventHandler {
                     if (!ItemStack.matches(currentStack, lastStack)) {
                         container.getAccessories().setPreviousItem(i, currentStack.copy());
                         dirtyStacks.put(slotId, currentStack.copy());
-                        var uuid = AccessoriesAPI.getOrCreateSlotUUID(slotType, i);
+                        var location = AccessoriesAPI.createSlotLocation(slotType, i);
 
                         if (!lastStack.isEmpty()) {
-                            Multimap<Holder<Attribute>, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(lastStack, slotReference, uuid);
+                            Multimap<Holder<Attribute>, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(lastStack, slotReference, location);
                             Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
 
                             Set<Holder<Attribute>> slotAttributes = new HashSet<>();
@@ -260,7 +261,7 @@ public class AccessoriesEventHandler {
                         }
 
                         if (!currentStack.isEmpty()) {
-                            Multimap<Holder<Attribute>, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(currentStack, slotReference, uuid);
+                            Multimap<Holder<Attribute>, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(currentStack, slotReference, location);
                             Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
 
                             Set<Holder<Attribute>> slotAttributes = new HashSet<>();
@@ -445,9 +446,9 @@ public class AccessoriesEventHandler {
 
         for (SlotType slotType : validSlotTypes) {
             var reference = SlotReference.of(entity, slotType.name(), 0);
-            var uuid = AccessoriesAPI.getOrCreateSlotUUID(slotType, 0);
+            var location = AccessoriesAPI.createSlotLocation(slotType, 0);
 
-            var slotModifiers = AccessoriesAPI.getAttributeModifiers(stack, reference, uuid);
+            var slotModifiers = AccessoriesAPI.getAttributeModifiers(stack, reference, location);
 
             slotSpecificModifiers.put(slotType, slotModifiers);
 
@@ -648,7 +649,7 @@ public class AccessoriesEventHandler {
 
                 var rule = OnDropCallback.EVENT.invoker().onDrop(rulePair.left(), innerStack, reference, source);
 
-                var breakInnerStack = (rule == DropRule.DEFAULT && EnchantmentHelper.hasVanishingCurse(innerStack))
+                var breakInnerStack = (rule == DropRule.DEFAULT && EnchantmentHelper.has(innerStack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP))
                         || (rule == DropRule.DESTROY);
 
                 if (breakInnerStack) {
@@ -673,7 +674,7 @@ public class AccessoriesEventHandler {
         } else if (dropRule == DropRule.DEFAULT) {
             if (entity.level().getGameRules().getRule(GameRules.RULE_KEEPINVENTORY).get()) {
                 dropStack = false;
-            } else if (EnchantmentHelper.hasVanishingCurse(stack)) {
+            } else if (EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
                 container.setItem(reference.slot(), ItemStack.EMPTY);
                 dropStack = false;
                 // TODO: Do we call break here for the accessory?

@@ -9,6 +9,7 @@ import io.wispforest.accessories.mixin.LivingEntityAccessor;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -16,6 +17,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,7 +70,7 @@ public interface Accessory {
      * @param reference The reference to the targeted {@link LivingEntity}, slot and index
      */
     default boolean canUnequip(ItemStack stack, SlotReference reference){
-        if(EnchantmentHelper.hasBindingCurse(stack)) {
+        if(EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) {
             return reference.entity() instanceof Player player && player.isCreative();
         }
 
@@ -80,9 +82,9 @@ public interface Accessory {
      *
      * @param stack The Stack attempting to be unequipped
      * @param reference The reference to the targeted {@link LivingEntity}, slot and index
-     * @param uuid The UUID used for creating Modifiers
+     * @param location The location used for creating Modifiers
      */
-    default Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid){
+    default Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, ResourceLocation location){
         return HashMultimap.create();
     }
 

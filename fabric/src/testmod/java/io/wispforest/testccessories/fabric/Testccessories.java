@@ -17,7 +17,7 @@ public class Testccessories implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        TEST_MENU_TYPE = Registry.register(BuiltInRegistries.MENU, new ResourceLocation(MODID, "test_menu"), new MenuType<>(TestMenu::new, FeatureFlags.DEFAULT_FLAGS));
+        TEST_MENU_TYPE = Registry.register(BuiltInRegistries.MENU, of("test_menu"), new MenuType<>(TestMenu::new, FeatureFlags.DEFAULT_FLAGS));
 
         AppleAccessory.init();
         PotatoAccessory.init();
@@ -28,5 +28,9 @@ public class Testccessories implements ModInitializer {
         UniqueSlotHandling.EVENT.register(UniqueSlotTest.INSTANCE);
 
         TestItems.init();
+    }
+
+    public static ResourceLocation of(String path) {
+        return ResourceLocation.fromNamespaceAndPath(MODID, path);
     }
 }

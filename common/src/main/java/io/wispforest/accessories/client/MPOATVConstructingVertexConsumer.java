@@ -5,11 +5,13 @@ import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.joml.Vector3d;
+import org.joml.Vector3f;
 
 /**
  * Mean Position of all the Vertices™ (MPOATV)
  */
-public class MPOATVConstructingVertexConsumer implements VertexConsumer {
+public final class MPOATVConstructingVertexConsumer implements VertexConsumer {
 
     private double minX = Double.MAX_VALUE;
     private double minY = Double.MAX_VALUE;
@@ -18,15 +20,14 @@ public class MPOATVConstructingVertexConsumer implements VertexConsumer {
     private double maxY = -Double.MAX_VALUE;
     private double maxZ = -Double.MAX_VALUE;
 
-    private Vec3 meanPos = null;
+    private Vector3d meanPos = null;
 
-    public Vec3 meanPos(){
+    public Vector3d meanPos(){
         return this.meanPos;
     }
 
     @Override
-    @NotNull
-    public VertexConsumer vertex(double x, double y, double z) {
+    public VertexConsumer addVertex(float x, float y, float z) {
         var leeway = 10;
 
         var box = AccessoriesScreen.SCISSOR_BOX;
@@ -42,47 +43,14 @@ public class MPOATVConstructingVertexConsumer implements VertexConsumer {
             this.maxZ = Math.max(this.maxZ, z);
         }
 
-        this.meanPos = new Vec3((this.minX + this.maxX) / 2, (this.minY + this.maxY) / 2, (this.minZ + this.maxZ) / 2);
+        this.meanPos = new Vector3d((this.minX + this.maxX) / 2, (this.minY + this.maxY) / 2, (this.minZ + this.maxZ) / 2);
 
         return this;
     }
 
-    @Override
-    @NotNull
-    public VertexConsumer color(int red, int green, int blue, int alpha) {
-        return this;
-    }
-
-    @Override
-    @NotNull
-    public VertexConsumer uv(float u, float v) {
-        return this;
-    }
-
-    @Override
-    @NotNull
-    public VertexConsumer overlayCoords(int u, int v) {
-        return this;
-    }
-
-    @Override
-    @NotNull
-    public VertexConsumer uv2(int u, int v) {
-        return this;
-    }
-
-    @Override
-    @NotNull
-    public VertexConsumer normal(float x, float y, float z) {
-        return this;
-    }
-
-    @Override
-    public void endVertex() {}
-
-    @Override
-    public void defaultColor(int defaultR, int defaultG, int defaultB, int defaultA) {}
-
-    @Override
-    public void unsetDefaultColor() {}
+    @Override public VertexConsumer setColor(int i, int j, int k, int l) { return this; }
+    @Override public VertexConsumer setUv(float f, float g) { return this; }
+    @Override public VertexConsumer setUv1(int i, int j) { return this; }
+    @Override public VertexConsumer setUv2(int i, int j) { return this; }
+    @Override public VertexConsumer setNormal(float f, float g, float h) { return this; }
 }

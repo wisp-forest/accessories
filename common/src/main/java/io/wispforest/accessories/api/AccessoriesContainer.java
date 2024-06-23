@@ -4,6 +4,7 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,7 +92,7 @@ public interface AccessoriesContainer {
     /**
      * @return All slot modifiers applied to the given Container
      */
-    Map<UUID, AttributeModifier> getModifiers();
+    Map<ResourceLocation, AttributeModifier> getModifiers();
 
     /**
      * @return All cached modifiers sent within sync packet to the client
@@ -119,9 +120,9 @@ public interface AccessoriesContainer {
 
     /**
      * Remove the specific attribute modifier from the map if found
-     * @param uuid The specific UUID
+     * @param location The specific location
      */
-    void removeModifier(UUID uuid);
+    void removeModifier(ResourceLocation location);
 
     /**
      * Remove all modifiers from the given container

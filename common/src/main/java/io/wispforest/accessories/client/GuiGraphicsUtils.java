@@ -116,12 +116,13 @@ public class GuiGraphicsUtils {
 
         var poseStack = guiGraphics.pose();
 
-        var bufferBuilder = Tesselator.getInstance().getBuilder();
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+        var bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
 
         consumer.accept(bufferBuilder, poseStack);
 
-        BufferUploader.drawWithShader(bufferBuilder.end());
+        var data = bufferBuilder.build();
+
+        if(data != null) BufferUploader.drawWithShader(data);
     }
 
     private static void blitSprite(BufferBuilder bufferBuilder, PoseStack poseStack, TextureAtlasSprite sprite, int sliceWidth, int sliceHeight, int uOffset, int vOffset, int x, int y, int blitOffset, int width, int height) {
@@ -146,9 +147,9 @@ public class GuiGraphicsUtils {
     public static void blitInner(BufferBuilder bufferBuilder, PoseStack poseStack, int x1, int x2, int y1, int y2, int blitOffset, float minU, float maxU, float minV, float maxV) {
         var matrix4f = poseStack.last().pose();
 
-        bufferBuilder.vertex(matrix4f, (float) x1, (float) y1, (float) blitOffset).uv(minU, minV).endVertex();
-        bufferBuilder.vertex(matrix4f, (float) x1, (float) y2, (float) blitOffset).uv(minU, maxV).endVertex();
-        bufferBuilder.vertex(matrix4f, (float) x2, (float) y2, (float) blitOffset).uv(maxU, maxV).endVertex();
-        bufferBuilder.vertex(matrix4f, (float) x2, (float) y1, (float) blitOffset).uv(maxU, minV).endVertex();
+        bufferBuilder.addVertex(matrix4f, (float) x1, (float) y1, (float) blitOffset).setUv(minU, minV);
+        bufferBuilder.addVertex(matrix4f, (float) x1, (float) y2, (float) blitOffset).setUv(minU, maxV);
+        bufferBuilder.addVertex(matrix4f, (float) x2, (float) y2, (float) blitOffset).setUv(maxU, maxV);
+        bufferBuilder.addVertex(matrix4f, (float) x2, (float) y1, (float) blitOffset).setUv(maxU, minV);
     }
 }

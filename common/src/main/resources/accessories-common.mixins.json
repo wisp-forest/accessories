@@ -19,6 +19,8 @@
     "CriteriaTriggersAccessor",
     "DelegatingOpsAccessor",
     "EnchantmentHelperMixin",
+    "EnchantmentAttributeEffectMixin",
+    "EnchantedCountIncreaseFunctionMixin",
     "EndermanMixin",
     "EquipmentSlotMixin",
     "EquipmentSlotTypeMixin",

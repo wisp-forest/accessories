@@ -11,28 +11,24 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.endec.EdmUtils;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.endec.format.nbt.NbtEndec;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
-import io.wispforest.endec.format.edm.EdmEndec;
-import io.wispforest.endec.format.edm.EdmMap;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
 import net.minecraft.Util;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.*;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
-import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @ApiStatus.Internal
 public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceEndec {
@@ -40,7 +36,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     protected AccessoriesCapability capability;
     private String slotName;
 
-    protected final Map<UUID, AttributeModifier> modifiers = new HashMap<>();
+    protected final Map<ResourceLocation, AttributeModifier> modifiers = new HashMap<>();
     protected final Set<AttributeModifier> persistentModifiers = new HashSet<>();
     protected final Set<AttributeModifier> cachedModifiers = new HashSet<>();
 
@@ -175,7 +171,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
             for (var invalidAccessory : invalidAccessories) {
                 var index = invalidAccessory.getFirst();
 
-                UUID uuid = UUID.nameUUIDFromBytes((slotName + invalidAccessory.getFirst()).getBytes());
+                var location =  AccessoriesAPI.createSlotLocation(slotName, invalidAccessory.getFirst());
 
                 var invalidStack = invalidAccessory.getSecond();
 
@@ -183,7 +179,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
                 var slotReference = SlotReference.of(livingEntity, this.slotName, index);
 
-                var attributes = AccessoriesAPI.getAttributeModifiers(invalidStack, slotReference, uuid);
+                var attributes = AccessoriesAPI.getAttributeModifiers(invalidStack, slotReference, location);
 
                 Multimap<String, AttributeModifier> slots = HashMultimap.create();
 
@@ -255,7 +251,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     @Override
-    public Map<UUID, AttributeModifier> getModifiers() {
+    public Map<ResourceLocation, AttributeModifier> getModifiers() {
         return this.modifiers;
     }
 
@@ -282,8 +278,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     @Override
-    public void removeModifier(UUID uuid) {
-        var modifier = this.modifiers.get(uuid);
+    public void removeModifier(ResourceLocation location) {
+        var modifier = this.modifiers.get(location);
 
         if(modifier == null) return;
 

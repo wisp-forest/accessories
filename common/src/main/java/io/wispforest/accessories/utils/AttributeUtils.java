@@ -1,6 +1,7 @@
 package io.wispforest.accessories.utils;
 
 import com.google.common.collect.Multimap;
+import io.wispforest.accessories.endec.MinecraftEndecs;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.BuiltInEndecs;
@@ -32,8 +33,7 @@ public class AttributeUtils {
     }
 
     public static final StructEndec<AttributeModifier> ATTRIBUTE_MODIFIER_ENDEC = StructEndecBuilder.of(
-            BuiltInEndecs.UUID.fieldOf("uuid", AttributeModifier::id),
-            Endec.STRING.fieldOf("name", AttributeModifier::name),
+            MinecraftEndecs.IDENTIFIER.fieldOf("id", AttributeModifier::id),
             Endec.DOUBLE.fieldOf("amount", AttributeModifier::amount),
             Endec.forEnum(AttributeModifier.Operation.class).fieldOf("operation", AttributeModifier::operation),
             AttributeModifier::new

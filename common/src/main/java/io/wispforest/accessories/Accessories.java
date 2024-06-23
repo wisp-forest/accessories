@@ -54,7 +54,7 @@ public class Accessories {
     public static final String MODID = "accessories";
 
     public static ResourceLocation of(String path){
-        return new ResourceLocation(MODID, path);
+        return ResourceLocation.fromNamespaceAndPath(MODID, path);
     }
 
     public static String translation(String path){
@@ -108,7 +108,10 @@ public class Accessories {
             var type = target.getType();
 
             if(type.is(AccessoriesTags.MODIFIABLE_ENTITY_BLACKLIST)) return TriState.FALSE;
-            if(target instanceof OwnableEntity || type.is(AccessoriesTags.MODIFIABLE_ENTITY_WHITELIST)) return TriState.TRUE;
+
+            var isOwnersPet = (target instanceof OwnableEntity ownableEntity && ownableEntity.getOwner().equals(player));
+
+            if(isOwnersPet || type.is(AccessoriesTags.MODIFIABLE_ENTITY_WHITELIST)) return TriState.TRUE;
 
             return TriState.DEFAULT;
         });

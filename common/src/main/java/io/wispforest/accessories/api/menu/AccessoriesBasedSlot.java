@@ -140,6 +140,6 @@ public class AccessoriesBasedSlot extends Slot {
         // Thanks to mojang you can not access the GUI atlas from this call and you must use Atlases from ModelManager.
         // )::::::::::::::::::::::::::::::
 
-        return new Pair<>(new ResourceLocation("textures/atlas/blocks.png"), icon());
+        return new Pair<>(ResourceLocation.withDefaultNamespace("textures/atlas/blocks.png"), icon());
     }
 }

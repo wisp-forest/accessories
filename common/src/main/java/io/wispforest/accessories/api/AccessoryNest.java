@@ -14,6 +14,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -210,11 +211,11 @@ public interface AccessoryNest extends Accessory {
     }
 
     @Override
-    default Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid) {
-        var map = Accessory.super.getModifiers(stack, reference, uuid);
+    default Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, ResourceLocation location) {
+        var map = Accessory.super.getModifiers(stack, reference, location);
 
         // TODO: May need to deal with potential collisions when using the specific passed UUID
-        attemptConsumer(stack, reference, innerMap -> innerMap.forEach((entryRef, accessory) -> map.putAll(accessory.getModifiers(entryRef.stack(), entryRef.reference(), uuid))));
+        attemptConsumer(stack, reference, innerMap -> innerMap.forEach((entryRef, accessory) -> map.putAll(accessory.getModifiers(entryRef.stack(), entryRef.reference(), location))));
 
         return map;
     }

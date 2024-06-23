@@ -14,7 +14,7 @@ public class TestItems {
     public static final Item testItem2 = register("test_item_2", new Item(new Item.Properties().stacksTo(1).durability(64)));
 
     private static Item register(String path, Item item) {
-        return Registry.register(BuiltInRegistries.ITEM, new ResourceLocation(Testccessories.MODID, path), item);
+        return Registry.register(BuiltInRegistries.ITEM, Testccessories.of(path), item);
     }
 
     public static void init(){

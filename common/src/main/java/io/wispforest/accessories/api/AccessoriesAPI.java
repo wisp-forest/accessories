@@ -18,8 +18,6 @@ import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.Container;
@@ -48,8 +46,6 @@ public class AccessoriesAPI {
             return 1;
         }
     };
-
-    private static final Map<String, UUID> CACHED_UUIDS = new HashMap<>();
 
     private static final Map<ResourceLocation, SlotBasedPredicate> PREDICATE_REGISTRY = new HashMap<>();
 
@@ -105,19 +101,19 @@ public class AccessoriesAPI {
 
     //--
 
-    public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(ItemStack stack, SlotReference slotReference, UUID uuid){
-        return getAttributeModifiers(stack, slotReference.entity(), slotReference.slotName(), slotReference.slot(), uuid);
+    public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(ItemStack stack, SlotReference slotReference, ResourceLocation location){
+        return getAttributeModifiers(stack, slotReference.entity(), slotReference.slotName(), slotReference.slot(), location);
     }
 
-    public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(ItemStack stack, String slotName, int slot, UUID uuid){
-        return getAttributeModifiers(stack, null, slotName, slot, uuid);
+    public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(ItemStack stack, String slotName, int slot, ResourceLocation location){
+        return getAttributeModifiers(stack, null, slotName, slot, location);
     }
 
     /**
      * Attempts to get any at all AttributeModifier's found on the stack either though NBT or the Accessory bound
      * to the {@link ItemStack}'s item
      */
-    public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot, UUID uuid){
+    public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot, ResourceLocation location){
         Multimap<Holder<Attribute>, AttributeModifier> attributeModifiers = HashMultimap.create();
 
         if(stack.has(AccessoriesDataComponents.ATTRIBUTES)){
@@ -141,12 +137,12 @@ public class AccessoriesAPI {
             var accessory = AccessoriesAPI.getAccessory(stack);
 
             if(accessory != null) {
-                attributeModifiers.putAll(accessory.getModifiers(stack, reference, uuid));
+                attributeModifiers.putAll(accessory.getModifiers(stack, reference, location));
             }
 
             var attributeCopy = HashMultimap.create(attributeModifiers);
 
-            AdjustAttributeModifierCallback.EVENT.invoker().adjustAttributes(stack, reference, uuid, attributeCopy);
+            AdjustAttributeModifierCallback.EVENT.invoker().adjustAttributes(stack, reference, location, attributeCopy);
 
             attributeModifiers = attributeCopy;
         }
@@ -154,11 +150,11 @@ public class AccessoriesAPI {
         return attributeModifiers;
     }
 
-    public static void addAttribute(ItemStack stack, String slotName, Holder<Attribute> attribute, String name, UUID id, double amount, AttributeModifier.Operation operation) {
+    public static void addAttribute(ItemStack stack, String slotName, Holder<Attribute> attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
         stack.update(
                 AccessoriesDataComponents.ATTRIBUTES,
                 new AccessoryItemAttributeModifiers(List.of()),
-                modifiers -> modifiers.withModifierAdded(attribute, new AttributeModifier(id, name, amount, operation), slotName)
+                modifiers -> modifiers.withModifierAdded(attribute, new AttributeModifier(location, amount, operation), slotName)
         );
     }
 
@@ -167,18 +163,15 @@ public class AccessoriesAPI {
     /**
      * @return {@link UUID} based on the provided {@link SlotType#name} and entry index
      */
-    public static UUID getOrCreateSlotUUID(SlotType slotType, int index) {
-        return getOrCreateSlotUUID(slotType.name(), index);
+    public static ResourceLocation createSlotLocation(SlotType slotType, int index) {
+        return createSlotLocation(slotType.name(), index);
     }
 
     /**
      * @return {@link UUID} based on the provided slot name and entry index
      */
-    public static UUID getOrCreateSlotUUID(String slotName, int index) {
-        return CACHED_UUIDS.computeIfAbsent(
-                slotName + "/" + index,
-                s -> UUID.nameUUIDFromBytes(s.getBytes())
-        );
+    public static ResourceLocation createSlotLocation(String slotName, int index) {
+        return Accessories.of(slotName + "/" + index);
     }
 
     //--
@@ -356,7 +349,7 @@ public class AccessoriesAPI {
     public static final String ACCESSORY_INVALID_SLOTS_KEY = "InvalidSlotOverrides";
 
     public static TagKey<Item> getSlotTag(SlotType slotType) {
-        var location = UniqueSlotHandling.isUniqueSlot(slotType.name()) ? new ResourceLocation(slotType.name()) : Accessories.of(slotType.name());
+        var location = UniqueSlotHandling.isUniqueSlot(slotType.name()) ? ResourceLocation.parse(slotType.name()) : Accessories.of(slotType.name());
 
         return TagKey.create(Registries.ITEM, location);
     }
@@ -368,7 +361,7 @@ public class AccessoriesAPI {
             return (stack.is(getSlotTag(slotType)) || stack.is(ALL_ACCESSORIES)) ? TriState.TRUE : TriState.DEFAULT;
         });
         registerPredicate(Accessories.of("relevant"), (level, slotType, i, stack) -> {
-            var bl = !getAttributeModifiers(stack, slotType.name(), i, getOrCreateSlotUUID(slotType.name(), i)).isEmpty();
+            var bl = !getAttributeModifiers(stack, slotType.name(), i, createSlotLocation(slotType.name(), i)).isEmpty();
 
             return bl ? TriState.TRUE : TriState.DEFAULT;
         });

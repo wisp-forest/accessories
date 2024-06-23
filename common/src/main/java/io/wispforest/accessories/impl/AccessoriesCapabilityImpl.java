@@ -15,7 +15,6 @@ import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.util.MapCarrier;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.core.Holder;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -208,7 +207,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
                 var slotReference = container.createReference(i);
 
-                var map = AccessoriesAPI.getAttributeModifiers(stack, slotReference, AccessoriesAPI.getOrCreateSlotUUID(container.getSlotName(), i));
+                var map = AccessoriesAPI.getAttributeModifiers(stack, slotReference, AccessoriesAPI.createSlotLocation(container.getSlotName(), i));
 
                 for (Holder<Attribute> attribute : map.keySet()) {
                     if (!(attribute.value() instanceof SlotAttribute slotAttribute)) continue;

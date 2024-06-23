@@ -4,6 +4,7 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.slot.SlotBasedPredicate;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.testccessories.neoforge.client.TestccessoriesClient;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.Nullable;
@@ -19,18 +20,18 @@ public class UniqueSlotTest implements UniqueSlotHandling.RegistrationCallback {
 
     @Override
     public void registerSlots(UniqueSlotHandling.UniqueSlotBuilderFactory factory) {
-        var slotPredicate1 = new ResourceLocation(Testccessories.MODID, "test_slot_1_equipment");
-        var slotPredicate2 = new ResourceLocation(Testccessories.MODID, "test_slot_2_equipment");
+        var slotPredicate1 = Testccessories.of("test_slot_1_equipment");
+        var slotPredicate2 = Testccessories.of("test_slot_2_equipment");
 
         AccessoriesAPI.registerPredicate(slotPredicate1, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem1)));
         AccessoriesAPI.registerPredicate(slotPredicate2, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem2)));
 
-        testSlot1Getter = factory.create(new ResourceLocation(Testccessories.MODID, "test_slot_1"), 1)
+        testSlot1Getter = factory.create(Testccessories.of("test_slot_1"), 1)
                 .slotPredicates(slotPredicate1)
                 .validTypes(EntityType.PLAYER)
                 .build();
 
-        testSlot2Getter = factory.create(new ResourceLocation(Testccessories.MODID, "test_slot_2"), 1)
+        testSlot2Getter = factory.create(Testccessories.of("test_slot_2"), 1)
                 .slotPredicates(slotPredicate2)
                 .validTypes(EntityType.PLAYER)
                 .build();
