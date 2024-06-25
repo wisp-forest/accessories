@@ -1,6 +1,6 @@
 package io.wispforest.accessories.api;
 
-import com.google.common.collect.Multimap;
+import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
@@ -8,17 +8,9 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
 import it.unimi.dsi.fastutil.Pair;
-import net.minecraft.core.Holder;
-import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -211,13 +202,14 @@ public interface AccessoryNest extends Accessory {
     }
 
     @Override
-    default Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, ResourceLocation location) {
-        var map = Accessory.super.getModifiers(stack, reference, location);
+    default void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
+        attemptConsumer(stack, reference, innerMap -> innerMap.forEach((entryRef, accessory) -> {
+            var innerBuilder = new AccessoryAttributeBuilder(entryRef.reference());
 
-        // TODO: May need to deal with potential collisions when using the specific passed UUID
-        attemptConsumer(stack, reference, innerMap -> innerMap.forEach((entryRef, accessory) -> map.putAll(accessory.getModifiers(entryRef.stack(), entryRef.reference(), location))));
+            accessory.getModifiers(entryRef.stack(), entryRef.reference(), innerBuilder);
 
-        return map;
+            builder.addFrom(innerBuilder);
+        }));
     }
 
     @Override

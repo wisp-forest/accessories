@@ -1,10 +1,10 @@
 package io.wispforest.testccessories.neoforge.accessories;
 
-import com.google.common.collect.Multimap;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
@@ -15,10 +15,8 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -27,9 +25,9 @@ import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
-import java.util.UUID;
-
 public class PointedDripstoneAccessory implements Accessory {
+
+    private static final ResourceLocation ATTACK_DAMAGE_LOCATION = Testccessories.of("pointed_dripstone_accessory_attack_damage");
 
     @OnlyIn(Dist.CLIENT)
     public static void clientInit() {
@@ -41,10 +39,8 @@ public class PointedDripstoneAccessory implements Accessory {
     }
 
     @Override
-    public Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, ResourceLocation slotLocation) {
-        var modifiers = Accessory.super.getModifiers(stack, reference, slotLocation);
-        modifiers.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(Testccessories.of("Pointed Dripstone Accessory Attack Damage"), 2, AttributeModifier.Operation.ADD_VALUE));
-        return modifiers;
+    public void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
+        builder.addStackable(Attributes.ATTACK_DAMAGE, new AttributeModifier(ATTACK_DAMAGE_LOCATION, 2, AttributeModifier.Operation.ADD_VALUE));
     }
 
     @OnlyIn(Dist.CLIENT)

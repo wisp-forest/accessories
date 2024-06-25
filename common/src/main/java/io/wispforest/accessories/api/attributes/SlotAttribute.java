@@ -1,9 +1,9 @@
-package io.wispforest.accessories.api.slot;
+package io.wispforest.accessories.api.attributes;
 
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.slot.SlotType;
 import net.minecraft.core.Holder;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -11,7 +11,6 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class SlotAttribute extends Attribute {
 
@@ -45,7 +44,7 @@ public class SlotAttribute extends Attribute {
         map.put(SlotAttribute.getSlotAttribute(slot), new AttributeModifier(location, amount, operation));
     }
 
-    public static void addSlotAttribute(ItemStack stack, String targetSlot, String boundSlot, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
-        AccessoriesAPI.addAttribute(stack, boundSlot, Holder.direct(SlotAttribute.getSlotAttribute(targetSlot)), location, amount, operation);
+    public static void addSlotAttribute(ItemStack stack, String targetSlot, String boundSlot, ResourceLocation location, double amount, AttributeModifier.Operation operation, boolean isStackable) {
+        AccessoriesAPI.addAttribute(stack, boundSlot, Holder.direct(SlotAttribute.getSlotAttribute(targetSlot)), location, amount, operation, isStackable);
     }
 }

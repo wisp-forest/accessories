@@ -1,10 +1,9 @@
 package io.wispforest.accessories.api;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.events.AdjustAttributeModifierCallback;
@@ -101,34 +100,21 @@ public class AccessoriesAPI {
 
     //--
 
-    public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(ItemStack stack, SlotReference slotReference, ResourceLocation location){
-        return getAttributeModifiers(stack, slotReference.entity(), slotReference.slotName(), slotReference.slot(), location);
+    public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, SlotReference slotReference){
+        return getAttributeModifiers(stack, slotReference.entity(), slotReference.slotName(), slotReference.slot());
     }
 
-    public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(ItemStack stack, String slotName, int slot, ResourceLocation location){
-        return getAttributeModifiers(stack, null, slotName, slot, location);
+    public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, String slotName, int slot){
+        return getAttributeModifiers(stack, null, slotName, slot);
     }
 
     /**
      * Attempts to get any at all AttributeModifier's found on the stack either though NBT or the Accessory bound
      * to the {@link ItemStack}'s item
      */
-    public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot, ResourceLocation location){
-        Multimap<Holder<Attribute>, AttributeModifier> attributeModifiers = HashMultimap.create();
-
-        if(stack.has(AccessoriesDataComponents.ATTRIBUTES)){
-            var slots = (entity != null) ? SlotTypeLoader.getSlotTypes(entity.level()) : Map.of();
-
-            for (var entry : stack.get(AccessoriesDataComponents.ATTRIBUTES).modifiers()) {
-                var attributeModifier = entry.modifier();
-
-                if(entry.attribute().value() instanceof SlotAttribute slotAttribute && !slots.containsKey(slotAttribute.slotName())){
-                    continue;
-                }
-
-                attributeModifiers.put(entry.attribute(), attributeModifier);
-            }
-        }
+    public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot){
+        var builder = stack.getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY)
+                .gatherAttributes(entity, slotName, slot);
 
         if(entity != null) {
             var reference = SlotReference.of(entity, slotName, slot);
@@ -136,25 +122,19 @@ public class AccessoriesAPI {
             //TODO: Decide if such presents of modifiers prevents the accessory modifiers from existing
             var accessory = AccessoriesAPI.getAccessory(stack);
 
-            if(accessory != null) {
-                attributeModifiers.putAll(accessory.getModifiers(stack, reference, location));
-            }
+            if(accessory != null) accessory.getModifiers(stack, reference, builder);
 
-            var attributeCopy = HashMultimap.create(attributeModifiers);
-
-            AdjustAttributeModifierCallback.EVENT.invoker().adjustAttributes(stack, reference, location, attributeCopy);
-
-            attributeModifiers = attributeCopy;
+            AdjustAttributeModifierCallback.EVENT.invoker().adjustAttributes(stack, reference, builder);
         }
 
-        return attributeModifiers;
+        return builder;
     }
 
-    public static void addAttribute(ItemStack stack, String slotName, Holder<Attribute> attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
+    public static void addAttribute(ItemStack stack, String slotName, Holder<Attribute> attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation, boolean isStackable) {
         stack.update(
                 AccessoriesDataComponents.ATTRIBUTES,
                 new AccessoryItemAttributeModifiers(List.of()),
-                modifiers -> modifiers.withModifierAdded(attribute, new AttributeModifier(location, amount, operation), slotName)
+                modifiers -> modifiers.withModifierAdded(attribute, new AttributeModifier(location, amount, operation), slotName, isStackable)
         );
     }
 
@@ -171,7 +151,7 @@ public class AccessoriesAPI {
      * @return {@link UUID} based on the provided slot name and entry index
      */
     public static ResourceLocation createSlotLocation(String slotName, int index) {
-        return Accessories.of(slotName + "/" + index);
+        return Accessories.of(slotName.replace(":", "_") + "/" + index);
     }
 
     //--
@@ -361,7 +341,7 @@ public class AccessoriesAPI {
             return (stack.is(getSlotTag(slotType)) || stack.is(ALL_ACCESSORIES)) ? TriState.TRUE : TriState.DEFAULT;
         });
         registerPredicate(Accessories.of("relevant"), (level, slotType, i, stack) -> {
-            var bl = !getAttributeModifiers(stack, slotType.name(), i, createSlotLocation(slotType.name(), i)).isEmpty();
+            var bl = !getAttributeModifiers(stack, slotType.name(), i).getAttributeModifiers(false).isEmpty();
 
             return bl ? TriState.TRUE : TriState.DEFAULT;
         });

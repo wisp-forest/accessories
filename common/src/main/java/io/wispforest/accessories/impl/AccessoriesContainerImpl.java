@@ -6,7 +6,6 @@ import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.slot.SlotAttribute;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
@@ -19,11 +18,9 @@ import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
 import net.minecraft.Util;
-import net.minecraft.core.Holder;
 import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
@@ -171,31 +168,13 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
             for (var invalidAccessory : invalidAccessories) {
                 var index = invalidAccessory.getFirst();
 
-                var location =  AccessoriesAPI.createSlotLocation(slotName, invalidAccessory.getFirst());
-
                 var invalidStack = invalidAccessory.getSecond();
 
                 if (invalidStack.isEmpty()) continue;
 
                 var slotReference = SlotReference.of(livingEntity, this.slotName, index);
 
-                var attributes = AccessoriesAPI.getAttributeModifiers(invalidStack, slotReference, location);
-
-                Multimap<String, AttributeModifier> slots = HashMultimap.create();
-
-                Set<Holder<Attribute>> toBeRemoved = new HashSet<>();
-
-                attributes.asMap().forEach((attribute, modifier) -> {
-                    if (!(attribute instanceof SlotAttribute slotAttribute)) return;
-
-                    slots.putAll(slotAttribute.slotName(), modifier);
-                    toBeRemoved.add(attribute);
-                });
-
-                for (Holder<Attribute> attribute : toBeRemoved) attributes.removeAll(attribute);
-
-                AttributeUtils.removeAttributes(livingEntity, attributes);
-                this.capability.removeSlotModifiers(slots);
+                AttributeUtils.removeTransientAttributeModifiers(livingEntity, AccessoriesAPI.getAttributeModifiers(invalidStack, slotReference));
 
                 var accessory = AccessoriesAPI.getAccessory(invalidStack);
 
@@ -275,6 +254,11 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     public void addPersistentModifier(AttributeModifier modifier) {
         this.addTransientModifier(modifier);
         this.persistentModifiers.add(modifier);
+    }
+
+    @Override
+    public boolean hasModifier(ResourceLocation location) {
+        return this.modifiers.containsKey(location);
     }
 
     @Override

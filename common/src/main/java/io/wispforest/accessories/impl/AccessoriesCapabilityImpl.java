@@ -3,7 +3,6 @@ package io.wispforest.accessories.impl;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.slot.SlotAttribute;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
@@ -14,10 +13,8 @@ import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.util.MapCarrier;
 import it.unimi.dsi.fastutil.Pair;
-import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.function.TriFunction;
@@ -207,22 +204,16 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
                 var slotReference = container.createReference(i);
 
-                var map = AccessoriesAPI.getAttributeModifiers(stack, slotReference, AccessoriesAPI.createSlotLocation(container.getSlotName(), i));
-
-                for (Holder<Attribute> attribute : map.keySet()) {
-                    if (!(attribute.value() instanceof SlotAttribute slotAttribute)) continue;
-
-                    slotModifiers.putAll(slotAttribute.slotName(), map.get(attribute));
-                }
+                slotModifiers.putAll(AccessoriesAPI.getAttributeModifiers(stack, slotReference).getSlotModifiers());
             }
         });
 
-        slotModifiers.asMap().forEach((name, modifier) -> {
+        slotModifiers.asMap().forEach((name, modifiers) -> {
             if (!containers.containsKey(name)) return;
 
             var container = containers.get(name);
 
-            modifier.forEach(container.getCachedModifiers()::remove);
+            modifiers.forEach(container.getCachedModifiers()::remove);
             container.clearCachedModifiers();
         });
     }

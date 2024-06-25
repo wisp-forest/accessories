@@ -1,20 +1,15 @@
 package io.wispforest.accessories.api;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.mixin.LivingEntityAccessor;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
-import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
@@ -22,7 +17,6 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Main interface for implementing an accessory
@@ -80,19 +74,18 @@ public interface Accessory {
     /**
      * Returns the Attribute Modifiers for the following stack within the given reference
      *
-     * @param stack The Stack attempting to be unequipped
+     * @param stack     The Stack attempting to be unequipped
      * @param reference The reference to the targeted {@link LivingEntity}, slot and index
-     * @param location The location used for creating Modifiers
+     * @param builder   The builder to which attributes are to be added
      */
-    default Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, ResourceLocation location){
-        return HashMultimap.create();
-    }
+    default void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder){}
 
     /**
      * Returns the following drop rule for the given Item
      *
-     * @param stack The Stack being prepared for dropping
+     * @param stack     The Stack being prepared for dropping
      * @param reference The reference to the targeted {@link LivingEntity}, slot and index
+     * @param source    The specific {@link DamageSource} that lead to the drop rule evaluation
      */
     default DropRule getDropRule(ItemStack stack, SlotReference reference, DamageSource source){
         return DropRule.DEFAULT;

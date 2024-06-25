@@ -1,13 +1,12 @@
 package io.wispforest.accessories.impl;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
+import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.events.*;
-import io.wispforest.accessories.api.slot.SlotAttribute;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
@@ -207,6 +206,9 @@ public class AccessoriesEventHandler {
             var dirtyStacks = new HashMap<String, ItemStack>();
             var dirtyCosmeticStacks = new HashMap<String, ItemStack>();
 
+            var removedAttributesBuilder = new AccessoryAttributeBuilder();
+            var addedAttributesBuilder = new AccessoryAttributeBuilder();
+
             for (var containerEntry : capability.getContainers().entrySet()) {
                 var container = containerEntry.getValue();
                 var slotType = container.slotType();
@@ -238,46 +240,13 @@ public class AccessoriesEventHandler {
                     if (!ItemStack.matches(currentStack, lastStack)) {
                         container.getAccessories().setPreviousItem(i, currentStack.copy());
                         dirtyStacks.put(slotId, currentStack.copy());
-                        var location = AccessoriesAPI.createSlotLocation(slotType, i);
 
                         if (!lastStack.isEmpty()) {
-                            Multimap<Holder<Attribute>, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(lastStack, slotReference, location);
-                            Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
-
-                            Set<Holder<Attribute>> slotAttributes = new HashSet<>();
-
-                            for (var entry : attributes.asMap().entrySet()) {
-                                var attribute = entry.getKey();
-                                if (!(attribute.value() instanceof SlotAttribute slotAttribute)) continue;
-
-                                slotModifiers.putAll(slotAttribute.slotName(), entry.getValue());
-                                slotAttributes.add(attribute);
-                            }
-
-                            slotAttributes.forEach(attributes::removeAll);
-
-                            AttributeUtils.removeAttributes(entity, attributes);
-                            capability.removeSlotModifiers(slotModifiers);
+                            removedAttributesBuilder.addFrom(AccessoriesAPI.getAttributeModifiers(lastStack, slotReference));
                         }
 
                         if (!currentStack.isEmpty()) {
-                            Multimap<Holder<Attribute>, AttributeModifier> attributes = AccessoriesAPI.getAttributeModifiers(currentStack, slotReference, location);
-                            Multimap<String, AttributeModifier> slotModifiers = HashMultimap.create();
-
-                            Set<Holder<Attribute>> slotAttributes = new HashSet<>();
-
-                            for (var entry : attributes.asMap().entrySet()) {
-                                var attribute = entry.getKey();
-                                if (!(entry.getKey().value() instanceof SlotAttribute slotAttribute)) continue;
-
-                                slotModifiers.putAll(slotAttribute.slotName(), entry.getValue());
-                                slotAttributes.add(attribute);
-                            }
-
-                            slotAttributes.forEach(attributes::removeAll);
-
-                            AttributeUtils.addTransientAttributeModifiers(entity, attributes);
-                            capability.addTransientSlotModifiers(slotModifiers);
+                            addedAttributesBuilder.addFrom(AccessoriesAPI.getAttributeModifiers(currentStack, slotReference));
                         }
 
                         boolean equipmentChange = false;
@@ -326,6 +295,9 @@ public class AccessoriesEventHandler {
 
             if (entity.level().isClientSide()) return;
 
+            AttributeUtils.removeTransientAttributeModifiers(entity, removedAttributesBuilder);
+            AttributeUtils.addTransientAttributeModifiers(entity, addedAttributesBuilder);
+
             //--
 
             var updatedContainers = ((AccessoriesCapabilityImpl) capability).getUpdatingInventories();
@@ -368,6 +340,7 @@ public class AccessoriesEventHandler {
         }
     }
 
+    // TODO: Rewrite for better handling of various odd cases
     public static void addTooltipInfo(LivingEntity entity, ItemStack stack, List<Component> tooltip) {
         var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
@@ -439,24 +412,23 @@ public class AccessoriesEventHandler {
 
         tooltip.add(slotInfoComponent);
 
-        Map<SlotType, Multimap<Holder<Attribute>, AttributeModifier>> slotSpecificModifiers = new HashMap<>();
-        Multimap<Holder<Attribute>, AttributeModifier> defaultModifiers = null;
+        Map<SlotType, AccessoryAttributeBuilder> slotSpecificModifiers = new HashMap<>();
+        AccessoryAttributeBuilder defaultModifiers = null;
 
         boolean allDuplicates = true;
 
         for (SlotType slotType : validSlotTypes) {
             var reference = SlotReference.of(entity, slotType.name(), 0);
-            var location = AccessoriesAPI.createSlotLocation(slotType, 0);
 
-            var slotModifiers = AccessoriesAPI.getAttributeModifiers(stack, reference, location);
+            var builder = AccessoriesAPI.getAttributeModifiers(stack, reference);
 
-            slotSpecificModifiers.put(slotType, slotModifiers);
+            slotSpecificModifiers.put(slotType, builder);
 
             if (defaultModifiers == null) {
-                defaultModifiers = slotModifiers;
+                defaultModifiers = builder;
             } else if (allDuplicates) {
                 // TODO: ! WARNING ! THIS MAY NOT WORK?
-                allDuplicates = defaultModifiers.equals(slotModifiers);
+                allDuplicates = defaultModifiers.equals(builder);
             }
         }
 
@@ -466,7 +438,7 @@ public class AccessoriesEventHandler {
             if (!defaultModifiers.isEmpty()) {
                 var attributeTooltip = new ArrayList<Component>();
 
-                addAttributeTooltip(defaultModifiers, attributeTooltip);
+                addAttributeTooltip(defaultModifiers.getAttributeModifiers(false), attributeTooltip);
 
                 slotTypeToTooltipInfo.put(null, attributeTooltip);
             }
@@ -479,7 +451,7 @@ public class AccessoriesEventHandler {
 
                 var attributeTooltip = new ArrayList<Component>();
 
-                addAttributeTooltip(modifiers, attributeTooltip);
+                addAttributeTooltip(modifiers.getAttributeModifiers(false), attributeTooltip);
 
                 slotTypeToTooltipInfo.put(slotType, attributeTooltip);
             }

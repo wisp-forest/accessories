@@ -122,6 +122,12 @@ public interface AccessoriesContainer {
      * Remove the specific attribute modifier from the map if found
      * @param location The specific location
      */
+    boolean hasModifier(ResourceLocation location);
+
+    /**
+     * Remove the specific attribute modifier from the map if found
+     * @param location The specific location
+     */
     void removeModifier(ResourceLocation location);
 
     /**
