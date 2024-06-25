@@ -22,20 +22,20 @@ config = 'accessories-forge.mixins.json'
 [[dependencies.accessories]]
 modId = "neoforge"
 required = true
-versionRange = "[20,)"
+versionRange = "[21,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.accessories]]
 modId = "minecraft"
 required = true
-versionRange = "[1.20.4,)"
+versionRange = "[1.21,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.accessories]]
 modId = "cloth_config"
 required = true
-versionRange = "[13,)"
+versionRange = "[15,)"
 ordering = "NONE"
 side = "BOTH"
