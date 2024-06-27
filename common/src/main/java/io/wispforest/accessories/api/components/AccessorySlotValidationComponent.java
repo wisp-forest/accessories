@@ -11,8 +11,8 @@ public record AccessorySlotValidationComponent(Set<String> validSlotOverrides, S
     public static final AccessorySlotValidationComponent EMPTY = new AccessorySlotValidationComponent(Set.of(), Set.of());
 
     public static final Endec<AccessorySlotValidationComponent> ENDEC = StructEndecBuilder.of(
-            Endec.STRING.setOf().fieldOf("valid_slot_overrides", AccessorySlotValidationComponent::validSlotOverrides),
-            Endec.STRING.setOf().fieldOf("invalid_slot_overrides", AccessorySlotValidationComponent::invalidSlotOverrides),
+            Endec.STRING.setOf().fieldOf("valid_slots", AccessorySlotValidationComponent::validSlotOverrides),
+            Endec.STRING.setOf().fieldOf("invalid_slots", AccessorySlotValidationComponent::invalidSlotOverrides),
             AccessorySlotValidationComponent::new
     );
 
