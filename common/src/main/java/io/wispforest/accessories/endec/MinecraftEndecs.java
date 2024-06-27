@@ -16,6 +16,7 @@ import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.BlockHitResult;
@@ -23,6 +24,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
@@ -161,6 +163,16 @@ public class MinecraftEndecs {
                 vector -> List.of(xGetter.apply(vector), yGetter.apply(vector), zGetter.apply(vector))
         );
     }
+
+    public static <E extends Enum<E> & StringRepresentable> Endec<E> forEnumStringRepresentable(Class<E> enumClass) {
+        return Endec.ifAttr(
+                SerializationAttributes.HUMAN_READABLE,
+                Endec.STRING.xmap(name -> Arrays.stream(enumClass.getEnumConstants()).filter(e -> e.getSerializedName().equals(name)).findFirst().get(), StringRepresentable::getSerializedName)
+        ).orElse(
+                Endec.VAR_INT.xmap(ordinal -> enumClass.getEnumConstants()[ordinal], Enum::ordinal)
+        );
+    }
+
 
     public static final ReflectiveEndecBuilder INSTANCE = withExtra(new ReflectiveEndecBuilder());
 }

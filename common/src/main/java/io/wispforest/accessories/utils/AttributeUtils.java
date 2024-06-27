@@ -70,7 +70,7 @@ public class AttributeUtils {
     public static final StructEndec<AttributeModifier> ATTRIBUTE_MODIFIER_ENDEC = StructEndecBuilder.of(
             MinecraftEndecs.IDENTIFIER.fieldOf("id", AttributeModifier::id),
             Endec.DOUBLE.fieldOf("amount", AttributeModifier::amount),
-            Endec.forEnum(AttributeModifier.Operation.class).fieldOf("operation", AttributeModifier::operation),
+            MinecraftEndecs.forEnumStringRepresentable(AttributeModifier.Operation.class).fieldOf("operation", AttributeModifier::operation),
             AttributeModifier::new
     );
 }
