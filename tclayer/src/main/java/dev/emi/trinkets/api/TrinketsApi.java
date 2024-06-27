@@ -151,7 +151,7 @@ public class TrinketsApi implements EntityComponentInitializer {
         Map<String, SlotType> convertedSlots = new HashMap<>();
 
         for (var entry : EntitySlotLoader.INSTANCE.getSlotTypes(false, type).entrySet()) {
-            convertedSlots.put(entry.getKey(), new WrappedSlotType(entry.getValue()));
+            convertedSlots.put(entry.getKey(), new WrappedSlotType(entry.getValue(), false));
         }
 
         return Map.of("", new WrappedSlotGroup(convertedSlots));
@@ -161,7 +161,7 @@ public class TrinketsApi implements EntityComponentInitializer {
         Map<String, SlotType> convertedSlots = new HashMap<>();
 
         for (var entry : EntitySlotLoader.getEntitySlots(world, type).entrySet()) {
-            convertedSlots.put(entry.getKey(), new WrappedSlotType(entry.getValue()));
+            convertedSlots.put(entry.getKey(), new WrappedSlotType(entry.getValue(), world.isClientSide()));
         }
 
         return Map.of("", new WrappedSlotGroup(convertedSlots));
@@ -260,7 +260,7 @@ public class TrinketsApi implements EntityComponentInitializer {
             if(hasErrored) return TriState.DEFAULT;
 
             try {
-                return this.trinketPredicate.apply(stack, new SlotReference(new CursedTrinketInventory(slotType), slot), null);
+                return this.trinketPredicate.apply(stack, new SlotReference(new CursedTrinketInventory(slotType, level.isClientSide()), slot), null);
             } catch (Exception e) {
                 this.hasErrored = true;
                 LOGGER.warn("Unable to handle Trinket Slot Predicate converted to Accessories Slot Predicate due to fundamental incompatibility, issues may be present with such! [Slot: {}, Predicate ID: {}]", slotType.name(), this.location);
@@ -271,8 +271,8 @@ public class TrinketsApi implements EntityComponentInitializer {
     }
 
     private static final class CursedTrinketInventory extends TrinketInventory {
-        public CursedTrinketInventory(io.wispforest.accessories.api.slot.SlotType slotType) {
-            super(new WrappedSlotType(slotType), null, inv -> {});
+        public CursedTrinketInventory(io.wispforest.accessories.api.slot.SlotType slotType, boolean isClientSide) {
+            super(new WrappedSlotType(slotType, isClientSide), null, inv -> {});
         }
     }
 }
