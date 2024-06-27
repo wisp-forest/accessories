@@ -25,6 +25,7 @@ repositories {
     maven { url "https://maven.terraformersmc.com/releases" }
     maven { url "https://maven.blamejared.com/" } // location of the maven that hosts JEI files since January 2023
     maven { url "https://modmaven.dev" } // location of a maven mirror for JEI files, as a fallback
+    maven { url "https://maven.wispforest.io/releases" }
     mavenCentral()
 //    maven { url 'https://jitpack.io' }
     mavenLocal()
@@ -61,12 +62,12 @@ dependencies {
     //modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-neoforge-api:${rootProject.jei_version}")
 
     if(type == "rei") {
-        modRuntimeOnly("me.shedaniel:RoughlyEnoughItems-neoforge:${rootProject.rei_version}")
-        modRuntimeOnly("dev.architectury:architectury-neoforge:${rootProject.arch_api}")
+        modLocalRuntime("me.shedaniel:RoughlyEnoughItems-neoforge:${rootProject.rei_version}")
+        modLocalRuntime("dev.architectury:architectury-neoforge:${rootProject.arch_api}")
     } else if(type == "emi") {
         modLocalRuntime("dev.emi:emi-neoforge:${rootProject.emi_version}")
     } else if(type == "jei") {
-        //modRuntimeOnly("mezz.jei:jei-${rootProject.minecraft_version}-neoforge:${rootProject.jei_version}")
+        //modLocalRuntime("mezz.jei:jei-${rootProject.minecraft_version}-neoforge:${rootProject.jei_version}")
     } else {
         throw new IllegalStateException("Unable to locate the given item viewer!")
     }
