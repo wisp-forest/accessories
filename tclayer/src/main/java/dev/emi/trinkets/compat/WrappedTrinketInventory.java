@@ -16,7 +16,7 @@ public class WrappedTrinketInventory extends TrinketInventory {
     public final AccessoriesContainer container;
 
     public WrappedTrinketInventory(TrinketComponent component, AccessoriesContainer container, SlotType slotType) {
-        super(new WrappedSlotType(slotType), component, trinketInventory -> {});
+        super(new WrappedSlotType(slotType, container.capability().entity().level().isClientSide()), component, trinketInventory -> {});
 
         this.container = (AccessoriesContainer) container;
     }
