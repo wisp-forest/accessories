@@ -3,7 +3,9 @@ package dev.emi.trinkets.api;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import dev.emi.trinkets.compat.WrappingTrinketsUtils;
+import io.wispforest.accessories.api.attributes.SlotAttribute;
 import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
@@ -11,19 +13,19 @@ import java.util.Map;
 import java.util.UUID;
 
 public class SlotAttributes {
-    private static Map<String, UUID> CACHED_UUIDS = Maps.newHashMap();
-    private static Map<String, Holder<Attribute>> CACHED_ATTRIBUTES = Maps.newHashMap();
+    private static final Map<String, ResourceLocation> CACHED_UUIDS = Maps.newHashMap();
+    private static final Map<String, Holder<Attribute>> CACHED_ATTRIBUTES = Maps.newHashMap();
 
     /**
      * Adds an Entity Attribute Nodifier for slot count to the provided multimap
      */
-    public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String slot, UUID uuid, double amount, AttributeModifier.Operation operation) {
-        io.wispforest.accessories.api.slot.SlotAttribute.addSlotModifier(map, WrappingTrinketsUtils.trinketsToAccessories_Slot(TrinketConstants.filterGroup(slot)), uuid, amount, operation);
+    public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String slot, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
+        io.wispforest.accessories.api.attributes.SlotAttribute.addSlotModifier(map, WrappingTrinketsUtils.trinketsToAccessories_Slot(TrinketConstants.filterGroup(slot)), location, amount, operation);
     }
 
-    public static UUID getUuid(SlotReference ref) {
-        String key = ref.inventory().getSlotType().getGroup() + "/" + ref.inventory().getSlotType().getName() + "/" + ref.index();
-        CACHED_UUIDS.putIfAbsent(key, UUID.nameUUIDFromBytes(key.getBytes()));
+    public static ResourceLocation getIdentifier(SlotReference ref) {
+        String key = ref.inventory().getSlotType().getId() + "/" + ref.index();
+        CACHED_UUIDS.computeIfAbsent(key, ResourceLocation::withDefaultNamespace);
         return CACHED_UUIDS.get(key);
     }
 
@@ -37,9 +39,9 @@ public class SlotAttributes {
     }
 
     public static class WrappedSlotAttribute extends SlotAttribute {
-        private final io.wispforest.accessories.api.slot.SlotAttribute attribute;
+        private final io.wispforest.accessories.api.attributes.SlotAttribute attribute;
 
-        public WrappedSlotAttribute(io.wispforest.accessories.api.slot.SlotAttribute attribute){
+        public WrappedSlotAttribute(io.wispforest.accessories.api.attributes.SlotAttribute attribute){
             super(attribute.slotName());
 
             this.attribute = attribute;

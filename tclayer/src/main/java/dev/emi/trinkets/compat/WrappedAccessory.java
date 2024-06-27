@@ -5,7 +5,9 @@ import dev.emi.trinkets.api.SlotReference;
 import dev.emi.trinkets.api.Trinket;
 import dev.emi.trinkets.api.TrinketEnums;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -68,12 +70,16 @@ public class WrappedAccessory implements Trinket {
     }
 
     @Override
-    public Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference ref, LivingEntity entity, UUID uuid) {
+    public Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference ref, LivingEntity entity, ResourceLocation location) {
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
         var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());
 
-        return accessory.getModifiers(stack, reference, uuid);
+        var builder = new AccessoryAttributeBuilder(reference);
+
+        accessory.getModifiers(stack, reference, builder);
+
+        return builder.getAttributeModifiers(true);
     }
 
     @Override

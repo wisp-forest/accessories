@@ -27,7 +27,7 @@ public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String,
     public static final EntitySlotLoader SERVER = new EntitySlotLoader();
 
     private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
-    private static final ResourceLocation ID = new ResourceLocation(TrinketConstants.MOD_ID, "entities");
+    private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(TrinketConstants.MOD_ID, "entities");
 
     private final Map<EntityType<?>, Map<String, SlotGroup>> slots = new HashMap<>();
 
@@ -78,9 +78,9 @@ public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String,
                                         String id;
 
                                         if (name.startsWith("#")) {
-                                            id = "#" + new ResourceLocation(name.substring(1));
+                                            id = "#" + ResourceLocation.tryParse(name.substring(1));
                                         } else {
-                                            id = new ResourceLocation(name).toString();
+                                            id = ResourceLocation.tryParse(name).toString();
                                         }
                                         Map<String, Set<String>> slots = map.computeIfAbsent(id, (k) -> new HashMap<>());
 
@@ -132,7 +132,7 @@ public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String,
 
 					types.addAll(entityTypes);*/
                 } else {
-                    types.add(BuiltInRegistries.ENTITY_TYPE.getOptional(new ResourceLocation(entityName))
+                    types.add(BuiltInRegistries.ENTITY_TYPE.getOptional(ResourceLocation.tryParse(entityName))
                             .orElseThrow(() -> new IllegalArgumentException("Unknown entity '" + entityName + "'")));
                 }
             } catch (IllegalArgumentException e) {

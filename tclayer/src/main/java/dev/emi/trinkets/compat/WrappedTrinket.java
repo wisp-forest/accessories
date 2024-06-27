@@ -1,13 +1,18 @@
 package dev.emi.trinkets.compat;
 
 import com.google.common.collect.Multimap;
+import dev.emi.trinkets.api.SlotAttributes;
 import dev.emi.trinkets.api.Trinket;
 import dev.emi.trinkets.api.TrinketEnums;
+import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.SoundEventData;
+import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -81,12 +86,23 @@ public class WrappedTrinket implements Accessory {
     }
 
     @Override
-    public Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid) {
+    public void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
         var ref = WrappingTrinketsUtils.createReference(reference);
 
-        if(ref.isEmpty()) return Accessory.super.getModifiers(stack, reference, uuid);
+        if(ref.isEmpty()) Accessory.super.getModifiers(stack, reference, builder);
 
-        return this.trinket.getModifiers(stack, ref.get(), reference.entity(), uuid);
+        var id = SlotAttributes.getIdentifier(ref.get());
+
+        this.trinket.getModifiers(stack, ref.get(), reference.entity(), SlotAttributes.getIdentifier(ref.get())).asMap()
+                .forEach((attribute, modifiers) -> {
+                    for (var modifier : modifiers) {
+                        if(modifier.id().equals(id)) {
+                            builder.addStackable(attribute, Accessories.of("trinket_converted_attribute"), modifier.amount(), modifier.operation());
+                        } else {
+                            builder.addExclusive(attribute, modifier);
+                        }
+                    }
+                });
     }
 
     @Override

@@ -33,7 +33,7 @@ public class TrinketConstants {
 
         if(ref.isEmpty()) return false;
 
-        boolean res = TrinketsApi.evaluatePredicateSet(Set.of(new ResourceLocation("trinkets:all")), stack, ref.get(), slotReference.entity());
+        boolean res = TrinketsApi.evaluatePredicateSet(Set.of(ResourceLocation.parse("trinkets:all")), stack, ref.get(), slotReference.entity());
         boolean canInsert = TrinketSlot.canInsert(stack, ref.get(), slotReference.entity());
 
         return res && canInsert;

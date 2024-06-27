@@ -1,11 +1,8 @@
 package dev.emi.trinkets.api;
 
 import com.google.common.collect.ImmutableList;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
-import io.wispforest.accessories.api.slot.SlotAttribute;
+import io.wispforest.accessories.api.attributes.SlotAttribute;
 import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.endec.MinecraftEndecs;
 import io.wispforest.accessories.endec.RegistriesAttribute;
@@ -15,8 +12,6 @@ import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 

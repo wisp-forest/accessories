@@ -34,7 +34,7 @@ public abstract class ItemStackMixin {
         if(namespace.equals(TrinketConstants.MOD_ID)) {
             var filteredPath = TrinketConstants.filterGroup(path);
 
-            var accessoryTag = TagKey.create(Registries.ITEM, new ResourceLocation(Accessories.MODID, WrappingTrinketsUtils.trinketsToAccessories_Slot(filteredPath)));
+            var accessoryTag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Accessories.MODID, WrappingTrinketsUtils.trinketsToAccessories_Slot(filteredPath)));
 
             isInTag = this.getItem().builtInRegistryHolder().is(accessoryTag) || this.getItem().builtInRegistryHolder().is(tag);
         }

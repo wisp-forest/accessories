@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.LivingEntity;
@@ -19,7 +20,7 @@ public class TrinketInventory implements Container {
     private final SlotType slotType;
     private final int baseSize;
     private final TrinketComponent component;
-    private final Map<UUID, AttributeModifier> modifiers = new HashMap<>();
+    private final Map<ResourceLocation, AttributeModifier> modifiers = new HashMap<>();
     private final Set<AttributeModifier> persistentModifiers = new HashSet<>();
     private final Set<AttributeModifier> cachedModifiers = new HashSet<>();
     private final Multimap<AttributeModifier.Operation, AttributeModifier> modifiersByOperation = HashMultimap.create();
@@ -104,7 +105,7 @@ public class TrinketInventory implements Container {
         return true;
     }
 
-    public Map<UUID, AttributeModifier> getModifiers() {
+    public Map<ResourceLocation, AttributeModifier> getModifiers() {
         return this.modifiers;
     }
 
@@ -123,8 +124,8 @@ public class TrinketInventory implements Container {
         this.persistentModifiers.add(modifier);
     }
 
-    public void removeModifier(UUID uuid) {
-        AttributeModifier modifier = this.modifiers.remove(uuid);
+    public void removeModifier(ResourceLocation location) {
+        AttributeModifier modifier = this.modifiers.remove(location);
         if (modifier != null) {
             this.persistentModifiers.remove(modifier);
             this.getModifiersByOperation(modifier.operation()).remove(modifier);
@@ -133,7 +134,7 @@ public class TrinketInventory implements Container {
     }
 
     public void clearModifiers() {
-        Iterator<UUID> iter = this.getModifiers().keySet().iterator();
+        Iterator<ResourceLocation> iter = this.getModifiers().keySet().iterator();
 
         while(iter.hasNext()) {
             this.removeModifier(iter.next());
@@ -254,7 +255,7 @@ public class TrinketInventory implements Container {
         CompoundTag CompoundTag = new CompoundTag();
         if (!this.modifiers.isEmpty()) {
             ListTag ListTag = new ListTag();
-            for (Map.Entry<UUID, AttributeModifier> modifier : this.modifiers.entrySet()) {
+            for (Map.Entry<ResourceLocation, AttributeModifier> modifier : this.modifiers.entrySet()) {
                 ListTag.add(modifier.getValue().save());
             }
 

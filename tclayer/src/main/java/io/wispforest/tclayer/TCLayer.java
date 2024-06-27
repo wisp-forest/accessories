@@ -11,6 +11,6 @@ public class TCLayer implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, new ResourceLocation(TrinketConstants.MOD_ID, "attribute_modifiers"), TrinketsAttributeModifiersComponent.TYPE);
+        Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, ResourceLocation.fromNamespaceAndPath(TrinketConstants.MOD_ID, "attribute_modifiers"), TrinketsAttributeModifiersComponent.TYPE);
     }
 }

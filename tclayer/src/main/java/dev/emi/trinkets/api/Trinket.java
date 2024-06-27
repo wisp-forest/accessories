@@ -16,6 +16,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,7 +77,7 @@ public interface Trinket {
      * @return Whether the stack can be unequipped
      */
     default boolean canUnequip(ItemStack stack, SlotReference slot, LivingEntity entity) {
-        return !EnchantmentHelper.hasBindingCurse(stack) || (entity instanceof Player player && player.isCreative());
+        return !EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE) || (entity instanceof Player player && player.isCreative());
     }
 
     /**
@@ -111,20 +112,10 @@ public interface Trinket {
      * If modifiers do not change based on stack, slot, or entity, caching based on passed UUID
      * should be considered
      *
-     * @param uuid The UUID to use for creating attributes
+     * @param location The ResourceLocation to use for creating attributes
      */
-    default Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference slot, LivingEntity entity, UUID uuid) {
-        Multimap<Holder<Attribute>, AttributeModifier> map = Multimaps.newMultimap(Maps.newLinkedHashMap(), ArrayList::new);
-
-        if (stack.has(TrinketsAttributeModifiersComponent.TYPE)) {
-            for (var entry : stack.getOrDefault(TrinketsAttributeModifiersComponent.TYPE, TrinketsAttributeModifiersComponent.DEFAULT).modifiers()) {
-                if (entry.slot().isEmpty() || entry.slot().get().equals(slot.inventory().getSlotType().getGroup() + "/" + slot.inventory().getSlotType().getName())) {
-                    map.put(entry.attribute(), entry.modifier());
-                }
-            }
-        }
-
-        return map;
+    default Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference slot, LivingEntity entity, ResourceLocation location) {
+        return Multimaps.newMultimap(Maps.newLinkedHashMap(), ArrayList::new);
     }
 
     /**

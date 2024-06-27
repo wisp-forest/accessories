@@ -4,6 +4,7 @@ import dev.emi.trinkets.api.TrinketComponent;
 import dev.emi.trinkets.api.TrinketInventory;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.SlotType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 
@@ -22,7 +23,7 @@ public class WrappedTrinketInventory extends TrinketInventory {
     }
 
     @Override
-    public Map<UUID, AttributeModifier> getModifiers() {
+    public Map<ResourceLocation, AttributeModifier> getModifiers() {
         return container.getModifiers();
     }
 
@@ -42,8 +43,8 @@ public class WrappedTrinketInventory extends TrinketInventory {
     }
 
     @Override
-    public void removeModifier(UUID uuid) {
-        container.removeModifier(uuid);
+    public void removeModifier(ResourceLocation location) {
+        container.removeModifier(location);
     }
 
     @Override

@@ -114,24 +114,24 @@ public class SlotType {
             String name = slotData.getString("Name");
             int order = slotData.getInt("Order");
             int amount = slotData.getInt("Amount");
-            ResourceLocation icon = new ResourceLocation(slotData.getString("Icon"));
+            ResourceLocation icon = ResourceLocation.parse(slotData.getString("Icon"));
             ListTag quickMoveList = slotData.getList("QuickMovePredicates", NbtType.STRING);
             Set<ResourceLocation> quickMovePredicates = new HashSet<>();
 
             for (Tag tag : quickMoveList) {
-                quickMovePredicates.add(new ResourceLocation(tag.getAsString()));
+                quickMovePredicates.add(ResourceLocation.parse(tag.getAsString()));
             }
             ListTag validatorList = slotData.getList("ValidatorPredicates", NbtType.STRING);
             Set<ResourceLocation> validatorPredicates = new HashSet<>();
 
             for (Tag tag : validatorList) {
-                validatorPredicates.add(new ResourceLocation(tag.getAsString()));
+                validatorPredicates.add(ResourceLocation.parse(tag.getAsString()));
             }
             ListTag tooltipList = slotData.getList("TooltipPredicates", NbtType.STRING);
             Set<ResourceLocation> tooltipPredicates = new HashSet<>();
 
             for (Tag tag : tooltipList) {
-                tooltipPredicates.add(new ResourceLocation(tag.getAsString()));
+                tooltipPredicates.add(ResourceLocation.parse(tag.getAsString()));
             }
             String dropRuleName = slotData.getString("DropRule");
             TrinketEnums.DropRule dropRule = TrinketEnums.DropRule.DEFAULT;
@@ -153,5 +153,9 @@ public class SlotType {
         @Override
         public int hashCode() {
             return Objects.hash(group, name);
+        }
+
+        public String getId() {
+            return this.group + "/" + this.name;
         }
 }
