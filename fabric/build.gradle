@@ -67,7 +67,7 @@ dependencies {
         modLocalRuntime("dev.emi:emi-fabric:${rootProject.emi_version}")
     } else if(type == "jei") {
         //modLocalRuntime("mezz.jei:jei-${rootProject.minecraft_version}-fabric:${rootProject.jei_version}")
-    } else {
+    } else if(type != "none") {
         throw new IllegalStateException("Unable to locate the given item viewer!")
     }
 }

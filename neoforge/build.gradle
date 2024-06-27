@@ -68,7 +68,7 @@ dependencies {
         modLocalRuntime("dev.emi:emi-neoforge:${rootProject.emi_version}")
     } else if(type == "jei") {
         //modLocalRuntime("mezz.jei:jei-${rootProject.minecraft_version}-neoforge:${rootProject.jei_version}")
-    } else {
+    } else if(type != "none") {
         throw new IllegalStateException("Unable to locate the given item viewer!")
     }
 }
