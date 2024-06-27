@@ -293,7 +293,7 @@ public class AccessoriesAPI {
 
     public static void registerPredicate(ResourceLocation location, SlotBasedPredicate predicate) {
         if(PREDICATE_REGISTRY.containsKey(location)) {
-            LOGGER.warn("[AccessoriesAPI]: A SlotBasedPredicate attempted to be registered but a duplicate entry existed already! [Id: " + location + "]");
+            LOGGER.warn("[AccessoriesAPI]: A SlotBasedPredicate attempted to be registered but a duplicate entry existed already! [Id: {}]", location);
 
             return;
         }
@@ -323,11 +323,6 @@ public class AccessoriesAPI {
      */
     public static final TagKey<Item> ALL_ACCESSORIES = TagKey.create(Registries.ITEM, Accessories.of("all"));
 
-    public static final String ACCESSORY_PREDICATES_KEY = "AccessoryPredicates";
-
-    public static final String ACCESSORY_VALID_SLOTS_KEY = "ValidSlotOverrides";
-    public static final String ACCESSORY_INVALID_SLOTS_KEY = "InvalidSlotOverrides";
-
     public static TagKey<Item> getSlotTag(SlotType slotType) {
         var location = UniqueSlotHandling.isUniqueSlot(slotType.name()) ? ResourceLocation.parse(slotType.name()) : Accessories.of(slotType.name());
 
@@ -345,7 +340,7 @@ public class AccessoriesAPI {
 
             return bl ? TriState.TRUE : TriState.DEFAULT;
         });
-        registerPredicate(Accessories.of("compound"), (level, slotType, index, stack) -> {
+        registerPredicate(Accessories.of("component"), (level, slotType, index, stack) -> {
             if(stack.has(AccessoriesDataComponents.SLOT_VALIDATION)) {
                 var slotValidationData = stack.get(AccessoriesDataComponents.SLOT_VALIDATION);
                 var name = slotType.name();

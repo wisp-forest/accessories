@@ -221,7 +221,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         public SlotType create(){
             if(validators.isEmpty()) {
                 validators.add(Accessories.of("tag"));
-                validators.add(Accessories.of("compound"));
+                validators.add(Accessories.of("component"));
             }
 
             return new SlotTypeImpl(
