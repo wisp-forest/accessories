@@ -136,7 +136,7 @@ public interface Accessory {
      * @param reference The reference to the targeted {@link LivingEntity}, slot and index
      */
     default void onBreak(ItemStack stack, SlotReference reference) {
-        ((LivingEntityAccessor) reference.entity()).breakItem(stack);
+        ((LivingEntityAccessor) reference.entity()).accessors$breakItem(stack);
     }
 
     /**
