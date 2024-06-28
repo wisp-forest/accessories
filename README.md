@@ -42,10 +42,13 @@ dependencies {
     modImplementation("io.wispforest:accessories-fabric:${project.accessories_version}")
     
     // Neoforge 
-    fg.deobf("io.wispforest:accessories-neoforge:${project.accessories_version}")
+    implementation("io.wispforest:accessories-neoforge:${project.accessories_version}")
 
     // Arch Common
     modImplementation("io.wispforest:accessories-common:${project.accessories_version}")
+
+    // Multiloader Common
+    compileOnly("io.wispforest:accessories-common:${project.accessories_version}")
 }
 ```
 <details>
