@@ -46,6 +46,9 @@ dependencies {
 
     // Arch Common
     modImplementation("io.wispforest:accessories-common:${project.accessories_version}")
+
+    // Multiloader Common
+    compileOnly("io.wispforest:accessories-common:${project.accessories_version}")
 }
 ```
 <details>
