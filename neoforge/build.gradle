@@ -44,7 +44,7 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive false }
 
-    modApi("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
+    modImplementation("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
 
     include modApi("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+e0539096d1"){ exclude group: "fabric-api" }
 
@@ -58,8 +58,8 @@ dependencies {
 
     modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-neoforge:${rootProject.rei_version}")
     modCompileOnly("dev.emi:emi-neoforge:${rootProject.emi_version}:api")
-    modCompileOnlyApi("mezz.jei:jei-1.20.6-neoforge-api:${rootProject.jei_version}")
-    //modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-neoforge-api:${rootProject.jei_version}")
+    modCompileOnly("mezz.jei:jei-1.20.6-neoforge-api:${rootProject.jei_version}")
+    //modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-neoforge-api:${rootProject.jei_version}")
 
     if(type == "rei") {
         modLocalRuntime("me.shedaniel:RoughlyEnoughItems-neoforge:${rootProject.rei_version}")
