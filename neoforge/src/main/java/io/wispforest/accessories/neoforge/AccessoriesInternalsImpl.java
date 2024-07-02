@@ -5,14 +5,12 @@ import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
-import io.netty.buffer.ByteBuf;
-import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.client.AccessoriesMenuData;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
-import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
+import io.wispforest.accessories.networking.base.BaseNetworkHandler;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.format.bytebuf.ByteBufDeserializer;
 import io.wispforest.endec.format.bytebuf.ByteBufSerializer;
@@ -22,34 +20,25 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.network.IContainerFactory;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 
 public class AccessoriesInternalsImpl {
@@ -66,7 +55,7 @@ public class AccessoriesInternalsImpl {
         livingEntity.setData(AccessoriesForge.HOLDER_ATTACHMENT_TYPE, holder);
     }
 
-    public static AccessoriesNetworkHandler getNetworkHandler(){
+    public static BaseNetworkHandler getNetworkHandler(){
         return AccessoriesForgeNetworkHandler.INSTANCE;
     }
 
@@ -109,7 +98,7 @@ public class AccessoriesInternalsImpl {
     public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         player.openMenu(
                 new SimpleMenuProvider((i, arg, arg2) -> {
-                    var menu = new AccessoriesMenu(i, arg, true, targetEntity);
+                    var menu = new AccessoriesMenu(i, arg, targetEntity);
 
                     if(carriedStack != null) menu.setCarried(carriedStack);
 

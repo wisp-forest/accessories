@@ -3,12 +3,13 @@ package io.wispforest.accessories.neoforge;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.endec.CodecUtils;
-import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
-import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.accessories.networking.base.BaseNetworkHandler;
+import io.wispforest.accessories.networking.base.HandledPacketPayload;
+import io.wispforest.accessories.networking.AccessoriesPackets;
+import io.wispforest.accessories.networking.base.NetworkBuilderRegister;
 import io.wispforest.endec.Endec;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -16,34 +17,36 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class AccessoriesForgeNetworkHandler extends AccessoriesNetworkHandler {
+public class AccessoriesForgeNetworkHandler extends BaseNetworkHandler {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final AccessoriesForgeNetworkHandler INSTANCE = new AccessoriesForgeNetworkHandler();
+    public static final AccessoriesForgeNetworkHandler INSTANCE = new AccessoriesForgeNetworkHandler(AccessoriesPackets::register);
 
     @Nullable
     private PayloadRegistrar registrar = null;
 
-    @SubscribeEvent
+    protected AccessoriesForgeNetworkHandler(Consumer<NetworkBuilderRegister> builder) {
+        super(builder);
+    }
+
     public void initializeNetworking(final RegisterPayloadHandlersEvent event) {
         this.registrar = event.registrar(Accessories.MODID);
-
-        this.register();
 
         this.init();
     }
 
     @Override
     public void init() {
+        super.init();
+
         for (var type : List.copyOf(this.s2cBuilders.keySet())) {
             if(!this.c2sBuilders.containsKey(type)) continue;
 
-            var builder = this.s2cBuilders.get(type);
-
-            builder.registerPacket(this::registerBoth);
+            this.s2cBuilders.get(type).registerPacket(this::registerBoth);
 
             this.s2cBuilders.remove(type);
             this.c2sBuilders.remove(type);
@@ -53,30 +56,30 @@ public class AccessoriesForgeNetworkHandler extends AccessoriesNetworkHandler {
         this.c2sBuilders.forEach((location, builder) -> builder.registerPacket(this::registerC2S));
     }
 
-    protected <M extends AccessoriesPacket> void registerC2S(Class<M> messageType, Endec<M> endec) {
+    protected <M extends HandledPacketPayload> void registerC2S(Class<M> messageType, Endec<M> endec) {
         var id = getId(messageType);
 
-        registrar.playToServer(id, CodecUtils.packetCodec(endec), (arg, iPayloadContext) -> {
+        this.registrar.playToServer(id, CodecUtils.packetCodec(endec), (arg, iPayloadContext) -> {
             var player = iPayloadContext.player();
 
             iPayloadContext.enqueueWork(() -> arg.handle(player));
         });
     }
 
-    protected <M extends AccessoriesPacket> void registerS2C(Class<M> messageType, Endec<M> endec) {
+    protected <M extends HandledPacketPayload> void registerS2C(Class<M> messageType, Endec<M> endec) {
         var id = getId(messageType);
 
-        registrar.playToClient(id, CodecUtils.packetCodec(endec), (arg, iPayloadContext) -> {
+        this.registrar.playToClient(id, CodecUtils.packetCodec(endec), (arg, iPayloadContext) -> {
             var player = iPayloadContext.player();
 
             iPayloadContext.enqueueWork(() -> arg.handle(player));
         });
     }
 
-    protected <M extends AccessoriesPacket> void registerBoth(Class<M> messageType, Endec<M> endec) {
+    protected <M extends HandledPacketPayload> void registerBoth(Class<M> messageType, Endec<M> endec) {
         var id = getId(messageType);
 
-        registrar.playBidirectional(id, CodecUtils.packetCodec(endec), (arg, iPayloadContext) -> {
+        this.registrar.playBidirectional(id, CodecUtils.packetCodec(endec), (arg, iPayloadContext) -> {
             var player = iPayloadContext.player();
 
             iPayloadContext.enqueueWork(() -> arg.handle(player));
@@ -84,17 +87,17 @@ public class AccessoriesForgeNetworkHandler extends AccessoriesNetworkHandler {
     }
 
     @Override
-    public <M extends AccessoriesPacket> void sendToServer(M packet) {
+    public <M extends HandledPacketPayload> void sendToServer(M packet) {
         PacketDistributor.sendToServer(packet);
     }
 
     @Override
-    public <M extends AccessoriesPacket> void sendToPlayer(ServerPlayer player, M packet) {
+    public <M extends HandledPacketPayload> void sendToPlayer(ServerPlayer player, M packet) {
         PacketDistributor.sendToPlayer(player, packet);
     }
 
     @Override
-    public <M extends AccessoriesPacket> void sendToTrackingAndSelf(Entity entity, Supplier<M> packet) {
+    public <M extends HandledPacketPayload> void sendToTrackingAndSelf(Entity entity, Supplier<M> packet) {
         PacketDistributor.sendToPlayersTrackingEntityAndSelf(entity, packet.get());
     }
 }

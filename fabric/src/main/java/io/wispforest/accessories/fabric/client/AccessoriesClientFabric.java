@@ -9,8 +9,8 @@ import io.wispforest.accessories.fabric.AccessoriesFabric;
 import io.wispforest.accessories.fabric.AccessoriesFabricNetworkHandler;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
-import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
-import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.accessories.networking.base.BaseNetworkHandler;
+import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
@@ -36,7 +36,6 @@ import net.minecraft.world.entity.LivingEntity;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
-import java.util.function.Supplier;
 
 import static io.wispforest.accessories.Accessories.MODID;
 
@@ -109,7 +108,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
     }
 
     @Environment(EnvType.CLIENT)
-    protected static <M extends AccessoriesPacket> void registerS2C(Class<M> messageType, Endec<M> endec) {
-        ClientPlayNetworking.registerGlobalReceiver(AccessoriesNetworkHandler.getId(messageType), (packet, context) -> packet.handle(context.player()));
+    protected static <M extends HandledPacketPayload> void registerS2C(Class<M> messageType, Endec<M> endec) {
+        ClientPlayNetworking.registerGlobalReceiver(BaseNetworkHandler.getId(messageType), (packet, context) -> packet.handle(context.player()));
     }
 }

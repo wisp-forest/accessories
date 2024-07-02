@@ -2,16 +2,13 @@ package io.wispforest.accessories.networking.server;
 
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.client.AccessoriesMenu;
-import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
-public record MenuScroll(int index, boolean smooth) implements AccessoriesPacket {
+public record MenuScroll(int index, boolean smooth) implements HandledPacketPayload {
 
     public static final Endec<MenuScroll> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("index", MenuScroll::index),

@@ -15,5 +15,4 @@ public class ButtonEvents {
     public interface AdjustRendering {
         boolean render(AbstractButton button, GuiGraphics instance, ResourceLocation sprite, int x, int y, int width, int height);
     }
-
 }

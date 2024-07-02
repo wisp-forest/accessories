@@ -14,7 +14,8 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * Main class used to register and hold {@link AccessoryRenderer}'s for the given items
+ * Main class used to register and hold {@link AccessoryRenderer}'s. Such contains a method to
+ * reload all renders when a data reload occurs for the client combined with method to retrieve renders.
  */
 public class AccessoriesRendererRegistry {
 
@@ -40,8 +41,9 @@ public class AccessoriesRendererRegistry {
 
     //--
 
-    public static final String defaultRenderOverrideKey = "AccessoriesDefaultRenderOverride";
-
+    /**
+     * @return Either the {@link AccessoryRenderer} bound to the item or the instance of the {@link DefaultAccessoryRenderer}
+     */
     @Nullable
     public static AccessoryRenderer getRender(ItemStack stack){
         var shouldOverride = stack.getOrDefault(AccessoriesDataComponents.RENDER_OVERRIDE, AccessoryRenderOverrideComponent.DEFAULT).defaultRenderOverride();

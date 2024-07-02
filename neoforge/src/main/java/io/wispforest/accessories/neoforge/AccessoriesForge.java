@@ -4,14 +4,12 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
-import io.wispforest.accessories.api.events.extra.ExtraEventHandler;
+import io.wispforest.accessories.commands.AccessoriesCommands;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.endec.format.nbt.NbtDeserializer;
-import io.wispforest.accessories.endec.format.nbt.NbtEndec;
 import io.wispforest.accessories.endec.format.nbt.NbtSerializer;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
@@ -19,16 +17,11 @@ import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.InstanceEndec;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
-import io.wispforest.endec.format.edm.EdmDeserializer;
-import io.wispforest.endec.format.edm.EdmElement;
-import io.wispforest.endec.format.edm.EdmEndec;
-import io.wispforest.endec.format.edm.LenientEdmDeserializer;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
@@ -46,7 +39,6 @@ import net.neoforged.neoforge.capabilities.EntityCapability;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
-import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
@@ -97,84 +89,68 @@ public class AccessoriesForge {
                             }
                         })
                         .copyOnDeath()
-                        .build()
-        );
+                        .build());
     }
 
     public static IEventBus BUS;
 
     public AccessoriesForge(final IEventBus eventBus) {
-        //Accessories.init();
-
         AccessoriesForge.BUS = eventBus;
 
         Accessories.init();
 
+        NeoForge.EVENT_BUS.addListener(this::attemptEquipFromUse);
+        NeoForge.EVENT_BUS.addListener(this::attemptEquipOnEntity);
         NeoForge.EVENT_BUS.addListener(this::onEntityDeath);
         NeoForge.EVENT_BUS.addListener(this::onLivingEntityTick);
         NeoForge.EVENT_BUS.addListener(this::onDataSync);
-        eventBus.addListener(this::registerCapabilities);
         NeoForge.EVENT_BUS.addListener(this::onEntityLoad);
         NeoForge.EVENT_BUS.addListener(this::onStartTracking);
-        NeoForge.EVENT_BUS.addListener(this::registerReloadListeners);
-
-        eventBus.addListener(this::registerStuff);
-
         NeoForge.EVENT_BUS.addListener(this::onWorldTick);
-
-        eventBus.register(AccessoriesForgeNetworkHandler.INSTANCE);
 
         NeoForge.EVENT_BUS.addListener(this::registerCommands);
 
-        eventBus.addListener(this::addDefaultDataComponents);
+        eventBus.addListener(AccessoriesForgeNetworkHandler.INSTANCE::initializeNetworking);
+        eventBus.addListener(this::registerStuff);
 
-        NeoForge.EVENT_BUS.addListener(this::attemptEquipFromUse);
-        NeoForge.EVENT_BUS.addListener(this::attemptEquipOnEntity);
+        NeoForge.EVENT_BUS.addListener(this::registerReloadListeners);
+
+        eventBus.addListener(this::registerCapabilities);
     }
 
-    public void addDefaultDataComponents(ModifyDefaultComponentsEvent event) {
-        AccessoriesDataComponents.adjustDefaultComponents((itemPredicate, additionCallbackConsumer) -> {
-            event.modifyMatching(itemPredicate, builder -> additionCallbackConsumer.accept(builder::set));
-        });
-    }
-
-    public void attemptEquipFromUse(PlayerInteractEvent.RightClickItem event){
-        var resultHolder = AccessoriesEventHandler.attemptEquipFromUse(event.getEntity(), event.getHand());
-
-        if(resultHolder.getResult().consumesAction()) {
-            event.getEntity().setItemInHand(event.getHand(), resultHolder.getObject());
-
-            event.setCancellationResult(resultHolder.getResult());
-        }
-    }
-
-    public void attemptEquipOnEntity(PlayerInteractEvent.EntityInteract event) {
-        AccessoriesEventHandler.attemptEquipOnEntity(event.getEntity(), event.getHand(), event.getTarget());
-    }
+    //--
 
     public void registerCommands(RegisterCommandsEvent event) {
-        Accessories.registerCommands(event.getDispatcher());
+        AccessoriesCommands.registerCommands(event.getDispatcher());
     }
 
     public void registerStuff(RegisterEvent event){
         event.register(Registries.MENU, (helper) -> Accessories.registerMenuType());
         event.register(Registries.TRIGGER_TYPE, (helper) -> Accessories.registerCriteria());
         event.register(Registries.DATA_COMPONENT_TYPE, (helper) -> AccessoriesDataComponents.init());
-        event.register(Registries.COMMAND_ARGUMENT_TYPE, (helper) -> Accessories.registerCommandArgTypes());
+        event.register(Registries.COMMAND_ARGUMENT_TYPE, (helper) -> AccessoriesCommands.registerCommandArgTypes());
     }
 
-    public void onEntityDeath(LivingDeathEvent event){
-        AccessoriesEventHandler.onDeath(event.getEntity(), event.getSource());
+    public void registerReloadListeners(AddReloadListenerEvent event){
+        intermediateRegisterListeners(event::addListener);
+
+        AccessoriesInternalsImpl.setContext(event.getConditionContext());
     }
 
-    public void onLivingEntityTick(EntityTickEvent.Pre event){
-        if(!(event.getEntity() instanceof LivingEntity livingEntity)) return;
+    // This exists as a way to register things within the TCLayer without depending on NeoForge to do such within a mixin
+    public void intermediateRegisterListeners(Consumer<PreparableReloadListener> registrationMethod){
+        registrationMethod.accept(SlotTypeLoader.INSTANCE);
+        registrationMethod.accept(EntitySlotLoader.INSTANCE);
+        registrationMethod.accept(SlotGroupLoader.INSTANCE);
 
-        AccessoriesEventHandler.onLivingEntityTick(livingEntity);
-    }
+        registrationMethod.accept(new SimplePreparableReloadListener<Void>() {
+            @Override protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) { return null; }
+            @Override protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profiler) {
+                AccessoriesEventHandler.dataReloadOccured = true;
 
-    public void onDataSync(OnDatapackSyncEvent event){
-        AccessoriesEventHandler.dataSync(event.getPlayerList(), event.getPlayer());
+                AccessoriesInternalsImpl.setContext(null);
+            }
+        });
     }
 
     public void registerCapabilities(RegisterCapabilitiesEvent event){
@@ -193,6 +169,36 @@ public class AccessoriesForge {
         }
     }
 
+    //--
+
+    public void attemptEquipFromUse(PlayerInteractEvent.RightClickItem event){
+        var resultHolder = AccessoriesEventHandler.attemptEquipFromUse(event.getEntity(), event.getHand());
+
+        if(!resultHolder.getResult().consumesAction()) return;
+
+        event.getEntity().setItemInHand(event.getHand(), resultHolder.getObject());
+
+        event.setCancellationResult(resultHolder.getResult());
+    }
+
+    public void attemptEquipOnEntity(PlayerInteractEvent.EntityInteract event) {
+        AccessoriesEventHandler.attemptEquipOnEntity(event.getEntity(), event.getHand(), event.getTarget());
+    }
+
+    public void onEntityDeath(LivingDeathEvent event){
+        AccessoriesEventHandler.onDeath(event.getEntity(), event.getSource());
+    }
+
+    public void onLivingEntityTick(EntityTickEvent.Pre event){
+        if(!(event.getEntity() instanceof LivingEntity livingEntity)) return;
+
+        AccessoriesEventHandler.onLivingEntityTick(livingEntity);
+    }
+
+    public void onDataSync(OnDatapackSyncEvent event){
+        AccessoriesEventHandler.dataSync(event.getPlayerList(), event.getPlayer());
+    }
+
     public void onEntityLoad(EntityJoinLevelEvent event){
         if(!(event.getEntity() instanceof LivingEntity livingEntity)) return;
 
@@ -204,52 +210,6 @@ public class AccessoriesForge {
 
         AccessoriesEventHandler.onTracking(livingEntity, (ServerPlayer) event.getEntity());
     }
-
-    public void registerReloadListeners(AddReloadListenerEvent event){
-        intermediateRegisterListeners(event::addListener);
-
-        AccessoriesInternalsImpl.setContext(event.getConditionContext());
-    }
-
-    // This exists as a way to register things within the TCLayer without depending on NeoForge to do such within a mixin
-    public void intermediateRegisterListeners(Consumer<PreparableReloadListener> registrationMethod){
-//        for (ModFileScanData data : ModList.get().getAllScanData()) {
-//            data.getAnnotations().forEach(annotationData -> {
-//                if (annotationData.annotationType().equals(Type.getType(DataLoadingModifications.DataLoadingModificationsCapable.class))) {
-//                    try {
-//                        Class<?> clazz = Class.forName(annotationData.memberName());
-//
-//                        if (DataLoadingModifications.class.isAssignableFrom(clazz)) {
-//                            try {
-//                                var instance = (DataLoadingModifications) clazz.getDeclaredConstructor().newInstance();
-//
-//                                instance.beforeRegistration(registrationMethod);
-//                            } catch (Throwable e) {
-//                                LOGGER.error("Failed to load DataLoadingModificationsCapable: " + annotationData.memberName(), e);
-//                            }
-//                        }
-//                    } catch (Throwable e) {
-//                        LOGGER.error("No class from such annotation: " + annotationData.memberName(), e);
-//                    }
-//                }
-//            });
-//        }
-
-        registrationMethod.accept(SlotTypeLoader.INSTANCE);
-        registrationMethod.accept(EntitySlotLoader.INSTANCE);
-        registrationMethod.accept(SlotGroupLoader.INSTANCE);
-
-        registrationMethod.accept(new SimplePreparableReloadListener<Void>() {
-            @Override protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) { return null; }
-            @Override protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profiler) {
-                AccessoriesEventHandler.dataReloadOccured = true;
-
-                AccessoriesInternalsImpl.setContext(null);
-            }
-        });
-    }
-
-    //--
 
     public void onWorldTick(LevelTickEvent.Pre event){
         AccessoriesEventHandler.onWorldTick(event.getLevel());

@@ -1,7 +1,7 @@
 package io.wispforest.testccessories.neoforge.mixin;
 
-import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
-import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.accessories.networking.base.BaseNetworkHandler;
+import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
 import io.wispforest.testccessories.neoforge.client.TestScreenPacket;
 import org.spongepowered.asm.mixin.Mixin;
@@ -10,12 +10,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.function.Supplier;
-
-@Mixin(AccessoriesNetworkHandler.class)
+@Mixin(BaseNetworkHandler.class)
 public abstract class AccessoriesNetworkHandlerMixin {
 
-    @Shadow(remap = false) protected <M extends AccessoriesPacket> void registerBuilderC2S(Class<M> messageType, Endec<M> endec){}
+    @Shadow(remap = false) protected <M extends HandledPacketPayload> void registerBuilderC2S(Class<M> messageType, Endec<M> endec){}
 
     @Inject(method = "register", at = @At("TAIL"), remap = false)
     private void addTestPacket(CallbackInfo ci) {

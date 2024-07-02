@@ -16,7 +16,7 @@ import java.util.Map;
 
 /**
  * Builder used to collect the attribute modifications from a given Accessory with the ability
- * to specified if an Attribute modification can be stacked or is unique
+ * to specified if an Attribute modification can be stacked or is exclusive to one version
  */
 public final class AccessoryAttributeBuilder {
 

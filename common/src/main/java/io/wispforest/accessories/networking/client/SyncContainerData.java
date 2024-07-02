@@ -6,9 +6,8 @@ import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.endec.EdmUtils;
 import io.wispforest.accessories.endec.RegistriesAttribute;
-import io.wispforest.accessories.endec.format.nbt.NbtEndec;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
-import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.format.edm.EdmEndec;
@@ -16,8 +15,6 @@ import io.wispforest.endec.format.edm.EdmMap;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -30,7 +27,7 @@ import java.util.Map;
  * Catch all packet for handling syncing of containers and accessories within the main container
  * and cosmetic variant with the ability for such to be sync separately
  */
-public record SyncContainerData(int entityId, Map<String, EdmMap> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks) implements AccessoriesPacket {
+public record SyncContainerData(int entityId, Map<String, EdmMap> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks) implements HandledPacketPayload {
 
     public static Endec<SyncContainerData> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", SyncContainerData::entityId),

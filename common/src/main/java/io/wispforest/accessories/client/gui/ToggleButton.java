@@ -22,7 +22,7 @@ import java.util.function.Consumer;
 
 public class ToggleButton extends Button {
 
-    public static final WidgetSprites SPRITES = new WidgetSprites(
+    private static final WidgetSprites SPRITES = new WidgetSprites(
             ResourceLocation.withDefaultNamespace("widget/button"),
             ResourceLocation.withDefaultNamespace("widget/button_disabled"),
             ResourceLocation.withDefaultNamespace("widget/button_highlighted"));

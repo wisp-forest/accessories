@@ -7,7 +7,7 @@ import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.client.AccessoriesMenuData;
 import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
-import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
+import io.wispforest.accessories.networking.base.BaseNetworkHandler;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
@@ -53,7 +53,7 @@ public class AccessoriesInternalsImpl {
         livingEntity.setAttached(AccessoriesFabric.HOLDER_ATTACHMENT_TYPE, holder);
     }
 
-    public static AccessoriesNetworkHandler getNetworkHandler(){
+    public static BaseNetworkHandler getNetworkHandler(){
         return AccessoriesFabricNetworkHandler.INSTANCE;
     }
 
@@ -129,7 +129,7 @@ public class AccessoriesInternalsImpl {
             @Nullable
             @Override
             public AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
-                var menu = new AccessoriesMenu(i, inventory, true, targetEntity);
+                var menu = new AccessoriesMenu(i, inventory, targetEntity);
 
                 if(carriedStack != null) menu.setCarried(carriedStack);
 

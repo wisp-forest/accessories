@@ -1,5 +1,6 @@
 package io.wispforest.accessories.client;
 
+import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
@@ -27,27 +28,21 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class AccessoriesMenu extends AbstractContainerMenu {
+public final class AccessoriesMenu extends AbstractContainerMenu {
     public static final ResourceLocation BLOCK_ATLAS = ResourceLocation.withDefaultNamespace("textures/atlas/blocks.png");
-    public static final ResourceLocation EMPTY_ARMOR_SLOT_HELMET = ResourceLocation.withDefaultNamespace("item/empty_armor_slot_helmet");
-    public static final ResourceLocation EMPTY_ARMOR_SLOT_CHESTPLATE = ResourceLocation.withDefaultNamespace("item/empty_armor_slot_chestplate");
-    public static final ResourceLocation EMPTY_ARMOR_SLOT_LEGGINGS = ResourceLocation.withDefaultNamespace("item/empty_armor_slot_leggings");
-    public static final ResourceLocation EMPTY_ARMOR_SLOT_BOOTS = ResourceLocation.withDefaultNamespace("item/empty_armor_slot_boots");
-    public static final ResourceLocation EMPTY_ARMOR_SLOT_SHIELD = ResourceLocation.withDefaultNamespace("item/empty_armor_slot_shield");
-    private static final Map<EquipmentSlot, ResourceLocation> TEXTURE_EMPTY_SLOTS = Map.of(
-            EquipmentSlot.FEET,
-            EMPTY_ARMOR_SLOT_BOOTS,
-            EquipmentSlot.LEGS,
-            EMPTY_ARMOR_SLOT_LEGGINGS,
-            EquipmentSlot.CHEST,
-            EMPTY_ARMOR_SLOT_CHESTPLATE,
-            EquipmentSlot.HEAD,
-            EMPTY_ARMOR_SLOT_HELMET
-    );
-    private static final EquipmentSlot[] SLOT_IDS = new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
-    public final boolean active;
 
-    public final Player owner;
+    public static final ResourceLocation EMPTY_ARMOR_SLOT_SHIELD = ResourceLocation.withDefaultNamespace("item/empty_armor_slot_shield");
+
+    private static final Map<EquipmentSlot, ResourceLocation> TEXTURE_EMPTY_SLOTS = Map.of(
+            EquipmentSlot.FEET, ResourceLocation.withDefaultNamespace("item/empty_armor_slot_boots"),
+            EquipmentSlot.LEGS, ResourceLocation.withDefaultNamespace("item/empty_armor_slot_leggings"),
+            EquipmentSlot.CHEST, ResourceLocation.withDefaultNamespace("item/empty_armor_slot_chestplate"),
+            EquipmentSlot.HEAD, ResourceLocation.withDefaultNamespace("item/empty_armor_slot_helmet"));
+
+    private static final EquipmentSlot[] SLOT_IDS = new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+
+    private final Player owner;
+
     @Nullable
     private final LivingEntity targetEntity;
 
@@ -58,75 +53,33 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
     public float smoothScroll = 0;
 
-    public int maxScrollableIndex = 0;
+    private int maxScrollableIndex = 0;
 
-    public int accessoriesSlotStartIndex = 0;
-    public int cosmeticSlotStartIndex = 0;
+    private int accessoriesSlotStartIndex = 0;
+    private int cosmeticSlotStartIndex = 0;
 
-    public final Set<SlotGroup> validGroups = new HashSet<>();
+    private final Set<SlotGroup> validGroups = new HashSet<>();
 
     private final Map<Integer, Boolean> slotToView = new HashMap<>();
 
-    public Runnable onScrollToEvent = () -> {};
+    private Runnable onScrollToEvent = () -> {};
 
     @Nullable
-    public final LivingEntity targetEntity() {
-        return this.targetEntity;
-    }
+    private Set<SlotType> usedSlots = null;
 
-    public static void writeBufData(FriendlyByteBuf buf, @Nullable LivingEntity targetEntity){
-        var hasTargetEntity = targetEntity != null;
-
-        buf.writeBoolean(hasTargetEntity);
-
-        if(hasTargetEntity) buf.writeInt(targetEntity.getId());
-    }
-
-    @Nullable
-    public static LivingEntity readBufData(FriendlyByteBuf buf, Level level) {
-        LivingEntity targetEntity = null;
-
-        var hasTargetEntity = buf.readBoolean();
-
-        if(hasTargetEntity && level.getEntity(buf.readInt()) instanceof LivingEntity entity) targetEntity = entity;
-
-        return targetEntity;
-    }
-
-    public static AccessoriesMenu of(int containerId, Inventory inventory, boolean active, AccessoriesMenuData data) {
-        @Nullable var targetEntity = data.targetEntityId().map(i -> {
-            var entity = inventory.player.level().getEntity(i);
-
-            if(entity instanceof LivingEntity livingEntity) return livingEntity;
-
-            return null;
-        }).orElse(null);
-
-        return new AccessoriesMenu(containerId, inventory, active, targetEntity);
-    }
-
-    @Nullable
-    public final Set<SlotType> usedSlots;
-
-    public boolean showingSlots() {
-        return this.usedSlots == null || !this.usedSlots.isEmpty();
-    }
-
-    public AccessoriesMenu(int containerId, Inventory inventory, boolean active, @Nullable LivingEntity targetEntity) {
+    public AccessoriesMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
         super(Accessories.ACCESSORIES_MENU_TYPE, containerId);
 
-        this.active = active;
         this.owner = inventory.player;
-
         this.targetEntity = targetEntity;
 
-        //--
+        var accessoryTarget = targetEntity != null ? targetEntity : owner;
 
-        this.usedSlots = !this.areUnusedSlotsShown()
-                ? new HashSet<>(AccessoriesAPI.getUsedSlotsFor(targetEntity != null ? targetEntity : owner, owner.getInventory()))
-                : null;
+        var capability = AccessoriesCapability.get(accessoryTarget);
 
-        //--
+        if (capability == null) return;
+
+        //-- Vanilla Slot Setup
 
         for (int i = 0; i < 4; i++) {
             var equipmentSlot = SLOT_IDS[i];
@@ -157,26 +110,13 @@ public class AccessoriesMenu extends AbstractContainerMenu {
             }
         });
 
-        var player = inventory.player;
+        //--
 
-        var accessoryTarget = targetEntity != null ? targetEntity : owner;
+        if(!this.areUnusedSlotsShown()) {
+            this.usedSlots = ImmutableSet.copyOf(AccessoriesAPI.getUsedSlotsFor(targetEntity != null ? targetEntity : owner, owner.getInventory()));
+        }
 
-        var capability = AccessoriesCapability.get(accessoryTarget);
-
-        if (capability == null) return;
-
-        int slotScale = 18;
-
-        int minX = -46;
-        int maxX = 60;
-        int minY = 8;
-        int maxY = 152;
-
-        int cosmeticPadding = 2;
-
-        int yOffset = 8;
-
-        var containers = capability.getContainers();
+        int minX = -46, maxX = 60, minY = 8, maxY = 152;
 
         int yIndex = 0;
 
@@ -189,18 +129,18 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
         var groups = SlotGroupLoader.getGroups(inventory.player.level(), !this.areUniqueSlotsShown());
 
+        var containers = capability.getContainers();
+
         for (var group : groups.stream().sorted(Comparator.comparingInt(SlotGroup::order).reversed()).toList()) {
             var slotNames = group.slots();
 
             var slotTypes = slotNames.stream()
-                    .map(s -> SlotTypeLoader.getSlotType(player.level(), s)) // TODO: FILTER NULLS?
+                    .map(s -> SlotTypeLoader.getSlotType(owner.level(), s)) // TODO: FILTER NULLS?
                     .sorted(Comparator.comparingInt(SlotType::order).reversed())
                     .toList();
 
             for (var slot : slotTypes) {
-                if(this.usedSlots != null && !this.usedSlots.contains(slot)) {
-                    continue;
-                }
+                if(this.usedSlots != null && !this.usedSlots.contains(slot)) continue;
 
                 this.validGroups.add(group);
 
@@ -211,7 +151,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
                 var size = accessoryContainer.getSize();
 
                 for (int i = 0; i < size; i++) {
-                    int currentY = (yIndex * Math.max(18, slotScale)) + minY + yOffset;
+                    int currentY = (yIndex * 18) + minY + 8;
 
                     int currentX = minX;
 
@@ -223,7 +163,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
                     slotVisibility.put(cosmeticSlot, !this.overMaxVisibleSlots);
 
-                    currentX += slotScale + cosmeticPadding;
+                    currentX += 18 + 2;
 
                     var baseSlot = new AccessoriesInternalSlot(yIndex, accessoryContainer, false, i, currentX, currentY)
                                     .isActive(slot1 -> this.slotToView.getOrDefault(slot1.index, true));
@@ -234,9 +174,7 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
                     yIndex++;
 
-                    if (!this.overMaxVisibleSlots && currentY + Math.max(18, slotScale) > maxY) {
-                        this.overMaxVisibleSlots = true;
-                    }
+                    if (!this.overMaxVisibleSlots && currentY + 18 > maxY) this.overMaxVisibleSlots = true;
                 }
             }
         }
@@ -258,6 +196,101 @@ public class AccessoriesMenu extends AbstractContainerMenu {
         this.totalSlots = yIndex;
 
         this.maxScrollableIndex = this.totalSlots - 8;
+    }
+
+    public void setScrollEvent(Runnable event) {
+        this.onScrollToEvent = event;
+    }
+
+    public boolean scrollTo(int i, boolean smooth) {
+        var index = Math.min(Math.max(i, 0), this.maxScrollableIndex);
+
+        if (index == this.scrolledIndex) return false;
+
+        var diff = this.scrolledIndex - index;
+
+        if (!smooth) this.smoothScroll = Mth.clamp(index / (float) this.maxScrollableIndex, 0.0f, 1.0f);
+
+        for (Slot slot : this.slots) {
+            if (!(slot instanceof AccessoriesInternalSlot accessoriesSlot)) continue;
+
+            ((SlotAccessor) accessoriesSlot).accessories$setY(accessoriesSlot.y + (diff * 18));
+
+            var menuIndex = accessoriesSlot.menuIndex;
+
+            this.slotToView.put(accessoriesSlot.index, (menuIndex >= index && menuIndex < index + 8));
+        }
+
+        this.scrolledIndex = index;
+
+        this.onScrollToEvent.run();
+
+        return true;
+    }
+
+    public int maxScrollableIndex(){
+        return this.maxScrollableIndex;
+    }
+
+    @Nullable
+    public LivingEntity targetEntity() {
+        return this.targetEntity;
+    }
+
+    public Player owner() {
+        return this.owner;
+    }
+
+    public static AccessoriesMenu of(int containerId, Inventory inventory, AccessoriesMenuData data) {
+        var targetEntity = data.targetEntityId().map(i -> {
+            var entity = inventory.player.level().getEntity(i);
+
+            if(entity instanceof LivingEntity livingEntity) return livingEntity;
+
+            return null;
+        }).orElse(null);
+
+        return new AccessoriesMenu(containerId, inventory, targetEntity);
+    }
+
+    public boolean showingSlots() {
+        return this.usedSlots == null || !this.usedSlots.isEmpty();
+    }
+
+    @Nullable
+    public Set<SlotType> usedSlots() {
+        return this.usedSlots;
+    }
+
+    public Set<SlotGroup> validGroups() {
+        return this.validGroups;
+    }
+
+    public boolean isCosmeticsOpen() {
+        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::cosmeticsShown).orElse(false);
+    }
+
+    public boolean areLinesShown() {
+        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::linesShown).orElse(false);
+    }
+
+    public boolean areUnusedSlotsShown() {
+        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::showUnusedSlots).orElse(false);
+    }
+
+    public boolean areUniqueSlotsShown() {
+        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::showUniqueSlots).orElse(false);
+    }
+
+    public void reopenMenu() {
+        AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(this.targetEntity));
+    }
+
+    //--
+
+    @Override
+    public boolean stillValid(Player player) {
+        return true;
     }
 
     @Override
@@ -340,59 +373,6 @@ public class AccessoriesMenu extends AbstractContainerMenu {
 
         return oldStack;
     }
-
-    @Override
-    public boolean stillValid(Player player) {
-        return true;
-    }
-
-    public boolean scrollTo(int i, boolean smooth) {
-        var index = Math.min(Math.max(i, 0), this.maxScrollableIndex);
-
-        if (index == this.scrolledIndex) return false;
-
-        var diff = this.scrolledIndex - index;
-
-        if (!smooth) this.smoothScroll = Mth.clamp(index / (float) this.maxScrollableIndex, 0.0f, 1.0f);
-
-        for (Slot slot : this.slots) {
-            if (!(slot instanceof AccessoriesInternalSlot accessoriesSlot)) continue;
-
-            ((SlotAccessor) accessoriesSlot).accessories$setY(accessoriesSlot.y + (diff * 18));
-
-            var menuIndex = accessoriesSlot.menuIndex;
-
-            this.slotToView.put(accessoriesSlot.index, (menuIndex >= index && menuIndex < index + 8));
-        }
-
-        this.scrolledIndex = index;
-
-        this.onScrollToEvent.run();
-
-        return true;
-    }
-
-    public boolean isCosmeticsOpen() {
-        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::cosmeticsShown).orElse(false);
-    }
-
-    public boolean areLinesShown() {
-        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::linesShown).orElse(false);
-    }
-
-    public boolean areUnusedSlotsShown() {
-        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::showUnusedSlots).orElse(false);
-    }
-
-    public boolean areUniqueSlotsShown() {
-        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::showUniqueSlots).orElse(false);
-    }
-
-    public void reopenMenu() {
-        AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(this.targetEntity));
-    }
-
-    //--
 
     @Override
     protected boolean moveItemStackTo(ItemStack stack, int startIndex, int endIndex, boolean reverseDirection) {

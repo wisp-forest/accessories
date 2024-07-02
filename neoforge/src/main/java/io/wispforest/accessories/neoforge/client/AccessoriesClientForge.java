@@ -1,5 +1,6 @@
 package io.wispforest.accessories.neoforge.client;
 
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
@@ -20,9 +21,11 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
@@ -37,13 +40,19 @@ import java.util.ArrayList;
 
 import static io.wispforest.accessories.Accessories.MODID;
 
-@EventBusSubscriber(modid = MODID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
+@Mod(value = Accessories.MODID, dist = Dist.CLIENT)
 public class AccessoriesClientForge {
 
     public static KeyMapping OPEN_SCREEN;
 
-    @SubscribeEvent
-    public static void onInitializeClient(FMLClientSetupEvent event) {
+    public AccessoriesClientForge(final IEventBus eventBus) {
+        eventBus.addListener(this::onInitializeClient);
+        eventBus.addListener(this::registerClientReloadListeners);
+        eventBus.addListener(this::initKeybindings);
+        eventBus.addListener(this::addRenderLayer);
+    }
+
+    public void onInitializeClient(FMLClientSetupEvent event) {
         AccessoriesClient.init();
 
         NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
@@ -54,8 +63,7 @@ public class AccessoriesClientForge {
         });
     }
 
-    @SubscribeEvent
-    public static void registerClientReloadListeners(RegisterClientReloadListenersEvent event) {
+    public void registerClientReloadListeners(RegisterClientReloadListenersEvent event) {
         event.registerReloadListener(new SimplePreparableReloadListener<Void>() {
             @Override protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) { return null; }
             @Override
@@ -65,8 +73,7 @@ public class AccessoriesClientForge {
         });
     }
 
-    @SubscribeEvent
-    public static void initKeybindings(RegisterKeyMappingsEvent event){
+    public void initKeybindings(RegisterKeyMappingsEvent event){
         OPEN_SCREEN = new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories");
 
         event.register(OPEN_SCREEN);
@@ -92,8 +99,7 @@ public class AccessoriesClientForge {
         stackTooltip.addAll(1, tooltipData);
     }
 
-    @SubscribeEvent
-    public static void addRenderLayer(EntityRenderersEvent.AddLayers event){
+    public void addRenderLayer(EntityRenderersEvent.AddLayers event){
         for (EntityType<? extends Entity> entityType : event.getEntityTypes()) {
             try {
                 var renderer = event.getRenderer(entityType);

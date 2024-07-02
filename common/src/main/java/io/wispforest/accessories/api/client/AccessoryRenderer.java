@@ -31,21 +31,8 @@ import org.jetbrains.annotations.Nullable;
 public interface AccessoryRenderer {
 
     /**
-     * Render method called within the {@link AccessoriesRenderLayer#render(PoseStack, MultiBufferSource, int, LivingEntity, float, float, float, float, float, float)} when
-     * rendering a given Accessory on a given {@link LivingEntity}
-     *
-     * @param stack       The current stack
-     * @param reference   Reference to the slot based on its type, entity and index within the {@link AccessoriesContainer}
-     * @param matrices
-     * @param model
-     * @param multiBufferSource
-     * @param light
-     * @param limbSwing
-     * @param limbSwingAmount
-     * @param partialTicks
-     * @param ageInTicks
-     * @param netHeadYaw
-     * @param headPitch
+     * Render method called within the {@link AccessoriesRenderLayer#render} when rendering a given Accessory on a given {@link LivingEntity}.
+     * The given {@link SlotReference} refers to the slot based on its type, entity and index within the {@link AccessoriesContainer}.
      */
     <M extends LivingEntity> void render(
             ItemStack stack,
@@ -77,6 +64,10 @@ public interface AccessoryRenderer {
         return false;
     }
 
+    /**
+     * Attempt to render the given Accessory on the first person player model if found to be able to from the {@link #shouldRenderInFirstPerson}
+     * invocation.
+     */
     default <M extends LivingEntity> void renderOnFirstPerson(
             HumanoidArm arm,
             ItemStack stack,

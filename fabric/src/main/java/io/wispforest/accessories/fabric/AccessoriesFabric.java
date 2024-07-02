@@ -3,8 +3,8 @@ package io.wispforest.accessories.fabric;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.DataLoaderBase;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.AccessoryNest;
 import io.wispforest.accessories.api.components.*;
+import io.wispforest.accessories.commands.AccessoriesCommands;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
@@ -21,9 +21,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
-import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
-import net.fabricmc.fabric.impl.item.DefaultItemComponentImpl;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -48,39 +46,28 @@ public class AccessoriesFabric implements ModInitializer {
 
         AccessoriesDataComponents.init();
 
-        DefaultItemComponentEvents.MODIFY.register(context -> {
-            AccessoriesDataComponents.adjustDefaultComponents((itemPredicate, builderConsumer) -> {
-                context.modify(itemPredicate, (builder, item) -> builderConsumer.accept(builder::set));
-            });
-        });
-
         Accessories.registerMenuType();
         Accessories.registerCriteria();
-        Accessories.registerCommandArgTypes();
+        AccessoriesCommands.registerCommandArgTypes();
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            Accessories.registerCommands(dispatcher);
+            AccessoriesCommands.registerCommands(dispatcher);
         });
 
         UseItemCallback.EVENT.register((player, level, hand) -> {
             var holder = AccessoriesEventHandler.attemptEquipFromUse(player, hand);
 
-            if(holder.getResult().consumesAction()) {
-                player.setItemInHand(hand, holder.getObject());
-            }
+            if(holder.getResult().consumesAction()) player.setItemInHand(hand, holder.getObject());
 
             return holder;
         });
         UseEntityCallback.EVENT.register((player, level, hand, entity, hitResult) -> AccessoriesEventHandler.attemptEquipOnEntity(player, hand, entity));
 
-        AccessoriesFabricNetworkHandler.INSTANCE.register();
         AccessoriesFabricNetworkHandler.INSTANCE.init();
 
         ServerLivingEntityEvents.AFTER_DEATH.register(AccessoriesEventHandler::onDeath);
 
         ServerTickEvents.START_WORLD_TICK.register(AccessoriesEventHandler::onWorldTick);
-
-        //ServerTickEvents.END_WORLD_TICK.register(world -> ImplementedEvents.clearEndermanAngryCache());
 
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {
             if(!joined) return;

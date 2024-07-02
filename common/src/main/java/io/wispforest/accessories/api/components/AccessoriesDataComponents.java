@@ -47,20 +47,4 @@ public class AccessoriesDataComponents {
     }
 
     public static void init() {}
-
-    public static void adjustDefaultComponents(BiConsumer<Predicate<Item>, Consumer<AdditionCallback>> modifyCallback) {
-//        modifyCallback.accept(item -> item instanceof AccessoryNest, (addConsumer) -> {
-//            addConsumer.addTo(AccessoriesDataComponents.NESTED_ACCESSORIES, AccessoryNestContainerContents.EMPTY);
-//        });
-//
-//        modifyCallback.accept(item -> true, (addConsumer) -> {
-//            addConsumer.addTo(AccessoriesDataComponents.RENDER_OVERRIDE, AccessoryRenderOverrideComponent.DEFAULT);
-//            addConsumer.addTo(AccessoriesDataComponents.SLOT_VALIDATION, AccessorySlotValidationComponent.EMPTY);
-//            addConsumer.addTo(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
-//        });
-    }
-
-    public interface AdditionCallback {
-        <T> void addTo(DataComponentType<T> type, T defaultValue);
-    }
 }

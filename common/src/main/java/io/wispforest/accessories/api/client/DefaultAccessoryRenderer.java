@@ -3,6 +3,7 @@ package io.wispforest.accessories.api.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 import com.mojang.math.Axis;
+import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
@@ -19,6 +20,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * Default Renderer for any {@link Accessory} that has not had a renderer registered to such.
+ */
 public class DefaultAccessoryRenderer implements AccessoryRenderer {
 
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -33,6 +37,9 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
         slotToHelpers.putAll(DEFAULT_HELPERS);
     }
 
+    /**
+     * Registers a {@link RenderHelper} for a given slot name if not already registered
+     */
     public static void registerHelper(String slotType, RenderHelper helper){
         var helpers = INSTANCE.slotToHelpers;
 

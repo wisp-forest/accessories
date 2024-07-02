@@ -1,23 +1,17 @@
 package io.wispforest.accessories.networking.server;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.client.AccessoriesMenu;
-import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.Nullable;
 
-public record ScreenOpen(int entityId, boolean targetLookEntity) implements AccessoriesPacket {
+public record ScreenOpen(int entityId, boolean targetLookEntity) implements HandledPacketPayload {
 
     public static final Endec<ScreenOpen> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", ScreenOpen::entityId),

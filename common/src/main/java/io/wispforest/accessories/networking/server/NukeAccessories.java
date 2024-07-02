@@ -1,14 +1,12 @@
 package io.wispforest.accessories.networking.server;
 
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import org.slf4j.Logger;
 
-public class NukeAccessories implements AccessoriesPacket {
+public class NukeAccessories implements HandledPacketPayload {
 
     public static final Endec<NukeAccessories> ENDEC = Endec.of((ctx, ser, v) -> {}, (ctx, deser) -> new NukeAccessories());
 

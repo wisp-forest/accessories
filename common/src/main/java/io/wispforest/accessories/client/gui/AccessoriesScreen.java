@@ -1,19 +1,13 @@
 package io.wispforest.accessories.client.gui;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.slot.SlotGroup;
-import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
-import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.impl.SlotGroupImpl;
 import io.wispforest.accessories.networking.holder.HolderProperty;
@@ -27,46 +21,38 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.Range;
-import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.Nullable;
 import org.joml.*;
 import org.lwjgl.glfw.GLFW;
 
 import java.lang.Math;
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 public class AccessoriesScreen extends EffectRenderingInventoryScreen<AccessoriesMenu> implements ContainerScreenExtension {
 
-    public static final ResourceLocation SLOT_FRAME = Accessories.of("textures/gui/slot.png");
+    private static final ResourceLocation SLOT = Accessories.of("textures/gui/slot.png");
 
-    public static final ResourceLocation ACCESSORIES_INVENTORY_LOCATION = Accessories.of("textures/gui/container/accessories_inventory.png");
+    private static final ResourceLocation ACCESSORIES_INVENTORY_LOCATION = Accessories.of("textures/gui/container/accessories_inventory.png");
 
-    protected static final ResourceLocation BACKGROUND_PATCH = Accessories.of("background_patch");
+    private static final ResourceLocation BACKGROUND_PATCH = Accessories.of("background_patch");
 
-    protected static final ResourceLocation SCROLL_BAR_PATCH = Accessories.of("scroll_bar_patch");
-    protected static final ResourceLocation SCROLL_BAR = Accessories.of("scroll_bar");
+    private static final ResourceLocation SCROLL_BAR_PATCH = Accessories.of("scroll_bar_patch");
+    private static final ResourceLocation SCROLL_BAR = Accessories.of("scroll_bar");
 
-    protected static final ResourceLocation HORIZONTAL_TABS = Accessories.of("textures/gui/container/horizontal_tabs_small.png");
+    private static final ResourceLocation HORIZONTAL_TABS = Accessories.of("textures/gui/container/horizontal_tabs_small.png");
 
     private static final WidgetSprites SPRITES_12X12 = new WidgetSprites(Accessories.of("widget/12x12/button"), Accessories.of("widget/12x12/button_disabled"), Accessories.of("widget/12x12/button_highlighted"));
     public static final WidgetSprites SPRITES_8X8 = new WidgetSprites(Accessories.of("widget/8x8/button"), Accessories.of("widget/8x8/button_disabled"), Accessories.of("widget/8x8/button_highlighted"));
@@ -173,7 +159,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             return true;
         }
 
-        if(Accessories.getConfig().clientData.showGroupTabs && this.menu.maxScrollableIndex > 0) {
+        if(Accessories.getConfig().clientData.showGroupTabs && this.menu.maxScrollableIndex() > 0) {
             int x = getStartingPanelX();
             int y = this.topPos;
 
@@ -182,7 +168,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
                 var index = value.startingIndex;
 
-                if (index > this.menu.maxScrollableIndex) index = this.menu.maxScrollableIndex;
+                if (index > this.menu.maxScrollableIndex()) index = this.menu.maxScrollableIndex();
 
                 if (index != this.menu.scrolledIndex) {
                     AccessoriesInternals.getNetworkHandler().sendToServer(new MenuScroll(index, false));
@@ -289,7 +275,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             }
         }
 
-        GuiGraphicsUtils.batched(guiGraphics, SLOT_FRAME, this.menu.slots, (bufferBuilder, poseStack, slot) -> {
+        GuiGraphicsUtils.batched(guiGraphics, SLOT, this.menu.slots, (bufferBuilder, poseStack, slot) -> {
             if (!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) return;
 
             GuiGraphicsUtils.blit(bufferBuilder, poseStack, slot.x + this.leftPos, slot.y + this.topPos, 18);
@@ -301,7 +287,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (insideScrollbar(mouseX, mouseY) || (this.hoveredSlot != null && this.hoveredSlot instanceof AccessoriesInternalSlot)) {
-            int index = (int) Math.max(Math.min(-scrollY + this.menu.scrolledIndex, this.menu.maxScrollableIndex), 0);
+            int index = (int) Math.max(Math.min(-scrollY + this.menu.scrolledIndex, this.menu.maxScrollableIndex()), 0);
 
             if (index != menu.scrolledIndex) {
                 AccessoriesInternals.getNetworkHandler().sendToServer(new MenuScroll(index, false));
@@ -321,7 +307,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
             this.menu.smoothScroll = Mth.clamp((float) (mouseY - patchYOffset) / (height - 22f), 0.0f, 1.0f); //(menu.smoothScroll + (dragY / (getPanelHeight(upperPadding) - 24)))
 
-            int index = Math.round(this.menu.smoothScroll * this.menu.maxScrollableIndex);
+            int index = Math.round(this.menu.smoothScroll * this.menu.maxScrollableIndex());
 
             if (index != menu.scrolledIndex) {
                 AccessoriesInternals.getNetworkHandler().sendToServer(new MenuScroll(index, true));
@@ -504,7 +490,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         this.cosmeticToggleButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), (btn) -> {
                             AccessoriesInternals.getNetworkHandler()
-                                    .sendToServer(SyncHolderChange.of(HolderProperty.COSMETIC_PROP, this.getMenu().owner, bl -> !bl));
+                                    .sendToServer(SyncHolderChange.of(HolderProperty.COSMETIC_PROP, this.getMenu().owner(), bl -> !bl));
                         })
                         .tooltip(cosmeticsToggleTooltip(cosmeticsOpen))
                         .bounds(this.leftPos - 27 + (cosmeticsOpen ? -20 : 0), this.topPos + 7, (cosmeticsOpen ? 38 : 18), 6)
@@ -515,7 +501,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         this.unusedSlotsToggleButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), (btn) -> {
                             AccessoriesInternals.getNetworkHandler()
-                                    .sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, this.getMenu().owner, bl -> !bl));
+                                    .sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, this.getMenu().owner(), bl -> !bl));
                         })
                         .tooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()))
                         .bounds(this.leftPos + 154, btnOffset, 12, 12)
@@ -537,7 +523,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 this.uniqueSlotsToggleButton = this.addRenderableWidget(
                         Button.builder(Component.empty(), (btn) -> {
                                     AccessoriesInternals.getNetworkHandler()
-                                            .sendToServer(SyncHolderChange.of(HolderProperty.UNIQUE_PROP, this.getMenu().owner, bl -> !bl));
+                                            .sendToServer(SyncHolderChange.of(HolderProperty.UNIQUE_PROP, this.getMenu().owner(), bl -> !bl));
                                 })
                                 .tooltip(uniqueSlotsToggleButton(this.menu.areUniqueSlotsShown()))
                                 .bounds(this.leftPos + 154, btnOffset, 12, 12)
@@ -556,7 +542,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             this.linesToggleButton = this.addRenderableWidget(
                     Button.builder(Component.empty(), (btn) -> {
                                 AccessoriesInternals.getNetworkHandler()
-                                        .sendToServer(SyncHolderChange.of(HolderProperty.LINES_PROP, this.getMenu().owner, bl -> !bl));
+                                        .sendToServer(SyncHolderChange.of(HolderProperty.LINES_PROP, this.getMenu().owner(), bl -> !bl));
                             })
                             .bounds(this.leftPos + 154, btnOffset, 12, 12)
                             //.bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6)
@@ -603,7 +589,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             this.tabUpButton.active = tabPageCount() != 1;
         }
 
-        this.menu.onScrollToEvent = this::updateAccessoryToggleButtons;
+        this.menu.setScrollEvent(this::updateAccessoryToggleButtons);
 
         this.scrollBarHeight = Mth.lerpInt(Math.min(aceesoriesSlots / 20f, 1.0f), 101, 31);
 
@@ -780,7 +766,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         boolean insideGroupPanel = false;
 
-        if(Accessories.getConfig().clientData.showGroupTabs && this.menu.maxScrollableIndex > 0) {
+        if(Accessories.getConfig().clientData.showGroupTabs && this.menu.maxScrollableIndex() > 0) {
             for (var value : this.getGroups(sidePanelX, sidePanelY).values()) {
                 if (value.isInBounds((int) Math.round(mouseX), (int) Math.round(mouseY))) {
                     insideGroupPanel = true;
@@ -800,7 +786,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     // MAX 9
     private Map<SlotGroup, SlotGroupData> getGroups(int x, int y){
-        var groups = this.getMenu().validGroups.stream()
+        var groups = this.getMenu().validGroups().stream()
                 .sorted(Comparator.comparingInt(SlotGroup::order).reversed())
                 .toList();
 
@@ -824,7 +810,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         var slotToSize = new HashMap<String, Integer>();
 
         for (var slotType : EntitySlotLoader.getEntitySlots(targetEntity).values()) {
-            var usedSlots = this.getMenu().usedSlots;
+            var usedSlots = this.getMenu().usedSlots();
             if(usedSlots != null && !usedSlots.contains(slotType)) continue;
 
             slotToSize.put(slotType.name(), containers.get(slotType.name()).getAccessories().getContainerSize());

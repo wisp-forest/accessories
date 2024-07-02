@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import java.util.*;
 
 /**
- * Base implementation of API
+ * Class containing the bulk of API calls for either registering {@link Accessory} instances, new {@link SlotBasedPredicate}s and more.
  */
 public class AccessoriesAPI {
 

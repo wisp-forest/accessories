@@ -5,11 +5,10 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.client.AccessoriesMenuData;
-import io.wispforest.accessories.networking.AccessoriesNetworkHandler;
+import io.wispforest.accessories.networking.base.BaseNetworkHandler;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
@@ -55,10 +54,10 @@ public class AccessoriesInternals {
     }
 
     /**
-     * @return {@link AccessoriesNetworkHandler} based on the Platforms method for getting such
+     * @return {@link BaseNetworkHandler} based on the Platforms method for getting such
      */
     @ExpectPlatform
-    public static AccessoriesNetworkHandler getNetworkHandler(){
+    public static BaseNetworkHandler getNetworkHandler(){
         throw new AssertionError();
     }
 

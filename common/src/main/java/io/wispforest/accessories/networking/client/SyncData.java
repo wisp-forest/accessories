@@ -8,23 +8,19 @@ import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.MinecraftEndecs;
 import io.wispforest.accessories.impl.SlotGroupImpl;
 import io.wispforest.accessories.impl.SlotTypeImpl;
-import io.wispforest.accessories.networking.AccessoriesPacket;
+import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.Util;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>> entitySlots, Set<SlotGroup> slotGroups) implements AccessoriesPacket {
+public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>> entitySlots, Set<SlotGroup> slotGroups) implements HandledPacketPayload {
 
     public static Endec<SyncData> ENDEC = StructEndecBuilder.of(
             SlotTypeImpl.ENDEC.listOf().fieldOf("slotTypes", SyncData::slotTypes),
