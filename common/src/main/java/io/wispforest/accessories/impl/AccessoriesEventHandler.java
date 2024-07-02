@@ -175,7 +175,7 @@ public class AccessoriesEventHandler {
                 networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(capability.entity().getId(), carrier));
 
                 if(playerEntry.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
-                    Accessories.openAccessoriesMenu(player, accessoriesMenu.targetEntity());
+                    Accessories.openAccessoriesMenu(playerEntry, accessoriesMenu.targetEntity());
                 }
             }
         } else if (player != null) {
