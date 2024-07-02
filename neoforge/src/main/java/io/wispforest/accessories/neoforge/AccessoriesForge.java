@@ -43,6 +43,7 @@ import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
@@ -196,7 +197,9 @@ public class AccessoriesForge {
     }
 
     public void onDataSync(OnDatapackSyncEvent event){
-        AccessoriesEventHandler.dataSync(event.getPlayerList(), event.getPlayer());
+        var player = event.getPlayer();
+
+        AccessoriesEventHandler.dataSync(player == null ? event.getPlayerList() : null, player);
     }
 
     public void onEntityLoad(EntityJoinLevelEvent event){
