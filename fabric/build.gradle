@@ -109,6 +109,40 @@ loom {
             source sourceSets.main
             vmArg "-Dowo.renderdocPath=${System.getenv('renderDocPath')}"
         }
+
+        Integer numberOfRuns = 1;
+
+        try {
+            numberOfRuns = Integer.valueOf(project.setsOfRunConfigs);
+        } catch(NumberFormatException ignored){}
+
+        for(int i = 1; i <= numberOfRuns; i++) {
+            it.create("clientMixinDebug_${i}", {
+                client()
+                runDir "run_${i}"
+                name "Minecraft Client ${i} [Mixin Debug]"
+                vmArg "-Dfabric.dli.config=${file(".gradle/loom-cache/launch.cfg").toString()}"
+                vmArg "-Dfabric.dli.env=client"
+                vmArg "-Dfabric.dli.main=net.fabricmc.loader.impl.launch.knot.KnotClient"
+
+                Object runConfig = it
+
+                project.afterEvaluate {
+                    project.configurations.compileClasspath
+                            .getAllDependencies()
+                            .findAll { Dependency test -> test.getName() == "sponge-mixin" }
+                            .iterator().forEachRemaining {runConfig.vmArg "-javaagent:\"${(project.configurations.compileClasspath.files(it).iterator().next().getPath())}\"" }
+                }
+
+//				vmArg "-Dowo.renderdocPath=C:\\Program Files\\RenderDoc\\renderdoc.dll"
+
+                vmArg "-Dlog4j.configurationFile=${file(".gradle/loom-cache/log4j.xml").toString()}"
+                vmArg "-Dfabric.log.disableAnsi=false"
+                vmArg "-Dmixin.debug.export=true"
+
+                ideConfigGenerated = true
+            })
+        }
     }
 
     accessWidenerPath = project(":common").loom.accessWidenerPath
