@@ -8,6 +8,7 @@ import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +44,7 @@ public record ScreenOpen(int entityId, boolean targetLookEntity) implements Hand
 
         ItemStack carriedStack = null;
 
-        if(player.containerMenu instanceof AccessoriesMenu oldMenu) {
+        if(player.containerMenu instanceof AbstractContainerMenu oldMenu) {
             var currentCarriedStack = oldMenu.getCarried();
 
             if(!currentCarriedStack.isEmpty()) {
