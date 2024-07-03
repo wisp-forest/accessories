@@ -10,6 +10,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -23,7 +24,7 @@ public interface OnDropCallback {
                 for (var invoker : invokers) {
                     var returnRule = invoker.onDrop(dropRule, stack, reference, damageSource);
 
-                    if(returnRule != DropRule.DEFAULT) dropRule = returnRule;
+                    if(returnRule != null && returnRule != DropRule.DEFAULT) dropRule = returnRule;
                 }
 
                 return dropRule;
