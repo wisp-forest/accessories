@@ -6,7 +6,7 @@
   "client": [
   ],
   "mixins": [
-    "AccessoriesNetworkHandlerMixin"
+    "AccessoriesPacketsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

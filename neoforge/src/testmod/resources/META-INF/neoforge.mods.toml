@@ -13,6 +13,9 @@ Testmod for accessories
 '''
 #logoFile = ""
 
+[[mixins]]
+config = 'testccessories-neoforge.mixins.json'
+
 [[dependencies.testccessories]]
 modId = "neoforge"
 required = true

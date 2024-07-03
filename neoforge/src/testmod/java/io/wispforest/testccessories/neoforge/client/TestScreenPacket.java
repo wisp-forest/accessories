@@ -17,8 +17,6 @@ public class TestScreenPacket implements HandledPacketPayload {
 
     @Override
     public void handle(Player player) {
-        if(player instanceof ServerPlayer serverPlayer) {
-            serverPlayer.openMenu(INSTANCE);
-        }
+        if(player instanceof ServerPlayer serverPlayer) serverPlayer.openMenu(INSTANCE);
     }
 }

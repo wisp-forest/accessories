@@ -17,8 +17,8 @@ public class UniqueSlotTest implements UniqueSlotHandling.RegistrationCallback {
     private final ResourceLocation slotPredicate2 = Testccessories.of("test_slot_2_equipment");
 
     private UniqueSlotTest(){
-        AccessoriesAPI.registerPredicate(slotPredicate1, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem1)));
-        AccessoriesAPI.registerPredicate(slotPredicate2, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem2)));
+        AccessoriesAPI.registerPredicate(slotPredicate1, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem1.get())));
+        AccessoriesAPI.registerPredicate(slotPredicate2, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem2.get())));
     }
 
     private static SlotTypeReference testSlot1Getter;
