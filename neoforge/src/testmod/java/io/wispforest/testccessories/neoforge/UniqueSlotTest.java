@@ -13,19 +13,19 @@ public class UniqueSlotTest implements UniqueSlotHandling.RegistrationCallback {
 
     public static final UniqueSlotTest INSTANCE = new UniqueSlotTest();
 
-    private UniqueSlotTest(){}
+    private final ResourceLocation slotPredicate1 = Testccessories.of("test_slot_1_equipment");
+    private final ResourceLocation slotPredicate2 = Testccessories.of("test_slot_2_equipment");
+
+    private UniqueSlotTest(){
+        AccessoriesAPI.registerPredicate(slotPredicate1, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem1)));
+        AccessoriesAPI.registerPredicate(slotPredicate2, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem2)));
+    }
 
     private static SlotTypeReference testSlot1Getter;
     private static SlotTypeReference testSlot2Getter;
 
     @Override
     public void registerSlots(UniqueSlotHandling.UniqueSlotBuilderFactory factory) {
-        var slotPredicate1 = Testccessories.of("test_slot_1_equipment");
-        var slotPredicate2 = Testccessories.of("test_slot_2_equipment");
-
-        AccessoriesAPI.registerPredicate(slotPredicate1, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem1)));
-        AccessoriesAPI.registerPredicate(slotPredicate2, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem2)));
-
         testSlot1Getter = factory.create(Testccessories.of("test_slot_1"), 1)
                 .slotPredicates(slotPredicate1)
                 .validTypes(EntityType.PLAYER)
