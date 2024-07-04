@@ -40,5 +40,6 @@ public class CuriosRegistry {
     public static void init(IEventBus eventBus) {
         ATTACHMENT_TYPES.register(eventBus);
         MENU_TYPES.register(eventBus);
+        DATA_COMPONENTS.register(eventBus);
     }
 }

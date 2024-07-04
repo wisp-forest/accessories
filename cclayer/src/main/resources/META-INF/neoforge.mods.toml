@@ -27,13 +27,13 @@ config = 'cclayer_curios.mixins.json'
 [[dependencies.cclayer]]
 modId = "neoforge"
 required = true
-versionRange = "[20,)"
+versionRange = "[21,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.cclayer]]
 modId = "minecraft"
 required = true
-versionRange = "[1.20.4,)"
+versionRange = "[1.21,)"
 ordering = "NONE"
 side = "BOTH"
