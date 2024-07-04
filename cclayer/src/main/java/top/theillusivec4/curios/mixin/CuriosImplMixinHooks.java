@@ -360,6 +360,8 @@ public class CuriosImplMixinHooks {
     addModifier(stack, attribute, ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, name), amount, operation, slot);
   }
 
+
+
   //--
 
   public static void broadcastCurioBreakEvent(SlotContext slotContext) {
@@ -368,9 +370,14 @@ public class CuriosImplMixinHooks {
 
   private static final Map<String, UUID> UUIDS = new HashMap<>();
 
-  public static UUID getUuid(SlotContext slotContext) {
+  public static UUID getSlotUuid(SlotContext slotContext) {
     String key = slotContext.identifier() + slotContext.index();
     return UUIDS.computeIfAbsent(key, (k) -> UUID.nameUUIDFromBytes(k.getBytes()));
+  }
+
+  public static ResourceLocation getSlotId(SlotContext slotContext) {
+    String key = slotContext.identifier() + slotContext.index();
+    return ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, key);
   }
 
   private static final Map<ResourceLocation, Predicate<SlotResult>> SLOT_RESULT_PREDICATES = new HashMap<>();

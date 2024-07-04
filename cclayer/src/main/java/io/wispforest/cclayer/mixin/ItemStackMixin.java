@@ -33,7 +33,7 @@ public abstract class ItemStackMixin {
 
         var isInTag = this.getItem().builtInRegistryHolder().is(tag);
         if(namespace.equals(CuriosConstants.MOD_ID)) {
-            var accessoryTag = TagKey.create(Registries.ITEM, new ResourceLocation(Accessories.MODID, CuriosWrappingUtils.curiosToAccessories(path)));
+            var accessoryTag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Accessories.MODID, CuriosWrappingUtils.curiosToAccessories(path)));
 
             isInTag = this.getItem().builtInRegistryHolder().is(accessoryTag) || this.getItem().builtInRegistryHolder().is(tag);
         }

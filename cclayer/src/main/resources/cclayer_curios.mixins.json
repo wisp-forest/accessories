@@ -6,7 +6,6 @@
   "client": [],
   "mixins": [
     "AbstractContainerMenuAccessor",
-    "MixinCuriosApi",
     "AccessorEntity"
   ],
   "injectors": {

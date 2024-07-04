@@ -3,15 +3,20 @@ package io.wispforest.cclayer;
 import com.google.common.collect.HashMultimap;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.events.AccessoryChangeCallback;
 import io.wispforest.accessories.api.events.AdjustAttributeModifierCallback;
 import io.wispforest.accessories.api.events.CanEquipCallback;
 import io.wispforest.accessories.api.events.CanUnequipCallback;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
@@ -21,6 +26,7 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import top.theillusivec4.curios.CuriosConstants;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.CuriosCapability;
 import top.theillusivec4.curios.api.event.*;
@@ -80,10 +86,10 @@ public class CCLayer {
             return CuriosWrappingUtils.convert(event.getUnequipResult());
         });
 
-        AdjustAttributeModifierCallback.EVENT.register((stack, reference, uuid, modifiers) -> {
-            var modifiersCopy = HashMultimap.create(modifiers);
+        AdjustAttributeModifierCallback.EVENT.register((stack, reference, builder) -> {
+            var modifiers = HashMultimap.<Holder<Attribute>, AttributeModifier>create();
 
-            var event = new CurioAttributeModifierEvent(stack, CuriosWrappingUtils.create(reference), uuid, modifiersCopy);
+            var event = new CurioAttributeModifierEvent(stack, CuriosWrappingUtils.create(reference), ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference)), modifiers);
 
             NeoForge.EVENT_BUS.post(event);
 

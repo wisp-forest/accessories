@@ -42,7 +42,7 @@ import javax.annotation.Nonnull;
 public class CuriosScreenV2 extends EffectRenderingInventoryScreen<CuriosContainerV2>
         implements RecipeUpdateListener, ICuriosScreen {
 
-    static final ResourceLocation CURIO_INVENTORY = new ResourceLocation(CuriosApi.MODID,
+    static final ResourceLocation CURIO_INVENTORY = ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID,
             "textures/gui/inventory_revamp.png");
 
     private final RecipeBookComponent recipeBookGui = new RecipeBookComponent();

@@ -70,7 +70,7 @@ public class WrappedCurioStackHandler implements ICurioStacksHandler {
     }
 
     @Override
-    public Map<UUID, AttributeModifier> getModifiers() {
+    public Map<ResourceLocation, AttributeModifier> getModifiers() {
         return this.container.getModifiers();
     }
 

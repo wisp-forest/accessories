@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.CuriosConstants;
 import top.theillusivec4.curios.api.SlotContext;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -73,7 +74,7 @@ public class CurioAttributeModifierEvent extends Event {
     this.slotContext = slotContext;
     this.unmodifiableModifiers = this.originalModifiers = modifiers;
     this.id = id;
-    this.uuid = UUID.fromString(id.toString());
+    this.uuid = UUID.nameUUIDFromBytes(id.toString().getBytes(StandardCharsets.UTF_8));
   }
 
   /**

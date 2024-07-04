@@ -24,7 +24,7 @@ import java.util.Map;
 public abstract class SlotTypeLoaderMixin {
 
     @Unique
-    private final ResourceLocation EMPTY_TEXTURE = new ResourceLocation(Curios.MODID, "slot/empty_curio_slot");
+    private final ResourceLocation EMPTY_TEXTURE = ResourceLocation.fromNamespaceAndPath(Curios.MODID, "slot/empty_curio_slot");
 
     @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Ljava/util/HashMap;<init>()V", shift = At.Shift.AFTER, ordinal = 2), remap = false)
     private void injectCuriosSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "builders") HashMap<String, SlotTypeLoader.SlotBuilder> tempMap){

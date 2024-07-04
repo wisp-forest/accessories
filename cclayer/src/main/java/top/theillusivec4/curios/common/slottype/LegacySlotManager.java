@@ -86,7 +86,7 @@ public class LegacySlotManager {
         Builder builder = IMC_BUILDERS.get(id);
 
         if (builder == null && create) {
-          builder = new Builder(id).validator(new ResourceLocation(Curios.MODID, "tag"));
+          builder = new Builder(id).validator(ResourceLocation.fromNamespaceAndPath(Curios.MODID, "tag"));
           IMC_BUILDERS.put(id, builder);
           IDS_TO_MODS.computeIfAbsent(id, (k) -> new HashSet<>()).add(modId);
         }
