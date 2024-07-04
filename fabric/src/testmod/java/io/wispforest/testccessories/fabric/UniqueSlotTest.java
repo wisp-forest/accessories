@@ -10,10 +10,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class UniqueSlotTest implements UniqueSlotHandling.RegistrationCallback {
 
-    public static final UniqueSlotTest INSTANCE = new UniqueSlotTest();
-
     private final ResourceLocation slotPredicate1 = Testccessories.of("test_slot_1_equipment");
     private final ResourceLocation slotPredicate2 = Testccessories.of("test_slot_2_equipment");
+
+    public static final UniqueSlotTest INSTANCE = new UniqueSlotTest();
 
     private UniqueSlotTest(){
         AccessoriesAPI.registerPredicate(slotPredicate1, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem1)));
