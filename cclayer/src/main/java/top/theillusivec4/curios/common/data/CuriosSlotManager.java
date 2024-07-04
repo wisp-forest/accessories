@@ -76,7 +76,7 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
           namespace -> packResources.listResources(PackType.SERVER_DATA, namespace, "curios/slots",
               (resourceLocation, inputStreamIoSupplier) -> {
                 String path = resourceLocation.getPath();
-                ResourceLocation rl = new ResourceLocation(namespace,
+                ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(namespace,
                     path.substring("curios/slots/".length(), path.length() - ".json".length()));
 
                 JsonElement el = pObject.get(rl);
@@ -170,8 +170,7 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
   }
 
   public ResourceLocation getIcon(String identifier) {
-    return this.icons.getOrDefault(identifier,
-        new ResourceLocation(CuriosApi.MODID, "slot/empty_curio_slot"));
+    return this.icons.getOrDefault(identifier, ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "slot/empty_curio_slot"));
   }
 
   public Map<String, Set<String>> getModsFromSlots() {
@@ -220,7 +219,7 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
     }
 
     if (!jsonIcon.isEmpty()) {
-      builder.icon(new ResourceLocation(jsonIcon));
+      builder.icon(ResourceLocation.parse(jsonIcon));
     }
 
     if (!jsonDropRule.isEmpty()) {
@@ -246,7 +245,7 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
     if (jsonSlotResultPredicate != null) {
 
       for (JsonElement jsonElement : jsonSlotResultPredicate) {
-        builder.validator(new ResourceLocation(jsonElement.getAsString()));
+        builder.validator(ResourceLocation.parse(jsonElement.getAsString()));
       }
     }
   }

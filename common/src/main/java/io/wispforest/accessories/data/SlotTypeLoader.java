@@ -78,19 +78,23 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
     protected void apply(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler) {
         var uniqueSlots = new HashMap<String, SlotBuilder>();
 
-        UniqueSlotHandling.gatherUniqueSlots((location, integer, slotPredicates) -> {
-            var name = location.toString();
+        try {
+            UniqueSlotHandling.gatherUniqueSlots((location, integer, slotPredicates) -> {
+                var name = location.toString();
 
-            var builder = new SlotBuilder(name);
+                var builder = new SlotBuilder(name);
 
-            builder.amount(integer);
+                builder.amount(integer);
 
-            uniqueSlots.put(name, builder);
+                uniqueSlots.put(name, builder);
 
-            slotPredicates.forEach(builder::validator);
+                slotPredicates.forEach(builder::validator);
 
-            return new SlotTypeReference(name);
-        });
+                return new SlotTypeReference(name);
+            });
+        } catch (Exception e) {
+            LOGGER.error("[SlotTypeLoader]: Error occurred when trying to gather unique slots though code!", e);
+        }
 
         var builders = new HashMap<String, SlotBuilder>();
 

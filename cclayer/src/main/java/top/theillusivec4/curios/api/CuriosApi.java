@@ -25,13 +25,17 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.Level;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLLoader;
 import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import top.theillusivec4.curios.api.type.ISlotType;
@@ -66,48 +70,8 @@ public final class CuriosApi {
     apiError();
   }
 
-  /**
-   * Gets the registered slot type server-side for the identifier, if it exists.
-   * <br>
-   * This will always be empty client-side.
-   *
-   * @param id The slot type identifier
-   * @return The registered slot type or empty if it doesn't exist
-   */
-  @Deprecated
-  public static Optional<ISlotType> getSlot(String id) {
-    apiError();
-    return Optional.empty();
-  }
-
   public static Optional<ISlotType> getSlot(String id, Level level) {
     return CuriosApi.getSlot(id, level.isClientSide());
-  }
-
-  /**
-   * Gets the registered slot type icon client-side for the identifier.
-   * <br>
-   * This will always return the default curio icon server-side. For accurate server-side calls,
-   * see {@link CuriosApi#getSlot(String)} and {@link ISlotType#getIcon()}.
-   *
-   * @param id The slot type identifier
-   * @return The registered slot type or empty if it doesn't exist
-   */
-  @Nonnull
-  public static ResourceLocation getSlotIcon(String id) {
-    apiError();
-    return new ResourceLocation(MODID, "slot/empty_curio_slot");
-  }
-
-  /**
-   * Gets all the registered slot types server-side.
-   * <br>
-   * This will always be empty client-side.
-   *
-   * @return The registered slot types
-   */
-  public static Map<String, ISlotType> getSlots() {
-    return CuriosApi.getSlots(false);
   }
 
   public static Optional<ISlotType> getSlot(String id, boolean isClient) {
@@ -123,35 +87,12 @@ public final class CuriosApi {
     return Map.of();
   }
 
-  /**
-   * Gets all the registered slot types provided to player entities server-side.
-   * <br>
-   * This will always be empty client-side.
-   *
-   * @return The slot types provided to player entities
-   */
-  public static Map<String, ISlotType> getPlayerSlots() {
-    return getPlayerSlots(false);
-  }
-
   public static Map<String, ISlotType> getPlayerSlots(Level level) {
     return CuriosApi.getPlayerSlots(level.isClientSide());
   }
 
   public static Map<String, ISlotType> getPlayerSlots(boolean isClient) {
     return CuriosApi.getEntitySlots(EntityType.PLAYER, isClient);
-  }
-
-  /**
-   * Gets all the registered slot types provided to an entity type server-side.
-   * <br>
-   * This will always be empty client-side.
-   *
-   * @param type The entity type for the slot types
-   * @return The slot types provided to the entity type
-   */
-  public static Map<String, ISlotType> getEntitySlots(EntityType<?> type) {
-    return CuriosApi.getEntitySlots(type, false);
   }
 
   public static Map<String, ISlotType> getEntitySlots(LivingEntity livingEntity) {
@@ -165,10 +106,6 @@ public final class CuriosApi {
   public static Map<String, ISlotType> getEntitySlots(EntityType<?> type, boolean isClient) {
     apiError();
     return new HashMap<>();
-  }
-
-  public static Map<String, ISlotType> getItemStackSlots(ItemStack stack) {
-    return getItemStackSlots(stack, false);
   }
 
   public static Map<String, ISlotType> getItemStackSlots(ItemStack stack, boolean isClient) {
@@ -224,12 +161,18 @@ public final class CuriosApi {
    *
    * @param slotContext Context about the slot that the ItemStack is equipped in or may potentially
    *                    be equipped in
-   * @param uuid        Slot-unique UUID
+   * @param id          Slot-unique id
    * @param stack       The ItemStack in question
    * @return A map of attribute modifiers
    */
   public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(
-      SlotContext slotContext, UUID uuid, ItemStack stack) {
+      SlotContext slotContext, ResourceLocation id, ItemStack stack) {
+    apiError();
+    return HashMultimap.create();
+  }
+
+  public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(
+          SlotContext slotContext, UUID uuid, ItemStack stack) {
     apiError();
     return HashMultimap.create();
   }
@@ -239,13 +182,14 @@ public final class CuriosApi {
    *
    * @param map        A {@link Multimap} of attributes to attribute modifiers
    * @param identifier The identifier of the slot to add the modifier onto
-   * @param uuid       A UUID associated wth the slot
    * @param amount     The amount of the modifier
    * @param operation  The operation of the modifier
    */
-  public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String identifier,
-                                     UUID uuid, double amount,
-                                     AttributeModifier.Operation operation) {
+  public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String identifier, double amount, AttributeModifier.Operation operation) {
+    apiError();
+  }
+
+  public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String identifier, ResourceLocation id, double amount, AttributeModifier.Operation operation) {
     apiError();
   }
 
@@ -255,15 +199,37 @@ public final class CuriosApi {
    * @param stack      The ItemStack to add the modifier to
    * @param identifier The identifier of the slot to add the modifier onto
    * @param name       The name for the modifier
-   * @param uuid       A UUID associated wth the modifier, or null if the slot UUID should be used
    * @param amount     The amount of the modifier
    * @param operation  The operation of the modifier
    * @param slot       The slot that the ItemStack provides the modifier from
    */
-  public static void addSlotModifier(ItemStack stack, String identifier, String name, UUID uuid,
+  public static void addSlotModifier(ItemStack stack, String identifier, String name,
                                      double amount, AttributeModifier.Operation operation,
                                      String slot) {
     apiError();
+  }
+
+  public static void addSlotModifier(ItemStack stack, String identifier, String name, ResourceLocation id,
+                                     double amount, AttributeModifier.Operation operation,
+                                     String slot) {
+    apiError();
+  }
+
+  /**
+   * Creates an {@link ItemAttributeModifiers} with an added slot modifier.
+   *
+   * @param itemAttributeModifiers A {@link ItemAttributeModifiers} instance
+   * @param identifier             The identifier of the slot to add the modifier onto
+   * @param id                     id associated with the modifier
+   * @param amount                 The amount of the modifier
+   * @param operation              The operation of the modifier
+   * @param slotGroup              The slot to provide the modifier from
+   */
+  public static ItemAttributeModifiers withSlotModifier(
+          ItemAttributeModifiers itemAttributeModifiers, String identifier, ResourceLocation id, double amount,
+          AttributeModifier.Operation operation, EquipmentSlotGroup slotGroup) {
+    apiError();
+    return ItemAttributeModifiers.EMPTY;
   }
 
   /**
@@ -272,12 +238,17 @@ public final class CuriosApi {
    * @param stack     The ItemStack to add the modifier to
    * @param attribute The attribute to add the modifier onto
    * @param name      The name for the modifier
-   * @param uuid      A UUID associated wth the modifier, or null if the slot UUID should be used
    * @param amount    The amount of the modifier
    * @param operation The operation of the modifier
    * @param slot      The slot that the ItemStack provides the modifier from
    */
-  public static void addModifier(ItemStack stack, Holder<Attribute> attribute, String name, UUID uuid,
+  public static void addModifier(ItemStack stack, Holder<Attribute> attribute, String name,
+                                 double amount, AttributeModifier.Operation operation,
+                                 String slot) {
+    apiError();
+  }
+
+  public static void addModifier(ItemStack stack, Holder<Attribute> attribute, String name, ResourceLocation id,
                                  double amount, AttributeModifier.Operation operation,
                                  String slot) {
     apiError();
@@ -341,6 +312,17 @@ public final class CuriosApi {
   }
 
   /**
+   * Gets a UUID based on the provided {@link SlotContext}.
+   *
+   * @param slotContext The SlotContext to base the ResourceLocation on
+   * @return The ResourceLocation based on the SlotContext
+   */
+  public static ResourceLocation getSlotId(SlotContext slotContext) {
+    apiError();
+    return ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, slotContext.identifier());
+  }
+
+  /**
    * Performs breaking behavior used from the single-input consumer in {@link ItemStack#hurtAndBreak(int, LivingEntity, Consumer)}
    * <br>
    * This will be necessary in order to trigger break animations in curio slots
@@ -355,9 +337,71 @@ public final class CuriosApi {
 
   static void apiError() {
     LOGGER.error("Missing Curios API implementation!");
+    for (StackTraceElement stackTraceElement : Thread.currentThread().getStackTrace()) {
+      LOGGER.error(stackTraceElement.toString());
+    }
   }
 
   // ========= DEPRECATED =============
+
+  /**
+   * @deprecated See {@link CuriosApi#getSlot(String, Level)}
+   * and {@link CuriosApi#getSlot(String, boolean)}
+   */
+  @Deprecated(since = "1.20.1")
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
+  public static Optional<ISlotType> getSlot(String id) {
+    return CuriosApi.getSlot(id, false);
+  }
+
+  /**
+   * @deprecated See {@link CuriosApi#getSlot(String, Level)} and {@link ISlotType#getIcon()}.
+   */
+  @Nonnull
+  public static ResourceLocation getSlotIcon(String id) {
+    return CuriosApi.getSlot(id, true).map(ISlotType::getIcon)
+            .orElse(ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "slot/empty_curio_slot"));
+  }
+
+  /**
+   * @deprecated See {@link CuriosApi#getSlots(Level)} and {@link CuriosApi#getSlots(boolean)}
+   */
+  @Deprecated(since = "1.20.1")
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
+  public static Map<String, ISlotType> getSlots() {
+    return CuriosApi.getSlots(false);
+  }
+
+  /**
+   * @deprecated See {@link CuriosApi#getEntitySlots(EntityType, Level)},
+   * {@link CuriosApi#getEntitySlots(EntityType, boolean)},
+   * and {@link CuriosApi#getEntitySlots(LivingEntity)}
+   */
+  @Deprecated(since = "1.20.1")
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
+  public static Map<String, ISlotType> getEntitySlots(EntityType<?> type) {
+    return CuriosApi.getEntitySlots(type, false);
+  }
+
+  /**
+   * @deprecated See {@link CuriosApi#getPlayerSlots(Level)},
+   * {@link CuriosApi#getPlayerSlots(boolean)}, and {@link CuriosApi#getPlayerSlots(Player)}
+   */
+  @Deprecated(since = "1.20.1")
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
+  public static Map<String, ISlotType> getPlayerSlots() {
+    return CuriosApi.getPlayerSlots(false);
+  }
+
+  /**
+   * @deprecated See {@link CuriosApi#getItemStackSlots(ItemStack, Level)}
+   * and {@link CuriosApi#getItemStackSlots(ItemStack, boolean)}
+   */
+  @Deprecated(since = "1.20.1")
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
+  public static Map<String, ISlotType> getItemStackSlots(ItemStack stack) {
+    return CuriosApi.getItemStackSlots(stack, FMLLoader.getDist() == Dist.CLIENT);
+  }
 
   private static IIconHelper iconHelper;
 

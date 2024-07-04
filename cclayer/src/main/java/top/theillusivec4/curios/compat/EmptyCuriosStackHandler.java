@@ -3,6 +3,7 @@ package top.theillusivec4.curios.compat;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -25,13 +26,13 @@ public record EmptyCuriosStackHandler(String identifier) implements ICurioStacks
     @Override public CompoundTag serializeNBT() { return new CompoundTag(); }
     @Override public void deserializeNBT(CompoundTag nbt) {}
     @Override public String getIdentifier() { return this.identifier; }
-    @Override public Map<UUID, AttributeModifier> getModifiers() { return Map.of(); }
+    @Override public Map<ResourceLocation, AttributeModifier> getModifiers() { return Map.of(); }
     @Override public Set<AttributeModifier> getPermanentModifiers() { return Set.of(); }
     @Override public Set<AttributeModifier> getCachedModifiers() { return Set.of(); }
     @Override public Collection<AttributeModifier> getModifiersByOperation(AttributeModifier.Operation operation) { return Set.of(); }
     @Override public void addTransientModifier(AttributeModifier modifier) {}
     @Override public void addPermanentModifier(AttributeModifier modifier) {}
-    @Override public void removeModifier(UUID uuid) {}
+    @Override public void removeModifier(ResourceLocation id) {}
     @Override public void clearModifiers() {}
     @Override public void clearCachedModifiers() {}
     @Override public void copyModifiers(ICurioStacksHandler other) {}

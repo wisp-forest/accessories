@@ -13,14 +13,12 @@ import javax.annotation.Nonnull;
 public class CosmeticButton extends ImageButton {
 
     public static final WidgetSprites OFF =
-            new WidgetSprites(new ResourceLocation(CuriosApi.MODID, "cosmetic_off"),
-                    new ResourceLocation(CuriosApi.MODID, "cosmetic_off_highlighted"));
+            new WidgetSprites(ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "cosmetic_off"),
+                    ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "cosmetic_off_highlighted"));
 
     public static final WidgetSprites ON =
-            new WidgetSprites(new ResourceLocation(CuriosApi.MODID, "cosmetic_on"),
-                    new ResourceLocation(CuriosApi.MODID, "cosmetic_on_highlighted"));
-
-    private static final ResourceLocation CURIO_INVENTORY = new ResourceLocation(CuriosApi.MODID, "textures/gui/inventory_revamp.png");
+            new WidgetSprites(ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "cosmetic_on"),
+                    ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "cosmetic_on_highlighted"));
 
     private final CuriosScreenV2 parentGui;
 

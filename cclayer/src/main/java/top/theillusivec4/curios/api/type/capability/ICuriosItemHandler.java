@@ -20,8 +20,10 @@
 package top.theillusivec4.curios.api.type.capability;
 
 import com.google.common.collect.Multimap;
+import com.mojang.logging.LogUtils;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -31,6 +33,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import org.jetbrains.annotations.ApiStatus;
+import org.slf4j.Logger;
 import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.ISlotType;
 import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
@@ -40,6 +43,8 @@ import java.util.*;
 import java.util.function.Predicate;
 
 public interface ICuriosItemHandler {
+
+  Logger LOGGER = LogUtils.getLogger();
 
   /**
    * A map of the current curios, keyed by the {@link ISlotType} identifier.
@@ -100,6 +105,26 @@ public interface ICuriosItemHandler {
    * @param stack      The new stack to place into the slot
    */
   void setEquippedCurio(String identifier, int index, ItemStack stack);
+
+  /**
+   * Checks if the given item is equipped in a curio slot.
+   *
+   * @param item The item to search for
+   * @return True if the item is equipped in a curio slot, false otherwise
+   */
+  default boolean isEquipped(Item item) {
+    return this.findFirstCurio(item).isPresent();
+  }
+
+  /**
+   * Checks if an item that matches the given filter is equipped in a curio slot.
+   *
+   * @param filter The filter to test against
+   * @return True if the item is equipped in a curio slot, false otherwise
+   */
+  default boolean isEquipped(Predicate<ItemStack> filter) {
+    return this.findFirstCurio(filter).isPresent();
+  }
 
   /**
    * Gets the first matching item equipped in a curio slot.
@@ -205,6 +230,20 @@ public interface ICuriosItemHandler {
   Set<ICurioStacksHandler> getUpdatingInventories();
 
   /**
+   * Adds the specified slot modifier to the handler as temporary slot modifiers.
+   * <br>
+   * These slot modifiers are not serialized and disappear upon deserialization.
+   *
+   * @param slot      Identifier of the {@link ISlotType} to add the slot modifier to
+   * @param name      Name for the attribute modifier
+   * @param amount    Amount for the attribute modifier
+   * @param operation Operation for the attribute modifier
+   */
+  default void addTransientSlotModifier(String slot, ResourceLocation name, double amount, AttributeModifier.Operation operation) {
+    LOGGER.error("Missing method implementation!");
+  }
+
+  /**
    * Adds the specified slot modifiers to the handler as temporary slot modifiers.
    * <br>
    * These slot modifiers are not serialized and disappear upon deserialization.
@@ -214,11 +253,35 @@ public interface ICuriosItemHandler {
   void addTransientSlotModifiers(Multimap<String, AttributeModifier> modifiers);
 
   /**
+   * Adds the specified slot modifier to the handler as temporary slot modifiers.
+   * <br>
+   * These slot modifiers are not serialized and disappear upon deserialization.
+   *
+   * @param slot      Identifier of the {@link ISlotType} to add the slot modifier to
+   * @param name      Name for the attribute modifier
+   * @param amount    Amount for the attribute modifier
+   * @param operation Operation for the attribute modifier
+   */
+  default void addPermanentSlotModifier(String slot, ResourceLocation name, double amount, AttributeModifier.Operation operation) {
+    LOGGER.error("Missing method implementation!");
+  }
+
+  /**
    * Adds the specified slot modifiers to the handler as permanent slot modifiers.
    *
    * @param modifiers A {@link Multimap} with slot identifiers as keys and attribute modifiers as values
    */
   void addPermanentSlotModifiers(Multimap<String, AttributeModifier> modifiers);
+
+  /**
+   * Removes the specified slot modifier from the handler.
+   *
+   * @param slot Identifier of the {@link ISlotType} to remove the modifier from
+   * @param name ResourceLocation of the {@link AttributeModifier} to remove
+   */
+  default void removeSlotModifier(String slot, ResourceLocation name) {
+    LOGGER.error("Missing method implementation!");
+  }
 
   /**
    * Removes the specified slot modifiers from the handler.

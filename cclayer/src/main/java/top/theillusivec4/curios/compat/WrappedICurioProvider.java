@@ -1,13 +1,16 @@
 package top.theillusivec4.curios.compat;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.SoundEventData;
+import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.events.extra.*;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -16,6 +19,7 @@ import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.neoforged.neoforge.capabilities.ICapabilityProvider;
+import top.theillusivec4.curios.CuriosConstants;
 import top.theillusivec4.curios.api.type.capability.ICurio;
 
 import java.util.UUID;
@@ -68,16 +72,20 @@ public class WrappedICurioProvider implements Accessory, LootingAdjustment, Fort
     }
 
     @Override
-    public Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference reference, UUID uuid) {
+    public void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
         var context = CuriosWrappingUtils.create(reference);
 
-        var modifiers = Accessory.super.getModifiers(stack, reference, uuid);
+        Accessory.super.getModifiers(stack, reference, builder);
 
-        modifiers.putAll(this.iCurio(stack).getAttributeModifiers(context, uuid));
+        //--
 
-        modifiers = CuriosWrappingUtils.getAttributeModifiers(modifiers, context, uuid, stack);
+        var id = ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference));
 
-        return modifiers;
+        Multimap<Holder<Attribute>, AttributeModifier> attributes = HashMultimap.create();
+
+        attributes.putAll(this.iCurio(stack).getAttributeModifiers(context, id));
+
+        CuriosWrappingUtils.getAttributeModifiers(attributes, context, id, stack).forEach(builder::addExclusive);
     }
 
     @Override

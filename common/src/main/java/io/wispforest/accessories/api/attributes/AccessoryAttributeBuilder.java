@@ -172,6 +172,10 @@ public final class AccessoryAttributeBuilder {
         return slotPath.toString();
     }
 
+    public static String createSlotPath(String slotname, int slot) {
+        return slotname + "/" + slot;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if(!(obj instanceof AccessoryAttributeBuilder otherBuilder)) return false;

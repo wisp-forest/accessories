@@ -2,9 +2,11 @@ package top.theillusivec4.curios.compat;
 
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.events.extra.*;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -55,8 +57,13 @@ public class WrappedAccessory implements ICurioItem {
     }
 
     @Override
-    public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
-        return accessory.getModifiers(stack, CuriosWrappingUtils.fromContext(slotContext), uuid);
+    public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, ResourceLocation id, ItemStack stack) {
+        var ctx = CuriosWrappingUtils.fromContext(slotContext);
+        var builder = new AccessoryAttributeBuilder(ctx);
+
+        accessory.getModifiers(stack, ctx, new AccessoryAttributeBuilder(ctx));
+
+        return builder.getAttributeModifiers(false);
     }
 
     @Override

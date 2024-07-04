@@ -1,19 +1,17 @@
 package io.wispforest.cclayer;
 
-import io.wispforest.accessories.networking.AccessoriesPacket;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import io.wispforest.accessories.networking.base.HandledPacketPayload;
 
-public class WrappedAccessoriesPacket implements AccessoriesPacket {
+public class WrappedAccessoriesPacket implements HandledPacketPayload {
 
-    public final AccessoriesPacket packet;
+    public final HandledPacketPayload packet;
 
-    protected WrappedAccessoriesPacket(AccessoriesPacket packet){
+    protected WrappedAccessoriesPacket(HandledPacketPayload packet){
         this.packet = packet;
     }
 
     @Override
-    public Type<? extends AccessoriesPacket> type() {
+    public Type<? extends HandledPacketPayload> type() {
         return this.packet.type();
     }
 }

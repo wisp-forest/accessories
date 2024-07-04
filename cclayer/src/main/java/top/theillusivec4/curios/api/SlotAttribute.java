@@ -19,6 +19,7 @@
 
 package top.theillusivec4.curios.api;
 
+import net.minecraft.core.Holder;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 
 import java.util.HashMap;
@@ -26,12 +27,14 @@ import java.util.Map;
 
 public class SlotAttribute extends Attribute {
 
-  private static final Map<String, SlotAttribute> SLOT_ATTRIBUTES = new HashMap<>();
+  private static final Map<String, Holder<? extends Attribute>> SLOT_ATTRIBUTES = new HashMap<>();
 
   private final String identifier;
 
-  public static SlotAttribute getOrCreate(String id) {
-    return SLOT_ATTRIBUTES.computeIfAbsent(id, SlotAttribute::new);
+  @SuppressWarnings("unchecked")
+  public static Holder<Attribute> getOrCreate(String id) {
+    return (Holder<Attribute>) SLOT_ATTRIBUTES.computeIfAbsent(id,
+            (k) -> new Holder.Direct<>(new SlotAttribute(id)));
   }
 
   protected SlotAttribute(String identifier) {

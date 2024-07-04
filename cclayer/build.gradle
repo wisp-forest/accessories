@@ -42,7 +42,7 @@ dependencies {
 
     modCompileOnly ("maven.modrinth:aether:1.20.4-1.4.1-neoforge")
 
-    modImplementation("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.40+95f95167b0"){ exclude group: "fabric-api" }
+    modImplementation ("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+e0539096d1"){ exclude group: "fabric-api" }
 
     //modRuntimeOnly ("dev.architectury:architectury-forge:9.2.14")
     //modRuntimeOnly ("maven.modrinth:artifacts:9.5.4")

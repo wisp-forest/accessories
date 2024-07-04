@@ -22,12 +22,16 @@ package top.theillusivec4.curios.api.event;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
+import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import net.minecraft.core.Holder;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.Event;
 import org.jetbrains.annotations.Nullable;
+import top.theillusivec4.curios.CuriosConstants;
 import top.theillusivec4.curios.api.SlotContext;
 
 import java.util.Collection;
@@ -49,6 +53,7 @@ public class CurioAttributeModifierEvent extends Event {
 
   private final ItemStack stack;
   private final SlotContext slotContext;
+  private final ResourceLocation id;
   private final UUID uuid;
   private final Multimap<Holder<Attribute>, AttributeModifier> originalModifiers;
   private Multimap<Holder<Attribute>, AttributeModifier> unmodifiableModifiers;
@@ -59,7 +64,16 @@ public class CurioAttributeModifierEvent extends Event {
     this.stack = stack;
     this.slotContext = slotContext;
     this.unmodifiableModifiers = this.originalModifiers = modifiers;
+    this.id = ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(slotContext.identifier(), slotContext.index()));
     this.uuid = uuid;
+  }
+
+  public CurioAttributeModifierEvent(ItemStack stack, SlotContext slotContext, ResourceLocation id, Multimap<Holder<Attribute>, AttributeModifier> modifiers) {
+    this.stack = stack;
+    this.slotContext = slotContext;
+    this.unmodifiableModifiers = this.originalModifiers = modifiers;
+    this.id = id;
+    this.uuid = UUID.fromString(id.toString());
   }
 
   /**
@@ -150,5 +164,9 @@ public class CurioAttributeModifierEvent extends Event {
    */
   public UUID getUuid() {
     return this.uuid;
+  }
+
+  public ResourceLocation getId() {
+    return this.id;
   }
 }

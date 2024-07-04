@@ -38,8 +38,8 @@ import javax.annotation.Nonnull;
 
 public class CuriosButton extends ImageButton {
 
-    public static final WidgetSprites BIG = new WidgetSprites(new ResourceLocation(CuriosApi.MODID, "button"), new ResourceLocation(CuriosApi.MODID, "button_highlighted"));
-    public static final WidgetSprites SMALL = new WidgetSprites(new ResourceLocation(CuriosApi.MODID, "button_small"), new ResourceLocation(CuriosApi.MODID, "button_small_highlighted"));
+    public static final WidgetSprites BIG = new WidgetSprites(ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "button"), ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "button_highlighted"));
+    public static final WidgetSprites SMALL = new WidgetSprites(ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "button_small"), ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "button_small_highlighted"));
     private final AbstractContainerScreen<?> parentGui;
 
     CuriosButton(AbstractContainerScreen<?> parentGui, int xIn, int yIn, int widthIn, int heightIn, WidgetSprites sprites) {

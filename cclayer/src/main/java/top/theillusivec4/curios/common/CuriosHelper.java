@@ -19,11 +19,7 @@
 
 package top.theillusivec4.curios.common;
 
-import com.google.common.collect.Multimap;
-import net.minecraft.core.Holder;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
@@ -31,7 +27,6 @@ import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.CuriosApi;
-import top.theillusivec4.curios.api.SlotAttribute;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.SlotResult;
 import top.theillusivec4.curios.api.type.capability.ICurio;
@@ -138,31 +133,6 @@ public class CuriosHelper implements ICuriosHelper {
         }).orElse(new ImmutableTriple<>("", 0, ItemStack.EMPTY));
 
     return result.getLeft().isEmpty() ? Optional.empty() : Optional.of(result);
-  }
-
-  @Override
-  public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(String identifier, ItemStack stack) {
-    return this.getAttributeModifiers(new SlotContext(identifier, null, 0, false, true), UUID.randomUUID(), stack);
-  }
-
-  @Override
-  public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
-    return CuriosApi.getAttributeModifiers(slotContext, uuid, stack);
-  }
-
-  @Override
-  public void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String identifier, UUID uuid, double amount, AttributeModifier.Operation operation) {
-    CuriosApi.addSlotModifier(map, identifier, uuid, amount, operation);
-  }
-
-  @Override
-  public void addSlotModifier(ItemStack stack, String identifier, String name, UUID uuid, double amount, AttributeModifier.Operation operation, String slot) {
-    CuriosApi.addSlotModifier(stack, identifier, name, uuid, amount, operation, slot);
-  }
-
-  @Override
-  public void addModifier(ItemStack stack, Holder<Attribute> attribute, String name, UUID uuid, double amount, AttributeModifier.Operation operation, String slot) {
-    CuriosApi.addModifier(stack, attribute, name, uuid, amount, operation, slot);
   }
 
   @Override

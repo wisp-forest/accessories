@@ -57,17 +57,6 @@ public class MixinCuriosApi {
     ci.cancel();
   }
 
-  @Inject(at = @At("HEAD"), method = "getSlot", cancellable = true)
-  private static void curios$getSlot(String id, CallbackInfoReturnable<Optional<ISlotType>> cir) {
-    cir.setReturnValue(CuriosImplMixinHooks.getSlot(id));
-  }
-
-  @Inject(at = @At("HEAD"), method = "getSlotIcon", cancellable = true)
-  private static void curios$getSlotIcon(String id,
-                                         CallbackInfoReturnable<ResourceLocation> cir) {
-    cir.setReturnValue(CuriosImplMixinHooks.getSlotIcon(id));
-  }
-
   @Inject(at = @At("HEAD"), method = "getSlots(Z)Ljava/util/Map;", cancellable = true)
   private static void curios$getSlots(boolean isClient, CallbackInfoReturnable<Map<String, ISlotType>> cir) {
     cir.setReturnValue(CuriosImplMixinHooks.getSlots(isClient));
@@ -113,33 +102,62 @@ public class MixinCuriosApi {
     cir.setReturnValue(CuriosImplMixinHooks.getAttributeModifiers(slotContext, uuid, stack));
   }
 
-  @Inject(at = @At("HEAD"), method = "addSlotModifier(Lcom/google/common/collect/Multimap;Ljava/lang/String;Ljava/util/UUID;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)V", cancellable = true)
+  //--
+
+  @Inject(at = @At("HEAD"), method = "addSlotModifier(Lcom/google/common/collect/Multimap;Ljava/lang/String;Lnet/minecraft/resources/ResourceLocation;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)V", cancellable = true)
   private static void curios$addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map,
                                              String identifier,
-                                             UUID uuid, double amount,
+                                             ResourceLocation id, double amount,
                                              AttributeModifier.Operation operation,
                                              CallbackInfo ci) {
-    CuriosImplMixinHooks.addSlotModifier(map, identifier, uuid, amount, operation);
+    CuriosImplMixinHooks.addSlotModifier(map, identifier, id, amount, operation);
     ci.cancel();
   }
 
-  @Inject(at = @At("HEAD"), method = "addSlotModifier(Lnet/minecraft/world/item/ItemStack;Ljava/lang/String;Ljava/lang/String;Ljava/util/UUID;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;Ljava/lang/String;)V", cancellable = true)
-  private static void curios$addSlotModifier(ItemStack stack, String identifier, String name,
-                                             UUID uuid, double amount,
+  @Inject(at = @At("HEAD"), method = "addSlotModifier(Lnet/minecraft/world/item/ItemStack;Ljava/lang/String;Ljava/lang/String;Lnet/minecraft/resources/ResourceLocation;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;Ljava/lang/String;)V", cancellable = true)
+  private static void curios$addSlotModifier(ItemStack stack, String identifier, ResourceLocation id, double amount,
                                              AttributeModifier.Operation operation, String slot,
                                              CallbackInfo ci) {
-    CuriosImplMixinHooks.addSlotModifier(stack, identifier, name, uuid, amount, operation, slot);
+    CuriosImplMixinHooks.addSlotModifier(stack, identifier, id, amount, operation, slot);
     ci.cancel();
   }
 
   @Inject(at = @At("HEAD"), method = "addModifier", cancellable = true)
-  private static void curios$addModifier(ItemStack stack, Holder<Attribute> attribute, String name,
-                                         UUID uuid, double amount,
+  private static void curios$addModifier(ItemStack stack, Holder<Attribute> attribute, ResourceLocation id, double amount,
                                          AttributeModifier.Operation operation, String slot,
                                          CallbackInfo ci) {
-    CuriosImplMixinHooks.addModifier(stack, attribute, name, uuid, amount, operation, slot);
+    CuriosImplMixinHooks.addModifier(stack, attribute, id, amount, operation, slot);
     ci.cancel();
   }
+
+  //--
+
+  @Inject(at = @At("HEAD"), method = "addSlotModifier(Lcom/google/common/collect/Multimap;Ljava/lang/String;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;)V", cancellable = true)
+  private static void curios$addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map,
+                                             String identifier, double amount,
+                                             AttributeModifier.Operation operation,
+                                             CallbackInfo ci) {
+    CuriosImplMixinHooks.addSlotModifier(map, identifier, amount, operation);
+    ci.cancel();
+  }
+
+  @Inject(at = @At("HEAD"), method = "addSlotModifier(Lnet/minecraft/world/item/ItemStack;Ljava/lang/String;Ljava/lang/String;DLnet/minecraft/world/entity/ai/attributes/AttributeModifier$Operation;Ljava/lang/String;)V", cancellable = true)
+  private static void curios$addSlotModifier(ItemStack stack, String identifier, String name, double amount,
+                                             AttributeModifier.Operation operation, String slot,
+                                             CallbackInfo ci) {
+    CuriosImplMixinHooks.addSlotModifier(stack, identifier, name, amount, operation, slot);
+    ci.cancel();
+  }
+
+  @Inject(at = @At("HEAD"), method = "addModifier", cancellable = true)
+  private static void curios$addModifier(ItemStack stack, Holder<Attribute> attribute, String name, double amount,
+                                         AttributeModifier.Operation operation, String slot,
+                                         CallbackInfo ci) {
+    CuriosImplMixinHooks.addModifier(stack, attribute, name, amount, operation, slot);
+    ci.cancel();
+  }
+
+  //--
 
   @Inject(at = @At("HEAD"), method = "registerCurioPredicate", cancellable = true)
   private static void curios$registerCurioPredicate(ResourceLocation resourceLocation, Predicate<SlotResult> validator, CallbackInfo ci) {
@@ -162,11 +180,15 @@ public class MixinCuriosApi {
     ci.setReturnValue(CuriosImplMixinHooks.testCurioPredicates(predicates, slotResult));
   }
 
-  @Inject(at = @At("HEAD"), method = "getSlotUuid", cancellable = true)
-  private static void curios$getSlotUuid(SlotContext slotContext, CallbackInfoReturnable<UUID> ci) {
-    ci.setReturnValue(CuriosImplMixinHooks.getUuid(slotContext));
+  @Inject(at = @At("HEAD"), method = "getSlotId", cancellable = true)
+  private static void curios$getId(SlotContext slotContext, CallbackInfoReturnable<ResourceLocation> ci) {
+    ci.setReturnValue(CuriosImplMixinHooks.getSlotId(slotContext));
   }
 
+  @Inject(at = @At("HEAD"), method = "getSlotUuid", cancellable = true)
+  private static void curios$getUuid(SlotContext slotContext, CallbackInfoReturnable<UUID> ci) {
+    ci.setReturnValue(CuriosImplMixinHooks.getSlotUuid(slotContext));
+  }
 
   @Inject(at = @At("HEAD"), method = "broadcastCurioBreakEvent", cancellable = true)
   private static void curios$broadcastCurioBreakEvent(SlotContext slotContext, CallbackInfo ci) {

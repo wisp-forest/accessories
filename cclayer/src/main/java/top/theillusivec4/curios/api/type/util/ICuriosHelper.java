@@ -127,38 +127,6 @@ public interface ICuriosHelper {
   Optional<SlotResult> findCurio(@Nonnull LivingEntity livingEntity, String identifier, int index);
 
   /**
-   * @deprecated See {@link top.theillusivec4.curios.api.CuriosApi#getAttributeModifiers(SlotContext, UUID, ItemStack)}
-   */
-  @Deprecated(since = "1.20.1", forRemoval = true)
-  @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
-  Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid,
-                                                               ItemStack stack);
-
-  /**
-   * @deprecated See {@link top.theillusivec4.curios.api.CuriosApi#addSlotModifier(Multimap, String, UUID, double, AttributeModifier.Operation)}
-   */
-  @Deprecated(since = "1.20.1", forRemoval = true)
-  @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
-  void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String identifier, UUID uuid,
-                       double amount, AttributeModifier.Operation operation);
-
-  /**
-   * @deprecated See {@link top.theillusivec4.curios.api.CuriosApi#addSlotModifier(ItemStack, String, String, UUID, double, AttributeModifier.Operation, String)}
-   */
-  @Deprecated(since = "1.20.1", forRemoval = true)
-  @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
-  void addSlotModifier(ItemStack stack, String identifier, String name, UUID uuid, double amount,
-                       AttributeModifier.Operation operation, String slot);
-
-  /**
-   * @deprecated See {@link top.theillusivec4.curios.api.CuriosApi#addModifier(ItemStack, Attribute, String, UUID, double, AttributeModifier.Operation, String)}
-   */
-  @Deprecated(since = "1.20.1", forRemoval = true)
-  @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
-  void addModifier(ItemStack stack, Holder<Attribute> attribute, String name, UUID uuid, double amount,
-                   AttributeModifier.Operation operation, String slot);
-
-  /**
    * @deprecated See {@link top.theillusivec4.curios.api.CuriosApi#isStackValid(SlotContext, ItemStack)}
    */
   @Deprecated(since = "1.20.1", forRemoval = true)
@@ -171,9 +139,7 @@ public interface ICuriosHelper {
   @Nonnull
   @Deprecated(forRemoval = true)
   @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
-  Optional<ImmutableTriple<String, Integer, ItemStack>> findEquippedCurio(Item item,
-                                                                          @Nonnull
-                                                                          LivingEntity livingEntity);
+  Optional<ImmutableTriple<String, Integer, ItemStack>> findEquippedCurio(Item item, @Nonnull LivingEntity livingEntity);
 
   /**
    * @deprecated Use {@link ICuriosItemHandler#findFirstCurio(Predicate)}
@@ -212,11 +178,4 @@ public interface ICuriosHelper {
   @Deprecated(forRemoval = true)
   @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
   void setBrokenCurioConsumer(TriConsumer<String, Integer, LivingEntity> consumer);
-
-  /**
-   * @deprecated See {@link top.theillusivec4.curios.api.CuriosApi#getAttributeModifiers(SlotContext, UUID, ItemStack)}
-   */
-  @Deprecated(forRemoval = true)
-  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
-  Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(String identifier, ItemStack stack);
 }

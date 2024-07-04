@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
 
 public record CPacketToggleCosmetics(int windowId) implements CustomPacketPayload {
 
-    public static final Type<CPacketToggleCosmetics> ID = new Type<>(new ResourceLocation(CuriosConstants.MOD_ID, "toggle_cosmetics"));
+    public static final Type<CPacketToggleCosmetics> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, "toggle_cosmetics"));
 
     public CPacketToggleCosmetics(final FriendlyByteBuf buf) {
         this(buf.readInt());

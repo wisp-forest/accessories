@@ -6,6 +6,7 @@ import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
@@ -99,8 +100,8 @@ public class WrappedCurioStackHandler implements ICurioStacksHandler {
     }
 
     @Override
-    public void removeModifier(UUID uuid) {
-        this.container.removeModifier(uuid);
+    public void removeModifier(ResourceLocation id) {
+        this.container.removeModifier(id);
     }
 
     @Override

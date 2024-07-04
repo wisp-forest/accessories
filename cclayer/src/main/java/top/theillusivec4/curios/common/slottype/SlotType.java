@@ -94,6 +94,11 @@ public final class SlotType implements ISlotType {
   }
 
   @Override
+  public Set<ResourceLocation> getValidators() {
+    return this.validators;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
