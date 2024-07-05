@@ -120,6 +120,7 @@ public class AccessoriesForge {
         eventBus.addListener(this::registerCapabilities);
 
         NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerChangedDimensionEvent event) -> {
+            // A hack to deal with player data not being transferred when a ClientboundRespawnPacket occurs for teleporting between two dimensions
             if(!(event.getEntity() instanceof ServerPlayer serverPlayer)) return;
 
             AccessoriesEventHandler.onTracking(serverPlayer, serverPlayer);
