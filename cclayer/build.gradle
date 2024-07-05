@@ -6,7 +6,7 @@ base {
     archivesName = project.archives_base_name
 }
 
-version = "${project.mod_version}-${project.layer_version}+${rootProject.minecraft_base_version}"
+version = "${project.mod_version}+${project.layer_version}+${rootProject.minecraft_base_version}"
 group = project.maven_group
 
 architectury {
