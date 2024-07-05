@@ -41,6 +41,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.entity.EntityEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEvent;
@@ -117,6 +118,12 @@ public class AccessoriesForge {
         NeoForge.EVENT_BUS.addListener(this::registerReloadListeners);
 
         eventBus.addListener(this::registerCapabilities);
+
+        NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerChangedDimensionEvent event) -> {
+            if(!(event.getEntity() instanceof ServerPlayer serverPlayer)) return;
+
+            AccessoriesEventHandler.onTracking(serverPlayer, serverPlayer);
+        });
     }
 
     //--
