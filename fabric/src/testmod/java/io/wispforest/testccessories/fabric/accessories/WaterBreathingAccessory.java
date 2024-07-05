@@ -2,21 +2,33 @@ package io.wispforest.testccessories.fabric.accessories;
 
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.testccessories.fabric.TestItems;
+import io.wispforest.testccessories.fabric.Testccessories;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
 public class WaterBreathingAccessory implements Accessory {
+
+    private static final ResourceLocation GRAVITY_LOCATION = Testccessories.of("gravity_accessory_adjustment");
 
     public static void init() {
         AccessoriesAPI.registerAccessory(TestItems.testItem1, new WaterBreathingAccessory());
     }
 
     public static final String REFILL_TIME_OUT_KEY = "RefillTimeout";
+
+    @Override
+    public void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
+        builder.addStackable(Attributes.GRAVITY, new AttributeModifier(GRAVITY_LOCATION, -0.01, AttributeModifier.Operation.ADD_VALUE));
+    }
 
     @Override
     public void tick(ItemStack stack, SlotReference reference) {

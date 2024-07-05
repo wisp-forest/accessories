@@ -155,7 +155,7 @@ public final class AccessoryAttributeBuilder {
     // slotPath          = {slot_name}/{slot_index}[{nested_layer_info}]
     // nested_layer_info = /nest_{layer_index}_{slot_index}
     public static String createSlotPath(SlotReference ref) {
-        var slotPath = new StringBuilder(ref.slotName() + "/" + ref.slot());
+        var slotPath = new StringBuilder(ref.slotName().replace(":", "-") + "/" + ref.slot());
 
         if(ref instanceof NestedSlotReferenceImpl nestedRef) {
             var innerSlotIndices = nestedRef.innerSlotIndices();
