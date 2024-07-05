@@ -27,7 +27,7 @@ subprojects {
             parchment("org.parchmentmc.data:parchment-1.20.3:2023.12.31@zip")
         }
 
-        if(!project.name.contains("common")) {
+        if(!(project.name.contains("common") || project.name.contains("cclayer") || project.name.contains("tclayer"))) {
             include("io.wispforest:endec:${rootProject.endec_version}")
             include("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
             include("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
