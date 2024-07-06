@@ -222,7 +222,7 @@ public interface AccessoryNest extends Accessory {
             map.forEach((entryRef, accessory) -> canUnequip.setValue(canUnequip.booleanValue() && accessory.canUnequip(entryRef.stack(), entryRef.reference())));
 
             return canUnequip.getValue();
-        }, false);
+        }, true);
     }
 
     @Override
