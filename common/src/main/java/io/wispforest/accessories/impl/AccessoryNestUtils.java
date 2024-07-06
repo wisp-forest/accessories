@@ -44,14 +44,14 @@ public class AccessoryNestUtils {
 
                 if (innerStack.isEmpty()) continue;
 
-                value = recursiveStackHandling(stack, create(reference, i), function);
+                value = recursiveStackHandling(innerStack, create(reference, i), function);
             }
         }
 
         return value;
     }
 
-    public static void recursiveStackConsumption(ItemStack stack, SlotReference reference,  BiConsumer<ItemStack, SlotReference> consumer) {
+    public static void recursiveStackConsumption(ItemStack stack, SlotReference reference, BiConsumer<ItemStack, SlotReference> consumer) {
         var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
 
         consumer.accept(stack, reference);
@@ -65,7 +65,7 @@ public class AccessoryNestUtils {
 
             if (innerStack.isEmpty()) continue;
 
-            recursiveStackConsumption(stack, create(reference, i), consumer);
+            recursiveStackConsumption(innerStack, create(reference, i), consumer);
         }
     }
 
