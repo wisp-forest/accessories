@@ -106,6 +106,30 @@ public interface AccessoryNest extends Accessory {
     }
 
     /**
+     * Method used to perform some action on a possible {@link AccessoryNest} and return a result from such action or a default value if none found
+     *
+     * @param holderStack   Potential stack linked to a AccessoryNest
+     * @param livingEntity Potential Living Entity involved with any stack changes
+     * @param func          Action being done
+     * @param defaultValue  Default value if stack is not a AccessoryNest
+     */
+    static <T> T attemptFunction(ItemStack holderStack, @Nullable LivingEntity livingEntity, Function<Map<ItemStack, Accessory>, T> func, T defaultValue){
+        var data = AccessoryNestUtils.getData(holderStack);
+
+        if(data == null) return defaultValue;
+
+        var nest = (AccessoryNest) AccessoriesAPI.getAccessory(holderStack);
+
+        var t = func.apply(data.getMap());
+
+        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
+
+        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), livingEntity);
+
+        return t;
+    }
+
+    /**
      * Method used to perform some action on a possible {@link AccessoryNest}
      *
      * @param holderStack   Potential stack linked to a AccessoryNest
