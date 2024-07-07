@@ -18,4 +18,4 @@ classes/
 .vscode
 .settings
 *.launch
-/.architectury-transformer/
+.architectury-transformer/

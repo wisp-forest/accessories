@@ -139,7 +139,7 @@ shadowJar {
 remapJar {
     input.set shadowJar.archiveFile
     dependsOn shadowJar
-    archiveClassifier.set "neoforge"
+    archiveClassifier.set ""
 }
 
 sourcesJar {
@@ -151,26 +151,5 @@ sourcesJar {
 components.java {
     withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
         skip()
-    }
-}
-
-def ENV = System.getenv()
-
-publishing {
-    publications {
-        mavenForge(MavenPublication) {
-            artifactId = "${rootProject.archives_base_name}-${project.name}"
-            from components.java
-        }
-    }
-
-    repositories {
-        maven {
-            url ENV.MAVEN_URL
-            credentials {
-                username ENV.MAVEN_USER
-                password ENV.MAVEN_PASSWORD
-            }
-        }
     }
 }

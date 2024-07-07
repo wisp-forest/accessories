@@ -1,0 +1,35 @@
+import net.fabricmc.loom.api.mappings.layered.MappingsNamespace
+import net.fabricmc.loom.task.RemapJarTask
+import net.fabricmc.loom.task.RemapSourcesJarTask
+import net.fabricmc.loom.task.AbstractRemapJarTask
+
+evaluationDependsOn ':common'
+
+def mojmapJar = tasks.register('mojmapJar', RemapJarTask, {
+    setupTask(it, "remapJar", "")
+})
+
+def mojmapSourcesJar = tasks.register('mojmapSourcesJar', RemapSourcesJarTask, {
+    setupTask(it, 'remapSourcesJar', "sources")
+})
+
+private void setupTask(AbstractRemapJarTask targetTask, String taskName, String archiveClassifier) {
+    targetTask.classpath.from loom.getMinecraftJarsCollection(MappingsNamespace.INTERMEDIARY)
+
+    def baseJarTask = project(':common').tasks.named(taskName, AbstractRemapJarTask)
+
+    targetTask.dependsOn baseJarTask
+
+    if(!archiveClassifier.isEmpty()) targetTask.archiveClassifier = archiveClassifier
+
+    targetTask.inputFile.convention(baseJarTask.flatMap { it.archiveFile })
+
+    targetTask.sourceNamespace = 'intermediary'
+    targetTask.targetNamespace = 'named'
+
+    targetTask.remapperIsolation = true
+}
+
+tasks.named("build").configure {
+    dependsOn(mojmapJar, mojmapSourcesJar)
+}

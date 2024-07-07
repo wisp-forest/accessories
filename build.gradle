@@ -1,11 +1,15 @@
+import java.util.function.Consumer
+
 plugins {
     id "architectury-plugin" version "3.4-SNAPSHOT"
-    id "dev.architectury.loom" version "1.6-SNAPSHOT" apply false
+    id "dev.architectury.loom" version "1.7-SNAPSHOT" apply false
 }
 
 architectury {
     minecraft = rootProject.minecraft_version
 }
+
+final VALID_PUBLISHING = Set.of("fabric", "neoforge", "common", "common-mojmap");
 
 subprojects {
     apply plugin: "dev.architectury.loom"
@@ -22,9 +26,13 @@ subprojects {
     dependencies {
         minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
         // The following line declares the mojmap mappings, you may use other mappings as well
-        mappings loom.layered() {
-            officialMojangMappings()
-            parchment("org.parchmentmc.data:parchment-1.20.3:2023.12.31@zip")
+        if(!name.equals("common-mojmap")) {
+            mappings loom.layered() {
+                officialMojangMappings()
+                parchment("org.parchmentmc.data:parchment-1.20.3:2023.12.31@zip")
+            }
+        } else {
+            mappings loom.officialMojangMappings()
         }
 
         if(!(project.name.contains("common") || project.name.contains("cclayer") || project.name.contains("tclayer"))) {
@@ -45,10 +53,12 @@ allprojects {
     apply plugin: "maven-publish"
 
     base {
-        archivesName = rootProject.archives_base_name
+        var name = project.name
+
+        archivesName = "${rootProject.archives_base_name}${(name.isEmpty() ? "" : "-${project.name.replace("-mojmap", "")}")}"
     }
 
-    version = "${project.mod_version}+${rootProject.minecraft_base_version}"
+    version = "${project.mod_version}+${rootProject.minecraft_base_version}${(project.name.contains("mojmap") ? "-mojmap" : "")}"
     group = rootProject.maven_group
 
     tasks.withType(JavaCompile) {
@@ -58,5 +68,46 @@ allprojects {
 
     java {
         withSourcesJar()
+    }
+
+    final ENV = System.getenv()
+
+    publishing {
+        publications {
+            var name = project.name
+
+            if(!VALID_PUBLISHING.contains(project.name)) return
+
+            mavenCommon(MavenPublication) {
+                artifactId = "${rootProject.archives_base_name}${(name.isEmpty() ? "" : "-${project.name.replace("-mojmap", "")}")}"
+                afterEvaluate {
+                    if(!name.equals("common-mojmap")) {
+                        from components.java
+                    } else {
+                        var mojmapJarTask = project.tasks.named("mojmapJar");
+                        artifact(mojmapJarTask) {
+                            builtBy mojmapJarTask
+                            classifier = ''
+                        }
+
+                        var mojmapSourcesJarTask = project.tasks.named("mojmapSourcesJar");
+                        artifact(mojmapSourcesJarTask) {
+                            builtBy mojmapSourcesJarTask
+                            classifier = 'sources'
+                        }
+                    }
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                url ENV.MAVEN_URL
+                credentials {
+                    username ENV.MAVEN_USER
+                    password ENV.MAVEN_PASSWORD
+                }
+            }
+        }
     }
 }
