@@ -70,18 +70,6 @@ public class AccessoriesClientFabric implements ClientModInitializer {
             }
         });
 
-        ItemTooltipCallback.EVENT.register((stack, context, type, lines) -> {
-            var player = Minecraft.getInstance().player;
-
-            if(player == null) return;
-
-            var tooltipData = new ArrayList<Component>();
-
-            AccessoriesEventHandler.addTooltipInfo(player, stack, tooltipData);
-
-            lines.addAll(1, tooltipData);
-        });
-
         LivingEntityFeatureRendererRegistrationCallback.EVENT.register((entityType, entityRenderer, registrationHelper, context) -> {
             if(!(entityRenderer.getModel() instanceof HumanoidModel)) return;
 
