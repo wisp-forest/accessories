@@ -47,8 +47,11 @@ dependencies {
     // Arch Common
     modImplementation("io.wispforest:accessories-common:${project.accessories_version}")
 
-    // Multiloader Common
+    // Multiloader Common Intermediary
     compileOnly("io.wispforest:accessories-common:${project.accessories_version}")
+
+    // Multiloader Common Mojang Mappings
+    compileOnly("io.wispforest:accessories-common:${project.accessories_version}-mojmap")
 }
 ```
 <details>
@@ -67,10 +70,16 @@ dependencies {
     modImplementation("io.wispforest:accessories-fabric:${properties["accessories_version"]}")
     
     // Neoforge 
-    fg.deobf("io.wispforest:accessories-neoforge:${properties["accessories_version"]}")
+    implementation("io.wispforest:accessories-neoforge:${properties["accessories_version"]}")
 
     // Arch Common
     modImplementation("io.wispforest:accessories-common:${properties["accessories_version"]}")
+
+    // Multiloader Common Intermediary
+    compileOnly("io.wispforest:accessories-common:${properties["accessories_version"]}")
+
+    // Multiloader Common Mojang Mappings
+    compileOnly("io.wispforest:accessories-common:${properties["accessories_version"]}-mojmap")
 }
 ```
 </details>
