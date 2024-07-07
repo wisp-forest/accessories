@@ -94,7 +94,7 @@ public class AccessoriesClientForge {
 
         var tooltipData = new ArrayList<Component>();
 
-        AccessoriesEventHandler.addTooltipInfo(player, event.getItemStack(), stackTooltip);
+        AccessoriesEventHandler.addTooltipInfo(player, event.getItemStack(), tooltipData);
 
         stackTooltip.addAll(1, tooltipData);
     }
