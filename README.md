@@ -13,10 +13,10 @@
   <a href="https://discord.gg/xrwHKktV2d">
       <img src="https://img.shields.io/discord/825828008644313089?label=wisp%20forest&logo=discord&logoColor=white&style=for-the-badge">
   </a>
+  <a href="https://docs.wispforest.io/accessories/home/">
+    <img src="https://img.shields.io/badge/Documentation-Link-SECRET_MESSAGE?link=https%3A%2F%2Fdocs.wispforest.io%2Faccessories%2Fhome%2F&logo=discord&logoColor=white&style=for-the-badge">
+  </a>
 </h1>
-<a href="https://docs.wispforest.io/accessories/home/">
-  <img src="https://img.shields.io/badge/Documentation-Link-SECRET_MESSAGE?link=https%3A%2F%2Fdocs.wispforest.io%2Faccessories%2Fhome%2F&logo=discord&logoColor=white&style=for-the-badge">
-</a>
 
 ## Overview
 Accessories is a Data-Driven Accessory mod for NeoForge and Fabric with emphasis on using a Common API for both platforms when possible
