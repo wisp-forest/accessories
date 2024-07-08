@@ -470,7 +470,7 @@ public class AccessoriesEventHandler {
 
         for (SlotType slotType : validSlotTypes) {
             var extraAttributeTooltip = new ArrayList<Component>();
-            accessory.getAttributesTooltip(stack, slotType, extraAttributeTooltip);
+            accessory.getAttributesTooltip(stack, slotType, extraAttributeTooltip, tooltipContext, tooltipType);
 
             extraAttributeTooltips.put(slotType, extraAttributeTooltip);
 
