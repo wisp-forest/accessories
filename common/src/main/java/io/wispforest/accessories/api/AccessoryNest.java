@@ -11,7 +11,9 @@ import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Nullable;
 
@@ -237,12 +239,12 @@ public interface AccessoryNest extends Accessory {
     }
 
     @Override
-    default void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips) {
-        attemptConsumer(stack, (LivingEntity) null, map -> map.forEach((stack1, accessory) -> accessory.getAttributesTooltip(stack1, type, tooltips)));
+    default void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
+        attemptConsumer(stack, (LivingEntity) null, map -> map.forEach((stack1, accessory) -> accessory.getAttributesTooltip(stack1, type, tooltips, tooltipContext, tooltipType)));
     }
 
     @Override
-    default void getExtraTooltip(ItemStack stack, List<Component> tooltips) {
-        attemptConsumer(stack, (LivingEntity) null, map -> map.forEach((stack1, accessory) -> accessory.getExtraTooltip(stack1, tooltips)));
+    default void getExtraTooltip(ItemStack stack, List<Component> tooltips, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
+        attemptConsumer(stack, (LivingEntity) null, map -> map.forEach((stack1, accessory) -> accessory.getExtraTooltip(stack1, tooltips, v)));
     }
 }

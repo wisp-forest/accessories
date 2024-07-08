@@ -11,9 +11,12 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -139,28 +142,54 @@ public interface Accessory {
         ((LivingEntityAccessor) reference.entity()).accessors$breakItem(stack);
     }
 
+    //--
+
     /**
      * Method used to add tooltip info for attribute like data based on a given slot type
      *
      * @param stack The Stack being referenced
      * @param type The SlotType being referenced
      * @param tooltips Final list containing the tooltip info
+     * @param tooltipContext Current tooltip context
+     * @param tooltipType Current tooltipFlag
      */
-    default void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips){}
+    default void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips, Item.TooltipContext tooltipContext, TooltipFlag tooltipType){
+        getAttributesTooltip(stack, type, tooltips);
+    }
 
     /**
-     * Method used to add any additional tooltip information to a given {@link Accessory} tooltip
-     * within {@link AccessoriesEventHandler#addTooltipInfo(LivingEntity, ItemStack, List)} at the
-     * end of the method call.
+     * Method used to add any additional tooltip information to a given {@link Accessory} tooltip after
+     * {@link AccessoriesEventHandler#addEntityBasedTooltipData} if called and at the
+     * end of the {@link AccessoriesEventHandler#getTooltipData} call.
      *
      * <p>
-     *     Do note that means that the list passed contains all tooltip info allowing for
-     *     positioning before or after the tooltip info
+     *     Do note that <b>if the given entity</b> is found to not be null, the list passed
+     *     contains all tooltip info allowing for positioning before or after the tooltip info
      * </p>
      *
      * @param stack The Stack being referenced
      * @param tooltips Final list containing the tooltip info
+     * @param tooltipContext Current tooltip context
+     * @param tooltipType Current tooltipFlag
      */
+    default void getExtraTooltip(ItemStack stack, List<Component> tooltips, Item.TooltipContext tooltipContext, TooltipFlag tooltipType){
+        getExtraTooltip(stack, tooltips);
+    }
+
+    //--
+
+    /**
+     * @deprecated Use {@link #getAttributesTooltip(ItemStack, SlotType, List, Item.TooltipContext, TooltipFlag)}
+     */
+    @Deprecated(forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
+    default void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips){}
+
+    /**
+     * @deprecated Use {@link #getExtraTooltip(ItemStack, List, Item.TooltipContext, TooltipFlag)}
+     */
+    @Deprecated(forRemoval = true)
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
     default void getExtraTooltip(ItemStack stack, List<Component> tooltips){}
 
     /**

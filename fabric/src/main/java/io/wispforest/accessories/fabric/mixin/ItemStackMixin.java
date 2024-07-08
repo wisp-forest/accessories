@@ -1,7 +1,6 @@
 package io.wispforest.accessories.fabric.mixin;
 
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
-import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -21,12 +20,10 @@ public abstract class ItemStackMixin {
 
     @Inject(method = "getTooltipLines", at = @At(value = "RETURN", ordinal = 1))
     private void getTooltip(Item.TooltipContext tooltipContext, @Nullable Player player, TooltipFlag tooltipType, CallbackInfoReturnable<List<Component>> info) {
-        if(player == null) return;
-
         var tooltipData = new ArrayList<Component>();
 
-        AccessoriesEventHandler.addTooltipInfo(player, (ItemStack) (Object) this, tooltipData);
+        AccessoriesEventHandler.getTooltipData(player, (ItemStack) (Object) this, tooltipData, tooltipContext, tooltipType);
 
-        info.getReturnValue().addAll(1, tooltipData);
+        if(!tooltipData.isEmpty()) info.getReturnValue().addAll(1, tooltipData);
     }
 }

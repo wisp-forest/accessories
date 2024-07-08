@@ -39,7 +39,9 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -340,14 +342,18 @@ public class AccessoriesEventHandler {
         }
     }
 
-    // TODO: Rewrite for better handling of various odd cases
-    public static void addTooltipInfo(LivingEntity entity, ItemStack stack, List<Component> tooltip) {
+    public static void getTooltipData(@Nullable LivingEntity entity, ItemStack stack, List<Component> tooltip, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
         var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
-        if (accessory == null) return;
+        if (accessory != null) {
+            if(entity != null && AccessoriesCapability.get(entity) != null) addEntityBasedTooltipData(entity, accessory, stack, tooltip, tooltipContext, tooltipType);
 
-        if (AccessoriesCapability.get(entity) == null) return;
+            accessory.getExtraTooltip(stack, tooltip, tooltipContext, tooltipType);
+        }
+    }
 
+    // TODO: Rewrite for better handling of various odd cases
+    private static void addEntityBasedTooltipData(LivingEntity entity, Accessory accessory, ItemStack stack, List<Component> tooltip, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
         // TODO: MAYBE DEPENDING ON ENTITY OR SOMETHING SHOW ALL VALID SLOTS BUT COLOR CODE THEM IF NOT VALID FOR ENTITY?
         var validSlotTypes = new HashSet<>(AccessoriesAPI.getValidSlotTypes(entity, stack));
 
@@ -520,8 +526,6 @@ public class AccessoriesEventHandler {
                 tooltip.addAll(entry.getValue());
             }
         }
-
-        accessory.getExtraTooltip(stack, tooltip);
     }
 
     private static void addAttributeTooltip(Multimap<Holder<Attribute>, AttributeModifier> multimap, List<Component> tooltip) {

@@ -7,12 +7,10 @@ import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.gui.ConfigScreenProvider;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
@@ -22,9 +20,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModLoadingContext;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
@@ -88,15 +84,13 @@ public class AccessoriesClientForge {
     public static void itemTooltipCallback(ItemTooltipEvent event){
         var player = event.getEntity();
 
-        if(player == null) return;
-
         var stackTooltip = event.getToolTip();
 
         var tooltipData = new ArrayList<Component>();
 
-        AccessoriesEventHandler.addTooltipInfo(player, event.getItemStack(), tooltipData);
+        AccessoriesEventHandler.getTooltipData(player, event.getItemStack(), tooltipData, event.getContext(), event.getFlags());
 
-        stackTooltip.addAll(1, tooltipData);
+        if(!tooltipData.isEmpty()) stackTooltip.addAll(1, tooltipData);
     }
 
     public void addRenderLayer(EntityRenderersEvent.AddLayers event){
