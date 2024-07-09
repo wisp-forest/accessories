@@ -1,6 +1,8 @@
 package io.wispforest.accessories.api;
 
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
+import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
@@ -22,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * Main interface for implementing an accessory
+ * Main interface for implementing accessory functionality within the main API.
  */
 public interface Accessory {
 
@@ -75,13 +77,28 @@ public interface Accessory {
     }
 
     /**
-     * Returns the Attribute Modifiers for the following stack within the given reference
+     * Helper method used to fill the passed {@link AccessoryAttributeBuilder} for every call from
+     * {@link AccessoriesAPI#getAttributeModifiers}
      *
      * @param stack     The Stack attempting to be unequipped
      * @param reference The reference to the targeted {@link LivingEntity}, slot and index
      * @param builder   The builder to which attributes are to be added
      */
-    default void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder){}
+    default void getDynamicModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder){
+        getModifiers(stack, reference, builder);
+    }
+
+    /**
+     * Helper method used to fill the passed {@link AccessoryItemAttributeModifiers.Builder} when called to modify
+     * the given default {@link AccessoriesDataComponents#ATTRIBUTES} right before Registry freeze occurs. Such is
+     * useful for attributes that are not meant to be changed and remain mostly static.
+     *
+     * @param item      The item to which the given attributes will be defaulted for
+     * @param builder   The builder to which attributes are to be added
+     */
+    default void getStaticModifiers(Item item, AccessoryItemAttributeModifiers.Builder builder){
+
+    }
 
     /**
      * Returns the following drop rule for the given Item
@@ -142,6 +159,13 @@ public interface Accessory {
         ((LivingEntityAccessor) reference.entity()).accessors$breakItem(stack);
     }
 
+    /**
+     * @return Return the max stack amount allowed when equipping a given stack into an accessories inventory
+     */
+    default int maxStackSize(ItemStack stack){
+        return stack.getMaxStackSize();
+    }
+
     //--
 
     /**
@@ -179,6 +203,13 @@ public interface Accessory {
     //--
 
     /**
+     * @deprecated Use {@link #getDynamicModifiers} instead
+     */
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
+    @Deprecated(forRemoval = true)
+    default void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder){}
+
+    /**
      * @deprecated Use {@link #getAttributesTooltip(ItemStack, SlotType, List, Item.TooltipContext, TooltipFlag)}
      */
     @Deprecated(forRemoval = true)
@@ -191,11 +222,4 @@ public interface Accessory {
     @Deprecated(forRemoval = true)
     @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
     default void getExtraTooltip(ItemStack stack, List<Component> tooltips){}
-
-    /**
-     * @return Return the max stack amount allowed when equipping a given stack into an accessories inventory
-     */
-    default int maxStackSize(ItemStack stack){
-        return stack.getMaxStackSize();
-    }
 }

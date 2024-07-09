@@ -20,6 +20,7 @@ import io.wispforest.endec.SerializationContext;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.Tag;
@@ -30,6 +31,7 @@ import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.attachment.AttachmentType;
@@ -39,6 +41,7 @@ import net.neoforged.neoforge.capabilities.EntityCapability;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.EntityEvent;
@@ -125,12 +128,21 @@ public class AccessoriesForge {
 
             AccessoriesEventHandler.onTracking(serverPlayer, serverPlayer);
         });
+
+        eventBus.addListener((ModifyDefaultComponentsEvent event) -> {
+            AccessoriesEventHandler.setupItems(new AccessoriesEventHandler.AddDataComponentCallback() {
+                @Override
+                public <T> void addTo(Item item, DataComponentType<T> componentType, T component) {
+                    event.modify(item, builder -> builder.set(componentType, component));
+                }
+            });
+        });
     }
 
     //--
 
     public void registerCommands(RegisterCommandsEvent event) {
-        AccessoriesCommands.registerCommands(event.getDispatcher());
+        AccessoriesCommands.registerCommands(event.getDispatcher(), event.getBuildContext());
     }
 
     public void registerStuff(RegisterEvent event){

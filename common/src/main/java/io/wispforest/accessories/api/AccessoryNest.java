@@ -228,11 +228,11 @@ public interface AccessoryNest extends Accessory {
     }
 
     @Override
-    default void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
+    default void getDynamicModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
         attemptConsumer(stack, reference, innerMap -> innerMap.forEach((entryRef, accessory) -> {
             var innerBuilder = new AccessoryAttributeBuilder(entryRef.reference());
 
-            accessory.getModifiers(entryRef.stack(), entryRef.reference(), innerBuilder);
+            accessory.getDynamicModifiers(entryRef.stack(), entryRef.reference(), innerBuilder);
 
             builder.addFrom(innerBuilder);
         }));

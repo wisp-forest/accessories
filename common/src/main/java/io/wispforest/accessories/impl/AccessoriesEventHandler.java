@@ -6,6 +6,8 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
+import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.events.*;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
@@ -23,6 +25,7 @@ import io.wispforest.endec.SerializationContext;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -418,15 +421,15 @@ public class AccessoriesEventHandler {
 
         tooltip.add(slotInfoComponent);
 
-        Map<SlotType, AccessoryAttributeBuilder> slotSpecificModifiers = new HashMap<>();
+        var slotSpecificModifiers = new HashMap<SlotType, AccessoryAttributeBuilder>();
         AccessoryAttributeBuilder defaultModifiers = null;
 
         boolean allDuplicates = true;
 
-        for (SlotType slotType : validSlotTypes) {
+        for (var slotType : validSlotTypes) {
             var reference = SlotReference.of(entity, slotType.name(), 0);
 
-            var builder = AccessoriesAPI.getAttributeModifiers(stack, reference);
+            var builder = AccessoriesAPI.getAttributeModifiers(stack, reference, true);
 
             slotSpecificModifiers.put(slotType, builder);
 
@@ -438,7 +441,7 @@ public class AccessoriesEventHandler {
             }
         }
 
-        Map<SlotType, List<Component>> slotTypeToTooltipInfo = new HashMap<>();
+        var slotTypeToTooltipInfo = new HashMap<SlotType, List<Component>>();
 
         if (allDuplicates) {
             if (!defaultModifiers.isEmpty()) {
@@ -463,12 +466,12 @@ public class AccessoriesEventHandler {
             }
         }
 
-        Map<SlotType, List<Component>> extraAttributeTooltips = new HashMap<>();
+        var extraAttributeTooltips = new HashMap<SlotType, List<Component>>();
         List<Component> defaultExtraAttributeTooltip = null;
 
         boolean allDuplicatesExtras = true;
 
-        for (SlotType slotType : validSlotTypes) {
+        for (var slotType : validSlotTypes) {
             var extraAttributeTooltip = new ArrayList<Component>();
             accessory.getAttributesTooltip(stack, slotType, extraAttributeTooltip, tooltipContext, tooltipType);
 
@@ -762,5 +765,21 @@ public class AccessoriesEventHandler {
         }
 
         return InteractionResult.PASS;
+    }
+
+    public static void setupItems(AddDataComponentCallback callback) {
+        AccessoriesAPI.getAllAccessories().forEach((item, accessory) -> {
+            var builder = AccessoryItemAttributeModifiers.builder();
+
+            accessory.getStaticModifiers(item, builder);
+
+            if(!builder.isEmpty()) {
+                callback.addTo(item, AccessoriesDataComponents.ATTRIBUTES, builder.build());
+            }
+        });
+    }
+
+    public interface AddDataComponentCallback {
+        <T> void addTo(Item item, DataComponentType<T> componentType, T component);
     }
 }

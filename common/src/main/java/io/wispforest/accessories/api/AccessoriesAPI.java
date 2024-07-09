@@ -1,5 +1,6 @@
 package io.wispforest.accessories.api;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
@@ -27,6 +28,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -49,6 +51,11 @@ public class AccessoriesAPI {
     private static final Map<ResourceLocation, SlotBasedPredicate> PREDICATE_REGISTRY = new HashMap<>();
 
     private static final Map<Item, Accessory> REGISTER = new HashMap<>();
+
+    @ApiStatus.Internal
+    public static Map<Item, Accessory> getAllAccessories() {
+        return Collections.unmodifiableMap(REGISTER);
+    }
 
     //--
 
@@ -101,20 +108,33 @@ public class AccessoriesAPI {
     //--
 
     public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, SlotReference slotReference){
-        return getAttributeModifiers(stack, slotReference.entity(), slotReference.slotName(), slotReference.slot());
+        return getAttributeModifiers(stack, slotReference, false);
     }
 
+    public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, SlotReference slotReference, boolean useTooltipCheck){
+        return getAttributeModifiers(stack, slotReference.entity(), slotReference.slotName(), slotReference.slot(), useTooltipCheck);
+    }
+
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
+    @Deprecated(forRemoval = true)
     public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, String slotName, int slot){
         return getAttributeModifiers(stack, null, slotName, slot);
+    }
+
+    public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot){
+        return getAttributeModifiers(stack, entity, slotName, slot, false);
     }
 
     /**
      * Attempts to get any at all AttributeModifier's found on the stack either though NBT or the Accessory bound
      * to the {@link ItemStack}'s item
      */
-    public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot){
-        var builder = stack.getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY)
-                .gatherAttributes(entity, slotName, slot);
+    public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot, boolean hideTooltipIfDisabled){
+        var component = stack.getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
+
+        var builder = (!hideTooltipIfDisabled || component.showInTooltip())
+                ? component.gatherAttributes(entity, slotName, slot)
+                : new AccessoryAttributeBuilder(slotName, slot);
 
         if(entity != null) {
             var reference = SlotReference.of(entity, slotName, slot);
@@ -122,7 +142,7 @@ public class AccessoriesAPI {
             //TODO: Decide if such presents of modifiers prevents the accessory modifiers from existing
             var accessory = AccessoriesAPI.getAccessory(stack);
 
-            if(accessory != null) accessory.getModifiers(stack, reference, builder);
+            if(accessory != null) accessory.getDynamicModifiers(stack, reference, builder);
 
             AdjustAttributeModifierCallback.EVENT.invoker().adjustAttributes(stack, reference, builder);
         }
@@ -133,7 +153,7 @@ public class AccessoriesAPI {
     public static void addAttribute(ItemStack stack, String slotName, Holder<Attribute> attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation, boolean isStackable) {
         stack.update(
                 AccessoriesDataComponents.ATTRIBUTES,
-                new AccessoryItemAttributeModifiers(List.of()),
+                new AccessoryItemAttributeModifiers(List.of(), true),
                 modifiers -> modifiers.withModifierAdded(attribute, new AttributeModifier(location, amount, operation), slotName, isStackable)
         );
     }
@@ -336,7 +356,7 @@ public class AccessoriesAPI {
             return (stack.is(getSlotTag(slotType)) || stack.is(ALL_ACCESSORIES)) ? TriState.TRUE : TriState.DEFAULT;
         });
         registerPredicate(Accessories.of("relevant"), (level, slotType, i, stack) -> {
-            var bl = !getAttributeModifiers(stack, slotType.name(), i).getAttributeModifiers(false).isEmpty();
+            var bl = !getAttributeModifiers(stack, null, slotType.name(), i).getAttributeModifiers(false).isEmpty();
 
             return bl ? TriState.TRUE : TriState.DEFAULT;
         });

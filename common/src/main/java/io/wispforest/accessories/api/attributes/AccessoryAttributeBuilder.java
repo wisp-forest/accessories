@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -21,7 +22,7 @@ import java.util.Map;
 public final class AccessoryAttributeBuilder {
 
     private final Map<ResourceLocation, AttributeModificationData> exclusiveAttributes = new HashMap<>();
-    private final Multimap<ResourceLocation, AttributeModificationData> stackedAttributes = ArrayListMultimap.create();
+    private final Multimap<ResourceLocation, AttributeModificationData> stackedAttributes = LinkedHashMultimap.create();
 
     private final SlotReference slotReference;
 
@@ -179,8 +180,16 @@ public final class AccessoryAttributeBuilder {
     @Override
     public boolean equals(Object obj) {
         if(!(obj instanceof AccessoryAttributeBuilder otherBuilder)) return false;
-        if(!this.stackedAttributes.equals(otherBuilder.stackedAttributes)) return false;
+        if(!areMapsEqual(this.stackedAttributes, otherBuilder.stackedAttributes)) return false;
 
         return this.exclusiveAttributes.equals(otherBuilder.exclusiveAttributes);
+    }
+
+    private static <K, V> boolean areMapsEqual(Multimap<K, V> multimap1, Multimap<K, V> multimap2) {
+        for (var entry : multimap1.asMap().entrySet()) {
+            if(entry.getValue().equals(multimap2.get(entry.getKey()))) return false;
+        }
+
+        return true;
     }
 }
