@@ -6,7 +6,7 @@ import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.format.bytebuf.ByteBufDeserializer;
 import io.wispforest.endec.format.bytebuf.ByteBufSerializer;
-import io.wispforest.endec.format.json.GsonSerializer;
+import io.wispforest.endec.format.gson.GsonSerializer;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.network.FriendlyByteBuf;
