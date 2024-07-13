@@ -4,6 +4,7 @@ import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
+import io.wispforest.accessories.pond.AccessoriesFrameBufferExtension;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
@@ -60,10 +61,10 @@ public class PostEffectBuffer {
     }
 
     public void draw(float[] color) {
-        var modulator = Minecraft.getInstance().gameRenderer.blitShader.COLOR_MODULATOR;
-        modulator.set(color[0], color[1], color[2], color[3]);
+        ((AccessoriesFrameBufferExtension)this.framebuffer).accessories$setUseHighlightShader(true);
+        AccessoriesClient.BLIT_SHADER.COLOR_MODULATOR.set(color[0], color[1], color[2], color[3]);
         this.draw(true);
-        modulator.set(1f, 1f, 1f, 1f);
+        ((AccessoriesFrameBufferExtension)this.framebuffer).accessories$setUseHighlightShader(false);
     }
 
     public RenderTarget buffer() {

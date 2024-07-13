@@ -1,5 +1,6 @@
 package io.wispforest.accessories.fabric.client;
 
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.AccessoriesClient;
@@ -20,6 +21,7 @@ import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
@@ -93,6 +95,8 @@ public class AccessoriesClientFabric implements ClientModInitializer {
                 }, entityType);
             }
         });
+
+        CoreShaderRegistrationCallback.EVENT.register(context -> context.register( Accessories.of("fish"), DefaultVertexFormat.BLIT_SCREEN, shaderInstance -> AccessoriesClient.BLIT_SHADER = shaderInstance));
     }
 
     @Environment(EnvType.CLIENT)
