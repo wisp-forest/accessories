@@ -102,15 +102,15 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                 var isSelected = containerSelected && selected.getContainerSlot() == i;
 
                 if (shouldUpdate) {
-                    var currentBrightness = brightnessMap.getOrDefault(entry.getKey(), 1f);
-                    var currentOpacity = opacityMap.getOrDefault(entry.getKey(), 1f);
+                    var currentBrightness = brightnessMap.getOrDefault(entry.getKey() + i, 1f);
+                    var currentOpacity = opacityMap.getOrDefault(entry.getKey() + i, 1f);
 
                     if (selected != null && !isSelected) {
-                        brightnessMap.put(entry.getKey(), Math.max(highlightOptions.unselectedOptions.darkenOptions.darkenedBrightness, currentBrightness - increment));
-                        opacityMap.put(entry.getKey(), Math.max(highlightOptions.unselectedOptions.darkenOptions.darkenedOpacity, currentOpacity - increment));
+                        brightnessMap.put(entry.getKey() + i, Math.max(highlightOptions.unselectedOptions.darkenOptions.darkenedBrightness, currentBrightness - increment));
+                        opacityMap.put(entry.getKey() + i, Math.max(highlightOptions.unselectedOptions.darkenOptions.darkenedOpacity, currentOpacity - increment));
                     } else {
-                        brightnessMap.put(entry.getKey(), Math.min(1, currentBrightness + increment));
-                        opacityMap.put(entry.getKey(), Math.min(1, currentOpacity + increment));
+                        brightnessMap.put(entry.getKey() + i, Math.min(1, currentBrightness + increment));
+                        opacityMap.put(entry.getKey() + i, Math.min(1, currentOpacity + increment));
                     }
                 }
 
@@ -171,8 +171,8 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                                 colorValues = new float[]{scale, scale, scale, 1};
                             }
                         } else if (highlightOptions.unselectedOptions.darkenOptions.darkenUnselected) {
-                            var darkness = brightnessMap.getOrDefault(entry.getKey(), 1f);
-                            colorValues = new float[]{darkness, darkness, darkness, opacityMap.getOrDefault(entry.getKey(), 1f)};
+                            var darkness = brightnessMap.getOrDefault(entry.getKey() + i, 1f);
+                            colorValues = new float[]{darkness, darkness, darkness, opacityMap.getOrDefault(entry.getKey() + i, 1f)};
                         }
 
                         if (colorValues != null) {
