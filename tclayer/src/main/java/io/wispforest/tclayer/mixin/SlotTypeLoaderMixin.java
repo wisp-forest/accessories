@@ -26,7 +26,7 @@ public abstract class SlotTypeLoaderMixin {
     @Unique private final ResourceLocation EMPTY_TEXTURE = ResourceLocation.fromNamespaceAndPath(TrinketConstants.MOD_ID, "gui/slots/empty.png");
 
     @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Ljava/util/HashMap;<init>()V", shift = At.Shift.AFTER, ordinal = 2))
-    private void injectTrinketSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "builders") HashMap<String, SlotTypeLoader.SlotBuilder> tempMap){
+    private void injectTrinketSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "builders") HashMap<String, SlotTypeLoader.SlotBuilder> builders){
         for (var groupsData : SlotLoader.INSTANCE.getSlots().entrySet()) {
             var groupData = groupsData.getValue();
             var slots = groupData.slots;
@@ -37,8 +37,12 @@ public abstract class SlotTypeLoaderMixin {
                 var accessoryType = WrappingTrinketsUtils.trinketsToAccessories_Slot(entry.getKey());
                 var slotData = entry.getValue();
 
-                if (tempMap.containsKey(accessoryType)) {
-                    builder = tempMap.get(accessoryType);
+                if (builders.containsKey(accessoryType)) {
+                    builder = builders.get(accessoryType);
+
+                    if(slotData.amount > ((SlotTypeLoaderBuilderAccessor) builder).getAmount()) {
+                        builder.amount(slotData.amount);
+                    }
                 } else {
                     builder = new SlotTypeLoader.SlotBuilder(accessoryType);
 
@@ -54,7 +58,7 @@ public abstract class SlotTypeLoaderMixin {
 
                     builder.alternativeTranslation("trinkets.slot." + WrappingTrinketsUtils.accessoriesToTrinkets_Group(groupsData.getKey()) + "." + entry.getKey());
 
-                    tempMap.put(accessoryType, builder);
+                    builders.put(accessoryType, builder);
                 }
 
                 for (String validatorPredicate : slotData.validatorPredicates) {

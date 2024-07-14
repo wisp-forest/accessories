@@ -68,7 +68,41 @@ processResources {
     }
 }
 
-loom {}
+loom {
+    runs {
+        client_mixin {
+            client()
+            ideConfigGenerated true
+            name = "[${project.archivesBaseName}] Client - (Mixin Swap)"
+            source sourceSets.main
+            vmArg "-Dmixin.debug.export=true"
+
+            try {
+                afterEvaluate {
+                    def mixinDep = this.configurations.compileClasspath
+                            .allDependencies
+                            .findAll { it.name == "sponge-mixin" }
+                            .first()
+
+                    if (mixin != null) {
+                        def mixinPath = this.configurations.compileClasspath.files(mixinDep).first().path;
+
+                        println(mixinPath)
+
+                        vmArg("-javaagent:\"${mixinPath}\"")
+
+                        println("[Info]: Mixin Hotswap Run should be working")
+                    } else {
+                        println("[Warning]: Unable to locate file path for Mixin Jar, HotSwap Run will not work!!!")
+                    }
+                }
+            } catch (Exception e) {
+                println("[Error]: MixinHotswap Run had a issue!")
+                e.printStackTrace()
+            }
+        }
+    }
+}
 
 publishing {
     publications {
