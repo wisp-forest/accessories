@@ -24,6 +24,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -39,7 +40,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
     private final Multimap<AttributeModifier.Operation, AttributeModifier> modifiersByOperation = HashMultimap.create();
 
-    private int baseSize;
+    @Nullable
+    private Integer baseSize;
 
     private List<Boolean> renderOptions;
 
@@ -63,7 +65,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         });
     }
 
-    public int getBaseSize(){
+    @Nullable
+    public Integer getBaseSize(){
         return this.baseSize;
     }
 
@@ -95,6 +98,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         if(this.capability.entity().level().isClientSide) return;
 
         var slotType = this.slotType();
+
+        if(this.baseSize == null) this.baseSize = 0;
 
         if (slotType != null && this.baseSize != slotType.amount()) {
             this.baseSize = slotType.amount();
@@ -318,7 +323,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
     public static final KeyedEndec<String> SLOT_NAME_KEY = Endec.STRING.keyed("SlotName", "UNKNOWN");
 
-    public static final KeyedEndec<Integer> BASE_SIZE_KEY = Endec.INT.keyed("BaseSize", 0);
+    public static final KeyedEndec<Integer> BASE_SIZE_KEY = Endec.INT.keyed("BaseSize", () -> null);
 
     public static final KeyedEndec<Integer> CURRENT_SIZE_KEY = Endec.INT.keyed("CurrentSize", 0);
 
@@ -341,7 +346,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
         carrier.put(SLOT_NAME_KEY, this.slotName);
 
-        carrier.put(BASE_SIZE_KEY, this.baseSize);
+        carrier.putIfNotNull(ctx, BASE_SIZE_KEY, this.baseSize);
 
         carrier.put(RENDER_OPTIONS_KEY, this.renderOptions);
 
@@ -393,11 +398,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
         this.slotName = carrier.get(SLOT_NAME_KEY);
 
-        var sizeFromTag = (carrier.has(BASE_SIZE_KEY)) ? carrier.get(BASE_SIZE_KEY) : baseSize;
-
-        var slotType = SlotTypeLoader.getSlotType(this.capability.entity().level(), this.slotName);
-
-        this.baseSize = slotType != null ? slotType.amount() : sizeFromTag;
+        this.baseSize = carrier.get(BASE_SIZE_KEY);
 
         this.renderOptions = Util.make(new ArrayList<>(baseSize), booleans -> {
             for (int i = 0; i < baseSize; i++) booleans.add(i, true);
