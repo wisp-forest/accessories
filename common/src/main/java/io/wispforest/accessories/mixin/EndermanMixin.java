@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(EnderMan.class)
 public abstract class EndermanMixin {
 
-    @Inject(method = "isLookingAtMe", at = @At("HEAD"))
+    @Inject(method = "isLookingAtMe", at = @At("HEAD"), cancellable = true)
     private void isEndermanMaskAccessory(Player player, CallbackInfoReturnable<Boolean> cir){
         var state = ExtraEventHandler.isEndermanMask(player, (EnderMan) (Object) this);
 
