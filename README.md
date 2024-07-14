@@ -3,8 +3,11 @@
   <br>
   αccessories
   <br>
-  <a href="https://modrinth.com/mod/owo-lib">
+  <a href="https://modrinth.com/mod/accessories/">
       <img src="https://img.shields.io/badge/-modrinth-gray?style=for-the-badge&labelColor=green&labelWidth=15&logo=appveyor&logoColor=white">
+  </a>
+  <a href="https://www.curseforge.com/minecraft/mc-mods/accessories">
+      <img src="https://img.shields.io/badge/-curseforge-gray?style=for-the-badge&labelColor=orange&labelWidth=15&logo=appveyor&logoColor=white">
   </a>
   <br>
   <a href="https://maven.wispforest.io/#/releases/io/wispforest/accessories-fabric">
