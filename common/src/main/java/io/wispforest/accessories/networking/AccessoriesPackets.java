@@ -1,6 +1,7 @@
 package io.wispforest.accessories.networking;
 
 import io.wispforest.accessories.networking.base.NetworkBuilderRegister;
+import io.wispforest.accessories.networking.client.AccessoryBreak;
 import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncData;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
@@ -20,6 +21,7 @@ public class AccessoriesPackets {
         register.registerBuilderS2C(SyncEntireContainer.class, SyncEntireContainer.ENDEC);
         register.registerBuilderS2C(SyncContainerData.class, SyncContainerData.ENDEC);
         register.registerBuilderS2C(SyncData.class, SyncData.ENDEC);
+        register.registerBuilderS2C(AccessoryBreak.class, AccessoryBreak.ENDEC);
 
         register.registerBuilderBiDi(MenuScroll.class, MenuScroll.ENDEC);
         register.registerBuilderBiDi(SyncHolderChange.class, SyncHolderChange.ENDEC);
