@@ -29,6 +29,28 @@ public class AccessoriesConfig implements ConfigData {
         public boolean forceNullRenderReplacement = false;
 
         public boolean disableEmptySlotScreenError = false;
+
+        @ConfigEntry.Gui.CollapsibleObject()
+        public HighlightOptions highlightOptions = new HighlightOptions();
+
+        public static class HighlightOptions {
+            public boolean highlightHovered = true;
+
+            @ConfigEntry.Gui.CollapsibleObject()
+            public UnselectedOptions unselectedOptions = new UnselectedOptions();
+
+            public static class UnselectedOptions {
+                public boolean renderUnselected = true;
+                @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+                public DarkenOptions darkenOptions = new DarkenOptions();
+
+                public static class DarkenOptions {
+                    public boolean darkenUnselected = true;
+                    public float darkenedBrightness = 0.5f;
+                    public float darkenedOpacity = 1f;
+                }
+            }
+        }
     }
 
     public List<SlotAmountModifier> modifiers = new ArrayList<>();

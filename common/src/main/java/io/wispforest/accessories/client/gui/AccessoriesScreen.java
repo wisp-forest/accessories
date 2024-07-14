@@ -3,6 +3,7 @@ package io.wispforest.accessories.client.gui;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotGroup;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
@@ -65,11 +66,10 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     private static final ResourceLocation UNUSED_SLOTS_HIDDEN = Accessories.of("widget/unused_slots_hidden");
     private static final ResourceLocation UNUSED_SLOTS_SHOWN = Accessories.of("widget/unused_slots_shown");
 
-    @Nullable
-    public static String HOVERED_SLOT_TYPE = null;
     public static Vector4i SCISSOR_BOX = new Vector4i();
-
-    public static boolean IS_RENDERING_TARGETS;
+    // are we currently rendering an entity in a screen
+    public static boolean IS_RENDERING_UI_ENTITY = false;
+    // are we currently rendering the entity that lines should be drawn to
     public static boolean IS_RENDERING_LINE_TARGET = false;
 
     public static boolean HOLD_LINE_INFO = false;
@@ -123,11 +123,11 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         return x;
     }
 
-    public int leftPos(){
+    public int leftPos() {
         return this.leftPos;
     }
 
-    public int topPos(){
+    public int topPos() {
         return this.topPos;
     }
 
@@ -159,7 +159,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             return true;
         }
 
-        if(Accessories.getConfig().clientData.showGroupTabs && this.menu.maxScrollableIndex() > 0) {
+        if (Accessories.getConfig().clientData.showGroupTabs && this.menu.maxScrollableIndex() > 0) {
             int x = getStartingPanelX();
             int y = this.topPos;
 
@@ -202,19 +202,15 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         var scissorStart = new Vector2i(leftPos + 26, topPos + 8);
         var scissorEnd = new Vector2i(leftPos + 26 + 124, topPos + 8 + 70);
-        var size = new Vector2i((scissorEnd.x - scissorStart.x)/2, scissorEnd.y - scissorStart.y);
+        var size = new Vector2i((scissorEnd.x - scissorStart.x) / 2, scissorEnd.y - scissorStart.y);
 
         SCISSOR_BOX.set(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y);
-
-        if (hoveredSlot instanceof AccessoriesInternalSlot slot) {
-            HOVERED_SLOT_TYPE = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
-        }
 
         // --
 
         HOLD_LINE_INFO = this.getMenu().areLinesShown() && Accessories.getConfig().clientData.showLineRendering;
 
-        IS_RENDERING_TARGETS = true;
+        IS_RENDERING_UI_ENTITY = true;
 
         IS_RENDERING_LINE_TARGET = true;
 
@@ -224,11 +220,12 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         renderEntityInInventoryFollowingMouseRotated(guiGraphics, new Vector2i(scissorStart).add(size.x, 0), size, scissorStart, scissorEnd, mouseX, mouseY, 180);
 
-        IS_RENDERING_TARGETS = false;
+        IS_RENDERING_UI_ENTITY = false;
 
         HOLD_LINE_INFO = false;
 
-        HOVERED_SLOT_TYPE = null;
+
+//        HOVERED_SLOT_TYPE = null;
 
         //--
 
@@ -344,7 +341,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         var pose = guiGraphics.pose();
 
-        if(Accessories.getConfig().clientData.showGroupTabs) {
+        if (Accessories.getConfig().clientData.showGroupTabs) {
             for (var entry : getGroups(x, y).entrySet()) {
                 var group = entry.getKey();
                 var pair = entry.getValue();
@@ -375,7 +372,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
 
-        if(Accessories.getConfig().clientData.showLineRendering && !this.accessoryLines.isEmpty()) {
+        if (Accessories.getConfig().clientData.showLineRendering && !this.accessoryLines.isEmpty()) {
             var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
             var lastPose = guiGraphics.pose().last();
 
@@ -396,7 +393,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                             .setOverlay(OverlayTexture.NO_OVERLAY)
                             //.uv2(LightTexture.FULL_BLOCK)
                             .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                            //.endVertex();
+                    //.endVertex();
 
                     var pos = new Vector3d(
                             Mth.lerp(delta - 0.05, line.first().x, line.second().x),
@@ -409,7 +406,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                             .setOverlay(OverlayTexture.NO_OVERLAY)
                             //.uv2(LightTexture.FULL_BLOCK)
                             .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                            //.endVertex();
+                    //.endVertex();
                 }
                 for (int i = 0; i < segments / 2; i++) {
                     var delta1 = ((i * 2) / segments + movement) % 1;
@@ -431,13 +428,13 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                             .setOverlay(OverlayTexture.NO_OVERLAY)
                             //.setUv2(LightTexture.FULL_BLOCK)
                             .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                            //.endVertex();
+                    //.endVertex();
                     buf.addVertex(pos2)
                             .setColor(255, 255, 255, 255)
                             .setOverlay(OverlayTexture.NO_OVERLAY)
                             //.setUv2(LightTexture.FULL_BLOCK)
                             .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                            //.endVertex();
+                    //.endVertex();
                 }
             }
 
@@ -471,19 +468,19 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                         .bounds(this.leftPos + 141, this.topPos + 9, 8, 8)
                         .tooltip(Tooltip.create(Component.translatable(Accessories.translation("back.screen"))))
                         .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-                            guiGraphics.blitSprite(SPRITES_8X8.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
+            guiGraphics.blitSprite(SPRITES_8X8.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
 
-                            var pose = guiGraphics.pose();
+            var pose = guiGraphics.pose();
 
-                            pose.pushPose();
-                            pose.translate(0.5, 0.5, 0.0);
+            pose.pushPose();
+            pose.translate(0.5, 0.5, 0.0);
 
-                            guiGraphics.blitSprite(BACk_ICON, x, y, width - 1, height - 1);
+            guiGraphics.blitSprite(BACk_ICON, x, y, width - 1, height - 1);
 
-                            pose.popPose();
+            pose.popPose();
 
-                            return true;
-                        });
+            return true;
+        });
 
         var cosmeticsOpen = this.menu.isCosmeticsOpen();
 
@@ -506,20 +503,20 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                         .tooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()))
                         .bounds(this.leftPos + 154, btnOffset, 12, 12)
                         .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-                            guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
-                            guiGraphics.blitSprite((this.menu.areUnusedSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
+            guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
+            guiGraphics.blitSprite((this.menu.areUnusedSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
 
-                            return true;
-                        });
+            return true;
+        });
 
         btnOffset += 15;
 
-        if(Accessories.getConfig().clientData.showUniqueRendering) {
+        if (Accessories.getConfig().clientData.showUniqueRendering) {
             var anyUniqueSlots = EntitySlotLoader.getEntitySlots(this.targetEntityDefaulted()).values()
                     .stream()
                     .anyMatch(slotType -> UniqueSlotHandling.isUniqueSlot(slotType.name()));
 
-            if(anyUniqueSlots) {
+            if (anyUniqueSlots) {
                 this.uniqueSlotsToggleButton = this.addRenderableWidget(
                         Button.builder(Component.empty(), (btn) -> {
                                     AccessoriesInternals.getNetworkHandler()
@@ -528,17 +525,17 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                                 .tooltip(uniqueSlotsToggleButton(this.menu.areUniqueSlotsShown()))
                                 .bounds(this.leftPos + 154, btnOffset, 12, 12)
                                 .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-                                    guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
-                                    guiGraphics.blitSprite((this.menu.areUniqueSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
+                    guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
+                    guiGraphics.blitSprite((this.menu.areUniqueSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
 
-                                    return true;
-                                });
+                    return true;
+                });
 
                 btnOffset += 15;
             }
         }
 
-        if(Accessories.getConfig().clientData.showLineRendering) {
+        if (Accessories.getConfig().clientData.showLineRendering) {
             this.linesToggleButton = this.addRenderableWidget(
                     Button.builder(Component.empty(), (btn) -> {
                                 AccessoriesInternals.getNetworkHandler()
@@ -547,11 +544,11 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                             .bounds(this.leftPos + 154, btnOffset, 12, 12)
                             //.bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6)
                             .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-                                guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
-                                guiGraphics.blitSprite((this.menu.areLinesShown() ? LINE_SHOWN : LINE_HIDDEN), x, y,  width, height);
+                guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
+                guiGraphics.blitSprite((this.menu.areLinesShown() ? LINE_SHOWN : LINE_HIDDEN), x, y, width, height);
 
-                                return true;
-                            });
+                return true;
+            });
         }
 
         int aceesoriesSlots = 0;
@@ -569,7 +566,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             aceesoriesSlots++;
         }
 
-        if(tabPageCount() > 1) {
+        if (tabPageCount() > 1) {
             this.tabDownButton = this.addRenderableWidget(
                     Button.builder(Component.literal("⬆"), button -> this.onTabPageChange(true))
                             .bounds(this.leftPos - 56, this.topPos - 11, 10, 10)
@@ -596,8 +593,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         if (this.scrollBarHeight % 2 == 0) this.scrollBarHeight++;
     }
 
-    private void onTabPageChange(boolean isDown){
-        if((this.currentTabPage <= 1 && isDown) || (this.currentTabPage > tabPageCount() && !isDown)) {
+    private void onTabPageChange(boolean isDown) {
+        if ((this.currentTabPage <= 1 && isDown) || (this.currentTabPage > tabPageCount() && !isDown)) {
             return;
         }
 
@@ -612,15 +609,15 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 //        this.tabDownButton.setMessage(Component.literal(lowerLabel));
 //        this.tabUpButton.setMessage(Component.literal(upperLabel));
 
-        if(this.currentTabPage <= 1) {
+        if (this.currentTabPage <= 1) {
             this.tabDownButton.active = false;
-        } else if(!this.tabDownButton.active) {
+        } else if (!this.tabDownButton.active) {
             this.tabDownButton.active = true;
         }
 
-        if(this.currentTabPage >= tabPageCount()) {
+        if (this.currentTabPage >= tabPageCount()) {
             this.tabUpButton.active = false;
-        } else if(!this.tabUpButton.active) {
+        } else if (!this.tabUpButton.active) {
             this.tabUpButton.active = true;
         }
     }
@@ -635,7 +632,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     }
 
     public void updateLinesButton() {
-        if(Accessories.getConfig().clientData.showLineRendering) {
+        if (Accessories.getConfig().clientData.showLineRendering) {
             this.linesToggleButton.setTooltip(linesToggleTooltip(this.menu.areLinesShown()));
         }
     }
@@ -657,12 +654,12 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         this.menu.reopenMenu();
     }
 
-    public void updateAccessoryToggleButtons(){
+    public void updateAccessoryToggleButtons() {
         for (var entry : cosmeticButtons.entrySet()) {
             var accessoriesSlot = entry.getKey();
             var btn = entry.getValue();
 
-            if(!accessoriesSlot.isActive()){
+            if (!accessoriesSlot.isActive()) {
                 btn.active = false;
                 btn.visible = false;
             } else {
@@ -726,7 +723,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             }
         }
 
-        if(Accessories.getConfig().clientData.showGroupTabs) {
+        if (Accessories.getConfig().clientData.showGroupTabs) {
             int panelX = getStartingPanelX();
             int panelY = this.topPos;
 
@@ -737,7 +734,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 var group = entry.getKey();
 
                 tooltipData.add(Component.translatable(group.translation()));
-                if(UniqueSlotHandling.isUniqueGroup(group.name())) tooltipData.add(Component.literal(group.name()).withStyle(ChatFormatting.BLUE, ChatFormatting.ITALIC));
+                if (UniqueSlotHandling.isUniqueGroup(group.name())) tooltipData.add(Component.literal(group.name()).withStyle(ChatFormatting.BLUE, ChatFormatting.ITALIC));
 
                 guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
 
@@ -766,7 +763,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         boolean insideGroupPanel = false;
 
-        if(Accessories.getConfig().clientData.showGroupTabs && this.menu.maxScrollableIndex() > 0) {
+        if (Accessories.getConfig().clientData.showGroupTabs && this.menu.maxScrollableIndex() > 0) {
             for (var value : this.getGroups(sidePanelX, sidePanelY).values()) {
                 if (value.isInBounds((int) Math.round(mouseX), (int) Math.round(mouseY))) {
                     insideGroupPanel = true;
@@ -785,16 +782,16 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     }
 
     // MAX 9
-    private Map<SlotGroup, SlotGroupData> getGroups(int x, int y){
+    private Map<SlotGroup, SlotGroupData> getGroups(int x, int y) {
         var groups = this.getMenu().validGroups().stream()
                 .sorted(Comparator.comparingInt(SlotGroup::order).reversed())
                 .toList();
 
-        if(tabPageCount() > 1) {
+        if (tabPageCount() > 1) {
             var lowerBound = (this.currentTabPage - 1) * 9;
             var upperBound = lowerBound + 9;
 
-            if(upperBound > groups.size()) upperBound = groups.size();
+            if (upperBound > groups.size()) upperBound = groups.size();
 
             groups = groups.subList(lowerBound, upperBound);
         }
@@ -811,7 +808,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         for (var slotType : EntitySlotLoader.getEntitySlots(targetEntity).values()) {
             var usedSlots = this.getMenu().usedSlots();
-            if(usedSlots != null && !usedSlots.contains(slotType)) continue;
+            if (usedSlots != null && !usedSlots.contains(slotType)) continue;
 
             slotToSize.put(slotType.name(), containers.get(slotType.name()).getAccessories().getContainerSize());
         }
@@ -827,14 +824,14 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                     .mapToInt(Map.Entry::getValue)
                     .sum();
 
-            if(groupSize <= 0) continue;
+            if (groupSize <= 0) continue;
 
             var groupMinIndex = currentIndexOffset;
             var groupMaxIndex = groupMinIndex + groupSize - 1;
 
             var groupRange = Range.between(groupMinIndex, groupMaxIndex, Integer::compareTo);
 
-            if(groupRange.isOverlappedBy(scrollRange)) {
+            if (groupRange.isOverlappedBy(scrollRange)) {
                 selectedGroup.add(group.name());
             }
 
@@ -856,7 +853,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         var groupValues = new HashMap<SlotGroup, SlotGroupData>();
 
         for (var group : groups) {
-            if((yOffset + height) > maxHeight) break;
+            if ((yOffset + height) > maxHeight) break;
 
             var selected = selectedGroup.contains(group.name());
 
@@ -864,7 +861,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
             var index = groupToIndex.get(group);
 
-            if(index == null) continue;
+            if (index == null) continue;
 
             groupValues.put(group, new SlotGroupData(new Vector4i(tabX + xOffset, tabY + yOffset, width - xOffset, height), selected, index));
 
@@ -878,8 +875,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         return new SlotGroupImpl(group.name() + 1, group.order(), group.slots(), group.icon());
     }
 
-    private record SlotGroupData(Vector4i dimensions, boolean isSelected, int startingIndex){
-        private boolean isInBounds(int x, int y){
+    private record SlotGroupData(Vector4i dimensions, boolean isSelected, int startingIndex) {
+        private boolean isInBounds(int x, int y) {
             return (x > dimensions.x) && (y > dimensions.y) && (x < dimensions.x + dimensions.z) && (y < dimensions.y + dimensions.w);
         }
     }
@@ -894,9 +891,9 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         float f = (float) (pos.x + pos.x + size.x) / 2.0F;
         float g = (float) (pos.y + pos.y + size.y) / 2.0F;
         guiGraphics.enableScissor(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y);
-        float h = (float) Math.atan(((scissorStart.x + scissorStart.x + size.x )/2f - mouseX) / 40.0F);
-        float i = (float) Math.atan(((scissorStart.y + scissorStart.y + size.y )/2f - mouseY) / 40.0F);
-        Quaternionf quaternionf = (new Quaternionf()).rotateZ(3.1415927F).rotateY((float) (rotation * (Math.PI/180)));
+        float h = (float) Math.atan(((scissorStart.x + scissorStart.x + size.x) / 2f - mouseX) / 40.0F);
+        float i = (float) Math.atan(((scissorStart.y + scissorStart.y + size.y) / 2f - mouseY) / 40.0F);
+        Quaternionf quaternionf = (new Quaternionf()).rotateZ(3.1415927F).rotateY((float) (rotation * (Math.PI / 180)));
         Quaternionf quaternionf2 = (new Quaternionf()).rotateX(i * 20.0F * 0.017453292F);
         quaternionf.mul(quaternionf2);
         float j = entity.yBodyRot;
@@ -917,5 +914,9 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         entity.yHeadRotO = m;
         entity.yHeadRot = n;
         guiGraphics.disableScissor();
+    }
+
+    public Slot getHoveredSlot() {
+        return this.hoveredSlot;
     }
 }

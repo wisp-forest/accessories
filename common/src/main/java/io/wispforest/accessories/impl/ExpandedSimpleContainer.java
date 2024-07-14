@@ -2,7 +2,6 @@ package io.wispforest.accessories.impl;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.api.slot.SlotReference;
 import it.unimi.dsi.fastutil.ints.Int2BooleanArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
 import net.fabricmc.loader.api.FabricLoader;
@@ -13,13 +12,9 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.Iterator;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.IntFunction;
 
 /**
  * An implementation of SimpleContainer with easy utilities for iterating over the stacks
@@ -71,7 +66,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         return bl;
     }
 
-    public boolean isSlotFlaged(int slot){
+    public boolean isSlotFlagged(int slot){
         var bl = setFlags.getOrDefault(slot, false);
 
         if(bl) setFlags.put(slot, false);
@@ -227,4 +222,3 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         }
     }
 }
-

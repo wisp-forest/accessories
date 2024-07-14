@@ -259,7 +259,7 @@ public class AccessoriesEventHandler {
                         /*
                          * TODO: Dose item check need to exist anymore?
                          */
-                        if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlaged(i)) {
+                        if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlagged(i)) {
                             AccessoriesAPI.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);
                             AccessoriesAPI.getOrDefaultAccessory(currentStack.getItem()).onEquip(currentStack, slotReference);
 
