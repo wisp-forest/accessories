@@ -69,7 +69,7 @@ public class AccessoryNestUtils {
         }
     }
 
-    public static NestedSlotReferenceImpl create(SlotReference reference, int innerIndex) {
+    public static SlotReference create(SlotReference reference, int innerIndex) {
         var innerSlotIndices = new ArrayList<Integer>();
 
         if(reference instanceof NestedSlotReferenceImpl nestedSlotReference) {

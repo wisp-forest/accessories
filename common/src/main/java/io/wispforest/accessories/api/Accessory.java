@@ -29,44 +29,42 @@ import java.util.List;
 public interface Accessory {
 
     /**
-     * Called every tick on every tick of the linked {@link LivingEntity} on both the Client and Server
+     * Called on every tick of the wearing {@link LivingEntity} on both client and server.
      *
-     * @param stack The Stack being ticked
-     * @param reference The reference to the targeted {@link LivingEntity}, slot and index
+     * @param stack the stack being ticked
+     * @param reference the slot the accessory is in
      */
     default void tick(ItemStack stack, SlotReference reference){}
 
     /**
-     * Called on Equip of the given Stack
+     * Called when the accessory is equipped
      *
-     * @param stack The Stack being equipped
-     * @param reference The reference to the targeted {@link LivingEntity}, slot and index
+     * @param stack the stack being equipped
+     * @param reference the slot the accessory is in
      */
     default void onEquip(ItemStack stack, SlotReference reference){}
 
     /**
-     * Called on Unequipped of the given Stack
+     * Called when the accessory is unequipped
      *
-     * @param stack The Stack being unequipped
-     * @param reference The reference to the targeted {@link LivingEntity}, slot and index
+     * @param stack the stack being unequipped
+     * @param reference the slot the accessory is in
      */
     default void onUnequip(ItemStack stack, SlotReference reference){}
 
     /**
-     * Returns whether the following stack can be equipped
-     *
-     * @param stack The Stack attempting to be equipped
-     * @param reference The reference to the targeted {@link LivingEntity}, slot and index
+     * @param stack the stack to be equipped
+     * @param reference the slot the accessory is in
+     * @return whether the given stack can be equipped
      */
     default boolean canEquip(ItemStack stack, SlotReference reference){
         return true;
     }
 
     /**
-     * Returns whether the following stack can be unequipped
-     *
-     * @param stack The Stack attempting to be unequipped
-     * @param reference The reference to the targeted {@link LivingEntity}, slot and index
+     * @param stack the stack to be unequipped
+     * @param reference the slot the accessory is in
+     * @return whether the given stack can be unequipped
      */
     default boolean canUnequip(ItemStack stack, SlotReference reference){
         if(EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) {

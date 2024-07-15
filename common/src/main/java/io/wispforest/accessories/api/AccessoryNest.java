@@ -24,12 +24,12 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Implementation of {@link Accessory} declaring such as an Accessory that holds nested {@link Accessory} in some manor
+ * An {@link Accessory} that contains and delegates to other accessories in some way
  */
 public interface AccessoryNest extends Accessory {
 
     /**
-     * @Return Gets all the inner {@link ItemStack}'s from the passed holderStack
+     * @return all inner accessory stacks
      */
     default List<ItemStack> getInnerStacks(ItemStack holderStack) {
         var data = holderStack.get(AccessoriesDataComponents.NESTED_ACCESSORIES);
