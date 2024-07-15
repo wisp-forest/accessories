@@ -102,7 +102,7 @@ public class AccessoriesAPI {
      * default or if the given stack has valid slots which it can be equipped
      */
     public static boolean isValidAccessory(ItemStack stack, Level level){
-        return getAccessory(stack) != null || (getStackSlotTypes(level, stack).size() > 0);
+        return getAccessory(stack) != null || !getStackSlotTypes(level, stack).isEmpty();
     }
 
     //--
