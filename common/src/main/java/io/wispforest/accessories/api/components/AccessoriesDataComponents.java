@@ -42,6 +42,12 @@ public class AccessoriesDataComponents {
                     .cacheEncoding()
     );
 
+    public static final DataComponentType<AccessoryStackSizeComponent> STACK_SIZE = register(Accessories.of("stack_size"),
+            builder -> builder.persistent(CodecUtils.ofEndec(AccessoryStackSizeComponent.ENDEC))
+                    .networkSynchronized(CodecUtils.packetCodec(AccessoryStackSizeComponent.ENDEC))
+                    .cacheEncoding()
+    );
+
     private static <T> DataComponentType<T> register(ResourceLocation string, UnaryOperator<DataComponentType.Builder<T>> unaryOperator) {
         return Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, string, ((DataComponentType.Builder)unaryOperator.apply(DataComponentType.builder())).build());
     }

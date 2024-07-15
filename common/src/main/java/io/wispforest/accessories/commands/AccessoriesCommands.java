@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -14,6 +15,7 @@ import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.components.AccessorySlotValidationComponent;
+import io.wispforest.accessories.api.components.AccessoryStackSizeComponent;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -101,6 +103,39 @@ public class AccessoriesCommands {
                                                                         .then(Commands.argument("slot", SlotArgumentType.INSTANCE)
                                                                                 .executes(ctx -> adjustSlotValidationOnStack(3, ctx.getSource().getPlayerOrException(), ctx))
                                                                         ))
+                                        )
+                        )
+                        .then(
+                                Commands.literal("stack-sizing")
+                                        .then(
+                                                Commands.literal("useStackSize")
+                                                        .then(
+                                                                Commands.argument("value", BoolArgumentType.bool())
+                                                                        .executes(ctx -> {
+                                                                            var player = ctx.getSource().getPlayerOrException();
+
+                                                                            var bl = ctx.getArgument("value", Boolean.class);
+
+                                                                            player.getMainHandItem().update(AccessoriesDataComponents.STACK_SIZE,
+                                                                                    AccessoryStackSizeComponent.DEFAULT,
+                                                                                    component -> component.useStackSize(bl));
+
+                                                                            return 1;
+                                                                        })
+                                                        )
+                                        ).then(
+                                                Commands.argument("value", IntegerArgumentType.integer())
+                                                        .executes(ctx -> {
+                                                            var player = ctx.getSource().getPlayerOrException();
+
+                                                            var size = ctx.getArgument("value", Integer.class);
+
+                                                            player.getMainHandItem().update(AccessoriesDataComponents.STACK_SIZE,
+                                                                    AccessoryStackSizeComponent.DEFAULT,
+                                                                    component -> component.sizeOverride(size));
+
+                                                            return 1;
+                                                        })
                                         )
                         )
                         .then(

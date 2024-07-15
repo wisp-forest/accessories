@@ -4,6 +4,7 @@ import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.world.entity.LivingEntity;
@@ -58,6 +59,11 @@ public interface AccessoriesCapability {
     @Nullable
     default AccessoriesContainer getContainer(SlotType slotType){
         return getContainers().get(slotType.name());
+    }
+
+    @Nullable
+    default AccessoriesContainer getContainer(SlotTypeReference reference){
+        return getContainers().get(reference.slotName());
     }
 
     void updateContainers();

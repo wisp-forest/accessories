@@ -7,6 +7,7 @@ import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
+import io.wispforest.accessories.api.components.AccessoryStackSizeComponent;
 import io.wispforest.accessories.api.events.AdjustAttributeModifierCallback;
 import io.wispforest.accessories.api.events.CanEquipCallback;
 import io.wispforest.accessories.api.events.CanUnequipCallback;
@@ -44,7 +45,11 @@ public class AccessoriesAPI {
     public static final Accessory DEFAULT = new Accessory() {
         @Override
         public int maxStackSize(ItemStack stack) {
-            return 1;
+            var data = stack.getOrDefault(AccessoriesDataComponents.STACK_SIZE, AccessoryStackSizeComponent.DEFAULT);
+
+            if(data.useStackSize()) return stack.getMaxStackSize();
+
+            return Math.min(Math.max(data.sizeOverride(), 1), stack.getMaxStackSize());
         }
     };
 
