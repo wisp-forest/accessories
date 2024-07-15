@@ -8,6 +8,7 @@ import io.wispforest.accessories.api.AccessoryNest;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -44,6 +45,10 @@ public sealed interface SlotReference permits NestedSlotReferenceImpl, SlotRefer
     int slot();
 
     //--
+
+    default String createSlotPath() {
+        return this.slotName().replace(":", "-") + "/" + this.slot();
+    }
 
     @Nullable
     default SlotType type(){

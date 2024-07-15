@@ -155,26 +155,14 @@ public final class AccessoryAttributeBuilder {
 
     // slotPath          = {slot_name}/{slot_index}[{nested_layer_info}]
     // nested_layer_info = /nest_{layer_index}_{slot_index}
+    @Deprecated
     public static String createSlotPath(SlotReference ref) {
-        var slotPath = new StringBuilder(ref.slotName().replace(":", "-") + "/" + ref.slot());
-
-        if(ref instanceof NestedSlotReferenceImpl nestedRef) {
-            var innerSlotIndices = nestedRef.innerSlotIndices();
-
-            for (int i = 0; i < nestedRef.innerSlotIndices().size(); i++) {
-                var innerIndex = innerSlotIndices.get(i);
-                slotPath.append("/nest_")
-                        .append(i)
-                        .append("_")
-                        .append(innerIndex);
-            }
-        }
-
-        return slotPath.toString();
+        return ref.createSlotPath();
     }
 
+    @Deprecated
     public static String createSlotPath(String slotname, int slot) {
-        return slotname + "/" + slot;
+        return slotname.replace(":", "-") + "/" + slot;
     }
 
     @Override

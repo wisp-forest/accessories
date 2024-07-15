@@ -18,6 +18,23 @@ import java.util.List;
  */
 public record NestedSlotReferenceImpl(LivingEntity entity, String slotName, int initialHolderSlot, List<Integer> innerSlotIndices) implements SlotReference {
 
+    public String createSlotPath() {
+        var slotPath = new StringBuilder(SlotReference.super.createSlotPath());
+
+        var innerSlotIndices = this.innerSlotIndices();
+
+        for (int i = 0; i < innerSlotIndices.size(); i++) {
+            var innerIndex = innerSlotIndices.get(i);
+            slotPath.append("/nest_")
+                    .append(i)
+                    .append("_")
+                    .append(innerIndex);
+        }
+
+        return slotPath.toString();
+    }
+
+
     @Override
     public int slot() {
         return initialHolderSlot();
