@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.*;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import it.unimi.dsi.fastutil.Pair;
@@ -103,7 +104,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
             }, slotInfo -> {
                 var slotType = slotInfo.right();
 
-                if(!UniqueSlotHandling.isStrict(slotInfo.left()) && slotType != null) {
+                if(!ExtraSlotTypeProperties.getProperty(slotInfo.left(), false).strictMode() && slotType != null) {
                     slots.put(slotType.name(), slotType);
                 } else if (slotType == null) {
                     LOGGER.warn("Unable to locate a given slot to add to a given entity('s) as such was not registered: [Slot: {}]", slotInfo.first());

@@ -117,7 +117,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
             slotBuilder.order(this.<Integer>safeHelper(GsonHelper::getAsInt, jsonObject, "order", location));
 
-            if(UniqueSlotHandling.allowResizing(slotBuilder.name)){
+            if(ExtraSlotTypeProperties.getProperty(slotBuilder.name, false).allowResizing()){
                 var amount = this.safeHelper(GsonHelper::getAsInt, jsonObject, "amount", location);
 
                 if(amount != null) {
@@ -141,7 +141,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
                 }
             }
 
-            if(UniqueSlotHandling.isStrict(slotBuilder.name)) {
+            if(ExtraSlotTypeProperties.getProperty(slotBuilder.name, false).strictMode()) {
                 var validators = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "validators", new JsonArray(), location);
 
                 decodeJsonArray(validators, "validator", location, element -> ResourceLocation.tryParse(element.getAsString()), slotBuilder::validator);

@@ -6,6 +6,7 @@ import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
@@ -111,7 +112,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
         double size;
 
-        if(UniqueSlotHandling.allowResizing(this.slotName)) {
+        if(ExtraSlotTypeProperties.getProperty(this.slotName, false).allowResizing()) {
             for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADD_VALUE)) {
                 baseSize += modifier.amount();
             }

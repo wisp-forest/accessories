@@ -56,7 +56,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
     public final List<SlotGroup> getGroups(boolean isClientSide, boolean filterUniqueGroups){
         var groups = getGroupMap(isClientSide).values();
 
-        if(filterUniqueGroups) groups = groups.stream().filter(group -> !UniqueSlotHandling.isUniqueGroup(group.name())).toList();
+        if(filterUniqueGroups) groups = groups.stream().filter(group -> !UniqueSlotHandling.isUniqueGroup(group.name(), isClientSide)).toList();
 
         return List.copyOf(groups);
     }
@@ -83,6 +83,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
         return groups.get("any");
     }
 
+    @ApiStatus.Internal
     public final void setGroups(Map<String, SlotGroup> groups){
         this.client = ImmutableMap.copyOf(groups);
     }
@@ -180,7 +181,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
         private final String name;
 
         private Integer order = null;
-        private final Set<String> slots = new HashSet<>();
+        private final Set<String> slots = new LinkedHashSet<>();
 
         private ResourceLocation iconLocation = SlotGroup.UNKNOWN;
 

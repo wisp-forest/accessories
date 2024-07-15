@@ -1,7 +1,9 @@
 package io.wispforest.accessories.networking.client;
 
+import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -20,12 +22,14 @@ import net.minecraft.world.entity.player.Player;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>> entitySlots, Set<SlotGroup> slotGroups) implements HandledPacketPayload {
+public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>> entitySlots, Set<SlotGroup> slotGroups, Set<String> uniqueGroups, Map<String, ExtraSlotTypeProperties> uniqueExtraProperties) implements HandledPacketPayload {
 
     public static Endec<SyncData> ENDEC = StructEndecBuilder.of(
             SlotTypeImpl.ENDEC.listOf().fieldOf("slotTypes", SyncData::slotTypes),
             Endec.map(MinecraftEndecs.ofRegistry(Registries.ENTITY_TYPE), Endec.STRING.setOf()).fieldOf("entitySlots", SyncData::entitySlots),
             SlotGroupImpl.ENDEC.setOf().fieldOf("slotGroups", SyncData::slotGroups),
+            Endec.STRING.setOf().fieldOf("uniqueGroups", SyncData::uniqueGroups),
+            ExtraSlotTypeProperties.ENDEC.mapOf().fieldOf("uniqueExtraProperties", SyncData::uniqueExtraProperties),
             SyncData::new
     );
 
@@ -44,7 +48,7 @@ public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>>
 
         slotGroups.addAll(SlotGroupLoader.INSTANCE.getGroups(false, false));
 
-        return new SyncData(List.copyOf(allSlotTypes.values()), entitySlots, slotGroups);
+        return new SyncData(List.copyOf(allSlotTypes.values()), entitySlots, slotGroups, UniqueSlotHandling.getGroups(false), ExtraSlotTypeProperties.getPropertiess(false));
     }
 
     @Environment(EnvType.CLIENT)
@@ -52,7 +56,7 @@ public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>>
     public void handle(Player player) {
         Map<String, SlotType> slotTypes = new HashMap<>();
 
-        for (SlotType slotType : this.slotTypes) {
+        for (SlotType slotType : this.slotTypes()) {
             slotTypes.put(slotType.name(), slotType);
         }
 
@@ -60,7 +64,7 @@ public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>>
 
         Map<EntityType<?>, Map<String, SlotType>> entitySlotTypes = new HashMap<>();
 
-        for (var entry : this.entitySlots.entrySet()) {
+        for (var entry : this.entitySlots().entrySet()) {
             var map = entry.getValue().stream()
                     .map(slotTypes::get)
                     .collect(Collectors.toUnmodifiableMap(SlotType::name, slotType -> slotType));
@@ -70,9 +74,12 @@ public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>>
 
         EntitySlotLoader.INSTANCE.setEntitySlotData(entitySlotTypes);
 
-        var slotGroups = this.slotGroups.stream()
+        var slotGroups = this.slotGroups().stream()
                 .collect(Collectors.toUnmodifiableMap(SlotGroup::name, group -> group));
 
         SlotGroupLoader.INSTANCE.setGroups(slotGroups);
+
+        UniqueSlotHandling.setClientGroups(this.uniqueGroups());
+        ExtraSlotTypeProperties.setClientPropertyMap(this.uniqueExtraProperties());
     }
 }

@@ -4,8 +4,10 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
+import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.EdmUtils;
 import io.wispforest.accessories.endec.RegistriesAttribute;
@@ -244,7 +246,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
                 boolean isValid = AccessoriesAPI.canInsertIntoSlot(stack, container.createReference(0));
 
-                if (!isValid) continue;
+                if (!isValid || !ExtraSlotTypeProperties.getProperty(container.getSlotName(), entity.level().isClientSide).allowEquipFromUse()) continue;
 
                 if (allowSwapping) validContainers.put(container.getSlotName(), container);
 
