@@ -16,6 +16,7 @@ import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.components.AccessorySlotValidationComponent;
 import io.wispforest.accessories.api.components.AccessoryStackSizeComponent;
+import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -64,15 +65,13 @@ public class AccessoriesCommands {
                                         .then(
                                                 Commands.argument("entity", EntityArgument.entity())
                                                         .executes((ctx) -> {
-                                                            var player = ctx.getSource().getPlayerOrException();
-
-                                                            Accessories.openAccessoriesMenu(player, getOrThrowLivingEntity(ctx));
+                                                            Accessories.openAccessoriesMenu(ctx.getSource().getPlayerOrException(), AccessoriesMenuVariant.DEFAULT, getOrThrowLivingEntity(ctx));
 
                                                             return 1;
                                                         })
                                         )
                                         .executes(ctx -> {
-                                            return Accessories.attemptOpenScreenPlayer(ctx.getSource().getPlayerOrException())
+                                            return Accessories.attemptOpenScreenPlayer(ctx.getSource().getPlayerOrException(), AccessoriesMenuVariant.DEFAULT)
                                                     ? 1
                                                     : 0;
                                         })

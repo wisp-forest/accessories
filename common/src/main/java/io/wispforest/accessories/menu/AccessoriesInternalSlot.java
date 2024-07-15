@@ -1,10 +1,8 @@
-package io.wispforest.accessories.client.gui;
+package io.wispforest.accessories.menu;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -17,17 +15,14 @@ import java.util.function.Function;
 
 public class AccessoriesInternalSlot extends AccessoriesBasedSlot {
 
-    public final int menuIndex;
-
     public final boolean isCosmetic;
+    public boolean useCosmeticIcon = true;
 
     private Function<AccessoriesInternalSlot, Boolean> isActive = (slot) -> true;
     private Function<AccessoriesInternalSlot, Boolean> isAccessible = (slot) -> true;
 
-    public AccessoriesInternalSlot(int menuIndex, AccessoriesContainer container, boolean isCosmetic, int slot, int x, int y) {
+    public AccessoriesInternalSlot(AccessoriesContainer container, boolean isCosmetic, int slot, int x, int y) {
         super(container, isCosmetic ? container.getCosmeticAccessories() : container.getAccessories(), slot, x, y);
-
-        this.menuIndex = menuIndex;
 
         this.isCosmetic = isCosmetic;
     }
@@ -44,9 +39,15 @@ public class AccessoriesInternalSlot extends AccessoriesBasedSlot {
         return this;
     }
 
+    public AccessoriesInternalSlot useCosmeticIcon(boolean value) {
+        this.useCosmeticIcon = value;
+
+        return this;
+    }
+
     @Override
     protected ResourceLocation icon() {
-        return (this.isCosmetic) ? Accessories.of("gui/slot/cosmetic") : super.icon();
+        return (this.isCosmetic && useCosmeticIcon) ? Accessories.of("gui/slot/cosmetic") : super.icon();
     }
 
     public List<Component> getTooltipData() {
@@ -98,6 +99,6 @@ public class AccessoriesInternalSlot extends AccessoriesBasedSlot {
 
     @Override
     public boolean isActive() {
-        return this.isActive.apply(this);
+        return this.isActive.apply(this) && super.isActive();
     }
 }

@@ -10,6 +10,7 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
+import io.wispforest.accessories.menu.SlotTypeAccessible;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -28,7 +29,7 @@ import java.util.List;
  * the passed entity and type can be found. Primarily used with internal screen and
  * with the {@link AccessoriesSlotGenerator} for unique slots API
  */
-public class AccessoriesBasedSlot extends Slot {
+public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -74,6 +75,16 @@ public class AccessoriesBasedSlot extends Slot {
         }
 
         return new AccessoriesBasedSlot(container, container.getAccessories(), slot, x, y);
+    }
+
+    @Override
+    public String slotName() {
+        return accessoriesContainer.getSlotName();
+    }
+
+    @Override
+    public SlotType slotType() {
+        return accessoriesContainer.slotType();
     }
 
     @Override

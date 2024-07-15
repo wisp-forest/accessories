@@ -1,10 +1,11 @@
 package io.wispforest.accessories;
 
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
-import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.criteria.AccessoryChangedCriterion;
 import io.wispforest.accessories.impl.AccessoriesTags;
+import io.wispforest.accessories.menu.AccessoriesMenuVariant;
+import io.wispforest.accessories.menu.ArmorSlotTypes;
 import io.wispforest.accessories.mixin.CriteriaTriggersAccessor;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigHolder;
@@ -16,7 +17,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.Nullable;
@@ -39,36 +39,34 @@ public class Accessories {
         return CONFIG_HOLDER.getConfig();
     }
 
-    public static boolean attemptOpenScreenPlayer(ServerPlayer player) {
+    public static boolean attemptOpenScreenPlayer(ServerPlayer player, AccessoriesMenuVariant variant) {
         var result = ProjectileUtil.getHitResultOnViewVector(player, e -> e instanceof LivingEntity, player.entityInteractionRange());
 
         if(!(result instanceof EntityHitResult entityHitResult)) return false;
 
-        Accessories.openAccessoriesMenu(player, (LivingEntity) entityHitResult.getEntity());
+        Accessories.openAccessoriesMenu(player, variant, (LivingEntity) entityHitResult.getEntity());
 
         return true;
     }
 
-    public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity) {
-        openAccessoriesMenu(player, targetEntity, null);
+    public static void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity) {
+        openAccessoriesMenu(player, variant, targetEntity, null);
     }
 
-    public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
+    public static void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         if(targetEntity != null) {
             var result = AllowEntityModificationCallback.EVENT.invoker().allowModifications(targetEntity, player, null);
 
             if(!result.orElse(false)) return;
         }
 
-        AccessoriesInternals.openAccessoriesMenu(player, targetEntity, carriedStack);
+        AccessoriesInternals.openAccessoriesMenu(player, variant, targetEntity, carriedStack);
     }
 
     //--
 
     @Nullable
     public static ConfigHolder<AccessoriesConfig> CONFIG_HOLDER = null;
-
-    public static MenuType<AccessoriesMenu> ACCESSORIES_MENU_TYPE;
 
     public static AccessoryChangedCriterion ACCESSORY_EQUIPPED;
     public static AccessoryChangedCriterion ACCESSORY_UNEQUIPPED;
@@ -87,15 +85,13 @@ public class Accessories {
 
             return TriState.DEFAULT;
         });
+
+        ArmorSlotTypes.INSTANCE.init();
     }
 
     public static void registerCriteria(){
         ACCESSORY_EQUIPPED = CriteriaTriggersAccessor.accessories$callRegister("accessories:equip_accessory", new AccessoryChangedCriterion());
         ACCESSORY_UNEQUIPPED = CriteriaTriggersAccessor.accessories$callRegister("accessories:unequip_accessory", new AccessoryChangedCriterion());
-    }
-
-    public static void registerMenuType() {
-        ACCESSORIES_MENU_TYPE = AccessoriesInternals.registerMenuType(of("accessories_menu"), AccessoriesMenu::of);
     }
 
 }

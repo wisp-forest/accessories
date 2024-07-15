@@ -1,18 +1,15 @@
-package io.wispforest.accessories.client;
+package io.wispforest.accessories.menu.variants;
 
 import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.client.gui.AccessoriesInternalSlot;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.menu.*;
 import io.wispforest.accessories.mixin.SlotAccessor;
-import io.wispforest.accessories.networking.server.ScreenOpen;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -23,28 +20,14 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ArmorSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public final class AccessoriesMenu extends AbstractContainerMenu {
+public final class AccessoriesMenu extends AccessoriesMenuBase {
+
     public static final ResourceLocation BLOCK_ATLAS = ResourceLocation.withDefaultNamespace("textures/atlas/blocks.png");
-
     public static final ResourceLocation EMPTY_ARMOR_SLOT_SHIELD = ResourceLocation.withDefaultNamespace("item/empty_armor_slot_shield");
-
-    private static final Map<EquipmentSlot, ResourceLocation> TEXTURE_EMPTY_SLOTS = Map.of(
-            EquipmentSlot.FEET, ResourceLocation.withDefaultNamespace("item/empty_armor_slot_boots"),
-            EquipmentSlot.LEGS, ResourceLocation.withDefaultNamespace("item/empty_armor_slot_leggings"),
-            EquipmentSlot.CHEST, ResourceLocation.withDefaultNamespace("item/empty_armor_slot_chestplate"),
-            EquipmentSlot.HEAD, ResourceLocation.withDefaultNamespace("item/empty_armor_slot_helmet"));
-
-    private static final EquipmentSlot[] SLOT_IDS = new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
-
-    private final Player owner;
-
-    @Nullable
-    private final LivingEntity targetEntity;
 
     public int totalSlots = 0;
     public boolean overMaxVisibleSlots = false;
@@ -67,11 +50,10 @@ public final class AccessoriesMenu extends AbstractContainerMenu {
     @Nullable
     private Set<SlotType> usedSlots = null;
 
-    public AccessoriesMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
-        super(Accessories.ACCESSORIES_MENU_TYPE, containerId);
+    private Map<AccessoriesInternalSlot, Integer> slotToPageIndex = new HashMap<>();
 
-        this.owner = inventory.player;
-        this.targetEntity = targetEntity;
+    public AccessoriesMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
+        super(AccessoriesMenuTypes.BASE_MENU, containerId, inventory, targetEntity);
 
         var accessoryTarget = targetEntity != null ? targetEntity : owner;
 
@@ -82,8 +64,8 @@ public final class AccessoriesMenu extends AbstractContainerMenu {
         //-- Vanilla Slot Setup
 
         for (int i = 0; i < 4; i++) {
-            var equipmentSlot = SLOT_IDS[i];
-            ResourceLocation resourceLocation = TEXTURE_EMPTY_SLOTS.get(equipmentSlot);
+            var equipmentSlot = ArmorSlotTypes.SLOT_IDS[i];
+            ResourceLocation resourceLocation = ArmorSlotTypes.TEXTURE_EMPTY_SLOTS.get(equipmentSlot);
             this.addSlot(new ArmorSlot(inventory, owner, equipmentSlot, 39 - i, 8, 8 + i * 18, resourceLocation));
         }
 
@@ -132,6 +114,8 @@ public final class AccessoriesMenu extends AbstractContainerMenu {
         var containers = capability.getContainers();
 
         for (var group : groups.stream().sorted(Comparator.comparingInt(SlotGroup::order).reversed()).toList()) {
+            if(group.name().equals(Accessories.MODID)) continue;
+
             var slotNames = group.slots();
 
             var slotTypes = slotNames.stream()
@@ -155,9 +139,11 @@ public final class AccessoriesMenu extends AbstractContainerMenu {
 
                     int currentX = minX;
 
-                    var cosmeticSlot = new AccessoriesInternalSlot(yIndex, accessoryContainer, true, i, currentX, currentY)
+                    var cosmeticSlot = new AccessoriesInternalSlot(accessoryContainer, true, i, currentX, currentY)
                                     .isActive((slot1) -> this.isCosmeticsOpen() && this.slotToView.getOrDefault(slot1.index, true))
                                     .isAccessible(slot1 -> slot1.isCosmetic && isCosmeticsOpen());
+
+                    slotToPageIndex.put(cosmeticSlot, yIndex);
 
                     cosmeticSlots.add(cosmeticSlot);
 
@@ -165,8 +151,10 @@ public final class AccessoriesMenu extends AbstractContainerMenu {
 
                     currentX += 18 + 2;
 
-                    var baseSlot = new AccessoriesInternalSlot(yIndex, accessoryContainer, false, i, currentX, currentY)
+                    var baseSlot = new AccessoriesInternalSlot(accessoryContainer, false, i, currentX, currentY)
                                     .isActive(slot1 -> this.slotToView.getOrDefault(slot1.index, true));
+
+                    slotToPageIndex.put(baseSlot, yIndex);
 
                     accessoriesSlots.add(baseSlot);
 
@@ -216,7 +204,7 @@ public final class AccessoriesMenu extends AbstractContainerMenu {
 
             ((SlotAccessor) accessoriesSlot).accessories$setY(accessoriesSlot.y + (diff * 18));
 
-            var menuIndex = accessoriesSlot.menuIndex;
+            var menuIndex = slotToPageIndex.get(accessoriesSlot);
 
             this.slotToView.put(accessoriesSlot.index, (menuIndex >= index && menuIndex < index + 8));
         }
@@ -230,15 +218,6 @@ public final class AccessoriesMenu extends AbstractContainerMenu {
 
     public int maxScrollableIndex(){
         return this.maxScrollableIndex;
-    }
-
-    @Nullable
-    public LivingEntity targetEntity() {
-        return this.targetEntity;
-    }
-
-    public Player owner() {
-        return this.owner;
     }
 
     public static AccessoriesMenu of(int containerId, Inventory inventory, AccessoriesMenuData data) {
@@ -280,10 +259,6 @@ public final class AccessoriesMenu extends AbstractContainerMenu {
 
     public boolean areUniqueSlotsShown() {
         return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::showUniqueSlots).orElse(false);
-    }
-
-    public void reopenMenu() {
-        AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(this.targetEntity));
     }
 
     //--
@@ -422,6 +397,7 @@ public final class AccessoriesMenu extends AbstractContainerMenu {
 
             while(reverseDirection ? i >= startIndex : i < endIndex) {
                 Slot slot = this.slots.get(i);
+
                 ItemStack itemStack = slot.getItem();
                 if (itemStack.isEmpty() && slot.mayPlace(stack)) {
                     //Use Stack aware form of getMaxStackSize

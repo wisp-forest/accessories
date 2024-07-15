@@ -5,7 +5,8 @@ import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
-import io.wispforest.accessories.client.AccessoriesMenu;
+import io.wispforest.accessories.menu.AccessoriesInternalSlot;
+import io.wispforest.accessories.menu.variants.AccessoriesMenu;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
@@ -42,7 +43,7 @@ import org.lwjgl.glfw.GLFW;
 import java.lang.Math;
 import java.util.*;
 
-public class AccessoriesScreen extends EffectRenderingInventoryScreen<AccessoriesMenu> implements ContainerScreenExtension {
+public class AccessoriesScreen extends EffectRenderingInventoryScreen<AccessoriesMenu> implements ContainerScreenExtension, AccessoriesScreenBase {
 
     private static final ResourceLocation SLOT = Accessories.of("textures/gui/slot.png");
 
@@ -622,8 +623,9 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         }
     }
 
-    public void updateButtons(String name) {
-        switch (name) {
+    @Override
+    public void onHolderChange(String key) {
+        switch (key) {
             case "lines" -> updateLinesButton();
             case "cosmetic" -> updateCosmeticToggleButton();
             case "unused_slots" -> updateUnusedSlotToggleButton();
@@ -703,12 +705,12 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     }
 
     @Override
-    public @Nullable Boolean isHovering(Slot slot, double mouseX, double mouseY) {
+    public @Nullable Boolean isHovering_Logical(Slot slot, double mouseX, double mouseY) {
         for (var child : this.children()) {
             if (child instanceof ToggleButton btn && btn.isMouseOver(mouseX, mouseY)) return false;
         }
 
-        return ContainerScreenExtension.super.isHovering(slot, mouseX, mouseY);
+        return ContainerScreenExtension.super.isHovering_Logical(slot, mouseX, mouseY);
     }
 
     @Override

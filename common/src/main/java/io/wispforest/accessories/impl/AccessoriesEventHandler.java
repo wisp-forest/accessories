@@ -13,7 +13,7 @@ import io.wispforest.accessories.api.events.*;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
-import io.wispforest.accessories.client.AccessoriesMenu;
+import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
@@ -182,8 +182,8 @@ public class AccessoriesEventHandler {
 
                 networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(capability.entity().getId(), carrier));
 
-                if(playerEntry.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
-                    Accessories.openAccessoriesMenu(playerEntry, accessoriesMenu.targetEntity());
+                if(playerEntry.containerMenu instanceof AccessoriesMenuBase base) {
+                    Accessories.openAccessoriesMenu(playerEntry, base.menuVariant(), base.targetEntity());
                 }
             }
         } else if (player != null) {
@@ -201,8 +201,8 @@ public class AccessoriesEventHandler {
 
             networkHandler.sendToPlayer(player, new SyncEntireContainer(capability.entity().getId(), carrier));
 
-            if(player.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
-                Accessories.openAccessoriesMenu(player, accessoriesMenu.targetEntity());
+            if(player.containerMenu instanceof AccessoriesMenuBase base) {
+                Accessories.openAccessoriesMenu(player, base.menuVariant(), base.targetEntity());
             }
         }
     }

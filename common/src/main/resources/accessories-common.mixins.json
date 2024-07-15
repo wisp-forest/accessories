@@ -13,7 +13,12 @@
     "client.MinecraftMixin",
     "client.ModelPartAccessor",
     "client.PlayerRendererMixin",
-    "client.RenderTargetMixin"
+    "client.RenderTargetMixin",
+    "client.HumanoidArmorLayerMixin",
+    "client.owo.BaseComponentMixin",
+    "client.owo.ComponentMixin",
+    "client.owo.BaseParentComponentMixin",
+    "client.owo.ParentComponentMixin"
   ],
   "mixins": [
     "ApplyBonusCountMixin",

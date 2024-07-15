@@ -2,6 +2,7 @@ package io.wispforest.accessories.networking.holder;
 
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
+import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.*;
 import net.fabricmc.api.EnvType;
@@ -50,8 +51,8 @@ public record SyncHolderChange(HolderProperty<?> property, Object data) implemen
 
     @Environment(EnvType.CLIENT)
     public void handleClient(Player player) {
-        if(Minecraft.getInstance().screen instanceof AccessoriesScreen accessoriesScreen) {
-            accessoriesScreen.updateButtons(this.property.name());
+        if(Minecraft.getInstance().screen instanceof AccessoriesScreenBase accessoriesScreen) {
+            accessoriesScreen.onHolderChange(this.property.name());
         }
     }
 }

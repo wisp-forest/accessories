@@ -6,8 +6,9 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.client.AccessoriesMenu;
-import io.wispforest.accessories.client.AccessoriesMenuData;
+import io.wispforest.accessories.menu.AccessoriesExperimentalMenu;
+import io.wispforest.accessories.menu.AccessoriesMenu;
+import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.networking.base.BaseNetworkHandler;
@@ -95,10 +96,13 @@ public class AccessoriesInternalsImpl {
         return Registry.register(BuiltInRegistries.COMMAND_ARGUMENT_TYPE, location, info);
     }
 
-    public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
+    public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack, int screenType) {
         player.openMenu(
-                new SimpleMenuProvider((i, arg, arg2) -> {
-                    var menu = new AccessoriesMenu(i, arg, targetEntity);
+                new SimpleMenuProvider((i, inventory, arg2) -> {
+                    var menu = switch (screenType) {
+                        case 1 -> new AccessoriesExperimentalMenu(i, inventory, targetEntity);
+                        default -> new AccessoriesMenu(i, inventory, targetEntity);
+                    };
 
                     if(carriedStack != null) menu.setCarried(carriedStack);
 

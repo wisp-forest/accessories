@@ -3,11 +3,12 @@ package io.wispforest.accessories.fabric;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.ArgumentType;
 import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.client.AccessoriesMenu;
-import io.wispforest.accessories.client.AccessoriesMenuData;
+import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.networking.base.BaseNetworkHandler;
+import io.wispforest.endec.Endec;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
@@ -101,8 +102,8 @@ public class AccessoriesInternalsImpl {
         return ResourceConditionsImpl.applyResourceConditions(object, dataType, key, registryLookup);
     }
 
-    public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(ResourceLocation location, TriFunction<Integer, Inventory, AccessoriesMenuData, T> func) {
-        return Registry.register(BuiltInRegistries.MENU, location, new ExtendedScreenHandlerType<>(func::apply, CodecUtils.packetCodec(AccessoriesMenuData.ENDEC)));
+    public static <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(ResourceLocation location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func){
+        return Registry.register(BuiltInRegistries.MENU, location, new ExtendedScreenHandlerType<>(func::apply, CodecUtils.packetCodec(endec)));
     }
 
     public static <A extends ArgumentType<?>, T extends ArgumentTypeInfo.Template<A>, I extends ArgumentTypeInfo<A, T>> I registerCommandArgumentType(ResourceLocation location, Class<A> clazz, I info) {
@@ -111,7 +112,7 @@ public class AccessoriesInternalsImpl {
         return info;
     }
 
-    public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
+    public static void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         player.openMenu(new ExtendedScreenHandlerFactory<AccessoriesMenuData>() {
             @Override
             public AccessoriesMenuData getScreenOpeningData(ServerPlayer player) {
@@ -129,11 +130,7 @@ public class AccessoriesInternalsImpl {
             @Nullable
             @Override
             public AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
-                var menu = new AccessoriesMenu(i, inventory, targetEntity);
-
-                if(carriedStack != null) menu.setCarried(carriedStack);
-
-                return menu;
+                return AccessoriesMenuVariant.openMenu(i, inventory, variant, targetEntity, carriedStack);
             }
         });
     }

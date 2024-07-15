@@ -2,11 +2,11 @@ package io.wispforest.accessories.networking.client;
 
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
+import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
@@ -104,7 +104,7 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
             } catch (NumberFormatException ignored){}
         }
 
-        if(player.containerMenu instanceof AccessoriesMenu menu && aContainerHasResized) {
+        if(player.containerMenu instanceof AccessoriesMenuBase menu && aContainerHasResized) {
             menu.reopenMenu();
             //AccessoriesClient.attemptToOpenScreen();
         }

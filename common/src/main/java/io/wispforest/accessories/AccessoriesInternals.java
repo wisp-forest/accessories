@@ -4,8 +4,10 @@ import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.ArgumentType;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.client.AccessoriesMenuData;
+import io.wispforest.accessories.menu.AccessoriesMenuData;
+import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.networking.base.BaseNetworkHandler;
+import io.wispforest.endec.Endec;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -79,7 +81,7 @@ public class AccessoriesInternals {
     }
 
     @ExpectPlatform
-    public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(ResourceLocation location, TriFunction<Integer, Inventory, AccessoriesMenuData, T> func){
+    public static <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(ResourceLocation location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func){
         throw new AssertionError();
     }
 
@@ -89,7 +91,7 @@ public class AccessoriesInternals {
     }
 
     @ExpectPlatform
-    public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
+    public static void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         throw new AssertionError();
     }
 }

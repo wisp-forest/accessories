@@ -11,6 +11,7 @@ import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.InstanceEndec;
+import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
@@ -49,7 +50,7 @@ public class AccessoriesFabric implements ModInitializer {
 
         AccessoriesDataComponents.init();
 
-        Accessories.registerMenuType();
+        AccessoriesMenuTypes.registerMenuType();
         Accessories.registerCriteria();
         AccessoriesCommands.registerCommandArgTypes();
 

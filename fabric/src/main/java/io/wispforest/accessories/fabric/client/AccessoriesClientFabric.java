@@ -10,6 +10,7 @@ import io.wispforest.accessories.fabric.AccessoriesFabric;
 import io.wispforest.accessories.fabric.AccessoriesFabricNetworkHandler;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
+import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.networking.base.BaseNetworkHandler;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
@@ -44,6 +45,7 @@ import static io.wispforest.accessories.Accessories.MODID;
 public class AccessoriesClientFabric implements ClientModInitializer {
 
     public static KeyMapping OPEN_SCREEN;
+    public static KeyMapping OPEN_EXPERIMENTAL_SCREEN;
 
     @Override
     public void onInitializeClient() {
@@ -66,9 +68,15 @@ public class AccessoriesClientFabric implements ClientModInitializer {
 
         OPEN_SCREEN = KeyBindingHelper.registerKeyBinding(new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories"));
 
+        OPEN_EXPERIMENTAL_SCREEN = KeyBindingHelper.registerKeyBinding(new KeyMapping(MODID + ".key.open_accessories_experminetal_screen", GLFW.GLFW_KEY_J, MODID + ".key.category.accessories"));
+
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (OPEN_SCREEN.consumeClick()){
-                AccessoriesClient.attemptToOpenScreen(client.player.isShiftKeyDown());
+                AccessoriesClient.attemptToOpenScreen(client.player.isShiftKeyDown(), AccessoriesMenuVariant.DEFAULT);
+            }
+
+            if (OPEN_EXPERIMENTAL_SCREEN.consumeClick()){
+                AccessoriesClient.attemptToOpenScreen(client.player.isShiftKeyDown(), AccessoriesMenuVariant.EXPERIMENTAL_1);
             }
         });
 

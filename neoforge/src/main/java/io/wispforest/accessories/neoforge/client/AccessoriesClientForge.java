@@ -80,7 +80,7 @@ public class AccessoriesClientForge {
 
     public static void clientTick(ClientTickEvent.Pre event) {
         if (OPEN_SCREEN.consumeClick()) {
-            AccessoriesClient.attemptToOpenScreen(Minecraft.getInstance().player.isShiftKeyDown());
+            AccessoriesClient.attemptToOpenScreen(Minecraft.getInstance().player.isShiftKeyDown(), 0);
         }
     }
 

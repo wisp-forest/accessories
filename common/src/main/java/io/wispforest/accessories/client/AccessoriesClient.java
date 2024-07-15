@@ -5,11 +5,15 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.AccessoriesInternalsClient;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
+import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.networking.holder.HolderProperty;
 import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
+import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.Minecraft;
@@ -18,7 +22,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.phys.EntityHitResult;
 
@@ -34,7 +37,7 @@ public class AccessoriesClient {
     public static boolean IS_PLAYER_INVISIBLE = false;
 
     public static void init(){
-        AccessoriesInternalsClient.registerToMenuTypes();
+        AccessoriesMenuTypes.registerClientMenuConstructors();
 
         Accessories.CONFIG_HOLDER.registerSaveListener((manager, data) -> {
             handleConfigLoad(data);
@@ -73,11 +76,11 @@ public class AccessoriesClient {
 
     private static boolean displayUnusedSlotWarning = false;
 
-    public static boolean attemptToOpenScreen() {
-        return attemptToOpenScreen(false);
+    public static boolean attemptToOpenScreen(AccessoriesMenuVariant variant) {
+        return attemptToOpenScreen(false, variant);
     }
 
-    public static boolean attemptToOpenScreen(boolean targetingLookingEntity) {
+    public static boolean attemptToOpenScreen(boolean targetingLookingEntity, AccessoriesMenuVariant variant) {
         var player = Minecraft.getInstance().player;
 
         if(targetingLookingEntity) {
@@ -89,7 +92,7 @@ public class AccessoriesClient {
 
             if(bl) return false;
 
-            AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(true));
+            AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(true, variant));
         } else {
             var slots = AccessoriesAPI.getUsedSlotsFor(player);
 
@@ -103,7 +106,7 @@ public class AccessoriesClient {
                 displayUnusedSlotWarning = true;
             }
 
-            AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(false));
+            AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(false, variant));
         }
 
         return true;

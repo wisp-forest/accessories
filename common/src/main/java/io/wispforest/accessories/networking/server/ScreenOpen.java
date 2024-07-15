@@ -1,7 +1,7 @@
 package io.wispforest.accessories.networking.server;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.client.AccessoriesMenu;
+import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
@@ -12,20 +12,21 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-public record ScreenOpen(int entityId, boolean targetLookEntity) implements HandledPacketPayload {
+public record ScreenOpen(int entityId, boolean targetLookEntity, AccessoriesMenuVariant variant) implements HandledPacketPayload {
 
     public static final Endec<ScreenOpen> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", ScreenOpen::entityId),
             Endec.BOOLEAN.fieldOf("targetLookEntity", ScreenOpen::targetLookEntity),
+            Endec.forEnum(AccessoriesMenuVariant.class).fieldOf("screenType", ScreenOpen::variant),
             ScreenOpen::new
     );
 
-    public static ScreenOpen of(@Nullable LivingEntity livingEntity){
-        return new ScreenOpen(livingEntity != null ? livingEntity.getId() : -1, false);
+    public static ScreenOpen of(@Nullable LivingEntity livingEntity, AccessoriesMenuVariant variant){
+        return new ScreenOpen(livingEntity != null ? livingEntity.getId() : -1, false, variant);
     }
 
-    public static ScreenOpen of(boolean targetLookEntity){
-        return new ScreenOpen(-1, targetLookEntity);
+    public static ScreenOpen of(boolean targetLookEntity, AccessoriesMenuVariant variant){
+        return new ScreenOpen(-1, targetLookEntity, variant);
     }
 
     @Override
@@ -37,7 +38,7 @@ public record ScreenOpen(int entityId, boolean targetLookEntity) implements Hand
 
             if(entity instanceof LivingEntity living) livingEntity = living;
         } else if(this.targetLookEntity) {
-            Accessories.attemptOpenScreenPlayer((ServerPlayer) player);
+            Accessories.attemptOpenScreenPlayer((ServerPlayer) player, this.variant);
 
             return;
         }
@@ -54,6 +55,6 @@ public record ScreenOpen(int entityId, boolean targetLookEntity) implements Hand
             }
         }
 
-        Accessories.openAccessoriesMenu(player, livingEntity, carriedStack);
+        Accessories.openAccessoriesMenu(player, this.variant, livingEntity, carriedStack);
     }
 }
