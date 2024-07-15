@@ -2,6 +2,6 @@
   "replace": false,
   "amount": 2,
   "operation": "set",
-  "order": 1000,
+  "order": 900,
   "icon": "accessories:gui/slot/hand"
 }
