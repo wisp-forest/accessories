@@ -3,8 +3,10 @@ package io.wispforest.accessories.api.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 import com.mojang.math.Axis;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.compat.AccessoriesConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -53,6 +55,12 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
     @Override
     public <M extends LivingEntity> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
         if (!(model instanceof HumanoidModel<? extends LivingEntity> humanoidModel)) return;
+
+        var disabledTargetType = Accessories.getConfig().clientData.disabledDefaultRenders;
+
+        for (var target : disabledTargetType) {
+            if(reference.slotName().equals(target.slotType) && target.targetType.isValid(stack.getItem())) return;
+        }
 
         Consumer<PoseStack> render = (poseStack) -> Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
 

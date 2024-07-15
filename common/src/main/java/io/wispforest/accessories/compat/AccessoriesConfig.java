@@ -1,12 +1,15 @@
 package io.wispforest.accessories.compat;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.client.TargetType;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Config(name = Accessories.MODID)
 public class AccessoriesConfig implements ConfigData {
@@ -51,6 +54,8 @@ public class AccessoriesConfig implements ConfigData {
                 }
             }
         }
+
+        public List<RenderSlotTarget> disabledDefaultRenders = new ArrayList<>();
     }
 
     public List<SlotAmountModifier> modifiers = new ArrayList<>();
@@ -58,5 +63,10 @@ public class AccessoriesConfig implements ConfigData {
     public static class SlotAmountModifier {
         public String slotType;
         public int amount = 0;
+    }
+
+    public static class RenderSlotTarget {
+        public String slotType = "";
+        public TargetType targetType = TargetType.ALL;
     }
 }
