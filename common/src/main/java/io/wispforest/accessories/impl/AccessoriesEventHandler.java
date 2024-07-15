@@ -73,49 +73,51 @@ public class AccessoriesEventHandler {
     public static void revalidatePlayersOnReload(PlayerList playerList) {
         if(!dataReloadOccured) return;
 
-        for (var player : playerList.getPlayers()) {
-            var capability = AccessoriesCapability.get(player);
+        for (var player : playerList.getPlayers()) revalidatePlayer(player);
 
-            if (capability == null) continue;
+        dataReloadOccured = false;
+    }
 
-            var validSlotTypes = EntitySlotLoader.getEntitySlots(player).values();
+    public static void revalidatePlayer(ServerPlayer player) {
+        var capability = AccessoriesCapability.get(player);
 
-            for (var container : capability.getContainers().values()) {
-                var slotType = container.slotType();
+        if (capability == null) return;
 
-                if (slotType != null && validSlotTypes.contains(slotType)) {
-                    var baseSize = ((AccessoriesContainerImpl) container).getBaseSize();
+        var validSlotTypes = EntitySlotLoader.getEntitySlots(player).values();
 
-                    if (baseSize != slotType.amount()) {
-                        container.markChanged();
-                        container.update();
-                    }
+        for (var container : capability.getContainers().values()) {
+            var slotType = container.slotType();
 
-                    var stacks = container.getAccessories();
-                    var cosmeticStacks = container.getCosmeticAccessories();
+            if (slotType != null && validSlotTypes.contains(slotType)) {
+                var baseSize = ((AccessoriesContainerImpl) container).getBaseSize();
 
-                    for (int i = 0; i < container.getSize(); i++) {
-                        var reference = container.createReference(i);
+                if (baseSize == null || baseSize != slotType.amount()) {
+                    container.markChanged();
+                    container.update();
+                }
 
-                        handleInvalidStacks(stacks, reference, player);
-                        handleInvalidStacks(cosmeticStacks, reference, player);
-                    }
-                } else {
-                    // TODO: DROP CONTAINER ?!
-                    var stacks = container.getAccessories();
-                    var cosmeticStacks = container.getCosmeticAccessories();
+                var stacks = container.getAccessories();
+                var cosmeticStacks = container.getCosmeticAccessories();
 
-                    for (int i = 0; i < container.getSize(); i++) {
-                        var reference = container.createReference(i);
+                for (int i = 0; i < container.getSize(); i++) {
+                    var reference = container.createReference(i);
 
-                        dropAndRemoveStack(stacks, reference, player);
-                        dropAndRemoveStack(cosmeticStacks, reference, player);
-                    }
+                    handleInvalidStacks(stacks, reference, player);
+                    handleInvalidStacks(cosmeticStacks, reference, player);
+                }
+            } else {
+                // TODO: DROP CONTAINER ?!
+                var stacks = container.getAccessories();
+                var cosmeticStacks = container.getCosmeticAccessories();
+
+                for (int i = 0; i < container.getSize(); i++) {
+                    var reference = container.createReference(i);
+
+                    dropAndRemoveStack(stacks, reference, player);
+                    dropAndRemoveStack(cosmeticStacks, reference, player);
                 }
             }
         }
-
-        dataReloadOccured = false;
     }
 
     private static void handleInvalidStacks(Container container, SlotReference reference, ServerPlayer player) {
@@ -184,6 +186,8 @@ public class AccessoriesEventHandler {
                 }
             }
         } else if (player != null) {
+            revalidatePlayer(player);
+
             networkHandler.sendToPlayer(player, syncPacket);
 
             var capability = AccessoriesCapability.get(player);
