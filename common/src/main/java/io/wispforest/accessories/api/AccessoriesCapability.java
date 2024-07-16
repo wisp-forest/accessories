@@ -17,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public interface AccessoriesCapability {
@@ -27,6 +28,10 @@ public interface AccessoriesCapability {
     @Nullable
     static AccessoriesCapability get(@NotNull LivingEntity livingEntity){
         return ((AccessoriesAPIAccess) livingEntity).accessoriesCapability();
+    }
+
+    static Optional<AccessoriesCapability> getOptionally(@NotNull LivingEntity livingEntity){
+        return Optional.ofNullable(get(livingEntity));
     }
 
     //--

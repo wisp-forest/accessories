@@ -18,6 +18,10 @@ public interface AccessoriesHolder {
         return ((AccessoriesAPIAccess) livingEntity).accessoriesHolder();
     }
 
+    static Optional<AccessoriesHolder> getOptionally(@NotNull LivingEntity livingEntity){
+        return Optional.ofNullable(get(livingEntity));
+    }
+
     //--
 
     /**
