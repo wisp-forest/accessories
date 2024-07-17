@@ -60,9 +60,15 @@
   "text.autoconfig.accessories.option.clientData.highlightOptions.unselectedOptions.darkenOptions.darkenedBrightness": "Darkened Brightness",
   "text.autoconfig.accessories.option.clientData.highlightOptions.unselectedOptions.darkenOptions.darkenedOpacity": "Darkened Opacity",
 
+  "text.autoconfig.accessories.option.clientData.disabledDefaultRenders": "Disabled Default Rendering",
+  "text.autoconfig.accessories.option.RenderSlotTarget": "Modifier Entry",
+  "text.autoconfig.accessories.option.RenderSlotTarget.slotType": "Slot Name",
+  "text.autoconfig.accessories.option.RenderSlotTarget.targetType": "Render Type",
+
   "text.autoconfig.accessories.option.modifiers": "Slot Amount Modifiers",
   "text.autoconfig.accessories.option.SlotAmountModifier": "Modifier Entry",
-  "text.autoconfig.accessories.option.SlotAmountModifier.slotType": "Slot Type Name",
+  "text.autoconfig.accessories.option.SlotAmountModifier.slotType": "Slot Name",
   "text.autoconfig.accessories.option.SlotAmountModifier.amount": "Offset Amount",
+
   "argument.livingEntities.nonLiving": "Only living entities may be affected by this command, but the provided selector includes non living entities"
 }
