@@ -269,7 +269,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
     @Override
     public void removeModifier(ResourceLocation location) {
-        var modifier = this.modifiers.get(location);
+        var modifier = this.modifiers.remove(location);
 
         if(modifier == null) return;
 
