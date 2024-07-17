@@ -72,40 +72,39 @@ allprojects {
 
     final ENV = System.getenv()
 
-    publishing {
-        publications {
-            var name = project.name
+    if(VALID_PUBLISHING.contains(project.name)) {
+        publishing {
+            publications {
+                mavenCommon(MavenPublication) {
+                    final name = project.name
+                    artifactId = "${rootProject.archives_base_name}${(name.isEmpty() ? "" : "-${name.replace("-mojmap", "")}")}"
+                    afterEvaluate {
+                        if (!name.equals("common-mojmap")) {
+                            from components.java
+                        } else {
+                            var mojmapJarTask = project.tasks.named("mojmapJar");
+                            artifact(mojmapJarTask) {
+                                builtBy mojmapJarTask
+                                classifier = ''
+                            }
 
-            if(!VALID_PUBLISHING.contains(project.name)) return
-
-            mavenCommon(MavenPublication) {
-                artifactId = "${rootProject.archives_base_name}${(name.isEmpty() ? "" : "-${project.name.replace("-mojmap", "")}")}"
-                afterEvaluate {
-                    if(!name.equals("common-mojmap")) {
-                        from components.java
-                    } else {
-                        var mojmapJarTask = project.tasks.named("mojmapJar");
-                        artifact(mojmapJarTask) {
-                            builtBy mojmapJarTask
-                            classifier = ''
-                        }
-
-                        var mojmapSourcesJarTask = project.tasks.named("mojmapSourcesJar");
-                        artifact(mojmapSourcesJarTask) {
-                            builtBy mojmapSourcesJarTask
-                            classifier = 'sources'
+                            var mojmapSourcesJarTask = project.tasks.named("mojmapSourcesJar");
+                            artifact(mojmapSourcesJarTask) {
+                                builtBy mojmapSourcesJarTask
+                                classifier = 'sources'
+                            }
                         }
                     }
                 }
             }
-        }
 
-        repositories {
-            maven {
-                url ENV.MAVEN_URL
-                credentials {
-                    username ENV.MAVEN_USER
-                    password ENV.MAVEN_PASSWORD
+            repositories {
+                maven {
+                    url ENV.MAVEN_URL
+                    credentials {
+                        username ENV.MAVEN_USER
+                        password ENV.MAVEN_PASSWORD
+                    }
                 }
             }
         }
