@@ -401,20 +401,24 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
         this.baseSize = carrier.get(BASE_SIZE_KEY);
 
-        this.renderOptions = Util.make(new ArrayList<>(baseSize), booleans -> {
-            for (int i = 0; i < baseSize; i++) booleans.add(i, true);
-        });
+        Integer currentSize = carrier.has(CURRENT_SIZE_KEY) ? carrier.get(CURRENT_SIZE_KEY) : null;
 
         var readOptions = carrier.get(RENDER_OPTIONS_KEY);
 
-        for (int i = 0; i < readOptions.size(); i++) this.renderOptions.set(i, readOptions.get(i));
+        var readOptionsSize = currentSize != null ? currentSize : (baseSize != null ? baseSize : readOptions.size());
 
-        if(carrier.has(CURRENT_SIZE_KEY)) {
-            var size = carrier.get(CURRENT_SIZE_KEY);
+        this.renderOptions = Util.make(new ArrayList<>(readOptionsSize), booleans -> {
+            for (int i = 0; i < readOptionsSize; i++) booleans.add(i, true);
+        });
 
-            if(this.accessories.getContainerSize() != size) {
-                this.accessories = new ExpandedSimpleContainer(size, "Accessories");
-                this.cosmeticAccessories = new ExpandedSimpleContainer(size, "Cosmetic Accessories");
+        for (int i = 0; i < readOptions.size(); i++) {
+            if(i < this.renderOptions.size()) this.renderOptions.set(i, readOptions.get(i));
+        }
+
+        if(currentSize != null) {
+            if(this.accessories.getContainerSize() != currentSize) {
+                this.accessories = new ExpandedSimpleContainer(currentSize, "Accessories");
+                this.cosmeticAccessories = new ExpandedSimpleContainer(currentSize, "Cosmetic Accessories");
             }
 
             this.accessories.fromTag(carrier.get(ITEMS_KEY), registryAccess);
