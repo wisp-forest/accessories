@@ -102,7 +102,7 @@ public class CCLayer {
         for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
             event.registerEntity(CuriosCapability.ITEM_HANDLER, entityType,
                     (entity, ctx) -> {
-                        if (entity instanceof LivingEntity livingEntity && EntitySlotLoader.getEntitySlots(livingEntity).isEmpty()) {
+                        if (entity instanceof LivingEntity livingEntity && !EntitySlotLoader.getEntitySlots(livingEntity).isEmpty()) {
                             return new CurioItemHandler(livingEntity);
                         }
 
