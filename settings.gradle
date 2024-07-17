@@ -16,6 +16,6 @@ include("fabric")
 include("neoforge")
 
 include("cclayer")
-//include("tclayer")
+include("tclayer")
 
 rootProject.name = "accessories"
