@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.attributes.SlotAttribute;
+import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.MinecraftEndecs;
 import io.wispforest.accessories.endec.RegistriesAttribute;
@@ -141,7 +142,15 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
     public record Entry(Holder<Attribute> attribute, AttributeModifier modifier, String slotName, boolean isStackable) {
         private static final Endec<Holder<Attribute>> ATTRIBUTE_ENDEC = MinecraftEndecs.IDENTIFIER.xmapWithContext(
                 (context, attributeType) -> {
-                    if(attributeType.getNamespace().equals(Accessories.MODID)) return Holder.direct(SlotAttribute.getSlotAttribute(attributeType.getPath()));
+                    if(attributeType.getNamespace().equals(Accessories.MODID)) {
+                        var path = attributeType.getPath();
+
+                        if(path.contains("/")) {
+                            path = path.replace("/", ":");
+                        }
+
+                        return Holder.direct(SlotAttribute.getSlotAttribute(path));
+                    }
 
                     return context.requireAttributeValue(RegistriesAttribute.REGISTRIES)
                             .registryManager()
@@ -152,7 +161,15 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
                 (context, attributeHolder) -> {
                     var attribute = attributeHolder.value();
 
-                    if(attribute instanceof SlotAttribute slotAttribute) return Accessories.of(slotAttribute.slotName());
+                    if(attribute instanceof SlotAttribute slotAttribute) {
+                        var path = slotAttribute.slotName();
+
+                        if(UniqueSlotHandling.isUniqueSlot(path)) {
+                            path = path.replace(":", "/");
+                        }
+
+                        return Accessories.of(path);
+                    }
 
                     return context.requireAttributeValue(RegistriesAttribute.REGISTRIES)
                             .registryManager()
