@@ -17,11 +17,13 @@ import net.minecraft.world.item.ItemStack;
 public interface LootingAdjustment {
 
     Event<LootingAdjustment> EVENT = EventFactory.createArrayBacked(LootingAdjustment.class, invokers -> (stack, reference, target, damageSource, currentLevel) -> {
+        var additionalLevels = 0;
+
         for (var invoker : invokers) {
-            currentLevel += invoker.getLootingAdjustment(stack, reference, target, damageSource, currentLevel);
+            additionalLevels += invoker.getLootingAdjustment(stack, reference, target, damageSource, additionalLevels + currentLevel);
         }
 
-        return currentLevel;
+        return additionalLevels;
     });
 
     /**

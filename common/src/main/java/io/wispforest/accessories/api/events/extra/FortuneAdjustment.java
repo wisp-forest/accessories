@@ -18,11 +18,13 @@ import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
 public interface FortuneAdjustment {
 
     Event<FortuneAdjustment> EVENT = EventFactory.createArrayBacked(FortuneAdjustment.class, invokers -> (stack, reference, context, currentLevel) -> {
+        var additionalLevels = 0;
+
         for (var invoker : invokers) {
-            currentLevel += invoker.getFortuneAdjustment(stack, reference, context, currentLevel);
+            additionalLevels += invoker.getFortuneAdjustment(stack, reference, context, additionalLevels + currentLevel);
         }
 
-        return currentLevel;
+        return additionalLevels;
     });
 
     /**
