@@ -24,6 +24,8 @@ public class AttributeUtils {
         attributes.getSlotModifiers().asMap().forEach((s, modifiers) -> {
             var container = containers.get(s);
 
+            if(container == null) return;
+
             modifiers.stream()
                     .filter(modifier -> !container.hasModifier(modifier.id()))
                     .forEach(container::addTransientModifier);
@@ -50,6 +52,8 @@ public class AttributeUtils {
 
         attributes.getSlotModifiers().asMap().forEach((s, modifiers) -> {
             var container = containers.get(s);
+
+            if(container == null) return;
 
             modifiers.stream()
                     .map(AttributeModifier::id)
