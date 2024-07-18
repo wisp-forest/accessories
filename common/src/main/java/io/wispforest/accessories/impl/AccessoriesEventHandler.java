@@ -2,6 +2,7 @@ package io.wispforest.accessories.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
@@ -382,19 +383,41 @@ public class AccessoriesEventHandler {
         var slotsComponent = Component.literal("");
         boolean allSlots = false;
 
+
         if (validSlotTypes.containsAll(sharedSlotTypes)) {
             slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
             allSlots = true;
         } else {
-            var slotTypesList = List.copyOf(validSlotTypes);
+            var entitySlotTypes = Set.copyOf(EntitySlotLoader.getEntitySlots(entity).values());
 
-            for (int i = 0; i < slotTypesList.size(); i++) {
-                var type = slotTypesList.get(i);
+            var differenceSlotTypes = Sets.difference(entitySlotTypes, validSlotTypes);
 
-                slotsComponent.append(Component.translatable(type.translation()));
+            if(differenceSlotTypes.size() < validSlotTypes.size()) {
+                slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
+                slotsComponent.append(Component.literal(" except ").withStyle(ChatFormatting.GRAY));
 
-                if (i + 1 != slotTypesList.size()) {
-                    slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                var slotTypesList = List.copyOf(differenceSlotTypes);
+
+                for (int i = 0; i < slotTypesList.size(); i++) {
+                    var type = slotTypesList.get(i);
+
+                    slotsComponent.append(Component.translatable(type.translation()).withStyle(ChatFormatting.RED));
+
+                    if (i + 1 != slotTypesList.size()) {
+                        slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                    }
+                }
+            } else {
+                var slotTypesList = List.copyOf(validSlotTypes);
+
+                for (int i = 0; i < slotTypesList.size(); i++) {
+                    var type = slotTypesList.get(i);
+
+                    slotsComponent.append(Component.translatable(type.translation()));
+
+                    if (i + 1 != slotTypesList.size()) {
+                        slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                    }
                 }
             }
         }
