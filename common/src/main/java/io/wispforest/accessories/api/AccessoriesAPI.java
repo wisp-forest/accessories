@@ -343,10 +343,15 @@ public class AccessoriesAPI {
     }
 
     /**
-     * TagKey in which allows for a given Item to pass {@link SlotBasedPredicate} allowing such to be equipped if
-     * desired
+     * @deprecated Use {@link #ANY_ACCESSORIES} instead!
      */
+    @Deprecated(forRemoval = true)
     public static final TagKey<Item> ALL_ACCESSORIES = TagKey.create(Registries.ITEM, Accessories.of("all"));
+
+    /**
+     * TagKey representing a group of items that can be equipped in any slot if allowed to by the given slots predicates
+     */
+    public static final TagKey<Item> ANY_ACCESSORIES = TagKey.create(Registries.ITEM, Accessories.of("any"));
 
     public static TagKey<Item> getSlotTag(SlotType slotType) {
         var location = UniqueSlotHandling.isUniqueSlot(slotType.name()) ? ResourceLocation.parse(slotType.name()) : Accessories.of(slotType.name());
@@ -358,7 +363,7 @@ public class AccessoriesAPI {
         registerPredicate(Accessories.of("all"), (level, slotType, i, stack) -> TriState.TRUE);
         registerPredicate(Accessories.of("none"), (level, slotType, i, stack) -> TriState.FALSE);
         registerPredicate(Accessories.of("tag"), (level, slotType, i, stack) -> {
-            return (stack.is(getSlotTag(slotType)) || stack.is(ALL_ACCESSORIES)) ? TriState.TRUE : TriState.DEFAULT;
+            return (stack.is(getSlotTag(slotType)) || stack.is(ANY_ACCESSORIES)) ? TriState.TRUE : TriState.DEFAULT;
         });
         registerPredicate(Accessories.of("relevant"), (level, slotType, i, stack) -> {
             var bl = !getAttributeModifiers(stack, null, slotType.name(), i).getAttributeModifiers(false).isEmpty();
