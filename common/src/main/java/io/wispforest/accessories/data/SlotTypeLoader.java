@@ -82,6 +82,10 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             UniqueSlotHandling.gatherUniqueSlots((location, integer, slotPredicates) -> {
                 var name = location.toString();
 
+                if(uniqueSlots.containsKey(name)) {
+                    throw new IllegalStateException("Unable to register the given unique slot as a existing slot has been registered before! [Name: " + name + "]");
+                }
+
                 var builder = new SlotBuilder(name);
 
                 builder.amount(integer);
