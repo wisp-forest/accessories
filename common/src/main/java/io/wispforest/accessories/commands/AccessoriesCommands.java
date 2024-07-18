@@ -41,6 +41,7 @@ public class AccessoriesCommands {
 
     public static void registerCommandArgTypes() {
         AccessoriesInternals.registerCommandArgumentType(Accessories.of("slot_type"), SlotArgumentType.class, RecordArgumentTypeInfo.of(ctx -> SlotArgumentType.INSTANCE));
+        AccessoriesInternals.registerCommandArgumentType(Accessories.of("resource"), ResourceExtendedArgument.class, RecordArgumentTypeInfo.of(ResourceExtendedArgument::attributes));
     }
 
     public static LivingEntity getOrThrowLivingEntity(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
@@ -145,7 +146,7 @@ public class AccessoriesCommands {
                                                         .then(
                                                                 Commands.literal("add")
                                                                         .then(
-                                                                                Commands.argument("attribute", ResourceArgument.resource(context, Registries.ATTRIBUTE))
+                                                                                Commands.argument("attribute", ResourceExtendedArgument.attributes(context))
                                                                                         .then(
                                                                                                 Commands.argument("id", ResourceLocationArgument.id())
                                                                                                         .then(Commands.argument("value", DoubleArgumentType.doubleArg())
@@ -159,14 +160,14 @@ public class AccessoriesCommands {
                                                         .then(
                                                                 Commands.literal("remove")
                                                                         .then(
-                                                                                Commands.argument("attribute", ResourceArgument.resource(context, Registries.ATTRIBUTE))
+                                                                                Commands.argument("attribute", ResourceExtendedArgument.attributes(context))
                                                                                         .then(
                                                                                                 Commands.argument("id", ResourceLocationArgument.id())
                                                                                                         .executes(
                                                                                                                 ctx -> removeModifier(
                                                                                                                         ctx.getSource(),
                                                                                                                         ctx.getSource().getPlayerOrException(),
-                                                                                                                        ResourceArgument.getAttribute(ctx, "attribute"),
+                                                                                                                        ResourceExtendedArgument.getAttribute(ctx, "attribute"),
                                                                                                                         ResourceLocationArgument.getId(ctx, "id")
                                                                                                                 )
                                                                                                         )
@@ -176,14 +177,14 @@ public class AccessoriesCommands {
                                                         .then(
                                                                 Commands.literal("get")
                                                                         .then(
-                                                                                Commands.argument("attribute", ResourceArgument.resource(context, Registries.ATTRIBUTE))
+                                                                                Commands.argument("attribute", ResourceExtendedArgument.attributes(context))
                                                                                         .then(
                                                                                                 Commands.argument("id", ResourceLocationArgument.id())
                                                                                                         .executes(
                                                                                                                 ctx -> getAttributeModifier(
                                                                                                                         ctx.getSource(),
                                                                                                                         ctx.getSource().getPlayerOrException(),
-                                                                                                                        ResourceArgument.getAttribute(ctx, "attribute"),
+                                                                                                                        ResourceExtendedArgument.getAttribute(ctx, "attribute"),
                                                                                                                         ResourceLocationArgument.getId(ctx, "id"),
                                                                                                                         1.0
                                                                                                                 )
@@ -194,7 +195,7 @@ public class AccessoriesCommands {
                                                                                                                                 ctx -> getAttributeModifier(
                                                                                                                                         ctx.getSource(),
                                                                                                                                         ctx.getSource().getPlayerOrException(),
-                                                                                                                                        ResourceArgument.getAttribute(ctx, "attribute"),
+                                                                                                                                        ResourceExtendedArgument.getAttribute(ctx, "attribute"),
                                                                                                                                         ResourceLocationArgument.getId(ctx, "id"),
                                                                                                                                         DoubleArgumentType.getDouble(ctx, "scale")
                                                                                                                                 )
@@ -225,7 +226,7 @@ public class AccessoriesCommands {
                                                         ctx -> addModifier(
                                                                 ctx.getSource(),
                                                                 ctx.getSource().getPlayerOrException(),
-                                                                ResourceArgument.getAttribute(ctx, "attribute"),
+                                                                ResourceExtendedArgument.getAttribute(ctx, "attribute"),
                                                                 ResourceLocationArgument.getId(ctx, "id"),
                                                                 DoubleArgumentType.getDouble(ctx, "value"),
                                                                 selectedValue,
