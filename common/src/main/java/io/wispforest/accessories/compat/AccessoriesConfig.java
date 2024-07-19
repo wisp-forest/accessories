@@ -33,6 +33,8 @@ public class AccessoriesConfig implements ConfigData {
 
         public boolean disableEmptySlotScreenError = false;
 
+        public boolean allowSlotScrolling = true;
+
         @ConfigEntry.Gui.CollapsibleObject()
         public HighlightOptions highlightOptions = new HighlightOptions();
 

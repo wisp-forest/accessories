@@ -70,5 +70,7 @@
   "text.autoconfig.accessories.option.SlotAmountModifier.slotType": "Slot Name",
   "text.autoconfig.accessories.option.SlotAmountModifier.amount": "Offset Amount",
 
+  "text.autoconfig.accessories.option.clientData.allowSlotScrolling": "Allow Screen Slot Scrolling",
+
   "argument.livingEntities.nonLiving": "Only living entities may be affected by this command, but the provided selector includes non living entities"
 }
