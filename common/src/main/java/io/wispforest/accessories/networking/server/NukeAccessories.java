@@ -6,7 +6,7 @@ import io.wispforest.endec.Endec;
 import net.minecraft.world.entity.player.Player;
 import org.slf4j.Logger;
 
-public class NukeAccessories implements HandledPacketPayload {
+public record NukeAccessories() implements HandledPacketPayload {
 
     public static final Endec<NukeAccessories> ENDEC = Endec.of((ctx, ser, v) -> {}, (ctx, deser) -> new NukeAccessories());
 
