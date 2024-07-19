@@ -244,8 +244,12 @@ public class AccessoriesAPI {
 
                 var container = containers.get(value.name());
 
-                for (var accessory : containers.get(value.name()).getAccessories()) {
-                    var reference = SlotReference.of(entity, container.getSlotName(), accessory.getFirst());
+                var size = containers.get(value.name()).getSize();
+
+                if(size == 0) size = 1;
+
+                for (int i = 0; i < size; i++) {
+                    var reference = SlotReference.of(entity, container.getSlotName(), i);
 
                     if (canInsertIntoSlot(stack, reference)) validSlots.add(value);
                 }

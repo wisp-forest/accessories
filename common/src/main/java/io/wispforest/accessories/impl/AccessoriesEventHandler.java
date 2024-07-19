@@ -363,6 +363,7 @@ public class AccessoriesEventHandler {
     // TODO: Rewrite for better handling of various odd cases
     private static void addEntityBasedTooltipData(LivingEntity entity, Accessory accessory, ItemStack stack, List<Component> tooltip, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
         // TODO: MAYBE DEPENDING ON ENTITY OR SOMETHING SHOW ALL VALID SLOTS BUT COLOR CODE THEM IF NOT VALID FOR ENTITY?
+        // TODO: ADD BETTER HANDLING FOR POSSIBLE SLOTS THAT ARE EQUIPABLE IN BUT IS AT ZERO SIZE
         var validSlotTypes = new HashSet<>(AccessoriesAPI.getValidSlotTypes(entity, stack));
 
         var validUniqueSlots = validSlotTypes.stream()
