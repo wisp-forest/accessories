@@ -1,5 +1,6 @@
 package io.wispforest.testccessories.fabric;
 
+import io.wispforest.testccessories.fabric.accessories.SlotIncreaserTest;
 import io.wispforest.testccessories.fabric.accessories.WaterBreathingAccessory;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.minecraft.core.Registry;
@@ -19,6 +20,7 @@ public class TestItems {
 
     public static void init(){
         WaterBreathingAccessory.init();
+        SlotIncreaserTest.init();
 
         ItemGroupEvents.MODIFY_ENTRIES_ALL.register((group, entries) -> {
             var groupKey = BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(group).get();

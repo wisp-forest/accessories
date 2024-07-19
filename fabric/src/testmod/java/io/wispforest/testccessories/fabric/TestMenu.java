@@ -22,7 +22,7 @@ public class TestMenu extends AbstractContainerMenu {
 
         var baseY = 20;
 
-        var generator = AccessoriesSlotGenerator.of(this::addSlot, 0, baseY, player, UniqueSlotTest.testSlot1Ref(), UniqueSlotTest.testSlot2Ref());
+        var generator = AccessoriesSlotGenerator.of(this::addSlot, 0, baseY, player, UniqueSlotTest.testSlot1Ref(), UniqueSlotTest.testSlot2Ref(), UniqueSlotTest.testSlot3Ref());
 
         baseY += 18;
 
