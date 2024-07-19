@@ -11,11 +11,13 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.endec.LenientEdmMap;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.endec.format.nbt.NbtEndec;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
+import io.wispforest.endec.format.edm.EdmMap;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
 import net.minecraft.Util;
@@ -61,9 +63,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         this.accessories = new ExpandedSimpleContainer(this.baseSize, "Accessories", false);
         this.cosmeticAccessories = new ExpandedSimpleContainer(this.baseSize, "Cosmetic Accessories", false);
 
-        this.renderOptions = Util.make(new ArrayList<>(baseSize), booleans -> {
-            for (int i = 0; i < baseSize; i++) booleans.add(i, true);
-        });
+        this.renderOptions = getWithSize(baseSize, new ArrayList<>(), true);
     }
 
     @Nullable
@@ -160,13 +160,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
             this.accessories = newAccessories;
             this.cosmeticAccessories = newCosmetics;
 
-            var newRenderOptions = new ArrayList<Boolean>(currentSize);
-
-            for (int i = 0; i < currentSize; i++) {
-                newRenderOptions.add(i < this.renderOptions.size() ? this.renderOptions.get(i) : true);
-            }
-
-            this.renderOptions = newRenderOptions;
+            this.renderOptions = getWithSize(currentSize, this.renderOptions, true);
 
             var livingEntity = this.capability.entity();
 
@@ -395,27 +389,21 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     public void read(MapCarrier carrier, SerializationContext ctx, boolean sync){
+        if(carrier instanceof EdmMap edmMap) carrier = LenientEdmMap.of(edmMap);
+
         var registryAccess = ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager();
 
         this.slotName = carrier.get(SLOT_NAME_KEY);
 
         this.baseSize = carrier.get(BASE_SIZE_KEY);
 
-        Integer currentSize = carrier.has(CURRENT_SIZE_KEY) ? carrier.get(CURRENT_SIZE_KEY) : null;
+        if(carrier.has(CURRENT_SIZE_KEY)) {
+            var currentSize = carrier.get(CURRENT_SIZE_KEY);
 
-        var readOptions = carrier.get(RENDER_OPTIONS_KEY);
+            var sentOptions = carrier.get(RENDER_OPTIONS_KEY);
 
-        var readOptionsSize = currentSize != null ? currentSize : (baseSize != null ? baseSize : readOptions.size());
+            this.renderOptions = getWithSize(currentSize, sentOptions, true);
 
-        this.renderOptions = Util.make(new ArrayList<>(readOptionsSize), booleans -> {
-            for (int i = 0; i < readOptionsSize; i++) booleans.add(i, true);
-        });
-
-        for (int i = 0; i < readOptions.size(); i++) {
-            if(i < this.renderOptions.size()) this.renderOptions.set(i, readOptions.get(i));
-        }
-
-        if(currentSize != null) {
             if(this.accessories.getContainerSize() != currentSize) {
                 this.accessories = new ExpandedSimpleContainer(currentSize, "Accessories");
                 this.cosmeticAccessories = new ExpandedSimpleContainer(currentSize, "Cosmetic Accessories");
@@ -423,6 +411,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
             this.accessories.fromTag(carrier.get(ITEMS_KEY), registryAccess);
             this.cosmeticAccessories.fromTag(carrier.get(COSMETICS_KEY), registryAccess);
+        } else {
+            this.renderOptions = carrier.get(RENDER_OPTIONS_KEY);
         }
 
         if(sync) {
@@ -465,6 +455,18 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                 }
             }
         }
+    }
+
+    private <T> List<T> getWithSize(int size, List<T> list, T defaultValue) {
+        var sizedList = new ArrayList<T>(size);
+
+        for (int i = 0; i < size; i++) {
+            var value = (i < list.size()) ? list.get(i) : defaultValue;
+
+            sizedList.add(value);
+        }
+
+        return sizedList;
     }
 
     public static SimpleContainer readContainer(MapCarrier carrier, SerializationContext ctx, KeyedEndec<ListTag> key){

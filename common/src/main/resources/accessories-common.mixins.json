@@ -32,7 +32,8 @@
     "PiglinAiMixin",
     "PowderSnowBlockMixin",
     "RegistryOpsAccessor",
-    "SlotAccessor"
+    "SlotAccessor",
+    "NbtOpsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

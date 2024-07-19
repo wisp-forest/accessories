@@ -6,6 +6,7 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.format.edm.EdmElement;
+import net.minecraft.nbt.*;
 
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -210,7 +211,17 @@ public class EdmOps implements DynamicOps<EdmElement<?>> {
             case STRING -> outOps.createString(input.cast());
             case BYTES -> outOps.createByteList(ByteBuffer.wrap(input.cast()));
             case OPTIONAL -> input.<Optional<EdmElement<?>>>cast().map(element -> this.convertTo(outOps, element)).orElse(outOps.empty());
-            case SEQUENCE -> outOps.createList(input.<List<EdmElement<?>>>cast().stream().map(element -> this.convertTo(outOps, element)));
+            case SEQUENCE -> {
+                if (outOps.empty() instanceof Tag) {
+                    var initialList = new ListTag();
+
+                    initialList.addAll(input.<List<EdmElement<?>>>cast().stream().map(element -> this.convertTo((DynamicOps<Tag>) outOps, element)).toList());
+
+                    yield (U) initialList;
+                } else {
+                    yield outOps.createList(input.<List<EdmElement<?>>>cast().stream().map(element -> this.convertTo(outOps, element)));
+                }
+            }
             case MAP ->
                     outOps.createMap(input.<Map<String, EdmElement<?>>>cast().entrySet().stream().map(entry -> new Pair<>(outOps.createString(entry.getKey()), this.convertTo(outOps, entry.getValue()))));
         };
