@@ -157,7 +157,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
     public void readFromNbt(CompoundTag tag, HolderLookup.Provider registryLookup) {
         if(tag.getBoolean("is_accessories_data")) {
             ((AccessoriesHolderImpl)this.capability.getHolder())
-                    .read(new NbtMapCarrier(tag), SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) registryLookup)));
+                    .read(new NbtMapCarrier(tag.getCompound("main_data")), SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) registryLookup)));
         } else {
             var dropped = new ArrayList<ItemStack>();
 
