@@ -52,7 +52,7 @@ public class AccessoriesBasedSlot extends Slot {
         var capability = livingEntity.accessoriesCapability();
 
         if(capability == null) {
-            LOGGER.error("Unable to locate a capability for the given livingEntity meaning it dose not have a valid Accessory Inventory [EntityType: " + livingEntity.getType() + "]");
+            LOGGER.error("Unable to locate a capability for the given livingEntity meaning it does not have a valid Accessory Inventory [EntityType: " + livingEntity.getType() + "]");
 
             return null;
         }

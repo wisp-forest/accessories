@@ -262,7 +262,7 @@ public class AccessoriesEventHandler {
                         boolean equipmentChange = false;
 
                         /*
-                         * TODO: Dose item check need to exist anymore?
+                         * TODO: Does item check need to exist anymore?
                          */
                         if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlagged(i)) {
                             AccessoriesAPI.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);
