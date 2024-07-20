@@ -38,7 +38,7 @@ public interface SlotType {
     int order();
 
     /**
-     * @return The base amout for a given slot type.
+     * @return The base amount for a given slot type.
      */
     int amount();
 

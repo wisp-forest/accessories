@@ -58,7 +58,7 @@ public class AccessoriesSlotGenerator {
             var slotType = ref.get(level);
 
             if(slotType == null) {
-                LOGGER.error("Unable to find the SlotType based on the passed referece! [SlotName: " + ref.slotName()  + "]");
+                LOGGER.error("Unable to find the SlotType based on the passed reference! [SlotName: " + ref.slotName()  + "]");
             }
 
             return slotType;

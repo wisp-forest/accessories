@@ -15,11 +15,11 @@ public record ExtraSlotTypeProperties(boolean allowResizing, boolean strictMode,
 
     @ApiStatus.Internal
     public static ExtraSlotTypeProperties getProperty(String slotType, boolean isClient) {
-        return getPropertiess(isClient).getOrDefault(slotType, ExtraSlotTypeProperties.DEFAULT);
+        return getProperties(isClient).getOrDefault(slotType, ExtraSlotTypeProperties.DEFAULT);
     }
 
     @ApiStatus.Internal
-    public static Map<String, ExtraSlotTypeProperties> getPropertiess(boolean isClient) {
+    public static Map<String, ExtraSlotTypeProperties> getProperties(boolean isClient) {
         return isClient ? EXTRA_PROPS_CLIENT : EXTRA_PROPS_SERVER;
     }
 

@@ -29,7 +29,7 @@ public interface LootingAdjustment {
     /**
      * @param stack        The stack being evaluated
      * @param reference    The reference to the specific location within the Accessories Inventory
-     * @param target       The given target entity for which the attack occured on
+     * @param target       The given target entity for which the attack occurred on
      * @param damageSource The specific source of damage used against the target
      * @param currentLevel The current level that has been calculated so far
      * @return The given looting adjustment for the given stack

@@ -51,7 +51,7 @@ public final class AccessoryAttributeBuilder {
     }
 
     /**
-     * Adds a given attribute modifier as a stackable modifier meaning variants based on slot postion is allowed. Such is done by post process
+     * Adds a given attribute modifier as a stackable modifier meaning variants based on slot position is allowed. Such is done by post process
      * step of appending slot information when adding to the living entity
      */
     public AccessoryAttributeBuilder addStackable(Holder<Attribute> attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
@@ -70,7 +70,7 @@ public final class AccessoryAttributeBuilder {
     }
 
     /**
-     * Adds a given attribute modifier as a stackable modifier meaning variants based on slot postion is allowed. Such is done by post process
+     * Adds a given attribute modifier as a stackable modifier meaning variants based on slot position is allowed. Such is done by post process
      * step of appending slot information when adding to the living entity
      */
     public AccessoryAttributeBuilder addStackable(Holder<Attribute> attribute, AttributeModifier modifier) {

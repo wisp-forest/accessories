@@ -55,7 +55,7 @@ public class UniqueSlotHandling {
     }
 
     /**
-     * Builder Object used to create unique slots with the base required info and some other extra properies that can
+     * Builder Object used to create unique slots with the base required info and some other extra properties that can
      * be adjusted for such.
      */
     public static final class UniqueSlotBuilder {
@@ -135,7 +135,7 @@ public class UniqueSlotHandling {
 
             SLOT_TO_ENTITIES.put(slotTypeRef.slotName(), Set.copyOf(this.validTypes));
 
-            ExtraSlotTypeProperties.getPropertiess(false)
+            ExtraSlotTypeProperties.getProperties(false)
                     .put(slotTypeRef.slotName(), new ExtraSlotTypeProperties(this.allowResizing, this.strictMode, this.allowEquipFromUse));
 
             return slotTypeRef;
