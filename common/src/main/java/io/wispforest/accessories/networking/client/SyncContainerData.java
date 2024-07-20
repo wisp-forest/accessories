@@ -25,7 +25,7 @@ import java.util.Map;
 
 /**
  * Catch all packet for handling syncing of containers and accessories within the main container
- * and cosmetic variant with the ability for such to be sync separately
+ * and cosmetic variant with the ability for it to be sync separately
  */
 public record SyncContainerData(int entityId, Map<String, EdmMap> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks) implements HandledPacketPayload {
 

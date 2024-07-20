@@ -154,7 +154,7 @@ public class AccessoriesAPI {
         if(entity != null) {
             var reference = SlotReference.of(entity, slotName, slot);
 
-            //TODO: Decide if such presents of modifiers prevents the accessory modifiers from existing
+            //TODO: Decide if the presence of modifiers prevents the accessory modifiers from existing
             var accessory = AccessoriesAPI.getAccessory(stack);
 
             if(accessory != null) accessory.getDynamicModifiers(stack, reference, builder);

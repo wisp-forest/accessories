@@ -168,7 +168,7 @@ public class AccessoriesEventHandler {
         if (list != null && !list.getPlayers().isEmpty()) {
             revalidatePlayersOnReload(list);
 
-            // TODO: OPTIMIZE SUCH?
+            // TODO: OPTIMIZE THIS?
             for (var playerEntry : list.getPlayers()) {
                 networkHandler.sendToPlayer(playerEntry, syncPacket);
 

@@ -43,7 +43,7 @@ public interface SlotType {
     int amount();
 
     /**
-     * @return A set of ResourceLocation used to check if such is an accessory is valid for the given slot used within {@link AccessoriesAPI#canInsertIntoSlot}.
+     * @return A set of ResourceLocation used to check if an accessory is valid for the given slot used within {@link AccessoriesAPI#canInsertIntoSlot}.
      */
     Set<ResourceLocation> validators();
 

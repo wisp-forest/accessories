@@ -91,7 +91,7 @@ public interface AccessoriesCapability {
      *
      * @param stack The desired stack to equip
      * @param allowSwapping Toggles check to allow for swapping stack if no empty spot is found
-     * @param additionalCheck Additional Check function used to see if such can be equipped
+     * @param additionalCheck Additional Check function used to see if it can be equipped
      * @return The stack replaced within the slot or null if unable to equip
      */
     @Nullable

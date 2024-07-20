@@ -107,7 +107,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
                 if(!ExtraSlotTypeProperties.getProperty(slotInfo.left(), false).strictMode() && slotType != null) {
                     slots.put(slotType.name(), slotType);
                 } else if (slotType == null) {
-                    LOGGER.warn("Unable to locate a given slot to add to a given entity('s) as such was not registered: [Slot: {}]", slotInfo.first());
+                    LOGGER.warn("Unable to locate a given slot to add to a given entity('s) as it was not registered: [Slot: {}]", slotInfo.first());
                 }
             });
 

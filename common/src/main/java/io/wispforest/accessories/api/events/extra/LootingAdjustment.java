@@ -10,7 +10,7 @@ import net.minecraft.world.item.ItemStack;
 /**
  * Event callback used to adjust the given {@link LivingEntity}s looting amount from the {@link LivingEntity#dropAllDeathLoot} method
  * <p/>
- * Such is called within {@link ExtraEventHandler#lootingAdjustments(LivingEntity, DamageSource, int)}
+ * This is called within {@link ExtraEventHandler#lootingAdjustments(LivingEntity, DamageSource, int)}
  * if any given Accessory was found to implement this interface and/or any registered callback
  * to the {@link LootingAdjustment#EVENT} returns an adjustment
  */

@@ -54,7 +54,7 @@ public class CurioSlot extends AccessoriesInternalSlot {
     public CurioSlot(Player player, IDynamicStackHandler handler, int index, String identifier, int xPosition, int yPosition, NonNullList<Boolean> renders, boolean canToggleRender) {
         super(0,
                 getContainer(player, identifier),
-                (handler instanceof WrappedCurioStackHandler.HandlerImpl wrapped ? wrapped.isCosmetic : throwException("Unable to handle passed IDynamicStackHandler as such is not a type that is valid")),
+                (handler instanceof WrappedCurioStackHandler.HandlerImpl wrapped ? wrapped.isCosmetic : throwException("Unable to handle passed IDynamicStackHandler as it is not a type that is valid")),
                 index,
                 xPosition,
                 yPosition);

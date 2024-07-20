@@ -56,7 +56,7 @@ public class UniqueSlotHandling {
 
     /**
      * Builder Object used to create unique slots with the base required info and some other extra properties that can
-     * be adjusted for such.
+     * be adjusted.
      */
     public static final class UniqueSlotBuilder {
         private final ResourceLocation location;

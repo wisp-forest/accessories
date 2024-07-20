@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * Default Renderer for any {@link Accessory} that has not had a renderer registered to such.
+ * Default Renderer for any {@link Accessory} that doesn't have a renderer registered.
  */
 public class DefaultAccessoryRenderer implements AccessoryRenderer {
 

@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(NbtOps.class)
 public class NbtOpsMixin {
     @Inject(method = "convertTo(Lcom/mojang/serialization/DynamicOps;Lnet/minecraft/nbt/Tag;)Ljava/lang/Object;", at = @At(value = "HEAD"), cancellable = true)
-    private <U> void thisIsAStupidPatchToFixAOverallBigProblemWithCodecThatShouldBeSolvedHowEndecHasDoneSuch(DynamicOps<U> ops, Tag tag, CallbackInfoReturnable<U> cir){
+    private <U> void thisIsAStupidPatchToFixAOverallBigProblemWithCodecThatShouldBeSolvedHowEndecHasDoneThis(DynamicOps<U> ops, Tag tag, CallbackInfoReturnable<U> cir){
         if(ops.empty() instanceof Tag) cir.setReturnValue((U) tag);
     }
 }

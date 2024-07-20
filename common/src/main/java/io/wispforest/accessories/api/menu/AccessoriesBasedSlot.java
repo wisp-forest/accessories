@@ -25,8 +25,8 @@ import java.util.List;
 
 /**
  * Base slot class implementation for Accessories with static methods that force checks if
- * such passed entity and type can be found. Primarily used with internal screen and such
- * within {@link AccessoriesSlotGenerator} for unique slots API
+ * the passed entity and type can be found. Primarily used with internal screen and
+ * with the {@link AccessoriesSlotGenerator} for unique slots API
  */
 public class AccessoriesBasedSlot extends Slot {
 
@@ -52,7 +52,7 @@ public class AccessoriesBasedSlot extends Slot {
         var capability = livingEntity.accessoriesCapability();
 
         if(capability == null) {
-            LOGGER.error("Unable to locate a capability for the given livingEntity meaning such dose not have a valid Accessory Inventory [EntityType: " + livingEntity.getType() + "]");
+            LOGGER.error("Unable to locate a capability for the given livingEntity meaning it dose not have a valid Accessory Inventory [EntityType: " + livingEntity.getType() + "]");
 
             return null;
         }
@@ -60,7 +60,7 @@ public class AccessoriesBasedSlot extends Slot {
         var validEntitySlots = EntitySlotLoader.getEntitySlots(livingEntity);
 
         if(!validEntitySlots.containsKey(slotType.name())) {
-            LOGGER.error("Unable to create Accessory Slot due to the given LivingEntity not having the given SlotType bound to such! [EntityType: " + livingEntity.getType() + ", SlotType: " + slotType.name() + "]");
+            LOGGER.error("Unable to create Accessory Slot due to the given LivingEntity not having the given SlotType bound to it! [EntityType: " + livingEntity.getType() + ", SlotType: " + slotType.name() + "]");
 
             return null;
         }

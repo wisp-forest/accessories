@@ -47,8 +47,8 @@ public class AccessoriesSlotGenerator {
 
     /**
      * Attempts to create a given {@link AccessoriesSlotGenerator} using the given start position and the given {@link SlotTypeReference}'s passed.
-     * Such passed consumer will most likely be the {@code addSlot} within the given Menu. The returned {@link AccessoriesSlotGenerator} will only be null
-     * if the entity was found not to have an {@link AccessoriesCapability} bound to such.
+     * The passed consumer will most likely be the {@code addSlot} within the given Menu. The returned {@link AccessoriesSlotGenerator} will only be null
+     * if the entity was found not to have an {@link AccessoriesCapability} bound to it.
      */
     @Nullable
     public static AccessoriesSlotGenerator of(Consumer<Slot> slotConsumer, int startX, int startY, LivingEntity livingEntity, SlotTypeReference... references) {
@@ -79,7 +79,7 @@ public class AccessoriesSlotGenerator {
 
         for (var slotType : slotTypes) {
             if(!validEntitySlotTypes.contains(slotType)){
-                LOGGER.error("Unable to create Accessory Slot due to the given LivingEntity not having the given SlotType bound to such! [EntityType: " + livingEntity.getType() + ", SlotType: " + slotType.name() + "]");
+                LOGGER.error("Unable to create Accessory Slot due to the given LivingEntity not having the given SlotType bound to it! [EntityType: " + livingEntity.getType() + ", SlotType: " + slotType.name() + "]");
 
                 continue;
             }

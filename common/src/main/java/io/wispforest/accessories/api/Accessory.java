@@ -88,7 +88,7 @@ public interface Accessory {
 
     /**
      * Helper method used to fill the passed {@link AccessoryItemAttributeModifiers.Builder} when called to modify
-     * the given default {@link AccessoriesDataComponents#ATTRIBUTES} right before Registry freeze occurs. Such is
+     * the given default {@link AccessoriesDataComponents#ATTRIBUTES} right before Registry freeze occurs. This is
      * useful for attributes that are not meant to be changed and remain mostly static.
      *
      * @param item      The item to which the given attributes will be defaulted for
@@ -148,7 +148,7 @@ public interface Accessory {
 
     /**
      * Method used to render client based particles when {@link AccessoriesAPI#breakStack(SlotReference)} is
-     * called on the server and such {@link AccessoryBreak} packet is received
+     * called on the server and the {@link AccessoryBreak} packet is received
      *
      * @param stack The Stack being prepared for dropping
      * @param reference The reference to the targeted {@link LivingEntity}, slot and index

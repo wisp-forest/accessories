@@ -50,7 +50,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
 
     @Override
     public Map<String, Map<String, TrinketInventory>> getInventory() {
-        //TODO: HANDLE SUCH TRINKET SPECIFIC NAMES AND GROUPS
+        //TODO: HANDLE THE TRINKET SPECIFIC NAMES AND GROUPS
         var groups = SlotGroupLoader.getGroups(capability.entity().level(), false);
         var containers = capability.getContainers();
 

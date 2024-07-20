@@ -460,7 +460,7 @@ public class CuriosImplMixinHooks {
         return TriState.of(this.curiosValidator.test(new SlotResult(new SlotContext(slotType.name(), null, slot, false, true), stack)));
       } catch (Exception e) {
         this.hasErrored = true;
-        LOGGER.warn("Unable to handle Curios Slot Predicate converted to Accessories Slot Predicate due to fundamental incompatibility, issues may be present with such! [Slot: {}, Predicate ID: {}]", slotType.name(), this.location);
+        LOGGER.warn("Unable to handle Curios Slot Predicate converted to Accessories Slot Predicate due to fundamental incompatibility, issues may be present with it! [Slot: {}, Predicate ID: {}]", slotType.name(), this.location);
       }
 
       return TriState.DEFAULT;

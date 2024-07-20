@@ -156,7 +156,7 @@ public class AccessoriesForge {
         AccessoriesInternalsImpl.setContext(event.getConditionContext());
     }
 
-    // This exists as a way to register things within the TCLayer without depending on NeoForge to do such within a mixin
+    // This exists as a way to register things within the TCLayer without depending on NeoForge to do this within a mixin
     public void intermediateRegisterListeners(Consumer<PreparableReloadListener> registrationMethod){
         registrationMethod.accept(SlotTypeLoader.INSTANCE);
         registrationMethod.accept(EntitySlotLoader.INSTANCE);

@@ -59,7 +59,7 @@ public interface AccessoryNest extends Accessory {
     /**
      * By default, accessory nests can only go one layer deep as it's hard to track the stack modifications any further
      *
-     * @return Whether such implementation of the Accessory nest allows for further nesting of other Nests
+     * @return Whether this implementation of the Accessory nest allows for further nesting of other Nests
      */
     default boolean allowDeepRecursion() {
         return false;
@@ -84,7 +84,7 @@ public interface AccessoryNest extends Accessory {
     //--
 
     /**
-     * Method used to perform some action on a possible {@link AccessoryNest} and return a result from such action or a default value if none found
+     * Method used to perform some action on a possible {@link AccessoryNest} and return a result from that action or a default value if none found
      *
      * @param holderStack   Potential stack linked to a AccessoryNest
      * @param slotReference The primary SlotReference used from the given call
@@ -108,7 +108,7 @@ public interface AccessoryNest extends Accessory {
     }
 
     /**
-     * Method used to perform some action on a possible {@link AccessoryNest} and return a result from such action or a default value if none found
+     * Method used to perform some action on a possible {@link AccessoryNest} and return a result from that action or a default value if none found
      *
      * @param holderStack   Potential stack linked to a AccessoryNest
      * @param livingEntity Potential Living Entity involved with any stack changes

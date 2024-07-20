@@ -164,7 +164,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
             var livingEntity = this.capability.entity();
 
-            //TODO: Confirm if such is needed
+            //TODO: Confirm if this is needed
             for (var invalidAccessory : invalidAccessories) {
                 var index = invalidAccessory.getFirst();
 

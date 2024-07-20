@@ -49,7 +49,7 @@ public abstract class ReplaceableJsonResourceReloadListener extends SimplePrepar
                     var jsonElement = GsonHelper.fromJson(gson, reader, JsonElement.class);
 
                     if(!(jsonElement instanceof JsonObject jsonObject)){
-                        logger.warn("File was found not to be parsed as a valid JsonObject, such will be skipped: [Location: " + filePath + "]");
+                        logger.warn("File was found not to be parsed as a valid JsonObject, it will be skipped: [Location: " + filePath + "]");
                         continue;
                     }
 
@@ -75,14 +75,14 @@ public abstract class ReplaceableJsonResourceReloadListener extends SimplePrepar
     public <T> void decodeJsonArray(JsonArray jsonArray, String name, ResourceLocation location, Function<JsonElement, @Nullable T> decoder, Consumer<T> consumer){
         for (var element : jsonArray) {
             if(!element.isJsonPrimitive()) {
-                logger.warn("Unable to parse " + name + " as such is not a valid Json Primitive! [Location: " + location + "]");
+                logger.warn("Unable to parse " + name + " as it is not a valid Json Primitive! [Location: " + location + "]");
                 continue;
             }
 
             var value = decoder.apply(element);
 
             if(value == null) {
-                logger.warn("Unable to parse " + name + " as such is not a valid ResourceLocation! [Location: " + location + ", Value: " + element.getAsString() + "]");
+                logger.warn("Unable to parse " + name + " as it is not a valid ResourceLocation! [Location: " + location + ", Value: " + element.getAsString() + "]");
                 continue;
             }
 

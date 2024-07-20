@@ -155,7 +155,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
                 for (var key : mapValue.keySet()) {
                     var containerElement = mapValue.get(key);
 
-                    if (!containerElement.type().equals(EdmElement.Type.MAP)) continue; // TODO: Handle such case?
+                    if (!containerElement.type().equals(EdmElement.Type.MAP)) continue; // TODO: Handle this case?
 
                     if (slots.containsKey(key)) {
                         var container = slotContainers.get(key);

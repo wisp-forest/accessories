@@ -13,7 +13,9 @@ import java.util.List;
 
 /**
  * Event callback used to change if the given entity death will use default accessory behavior to drop
- * the equipped accessories with such called at {@link AccessoriesEventHandler#onDeath(LivingEntity, DamageSource)}
+ * the equipped accessories.
+ * <p>
+ * Fired at {@link AccessoriesEventHandler#onDeath(LivingEntity, DamageSource)}
  */
 public interface OnDeathCallback {
 
