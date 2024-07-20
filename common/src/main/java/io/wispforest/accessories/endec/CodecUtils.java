@@ -79,7 +79,7 @@ public class CodecUtils {
             public <D> DataResult<Pair<T, D>> decode(DynamicOps<D> ops, D input) {
                 try {
                     var rootOps = ops;
-                    while (rootOps instanceof DelegatingOps<D>) rootOps = ((DelegatingOpsAccessor<D>) ops).delegate();
+                    while (rootOps instanceof DelegatingOps<D>) rootOps = ((DelegatingOpsAccessor<D>) rootOps).delegate();
 
                     var context = rootOps instanceof EdmOps edmOps
                             ? edmOps.capturedContext().and(assumedContext)
@@ -100,7 +100,7 @@ public class CodecUtils {
             public <D> DataResult<D> encode(T input, DynamicOps<D> ops, D prefix) {
                 try {
                     var rootOps = ops;
-                    while (rootOps instanceof DelegatingOps<D>) rootOps = ((DelegatingOpsAccessor<D>) ops).delegate();
+                    while (rootOps instanceof DelegatingOps<D>) rootOps = ((DelegatingOpsAccessor<D>) rootOps).delegate();
 
                     var context = rootOps instanceof EdmOps edmOps
                             ? edmOps.capturedContext().and(assumedContext)
@@ -142,7 +142,7 @@ public class CodecUtils {
                     });
 
                     var rootOps = ops;
-                    while (rootOps instanceof DelegatingOps<T1>) rootOps = ((DelegatingOpsAccessor<T1>) ops).delegate();
+                    while (rootOps instanceof DelegatingOps<T1>) rootOps = ((DelegatingOpsAccessor<T1>) rootOps).delegate();
 
                     var context = rootOps instanceof EdmOps edmOps
                             ? edmOps.capturedContext().and(assumedContext)
@@ -162,7 +162,7 @@ public class CodecUtils {
             public <T1> RecordBuilder<T1> encode(T input, DynamicOps<T1> ops, RecordBuilder<T1> prefix) {
                 try {
                     var rootOps = ops;
-                    while (rootOps instanceof DelegatingOps<T1>) rootOps = ((DelegatingOpsAccessor<T1>) ops).delegate();
+                    while (rootOps instanceof DelegatingOps<T1>) rootOps = ((DelegatingOpsAccessor<T1>) rootOps).delegate();
 
                     var context = rootOps instanceof EdmOps edmOps
                             ? edmOps.capturedContext().and(assumedContext)
