@@ -91,6 +91,7 @@ public interface AccessoryRenderer {
      * @param model  The model to align to the body movement
      */
     @SuppressWarnings("unchecked")
+    @Deprecated
     static void followBodyRotations(final LivingEntity entity, final HumanoidModel<LivingEntity> model) {
         EntityRenderer<? super LivingEntity> render = Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(entity);
 
@@ -102,6 +103,7 @@ public interface AccessoryRenderer {
     /**
      * Translates the rendering context to the center of the player's face
      */
+    @Deprecated
     static void translateToFace(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity entity) {
         transformToFace(poseStack, model.head, Side.FRONT);
     }
@@ -109,6 +111,7 @@ public interface AccessoryRenderer {
     /**
      * Translates the rendering context to the center of the player's chest/torso segment
      */
+    @Deprecated
     static void translateToChest(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity livingEntity) {
         transformToModelPart(poseStack, model.body);
     }
@@ -116,6 +119,7 @@ public interface AccessoryRenderer {
     /**
      * Translates the rendering context to the center of the bottom of the player's right arm
      */
+    @Deprecated
     static void translateToRightArm(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.rightArm, Side.BOTTOM);
     }
@@ -123,6 +127,7 @@ public interface AccessoryRenderer {
     /**
      * Translates the rendering context to the center of the bottom of the player's left arm
      */
+    @Deprecated
     static void translateToLeftArm(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.leftArm, Side.BOTTOM);
     }
@@ -130,13 +135,17 @@ public interface AccessoryRenderer {
     /**
      * Translates the rendering context to the center of the bottom of the player's right leg
      */
+    @Deprecated
     static void translateToRightLeg(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.rightLeg, Side.BOTTOM);
     }
 
     /**
      * Translates the rendering context to the center of the bottom of the player's left leg
+     *
+     * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@Link #transformToModelPart(PoseStack, ModelPart)} instead
      */
+    @Deprecated
     static void translateToLeftLeg(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.leftLeg, Side.BOTTOM);
     }
@@ -150,6 +159,12 @@ public interface AccessoryRenderer {
      */
     static void transformToFace(PoseStack poseStack, ModelPart part, Side side) {
         transformToModelPart(poseStack, part, side.direction.getNormal().getX(), side.direction.getNormal().getY(), side.direction.getNormal().getZ());
+    }
+
+    enum transformType {
+        POSITION,
+        ROTATION,
+        SCALE
     }
 
     /**
@@ -172,8 +187,9 @@ public interface AccessoryRenderer {
      *                  (-1 being the back and 1 being the front)
      *                  <p>
      *                  If null, will be ignored
+     * @param types     The types of transformations to apply
      */
-    static void transformToModelPart(PoseStack poseStack, ModelPart part, @Nullable Number xPercent, @Nullable Number yPercent, @Nullable Number zPercent) {
+    static void transformToModelPart(PoseStack poseStack, ModelPart part, @Nullable Number xPercent, @Nullable Number yPercent, @Nullable Number zPercent, transformType... types) {
         part.translateAndRotate(poseStack);
         var aabb = getAABB(part);
         poseStack.scale(1 / 16f, 1 / 16f, 1 / 16f);
