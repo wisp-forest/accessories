@@ -9,18 +9,13 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.api.slot.UniqueSlotHandling;
-import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.endec.LenientEdmMap;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.endec.format.nbt.NbtEndec;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
-import io.wispforest.endec.format.edm.EdmMap;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
-import net.minecraft.Util;
 import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.SimpleContainer;
@@ -389,8 +384,6 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     public void read(MapCarrier carrier, SerializationContext ctx, boolean sync){
-        if(carrier instanceof EdmMap edmMap) carrier = LenientEdmMap.of(edmMap);
-
         var registryAccess = ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager();
 
         this.slotName = carrier.get(SLOT_NAME_KEY);

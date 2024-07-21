@@ -7,9 +7,8 @@ import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.EntitySlotLoader;
-import io.wispforest.accessories.endec.EdmUtils;
+import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.endec.SerializationContext;
@@ -95,7 +94,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
             if (!(this.entity instanceof ServerPlayer serverPlayer) || serverPlayer.connection == null) return;
 
-            var carrier = EdmUtils.newMap();
+            var carrier = NbtMapCarrier.of();
 
             holder.write(carrier, SerializationContext.attributes(RegistriesAttribute.of(this.entity.level().registryAccess())));
 

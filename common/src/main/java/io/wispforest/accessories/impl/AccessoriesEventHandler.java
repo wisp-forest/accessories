@@ -16,7 +16,7 @@ import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.endec.EdmUtils;
+import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.networking.client.SyncContainerData;
@@ -142,7 +142,7 @@ public class AccessoriesEventHandler {
 
         if(capability == null) return;
 
-        var carrier = EdmUtils.newMap();
+        var carrier = NbtMapCarrier.of();
 
         ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(level.registryAccess())));
 
@@ -154,7 +154,7 @@ public class AccessoriesEventHandler {
 
         if(capability == null) return;
 
-        var carrier = EdmUtils.newMap();
+        var carrier = NbtMapCarrier.of();
 
         ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(entity.level().registryAccess())));
 
@@ -176,7 +176,7 @@ public class AccessoriesEventHandler {
 
                 if(capability == null) return;
 
-                var carrier = EdmUtils.newMap();
+                var carrier = NbtMapCarrier.of();
 
                 ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(playerEntry.level().registryAccess())));
 
@@ -195,7 +195,7 @@ public class AccessoriesEventHandler {
 
             if(capability == null) return;
 
-            var carrier = EdmUtils.newMap();
+            var carrier = NbtMapCarrier.of();
 
             ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(player.level().registryAccess())));
 
