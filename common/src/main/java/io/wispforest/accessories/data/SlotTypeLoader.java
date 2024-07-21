@@ -235,7 +235,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             return new SlotTypeImpl(
                     name,
                     alternativeTranslation,
-                    Optional.ofNullable(icon).orElse(SlotType.EMPTY_SLOT_LOCATION),
+                    Optional.ofNullable(icon).orElse(SlotType.EMPTY_SLOT_ICON),
                     Optional.ofNullable(order).orElse(1000),
                     Optional.ofNullable(amount).map(i -> Math.max(i, 0)).orElse(1),
                     validators,
