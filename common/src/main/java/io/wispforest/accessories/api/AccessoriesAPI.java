@@ -42,6 +42,10 @@ public class AccessoriesAPI {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
+    /**
+     * @deprecated Internal API, will become private in the future.
+     */
+    @ApiStatus.Internal
     public static final Accessory DEFAULT = new Accessory() {
         @Override
         public int maxStackSize(ItemStack stack) {
@@ -65,38 +69,44 @@ public class AccessoriesAPI {
     //--
 
     /**
-     * Main method to register a given {@link Item} to given {@link Accessory}
+     * Registers an accessory implementation for a given item.
      */
     public static void registerAccessory(Item item, Accessory accessory) {
         REGISTER.put(item, accessory);
     }
 
+    /**
+     * @return the accessory bound to this stack or {@code null} if there is none
+     */
     @Nullable
     public static Accessory getAccessory(ItemStack stack){
         return getAccessory(stack.getItem());
     }
 
     /**
-     * Attempt to get a {@link Accessory} bound to an {@link Item} or an Empty {@link Optional}
+     * @return the accessory bound to this item or {@code null} if there is none
      */
     @Nullable
     public static Accessory getAccessory(Item item) {
         return REGISTER.get(item);
     }
 
+    /**
+     * @return the accessory bound to this stack or {@link #defaultAccessory()} if there is none
+     */
     public static Accessory getOrDefaultAccessory(ItemStack stack){
         return getOrDefaultAccessory(stack.getItem());
     }
 
     /**
-     * Get any bound {@link Accessory} to the given {@link Item} or return {@link #DEFAULT} Accessory
+     * @return the accessory bound to this item or {@link #defaultAccessory()} if there is none
      */
     public static Accessory getOrDefaultAccessory(Item item){
         return REGISTER.getOrDefault(item, defaultAccessory());
     }
 
     /**
-     * @return Default {@link Accessory}
+     * @return the default accessory implementation
      */
     public static Accessory defaultAccessory(){
         return DEFAULT;
@@ -144,7 +154,7 @@ public class AccessoriesAPI {
         if(entity != null) {
             var reference = SlotReference.of(entity, slotName, slot);
 
-            //TODO: Decide if such presents of modifiers prevents the accessory modifiers from existing
+            //TODO: Decide if the presence of modifiers prevents the accessory modifiers from existing
             var accessory = AccessoriesAPI.getAccessory(stack);
 
             if(accessory != null) accessory.getDynamicModifiers(stack, reference, builder);

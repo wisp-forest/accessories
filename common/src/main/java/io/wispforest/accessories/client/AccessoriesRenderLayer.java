@@ -33,7 +33,7 @@ import static io.wispforest.accessories.client.gui.AccessoriesScreen.*;
 
 /**
  * Render layer used to render equipped Accessories for a given {@link LivingEntity}.
- * Such is only applied to {@link LivingEntityRenderer} that have a model that
+ * This is only applied to {@link LivingEntityRenderer} that have a model that
  * extends {@link HumanoidModel}
  */
 public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M> {

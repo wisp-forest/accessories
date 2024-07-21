@@ -33,7 +33,7 @@ public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) impl
         var entity = player.level().getEntity(entityId);
 
         if(entity == null) {
-            LOGGER.info("Unable to Sync Container Data for a given Entity as such is null on the Client! [EntityId: {}]", entityId);
+            LOGGER.info("Unable to Sync Container Data for a given Entity as it is null on the Client! [EntityId: {}]", entityId);
 
             return;
         }

@@ -2,24 +2,25 @@ package io.wispforest.accessories.api.slot;
 
 import com.google.common.collect.ImmutableMap;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.api.Accessory;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.*;
 
 /**
- * Class used to construct Unique slots for specific mods with more ability
- * to restrict certain adjustments possible though datapack's if required
+ * Utilities for adding custom slots that are rendered outside the accessories screen with options for restricting
+ * modification via data pack.
  */
 public class UniqueSlotHandling {
 
     /**
-     * Main event used to register unique slots for your mod in which is called on loading call of {@link SlotTypeLoader#apply}
+     * Event for registration of unique slots.
      */
     public static final Event<RegistrationCallback> EVENT = EventFactory.createArrayBacked(RegistrationCallback.class, (invokers) -> factory -> {
         for (var invoker : invokers) {
@@ -27,6 +28,7 @@ public class UniqueSlotHandling {
         }
     });
 
+    @ApiStatus.Internal
     public static void gatherUniqueSlots(TriFunction<ResourceLocation, Integer, Collection<ResourceLocation>, SlotTypeReference> slotRegistration) {
         GROUPS_SERVER.clear();
         SLOT_TO_ENTITIES.clear();
@@ -37,25 +39,30 @@ public class UniqueSlotHandling {
     }
 
     public interface RegistrationCallback {
+        /**
+         * Invoked when unique slots are being loaded.
+         *
+         * @param factory the factory for registering unique slots
+         */
         void registerSlots(UniqueSlotBuilderFactory factory);
     }
 
-    /**
-     * Util interface used within {@link RegistrationCallback} to allow for creating a new {@link UniqueSlotBuilder}
-     */
     public interface UniqueSlotBuilderFactory {
+        /**
+         * Starts building a new unique slot.
+         */
         UniqueSlotBuilder create(ResourceLocation location, int amount);
     }
 
     /**
-     * Builder Object used to create unique slots with the base required info and some other extra properies that can
-     * be adjusted for such.
+     * Builder Object used to create unique slots with the base required info and some other extra properties that can
+     * be adjusted.
      */
     public static final class UniqueSlotBuilder {
         private final ResourceLocation location;
         private final int amount;
-        private Collection<ResourceLocation> slotPredicates = List.of();
-        private Collection<EntityType<?>> validTypes = Set.of();
+        private Set<ResourceLocation> slotPredicates = Set.of(Accessories.of("tag"));
+        private Set<EntityType<?>> validTypes = Set.of();
 
         private boolean strictMode = true;
         private boolean allowResizing = false;
@@ -71,34 +78,36 @@ public class UniqueSlotHandling {
         }
 
         /**
-         * Adds the given slot predicates as valid methods to check for if a given accessory can be equipped
+         * Sets the unique slot's slot predicates.
+         * <p>
+         * By default, the tag-based slot predicate is used.
          */
-        public UniqueSlotBuilder slotPredicates(ResourceLocation ...locations) {
+        public UniqueSlotBuilder slotPredicates(ResourceLocation... locations) {
             this.slotPredicates = Set.of(locations);
 
             return this;
         }
 
         /**
-         * Allows the given entity types to have the slot as a valid container
+         * Sets the list of entity types that will have this slot.
          */
-        public UniqueSlotBuilder validTypes(EntityType<?> ...types) {
+        public UniqueSlotBuilder validTypes(EntityType<?>... types) {
             this.validTypes = Set.of(types);
 
             return this;
         }
 
         /**
-         * Indicates that the given slot added can not be adjusted though datapack method
+         * Controls whether modification of this slot via a data pack is disallowed.
          */
-        public UniqueSlotBuilder strictMode(boolean value){
+        public UniqueSlotBuilder strictMode(boolean value) {
             this.strictMode = value;
 
             return this;
         }
 
         /**
-         * Prevents the given slot from being resized in any way from the given size set on builder creation
+         * Controls whether this slot can be resized later (e.g. with a data pack or attribute)
          */
         public UniqueSlotBuilder allowResizing(boolean value) {
             this.allowResizing = value;
@@ -107,7 +116,9 @@ public class UniqueSlotHandling {
         }
 
         /**
-         * Allows the ability to toggle if the given slot as a whole allows for equipping from use
+         * Controls whether accessories can be equipped from use into this slot.
+         * <p>
+         * A value of {@code false} overrides {@link Accessory#canEquipFromUse(ItemStack, SlotReference)}.
          */
         public UniqueSlotBuilder allowEquipFromUse(boolean value) {
             this.allowEquipFromUse = value;
@@ -115,16 +126,16 @@ public class UniqueSlotHandling {
             return this;
         }
 
+        /**
+         * Builds and registers the unique slot.
+         * @return a reference to the unique slot type
+         */
         public SlotTypeReference build() {
-            if(this.slotPredicates.isEmpty()) {
-                this.slotPredicates = Set.of(Accessories.of("tag"));
-            }
-
             var slotTypeRef = this.slotRegistration.apply(location, amount, slotPredicates);
 
             SLOT_TO_ENTITIES.put(slotTypeRef.slotName(), Set.copyOf(this.validTypes));
 
-            ExtraSlotTypeProperties.getPropertiess(false)
+            ExtraSlotTypeProperties.getProperties(false)
                     .put(slotTypeRef.slotName(), new ExtraSlotTypeProperties(this.allowResizing, this.strictMode, this.allowEquipFromUse));
 
             return slotTypeRef;

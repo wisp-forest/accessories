@@ -12,8 +12,10 @@ import net.minecraft.world.item.ItemStack;
 import java.util.List;
 
 /**
- * Event callback used to change if the given entity death will use default accessory behvaior to drop
- * the equipped accessories with such called at {@link AccessoriesEventHandler#onDeath(LivingEntity, DamageSource)}
+ * Event callback used to change if the given entity death will use default accessory behavior to drop
+ * the equipped accessories.
+ * <p>
+ * Fired at {@link AccessoriesEventHandler#onDeath(LivingEntity, DamageSource)}
  */
 public interface OnDeathCallback {
 
@@ -32,7 +34,7 @@ public interface OnDeathCallback {
     /**
      * Event used to check if the given default logic for dropping Accessories should be run or not
      *
-     * @param currentState Wether or not someone is attempting to handle the dropping already
+     * @param currentState Whether someone is attempting to handle the dropping already
      * @param entity The given target entity
      * @param capability The given capability bound to the entity
      * @param damageSource

@@ -115,7 +115,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     public ItemStack removeItemNoUpdate(int slot) {
         if(!validIndex(slot)) return ItemStack.EMPTY;
 
-        // TODO: Concerning the flagging system, should such work for it?
+        // TODO: Concerning the flagging system, should this work for it?
 
         return super.removeItemNoUpdate(slot);
     }

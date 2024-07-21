@@ -12,7 +12,7 @@ import net.minecraft.world.item.ItemStack;
  * Event callback used to adjust the given {@link PiglinAi#isWearingGold(LivingEntity)}s method calls return
  * either making the given piglin neutral or not
  * <p/>
- * Such is called within {@link ExtraEventHandler#isPiglinsNeutral(LivingEntity)}
+ * This is called within {@link ExtraEventHandler#isPiglinsNeutral(LivingEntity)}
  * if any given Accessory was found to implement this interface and/or any registered callback
  * to the {@link LootingAdjustment#EVENT} returns an adjustment
  */

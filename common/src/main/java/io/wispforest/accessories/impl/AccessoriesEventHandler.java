@@ -63,7 +63,7 @@ import static io.wispforest.accessories.Accessories.ACCESSORY_UNEQUIPPED;
 @ApiStatus.Internal
 public class AccessoriesEventHandler {
 
-    public static boolean dataReloadOccured = false;
+    public static boolean dataReloadOccurred = false;
 
     public static void onWorldTick(Level level) {
         if (!(level instanceof ServerLevel serverLevel)) return;
@@ -72,11 +72,11 @@ public class AccessoriesEventHandler {
     }
 
     public static void revalidatePlayersOnReload(PlayerList playerList) {
-        if(!dataReloadOccured) return;
+        if(!dataReloadOccurred) return;
 
         for (var player : playerList.getPlayers()) revalidatePlayer(player);
 
-        dataReloadOccured = false;
+        dataReloadOccurred = false;
     }
 
     public static void revalidatePlayer(ServerPlayer player) {
@@ -168,7 +168,7 @@ public class AccessoriesEventHandler {
         if (list != null && !list.getPlayers().isEmpty()) {
             revalidatePlayersOnReload(list);
 
-            // TODO: OPTIMIZE SUCH?
+            // TODO: OPTIMIZE THIS?
             for (var playerEntry : list.getPlayers()) {
                 networkHandler.sendToPlayer(playerEntry, syncPacket);
 
@@ -262,7 +262,7 @@ public class AccessoriesEventHandler {
                         boolean equipmentChange = false;
 
                         /*
-                         * TODO: Dose item check need to exist anymore?
+                         * TODO: Does item check need to exist anymore?
                          */
                         if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlagged(i)) {
                             AccessoriesAPI.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);

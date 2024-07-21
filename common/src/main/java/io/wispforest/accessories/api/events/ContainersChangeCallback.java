@@ -27,7 +27,7 @@ public interface ContainersChangeCallback {
     /**
      * @param livingEntity      The given entity instance
      * @param capability        The given capability for the entity
-     * @param changedContainers A map representing the keys of the changed containers and a boolean indicating if such was a resizing change
+     * @param changedContainers a map of changed containers to a boolean indicating whether they were resized
      */
     void onChange(LivingEntity livingEntity, AccessoriesCapability capability, Map<AccessoriesContainer, Boolean> changedContainers);
 }

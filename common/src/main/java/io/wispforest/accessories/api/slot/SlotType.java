@@ -38,12 +38,12 @@ public interface SlotType {
     int order();
 
     /**
-     * @return The base amout for a given slot type.
+     * @return The base amount for a given slot type.
      */
     int amount();
 
     /**
-     * @return A set of ResourceLocation used to check if such is an accessory is valid for the given slot used within {@link AccessoriesAPI#canInsertIntoSlot}.
+     * @return A set of ResourceLocation used to check if an accessory is valid for the given slot used within {@link AccessoriesAPI#canInsertIntoSlot}.
      */
     Set<ResourceLocation> validators();
 

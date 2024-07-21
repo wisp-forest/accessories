@@ -12,8 +12,8 @@ import net.minecraft.world.item.ItemStack;
 
 /**
  * Simple version of the {@link AccessoryRenderer} with a transformation method to adjust
- * a given item to certain part of the given {@link LivingEntity} then rendering such as
- * an Item at such location and scale
+ * a given item to certain part of the given {@link LivingEntity} then rendering the accessory
+ * as an Item at the specified location and scale
  */
 public interface SimpleAccessoryRenderer extends AccessoryRenderer {
 

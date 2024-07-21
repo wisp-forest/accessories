@@ -107,7 +107,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
                 if(!ExtraSlotTypeProperties.getProperty(slotInfo.left(), false).strictMode() && slotType != null) {
                     slots.put(slotType.name(), slotType);
                 } else if (slotType == null) {
-                    LOGGER.warn("Unable to locate a given slot to add to a given entity('s) as such was not registered: [Slot: {}]", slotInfo.first());
+                    LOGGER.warn("Unable to locate a given slot to add to a given entity('s) as it was not registered: [Slot: {}]", slotInfo.first());
                 }
             });
 
@@ -135,7 +135,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
                     return Optional.ofNullable(ResourceLocation.tryParse(string))
                             .map(location1 -> BuiltInRegistries.ENTITY_TYPE.getOptional(location1).map(Set::of).orElse(Set.of()))
                             .orElseGet(() -> {
-                                LOGGER.warn("[EntitySlotLoader]: Unable to locate the given EntityType within the registries for a slot entrie: [Location: {}]", string);
+                                LOGGER.warn("[EntitySlotLoader]: Unable to locate the given EntityType within the registries for a slot entry: [Location: {}]", string);
 
                                 return Set.of();
                             });

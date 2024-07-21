@@ -13,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
  * Event callback used to adjust the given {@link EnderMan#isLookingAtMe(Player)}s method calls return
  * either indicating the user is masked or not
  * <p/>
- * Such is called within {@link ExtraEventHandler#isEndermanMask(LivingEntity, EnderMan)} (LivingEntity)}
+ * This is called within {@link ExtraEventHandler#isEndermanMask(LivingEntity, EnderMan)} (LivingEntity)}
  * if any given Accessory was found to implement this interface and/or any registered callback
  * to the {@link EndermanMasked#EVENT} returns an adjustment
  */

@@ -154,11 +154,10 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
                 for (var key : containersMap.getAllKeys()) {
                     var containerElement = containersMap.getCompound(key);
 
-                    if (containerElement.isEmpty()) continue; // TODO: Handle such case?
+                    if (containerElement.isEmpty()) continue; // TODO: Handle this case?
 
                     if (slots.containsKey(key)) {
                         var container = slotContainers.get(key);
-
                         var prevAccessories = AccessoriesContainerImpl.copyContainerList(container.getAccessories());
                         var prevCosmetics = AccessoriesContainerImpl.copyContainerList(container.getCosmeticAccessories());
 

@@ -48,7 +48,7 @@ public class DataLoaderImpl extends DataLoaderBase {
 
             @Override
             public void onResourceManagerReload(ResourceManager resourceManager) {
-                AccessoriesEventHandler.dataReloadOccured = true;
+                AccessoriesEventHandler.dataReloadOccurred = true;
             }
         });
 

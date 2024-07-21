@@ -10,6 +10,7 @@ import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -52,5 +53,6 @@ public class AccessoriesDataComponents {
         return Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, string, ((DataComponentType.Builder)unaryOperator.apply(DataComponentType.builder())).build());
     }
 
+    @ApiStatus.Internal
     public static void init() {}
 }
