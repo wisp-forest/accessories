@@ -119,7 +119,7 @@ public class AccessoriesBasedSlot extends Slot {
     protected ResourceLocation icon(){
         var slotType = this.accessoriesContainer.slotType();
 
-        return slotType != null ? slotType.icon() : SlotType.EMPTY_SLOT_LOCATION;
+        return slotType != null ? slotType.icon() : SlotType.EMPTY_SLOT_ICON;
     }
 
     public List<Component> getTooltipData() {

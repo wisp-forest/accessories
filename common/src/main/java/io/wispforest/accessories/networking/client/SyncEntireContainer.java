@@ -2,6 +2,7 @@ package io.wispforest.accessories.networking.client;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
@@ -16,11 +17,11 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.slf4j.Logger;
 
-public record SyncEntireContainer(int entityId, EdmMap containerMap) implements HandledPacketPayload {
+public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) implements HandledPacketPayload {
 
     public static final Endec<SyncEntireContainer> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", SyncEntireContainer::entityId),
-            EdmEndec.MAP.fieldOf("containerTag", SyncEntireContainer::containerMap),
+            NbtMapCarrier.ENDEC.fieldOf("containerTag", SyncEntireContainer::containerMap),
             SyncEntireContainer::new
     );
 

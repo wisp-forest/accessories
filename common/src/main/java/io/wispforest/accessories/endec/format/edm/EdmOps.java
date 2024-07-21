@@ -211,19 +211,8 @@ public class EdmOps implements DynamicOps<EdmElement<?>> {
             case STRING -> outOps.createString(input.cast());
             case BYTES -> outOps.createByteList(ByteBuffer.wrap(input.cast()));
             case OPTIONAL -> input.<Optional<EdmElement<?>>>cast().map(element -> this.convertTo(outOps, element)).orElse(outOps.empty());
-            case SEQUENCE -> {
-                if (outOps.empty() instanceof Tag) {
-                    var initialList = new ListTag();
-
-                    initialList.addAll(input.<List<EdmElement<?>>>cast().stream().map(element -> this.convertTo((DynamicOps<Tag>) outOps, element)).toList());
-
-                    yield (U) initialList;
-                } else {
-                    yield outOps.createList(input.<List<EdmElement<?>>>cast().stream().map(element -> this.convertTo(outOps, element)));
-                }
-            }
-            case MAP ->
-                    outOps.createMap(input.<Map<String, EdmElement<?>>>cast().entrySet().stream().map(entry -> new Pair<>(outOps.createString(entry.getKey()), this.convertTo(outOps, entry.getValue()))));
+            case SEQUENCE -> outOps.createList(input.<List<EdmElement<?>>>cast().stream().map(element -> this.convertTo(outOps, element)));
+            case MAP -> outOps.createMap(input.<Map<String, EdmElement<?>>>cast().entrySet().stream().map(entry -> new Pair<>(outOps.createString(entry.getKey()), this.convertTo(outOps, entry.getValue()))));
         };
     }
 
@@ -237,5 +226,9 @@ public class EdmOps implements DynamicOps<EdmElement<?>> {
         } else {
             return input;
         }
+    }
+
+    public static void test(String a) {
+
     }
 }
