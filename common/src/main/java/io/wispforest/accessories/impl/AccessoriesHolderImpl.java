@@ -1,6 +1,5 @@
 package io.wispforest.accessories.impl;
 
-import com.google.common.collect.ImmutableMap;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -10,8 +9,6 @@ import io.wispforest.accessories.endec.format.nbt.NbtEndec;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationAttribute;
 import io.wispforest.endec.SerializationContext;
-import io.wispforest.endec.format.edm.EdmElement;
-import io.wispforest.endec.format.edm.EdmMap;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
 import net.minecraft.Util;
@@ -40,6 +37,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     private int scrolledSlot = 0;
 
     private boolean linesShown = false;
+
+    private PlayerEquipControl equipControl = PlayerEquipControl.MUST_CROUCH;
 
     private MapCarrier carrier;
     protected boolean loadedFromTag = false;
@@ -114,6 +113,18 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     @Override
     public AccessoriesHolder showUniqueSlots(boolean value) {
         this.showUniqueSlots = value;
+
+        return this;
+    }
+
+    @Override
+    public PlayerEquipControl equipControl() {
+        return equipControl;
+    }
+
+    @Override
+    public AccessoriesHolder equipControl(PlayerEquipControl value) {
+        this.equipControl = value;
 
         return this;
     }
@@ -199,16 +210,16 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
             }).keyed("AccessoriesContainers", HashMap::new);
 
     private static final KeyedEndec<Boolean> COSMETICS_SHOWN_KEY = Endec.BOOLEAN.keyed("CosmeticsShown", false);
-
     private static final KeyedEndec<Boolean> LINES_SHOWN_KEY = Endec.BOOLEAN.keyed("LinesShown", false);
+    private static final KeyedEndec<PlayerEquipControl> EQUIP_CONTROL_KEY = Endec.forEnum(PlayerEquipControl.class).keyed("EquipControl", PlayerEquipControl.MUST_CROUCH);
 
     @Override
     public void write(MapCarrier carrier, SerializationContext ctx) {
         if(slotContainers.isEmpty()) return;
 
         carrier.put(COSMETICS_SHOWN_KEY, this.cosmeticsShown);
-
         carrier.put(LINES_SHOWN_KEY, this.linesShown);
+        carrier.put(EQUIP_CONTROL_KEY, this.equipControl);
 
         carrier.put(ctx, CONTAINERS_KEY, this.slotContainers);
     }
@@ -222,6 +233,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
         this.cosmeticsShown = carrier.get(COSMETICS_SHOWN_KEY);
         this.linesShown = carrier.get(LINES_SHOWN_KEY);
+        this.equipControl = carrier.get(EQUIP_CONTROL_KEY);
 
         carrier.getWithErrors(ctx.withAttributes(new ContainersAttribute(this.slotContainers), new InvalidStacksAttribute(this.invalidStacks)), CONTAINERS_KEY);
 

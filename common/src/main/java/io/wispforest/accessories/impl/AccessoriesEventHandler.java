@@ -698,12 +698,22 @@ public class AccessoriesEventHandler {
     public static InteractionResultHolder<ItemStack> attemptEquipFromUse(Player player, InteractionHand hand) {
         var stack = player.getItemInHand(hand);
 
-        if (!stack.isEmpty() && !player.isSpectator() && player.isShiftKeyDown()) {
-            var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+        var capability = AccessoriesCapability.get(player);
 
-            var capability = AccessoriesCapability.get(player);
+        if(capability != null && !player.isSpectator() && !stack.isEmpty()) {
+            var equipControl = capability.getHolder().equipControl();
 
-            if (capability != null) {
+            var shouldAttemptEquip = false;
+
+            if(equipControl == PlayerEquipControl.MUST_CROUCH && player.isShiftKeyDown()) {
+                shouldAttemptEquip = true;
+            } else if(equipControl == PlayerEquipControl.MUST_NOT_CROUCH && !player.isShiftKeyDown()) {
+                shouldAttemptEquip = true;
+            }
+
+            if (shouldAttemptEquip) {
+                var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+
                 var equipReference = capability.equipAccessory(stack, true, Accessory::canEquipFromUse);
 
                 if (equipReference != null) {
@@ -713,17 +723,17 @@ public class AccessoriesEventHandler {
 
                     var newHandStack = stacks.get(0);
 
-                    if(stacks.size() > 1) {
+                    if (stacks.size() > 1) {
                         var otherStack = stacks.get(1);
 
                         if (newHandStack.isEmpty()) {
                             newHandStack = otherStack;
-                        } else if(ItemStack.isSameItemSameComponents(newHandStack, otherStack)) {
+                        } else if (ItemStack.isSameItemSameComponents(newHandStack, otherStack)) {
                             int resizingAmount = 0;
 
-                            if((newHandStack.getCount() + otherStack.getCount()) < newHandStack.getMaxStackSize()) {
+                            if ((newHandStack.getCount() + otherStack.getCount()) < newHandStack.getMaxStackSize()) {
                                 resizingAmount = otherStack.getCount();
-                            } else if((newHandStack.getMaxStackSize() - newHandStack.getCount()) > 0) {
+                            } else if ((newHandStack.getMaxStackSize() - newHandStack.getCount()) > 0) {
                                 resizingAmount = newHandStack.getMaxStackSize() - newHandStack.getCount();
                             }
 

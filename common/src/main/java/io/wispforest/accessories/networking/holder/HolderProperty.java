@@ -2,6 +2,7 @@ package io.wispforest.accessories.networking.holder;
 
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesHolder;
+import io.wispforest.accessories.api.PlayerEquipControl;
 import io.wispforest.endec.Endec;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
@@ -22,6 +23,7 @@ public record HolderProperty<T>(String name, Endec<T> endec, BiConsumer<Accessor
     public static HolderProperty<Boolean> COSMETIC_PROP;
     public static HolderProperty<Boolean> UNUSED_PROP;
     public static HolderProperty<Boolean> UNIQUE_PROP;
+    public static HolderProperty<PlayerEquipControl> EQUIP_CONTROL;
 
     static { init(); }
 
@@ -61,5 +63,6 @@ public record HolderProperty<T>(String name, Endec<T> endec, BiConsumer<Accessor
         COSMETIC_PROP = new HolderProperty<>("cosmetic", Endec.BOOLEAN, AccessoriesHolder::cosmeticsShown, AccessoriesHolder::cosmeticsShown);
         UNUSED_PROP = new HolderProperty<>("unused_slots", Endec.BOOLEAN, AccessoriesHolder::showUnusedSlots, AccessoriesHolder::showUnusedSlots);
         UNIQUE_PROP = new HolderProperty<>("unique_slots", Endec.BOOLEAN, AccessoriesHolder::showUniqueSlots, AccessoriesHolder::showUniqueSlots);
+        EQUIP_CONTROL = new HolderProperty<>("equip_control", Endec.forEnum(PlayerEquipControl.class), AccessoriesHolder::equipControl, AccessoriesHolder::equipControl);
     }
 }

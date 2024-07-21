@@ -1,6 +1,7 @@
 package io.wispforest.accessories.compat;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.PlayerEquipControl;
 import io.wispforest.accessories.api.client.TargetType;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
@@ -34,6 +35,8 @@ public class AccessoriesConfig implements ConfigData {
         public boolean disableEmptySlotScreenError = false;
 
         public boolean allowSlotScrolling = true;
+
+        public PlayerEquipControl equipControl = PlayerEquipControl.MUST_NOT_CROUCH;
 
         @ConfigEntry.Gui.CollapsibleObject()
         public HighlightOptions highlightOptions = new HighlightOptions();
