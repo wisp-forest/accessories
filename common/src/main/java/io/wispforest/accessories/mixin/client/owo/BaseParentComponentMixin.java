@@ -6,6 +6,7 @@ import io.wispforest.owo.ui.base.BaseParentComponent;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.ParentComponent;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,9 @@ public abstract class BaseParentComponentMixin implements MutableBoundingArea<Ba
         return this.deepRecursiveChecking;
     }
 
+    //--
+
+    @Unique
     private final List<AbstractPolygon> inclusionZones = new ArrayList<>();
 
     @Override
@@ -45,6 +49,31 @@ public abstract class BaseParentComponentMixin implements MutableBoundingArea<Ba
     @Override
     public final <P extends AbstractPolygon> BaseParentComponent addInclusionZone(List<P> polygons) {
         this.inclusionZones.addAll(polygons);
+
+        return (BaseParentComponent) (Object) this;
+    }
+
+    //--
+
+    @Unique
+    private final List<AbstractPolygon> exclusionZones = new ArrayList<>();
+
+    @Override
+    public List<AbstractPolygon> getExclusionZones() {
+        return exclusionZones;
+    }
+
+    @SafeVarargs
+    @Override
+    public final <P extends AbstractPolygon> BaseParentComponent addExclusionZone(P... polygons) {
+        this.exclusionZones.addAll(List.of(polygons));
+
+        return (BaseParentComponent) (Object) this;
+    }
+
+    @Override
+    public final <P extends AbstractPolygon> BaseParentComponent addExclusionZone(List<P> polygons) {
+        this.exclusionZones.addAll(polygons);
 
         return (BaseParentComponent) (Object) this;
     }

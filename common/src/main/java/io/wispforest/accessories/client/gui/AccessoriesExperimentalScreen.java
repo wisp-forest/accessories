@@ -9,6 +9,7 @@ import io.wispforest.accessories.client.gui.components.InventoryEntityComponent;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.menu.variants.AccessoriesExperimentalMenu;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
+import io.wispforest.accessories.pond.owo.ExclusiveBoundingArea;
 import io.wispforest.accessories.pond.owo.MutableBoundingArea;
 import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
 import io.wispforest.owo.ui.component.ButtonComponent;
@@ -188,26 +189,32 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         //--
 
-        var armorAndEntityLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content());
-
-        armorAndEntityLayout.horizontalAlignment(HorizontalAlignment.CENTER);
+        var armorAndEntityLayout = (FlowLayout) Containers.horizontalFlow(Sizing.content(), Sizing.content())
+                .gap(2)
+                .horizontalAlignment(HorizontalAlignment.CENTER);
 
         {
-            var armorLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content());
+            var armorsLayout = (FlowLayout) Containers.horizontalFlow(Sizing.content(), Sizing.content())
+                    .horizontalAlignment(HorizontalAlignment.CENTER);
+
+            var innerSpacingComponent = Containers.horizontalFlow(Sizing.fixed(60), Sizing.fixed(84));
+
+            var outerLeftArmorLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content());
+            var outerRightArmorLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content());
 
             var armorSlotsLayout = Containers.verticalFlow(Sizing.content(), Sizing.content());
 
             armorSlotsLayout.surface(SLOT_RENDERING_SURFACE)
                     .allowOverflow(true);
 
-            armorLayout.child(armorSlotsLayout);
+            outerLeftArmorLayout.child(armorSlotsLayout);
 
             var cosmeticArmorSlotsLayout = Containers.verticalFlow(Sizing.content(), Sizing.content());
 
             cosmeticArmorSlotsLayout.surface(SLOT_RENDERING_SURFACE)
                     .allowOverflow(true);
 
-            armorLayout.child(cosmeticArmorSlotsLayout);
+            outerRightArmorLayout.child(cosmeticArmorSlotsLayout);
 
             for (int i = 0; i < 4; i++) {
                 var armor = menu.startingAccessoriesSlot + (i * 2);
@@ -226,25 +233,37 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 cosmeticArmorSlotsLayout.child(cosmeticArmorSlot);
             }
 
-            //armorLayout.positioning(Positioning.relative(50, 20));
+            //outerArmorLayout.positioning(Positioning.relative(50, 20));
 
-            armorLayout.surface(Surface.PANEL)
+            outerLeftArmorLayout.surface(Surface.PANEL)
                     .padding(Insets.of(6));
 
-            armorAndEntityLayout.child(armorLayout);
-        }
+            outerRightArmorLayout.surface(Surface.PANEL)
+                    .padding(Insets.of(6));
 
-        {
-            var entityContainer = Containers.verticalFlow(Sizing.content(), Sizing.content())
+            armorsLayout.child(outerLeftArmorLayout);
+
+            armorsLayout.child(innerSpacingComponent);
+            ((ExclusiveBoundingArea) armorsLayout).addExclusionZone(innerSpacingComponent);
+
+            armorsLayout.child(outerRightArmorLayout);
+
+            //--
+
+            var entityContainer = Containers.verticalFlow(Sizing.content(), Sizing.fixed(131 + 12))
                     .child(
                             Containers.verticalFlow(Sizing.content(), Sizing.content())
                                     .child(
-                                            new InventoryEntityComponent<>(Sizing.fixed(150), this.targetEntityDefaulted())
+                                            new InventoryEntityComponent<>(Sizing.fixed(131), this.targetEntityDefaulted())
                                                     .scaleToFitVertically(true)
                                                     .allowMouseRotation(true)
-                                                    .horizontalSizing(Sizing.fixed(95))
+                                                    .horizontalSizing(Sizing.fixed(108))
                                     )
                                     .surface(Surface.flat(Color.BLACK.argb()))
+                    )
+                    .child(
+                            armorsLayout.positioning(Positioning.relative(50, 50))
+                                    .zIndex(10)
                     )
                     .padding(Insets.of(6))
                     .surface(Surface.PANEL);
@@ -343,6 +362,8 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
             var totalRowCount = (int) Math.ceil(((slots.size() - pageStartingSlotIndex) / 2f) / maxColumnCount);
 
+            if(totalRowCount < maxRowCount) maxColumnCount = totalRowCount;
+
             var pageCount = (int) Math.ceil(totalRowCount / (float) maxRowCount);
 
             for (int pageIndex = 0; pageIndex < pageCount; pageIndex++) {
@@ -406,7 +427,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                         var accessorySlot = Containers.verticalFlow(Sizing.fixed(18), Sizing.fixed(18))
                                 .child(
                                         this.slotAsComponent(accessory).margins(Insets.of(1))
-                                                .zIndex(-3)
+                                                .zIndex(5)
                                 )
                                 .child(accessoryToggleBtn)
                                 .allowOverflow(true)
@@ -550,16 +571,19 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                     .horizontalAlignment(HorizontalAlignment.RIGHT)
                     .verticalAlignment(VerticalAlignment.CENTER);
 
+            var outerCheatLayout = (FlowLayout) Containers.verticalFlow(Sizing.content(), Sizing.fixed((minimumHeight) + 3 + 20 + (2 * 6)))
+                    .allowOverflow(true);
+
             var accessoriesMainLayout = Containers.verticalFlow(Sizing.content(), Sizing.content())
                     .gap(3)
+                    .child(titleBar)
                     .child(
-                            ((MutableBoundingArea<FlowLayout>)Containers.verticalFlow(Sizing.content(), Sizing.fixed(minimumHeight)))
+                            ((MutableBoundingArea<FlowLayout>)Containers.verticalFlow(Sizing.content(), Sizing.content()))
                                     .deepRecursiveChecking(true)
                                     .child(pages.getOrDefault(pageIndex.get(), PageLayouts.DEFAULT).getLayout(false))
                                     .allowOverflow(true)
                                     .id("grid_container")
                     )
-                    .child(titleBar)
                     .horizontalAlignment(HorizontalAlignment.RIGHT)
                     .surface(Surface.PANEL.and((context, component) -> {
                         var x = component.x();
@@ -588,12 +612,18 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
             ((MutableBoundingArea) accessoriesMainLayout).deepRecursiveChecking(true);
 
-            armorAndEntityLayout.child(0, accessoriesMainLayout);
+            outerCheatLayout.child(accessoriesMainLayout);
+            outerCheatLayout.child(Containers.verticalFlow(Sizing.content(), Sizing.expand()));
+
+            ((MutableBoundingArea) outerCheatLayout).deepRecursiveChecking(true);
+
+            armorAndEntityLayout.child(0, outerCheatLayout);
 
             //baseChildren.add(accessoriesMainLayout);
         }
 
         var baseLayout = Containers.verticalFlow(Sizing.content(), Sizing.fill())
+                .gap(2)
                 .children(baseChildren.reversed());
 
         baseLayout.horizontalAlignment(HorizontalAlignment.CENTER)
@@ -687,7 +717,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
             var hoveredSlot = screen.hoveredSlot;
 
-            if(slot() instanceof SlotTypeAccessible/* && false*/) {
+            if(slot() instanceof SlotTypeAccessible || true) {
                 this.didDraw = true;
 
                 int i = screen.leftPos;
@@ -695,9 +725,9 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
                 boolean bl = true;
 
-                if(bl) {
-                    RenderSystem.disableDepthTest();
+                //RenderStateShard.LEQUAL_DEPTH_TEST.setupRenderState();
 
+                if(bl) {
                     context.push();
                     context.translate((float) i, (float) j, 0.0F);
 
@@ -705,16 +735,19 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
                     context.pop();
 
-                    RenderSystem.enableDepthTest();
+                    RenderSystem.disableDepthTest();
+
                 }
 
                 if (this.slot.equals(hoveredSlot) && hoveredSlot.isHighlightable()) {
                     context.push();
-                    context.translate(0, 0, -10000);
+                    //context.translate(0, 0, 8);
 
                     context.fillGradient(RenderType.guiOverlay(), x(), y(), x() + 16, y() + 16, -2130706433, -2130706433, 0);
 
                     context.pop();
+
+                    //RenderSystem.disableDepthTest();
                 }
             } else {
                 super.draw(context, mouseX, mouseY, partialTicks, delta);

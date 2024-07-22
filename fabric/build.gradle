@@ -98,6 +98,13 @@ loom {
             name = "Testmod Client"
             source sourceSets.testmod
         }
+        testmodClient_renderDoc {
+            client()
+            ideConfigGenerated true
+            name = "Testmod Client - (RenderDoc)"
+            source sourceSets.testmod
+            vmArg "-Dowo.renderdocPath=${System.getenv('renderDocPath')}"
+        }
         testmodServer {
             server()
             ideConfigGenerated true

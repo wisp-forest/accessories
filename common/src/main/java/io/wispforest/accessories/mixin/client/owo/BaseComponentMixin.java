@@ -1,6 +1,7 @@
 package io.wispforest.accessories.mixin.client.owo;
 
 import io.wispforest.accessories.client.gui.utils.AbstractPolygon;
+import io.wispforest.accessories.pond.owo.ExclusiveBoundingArea;
 import io.wispforest.accessories.pond.owo.InclusiveBoundingArea;
 import io.wispforest.owo.ui.base.BaseComponent;
 import org.joml.Vector3f;
@@ -26,6 +27,10 @@ public abstract class BaseComponentMixin {
 
         if(this instanceof InclusiveBoundingArea inclusiveBoundingArea){
             polygons.addAll(inclusiveBoundingArea.getInclusionZones());
+        }
+
+        if(this instanceof ExclusiveBoundingArea exclusiveBoundingArea){
+            polygons.addAll(exclusiveBoundingArea.getExclusionZones());
         }
 
         if(polygons.isEmpty()) return;
