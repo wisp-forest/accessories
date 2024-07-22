@@ -58,46 +58,44 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
 
         this.transform.accept(matrices);
 
-        //if (this.lookAtCursor) {
-            float xRotation = (float) Math.toDegrees(Math.atan((mouseY - this.y - this.height / 2f) / 40f));
-            //float yRotation = (float) Math.toDegrees(Math.atan((mouseX - this.x - this.width / 2f) / 40f));
-
-            //living.yHeadRotO = -yRotation;
-
-            //this.entity.yRotO = -yRotation;
-            this.entity.xRotO = xRotation * .35f;
-//
-//            // We make sure the xRotation never becomes 0, as the lighting otherwise becomes very unhappy
-            if (xRotation == 0) xRotation = .1f;
-            matrices.mulPose(Axis.XP.rotationDegrees(xRotation * .15f));
-            //matrices.mulPose(Axis.YP.rotationDegrees(yRotation * .15f));
-        //} else {
-            matrices.mulPose(Axis.XP.rotationDegrees(15));
-            matrices.mulPose(Axis.YP.rotationDegrees(-45 + this.mouseRotation));
-        //}
-
-        var dispatcher = (OwoEntityRenderDispatcherExtension) this.dispatcher;
-        dispatcher.owo$setCounterRotate(true);
-        dispatcher.owo$setShowNametag(this.showNametag);
-
-        Lighting.setupForEntityInInventory();
-        //RenderSystem.setShaderLights(new Vector3f(.15f, 1, 0), new Vector3f(.15f, -1, 0));
-        this.dispatcher.setRenderShadow(false);
-
-        float h = (float) Math.atan(((x + x + this.width) / 2f - mouseX) / 40.0F);
-        float i = (float) Math.atan(((y + y + this.height) / 2f - mouseY) / 40.0F);
-
+        float prevYBodyRot0 = living.yBodyRotO;
         float prevYBodyRot = living.yBodyRot;
         float prevYRot = living.getYRot();
+        float prevYRot0 = living.yRotO;
         float prevXRot = living.getXRot();
+        float prevXRot0 = living.xRotO;
         float prevYHeadRot0 = living.yHeadRotO;
         float prevYHeadRot = living.yHeadRot;
 
-//        living.yBodyRot = 180.0F + h * 30.0F;
-//        living.setYRot(180.0F + h * 40.0F);
-//        living.setXRot(-i * 20.0F);
-        living.yHeadRot = living.yBodyRot; //living.getYRot();
-        living.yHeadRotO = living.yBodyRotO; //living.getYRot();
+        var dispatcher = (OwoEntityRenderDispatcherExtension) this.dispatcher;
+
+        {
+            float xRotation = (float) Math.toDegrees(Math.atan((mouseY - this.y - this.height / 2f) / 40f));
+
+            this.entity.xRotO = xRotation * .35f;
+
+            if (xRotation == 0) xRotation = .1f;
+            matrices.mulPose(Axis.XP.rotationDegrees(xRotation * .15f));
+
+            matrices.mulPose(Axis.XP.rotationDegrees(15));
+            matrices.mulPose(Axis.YP.rotationDegrees(-45 + this.mouseRotation));
+
+            dispatcher.owo$setCounterRotate(true);
+            dispatcher.owo$setShowNametag(this.showNametag);
+
+            Lighting.setupForEntityInInventory();
+            //RenderSystem.setShaderLights(new Vector3f(.15f, 1, 0), new Vector3f(.15f, -1, 0));
+            this.dispatcher.setRenderShadow(false);
+
+            float h = (float) Math.atan(((x + x + this.width) / 2f - mouseX) / 40.0F);
+            float i = (float) Math.atan(((y + y + this.height) / 2f - mouseY) / 40.0F);
+
+            living.yBodyRotO = 0;
+            living.yBodyRot = 0;
+            living.setYRot(0);
+            //living.setXRot(0);
+            living.yHeadRot = living.yBodyRot; //living.getYRot();
+            living.yHeadRotO = living.yBodyRotO; //living.getYRot();
 
 //        Quaternionf quaternionf = new Quaternionf().rotateZ((float) Math.PI);
 //        Quaternionf quaternionf2 = new Quaternionf().rotateX(i * 20.0F * (float) (Math.PI / 180.0));
@@ -107,14 +105,18 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
 //            this.dispatcher.overrideCameraOrientation(quaternionf2.conjugate(new Quaternionf()).rotateY((float) Math.PI));
 //        }
 
-        this.dispatcher.setRenderShadow(false);
-        this.dispatcher.render(this.entity, 0, 0, 0, 0, 0, matrices, this.entityBuffers, LightTexture.FULL_BRIGHT);
+            this.dispatcher.setRenderShadow(false);
+            this.dispatcher.render(this.entity, 0, 0, 0, 0, 0, matrices, this.entityBuffers, LightTexture.FULL_BRIGHT);
 
-        this.dispatcher.setRenderShadow(true);
+            this.dispatcher.setRenderShadow(true);
+        }
 
+        living.yBodyRotO = prevYBodyRot0;
         living.yBodyRot = prevYBodyRot;
         living.setYRot(prevYRot);
+        living.yRotO = prevYRot0;
         living.setXRot(prevXRot);
+        living.xRotO = prevXRot0;
         living.yHeadRotO = prevYHeadRot0;
         living.yHeadRot = prevYHeadRot;
 
