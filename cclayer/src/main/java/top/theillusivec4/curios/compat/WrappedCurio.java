@@ -67,10 +67,10 @@ public class WrappedCurio implements Accessory, LootingAdjustment, FortuneAdjust
     }
 
     @Override
-    public void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
+    public void getDynamicModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
         var context = CuriosWrappingUtils.create(reference);
 
-        Accessory.super.getModifiers(stack, reference, builder);
+        Accessory.super.getDynamicModifiers(stack, reference, builder);
 
         //--
 
@@ -103,7 +103,7 @@ public class WrappedCurio implements Accessory, LootingAdjustment, FortuneAdjust
 
         var info = this.iCurioItem.getEquipSound(context, stack);
 
-        return new SoundEventData(info.soundEvent(), info.volume(), info.pitch());
+        return new SoundEventData(Holder.direct(info.soundEvent()), info.volume(), info.pitch());
     }
 
     @Override

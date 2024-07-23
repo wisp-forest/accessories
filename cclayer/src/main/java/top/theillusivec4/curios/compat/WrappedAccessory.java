@@ -76,9 +76,9 @@ public class WrappedAccessory implements ICurioItem {
     public ICurio.SoundInfo getEquipSound(SlotContext slotContext, ItemStack stack) {
         var data = accessory.getEquipSound(stack, CuriosWrappingUtils.fromContext(slotContext));
 
-        if(data == null) return new ICurio.SoundInfo(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
+        if(data == null) return new ICurio.SoundInfo(SoundEvents.ARMOR_EQUIP_GENERIC.value(), 1.0f, 1.0f);
 
-        return new ICurio.SoundInfo(data.event(), data.volume(), data.pitch());
+        return new ICurio.SoundInfo(data.event().value(), data.volume(), data.pitch());
     }
 
     @Override

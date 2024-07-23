@@ -162,7 +162,7 @@ public interface ICurio {
    */
   @NotNull
   default SoundInfo getEquipSound(SlotContext slotContext) {
-    return new SoundInfo(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
+    return new SoundInfo(SoundEvents.ARMOR_EQUIP_GENERIC.value(), 1.0f, 1.0f);
   }
 
   /**
@@ -327,12 +327,12 @@ public interface ICurio {
     DEFAULT, ALWAYS_DROP, ALWAYS_KEEP, DESTROY
   }
 
-  record SoundInfo(Holder<SoundEvent> soundEvent, float volume, float pitch) {
+  record SoundInfo(SoundEvent soundEvent, float volume, float pitch) {
 
     @Deprecated(forRemoval = true, since = "1.20.1")
     @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
     public SoundEvent getSoundEvent() {
-      return soundEvent.value();
+      return soundEvent;
     }
 
     @Deprecated(forRemoval = true, since = "1.20.1")

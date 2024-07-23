@@ -72,11 +72,10 @@ public class WrappedICurioProvider implements Accessory, LootingAdjustment, Fort
     }
 
     @Override
-    public void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
+    public void getDynamicModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
         var context = CuriosWrappingUtils.create(reference);
 
-        Accessory.super.getModifiers(stack, reference, builder);
-
+        Accessory.super.getDynamicModifiers(stack, reference, builder);
         //--
 
         var id = ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference));
@@ -108,7 +107,7 @@ public class WrappedICurioProvider implements Accessory, LootingAdjustment, Fort
 
         var info = this.iCurio(stack).getEquipSound(context);
 
-        return new SoundEventData(info.soundEvent(), info.volume(), info.pitch());
+        return new SoundEventData(Holder.direct(info.soundEvent()), info.volume(), info.pitch());
     }
 
     @Override
