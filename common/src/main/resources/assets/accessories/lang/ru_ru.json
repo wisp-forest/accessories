@@ -60,9 +60,18 @@
   "text.autoconfig.accessories.option.clientData.highlightOptions.unselectedOptions.darkenOptions.darkenedBrightness": "Яркость затемнённых",
   "text.autoconfig.accessories.option.clientData.highlightOptions.unselectedOptions.darkenOptions.darkenedOpacity": "Непрозрачность затемнённых",
 
+  "text.autoconfig.accessories.option.clientData.disabledDefaultRenders": "Отображение по умолчанию отключено",
+  "text.autoconfig.accessories.option.RenderSlotTarget": "Запись модификатора",
+  "text.autoconfig.accessories.option.RenderSlotTarget.slotType": "Имя слота",
+  "text.autoconfig.accessories.option.RenderSlotTarget.targetType": "Тип отображения",
+
   "text.autoconfig.accessories.option.modifiers": "Модификаторы количества слотов",
   "text.autoconfig.accessories.option.SlotAmountModifier": "Запись модификатора",
   "text.autoconfig.accessories.option.SlotAmountModifier.slotType": "Название типа слота",
   "text.autoconfig.accessories.option.SlotAmountModifier.amount": "Сумма смещения",
+
+  "text.autoconfig.accessories.option.clientData.allowSlotScrolling": "Разрешить прокрутку экранного слота",
+  "text.autoconfig.accessories.option.clientData.equipControl": "Аксессуар в режиме ручного оснащения",
+
   "argument.livingEntities.nonLiving": "Эта команда может касаться только живых существ, но предоставленный выбор включает и неживые существа"
 }
