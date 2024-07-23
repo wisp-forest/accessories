@@ -2,20 +2,22 @@ package io.wispforest.accessories.api.slot;
 
 import com.google.common.collect.Lists;
 import io.wispforest.accessories.api.AccessoriesAPI;
-import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.AccessoryNest;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Special form of {@link SlotReference} used to handle nested {@link Accessory} within {@link AccessoryNest}'s.
- * {@link NestedSlotReferenceImpl#innerSlotIndices} is the stack of indexes which must be traversed to gain access to the given stack
+ * Special {@link SlotReference} implementation that references an accessory nested inside an {@link AccessoryNest}.
+ *
+ * @param innerSlotIndices the path used to get to the nested accessory
  */
+@ApiStatus.Internal
 public record NestedSlotReferenceImpl(LivingEntity entity, String slotName, int initialHolderSlot, List<Integer> innerSlotIndices) implements SlotReference {
 
     public String createSlotPath() {

@@ -1,15 +1,20 @@
 package io.wispforest.accessories.endec;
 
 import io.wispforest.accessories.endec.format.nbt.NbtDeserializer;
+import io.wispforest.accessories.endec.format.nbt.NbtEndec;
 import io.wispforest.accessories.endec.format.nbt.NbtSerializer;
+import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationAttributes;
 import io.wispforest.endec.SerializationContext;
+import io.wispforest.endec.format.edm.EdmEndec;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
 import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 
 public record NbtMapCarrier(CompoundTag compoundTag) implements MapCarrier {
+
+    public static final Endec<NbtMapCarrier> ENDEC = NbtEndec.COMPOUND.xmap(NbtMapCarrier::new, NbtMapCarrier::compoundTag);
 
     public static NbtMapCarrier of() {
         return new NbtMapCarrier(new CompoundTag());

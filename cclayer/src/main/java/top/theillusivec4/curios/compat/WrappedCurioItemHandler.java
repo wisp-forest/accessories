@@ -269,7 +269,7 @@ public record WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) impl
                 CurioInventory.readData(this.getWearer(), this.capability(), data);
             }
         } catch (Exception e) {
-            LOGGER.error("Unable to load a wrapped curio inventory as a error occurred, such will not be loaded!", e);
+            LOGGER.error("Unable to load a wrapped curio inventory as a error occurred, it will not be loaded!", e);
         }
     }
 

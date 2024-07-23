@@ -26,7 +26,7 @@ Accessories is a Data-Driven Accessory mod for NeoForge and Fabric with emphasis
 
 <p/>
   
-Such API is based on the works of [Curios](https://github.com/TheIllusiveC4/Curios) and [Trinkets](https://github.com/emilyploszaj/trinkets) with credit going to both [TheIllusiveC4](https://github.com/TheIllusiveC4) and [emilyploszaj](https://github.com/emilyploszaj) for their work on Accessory mods for Minecraft.
+This API is based on the works of [Curios](https://github.com/TheIllusiveC4/Curios) and [Trinkets](https://github.com/emilyploszaj/trinkets) with credit going to both [TheIllusiveC4](https://github.com/TheIllusiveC4) and [emilyploszaj](https://github.com/emilyploszaj) for their work on Accessory mods for Minecraft.
 
 <p align="center">
   <img width=600 src="https://cdn.modrinth.com/data/jtmvUHXj/images/e40c711b48f2962a31f808c34792ba4f71978ca3.png"/>
@@ -92,6 +92,6 @@ dependencies {
 
 ## Features
 - Compatibility Layers with existing Accessory Mods like [Curios](https://github.com/TheIllusiveC4/Curios) and [Trinkets](https://github.com/emilyploszaj/trinkets)
-- Full Support for NBT-based Accessories (More Info on Wiki {TODO: ADD LINK TO SUCH})
+- Full Support for NBT-based Accessories (More Info on Wiki {TODO: ADD LINK TO WIKI})
 - Existing API Events for Piglin Neutral Items, Enderman Masks, Looting Adjustments, Fortune Adjustments, and Snow Walking Ability.
-- Unique Slot API for Mod Specific Accessories (More Info on Wiki {TODO: ADD LINK TO SUCH})
+- Unique Slot API for Mod Specific Accessories (More Info on Wiki {TODO: ADD LINK TO WIKI})

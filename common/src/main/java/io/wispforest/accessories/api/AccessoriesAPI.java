@@ -42,6 +42,10 @@ public class AccessoriesAPI {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
+    /**
+     * @deprecated Internal API, will become private in the future.
+     */
+    @ApiStatus.Internal
     public static final Accessory DEFAULT = new Accessory() {
         @Override
         public int maxStackSize(ItemStack stack) {
@@ -65,38 +69,44 @@ public class AccessoriesAPI {
     //--
 
     /**
-     * Main method to register a given {@link Item} to given {@link Accessory}
+     * Registers an accessory implementation for a given item.
      */
     public static void registerAccessory(Item item, Accessory accessory) {
         REGISTER.put(item, accessory);
     }
 
+    /**
+     * @return the accessory bound to this stack or {@code null} if there is none
+     */
     @Nullable
     public static Accessory getAccessory(ItemStack stack){
         return getAccessory(stack.getItem());
     }
 
     /**
-     * Attempt to get a {@link Accessory} bound to an {@link Item} or an Empty {@link Optional}
+     * @return the accessory bound to this item or {@code null} if there is none
      */
     @Nullable
     public static Accessory getAccessory(Item item) {
         return REGISTER.get(item);
     }
 
+    /**
+     * @return the accessory bound to this stack or {@link #defaultAccessory()} if there is none
+     */
     public static Accessory getOrDefaultAccessory(ItemStack stack){
         return getOrDefaultAccessory(stack.getItem());
     }
 
     /**
-     * Get any bound {@link Accessory} to the given {@link Item} or return {@link #DEFAULT} Accessory
+     * @return the accessory bound to this item or {@link #defaultAccessory()} if there is none
      */
     public static Accessory getOrDefaultAccessory(Item item){
         return REGISTER.getOrDefault(item, defaultAccessory());
     }
 
     /**
-     * @return Default {@link Accessory}
+     * @return the default accessory implementation
      */
     public static Accessory defaultAccessory(){
         return DEFAULT;
@@ -144,7 +154,7 @@ public class AccessoriesAPI {
         if(entity != null) {
             var reference = SlotReference.of(entity, slotName, slot);
 
-            //TODO: Decide if such presents of modifiers prevents the accessory modifiers from existing
+            //TODO: Decide if the presence of modifiers prevents the accessory modifiers from existing
             var accessory = AccessoriesAPI.getAccessory(stack);
 
             if(accessory != null) accessory.getDynamicModifiers(stack, reference, builder);
@@ -244,8 +254,12 @@ public class AccessoriesAPI {
 
                 var container = containers.get(value.name());
 
-                for (var accessory : containers.get(value.name()).getAccessories()) {
-                    var reference = SlotReference.of(entity, container.getSlotName(), accessory.getFirst());
+                var size = containers.get(value.name()).getSize();
+
+                if(size == 0) size = 1;
+
+                for (int i = 0; i < size; i++) {
+                    var reference = SlotReference.of(entity, container.getSlotName(), i);
 
                     if (canInsertIntoSlot(stack, reference)) validSlots.add(value);
                 }
@@ -343,10 +357,15 @@ public class AccessoriesAPI {
     }
 
     /**
-     * TagKey in which allows for a given Item to pass {@link SlotBasedPredicate} allowing such to be equipped if
-     * desired
+     * @deprecated Use {@link #ANY_ACCESSORIES} instead!
      */
+    @Deprecated(forRemoval = true)
     public static final TagKey<Item> ALL_ACCESSORIES = TagKey.create(Registries.ITEM, Accessories.of("all"));
+
+    /**
+     * TagKey representing a group of items that can be equipped in any slot if allowed to by the given slots predicates
+     */
+    public static final TagKey<Item> ANY_ACCESSORIES = TagKey.create(Registries.ITEM, Accessories.of("any"));
 
     public static TagKey<Item> getSlotTag(SlotType slotType) {
         var location = UniqueSlotHandling.isUniqueSlot(slotType.name()) ? ResourceLocation.parse(slotType.name()) : Accessories.of(slotType.name());
@@ -358,7 +377,7 @@ public class AccessoriesAPI {
         registerPredicate(Accessories.of("all"), (level, slotType, i, stack) -> TriState.TRUE);
         registerPredicate(Accessories.of("none"), (level, slotType, i, stack) -> TriState.FALSE);
         registerPredicate(Accessories.of("tag"), (level, slotType, i, stack) -> {
-            return (stack.is(getSlotTag(slotType)) || stack.is(ALL_ACCESSORIES)) ? TriState.TRUE : TriState.DEFAULT;
+            return (stack.is(getSlotTag(slotType)) || stack.is(ANY_ACCESSORIES)) ? TriState.TRUE : TriState.DEFAULT;
         });
         registerPredicate(Accessories.of("relevant"), (level, slotType, i, stack) -> {
             var bl = !getAttributeModifiers(stack, null, slotType.name(), i).getAttributeModifiers(false).isEmpty();

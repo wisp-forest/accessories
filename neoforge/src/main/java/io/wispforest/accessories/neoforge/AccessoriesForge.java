@@ -44,10 +44,8 @@ import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.event.entity.EntityEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
-import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
@@ -158,7 +156,7 @@ public class AccessoriesForge {
         AccessoriesInternalsImpl.setContext(event.getConditionContext());
     }
 
-    // This exists as a way to register things within the TCLayer without depending on NeoForge to do such within a mixin
+    // This exists as a way to register things within the TCLayer without depending on NeoForge to do this within a mixin
     public void intermediateRegisterListeners(Consumer<PreparableReloadListener> registrationMethod){
         registrationMethod.accept(SlotTypeLoader.INSTANCE);
         registrationMethod.accept(EntitySlotLoader.INSTANCE);
@@ -167,7 +165,7 @@ public class AccessoriesForge {
         registrationMethod.accept(new SimplePreparableReloadListener<Void>() {
             @Override protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) { return null; }
             @Override protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profiler) {
-                AccessoriesEventHandler.dataReloadOccured = true;
+                AccessoriesEventHandler.dataReloadOccurred = true;
 
                 AccessoriesInternalsImpl.setContext(null);
             }
@@ -206,7 +204,7 @@ public class AccessoriesForge {
         AccessoriesEventHandler.attemptEquipOnEntity(event.getEntity(), event.getHand(), event.getTarget());
     }
 
-    public void onEntityDeath(LivingDeathEvent event){
+    public void onEntityDeath(LivingDropsEvent event){
         AccessoriesEventHandler.onDeath(event.getEntity(), event.getSource());
     }
 

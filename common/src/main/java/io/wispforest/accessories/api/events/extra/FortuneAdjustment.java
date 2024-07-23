@@ -11,18 +11,20 @@ import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
 /**
  * Event callback used to adjust the given {@link ApplyBonusCount}s fortune amount from the upon loot calculation
  * <p/>
- * Such is called within {@link ExtraEventHandler#fortuneAdjustment(LootContext, int)}
+ * This is called within {@link ExtraEventHandler#fortuneAdjustment(LootContext, int)}
  * if any given Accessory was found to implement this interface and/or any registered callback
  * to the {@link FortuneAdjustment#EVENT} returns an adjustment
  */
 public interface FortuneAdjustment {
 
     Event<FortuneAdjustment> EVENT = EventFactory.createArrayBacked(FortuneAdjustment.class, invokers -> (stack, reference, context, currentLevel) -> {
+        var additionalLevels = 0;
+
         for (var invoker : invokers) {
-            currentLevel += invoker.getFortuneAdjustment(stack, reference, context, currentLevel);
+            additionalLevels += invoker.getFortuneAdjustment(stack, reference, context, additionalLevels + currentLevel);
         }
 
-        return currentLevel;
+        return additionalLevels;
     });
 
     /**

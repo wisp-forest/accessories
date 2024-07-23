@@ -74,10 +74,24 @@ dependencies {
 }
 
 processResources {
-    filesMatching("META-INF/neoforge.mods.toml") {
-        expand "version": project.version
+    var versionParts = (project.mod_version as String).split("-");
+
+    String finalVersion;
+
+    if(versionParts.size() > 1) {
+        versionParts[1] = versionParts[1].replace(".", "")
+
+        finalVersion = "${versionParts[0]}-${versionParts[1]}"
+    } else {
+        finalVersion = project.mod_version
     }
-    inputs.property "META-INF/neoforge.mods.toml", project.version
+
+    finalVersion += "+${rootProject.minecraft_base_version}"
+
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand "version": finalVersion
+    }
+    inputs.property "META-INF/neoforge.mods.toml", finalVersion
 }
 
 processTestmodResources {

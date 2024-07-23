@@ -1,15 +1,22 @@
 package io.wispforest.accessories.api;
 
+import net.minecraft.world.item.Item;
+
+import java.util.function.Predicate;
+
 /**
- * Helper Enum class used to indicate within {@link AccessoriesCapability#getFirstEquipped} to allow for
- * checking Cosmetic Slots before Main slot for external renderers or to just check logical slots within
- * capability
- * <ul>
- *     <li> {@link #ACCESSORIES_ONLY} - Check against Accessories Only </li>
- *     <li> {@link #COSMETICALLY_OVERRIDABLE} - Check against Cosmetics and Accessories. If cosmetic is present, replace Accessory stack with cosmetic stack. </li>
- * </ul>
+ * Controls how {@link AccessoriesCapability} methods handle cosmetic accessories.
+ *
+ * @see AccessoriesCapability#getFirstEquipped(Item, EquipmentChecking)
+ * @see AccessoriesCapability#getFirstEquipped(Predicate, EquipmentChecking)
  */
 public enum EquipmentChecking {
+    /**
+     * Only non-cosmetic accessories are considered.
+     */
     ACCESSORIES_ONLY,
-    COSMETICALLY_OVERRIDABLE;
+    /**
+     * Cosmetic accessories are preferred over non-cosmetic accessories.
+     */
+    COSMETICALLY_OVERRIDABLE
 }

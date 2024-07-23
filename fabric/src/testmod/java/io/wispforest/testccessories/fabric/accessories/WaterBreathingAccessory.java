@@ -26,7 +26,7 @@ public class WaterBreathingAccessory implements Accessory {
     public static final String REFILL_TIME_OUT_KEY = "RefillTimeout";
 
     @Override
-    public void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
+    public void getDynamicModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
         builder.addStackable(Attributes.GRAVITY, new AttributeModifier(GRAVITY_LOCATION, -0.01, AttributeModifier.Operation.ADD_VALUE));
     }
 

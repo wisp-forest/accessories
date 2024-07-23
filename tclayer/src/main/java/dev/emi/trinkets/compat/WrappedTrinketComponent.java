@@ -6,17 +6,12 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.endec.EdmUtils;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.endec.RegistriesAttribute;
-import io.wispforest.accessories.endec.format.nbt.NbtDeserializer;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.InstanceEndec;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
-import io.wispforest.endec.format.edm.EdmEndec;
-import io.wispforest.endec.format.edm.EdmMap;
-import io.wispforest.endec.format.edm.LenientEdmDeserializer;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
@@ -50,7 +45,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
 
     @Override
     public Map<String, Map<String, TrinketInventory>> getInventory() {
-        //TODO: HANDLE SUCH TRINKET SPECIFIC NAMES AND GROUPS
+        //TODO: HANDLE THE TRINKET SPECIFIC NAMES AND GROUPS
         var groups = SlotGroupLoader.getGroups(capability.entity().level(), false);
         var containers = capability.getContainers();
 
@@ -157,7 +152,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
     public void readFromNbt(CompoundTag tag, HolderLookup.Provider registryLookup) {
         if(tag.getBoolean("is_accessories_data")) {
             ((AccessoriesHolderImpl)this.capability.getHolder())
-                    .read(new NbtMapCarrier(tag), SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) registryLookup)));
+                    .read(new NbtMapCarrier(tag.getCompound("main_data")), SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) registryLookup)));
         } else {
             var dropped = new ArrayList<ItemStack>();
 

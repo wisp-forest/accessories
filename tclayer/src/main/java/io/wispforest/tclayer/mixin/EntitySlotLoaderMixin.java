@@ -48,7 +48,7 @@ public abstract class EntitySlotLoaderMixin {
                 var slotType = slotTypes.get(convertedType);
 
                 if (slotType == null) {
-                    TRINKET_LOGGER.warn("Unable to locate the given slot for a given entity binding, such will be skipped: [Name: {}]", convertedType);
+                    TRINKET_LOGGER.warn("Unable to locate the given slot for a given entity binding, it will be skipped: [Name: {}]", convertedType);
 
                     continue;
                 }

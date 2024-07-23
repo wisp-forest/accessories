@@ -7,9 +7,8 @@ import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.EntitySlotLoader;
-import io.wispforest.accessories.endec.EdmUtils;
+import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.endec.SerializationContext;
@@ -59,8 +58,8 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     public Map<String, AccessoriesContainer> getContainers() {
         var containers = this.holder().getSlotContainers();
 
-        // Dirty patch to handle capability mismatch on containers when transferring such
-        // TODO: Wonder if such is the best solution to the problem of desynced when data is copied
+        // Dirty patch to handle capability mismatch on containers when transferring it
+        // TODO: Wonder if this is the best solution to the problem of desynced when data is copied
         for (var container : containers.values()) {
             if(this.entity == container.capability().entity()) break;
 
@@ -95,7 +94,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
             if (!(this.entity instanceof ServerPlayer serverPlayer) || serverPlayer.connection == null) return;
 
-            var carrier = EdmUtils.newMap();
+            var carrier = NbtMapCarrier.of();
 
             holder.write(carrier, SerializationContext.attributes(RegistriesAttribute.of(this.entity.level().registryAccess())));
 

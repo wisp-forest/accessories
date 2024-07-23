@@ -56,4 +56,8 @@ public interface AccessoriesHolder {
 
     AccessoriesHolder showUniqueSlots(boolean value);
 
+    PlayerEquipControl equipControl();
+
+    AccessoriesHolder equipControl(PlayerEquipControl value);
+
 }

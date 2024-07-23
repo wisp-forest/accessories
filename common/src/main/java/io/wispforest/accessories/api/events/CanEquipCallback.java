@@ -16,7 +16,9 @@ import oshi.annotation.concurrent.Immutable;
 
 /**
  * Event callback used to allow or denied the ability to equip a given accessory for the given referenced slot
- * type and entity with such being fired within {@link AccessoriesAPI#canEquip(ItemStack, SlotReference)}
+ * type and entity.
+ * <p>
+ * Fired in {@link AccessoriesAPI#canEquip(ItemStack, SlotReference)}
  */
 public interface CanEquipCallback {
 

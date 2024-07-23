@@ -48,7 +48,7 @@ public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>>
 
         slotGroups.addAll(SlotGroupLoader.INSTANCE.getGroups(false, false));
 
-        return new SyncData(List.copyOf(allSlotTypes.values()), entitySlots, slotGroups, UniqueSlotHandling.getGroups(false), ExtraSlotTypeProperties.getPropertiess(false));
+        return new SyncData(List.copyOf(allSlotTypes.values()), entitySlots, slotGroups, UniqueSlotHandling.getGroups(false), ExtraSlotTypeProperties.getProperties(false));
     }
 
     @Environment(EnvType.CLIENT)

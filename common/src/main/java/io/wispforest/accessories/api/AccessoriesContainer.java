@@ -13,7 +13,7 @@ import java.util.*;
 public interface AccessoriesContainer {
 
     /**
-     * @return The bound {@link AccessoriesCapability} such belongs to
+     * @return The bound {@link AccessoriesCapability} this belongs to
      */
     AccessoriesCapability capability();
 

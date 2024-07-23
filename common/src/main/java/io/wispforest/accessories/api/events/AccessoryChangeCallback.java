@@ -8,8 +8,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Event callback fired upon detecting a change with a given Accessory Stack equipped in a given slot with such
- * firing at the end of evaluation for a given slot within the {@link AccessoriesEventHandler#onLivingEntityTick(LivingEntity)}
+ * Event callback fired upon detecting a change with a given Accessory Stack equipped in a given slot with.
+ * <p>
+ * Fired at the end of evaluation for a given slot within the {@link AccessoriesEventHandler#onLivingEntityTick(LivingEntity)}
  * from the {@link AccessoryChangeCallback#EVENT}
  */
 public interface AccessoryChangeCallback {

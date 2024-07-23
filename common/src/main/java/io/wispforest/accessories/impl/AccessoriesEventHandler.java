@@ -2,6 +2,7 @@ package io.wispforest.accessories.impl;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
@@ -15,7 +16,7 @@ import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.endec.EdmUtils;
+import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.networking.client.SyncContainerData;
@@ -62,7 +63,7 @@ import static io.wispforest.accessories.Accessories.ACCESSORY_UNEQUIPPED;
 @ApiStatus.Internal
 public class AccessoriesEventHandler {
 
-    public static boolean dataReloadOccured = false;
+    public static boolean dataReloadOccurred = false;
 
     public static void onWorldTick(Level level) {
         if (!(level instanceof ServerLevel serverLevel)) return;
@@ -71,11 +72,11 @@ public class AccessoriesEventHandler {
     }
 
     public static void revalidatePlayersOnReload(PlayerList playerList) {
-        if(!dataReloadOccured) return;
+        if(!dataReloadOccurred) return;
 
         for (var player : playerList.getPlayers()) revalidatePlayer(player);
 
-        dataReloadOccured = false;
+        dataReloadOccurred = false;
     }
 
     public static void revalidatePlayer(ServerPlayer player) {
@@ -141,7 +142,7 @@ public class AccessoriesEventHandler {
 
         if(capability == null) return;
 
-        var carrier = EdmUtils.newMap();
+        var carrier = NbtMapCarrier.of();
 
         ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(level.registryAccess())));
 
@@ -153,7 +154,7 @@ public class AccessoriesEventHandler {
 
         if(capability == null) return;
 
-        var carrier = EdmUtils.newMap();
+        var carrier = NbtMapCarrier.of();
 
         ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(entity.level().registryAccess())));
 
@@ -167,7 +168,7 @@ public class AccessoriesEventHandler {
         if (list != null && !list.getPlayers().isEmpty()) {
             revalidatePlayersOnReload(list);
 
-            // TODO: OPTIMIZE SUCH?
+            // TODO: OPTIMIZE THIS?
             for (var playerEntry : list.getPlayers()) {
                 networkHandler.sendToPlayer(playerEntry, syncPacket);
 
@@ -175,7 +176,7 @@ public class AccessoriesEventHandler {
 
                 if(capability == null) return;
 
-                var carrier = EdmUtils.newMap();
+                var carrier = NbtMapCarrier.of();
 
                 ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(playerEntry.level().registryAccess())));
 
@@ -194,7 +195,7 @@ public class AccessoriesEventHandler {
 
             if(capability == null) return;
 
-            var carrier = EdmUtils.newMap();
+            var carrier = NbtMapCarrier.of();
 
             ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(player.level().registryAccess())));
 
@@ -261,7 +262,7 @@ public class AccessoriesEventHandler {
                         boolean equipmentChange = false;
 
                         /*
-                         * TODO: Dose item check need to exist anymore?
+                         * TODO: Does item check need to exist anymore?
                          */
                         if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlagged(i)) {
                             AccessoriesAPI.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);
@@ -362,6 +363,7 @@ public class AccessoriesEventHandler {
     // TODO: Rewrite for better handling of various odd cases
     private static void addEntityBasedTooltipData(LivingEntity entity, Accessory accessory, ItemStack stack, List<Component> tooltip, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
         // TODO: MAYBE DEPENDING ON ENTITY OR SOMETHING SHOW ALL VALID SLOTS BUT COLOR CODE THEM IF NOT VALID FOR ENTITY?
+        // TODO: ADD BETTER HANDLING FOR POSSIBLE SLOTS THAT ARE EQUIPABLE IN BUT IS AT ZERO SIZE
         var validSlotTypes = new HashSet<>(AccessoriesAPI.getValidSlotTypes(entity, stack));
 
         var validUniqueSlots = validSlotTypes.stream()
@@ -382,19 +384,41 @@ public class AccessoriesEventHandler {
         var slotsComponent = Component.literal("");
         boolean allSlots = false;
 
+
         if (validSlotTypes.containsAll(sharedSlotTypes)) {
             slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
             allSlots = true;
         } else {
-            var slotTypesList = List.copyOf(validSlotTypes);
+            var entitySlotTypes = Set.copyOf(EntitySlotLoader.getEntitySlots(entity).values());
 
-            for (int i = 0; i < slotTypesList.size(); i++) {
-                var type = slotTypesList.get(i);
+            var differenceSlotTypes = Sets.difference(entitySlotTypes, validSlotTypes);
 
-                slotsComponent.append(Component.translatable(type.translation()));
+            if(differenceSlotTypes.size() < validSlotTypes.size()) {
+                slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
+                slotsComponent.append(Component.literal(" except ").withStyle(ChatFormatting.GRAY));
 
-                if (i + 1 != slotTypesList.size()) {
-                    slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                var slotTypesList = List.copyOf(differenceSlotTypes);
+
+                for (int i = 0; i < slotTypesList.size(); i++) {
+                    var type = slotTypesList.get(i);
+
+                    slotsComponent.append(Component.translatable(type.translation()).withStyle(ChatFormatting.RED));
+
+                    if (i + 1 != slotTypesList.size()) {
+                        slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                    }
+                }
+            } else {
+                var slotTypesList = List.copyOf(validSlotTypes);
+
+                for (int i = 0; i < slotTypesList.size(); i++) {
+                    var type = slotTypesList.get(i);
+
+                    slotsComponent.append(Component.translatable(type.translation()));
+
+                    if (i + 1 != slotTypesList.size()) {
+                        slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                    }
                 }
             }
         }
@@ -674,12 +698,22 @@ public class AccessoriesEventHandler {
     public static InteractionResultHolder<ItemStack> attemptEquipFromUse(Player player, InteractionHand hand) {
         var stack = player.getItemInHand(hand);
 
-        if (!stack.isEmpty() && !player.isSpectator() && player.isShiftKeyDown()) {
-            var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+        var capability = AccessoriesCapability.get(player);
 
-            var capability = AccessoriesCapability.get(player);
+        if(capability != null && !player.isSpectator() && !stack.isEmpty()) {
+            var equipControl = capability.getHolder().equipControl();
 
-            if (capability != null) {
+            var shouldAttemptEquip = false;
+
+            if(equipControl == PlayerEquipControl.MUST_CROUCH && player.isShiftKeyDown()) {
+                shouldAttemptEquip = true;
+            } else if(equipControl == PlayerEquipControl.MUST_NOT_CROUCH && !player.isShiftKeyDown()) {
+                shouldAttemptEquip = true;
+            }
+
+            if (shouldAttemptEquip) {
+                var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+
                 var equipReference = capability.equipAccessory(stack, true, Accessory::canEquipFromUse);
 
                 if (equipReference != null) {
@@ -689,17 +723,17 @@ public class AccessoriesEventHandler {
 
                     var newHandStack = stacks.get(0);
 
-                    if(stacks.size() > 1) {
+                    if (stacks.size() > 1) {
                         var otherStack = stacks.get(1);
 
                         if (newHandStack.isEmpty()) {
                             newHandStack = otherStack;
-                        } else if(ItemStack.isSameItemSameComponents(newHandStack, otherStack)) {
+                        } else if (ItemStack.isSameItemSameComponents(newHandStack, otherStack)) {
                             int resizingAmount = 0;
 
-                            if((newHandStack.getCount() + otherStack.getCount()) < newHandStack.getMaxStackSize()) {
+                            if ((newHandStack.getCount() + otherStack.getCount()) < newHandStack.getMaxStackSize()) {
                                 resizingAmount = otherStack.getCount();
-                            } else if((newHandStack.getMaxStackSize() - newHandStack.getCount()) > 0) {
+                            } else if ((newHandStack.getMaxStackSize() - newHandStack.getCount()) > 0) {
                                 resizingAmount = newHandStack.getMaxStackSize() - newHandStack.getCount();
                             }
 

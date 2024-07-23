@@ -37,7 +37,6 @@ public record SyncHolderChange(HolderProperty<?> property, Object data) implemen
         return new SyncHolderChange(property, operation.apply(property.getter().apply(player.accessoriesHolder())));
     }
 
-    @Environment(EnvType.CLIENT)
     @Override
     public void handle(Player player) {
         this.property.setData(player, this.data);

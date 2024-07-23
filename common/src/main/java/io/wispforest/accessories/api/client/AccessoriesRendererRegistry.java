@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * Main class used to register and hold {@link AccessoryRenderer}'s. Such contains a method to
+ * Main class used to register and hold {@link AccessoryRenderer}'s. This contains a method to
  * reload all renders when a data reload occurs for the client combined with method to retrieve renders.
  */
 public class AccessoriesRendererRegistry {

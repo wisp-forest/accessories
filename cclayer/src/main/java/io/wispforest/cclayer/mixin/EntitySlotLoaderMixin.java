@@ -41,7 +41,7 @@ public abstract class EntitySlotLoaderMixin {
                 var type = SlotTypeLoader.INSTANCE.getSlotTypes(false).get(typeid);
 
                 if (type == null)  {
-                    CURIOS_LOGGER.warn("Unable to locate the given slot for a given entity binding, such will be skipped: [Name: {}]", typeid);
+                    CURIOS_LOGGER.warn("Unable to locate the given slot for a given entity binding, it will be skipped: [Name: {}]", typeid);
 
                     continue;
                 }

@@ -41,7 +41,7 @@ public class AccessoriesInternals {
     public static EquipmentSlot.Type ACCESSORIES_TYPE = null;
 
     /**
-     * @return {@link AccessoriesHolder} attached to a given {@link LivingEntity} based on the Platforms method for getting such
+     * @return {@link AccessoriesHolder} attached to a given {@link LivingEntity} based on the Platforms method for getting it
      */
     @ExpectPlatform
     public static AccessoriesHolder getHolder(LivingEntity livingEntity){
@@ -54,7 +54,7 @@ public class AccessoriesInternals {
     }
 
     /**
-     * @return {@link BaseNetworkHandler} based on the Platforms method for getting such
+     * @return {@link BaseNetworkHandler} based on the Platforms method for getting it
      */
     @ExpectPlatform
     public static BaseNetworkHandler getNetworkHandler(){

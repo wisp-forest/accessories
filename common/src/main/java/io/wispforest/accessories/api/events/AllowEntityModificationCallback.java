@@ -15,9 +15,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 /**
- * Event callback used to allow or denied the ability to adjust a given entities accessories or prevent such Accessory
- * screen being open by the given player. Such is fired within {@link AccessoriesBasedSlot#mayPickup}
- * and within {@link Accessories#openAccessoriesMenu(Player, LivingEntity, ItemStack)}
+ * Event callback used to allow or denied the ability to adjust a given entities accessories or prevent the Accessory
+ * screen being open by the given player.
+ * <p>
+ * Fired in {@link AccessoriesBasedSlot#mayPickup}
+ * and in {@link Accessories#openAccessoriesMenu(Player, LivingEntity, ItemStack)}
  */
 public interface AllowEntityModificationCallback {
 

@@ -37,3 +37,10 @@ required = true
 versionRange = "[1.21,)"
 ordering = "NONE"
 side = "BOTH"
+
+[[dependencies.cclayer]]
+modId = "accessories"
+required = true
+versionRange = "[1.0.0-beta16,)"
+ordering = "NONE"
+side = "BOTH"

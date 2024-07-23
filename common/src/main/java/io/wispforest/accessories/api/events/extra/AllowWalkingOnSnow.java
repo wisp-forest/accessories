@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.PowderSnowBlock;
  * Event callback used to adjust the given {@link PowderSnowBlock#canEntityWalkOnPowderSnow(Entity)}s method calls return
  * either allowing or denying the ability to walk on powder snow
  * <p/>
- * Such is called within {@link ExtraEventHandler#allowWalkingOnSnow(LivingEntity)}
+ * This is called within {@link ExtraEventHandler#allowWalkingOnSnow(LivingEntity)}
  * if any given Accessory was found to implement this interface and/or any registered callback
  * to the {@link AllowWalkingOnSnow#EVENT} returns an adjustment
  */

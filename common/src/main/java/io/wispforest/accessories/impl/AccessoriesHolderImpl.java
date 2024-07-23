@@ -1,21 +1,18 @@
 package io.wispforest.accessories.impl;
 
-import com.google.common.collect.ImmutableMap;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
-import io.wispforest.accessories.endec.EdmUtils;
+import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.endec.RegistriesAttribute;
+import io.wispforest.accessories.endec.format.nbt.NbtEndec;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationAttribute;
 import io.wispforest.endec.SerializationContext;
-import io.wispforest.endec.format.edm.EdmElement;
-import io.wispforest.endec.format.edm.EdmEndec;
-import io.wispforest.endec.format.edm.EdmMap;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
 import net.minecraft.Util;
-import net.minecraft.world.SimpleContainer;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
@@ -25,7 +22,7 @@ import java.util.*;
 @ApiStatus.Internal
 public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
-    private static final EdmMap EMPTY = EdmElement.wrapMap(ImmutableMap.of()).asMap();
+    private static final MapCarrier EMPTY = new NbtMapCarrier(new CompoundTag());
 
     private final Map<String, AccessoriesContainer> slotContainers = new LinkedHashMap<>();
 
@@ -40,6 +37,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     private int scrolledSlot = 0;
 
     private boolean linesShown = false;
+
+    private PlayerEquipControl equipControl = PlayerEquipControl.MUST_CROUCH;
 
     private MapCarrier carrier;
     protected boolean loadedFromTag = false;
@@ -118,6 +117,18 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         return this;
     }
 
+    @Override
+    public PlayerEquipControl equipControl() {
+        return equipControl;
+    }
+
+    @Override
+    public AccessoriesHolder equipControl(PlayerEquipControl value) {
+        this.equipControl = value;
+
+        return this;
+    }
+
     public void init(AccessoriesCapability capability) {
         var livingEntity = capability.entity();
 
@@ -142,7 +153,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         }
     }
 
-    private static final KeyedEndec<Map<String, AccessoriesContainer>> CONTAINERS_KEY = EdmEndec.MAP.xmapWithContext(
+    // TODO: SPLIT DECODING AND VALIDATION SAFETY DOWN THE ROAD
+    private static final KeyedEndec<Map<String, AccessoriesContainer>> CONTAINERS_KEY = NbtEndec.COMPOUND.xmapWithContext(
             (ctx, containersMap) -> {
                 var entity = ctx.requireAttributeValue(EntityAttribute.ENTITY).livingEntity();
                 var slotContainers = ctx.requireAttributeValue(ContainersAttribute.CONTAINERS).slotContainers();
@@ -150,20 +162,17 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
                 var slots = EntitySlotLoader.getEntitySlots(entity);
 
-                var mapValue = containersMap.value();
+                for (var key : containersMap.getAllKeys()) {
+                    var containerElement = containersMap.getCompound(key);
 
-                for (var key : mapValue.keySet()) {
-                    var containerElement = mapValue.get(key);
-
-                    if (!containerElement.type().equals(EdmElement.Type.MAP)) continue; // TODO: Handle such case?
+                    if (containerElement.isEmpty()) continue; // TODO: Handle this case?
 
                     if (slots.containsKey(key)) {
                         var container = slotContainers.get(key);
-
                         var prevAccessories = AccessoriesContainerImpl.copyContainerList(container.getAccessories());
                         var prevCosmetics = AccessoriesContainerImpl.copyContainerList(container.getCosmeticAccessories());
 
-                        ((AccessoriesContainerImpl) container).read(containerElement.asMap(), ctx);
+                        ((AccessoriesContainerImpl) container).read(new NbtMapCarrier(containerElement), ctx);
 
                         if (prevAccessories.getContainerSize() > container.getSize()) {
                             for (int i = container.getSize() - 1; i < prevAccessories.getContainerSize(); i++) {
@@ -177,7 +186,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
                             }
                         }
                     } else {
-                        var containers = AccessoriesContainerImpl.readContainers(containerElement.asMap(), ctx, AccessoriesContainerImpl.COSMETICS_KEY, AccessoriesContainerImpl.ITEMS_KEY);
+                        var containers = AccessoriesContainerImpl.readContainers(new NbtMapCarrier(containerElement), ctx, AccessoriesContainerImpl.COSMETICS_KEY, AccessoriesContainerImpl.ITEMS_KEY);
 
                         for (var simpleContainer : containers) {
                             for (int i = 0; i < simpleContainer.getContainerSize(); i++) {
@@ -191,26 +200,26 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
                 return slotContainers;
             }, (ctx, containers) -> {
-                var containerMap = new HashMap<String, EdmElement<?>>();
+                var containerMap = new CompoundTag();
 
                 containers.forEach((s, container) -> {
-                    containerMap.put(s, Util.make(EdmUtils.newMap(), innerCarrier -> ((AccessoriesContainerImpl) container).write(innerCarrier, ctx)));
+                    containerMap.put(s, Util.make(NbtMapCarrier.of(), innerCarrier -> ((AccessoriesContainerImpl) container).write(innerCarrier, ctx)).compoundTag());
                 });
 
-                return EdmMap.wrapMap(containerMap).asMap();
+                return containerMap;
             }).keyed("AccessoriesContainers", HashMap::new);
 
     private static final KeyedEndec<Boolean> COSMETICS_SHOWN_KEY = Endec.BOOLEAN.keyed("CosmeticsShown", false);
-
     private static final KeyedEndec<Boolean> LINES_SHOWN_KEY = Endec.BOOLEAN.keyed("LinesShown", false);
+    private static final KeyedEndec<PlayerEquipControl> EQUIP_CONTROL_KEY = Endec.forEnum(PlayerEquipControl.class).keyed("EquipControl", PlayerEquipControl.MUST_CROUCH);
 
     @Override
     public void write(MapCarrier carrier, SerializationContext ctx) {
         if(slotContainers.isEmpty()) return;
 
         carrier.put(COSMETICS_SHOWN_KEY, this.cosmeticsShown);
-
         carrier.put(LINES_SHOWN_KEY, this.linesShown);
+        carrier.put(EQUIP_CONTROL_KEY, this.equipControl);
 
         carrier.put(ctx, CONTAINERS_KEY, this.slotContainers);
     }
@@ -224,6 +233,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
         this.cosmeticsShown = carrier.get(COSMETICS_SHOWN_KEY);
         this.linesShown = carrier.get(LINES_SHOWN_KEY);
+        this.equipControl = carrier.get(EQUIP_CONTROL_KEY);
 
         carrier.getWithErrors(ctx.withAttributes(new ContainersAttribute(this.slotContainers), new InvalidStacksAttribute(this.invalidStacks)), CONTAINERS_KEY);
 

@@ -3,8 +3,7 @@ package io.wispforest.accessories.api;
 import net.minecraft.world.item.Item;
 
 /**
- * An Implemented version of the {@link Accessory} interface with the {@link Item} class with
- * automatic registration of such object at the end of the constructor call.
+ * Helper base class for accessory items with automatic registration.
  */
 public class AccessoryItem extends Item implements Accessory {
     public AccessoryItem(Properties properties) {

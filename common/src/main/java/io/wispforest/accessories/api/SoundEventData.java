@@ -6,7 +6,8 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Simple record object used within {@link Accessory#getEquipSound(ItemStack, SlotReference)} to
- * have a custom equip sound play
+ * Represents a sound event with volume and pitch data.
+ *
+ * @see Accessory#getEquipSound(ItemStack, SlotReference)
  */
 public record SoundEventData(Holder<SoundEvent> event, float volume, float pitch) { }

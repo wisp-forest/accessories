@@ -4,14 +4,12 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.endec.CodecUtils;
-import io.wispforest.accessories.endec.EdmUtils;
+import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
-import io.wispforest.endec.format.edm.EdmEndec;
-import io.wispforest.endec.format.edm.EdmMap;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -25,23 +23,23 @@ import java.util.Map;
 
 /**
  * Catch all packet for handling syncing of containers and accessories within the main container
- * and cosmetic variant with the ability for such to be sync separately
+ * and cosmetic variant with the ability for it to be sync separately
  */
-public record SyncContainerData(int entityId, Map<String, EdmMap> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks) implements HandledPacketPayload {
+public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks) implements HandledPacketPayload {
 
     public static Endec<SyncContainerData> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", SyncContainerData::entityId),
-            EdmEndec.MAP.mapOf().fieldOf("updatedContainers", SyncContainerData::updatedContainers),
+            NbtMapCarrier.ENDEC.mapOf().fieldOf("updatedContainers", SyncContainerData::updatedContainers),
             CodecUtils.ofCodec(ItemStack.OPTIONAL_CODEC).mapOf().fieldOf("dirtyStacks", SyncContainerData::dirtyStacks),
             CodecUtils.ofCodec(ItemStack.OPTIONAL_CODEC).mapOf().fieldOf("dirtyCosmeticStacks", SyncContainerData::dirtyCosmeticStacks),
             SyncContainerData::new
     );
 
     public static SyncContainerData of(LivingEntity livingEntity, Collection<AccessoriesContainer> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks){
-        var updatedContainerTags = new HashMap<String, EdmMap>();
+        var updatedContainerTags = new HashMap<String, NbtMapCarrier>();
 
         for (AccessoriesContainer updatedContainer : updatedContainers) {
-            var syncCarrier = EdmUtils.newMap();
+            var syncCarrier = NbtMapCarrier.of();
 
             ((AccessoriesContainerImpl) updatedContainer).write(syncCarrier, SerializationContext.attributes(RegistriesAttribute.of(livingEntity.registryAccess())), true);
 

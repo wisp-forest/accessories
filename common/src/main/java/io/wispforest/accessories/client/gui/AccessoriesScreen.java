@@ -283,7 +283,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (insideScrollbar(mouseX, mouseY) || (this.hoveredSlot != null && this.hoveredSlot instanceof AccessoriesInternalSlot)) {
+        if (insideScrollbar(mouseX, mouseY) || (Accessories.getConfig().clientData.allowSlotScrolling && this.hoveredSlot instanceof AccessoriesInternalSlot)) {
             int index = (int) Math.max(Math.min(-scrollY + this.menu.scrolledIndex, this.menu.maxScrollableIndex()), 0);
 
             if (index != menu.scrolledIndex) {
@@ -551,7 +551,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             });
         }
 
-        int aceesoriesSlots = 0;
+        int accessoriesSlots = 0;
 
         for (Slot slot : this.menu.slots) {
             if (!(slot instanceof AccessoriesInternalSlot accessoriesSlot && !accessoriesSlot.isCosmetic)) continue;
@@ -563,7 +563,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
             cosmeticButtons.put(accessoriesSlot, this.addWidget(slotButton));
 
-            aceesoriesSlots++;
+            accessoriesSlots++;
         }
 
         if (tabPageCount() > 1) {
@@ -588,7 +588,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         this.menu.setScrollEvent(this::updateAccessoryToggleButtons);
 
-        this.scrollBarHeight = Mth.lerpInt(Math.min(aceesoriesSlots / 20f, 1.0f), 101, 31);
+        this.scrollBarHeight = Mth.lerpInt(Math.min(accessoriesSlots / 20f, 1.0f), 101, 31);
 
         if (this.scrollBarHeight % 2 == 0) this.scrollBarHeight++;
     }

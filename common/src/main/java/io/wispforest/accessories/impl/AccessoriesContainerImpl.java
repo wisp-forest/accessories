@@ -9,8 +9,6 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.api.slot.UniqueSlotHandling;
-import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.endec.format.nbt.NbtEndec;
 import io.wispforest.accessories.utils.AttributeUtils;
@@ -18,7 +16,6 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
-import net.minecraft.Util;
 import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.SimpleContainer;
@@ -61,9 +58,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         this.accessories = new ExpandedSimpleContainer(this.baseSize, "Accessories", false);
         this.cosmeticAccessories = new ExpandedSimpleContainer(this.baseSize, "Cosmetic Accessories", false);
 
-        this.renderOptions = Util.make(new ArrayList<>(baseSize), booleans -> {
-            for (int i = 0; i < baseSize; i++) booleans.add(i, true);
-        });
+        this.renderOptions = getWithSize(baseSize, new ArrayList<>(), true);
     }
 
     @Nullable
@@ -160,17 +155,11 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
             this.accessories = newAccessories;
             this.cosmeticAccessories = newCosmetics;
 
-            var newRenderOptions = new ArrayList<Boolean>(currentSize);
-
-            for (int i = 0; i < currentSize; i++) {
-                newRenderOptions.add(i < this.renderOptions.size() ? this.renderOptions.get(i) : true);
-            }
-
-            this.renderOptions = newRenderOptions;
+            this.renderOptions = getWithSize(currentSize, this.renderOptions, true);
 
             var livingEntity = this.capability.entity();
 
-            //TODO: Confirm if such is needed
+            //TODO: Confirm if this is needed
             for (var invalidAccessory : invalidAccessories) {
                 var index = invalidAccessory.getFirst();
 
@@ -269,7 +258,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
     @Override
     public void removeModifier(ResourceLocation location) {
-        var modifier = this.modifiers.get(location);
+        var modifier = this.modifiers.remove(location);
 
         if(modifier == null) return;
 
@@ -401,24 +390,22 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
         this.baseSize = carrier.get(BASE_SIZE_KEY);
 
-        this.renderOptions = Util.make(new ArrayList<>(baseSize), booleans -> {
-            for (int i = 0; i < baseSize; i++) booleans.add(i, true);
-        });
-
-        var readOptions = carrier.get(RENDER_OPTIONS_KEY);
-
-        for (int i = 0; i < readOptions.size(); i++) this.renderOptions.set(i, readOptions.get(i));
-
         if(carrier.has(CURRENT_SIZE_KEY)) {
-            var size = carrier.get(CURRENT_SIZE_KEY);
+            var currentSize = carrier.get(CURRENT_SIZE_KEY);
 
-            if(this.accessories.getContainerSize() != size) {
-                this.accessories = new ExpandedSimpleContainer(size, "Accessories");
-                this.cosmeticAccessories = new ExpandedSimpleContainer(size, "Cosmetic Accessories");
+            var sentOptions = carrier.get(RENDER_OPTIONS_KEY);
+
+            this.renderOptions = getWithSize(currentSize, sentOptions, true);
+
+            if(this.accessories.getContainerSize() != currentSize) {
+                this.accessories = new ExpandedSimpleContainer(currentSize, "Accessories");
+                this.cosmeticAccessories = new ExpandedSimpleContainer(currentSize, "Cosmetic Accessories");
             }
 
             this.accessories.fromTag(carrier.get(ITEMS_KEY), registryAccess);
             this.cosmeticAccessories.fromTag(carrier.get(COSMETICS_KEY), registryAccess);
+        } else {
+            this.renderOptions = carrier.get(RENDER_OPTIONS_KEY);
         }
 
         if(sync) {
@@ -461,6 +448,18 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                 }
             }
         }
+    }
+
+    private <T> List<T> getWithSize(int size, List<T> list, T defaultValue) {
+        var sizedList = new ArrayList<T>(size);
+
+        for (int i = 0; i < size; i++) {
+            var value = (i < list.size()) ? list.get(i) : defaultValue;
+
+            sizedList.add(value);
+        }
+
+        return sizedList;
     }
 
     public static SimpleContainer readContainer(MapCarrier carrier, SerializationContext ctx, KeyedEndec<ListTag> key){

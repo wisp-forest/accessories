@@ -15,9 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Interface representing a reference to a given {@link AccessoriesContainer} based on the given
- * {@link LivingEntity}, slot name, and slot index passed. Such acts differently for {@link NestedSlotReferenceImpl}
- * as it attempts to handle {@link AccessoryNest} stacks as well
+ * A reference to a specific accessory slot of a {@link LivingEntity}.
  */
 public sealed interface SlotReference permits NestedSlotReferenceImpl, SlotReferenceImpl {
 
@@ -25,22 +23,22 @@ public sealed interface SlotReference permits NestedSlotReferenceImpl, SlotRefer
         return new SlotReferenceImpl(livingEntity, slotName, slot);
     }
 
-    static NestedSlotReferenceImpl ofNest(LivingEntity livingEntity, String slotName, int initialHolderSlot, List<Integer> innerSlotIndices) {
+    static SlotReference ofNest(LivingEntity livingEntity, String slotName, int initialHolderSlot, List<Integer> innerSlotIndices) {
         return new NestedSlotReferenceImpl(livingEntity, slotName, initialHolderSlot, ImmutableList.copyOf(innerSlotIndices));
     }
 
     /**
-     * @return The slot name being referenced
+     * @return the referenced slot name
      */
     String slotName();
 
     /**
-     * @return The entity being referenced
+     * @return the referenced entity
      */
     LivingEntity entity();
 
     /**
-     * @return The slot index within the given entity's container being referenced
+     * @return the referenced slot index
      */
     int slot();
 
@@ -70,7 +68,7 @@ public sealed interface SlotReference permits NestedSlotReferenceImpl, SlotRefer
     }
 
     /**
-     * @return The current stack being referenced by the {@link SlotReference}
+     * @return the current referenced stack
      */
     @Nullable
     default ItemStack getStack() {
@@ -82,7 +80,7 @@ public sealed interface SlotReference permits NestedSlotReferenceImpl, SlotRefer
     }
 
     /**
-     * @return If the given stack was set successfully
+     * @return {@code true} if the stack was successfully set, {@code false} otherwise
      */
     default boolean setStack(ItemStack stack) {
         var container = this.slotContainer();

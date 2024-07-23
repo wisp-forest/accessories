@@ -387,7 +387,7 @@ public final class AccessoriesMenu extends AbstractContainerMenu {
                 Slot slot = this.slots.get(i);
                 ItemStack itemStack = slot.getItem();
 
-                //Check if the slot dose not permit the given amount
+                //Check if the slot does not permit the given amount
                 if(slot.getMaxStackSize(itemStack) < itemStack.getCount()) {
                     if (!itemStack.isEmpty() && ItemStack.isSameItemSameComponents(stack, itemStack)) {
                         int j = itemStack.getCount() + stack.getCount();
