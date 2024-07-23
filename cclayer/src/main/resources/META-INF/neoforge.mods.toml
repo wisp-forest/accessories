@@ -41,6 +41,6 @@ side = "BOTH"
 [[dependencies.cclayer]]
 modId = "accessories"
 required = true
-versionRange = "[1.0.0-beta16,)"
+versionRange = "[1.0.0-beta20,)"
 ordering = "NONE"
 side = "BOTH"
