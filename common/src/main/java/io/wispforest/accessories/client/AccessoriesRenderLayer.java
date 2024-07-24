@@ -50,7 +50,18 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
     }
 
     @Override
-    public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+    public void render(
+            PoseStack poseStack,
+            MultiBufferSource multiBufferSource,
+            int light,
+            T entity,
+            float limbSwing,
+            float limbSwingAmount,
+            float partialTicks,
+            float ageInTicks,
+            float netHeadYaw,
+            float headPitch
+    ) {
         var highlightOptions = Accessories.getConfig().clientData.hoverOptions;
 
         var capability = AccessoriesCapability.get(entity);
@@ -166,7 +177,8 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                                 colorValues = new float[]{color.getRed() / 128f, color.getGreen() / 128f, color.getBlue() / 128f, 1};
                             } else {
-                                colorValues = new float[]{scale, scale, scale, 1};
+                                var mul = highlightOptions.hoveredOptions.cycleBrightness ? scale : 1.5f;
+                                colorValues = new float[]{mul, mul, mul, 1};
                             }
                         } else if (highlightOptions.unHoveredOptions.darkenUnHovered) {
                             var darkness = brightnessMap.getOrDefault(entry.getKey() + i, 1f);

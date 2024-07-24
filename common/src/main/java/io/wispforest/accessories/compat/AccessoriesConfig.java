@@ -34,28 +34,22 @@ public class AccessoriesConfig implements ConfigData {
 
         public static class HoverOptions {
 
-            @ConfigEntry.Gui.CollapsibleObject()
+            @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
             public HoveredOptions hoveredOptions = new HoveredOptions();
 
             public static class HoveredOptions {
                 public boolean brightenHovered = true;
-                public float hoveredBrightness = 1.5f;
-                public float hoveredOpacity = 1f;
                 public boolean cycleBrightness = true;
-                public float cycleSpeed = 0.1f;
-                public float minBrightness = 0.5f;
-                public float minOpacity = 1f;
 
                 public boolean line = false;
                 public boolean clickbait = false;
             }
 
-            @ConfigEntry.Gui.CollapsibleObject()
+            @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
             public UnHoveredOptions unHoveredOptions = new UnHoveredOptions();
 
             public static class UnHoveredOptions {
                 public boolean renderUnHovered = true;
-                public boolean onlyWhileHovered = true;
 
                 public boolean darkenUnHovered = true;
                 public float darkenedBrightness = 0.5f;
