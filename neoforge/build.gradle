@@ -48,11 +48,19 @@ dependencies {
 
     modImplementation("me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_version}")
 
-    include modApi("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+e0539096d1"){ exclude group: "fabric-api" }
+    include modApi("dev.su5ed.sinytra.fabric-api:fabric-api-base:0.4.31+ef105b4977"){
+        exclude group: "dev.su5ed.sinytra.fabric-api"
+    }
 
-    include modApi("dev.su5ed.sinytra.fabric-api:fabric-data-attachment-api-v1:1.0.0+30ef839e77"){ exclude group: "fabric-api" } //0.3.37+a6081afc77
-    include modApi("dev.su5ed.sinytra.fabric-api:fabric-entity-events-v1:1.6.0+6274ab9d77"){ exclude group: "fabric-api" }
-    include modApi("dev.su5ed.sinytra.fabric-api:fabric-object-builder-api-v1:11.1.3+2174fc8477"){ exclude group: "fabric-api" }
+    include modApi("dev.su5ed.sinytra.fabric-api:fabric-data-attachment-api-v1:1.0.0+30ef839e77"){
+        exclude group: "dev.su5ed.sinytra.fabric-api"
+    } //0.3.37+a6081afc77
+    include modApi("dev.su5ed.sinytra.fabric-api:fabric-entity-events-v1:1.6.0+6274ab9d77"){
+        exclude group: "dev.su5ed.sinytra.fabric-api"
+    }
+    include modApi("dev.su5ed.sinytra.fabric-api:fabric-object-builder-api-v1:11.1.3+2174fc8477"){
+        exclude group: "dev.su5ed.sinytra.fabric-api"
+    }
 
     forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")
     forgeRuntimeLibrary("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
@@ -143,7 +151,7 @@ loom {
 
     forge  {
         mixinConfig "accessories-common.mixins.json"
-        mixinConfig "accessories-forge.mixins.json"
+        mixinConfig "accessories-neoforge.mixins.json"
     }
 }
 

@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[1,)"
+loaderVersion = "[47,)"
 #issueTrackerURL = ""
 license = "MIT"
 
@@ -17,15 +17,15 @@ Testmod for accessories
 config = 'testccessories-neoforge.mixins.json'
 
 [[dependencies.testccessories]]
-modId = "neoforge"
-required = true
-versionRange = "[20,)"
+modId = "forge"
+mandatory = true
+versionRange = "[47,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.testccessories]]
 modId = "minecraft"
-required = true
-versionRange = "[1.20.4,)"
+mandatory = true
+versionRange = "[1.20.1,)"
 ordering = "NONE"
 side = "BOTH"

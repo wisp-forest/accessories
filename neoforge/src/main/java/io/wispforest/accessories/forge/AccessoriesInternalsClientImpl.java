@@ -1,4 +1,4 @@
-package io.wispforest.accessories.neoforge;
+package io.wispforest.accessories.forge;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;

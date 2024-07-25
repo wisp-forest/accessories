@@ -11,14 +11,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public abstract class BaseNetworkHandler {
 
-    protected final Map<Type<?>, PacketBuilder<?>> c2sBuilders = new HashMap<>();
-    protected final Map<Type<?>, PacketBuilder<?>> s2cBuilders = new HashMap<>();
+    protected final Map<Type<?>, PacketBuilder<?>> c2sBuilders = new LinkedHashMap<>();
+    protected final Map<Type<?>, PacketBuilder<?>> s2cBuilders = new LinkedHashMap<>();
 
     private final ReflectiveEndecBuilder endecBuilder;
 

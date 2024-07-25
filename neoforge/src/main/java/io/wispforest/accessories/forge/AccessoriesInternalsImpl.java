@@ -1,19 +1,18 @@
-package io.wispforest.accessories.neoforge;
+package io.wispforest.accessories.forge;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.JsonOps;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.client.AccessoriesMenuData;
-import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.accessories.neoforge.AccessoriesForge;
+import io.wispforest.accessories.neoforge.AccessoriesForgeNetworkHandler;
 import io.wispforest.accessories.networking.base.BaseNetworkHandler;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.format.bytebuf.ByteBufDeserializer;
 import io.wispforest.endec.format.bytebuf.ByteBufSerializer;
+import net.fabricmc.fabric.api.attachment.v1.AttachmentTarget;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
 import net.minecraft.core.Holder;
@@ -31,9 +30,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.conditions.ICondition;
-import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.minecraftforge.common.crafting.conditions.ICondition;
+import net.minecraftforge.common.extensions.IForgeMenuType;
+import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +45,7 @@ import java.util.function.UnaryOperator;
 public class AccessoriesInternalsImpl {
 
     public static AccessoriesHolder getHolder(LivingEntity livingEntity){
-        return livingEntity.getData(AccessoriesForge.HOLDER_ATTACHMENT_TYPE);
+        return ((AttachmentTarget) livingEntity).getAttachedOrCreate(AccessoriesForge.HOLDER_ATTACHMENT_TYPE);
     }
 
     public static void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolderImpl> modifier){
@@ -52,7 +53,7 @@ public class AccessoriesInternalsImpl {
 
         holder = modifier.apply(holder);
 
-        livingEntity.setData(AccessoriesForge.HOLDER_ATTACHMENT_TYPE, holder);
+        ((AttachmentTarget) livingEntity).setAttached(AccessoriesForge.HOLDER_ATTACHMENT_TYPE, holder);
     }
 
     public static BaseNetworkHandler getNetworkHandler(){
@@ -76,36 +77,35 @@ public class AccessoriesInternalsImpl {
     }
 
     public static boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, @Nullable HolderLookup.Provider registryLookup) {
-        DynamicOps<JsonElement> ops = JsonOps.INSTANCE;
-
-        if(registryLookup != null) ops = registryLookup.createSerializationContext(ops);
-
-        return ICondition.conditionsMatched(ops, object);
+        //TODO [PORT]: UNKNOWN IF WORKS
+        return ICondition.shouldRegisterEntry(object);
     }
 
     public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(ResourceLocation location, TriFunction<Integer, Inventory, AccessoriesMenuData, T> func) {
-        return Registry.register(BuiltInRegistries.MENU, location, IMenuTypeExtension.create((i, arg, arg2) -> {
-            return func.apply(i, arg, AccessoriesMenuData.ENDEC.decodeFully(SerializationContext.attributes(RegistriesAttribute.of(arg2.registryAccess())), ByteBufDeserializer::of, arg2));
-        }));
+        var type = IForgeMenuType.create((i, inv, buf) -> func.apply(i, inv, AccessoriesMenuData.ENDEC.decodeFully(SerializationContext.empty(), ByteBufDeserializer::of, buf)));
+
+        ForgeRegistries.MENU_TYPES.register(location, type);
+
+        return type;
     }
 
     public static <A extends ArgumentType<?>, T extends ArgumentTypeInfo.Template<A>, I extends ArgumentTypeInfo<A, T>> I registerCommandArgumentType(ResourceLocation location, Class<A> clazz, I info) {
         ArgumentTypeInfos.registerByClass(clazz, info);
 
-        return Registry.register(BuiltInRegistries.COMMAND_ARGUMENT_TYPE, location, info);
+        ForgeRegistries.COMMAND_ARGUMENT_TYPES.register(location, info);
+
+        return info;
     }
 
     public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
-        player.openMenu(
-                new SimpleMenuProvider((i, arg, arg2) -> {
-                    var menu = new AccessoriesMenu(i, arg, targetEntity);
+        NetworkHooks.openScreen((ServerPlayer) player, new SimpleMenuProvider((i, arg, arg2) -> {
+            var menu = new AccessoriesMenu(i, arg, targetEntity);
 
-                    if(carriedStack != null) menu.setCarried(carriedStack);
+            if(carriedStack != null) menu.setCarried(carriedStack);
 
-                    return menu;
-                }, Component.empty()),
-                buf -> {
-                    AccessoriesMenuData.ENDEC.encode(SerializationContext.attributes(RegistriesAttribute.of(buf.registryAccess())), ByteBufSerializer.of(buf), AccessoriesMenuData.of(targetEntity));
-                });
+            return menu;
+        }, Component.empty()), buf -> {
+            AccessoriesMenuData.ENDEC.encode(SerializationContext.empty(), ByteBufSerializer.of(buf), AccessoriesMenuData.of(targetEntity));
+        });
     }
 }

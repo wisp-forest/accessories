@@ -7,20 +7,18 @@ import io.wispforest.testccessories.neoforge.accessories.AppleAccessory;
 import io.wispforest.testccessories.neoforge.accessories.PointedDripstoneAccessory;
 import io.wispforest.testccessories.neoforge.accessories.PotatoAccessory;
 import io.wispforest.testccessories.neoforge.accessories.TntAccessory;
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.commands.CommandSourceStack;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
-import net.neoforged.neoforge.common.NeoForge;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RegisterClientCommandsEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 
 import static io.wispforest.accessories.Accessories.MODID;
 
-@EventBusSubscriber(modid = Testccessories.MODID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(modid = Testccessories.MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class TestccessoriesClient {
 
     @SubscribeEvent
@@ -32,7 +30,7 @@ public class TestccessoriesClient {
 
         MenuScreens.register(Testccessories.TEST_MENU_TYPE, TestScreen::new);
 
-        NeoForge.EVENT_BUS.addListener(TestccessoriesClient::initCommand);
+        MinecraftForge.EVENT_BUS.addListener(TestccessoriesClient::initCommand);
     }
 
     public static void initCommand(RegisterClientCommandsEvent event){

@@ -2,37 +2,25 @@ package io.wispforest.accessories.neoforge;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.commands.AccessoriesCommands;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.endec.RegistriesAttribute;
-import io.wispforest.accessories.endec.format.nbt.NbtDeserializer;
-import io.wispforest.accessories.endec.format.nbt.NbtSerializer;
-import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
+import io.wispforest.accessories.endec.CodecUtils;
+import io.wispforest.accessories.forge.AccessoriesInternalsImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.InstanceEndec;
-import io.wispforest.endec.Endec;
-import io.wispforest.endec.SerializationContext;
+import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.Registry;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -44,9 +32,9 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.RegisterEvent;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.function.Consumer;
@@ -58,35 +46,12 @@ public class AccessoriesForge {
 
     public static final AttachmentType<AccessoriesHolderImpl> HOLDER_ATTACHMENT_TYPE;
 
-    public static final EntityCapability<AccessoriesCapability, Void> CAPABILITY = EntityCapability.createVoid(Accessories.of("capability"), AccessoriesCapability.class);
-
     static {
-        HOLDER_ATTACHMENT_TYPE = Registry.register(
-                NeoForgeRegistries.ATTACHMENT_TYPES,
-                Accessories.of("inventory_holder"),
-                AttachmentType.builder(AccessoriesHolderImpl::of)
-                        .serialize(new IAttachmentSerializer<>() {
-                            private final Endec<AccessoriesHolderImpl> ENDEC = InstanceEndec.constructed(AccessoriesHolderImpl::new);
-
-                            @Override
-                            public AccessoriesHolderImpl read(IAttachmentHolder holder, Tag tag, HolderLookup.Provider provider) {
-                                return ENDEC.decodeFully(
-                                        SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) provider)),
-                                        NbtDeserializer::of,
-                                        tag);
-                            }
-
-                            @Override
-                            @Nullable
-                            public Tag write(AccessoriesHolderImpl object, HolderLookup.Provider provider) {
-                                return ENDEC.encodeFully(
-                                        SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) provider)),
-                                        NbtSerializer::of,
-                                        object);
-                            }
-                        })
-                        .copyOnDeath()
-                        .build());
+        HOLDER_ATTACHMENT_TYPE = AttachmentRegistry.<AccessoriesHolderImpl>builder()
+                .initializer(AccessoriesHolderImpl::of)
+                .persistent(CodecUtils.ofEndec(InstanceEndec.constructed(AccessoriesHolderImpl::new)))
+                .copyOnDeath()
+                .buildAndRegister(Accessories.of("inventory_holder"));
     }
 
     public static IEventBus BUS;
@@ -109,12 +74,12 @@ public class AccessoriesForge {
 
         MinecraftForge.EVENT_BUS.addListener(this::registerCommands);
 
-        eventBus.addListener(AccessoriesForgeNetworkHandler.INSTANCE::initializeNetworking);
+        eventBus.register(AccessoriesForgeNetworkHandler.INSTANCE);
         eventBus.addListener(this::registerStuff);
 
         MinecraftForge.EVENT_BUS.addListener(this::registerReloadListeners);
 
-        eventBus.addListener(this::registerCapabilities);
+//        eventBus.addListener(this::registerCapabilities);
 
         MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerChangedDimensionEvent event) -> {
             // A hack to deal with player data not being transferred when a ClientboundRespawnPacket occurs for teleporting between two dimensions
@@ -122,6 +87,10 @@ public class AccessoriesForge {
 
             AccessoriesEventHandler.onTracking(serverPlayer, serverPlayer);
         });
+
+        AccessoriesForgeNetworkHandler.INSTANCE.initializeNetworking();
+
+        eventBus.addListener((FMLCommonSetupEvent event) -> Accessories.registerCriteria());
     }
 
     //--
@@ -132,8 +101,6 @@ public class AccessoriesForge {
 
     public void registerStuff(RegisterEvent event){
         event.register(Registries.MENU, (helper) -> Accessories.registerMenuType());
-        event.register(Registries.TRIGGER_TYPE, (helper) -> Accessories.registerCriteria());
-        event.register(Registries.DATA_COMPONENT_TYPE, (helper) -> AccessoriesDataComponents.init());
         event.register(Registries.COMMAND_ARGUMENT_TYPE, (helper) -> AccessoriesCommands.registerCommandArgTypes());
     }
 
@@ -159,21 +126,21 @@ public class AccessoriesForge {
         });
     }
 
-    public void registerCapabilities(RegisterCapabilitiesEvent event){
-        for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
-            if(event.isEntityRegistered(CAPABILITY, entityType)) continue;
-
-            event.registerEntity(CAPABILITY, entityType, (entity, unused) -> {
-                if(!(entity instanceof LivingEntity livingEntity)) return null;
-
-                var slots = EntitySlotLoader.getEntitySlots(livingEntity);
-
-                if(slots.isEmpty()) return null;
-
-                return new AccessoriesCapabilityImpl(livingEntity);
-            });
-        }
-    }
+//    public void registerCapabilities(RegisterCapabilitiesEvent event){
+//        for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
+//            if(event.isEntityRegistered(CAPABILITY, entityType)) continue;
+//
+//            event.registerEntity(CAPABILITY, entityType, (entity, unused) -> {
+//                if(!(entity instanceof LivingEntity livingEntity)) return null;
+//
+//                var slots = EntitySlotLoader.getEntitySlots(livingEntity);
+//
+//                if(slots.isEmpty()) return null;
+//
+//                return new AccessoriesCapabilityImpl(livingEntity);
+//            });
+//        }
+//    }
 
     //--
 
@@ -196,9 +163,8 @@ public class AccessoriesForge {
     }
 
     public void onLivingEntityTick(LivingEvent.LivingTickEvent event){
-        if(!(event.getEntity() instanceof LivingEntity livingEntity)) return;
-
-        AccessoriesEventHandler.onLivingEntityTick(livingEntity);
+        //if(!(event.getEntity() instanceof LivingEntity livingEntity)) return;
+        AccessoriesEventHandler.onLivingEntityTick(event.getEntity());
     }
 
     public void onDataSync(OnDatapackSyncEvent event){

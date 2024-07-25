@@ -23,8 +23,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
 public class PointedDripstoneAccessory implements Accessory {
 
@@ -40,12 +40,11 @@ public class PointedDripstoneAccessory implements Accessory {
     }
 
     @Override
-    public void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
+    public void getDynamicModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
         if(reference.slotName().equals("hand") || reference.slotName().equals("hat")) {
-            builder.addStackable(Attributes.ATTACK_DAMAGE, new AttributeModifier(ATTACK_DAMAGE_LOCATION, 3 * (stack.getCount() / 64f), AttributeModifier.Operation.ADD_VALUE));
+            builder.addStackable(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE_LOCATION, 3 * (stack.getCount() / 64f), AttributeModifier.Operation.ADDITION);
         }
     }
-
     @OnlyIn(Dist.CLIENT)
     public static class Renderer implements SimpleAccessoryRenderer {
 

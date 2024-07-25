@@ -11,13 +11,13 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ConfigScreenHandler;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
@@ -26,8 +26,9 @@ import net.minecraftforge.client.event.RegisterShadersEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.lwjgl.glfw.GLFW;
@@ -37,19 +38,19 @@ import java.util.ArrayList;
 
 import static io.wispforest.accessories.Accessories.MODID;
 
+@Mod.EventBusSubscriber(modid = MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class AccessoriesClientForge {
+
+    static {
+        System.out.println("FUCKKKKY");
+    }
 
     public static KeyMapping OPEN_SCREEN;
 
-    public AccessoriesClientForge(final IEventBus eventBus) {
-        eventBus.addListener(this::onInitializeClient);
-        eventBus.addListener(this::registerClientReloadListeners);
-        eventBus.addListener(this::initKeybindings);
-        eventBus.addListener(this::addRenderLayer);
-        eventBus.addListener(this::registerShader);
-    }
+    @SubscribeEvent
+    public static void onInitializeClient(FMLClientSetupEvent event) {
+        System.out.println("CHYZ");
 
-    public void onInitializeClient(FMLClientSetupEvent event) {
         AccessoriesClient.init();
 
         MinecraftForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
@@ -60,7 +61,8 @@ public class AccessoriesClientForge {
                 () -> new ConfigScreenHandler.ConfigScreenFactory((minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get()));
     }
 
-    public void registerClientReloadListeners(RegisterClientReloadListenersEvent event) {
+    @SubscribeEvent
+    public static void registerClientReloadListeners(RegisterClientReloadListenersEvent event) {
         event.registerReloadListener(new SimplePreparableReloadListener<Void>() {
             @Override
             protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) {return null;}
@@ -72,7 +74,8 @@ public class AccessoriesClientForge {
         });
     }
 
-    public void initKeybindings(RegisterKeyMappingsEvent event) {
+    @SubscribeEvent
+    public static void initKeybindings(RegisterKeyMappingsEvent event) {
         OPEN_SCREEN = new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories");
 
         event.register(OPEN_SCREEN);
@@ -98,27 +101,29 @@ public class AccessoriesClientForge {
         if (!tooltipData.isEmpty()) stackTooltip.addAll(1, tooltipData);
     }
 
-    public void addRenderLayer(EntityRenderersEvent.AddLayers event) {
+    @SubscribeEvent
+    public static void addRenderLayer(EntityRenderersEvent.AddLayers event) {
         for (EntityType<?> entityType : ForgeRegistries.ENTITY_TYPES) {
             try {
-                var renderer = event.getRenderer((EntityType<LivingEntity>) entityType);
+                var livingEntityRenderer = event.getRenderer((EntityType<LivingEntity>) entityType);
 
-                if (renderer instanceof LivingEntityRenderer<? extends LivingEntity, ?> livingEntityRenderer && livingEntityRenderer.getModel() instanceof HumanoidModel) {
+                if (livingEntityRenderer != null && livingEntityRenderer.getModel() instanceof HumanoidModel) {
                     livingEntityRenderer.addLayer(new AccessoriesRenderLayer(livingEntityRenderer));
                 }
             } catch (ClassCastException ignore) {}
         }
 
         event.getSkins().forEach(model -> {
-            var renderer = event.getSkin(model);
+            var livingEntityRenderer = event.getSkin(model);
 
-            if (renderer instanceof LivingEntityRenderer<? extends LivingEntity, ?> livingEntityRenderer && livingEntityRenderer.getModel() instanceof HumanoidModel) {
+            if (livingEntityRenderer != null && livingEntityRenderer.getModel() instanceof HumanoidModel) {
                 livingEntityRenderer.addLayer(new AccessoriesRenderLayer(livingEntityRenderer));
             }
         });
     }
 
-    public void registerShader(RegisterShadersEvent event) {
+    @SubscribeEvent
+    public static void registerShader(RegisterShadersEvent event) {
         try {
             event.registerShader(new ShaderInstance(
                     event.getResourceProvider(),

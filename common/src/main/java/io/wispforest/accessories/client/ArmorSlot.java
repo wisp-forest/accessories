@@ -11,8 +11,14 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Copy of 1.21 Vanilla class backported to 1.20.1
+ */
+@ApiStatus.Internal
+@Deprecated
 public class ArmorSlot extends Slot {
     private final LivingEntity owner;
     private final EquipmentSlot slot;

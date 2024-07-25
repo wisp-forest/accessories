@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[1,)"
+loaderVersion = "[47,)"
 #issueTrackerURL = ""
 license = "MIT"
 
@@ -17,25 +17,25 @@ logoFile = "icon.png"
 [[mixins]]
 config = 'accessories-common.mixins.json'
 [[mixins]]
-config = 'accessories-forge.mixins.json'
+config = 'accessories-neoforge.mixins.json'
 
 [[dependencies.accessories]]
-modId = "neoforge"
-required = true
-versionRange = "[21,)"
+modId = "forge"
+mandatory = true
+versionRange = "[47,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.accessories]]
 modId = "minecraft"
-required = true
-versionRange = "[1.21,)"
+mandatory = true
+versionRange = "[1.20.1,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.accessories]]
 modId = "cloth_config"
-required = true
-versionRange = "[15,)"
+mandatory = true
+versionRange = "[11,)"
 ordering = "NONE"
 side = "BOTH"
