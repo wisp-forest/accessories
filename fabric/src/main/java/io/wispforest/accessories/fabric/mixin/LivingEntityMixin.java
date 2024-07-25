@@ -22,4 +22,16 @@ public abstract class LivingEntityMixin {
     private void accessories$tick(CallbackInfo ci){
         AccessoriesEventHandler.onLivingEntityTick((LivingEntity)(Object)this);
     }
+
+    //--
+
+    @WrapOperation(method = "dropAllDeathLoot", constant = @Constant(classValue = Player.class))
+    private boolean accessories$allowAllLivingEntities(Object object, Operation<Boolean> original){
+        return object instanceof LivingEntity || original.call(object);
+    }
+
+    @ModifyVariable(method = "dropAllDeathLoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/enchantment/EnchantmentHelper;getMobLooting(Lnet/minecraft/world/entity/LivingEntity;)I", shift = At.Shift.BY, by = 2))
+    private int accessories$adjustLooting(int original, @Local(argsOnly = true) DamageSource source){
+        return ExtraEventHandler.lootingAdjustments((LivingEntity)(Object) this, source, original);
+    }
 }

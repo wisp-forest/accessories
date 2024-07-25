@@ -1,23 +1,26 @@
 package io.wispforest.accessories.api.attributes;
 
-import net.minecraft.core.Holder;
+import io.wispforest.accessories.utils.AttributeUtils;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
+public record AttributeModificationData(@Nullable String slotPath, Attribute attribute, AttributeModifier modifier) {
 
-public record AttributeModificationData(@Nullable String slotPath, Holder<Attribute> attribute, AttributeModifier modifier) {
-
-    public AttributeModificationData(Holder<Attribute> attribute, AttributeModifier modifier) {
+    public AttributeModificationData(Attribute attribute, AttributeModifier modifier) {
         this(null, attribute, modifier);
     }
 
     @Override
     public AttributeModifier modifier() {
-        return (this.slotPath != null)
-                ? new AttributeModifier(modifier.id().withPath((path) -> this.slotPath + "/" + path), modifier.amount(), modifier.operation())
-                : modifier;
+        if (this.slotPath == null) return modifier;
+
+        var location = AttributeUtils.getLocation(modifier.getName())
+                .withPath((path) -> this.slotPath + "/" + path);
+
+        var data = AttributeUtils.getModifierData(location);
+
+        return new AttributeModifier(data.second(), data.first(), modifier.getAmount(), modifier.getOperation());
     }
 
     @Override

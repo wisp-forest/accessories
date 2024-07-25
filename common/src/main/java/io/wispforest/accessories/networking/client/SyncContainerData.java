@@ -5,7 +5,6 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.endec.NbtMapCarrier;
-import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
@@ -30,8 +29,8 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
     public static Endec<SyncContainerData> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", SyncContainerData::entityId),
             NbtMapCarrier.ENDEC.mapOf().fieldOf("updatedContainers", SyncContainerData::updatedContainers),
-            CodecUtils.ofCodec(ItemStack.OPTIONAL_CODEC).mapOf().fieldOf("dirtyStacks", SyncContainerData::dirtyStacks),
-            CodecUtils.ofCodec(ItemStack.OPTIONAL_CODEC).mapOf().fieldOf("dirtyCosmeticStacks", SyncContainerData::dirtyCosmeticStacks),
+            CodecUtils.ofCodec(ItemStack.CODEC).mapOf().fieldOf("dirtyStacks", SyncContainerData::dirtyStacks),
+            CodecUtils.ofCodec(ItemStack.CODEC).mapOf().fieldOf("dirtyCosmeticStacks", SyncContainerData::dirtyCosmeticStacks),
             SyncContainerData::new
     );
 
@@ -41,7 +40,7 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
         for (AccessoriesContainer updatedContainer : updatedContainers) {
             var syncCarrier = NbtMapCarrier.of();
 
-            ((AccessoriesContainerImpl) updatedContainer).write(syncCarrier, SerializationContext.attributes(RegistriesAttribute.of(livingEntity.registryAccess())), true);
+            ((AccessoriesContainerImpl) updatedContainer).write(syncCarrier, SerializationContext.empty(), true);
 
             updatedContainerTags.put(updatedContainer.getSlotName(), syncCarrier);
         }
@@ -71,7 +70,7 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
 
             var container = containers.get(entry.getKey());
 
-            ((AccessoriesContainerImpl) container).read(entry.getValue(), SerializationContext.attributes(RegistriesAttribute.of(player.level().registryAccess())), true);
+            ((AccessoriesContainerImpl) container).read(entry.getValue(), SerializationContext.empty(), true);
 
             if(container.getAccessories().wasNewlyConstructed()) aContainerHasResized = true;
         }

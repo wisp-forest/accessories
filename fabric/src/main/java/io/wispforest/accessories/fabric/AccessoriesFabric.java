@@ -21,9 +21,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
-import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -111,14 +109,5 @@ public class AccessoriesFabric implements ModInitializer {
         DataLoaderBase.INSTANCE = new DataLoaderImpl();
 
         DataLoaderBase.INSTANCE.registerListeners();
-
-        DefaultItemComponentEvents.MODIFY.register(context -> {
-            AccessoriesEventHandler.setupItems(new AccessoriesEventHandler.AddDataComponentCallback() {
-                @Override
-                public <T> void addTo(Item item, DataComponentType<T> componentType, T component) {
-                    context.modify(item, builder -> builder.set(componentType, component));
-                }
-            });
-        });
     }
 }

@@ -5,13 +5,10 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
-import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.AccessoryNest;
 import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
 import io.wispforest.accessories.api.slot.NestedSlotReferenceImpl;
-import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,13 +19,29 @@ import java.util.function.BiFunction;
 
 public class AccessoryNestUtils {
 
+    private final static LoadingCache<ItemStack, AccessoryNestContainerContents> CACHE = CacheBuilder.newBuilder()
+            .concurrencyLevel(1)
+            .expireAfterAccess(Duration.ofSeconds(1))
+            //.maximumSize(1000)
+            .weakKeys()
+            .build(CacheLoader.from((stack) -> {
+                return AccessoriesDataComponents.readOrDefault(AccessoriesDataComponents.NESTED_ACCESSORIES, stack);
+            }));
+
     @Nullable
     public static AccessoryNestContainerContents getData(ItemStack stack){
         var accessory = AccessoriesAPI.getAccessory(stack.getItem());
 
         if(!(accessory instanceof AccessoryNest)) return null;
 
-        return stack.get(AccessoriesDataComponents.NESTED_ACCESSORIES);
+        var data = CACHE.getUnchecked(stack);
+
+        if (data.isInvalid()) {
+            CACHE.refresh(stack);
+            data = CACHE.getUnchecked(stack);
+        }
+
+        return data;
     }
 
     public static <T> @Nullable T recursiveStackHandling(ItemStack stack, SlotReference reference, BiFunction<ItemStack, SlotReference, @Nullable T> function) {

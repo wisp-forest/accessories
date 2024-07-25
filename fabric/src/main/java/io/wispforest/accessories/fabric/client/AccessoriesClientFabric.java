@@ -101,6 +101,6 @@ public class AccessoriesClientFabric implements ClientModInitializer {
 
     @Environment(EnvType.CLIENT)
     protected static <M extends HandledPacketPayload> void registerS2C(Class<M> messageType, Endec<M> endec) {
-        ClientPlayNetworking.registerGlobalReceiver(BaseNetworkHandler.getId(messageType), (packet, context) -> packet.handle(context.player()));
+        ClientPlayNetworking.registerGlobalReceiver(AccessoriesFabricNetworkHandler.INSTANCE.getOrCreateType(messageType,endec), (packet, player, packetSender) -> packet.innerPacket().handle(player));
     }
 }

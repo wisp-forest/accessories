@@ -92,7 +92,7 @@ public interface AccessoriesContainer {
     /**
      * @return All slot modifiers applied to the given Container
      */
-    Map<ResourceLocation, AttributeModifier> getModifiers();
+    Map<UUID, AttributeModifier> getModifiers();
 
     /**
      * @return All cached modifiers sent within sync packet to the client
@@ -120,15 +120,15 @@ public interface AccessoriesContainer {
 
     /**
      * Remove the specific attribute modifier from the map if found
-     * @param location The specific location
+     * @param id The specific location
      */
-    boolean hasModifier(ResourceLocation location);
+    boolean hasModifier(UUID id);
 
     /**
      * Remove the specific attribute modifier from the map if found
-     * @param location The specific location
+     * @param id The specific location
      */
-    void removeModifier(ResourceLocation location);
+    void removeModifier(UUID id);
 
     /**
      * Remove all modifiers from the given container

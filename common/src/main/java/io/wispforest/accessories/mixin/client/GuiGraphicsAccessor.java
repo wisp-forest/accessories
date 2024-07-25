@@ -7,5 +7,5 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(GuiGraphics.class)
 public interface GuiGraphicsAccessor {
-    @Invoker("blitSprite") void callBlitSprite(TextureAtlasSprite sprite, int x, int y, int blitOffset, int width, int height);
+    //@Invoker("blitSprite") void callBlitSprite(TextureAtlasSprite sprite, int x, int y, int blitOffset, int width, int height);
 }

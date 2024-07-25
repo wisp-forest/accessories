@@ -25,14 +25,13 @@ public abstract class AbstractButtonMixin implements AbstractButtonExtension {
         return shouldCancel;
     });
 
-    @WrapOperation(method = "renderWidget", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lnet/minecraft/resources/ResourceLocation;IIII)V"))
-    private void adjustButtonRendering(GuiGraphics instance, ResourceLocation sprite, int x, int y, int width, int height, Operation<Void> original) {
-        boolean value = ADJUST_RENDERING_EVENT.invoker().render((AbstractButton) (Object) this, instance, sprite, x, y, width, height);
+    @WrapOperation(method = "renderWidget", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitNineSliced(Lnet/minecraft/resources/ResourceLocation;IIIIIIIIII)V"))
+    private void adjustButtonRendering(GuiGraphics instance, ResourceLocation resourceLocation, int x, int y, int width, int height, int m, int n, int o, int p, int q, int r, Operation<Void> original) {
+        boolean value = ADJUST_RENDERING_EVENT.invoker().render((AbstractButton) (Object) this, instance, resourceLocation, x, y, width, height);
 
-        if(!value){
-            original.call(instance, sprite, x, y, width, height);
-        }
+        if(!value) original.call(instance, resourceLocation, x, y, width, height, m, n, o, p, q, r);
     }
+
 
     @Override
     public Event<ButtonEvents.AdjustRendering> getRenderingEvent() {

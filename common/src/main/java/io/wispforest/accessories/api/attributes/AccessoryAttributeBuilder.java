@@ -1,8 +1,10 @@
 package io.wispforest.accessories.api.attributes;
 
 import com.google.common.collect.*;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.NestedSlotReferenceImpl;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.utils.AttributeUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -10,10 +12,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 /**
  * Builder used to collect the attribute modifications from a given Accessory with the ability
@@ -44,8 +44,10 @@ public final class AccessoryAttributeBuilder {
     /**
      * Adds a given attribute modifier as an exclusive modifier meaning that only one instance should ever exist
      */
-    public AccessoryAttributeBuilder addExclusive(Holder<Attribute> attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
-        this.addExclusive(attribute, new AttributeModifier(location, amount, operation));
+    public AccessoryAttributeBuilder addExclusive(Attribute attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
+        var data = AttributeUtils.getModifierData(location);
+
+        this.addExclusive(attribute, new AttributeModifier(data.second(), data.first(), amount, operation));
 
         return this;
     }
@@ -54,8 +56,10 @@ public final class AccessoryAttributeBuilder {
      * Adds a given attribute modifier as a stackable modifier meaning variants based on slot position is allowed. This is done by post process
      * step of appending slot information when adding to the living entity
      */
-    public AccessoryAttributeBuilder addStackable(Holder<Attribute> attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
-        this.addStackable(attribute, new AttributeModifier(location, amount, operation));
+    public AccessoryAttributeBuilder addStackable(Attribute attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
+        var data = AttributeUtils.getModifierData(location);
+
+        this.addStackable(attribute, new AttributeModifier(data.second(), data.first(), amount, operation));
 
         return this;
     }
@@ -63,8 +67,10 @@ public final class AccessoryAttributeBuilder {
     /**
      * Adds a given attribute modifier as an exclusive modifier meaning that only one instance should ever exist
      */
-    public AccessoryAttributeBuilder addExclusive(Holder<Attribute> attribute, AttributeModifier modifier) {
-        exclusiveAttributes.putIfAbsent(modifier.id(), new AttributeModificationData(attribute, modifier));
+    private AccessoryAttributeBuilder addExclusive(Attribute attribute, AttributeModifier modifier) {
+        var location = AttributeUtils.getLocation(modifier.getName());
+
+        exclusiveAttributes.putIfAbsent(location, new AttributeModificationData(attribute, modifier));
 
         return this;
     }
@@ -73,8 +79,10 @@ public final class AccessoryAttributeBuilder {
      * Adds a given attribute modifier as a stackable modifier meaning variants based on slot position is allowed. This is done by post process
      * step of appending slot information when adding to the living entity
      */
-    public AccessoryAttributeBuilder addStackable(Holder<Attribute> attribute, AttributeModifier modifier) {
-        stackedAttributes.put(modifier.id(), new AttributeModificationData(createSlotPath(this.slotReference), attribute, modifier));
+    private AccessoryAttributeBuilder addStackable(Attribute attribute, AttributeModifier modifier) {
+        var location = AttributeUtils.getLocation(modifier.getName());
+
+        stackedAttributes.put(location, new AttributeModificationData(createSlotPath(this.slotReference), attribute, modifier));
 
         return this;
     }
@@ -102,13 +110,13 @@ public final class AccessoryAttributeBuilder {
         var map = LinkedHashMultimap.<String, AttributeModifier>create();
 
         this.exclusiveAttributes.forEach((location, uniqueInstance) -> {
-            if(!(uniqueInstance.attribute().value() instanceof SlotAttribute slotAttribute)) return;
+            if(!(uniqueInstance.attribute() instanceof SlotAttribute slotAttribute)) return;
 
             map.put(slotAttribute.slotName(), uniqueInstance.modifier());
         });
 
         this.stackedAttributes.forEach((location, stackedInstance) -> {
-            if(!(stackedInstance.attribute().value() instanceof SlotAttribute slotAttribute)) return;
+            if(!(stackedInstance.attribute() instanceof SlotAttribute slotAttribute)) return;
 
             map.put(slotAttribute.slotName(), stackedInstance.modifier());
         });
@@ -116,17 +124,17 @@ public final class AccessoryAttributeBuilder {
         return map;
     }
 
-    public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(boolean filterSlots) {
-        var map = LinkedHashMultimap.<Holder<Attribute>, AttributeModifier>create();
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(boolean filterSlots) {
+        var map = LinkedHashMultimap.<Attribute, AttributeModifier>create();
 
         this.exclusiveAttributes.forEach((location, uniqueInstance) -> {
-            if(filterSlots && uniqueInstance.attribute().value() instanceof SlotAttribute) return;
+            if(filterSlots && uniqueInstance.attribute() instanceof SlotAttribute) return;
 
             map.put(uniqueInstance.attribute(), uniqueInstance.modifier());
         });
 
         this.stackedAttributes.forEach((location, stackedInstance) -> {
-            if(filterSlots && stackedInstance.attribute().value() instanceof SlotAttribute) return;
+            if(filterSlots && stackedInstance.attribute() instanceof SlotAttribute) return;
 
             map.put(stackedInstance.attribute(), stackedInstance.modifier());
         });

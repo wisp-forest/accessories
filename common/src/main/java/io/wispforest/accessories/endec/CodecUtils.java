@@ -9,9 +9,8 @@ import io.wispforest.endec.*;
 import io.wispforest.endec.format.bytebuf.ByteBufDeserializer;
 import io.wispforest.endec.format.bytebuf.ByteBufSerializer;
 import io.wispforest.endec.format.edm.*;
+import net.minecraft.Util;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.DelegatingOps;
 import net.minecraft.resources.RegistryOps;
 
@@ -42,10 +41,10 @@ public class CodecUtils {
     public static <T> Endec<T> ofCodec(Codec<T> codec) {
         return Endec.of(
                 (ctx, serializer, value) -> {
-                    EdmEndec.INSTANCE.encode(ctx, serializer, codec.encodeStart(createEdmOps(ctx), value).getOrThrow(IllegalStateException::new));
+                    EdmEndec.INSTANCE.encode(ctx, serializer, Util.getOrThrow(codec.encodeStart(createEdmOps(ctx), value), IllegalStateException::new));
                 },
                 (ctx, deserializer) -> {
-                    return codec.parse(createEdmOps(ctx), EdmEndec.INSTANCE.decode(ctx, deserializer)).getOrThrow(IllegalStateException::new);
+                    return Util.getOrThrow(codec.parse(createEdmOps(ctx), EdmEndec.INSTANCE.decode(ctx, deserializer)), IllegalStateException::new);
                 }
         );
     }
@@ -95,8 +94,7 @@ public class CodecUtils {
                     var map = new HashMap<String, EdmElement<?>>();
                     input.entries().forEach(pair -> {
                         map.put(
-                                ops.getStringValue(pair.getFirst())
-                                        .getOrThrow(s -> new IllegalStateException("Unable to parse key: " + s)),
+                                Util.getOrThrow(ops.getStringValue(pair.getFirst()), s -> new IllegalStateException("Unable to parse key: " + s)),
                                 ops.convertTo(EdmOps.withoutContext(), pair.getSecond())
                         );
                     });
@@ -139,9 +137,9 @@ public class CodecUtils {
                 ? edmOps.capturedContext().and(assumedContext)
                 : assumedContext;
 
-        if (ops instanceof RegistryOps<?> registryOps) {
-            context = context.withAttributes(RegistriesAttribute.infoGetterOnly(((RegistryOpsAccessor) registryOps).lookupProvider()));
-        }
+//        if (ops instanceof RegistryOps<?> registryOps) {
+//            context = context.withAttributes(RegistriesAttribute.infoGetterOnly(((RegistryOpsAccessor) registryOps).lookupProvider()));
+//        }
 
         return context;
     }
@@ -149,9 +147,9 @@ public class CodecUtils {
     private static DynamicOps<EdmElement<?>> createEdmOps(SerializationContext ctx) {
         DynamicOps<EdmElement<?>> ops = EdmOps.withContext(ctx);
 
-        if (ctx.hasAttribute(RegistriesAttribute.REGISTRIES)) {
-            ops = RegistryOps.create(ops, ctx.getAttributeValue(RegistriesAttribute.REGISTRIES).infoGetter());
-        }
+//        if (ctx.hasAttribute(RegistriesAttribute.REGISTRIES)) {
+//            ops = RegistryOps.create(ops, ctx.getAttributeValue(RegistriesAttribute.REGISTRIES).infoGetter());
+//        }
 
         return ops;
     }
@@ -162,34 +160,5 @@ public class CodecUtils {
         } catch (Exception e) {
             return DataResult.error(e::getMessage);
         }
-    }
-
-    // the fact that we lose context here is certainly far from ideal,
-    // but for the most part *shouldn't* matter. after all, ideally nobody
-    // should ever be nesting packet codecs into endecs - there's little
-    // point to doing that and transferring any kind of context data becomes
-    // mostly impossible because the system turns into one opaque spaghetti mess
-    //
-    // glisco, 28.04.2024
-    public static <B extends FriendlyByteBuf, T> StreamCodec<B, T> packetCodec(Endec<T> endec) {
-        return new StreamCodec<>() {
-            @Override
-            public T decode(B buf) {
-                var ctx = buf instanceof RegistryFriendlyByteBuf registryByteBuf
-                        ? SerializationContext.attributes(RegistriesAttribute.of(registryByteBuf.registryAccess()))
-                        : SerializationContext.empty();
-
-                return endec.decode(ctx, ByteBufDeserializer.of(buf));
-            }
-
-            @Override
-            public void encode(B buf, T value) {
-                var ctx = buf instanceof RegistryFriendlyByteBuf registryByteBuf
-                        ? SerializationContext.attributes(RegistriesAttribute.of(registryByteBuf.registryAccess()))
-                        : SerializationContext.empty();
-
-                endec.encode(ctx, ByteBufSerializer.of(buf), value);
-            }
-        };
     }
 }

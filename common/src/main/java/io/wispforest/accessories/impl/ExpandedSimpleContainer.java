@@ -149,7 +149,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     //--
 
     @Override
-    public void fromTag(ListTag containerNbt, HolderLookup.Provider provider) {
+    public void fromTag(ListTag containerNbt) {
         for(int i = 0; i < this.getContainerSize(); ++i) {
             this.setItem(i, ItemStack.EMPTY);
         }
@@ -160,13 +160,13 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
             int j = compoundTag.getInt("Slot");
 
             if (j >= 0 && j < this.getContainerSize()) {
-                this.setItem(j, ItemStack.parseOptional(provider, compoundTag));
+                this.setItem(j, ItemStack.of(compoundTag));
             }
         }
     }
 
     @Override
-    public ListTag createTag(HolderLookup.Provider provider) {
+    public ListTag createTag() {
         ListTag listTag = new ListTag();
 
         for(int i = 0; i < this.getContainerSize(); ++i) {
@@ -177,7 +177,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
                 compoundTag.putInt("Slot", i);
 
-                listTag.add(itemStack.save(provider, compoundTag));
+                listTag.add(itemStack.save(compoundTag));
             }
         }
 

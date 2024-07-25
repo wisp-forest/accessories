@@ -7,8 +7,6 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
-import io.wispforest.accessories.api.components.AccessoriesDataComponents;
-import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.events.*;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
@@ -17,7 +15,6 @@ import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
-import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncData;
@@ -26,7 +23,6 @@ import io.wispforest.endec.SerializationContext;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -46,8 +42,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.ItemAttributeModifiers;
-import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -144,7 +138,7 @@ public class AccessoriesEventHandler {
 
         var carrier = NbtMapCarrier.of();
 
-        ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(level.registryAccess())));
+        ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.empty());
 
         AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
     }
@@ -156,7 +150,7 @@ public class AccessoriesEventHandler {
 
         var carrier = NbtMapCarrier.of();
 
-        ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(entity.level().registryAccess())));
+        ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.empty());
 
         AccessoriesInternals.getNetworkHandler().sendToPlayer(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
     }
@@ -178,7 +172,7 @@ public class AccessoriesEventHandler {
 
                 var carrier = NbtMapCarrier.of();
 
-                ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(playerEntry.level().registryAccess())));
+                ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.empty());
 
                 networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(capability.entity().getId(), carrier));
 
@@ -197,7 +191,7 @@ public class AccessoriesEventHandler {
 
             var carrier = NbtMapCarrier.of();
 
-            ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(player.level().registryAccess())));
+            ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.empty());
 
             networkHandler.sendToPlayer(player, new SyncEntireContainer(capability.entity().getId(), carrier));
 
@@ -350,18 +344,18 @@ public class AccessoriesEventHandler {
         }
     }
 
-    public static void getTooltipData(@Nullable LivingEntity entity, ItemStack stack, List<Component> tooltip, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
+    public static void getTooltipData(@Nullable LivingEntity entity, ItemStack stack, List<Component> tooltip, TooltipFlag tooltipType) {
         var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
         if (accessory != null) {
-            if(entity != null && AccessoriesCapability.get(entity) != null) addEntityBasedTooltipData(entity, accessory, stack, tooltip, tooltipContext, tooltipType);
+            if(entity != null && AccessoriesCapability.get(entity) != null) addEntityBasedTooltipData(entity, accessory, stack, tooltip, tooltipType);
 
-            accessory.getExtraTooltip(stack, tooltip, tooltipContext, tooltipType);
+            accessory.getExtraTooltip(stack, tooltip, tooltipType);
         }
     }
 
     // TODO: Rewrite for better handling of various odd cases
-    private static void addEntityBasedTooltipData(LivingEntity entity, Accessory accessory, ItemStack stack, List<Component> tooltip, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
+    private static void addEntityBasedTooltipData(LivingEntity entity, Accessory accessory, ItemStack stack, List<Component> tooltip, TooltipFlag tooltipType) {
         // TODO: MAYBE DEPENDING ON ENTITY OR SOMETHING SHOW ALL VALID SLOTS BUT COLOR CODE THEM IF NOT VALID FOR ENTITY?
         // TODO: ADD BETTER HANDLING FOR POSSIBLE SLOTS THAT ARE EQUIPABLE IN BUT IS AT ZERO SIZE
         var validSlotTypes = new HashSet<>(AccessoriesAPI.getValidSlotTypes(entity, stack));
@@ -501,7 +495,7 @@ public class AccessoriesEventHandler {
 
         for (var slotType : validSlotTypes) {
             var extraAttributeTooltip = new ArrayList<Component>();
-            accessory.getAttributesTooltip(stack, slotType, extraAttributeTooltip, tooltipContext, tooltipType);
+            accessory.getAttributesTooltip(stack, slotType, extraAttributeTooltip, tooltipType);
 
             extraAttributeTooltips.put(slotType, extraAttributeTooltip);
 
@@ -559,26 +553,28 @@ public class AccessoriesEventHandler {
         }
     }
 
-    private static void addAttributeTooltip(Multimap<Holder<Attribute>, AttributeModifier> multimap, List<Component> tooltip) {
+    private static void addAttributeTooltip(Multimap<Attribute, AttributeModifier> multimap, List<Component> tooltip) {
         if (multimap.isEmpty()) return;
 
-        for (Map.Entry<Holder<Attribute>, AttributeModifier> entry : multimap.entries()) {
+        for (Map.Entry<Attribute, AttributeModifier> entry : multimap.entries()) {
             AttributeModifier attributeModifier = entry.getValue();
-            double d = attributeModifier.amount();
+            double d = attributeModifier.getAmount();
 
-            if (attributeModifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE
-                    || attributeModifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL) {
+            if (attributeModifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE
+                    || attributeModifier.getOperation() == AttributeModifier.Operation.MULTIPLY_TOTAL) {
                 d *= 100.0;
             } else if (entry.getKey().equals(Attributes.KNOCKBACK_RESISTANCE)) {
                 d *= 10.0;
             }
 
+            var key = entry.getKey();
+
             if (d > 0.0) {
                 tooltip.add(
                         Component.translatable(
-                                        "attribute.modifier.plus." + attributeModifier.operation().id(),
-                                        ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(d),
-                                        Component.translatable(entry.getKey().value().getDescriptionId())
+                                        "attribute.modifier.plus." + attributeModifier.getOperation().toValue(),
+                                        ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d),
+                                        Component.translatable(key.getDescriptionId())
                                 )
                                 .withStyle(ChatFormatting.BLUE)
                 );
@@ -586,9 +582,9 @@ public class AccessoriesEventHandler {
                 d *= -1.0;
                 tooltip.add(
                         Component.translatable(
-                                        "attribute.modifier.take." + attributeModifier.operation().id(),
-                                        ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(d),
-                                        Component.translatable(entry.getKey().value().getDescriptionId())
+                                        "attribute.modifier.take." + attributeModifier.getOperation().toValue(),
+                                        ItemStack.ATTRIBUTE_MODIFIER_FORMAT.format(d),
+                                        Component.translatable(key.getDescriptionId())
                                 )
                                 .withStyle(ChatFormatting.RED)
                 );
@@ -656,7 +652,7 @@ public class AccessoriesEventHandler {
 
                 var rule = OnDropCallback.EVENT.invoker().onDrop(rulePair.left(), innerStack, reference, source);
 
-                var breakInnerStack = (rule == DropRule.DEFAULT && EnchantmentHelper.has(innerStack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP))
+                var breakInnerStack = (rule == DropRule.DEFAULT && EnchantmentHelper.hasVanishingCurse(innerStack))
                         || (rule == DropRule.DESTROY);
 
                 if (breakInnerStack) {
@@ -681,7 +677,7 @@ public class AccessoriesEventHandler {
         } else if (dropRule == DropRule.DEFAULT) {
             if (entity.level().getGameRules().getRule(GameRules.RULE_KEEPINVENTORY).get()) {
                 dropStack = false;
-            } else if (EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
+            } else if (EnchantmentHelper.hasVanishingCurse(stack)) {
                 container.setItem(reference.slot(), ItemStack.EMPTY);
                 dropStack = false;
                 // TODO: Do we call break here for the accessory?
@@ -728,7 +724,7 @@ public class AccessoriesEventHandler {
 
                         if (newHandStack.isEmpty()) {
                             newHandStack = otherStack;
-                        } else if (ItemStack.isSameItemSameComponents(newHandStack, otherStack)) {
+                        } else if (ItemStack.isSameItemSameTags(newHandStack, otherStack)) {
                             int resizingAmount = 0;
 
                             if ((newHandStack.getCount() + otherStack.getCount()) < newHandStack.getMaxStackSize()) {
@@ -778,7 +774,7 @@ public class AccessoriesEventHandler {
 
                             if (newHandStack.isEmpty()) {
                                 newHandStack = otherStack;
-                            } else if(ItemStack.isSameItemSameComponents(newHandStack, otherStack)) {
+                            } else if(ItemStack.isSameItemSameTags(newHandStack, otherStack)) {
                                 int resizingAmount = 0;
 
                                 if((newHandStack.getCount() + otherStack.getCount()) < newHandStack.getMaxStackSize()) {
@@ -805,19 +801,19 @@ public class AccessoriesEventHandler {
         return InteractionResult.PASS;
     }
 
-    public static void setupItems(AddDataComponentCallback callback) {
-        AccessoriesAPI.getAllAccessories().forEach((item, accessory) -> {
-            var builder = AccessoryItemAttributeModifiers.builder();
+//    public static void setupItems(AddDataComponentCallback callback) {
+//        AccessoriesAPI.getAllAccessories().forEach((item, accessory) -> {
+//            var builder = AccessoryItemAttributeModifiers.builder();
+//
+//            accessory.getStaticModifiers(item, builder);
+//
+//            if(!builder.isEmpty()) {
+//                callback.addTo(item, AccessoriesDataComponents.ATTRIBUTES, builder.build());
+//            }
+//        });
+//    }
 
-            accessory.getStaticModifiers(item, builder);
-
-            if(!builder.isEmpty()) {
-                callback.addTo(item, AccessoriesDataComponents.ATTRIBUTES, builder.build());
-            }
-        });
-    }
-
-    public interface AddDataComponentCallback {
-        <T> void addTo(Item item, DataComponentType<T> componentType, T component);
-    }
+//    public interface AddDataComponentCallback {
+//        <T> void addTo(Item item, DataComponentType<T> componentType, T component);
+//    }
 }

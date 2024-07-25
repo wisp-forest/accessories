@@ -9,7 +9,6 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.endec.format.nbt.NbtEndec;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.Endec;
@@ -32,7 +31,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     protected AccessoriesCapability capability;
     private String slotName;
 
-    protected final Map<ResourceLocation, AttributeModifier> modifiers = new HashMap<>();
+    protected final Map<UUID, AttributeModifier> modifiers = new HashMap<>();
     protected final Set<AttributeModifier> persistentModifiers = new HashSet<>();
     protected final Set<AttributeModifier> cachedModifiers = new HashSet<>();
 
@@ -108,18 +107,18 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         double size;
 
         if(ExtraSlotTypeProperties.getProperty(this.slotName, false).allowResizing()) {
-            for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADD_VALUE)) {
-                baseSize += modifier.amount();
+            for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADDITION)) {
+                baseSize += modifier.getAmount();
             }
 
             size = baseSize;
 
-            for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADD_MULTIPLIED_BASE)) {
-                size += (this.baseSize * modifier.amount());
+            for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.MULTIPLY_BASE)) {
+                size += (this.baseSize * modifier.getAmount());
             }
 
-            for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)) {
-                size *= modifier.amount();
+            for (AttributeModifier modifier : this.getModifiersForOperation(AttributeModifier.Operation.MULTIPLY_TOTAL)) {
+                size *= modifier.getAmount();
             }
         } else {
             size = baseSize;
@@ -225,7 +224,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     @Override
-    public Map<ResourceLocation, AttributeModifier> getModifiers() {
+    public Map<UUID, AttributeModifier> getModifiers() {
         return this.modifiers;
     }
 
@@ -240,8 +239,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
     @Override
     public void addTransientModifier(AttributeModifier modifier) {
-        this.modifiers.put(modifier.id(), modifier);
-        this.getModifiersForOperation(modifier.operation()).add(modifier);
+        this.modifiers.put(modifier.getId(), modifier);
+        this.getModifiersForOperation(modifier.getOperation()).add(modifier);
         this.markChanged();
     }
 
@@ -252,18 +251,18 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     @Override
-    public boolean hasModifier(ResourceLocation location) {
-        return this.modifiers.containsKey(location);
+    public boolean hasModifier(UUID id) {
+        return this.modifiers.containsKey(id);
     }
 
     @Override
-    public void removeModifier(ResourceLocation location) {
-        var modifier = this.modifiers.remove(location);
+    public void removeModifier(UUID id) {
+        var modifier = this.modifiers.remove(id);
 
         if(modifier == null) return;
 
         this.persistentModifiers.remove(modifier);
-        this.getModifiersForOperation(modifier.operation()).remove(modifier);
+        this.getModifiersForOperation(modifier.getOperation()).remove(modifier);
         this.markChanged();
     }
 
@@ -279,7 +278,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
     @Override
     public void clearCachedModifiers() {
-        this.cachedModifiers.forEach(cachedModifier -> this.removeModifier(cachedModifier.id()));
+        this.cachedModifiers.forEach(cachedModifier -> this.removeModifier(cachedModifier.getId()));
         this.cachedModifiers.clear();
     }
 
@@ -332,8 +331,6 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     public void write(MapCarrier carrier, SerializationContext ctx, boolean sync){
-        var registryAccess = ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager();
-
         carrier.put(SLOT_NAME_KEY, this.slotName);
 
         carrier.putIfNotNull(ctx, BASE_SIZE_KEY, this.baseSize);
@@ -343,8 +340,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         if(!sync || this.accessories.wasNewlyConstructed()) {
             carrier.put(CURRENT_SIZE_KEY, accessories.getContainerSize());
 
-            carrier.put(ITEMS_KEY, accessories.createTag(registryAccess));
-            carrier.put(COSMETICS_KEY, cosmeticAccessories.createTag(registryAccess));
+            carrier.put(ITEMS_KEY, accessories.createTag());
+            carrier.put(COSMETICS_KEY, cosmeticAccessories.createTag());
         }
 
         if(sync){
@@ -384,8 +381,6 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     public void read(MapCarrier carrier, SerializationContext ctx, boolean sync){
-        var registryAccess = ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager();
-
         this.slotName = carrier.get(SLOT_NAME_KEY);
 
         this.baseSize = carrier.get(BASE_SIZE_KEY);
@@ -402,8 +397,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                 this.cosmeticAccessories = new ExpandedSimpleContainer(currentSize, "Cosmetic Accessories");
             }
 
-            this.accessories.fromTag(carrier.get(ITEMS_KEY), registryAccess);
-            this.cosmeticAccessories.fromTag(carrier.get(COSMETICS_KEY), registryAccess);
+            this.accessories.fromTag(carrier.get(ITEMS_KEY));
+            this.cosmeticAccessories.fromTag(carrier.get(COSMETICS_KEY));
         } else {
             this.renderOptions = carrier.get(RENDER_OPTIONS_KEY);
         }
@@ -470,12 +465,10 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     public static List<SimpleContainer> readContainers(MapCarrier carrier, SerializationContext ctx, KeyedEndec<ListTag> ...keys){
         var containers = new ArrayList<SimpleContainer>();
 
-        var registryAccess = ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager();
-
         for (var key : keys) {
             var stacks = new SimpleContainer();
 
-            if(carrier.has(key)) stacks.fromTag(carrier.get(key), registryAccess);
+            if(carrier.has(key)) stacks.fromTag(carrier.get(key));
 
             containers.add(stacks);
         }
@@ -484,6 +477,6 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     public static SimpleContainer copyContainerList(SimpleContainer container){
-        return new SimpleContainer(container.getItems().toArray(ItemStack[]::new));
+        return new SimpleContainer(container.removeAllItems().toArray(ItemStack[]::new));
     }
 }

@@ -33,6 +33,5 @@ dependencies {
 
     modCompileOnly ("dev.emi:emi-xplat-intermediary:${rootProject.emi_version}:api")
 
-    //modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-common-api:${rootProject.jei_version}")
-    modCompileOnly ("mezz.jei:jei-1.20.6-common-api:${rootProject.jei_version}")
+    modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-common-api:${rootProject.jei_version}")
 }

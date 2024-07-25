@@ -61,10 +61,10 @@ public class PostEffectBuffer {
     }
 
     public void draw(float[] color) {
-        ((AccessoriesFrameBufferExtension)this.framebuffer).accessories$setUseHighlightShader(true);
-        AccessoriesClient.BLIT_SHADER.COLOR_MODULATOR.set(color[0], color[1], color[2], color[3]);
+        var modulator = Minecraft.getInstance().gameRenderer.blitShader.COLOR_MODULATOR;
+        modulator.set(color[0], color[1], color[2], color[3]);
         this.draw(true);
-        ((AccessoriesFrameBufferExtension)this.framebuffer).accessories$setUseHighlightShader(false);
+        modulator.set(1f, 1f, 1f, 1f);
     }
 
     public RenderTarget buffer() {

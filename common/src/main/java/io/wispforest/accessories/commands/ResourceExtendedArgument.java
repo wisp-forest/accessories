@@ -40,13 +40,13 @@ public class ResourceExtendedArgument<T> implements ArgumentType<Holder<T>> {
     private static final Collection<String> EXAMPLES = Arrays.asList("foo", "foo:bar", "012");
 
     private static final DynamicCommandExceptionType ERROR_NOT_SUMMONABLE_ENTITY = new DynamicCommandExceptionType(
-            object -> Component.translatableEscape("entity.not_summonable", object)
+            object -> Component.translatable("entity.not_summonable", object)
     );
     public static final Dynamic2CommandExceptionType ERROR_UNKNOWN_RESOURCE = new Dynamic2CommandExceptionType(
-            (object, object2) -> Component.translatableEscape("argument.resource.not_found", object, object2)
+            (object, object2) -> Component.translatable("argument.resource.not_found", object, object2)
     );
     public static final Dynamic3CommandExceptionType ERROR_INVALID_RESOURCE_TYPE = new Dynamic3CommandExceptionType(
-            (object, object2, object3) -> Component.translatableEscape("argument.resource.invalid_type", object, object2, object3)
+            (object, object2, object3) -> Component.translatable("argument.resource.invalid_type", object, object2, object3)
     );
 
     final ResourceKey<? extends Registry<T>> registryKey;
@@ -57,7 +57,7 @@ public class ResourceExtendedArgument<T> implements ArgumentType<Holder<T>> {
 
     public ResourceExtendedArgument(CommandBuildContext context, ResourceKey<? extends Registry<T>> registryKey, Function<ResourceLocation, @Nullable T> additionalLookup, Supplier<Stream<ResourceLocation>> additionalSuggestions) {
         this.registryKey = registryKey;
-        this.registryLookup = context.lookupOrThrow(registryKey);
+        this.registryLookup = context.holderLookup(registryKey);
 
         this.additionalLookup = additionalLookup;
         this.additionalSuggestions = additionalSuggestions;
@@ -68,10 +68,10 @@ public class ResourceExtendedArgument<T> implements ArgumentType<Holder<T>> {
     }
 
     public static ResourceExtendedArgument<Attribute> attributes(CommandBuildContext context) {
-        return new ResourceExtendedArgument<Attribute>(context, Registries.ATTRIBUTE, location -> {
+        return new ResourceExtendedArgument<>(context, Registries.ATTRIBUTE, location -> {
             String possibleSlotName;
 
-            if(location.getNamespace().equals(Accessories.MODID)) {
+            if (location.getNamespace().equals(Accessories.MODID)) {
                 possibleSlotName = location.getPath();
             } else {
                 possibleSlotName = location.toString();
@@ -84,7 +84,7 @@ public class ResourceExtendedArgument<T> implements ArgumentType<Holder<T>> {
             return SlotTypeLoader.INSTANCE.getSlotTypes(false).values()
                     .stream()
                     .map(SlotType::name)
-                    .map(s -> s.contains(":") ? ResourceLocation.parse(s) : Accessories.of(s));
+                    .map(s -> s.contains(":") ? ResourceLocation.tryParse(s) : Accessories.of(s));
         });
     }
 

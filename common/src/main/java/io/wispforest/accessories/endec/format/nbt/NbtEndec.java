@@ -41,7 +41,7 @@ public class NbtEndec implements Endec<Tag> {
         }
 
         try {
-            return NbtIo.read(ByteStreams.newDataInput(deserializer.readBytes(ctx)), NbtAccounter.unlimitedHeap());
+            return NbtIo.read(ByteStreams.newDataInput(deserializer.readBytes(ctx)), NbtAccounter.UNLIMITED);
         } catch (IOException e) {
             throw new RuntimeException("Failed to parse binary NBT in NbtEndec", e);
         }

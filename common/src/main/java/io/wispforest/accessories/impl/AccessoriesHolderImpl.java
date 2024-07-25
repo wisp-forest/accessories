@@ -4,7 +4,6 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
-import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.endec.format.nbt.NbtEndec;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationAttribute;
@@ -140,10 +139,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
                 slotContainers.putIfAbsent(s, new AccessoriesContainerImpl(capability, slotType));
             });
 
-            var ctx = SerializationContext.attributes(
-                    new EntityAttribute(livingEntity),
-                    RegistriesAttribute.of(livingEntity.registryAccess())
-            );
+            var ctx = SerializationContext.attributes(new EntityAttribute(livingEntity));
 
             read(capability, livingEntity, this.carrier, ctx);
         } else {

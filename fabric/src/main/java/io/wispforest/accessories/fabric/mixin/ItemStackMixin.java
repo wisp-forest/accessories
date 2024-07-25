@@ -18,11 +18,11 @@ import java.util.List;
 @Mixin(value = ItemStack.class, priority = 1001)
 public abstract class ItemStackMixin {
 
-    @Inject(method = "getTooltipLines", at = @At(value = "RETURN", ordinal = 1))
-    private void getTooltip(Item.TooltipContext tooltipContext, @Nullable Player player, TooltipFlag tooltipType, CallbackInfoReturnable<List<Component>> info) {
+    @Inject(method = "getTooltipLines", at = @At(value = "RETURN", ordinal = 0))
+    private void getTooltip(@Nullable Player player, TooltipFlag tooltipType, CallbackInfoReturnable<List<Component>> info) {
         var tooltipData = new ArrayList<Component>();
 
-        AccessoriesEventHandler.getTooltipData(player, (ItemStack) (Object) this, tooltipData, tooltipContext, tooltipType);
+        AccessoriesEventHandler.getTooltipData(player, (ItemStack) (Object) this, tooltipData, tooltipType);
 
         if(!tooltipData.isEmpty()) info.getReturnValue().addAll(1, tooltipData);
     }

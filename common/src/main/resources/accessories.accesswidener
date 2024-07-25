@@ -1,8 +1,2 @@
 accessWidener   v2  named
 
-accessible class net/minecraft/resources/RegistryOps$HolderLookupAdapter
-extendable class net/minecraft/resources/RegistryOps$HolderLookupAdapter
-accessible class net/minecraft/world/item/enchantment/EnchantmentHelper$EnchantmentInSlotVisitor
-extendable class net/minecraft/world/item/enchantment/EnchantmentHelper$EnchantmentInSlotVisitor
-accessible class net/minecraft/world/inventory/ArmorSlot
-extendable class net/minecraft/world/inventory/ArmorSlot

@@ -7,12 +7,11 @@ import io.wispforest.accessories.api.attributes.SlotAttribute;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.MinecraftEndecs;
-import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -39,28 +38,42 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
         return new AccessoryItemAttributeModifiers.Builder();
     }
 
-    public boolean hasModifier(Holder<Attribute> holder, ResourceLocation location) {
+    public boolean hasModifier(Attribute holder, ResourceLocation location) {
         return getModifier(holder, location) != null;
     }
 
     @Nullable
-    public AttributeModifier getModifier(Holder<Attribute> holder, ResourceLocation location) {
+    public AttributeModifier getModifier(Attribute holder, ResourceLocation location) {
         for (var entry : this.modifiers) {
-            if(entry.attribute.equals(holder) && entry.modifier.id().equals(location)) return entry.modifier();
+            var modifierLocation = AttributeUtils.getLocation(entry.modifier.getName());
+
+            if(entry.attribute.equals(holder) && modifierLocation.equals(location)) return entry.modifier();
         }
 
         return null;
     }
 
-    public AccessoryItemAttributeModifiers withModifierAddedForAny(Holder<Attribute> holder, AttributeModifier attributeModifier, String slotName, boolean isStackable) {
+    public AccessoryItemAttributeModifiers withModifierAddedForAny(Attribute holder, ResourceLocation location, double amount, AttributeModifier.Operation operation, String slotName, boolean isStackable) {
+        var data = AttributeUtils.getModifierData(location);
+
+        return withModifierAdded(holder, new AttributeModifier(data.second(), data.first(), amount, operation), "any", isStackable);
+    }
+
+    public AccessoryItemAttributeModifiers withModifierAdded(Attribute holder, ResourceLocation location, double amount, AttributeModifier.Operation operation, String slotName, boolean isStackable) {
+        var data = AttributeUtils.getModifierData(location);
+
+        return withModifierAdded(holder, new AttributeModifier(data.second(), data.first(), amount, operation), slotName, isStackable);
+    }
+
+    public AccessoryItemAttributeModifiers withModifierAddedForAny(Attribute holder, AttributeModifier attributeModifier, String slotName, boolean isStackable) {
         return withModifierAdded(holder, attributeModifier, "any", isStackable);
     }
 
-    public AccessoryItemAttributeModifiers withModifierAdded(Holder<Attribute> holder, AttributeModifier attributeModifier, String slotName, boolean isStackable) {
+    public AccessoryItemAttributeModifiers withModifierAdded(Attribute holder, AttributeModifier attributeModifier, String slotName, boolean isStackable) {
         var builder = ImmutableList.<AccessoryItemAttributeModifiers.Entry>builderWithExpectedSize(this.modifiers.size() + 1);
 
         this.modifiers.forEach(entry -> {
-            if (!entry.modifier.id().equals(attributeModifier.id())) builder.add(entry);
+            if (!entry.modifier.getId().equals(attributeModifier.getId())) builder.add(entry);
         });
 
         builder.add(new AccessoryItemAttributeModifiers.Entry(holder, attributeModifier, slotName, isStackable));
@@ -72,7 +85,9 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
         var builder = ImmutableList.<AccessoryItemAttributeModifiers.Entry>builderWithExpectedSize(this.modifiers.size() + 1);
 
         this.modifiers.forEach(entry -> {
-            if (entry.modifier.id().equals(location) && entry.attribute().equals(holder)) return;
+            var modifierLocation = AttributeUtils.getLocation(entry.modifier.getName());
+
+            if (modifierLocation.equals(location) && entry.attribute().equals(holder)) return;
 
             builder.add(entry);
         });
@@ -88,14 +103,14 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
         var slots = (entity != null) ? SlotTypeLoader.getSlotTypes(entity.level()) : Map.of();
 
         for (var entry : this.modifiers()) {
-            var attributeModifier = entry.modifier();
+            var modifer = entry.modifier();
             var slotTarget = entry.slotName();
 
             if(slots.containsKey(slotTarget) || slotName.equals(slotTarget) || slotTarget.equals("any")) {
                 if (entry.isStackable()) {
-                    builder.addStackable(entry.attribute(), attributeModifier);
+                    builder.addStackable(entry.attribute(), AttributeUtils.getLocation(modifer.getName()), modifer.getAmount(), modifer.getOperation());
                 } else {
-                    builder.addExclusive(entry.attribute(), attributeModifier);
+                    builder.addExclusive(entry.attribute(), AttributeUtils.getLocation(modifer.getName()), modifer.getAmount(), modifer.getOperation());
                 }
             }
         }
@@ -111,17 +126,17 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
 
         @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
         @Deprecated(forRemoval = true)
-        public AccessoryItemAttributeModifiers.Builder add(Holder<Attribute> holder, AttributeModifier attributeModifier, String slotName, boolean isStackable) {
-            return this.addForSlot(holder, attributeModifier, slotName, isStackable);
+        public AccessoryItemAttributeModifiers.Builder add(Attribute attribute, AttributeModifier attributeModifier, String slotName, boolean isStackable) {
+            return this.addForSlot(attribute, attributeModifier, slotName, isStackable);
         }
 
-        public AccessoryItemAttributeModifiers.Builder addForSlot(Holder<Attribute> holder, AttributeModifier attributeModifier, String slotName, boolean isStackable) {
-            this.entries.add(new AccessoryItemAttributeModifiers.Entry(holder, attributeModifier, slotName, isStackable));
+        public AccessoryItemAttributeModifiers.Builder addForSlot(Attribute attribute, AttributeModifier attributeModifier, String slotName, boolean isStackable) {
+            this.entries.add(new AccessoryItemAttributeModifiers.Entry(attribute, attributeModifier, slotName, isStackable));
             return this;
         }
 
-        public AccessoryItemAttributeModifiers.Builder addForAny(Holder<Attribute> holder, AttributeModifier attributeModifier, boolean isStackable) {
-            this.entries.add(new AccessoryItemAttributeModifiers.Entry(holder, attributeModifier, "any", isStackable));
+        public AccessoryItemAttributeModifiers.Builder addForAny(Attribute attribute, AttributeModifier attributeModifier, boolean isStackable) {
+            this.entries.add(new AccessoryItemAttributeModifiers.Entry(attribute, attributeModifier, "any", isStackable));
             return this;
         }
 
@@ -139,8 +154,8 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
         }
     }
 
-    public record Entry(Holder<Attribute> attribute, AttributeModifier modifier, String slotName, boolean isStackable) {
-        private static final Endec<Holder<Attribute>> ATTRIBUTE_ENDEC = MinecraftEndecs.IDENTIFIER.xmapWithContext(
+    public record Entry(Attribute attribute, AttributeModifier modifier, String slotName, boolean isStackable) {
+        private static final Endec<Attribute> ATTRIBUTE_ENDEC = MinecraftEndecs.IDENTIFIER.xmapWithContext(
                 (context, attributeType) -> {
                     if(attributeType.getNamespace().equals(Accessories.MODID)) {
                         var path = attributeType.getPath();
@@ -149,18 +164,13 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
                             path = path.replace("/", ":");
                         }
 
-                        return Holder.direct(SlotAttribute.getSlotAttribute(path));
+                        return SlotAttribute.getSlotAttribute(path);
                     }
 
-                    return context.requireAttributeValue(RegistriesAttribute.REGISTRIES)
-                            .registryManager()
-                            .registryOrThrow(Registries.ATTRIBUTE)
-                            .getHolder(attributeType)
+                    return BuiltInRegistries.ATTRIBUTE.getOptional(attributeType)
                             .orElseThrow(IllegalStateException::new);
                 },
-                (context, attributeHolder) -> {
-                    var attribute = attributeHolder.value();
-
+                (context, attribute) -> {
                     if(attribute instanceof SlotAttribute slotAttribute) {
                         var path = slotAttribute.slotName();
 
@@ -171,10 +181,7 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
                         return Accessories.of(path);
                     }
 
-                    return context.requireAttributeValue(RegistriesAttribute.REGISTRIES)
-                            .registryManager()
-                            .registryOrThrow(Registries.ATTRIBUTE)
-                            .getKey(attribute);
+                    return BuiltInRegistries.ATTRIBUTE.getKey(attribute);
                 }
         );
 

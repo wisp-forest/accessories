@@ -16,6 +16,7 @@ import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.components.AccessorySlotValidationComponent;
 import io.wispforest.accessories.api.components.AccessoryStackSizeComponent;
+import io.wispforest.accessories.utils.AttributeUtils;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -117,8 +118,9 @@ public class AccessoriesCommands {
 
                                                                             var bl = ctx.getArgument("value", Boolean.class);
 
-                                                                            player.getMainHandItem().update(AccessoriesDataComponents.STACK_SIZE,
-                                                                                    AccessoryStackSizeComponent.DEFAULT,
+                                                                            AccessoriesDataComponents.update(
+                                                                                    AccessoriesDataComponents.STACK_SIZE,
+                                                                                    player.getMainHandItem(),
                                                                                     component -> component.useStackSize(bl));
 
                                                                             return 1;
@@ -131,8 +133,9 @@ public class AccessoriesCommands {
 
                                                             var size = ctx.getArgument("value", Integer.class);
 
-                                                            player.getMainHandItem().update(AccessoriesDataComponents.STACK_SIZE,
-                                                                    AccessoryStackSizeComponent.DEFAULT,
+                                                            AccessoriesDataComponents.update(
+                                                                    AccessoriesDataComponents.STACK_SIZE,
+                                                                    player.getMainHandItem(),
                                                                     component -> component.sizeOverride(size));
 
                                                             return 1;
@@ -150,9 +153,9 @@ public class AccessoriesCommands {
                                                                                         .then(
                                                                                                 Commands.argument("id", ResourceLocationArgument.id())
                                                                                                         .then(Commands.argument("value", DoubleArgumentType.doubleArg())
-                                                                                                                        .then(createAddLiteral("add_value"))
-                                                                                                                        .then(createAddLiteral("add_multiplied_base"))
-                                                                                                                        .then(createAddLiteral("add_multiplied_total"))
+                                                                                                                        .then(createAddLiteral("addition"))
+                                                                                                                        .then(createAddLiteral("multiply_base"))
+                                                                                                                        .then(createAddLiteral("multiply_total"))
                                                                                                         )
                                                                                         )
                                                                         )
@@ -211,7 +214,7 @@ public class AccessoriesCommands {
 
     private static LiteralArgumentBuilder<CommandSourceStack> createAddLiteral(String literal) {
         var selectedValue = Arrays.stream(AttributeModifier.Operation.values())
-                .filter(value -> value.getSerializedName().equals(literal))
+                .filter(value -> value.name().toLowerCase().equals(literal))
                 .findFirst()
                 .orElse(null);
 
@@ -241,19 +244,19 @@ public class AccessoriesCommands {
     private static int getAttributeModifier(CommandSourceStack commandSourceStack, LivingEntity livingEntity, Holder<Attribute> holder, ResourceLocation resourceLocation, double d) throws CommandSyntaxException {
         var stack = livingEntity.getMainHandItem();
 
-        var component = stack.getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
+        var component = AccessoriesDataComponents.readOrDefault(AccessoriesDataComponents.ATTRIBUTES, stack);
 
-        var modifier = component.getModifier(holder, resourceLocation);
+        var modifier = component.getModifier(holder.value(), resourceLocation);
 
         if (modifier == null) {
             throw ERROR_NO_SUCH_MODIFIER.create(stack.getDisplayName(), getAttributeDescription(holder), resourceLocation);
         }
 
-        double e = modifier.amount();
+        double e = modifier.getAmount();
 
         commandSourceStack.sendSuccess(
                 () -> Component.translatable(
-                        "commands.attribute.modifier.value.get.success_itemstack", Component.translationArg(resourceLocation), getAttributeDescription(holder), stack.getDisplayName(), e
+                        "commands.attribute.modifier.value.get.success_itemstack", resourceLocation, getAttributeDescription(holder), stack.getDisplayName(), e
                 ),
                 false
         );
@@ -262,23 +265,28 @@ public class AccessoriesCommands {
     }
 
     private static final Dynamic3CommandExceptionType ERROR_MODIFIER_ALREADY_PRESENT = new Dynamic3CommandExceptionType(
-            (var1, var2, var3) -> Component.translatableEscape("commands.attribute.failed.modifier_already_present_itemstack", var1, var2, var3)
+            (var1, var2, var3) -> Component.translatable("commands.attribute.failed.modifier_already_present_itemstack", var1, var2, var3)
     );
 
     private static int addModifier(CommandSourceStack commandSourceStack, LivingEntity livingEntity, Holder<Attribute> holder, ResourceLocation resourceLocation, double d, AttributeModifier.Operation operation, String slotName, boolean isStackable) throws CommandSyntaxException {
         var stack = livingEntity.getMainHandItem();
 
-        var component = stack.getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
+        var component = AccessoriesDataComponents.readOrDefault(AccessoriesDataComponents.ATTRIBUTES, stack);
 
-        if (component.hasModifier(holder, resourceLocation)) {
+        if (component.hasModifier(holder.value(), resourceLocation)) {
             throw ERROR_MODIFIER_ALREADY_PRESENT.create(resourceLocation, getAttributeDescription(holder), stack.getDisplayName());
         }
 
-        stack.set(AccessoriesDataComponents.ATTRIBUTES, component.withModifierAdded(holder, new AttributeModifier(resourceLocation, d, operation), slotName, isStackable));
+        var data = AttributeUtils.getModifierData(resourceLocation);
+
+        AccessoriesDataComponents.write(
+                AccessoriesDataComponents.ATTRIBUTES,
+                stack,
+                component.withModifierAdded(holder.value(), new AttributeModifier(data.second(), data.first(), d, operation), slotName, isStackable));
 
         commandSourceStack.sendSuccess(
                 () -> Component.translatable(
-                        "commands.attribute.modifier.add.success_itemstack", Component.translationArg(resourceLocation), getAttributeDescription(holder), stack.getDisplayName()
+                        "commands.attribute.modifier.add.success_itemstack", resourceLocation, getAttributeDescription(holder), stack.getDisplayName()
                 ),
                 false
         );
@@ -287,18 +295,18 @@ public class AccessoriesCommands {
     }
 
     private static final Dynamic3CommandExceptionType ERROR_NO_SUCH_MODIFIER = new Dynamic3CommandExceptionType(
-            (var1, var2, var3) -> Component.translatableEscape("commands.attribute.failed.no_modifier_itemstack", var1, var2, var3)
+            (var1, var2, var3) -> Component.translatable("commands.attribute.failed.no_modifier_itemstack", var1, var2, var3)
     );
 
-    private static int removeModifier(CommandSourceStack commandSourceStack, LivingEntity livingEntity, Holder<Attribute> holder, ResourceLocation location) throws CommandSyntaxException {
+    private static int removeModifier(CommandSourceStack commandSourceStack, LivingEntity livingEntity, Holder<Attribute> holder, ResourceLocation resourceLocation) throws CommandSyntaxException {
         MutableBoolean removedModifier = new MutableBoolean(false);
 
         var stack = livingEntity.getMainHandItem();
 
-        stack.update(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY, component -> {
+        AccessoriesDataComponents.update(AccessoriesDataComponents.ATTRIBUTES, stack, component -> {
             var size = component.modifiers().size();
 
-            component = component.withoutModifier(holder, location);
+            component = component.withoutModifier(holder, resourceLocation);
 
             if(size != component.modifiers().size()) removedModifier.setTrue();
 
@@ -306,12 +314,12 @@ public class AccessoriesCommands {
         });
 
         if(!removedModifier.getValue()) {
-            throw ERROR_NO_SUCH_MODIFIER.create(location, getAttributeDescription(holder), stack.getDisplayName());
+            throw ERROR_NO_SUCH_MODIFIER.create(resourceLocation, getAttributeDescription(holder), stack.getDisplayName());
         }
 
         commandSourceStack.sendSuccess(
                 () -> Component.translatable(
-                        "commands.attribute.modifier.remove.success_itemstack", Component.translationArg(location), getAttributeDescription(holder), stack.getDisplayName()
+                        "commands.attribute.modifier.remove.success_itemstack", resourceLocation, getAttributeDescription(holder), stack.getDisplayName()
                 ),
                 false
         );
@@ -326,15 +334,19 @@ public class AccessoriesCommands {
     private static int adjustSlotValidationOnStack(int operation, LivingEntity player, CommandContext<CommandSourceStack> ctx) {
         var slotName = SlotArgumentType.getSlot(ctx, "slot");
 
-        player.getMainHandItem().update(AccessoriesDataComponents.SLOT_VALIDATION, AccessorySlotValidationComponent.EMPTY, component -> {
-            return switch (operation) {
-                case 0 -> component.addValidSlot(slotName);
-                case 1 -> component.addInvalidSlot(slotName);
-                case 2 -> component.removeValidSlot(slotName);
-                case 3 -> component.removeInvalidSlot(slotName);
-                default -> throw new IllegalStateException("Unexpected value: " + operation);
-            };
-        });
+        AccessoriesDataComponents.update(
+                AccessoriesDataComponents.SLOT_VALIDATION,
+                player.getMainHandItem(),
+                component -> {
+                    return switch (operation) {
+                        case 0 -> component.addValidSlot(slotName);
+                        case 1 -> component.addInvalidSlot(slotName);
+                        case 2 -> component.removeValidSlot(slotName);
+                        case 3 -> component.removeInvalidSlot(slotName);
+                        default -> throw new IllegalStateException("Unexpected value: " + operation);
+                    };
+                }
+        );
 
         return 1;
     }

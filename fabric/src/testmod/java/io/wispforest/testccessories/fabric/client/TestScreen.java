@@ -2,6 +2,7 @@ package io.wispforest.testccessories.fabric.client;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
+import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.client.gui.AccessoriesInternalSlot;
 import io.wispforest.testccessories.fabric.TestMenu;
 import net.minecraft.client.Minecraft;
@@ -54,7 +55,7 @@ public class TestScreen extends AbstractContainerScreen<TestMenu> implements Men
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate((float)leftPos, (float)topPos, 0.0F);
 
-        guiGraphics.blitSprite(BACKGROUND_PATCH, startX - 1, startY - 1, width + 1, height + 1); //147
+        GuiGraphicsUtils.blitSpriteBatched(guiGraphics, BACKGROUND_PATCH, startX - 1, startY - 1, width + 1, height + 1);
 
         for (Slot slot : this.menu.slots) {
             guiGraphics.blit(SLOT_FRAME, slot.x - 1, slot.y - 1, 0, 0, 18, 18, 18, 18);

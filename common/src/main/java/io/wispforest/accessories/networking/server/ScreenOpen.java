@@ -44,14 +44,14 @@ public record ScreenOpen(int entityId, boolean targetLookEntity) implements Hand
 
         ItemStack carriedStack = null;
 
-        if(player.containerMenu instanceof AbstractContainerMenu oldMenu) {
-            var currentCarriedStack = oldMenu.getCarried();
+        var oldMenu = player.containerMenu;
 
-            if(!currentCarriedStack.isEmpty()) {
-                carriedStack = currentCarriedStack;
+        var currentCarriedStack = oldMenu.getCarried();
 
-                oldMenu.setCarried(ItemStack.EMPTY);
-            }
+        if(!currentCarriedStack.isEmpty()) {
+            carriedStack = currentCarriedStack;
+
+            oldMenu.setCarried(ItemStack.EMPTY);
         }
 
         Accessories.openAccessoriesMenu(player, livingEntity, carriedStack);

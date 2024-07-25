@@ -3,13 +3,10 @@ package io.wispforest.accessories.networking.client;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.endec.NbtMapCarrier;
-import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
-import io.wispforest.endec.format.edm.EdmEndec;
-import io.wispforest.endec.format.edm.EdmMap;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -44,7 +41,7 @@ public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) impl
 
         if(capability == null) return;
 
-        ((AccessoriesHolderImpl) capability.getHolder()).read(containerMap, SerializationContext.attributes(RegistriesAttribute.of(player.level().registryAccess())));
+        ((AccessoriesHolderImpl) capability.getHolder()).read(containerMap, SerializationContext.empty());
 
         ((AccessoriesHolderImpl) capability.getHolder()).init(capability);
     }

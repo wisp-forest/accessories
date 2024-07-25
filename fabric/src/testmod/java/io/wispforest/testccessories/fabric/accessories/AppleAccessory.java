@@ -16,12 +16,10 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -46,8 +44,7 @@ public class AppleAccessory implements Accessory {
 
         if (!AccessoriesCapability.get(player).isEquipped(Items.APPLE)) return;
 
-        var foodProperties = stack.get(DataComponents.FOOD);
-        player.getFoodData().eat(foodProperties);
+        player.getFoodData().eat(Items.APPLE, stack);
         stack.shrink(1);
 
         player.playNotifySound(SoundEvents.PLAYER_BURP, SoundSource.PLAYERS, 1, 1);

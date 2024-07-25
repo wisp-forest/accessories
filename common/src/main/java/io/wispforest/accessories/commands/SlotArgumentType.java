@@ -45,7 +45,7 @@ public final class SlotArgumentType implements ArgumentType<String> {
 
             var validSlots = new ArrayList<>(SlotTypeLoader.INSTANCE.getSlotTypes(false).keySet());
 
-            validSlots.addFirst("any");
+            validSlots.add("any");
 
             return SharedSuggestionProvider.suggest(validSlots, builder);
         }

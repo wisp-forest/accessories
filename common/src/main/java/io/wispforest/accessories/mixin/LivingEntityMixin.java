@@ -45,38 +45,21 @@ public abstract class LivingEntityMixin implements AccessoriesAPIAccess {
 
     //--
 
-    @Inject(method = "onEquippedItemBroken", at = @At("HEAD"), cancellable = true)
-    private void sendAccessoriesBreakInstead(Item item, EquipmentSlot slot, CallbackInfo ci){
+    @Inject(method = "broadcastBreakEvent(Lnet/minecraft/world/entity/EquipmentSlot;)V", at = @At("HEAD"), cancellable = true)
+    private void sendAccessoriesBreakInstead(EquipmentSlot slot, CallbackInfo ci){
         if(slot.equals(AccessoriesInternals.INTERNAL_SLOT)) ci.cancel();
     }
 
-    @Inject(method = "entityEventForEquipmentBreak", at = @At("HEAD"), cancellable = true)
-    private static void preventMatchExceptionForAccessories(EquipmentSlot slot, CallbackInfoReturnable<Byte> cir) {
-        if(slot.equals(AccessoriesInternals.INTERNAL_SLOT)) cir.setReturnValue((byte) -1);
-    }
+    @WrapOperation(method = "getDamageAfterMagicAbsorb", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getArmorSlots()Ljava/lang/Iterable;"))
+    private Iterable<ItemStack> addAccessories(LivingEntity instance, Operation<Iterable<ItemStack>> original){
+        var iterable = original.call(instance);
 
-
-//    @WrapOperation(method = "getDamageAfterMagicAbsorb", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getArmorAndBodyArmorSlots()Ljava/lang/Iterable;"))
-//    private Iterable<ItemStack> addAccessories(LivingEntity instance, Operation<Iterable<ItemStack>> original){
-//        var iterable = original.call(instance);
-//
-//        if((Object) this instanceof LivingEntity livingEntity) {
-//            var capability = livingEntity.accessoriesCapability();
-//
-//            if(capability != null) iterable = Iterables.concat(iterable, capability.getAllEquipped().stream().map(SlotEntryReference::stack).toList());
-//        }
-//
-//        return iterable;
-//    }
-
-    @ModifyReturnValue(method = "getAllSlots", at = @At("RETURN"))
-    private Iterable<ItemStack> addAccessories(Iterable<ItemStack> original){
-        if((Object) this instanceof LivingEntity livingEntity && !livingEntity.isRemoved()) {
+        if((Object) this instanceof LivingEntity livingEntity) {
             var capability = livingEntity.accessoriesCapability();
 
-            if(capability != null) return Iterables.concat(original, capability.getAllEquipped().stream().map(SlotEntryReference::stack).toList());
+            if(capability != null) iterable = Iterables.concat(iterable, capability.getAllEquipped().stream().map(SlotEntryReference::stack).toList());
         }
 
-        return original;
+        return iterable;
     }
 }

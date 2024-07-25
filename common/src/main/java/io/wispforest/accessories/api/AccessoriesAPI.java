@@ -15,6 +15,7 @@ import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
+import io.wispforest.accessories.utils.AttributeUtils;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -33,6 +34,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -49,7 +51,7 @@ public class AccessoriesAPI {
     public static final Accessory DEFAULT = new Accessory() {
         @Override
         public int maxStackSize(ItemStack stack) {
-            var data = stack.getOrDefault(AccessoriesDataComponents.STACK_SIZE, AccessoryStackSizeComponent.DEFAULT);
+            var data = AccessoriesDataComponents.readOrDefault(AccessoriesDataComponents.STACK_SIZE, stack);
 
             if(data.useStackSize()) return stack.getMaxStackSize();
 
@@ -145,7 +147,7 @@ public class AccessoriesAPI {
      * to the {@link ItemStack}'s item
      */
     public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot, boolean hideTooltipIfDisabled){
-        var component = stack.getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
+        var component = AccessoriesDataComponents.readOrDefault(AccessoriesDataComponents.ATTRIBUTES, stack);
 
         var builder = (!hideTooltipIfDisabled || component.showInTooltip())
                 ? component.gatherAttributes(entity, slotName, slot)
@@ -165,11 +167,17 @@ public class AccessoriesAPI {
         return builder;
     }
 
-    public static void addAttribute(ItemStack stack, String slotName, Holder<Attribute> attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation, boolean isStackable) {
-        stack.update(
+    public static void addAttribute(ItemStack stack, String slotName, Attribute attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation, boolean isStackable) {
+        var attributeData = AttributeUtils.getModifierData(location);
+
+        addAttribute(stack, slotName, attribute, attributeData.first(), attributeData.right(), amount, operation, isStackable);
+    }
+
+    public static void addAttribute(ItemStack stack, String slotName, Attribute attribute, String name, UUID id, double amount, AttributeModifier.Operation operation, boolean isStackable) {
+        AccessoriesDataComponents.update(
                 AccessoriesDataComponents.ATTRIBUTES,
-                new AccessoryItemAttributeModifiers(List.of(), true),
-                modifiers -> modifiers.withModifierAdded(attribute, new AttributeModifier(location, amount, operation), slotName, isStackable)
+                stack,
+                modifiers -> modifiers.withModifierAdded(attribute, new AttributeModifier(id, name, amount, operation), slotName, isStackable)
         );
     }
 
@@ -368,7 +376,9 @@ public class AccessoriesAPI {
     public static final TagKey<Item> ANY_ACCESSORIES = TagKey.create(Registries.ITEM, Accessories.of("any"));
 
     public static TagKey<Item> getSlotTag(SlotType slotType) {
-        var location = UniqueSlotHandling.isUniqueSlot(slotType.name()) ? ResourceLocation.parse(slotType.name()) : Accessories.of(slotType.name());
+        var location = UniqueSlotHandling.isUniqueSlot(slotType.name()) ? ResourceLocation.tryParse(slotType.name()) : Accessories.of(slotType.name());
+
+        if(location == null) throw new IllegalStateException("Unable tot parse the given slot type as a ResourceLocation: [Location: " + slotType + "]");
 
         return TagKey.create(Registries.ITEM, location);
     }
@@ -385,8 +395,8 @@ public class AccessoriesAPI {
             return bl ? TriState.TRUE : TriState.DEFAULT;
         });
         registerPredicate(Accessories.of("component"), (level, slotType, index, stack) -> {
-            if(stack.has(AccessoriesDataComponents.SLOT_VALIDATION)) {
-                var slotValidationData = stack.get(AccessoriesDataComponents.SLOT_VALIDATION);
+            if(AccessoriesDataComponents.has(AccessoriesDataComponents.SLOT_VALIDATION, stack)) {
+                var slotValidationData = AccessoriesDataComponents.readOrDefault(AccessoriesDataComponents.SLOT_VALIDATION, stack);
                 var name = slotType.name();
 
                 //--

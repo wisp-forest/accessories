@@ -45,7 +45,7 @@ public abstract class InventoryMixin {
 
         if (capability == null) return;
 
-        var bl = capability.isEquipped(stack1 -> stack1.isEmpty() && ItemStack.isSameItemSameComponents(stack1, stack));
+        var bl = capability.isEquipped(stack1 -> stack1.isEmpty() && ItemStack.isSameItemSameTags(stack1, stack));
 
         if (bl) cir.setReturnValue(true);
     }

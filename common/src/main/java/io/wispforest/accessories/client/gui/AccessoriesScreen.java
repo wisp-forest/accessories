@@ -3,6 +3,7 @@ package io.wispforest.accessories.client.gui;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotGroup;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
@@ -10,6 +11,7 @@ import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.impl.SlotGroupImpl;
+import io.wispforest.accessories.mixin.client.ScreenAccessor;
 import io.wispforest.accessories.networking.holder.HolderProperty;
 import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.MenuScroll;
@@ -18,11 +20,13 @@ import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.components.WidgetSprites;
+
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -52,18 +56,24 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     private static final ResourceLocation SCROLL_BAR_PATCH = Accessories.of("scroll_bar_patch");
     private static final ResourceLocation SCROLL_BAR = Accessories.of("scroll_bar");
 
+    static {
+        GuiGraphicsUtils.register(BACKGROUND_PATCH, GuiGraphicsUtils.NineSlicingDimensionImpl.of(Accessories.of("textures/gui/sprites/background_patch.png"), 15, 15, 5));
+        GuiGraphicsUtils.register(SCROLL_BAR_PATCH, GuiGraphicsUtils.NineSlicingDimensionImpl.of(Accessories.of("textures/gui/sprites/scroll_bar_patch.png"), 6, 6, 2));
+        GuiGraphicsUtils.register(SCROLL_BAR, GuiGraphicsUtils.NineSlicingDimensionImpl.of(Accessories.of("textures/gui/sprites/scroll_bar.png"), 6, 6, 2));
+    }
+
     private static final ResourceLocation HORIZONTAL_TABS = Accessories.of("textures/gui/container/horizontal_tabs_small.png");
 
-    private static final WidgetSprites SPRITES_12X12 = new WidgetSprites(Accessories.of("widget/12x12/button"), Accessories.of("widget/12x12/button_disabled"), Accessories.of("widget/12x12/button_highlighted"));
-    public static final WidgetSprites SPRITES_8X8 = new WidgetSprites(Accessories.of("widget/8x8/button"), Accessories.of("widget/8x8/button_disabled"), Accessories.of("widget/8x8/button_highlighted"));
+    public static final SpriteGetter<AbstractButton> SPRITES_12X12 = SpriteGetter.ofButton(Accessories.of("textures/gui/sprites/widget/12x12/button.png"), Accessories.of("textures/gui/sprites/widget/12x12/button_disabled.png"), Accessories.of("textures/gui/sprites/widget/12x12/button_highlighted.png"));
+    public static final SpriteGetter<AbstractButton> SPRITES_8X8 = SpriteGetter.ofButton(Accessories.of("textures/gui/sprites/widget/8x8/button.png"), Accessories.of("textures/gui/sprites/widget/8x8/button_disabled.png"), Accessories.of("textures/gui/sprites/widget/8x8/button_highlighted.png"));
 
-    private static final ResourceLocation BACk_ICON = Accessories.of("widget/back");
+    private static final ResourceLocation BACk_ICON = Accessories.of("textures/gui/sprites/widget/back.png");
 
-    private static final ResourceLocation LINE_HIDDEN = Accessories.of("widget/line_hidden");
-    private static final ResourceLocation LINE_SHOWN = Accessories.of("widget/line_shown");
+    private static final ResourceLocation LINE_HIDDEN = Accessories.of("textures/gui/sprites/widget/line_hidden.png");
+    private static final ResourceLocation LINE_SHOWN = Accessories.of("textures/gui/sprites/widget/line_shown.png");
 
-    private static final ResourceLocation UNUSED_SLOTS_HIDDEN = Accessories.of("widget/unused_slots_hidden");
-    private static final ResourceLocation UNUSED_SLOTS_SHOWN = Accessories.of("widget/unused_slots_shown");
+    private static final ResourceLocation UNUSED_SLOTS_HIDDEN = Accessories.of("textures/gui/sprites/widget/unused_slots_hidden.png");
+    private static final ResourceLocation UNUSED_SLOTS_SHOWN = Accessories.of("textures/gui/sprites/widget/unused_slots_shown.png");
 
     public static Vector4i SCISSOR_BOX = new Vector4i();
     // are we currently rendering an entity in a screen
@@ -152,7 +162,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         var bl = super.mouseClicked(mouseX, mouseY, button);
 
-        if (this.getFocused() instanceof Button) this.clearFocus();
+        if (this.getFocused() instanceof Button) ((ScreenAccessor) this).call$clearFocus();
 
         if (this.insideScrollbar(mouseX, mouseY)) {
             this.isScrolling = true;
@@ -194,6 +204,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+        this.renderBackground(guiGraphics);
+
         int leftPos = this.leftPos;
         int topPos = this.topPos;
 
@@ -297,7 +309,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollY) {
         if (insideScrollbar(mouseX, mouseY) || (Accessories.getConfig().clientData.allowSlotScrolling && this.hoveredSlot instanceof AccessoriesInternalSlot)) {
             int index = (int) Math.max(Math.min(-scrollY + this.menu.scrolledIndex, this.menu.maxScrollableIndex()), 0);
 
@@ -308,7 +320,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             }
         }
 
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        return super.mouseScrolled(mouseX, mouseY, scrollY);
     }
 
     @Override
@@ -367,7 +379,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
                 guiGraphics.blit(HORIZONTAL_TABS, vector.x, vector.y, 0, v, vector.z, vector.w, 19, vector.w * 4); //32,128
 
-                var textureAtlasSprite = this.minecraft.getTextureAtlas(ResourceLocation.withDefaultNamespace("textures/atlas/blocks.png")).apply(group.icon());
+                var textureAtlasSprite = this.minecraft.getTextureAtlas(new ResourceLocation("textures/atlas/blocks.png")).apply(group.icon());
 
                 pose.pushPose();
 
@@ -386,7 +398,19 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         //--
 
         if (Accessories.getConfig().clientData.hoverOptions.hoveredOptions.clickbait) {
-            accessoryPositions.forEach(pos -> guiGraphics.blitSprite(Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 100, 256, 256));
+            accessoryPositions.forEach(pos -> {
+                var matrix = guiGraphics.pose();
+
+                matrix.pushPose();
+
+                matrix.translate((float) pos.x - 128, (float) pos.y - 128, 200);
+
+                matrix.scale(0.5f, 0.5f, 0);
+
+                guiGraphics.blit(Accessories.of("textures/gui/sprites/highlight/clickbait.png"), 0, 0, 0, 0, 0, 512, 512, 512, 512);
+
+                matrix.popPose();
+            });
             this.accessoryPositions.clear();
         }
 
@@ -394,7 +418,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         if (!this.accessoryLines.isEmpty() && Accessories.getConfig().clientData.hoverOptions.hoveredOptions.line) {
             var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
-            var lastPose = guiGraphics.pose().last();
+            var lastPose = guiGraphics.pose().last().normal();
 
             for (Pair<Vector3d, Vector3d> line : this.accessoryLines) {
 
@@ -409,12 +433,12 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 var firstVec = line.first().get(new Vector3f());
 
                 if (delta > 0.05) {
-                    buf.addVertex(firstVec)
-                            .setColor(255, 255, 255, 255)
-                            .setOverlay(OverlayTexture.NO_OVERLAY)
-                            //.uv2(LightTexture.FULL_BLOCK)
-                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                    //.endVertex();
+                    buf.vertex(firstVec.x(), firstVec.y(), firstVec.z())
+                            .color(255, 255, 255, 255)
+                            .overlayCoords(OverlayTexture.NO_OVERLAY)
+                            .uv2(LightTexture.FULL_BLOCK)
+                            .normal(lastPose, normalVec.x, normalVec.y, normalVec.z)
+                            .endVertex();
 
                     var pos = new Vector3d(
                             Mth.lerp(delta - 0.05, line.first().x, line.second().x),
@@ -422,12 +446,12 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                             Mth.lerp(delta - 0.05, line.first().z, line.second().z)
                     ).get(new Vector3f());
 
-                    buf.addVertex(pos)
-                            .setColor(255, 255, 255, 255)
-                            .setOverlay(OverlayTexture.NO_OVERLAY)
-                            //.uv2(LightTexture.FULL_BLOCK)
-                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                    //.endVertex();
+                    buf.vertex(pos.x(), pos.y(), pos.z())
+                            .color(255, 255, 255, 255)
+                            .overlayCoords(OverlayTexture.NO_OVERLAY)
+                            .uv2(LightTexture.FULL_BLOCK)
+                            .normal(lastPose, normalVec.x, normalVec.y, normalVec.z)
+                            .endVertex();
                 }
                 for (int i = 0; i < segments / 2; i++) {
                     var delta1 = ((i * 2) / segments + movement) % 1;
@@ -444,18 +468,18 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                             Mth.lerp(delta2, line.first().z, line.second().z)
                     ) : line.second()).get(new Vector3f());
 
-                    buf.addVertex(pos1)
-                            .setColor(255, 255, 255, 255)
-                            .setOverlay(OverlayTexture.NO_OVERLAY)
-                            //.setUv2(LightTexture.FULL_BLOCK)
-                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                    //.endVertex();
-                    buf.addVertex(pos2)
-                            .setColor(255, 255, 255, 255)
-                            .setOverlay(OverlayTexture.NO_OVERLAY)
-                            //.setUv2(LightTexture.FULL_BLOCK)
-                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                    //.endVertex();
+                    buf.vertex(pos1.x(), pos1.y(), pos1.z())
+                            .color(255, 255, 255, 255)
+                            .overlayCoords(OverlayTexture.NO_OVERLAY)
+                            .uv2(LightTexture.FULL_BLOCK)
+                            .normal(lastPose, normalVec.x, normalVec.y, normalVec.z)
+                            .endVertex();
+                    buf.vertex(pos2.x(), pos2.y(), pos2.z())
+                            .color(255, 255, 255, 255)
+                            .overlayCoords(OverlayTexture.NO_OVERLAY)
+                            .uv2(LightTexture.FULL_BLOCK)
+                            .normal(lastPose, normalVec.x, normalVec.y, normalVec.z)
+                            .endVertex();
                 }
             }
 
@@ -489,16 +513,16 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                         .bounds(this.leftPos + 141, this.topPos + 9, 8, 8)
                         .tooltip(Tooltip.create(Component.translatable(Accessories.translation("back.screen"))))
                         .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-            guiGraphics.blitSprite(SPRITES_8X8.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
+            guiGraphics.blit(SPRITES_8X8.getLocation(button), x, y, width, height, 8, 8, 8, 8);
 
             var pose = guiGraphics.pose();
 
-            pose.pushPose();
-            pose.translate(0.5, 0.5, 0.0);
-
-            guiGraphics.blitSprite(BACk_ICON, x, y, width - 1, height - 1);
-
-            pose.popPose();
+//            pose.pushPose();
+//            pose.translate(0.5, 0.5, 0.0);
+//
+//            guiGraphics.blitSprite(BACk_ICON, x, y, width - 1, height - 1);
+//
+//            pose.popPose();
 
             return true;
         });
@@ -524,8 +548,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                         .tooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()))
                         .bounds(this.leftPos + 154, btnOffset, 12, 12)
                         .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-            guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
-            guiGraphics.blitSprite((this.menu.areUnusedSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
+            guiGraphics.blit(SPRITES_12X12.getLocation(button), x, y, width, height, 12, 12, 12, 12);
+            guiGraphics.blit((this.menu.areUnusedSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height, 12, 12, 12, 12);
 
             return true;
         });
@@ -546,8 +570,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                                 .tooltip(uniqueSlotsToggleButton(this.menu.areUniqueSlotsShown()))
                                 .bounds(this.leftPos + 154, btnOffset, 12, 12)
                                 .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-                    guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
-                    guiGraphics.blitSprite((this.menu.areUniqueSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
+                    guiGraphics.blit(SPRITES_12X12.getLocation(button), x, y, width, height, 12, 12, 12, 12);
+                    guiGraphics.blit((this.menu.areUniqueSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height, 12, 12, 12, 12);
 
                     return true;
                 });
@@ -565,8 +589,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 //                            .bounds(this.leftPos + 154, btnOffset, 12, 12)
 //                            //.bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6)
 //                            .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-//                guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
-//                guiGraphics.blitSprite((this.menu.areLinesShown() ? LINE_SHOWN : LINE_HIDDEN), x, y, width, height);
+//                guiGraphics.blit(SPRITES_12X12.getLocation(button), x, y, width, height, 12, 12, 12, 12);
+//                guiGraphics.blit((this.menu.areLinesShown() ? LINE_SHOWN : LINE_HIDDEN), x, y, width, height, 12, 12, 12, 12);
 //
 //                return true;
 //            });
@@ -927,8 +951,8 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         entity.setXRot(-i * 20.0F);
         entity.yHeadRot = entity.getYRot();
         entity.yHeadRotO = entity.getYRot();
-        Vector3f vector3f = new Vector3f(0.0F, entity.getBbHeight() / 2.0F + yOffset, 0.0F);
-        InventoryScreen.renderEntityInInventory(guiGraphics, f, g, scale, vector3f, quaternionf, quaternionf2, entity);
+        //Vector3f vector3f = new Vector3f(0.0F, entity.getBbHeight() / 2.0F + yOffset, 0.0F);
+        InventoryScreen.renderEntityInInventory(guiGraphics, (int) f, (int) (g + (entity.getBbHeight() * 17 + yOffset)), 28, quaternionf, quaternionf2, entity);
         entity.yBodyRot = j;
         entity.setYRot(k);
         entity.setXRot(l);

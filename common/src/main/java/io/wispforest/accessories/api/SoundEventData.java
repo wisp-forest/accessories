@@ -10,4 +10,4 @@ import net.minecraft.world.item.ItemStack;
  *
  * @see Accessory#getEquipSound(ItemStack, SlotReference)
  */
-public record SoundEventData(Holder<SoundEvent> event, float volume, float pitch) { }
+public record SoundEventData(SoundEvent event, float volume, float pitch) { }

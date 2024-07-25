@@ -8,7 +8,10 @@ import io.wispforest.accessories.client.AccessoriesMenuData;
 import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.networking.base.BaseNetworkHandler;
+import io.wispforest.endec.format.bytebuf.ByteBufDeserializer;
+import io.wispforest.endec.format.bytebuf.ByteBufSerializer;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
+import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -20,6 +23,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -98,11 +102,13 @@ public class AccessoriesInternalsImpl {
     }
 
     public static boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, @Nullable HolderLookup.Provider registryLookup) {
-        return ResourceConditionsImpl.applyResourceConditions(object, dataType, key, registryLookup);
+        return ResourceConditions.objectMatchesConditions(object);
     }
 
     public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(ResourceLocation location, TriFunction<Integer, Inventory, AccessoriesMenuData, T> func) {
-        return Registry.register(BuiltInRegistries.MENU, location, new ExtendedScreenHandlerType<>(func::apply, CodecUtils.packetCodec(AccessoriesMenuData.ENDEC)));
+        return Registry.register(BuiltInRegistries.MENU, location, new ExtendedScreenHandlerType<>((syncId, inventory, buf) -> {
+            return func.apply(syncId, inventory, AccessoriesMenuData.ENDEC.decodeFully(ByteBufDeserializer::of, buf));
+        }));
     }
 
     public static <A extends ArgumentType<?>, T extends ArgumentTypeInfo.Template<A>, I extends ArgumentTypeInfo<A, T>> I registerCommandArgumentType(ResourceLocation location, Class<A> clazz, I info) {
@@ -112,10 +118,10 @@ public class AccessoriesInternalsImpl {
     }
 
     public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
-        player.openMenu(new ExtendedScreenHandlerFactory<AccessoriesMenuData>() {
+        player.openMenu(new ExtendedScreenHandlerFactory() {
             @Override
-            public AccessoriesMenuData getScreenOpeningData(ServerPlayer player) {
-                return AccessoriesMenuData.of(targetEntity);
+            public void writeScreenOpeningData(ServerPlayer player, FriendlyByteBuf buf) {
+                AccessoriesMenuData.ENDEC.encodeFully(() -> ByteBufSerializer.of(buf), AccessoriesMenuData.of(targetEntity));
             }
 
             @Override

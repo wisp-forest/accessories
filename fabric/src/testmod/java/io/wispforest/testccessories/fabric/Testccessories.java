@@ -31,6 +31,6 @@ public class Testccessories implements ModInitializer {
     }
 
     public static ResourceLocation of(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MODID, path);
+        return new ResourceLocation(MODID, path);
     }
 }

@@ -20,12 +20,7 @@ public class SlotIncreaserTest implements Accessory {
 
     @Override
     public void getDynamicModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
-        builder.addExclusive(
-                Holder.direct(SlotAttribute.getSlotAttribute(UniqueSlotTest.testSlot3Ref().slotName())),
-                new AttributeModifier(Testccessories.of("weewoo"), 2, AttributeModifier.Operation.ADD_VALUE));
-
-        builder.addExclusive(
-                Holder.direct(SlotAttribute.getSlotAttribute("something")),
-                new AttributeModifier(Testccessories.of("woowoo"), 10, AttributeModifier.Operation.ADD_VALUE));
+        builder.addExclusive(SlotAttribute.getSlotAttribute(UniqueSlotTest.testSlot3Ref().slotName()), Testccessories.of("weewoo"), 2, AttributeModifier.Operation.ADDITION);
+        builder.addExclusive(SlotAttribute.getSlotAttribute("something"), Testccessories.of("woowoo"), 10, AttributeModifier.Operation.ADDITION);
     }
 }

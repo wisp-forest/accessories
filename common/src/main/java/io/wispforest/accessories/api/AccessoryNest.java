@@ -32,7 +32,7 @@ public interface AccessoryNest extends Accessory {
      * @return all inner accessory stacks
      */
     default List<ItemStack> getInnerStacks(ItemStack holderStack) {
-        var data = holderStack.get(AccessoriesDataComponents.NESTED_ACCESSORIES);
+        var data = AccessoriesDataComponents.readOrDefault(AccessoriesDataComponents.NESTED_ACCESSORIES, holderStack);
 
         return data == null ? List.of() : data.accessories();
     }
@@ -48,9 +48,9 @@ public interface AccessoryNest extends Accessory {
         if(!AccessoryNest.isAccessoryNest(holderStack)) return false;
         if(AccessoryNest.isAccessoryNest(newStack) && !this.allowDeepRecursion()) return false;
 
-        holderStack.update(
+        AccessoriesDataComponents.update(
                 AccessoriesDataComponents.NESTED_ACCESSORIES,
-                new AccessoryNestContainerContents(List.of()),
+                holderStack,
                 contents -> contents.setStack(index, newStack));
 
         return true;
@@ -100,9 +100,7 @@ public interface AccessoryNest extends Accessory {
 
         var t = func.apply(data.getMap(slotReference));
 
-        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
-
-        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), slotReference.entity());
+        if(data.hasChangesOccured(holderStack)) nest.onStackChanges(holderStack, AccessoriesDataComponents.readOrDefault(AccessoriesDataComponents.NESTED_ACCESSORIES, holderStack), slotReference.entity());
 
         return t;
     }
@@ -124,9 +122,7 @@ public interface AccessoryNest extends Accessory {
 
         var t = func.apply(data.getMap());
 
-        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
-
-        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), livingEntity);
+        if(data.hasChangesOccured(holderStack)) nest.onStackChanges(holderStack, AccessoriesDataComponents.readOrDefault(AccessoriesDataComponents.NESTED_ACCESSORIES, holderStack), livingEntity);
 
         return t;
     }
@@ -147,9 +143,7 @@ public interface AccessoryNest extends Accessory {
 
         consumer.accept(data.getMap(slotReference));
 
-        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
-
-        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), slotReference.entity());
+        if(data.hasChangesOccured(holderStack)) nest.onStackChanges(holderStack, AccessoriesDataComponents.readOrDefault(AccessoriesDataComponents.NESTED_ACCESSORIES, holderStack), slotReference.entity());
     }
 
     /**
@@ -168,9 +162,7 @@ public interface AccessoryNest extends Accessory {
 
         consumer.accept(data.getMap());
 
-        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
-
-        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), livingEntity);
+        if(data.hasChangesOccured(holderStack)) nest.onStackChanges(holderStack, AccessoriesDataComponents.readOrDefault(AccessoriesDataComponents.NESTED_ACCESSORIES, holderStack), livingEntity);
     }
 
     //--
@@ -239,12 +231,12 @@ public interface AccessoryNest extends Accessory {
     }
 
     @Override
-    default void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
-        attemptConsumer(stack, (LivingEntity) null, map -> map.forEach((stack1, accessory) -> accessory.getAttributesTooltip(stack1, type, tooltips, tooltipContext, tooltipType)));
+    default void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips, TooltipFlag tooltipType) {
+        attemptConsumer(stack, (LivingEntity) null, map -> map.forEach((stack1, accessory) -> accessory.getAttributesTooltip(stack1, type, tooltips, tooltipType)));
     }
 
     @Override
-    default void getExtraTooltip(ItemStack stack, List<Component> tooltips, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
-        attemptConsumer(stack, (LivingEntity) null, map -> map.forEach((stack1, accessory) -> accessory.getExtraTooltip(stack1, tooltips, tooltipContext, tooltipType)));
+    default void getExtraTooltip(ItemStack stack, List<Component> tooltips,TooltipFlag tooltipType) {
+        attemptConsumer(stack, (LivingEntity) null, map -> map.forEach((stack1, accessory) -> accessory.getExtraTooltip(stack1, tooltips, tooltipType)));
     }
 }

@@ -7,7 +7,6 @@ import io.wispforest.endec.Serializer;
 import io.wispforest.endec.util.RecursiveSerializer;
 import io.wispforest.endec.util.VarInts;
 import net.minecraft.nbt.*;
-import net.minecraft.network.VarLong;
 
 import java.util.Optional;
 

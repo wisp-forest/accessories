@@ -3,6 +3,7 @@ package io.wispforest.accessories.api.attributes;
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.utils.AttributeUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -11,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Custom Attribute used to target an accessories Slot for modification of its size
@@ -43,22 +45,34 @@ public class SlotAttribute extends Attribute {
     //--
 
     public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, SlotType slotType, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
-        addSlotModifier(map, slotType.name(), location, amount, operation);
+        var data = AttributeUtils.getModifierData(location);
+
+        addSlotModifier(map, slotType.name(), data.first(), data.second(), amount, operation);
     }
 
     public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String slot, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
-        map.put(SlotAttribute.getSlotAttribute(slot), new AttributeModifier(location, amount, operation));
+        var data = AttributeUtils.getModifierData(location);
+
+        addSlotModifier(map, slot, data.first(), data.second(), amount, operation);
+    }
+
+    public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, SlotType slotType, String name, UUID id, double amount, AttributeModifier.Operation operation) {
+        addSlotModifier(map, slotType.name(), name, id, amount, operation);
+    }
+
+    public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String slot, String name, UUID id, double amount, AttributeModifier.Operation operation) {
+        map.put(SlotAttribute.getSlotAttribute(slot), new AttributeModifier(id, name, amount, operation));
     }
 
     public static void addSlotAttribute(AccessoryAttributeBuilder builder, String targetSlot, ResourceLocation location, double amount, AttributeModifier.Operation operation, boolean isStackable) {
         if(isStackable) {
-            builder.addStackable(Holder.direct(SlotAttribute.getSlotAttribute(targetSlot)), location, amount, operation);
+            builder.addStackable(SlotAttribute.getSlotAttribute(targetSlot), location, amount, operation);
         } else {
-            builder.addExclusive(Holder.direct(SlotAttribute.getSlotAttribute(targetSlot)), location, amount, operation);
+            builder.addExclusive(SlotAttribute.getSlotAttribute(targetSlot), location, amount, operation);
         }
     }
 
     public static void addSlotAttribute(ItemStack stack, String targetSlot, String boundSlot, ResourceLocation location, double amount, AttributeModifier.Operation operation, boolean isStackable) {
-        AccessoriesAPI.addAttribute(stack, boundSlot, Holder.direct(SlotAttribute.getSlotAttribute(targetSlot)), location, amount, operation, isStackable);
+        AccessoriesAPI.addAttribute(stack, boundSlot, SlotAttribute.getSlotAttribute(targetSlot), location, amount, operation, isStackable);
     }
 }

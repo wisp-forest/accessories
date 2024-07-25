@@ -40,7 +40,7 @@ public abstract class InventoryScreenMixin extends EffectRenderingInventoryScree
                         .tooltip(Tooltip.create(Component.translatable(Accessories.translation("open.screen"))))
                         .build()
         ).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-            guiGraphics.blitSprite(AccessoriesScreen.SPRITES_8X8.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
+            guiGraphics.blit(AccessoriesScreen.SPRITES_8X8.getLocation(button), x, y, width, height, 8, 8, 8, 8);
 
             return true;
         });

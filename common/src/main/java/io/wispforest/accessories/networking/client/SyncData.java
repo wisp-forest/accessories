@@ -15,6 +15,7 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
@@ -26,7 +27,7 @@ public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>>
 
     public static Endec<SyncData> ENDEC = StructEndecBuilder.of(
             SlotTypeImpl.ENDEC.listOf().fieldOf("slotTypes", SyncData::slotTypes),
-            Endec.map(MinecraftEndecs.ofRegistry(Registries.ENTITY_TYPE), Endec.STRING.setOf()).fieldOf("entitySlots", SyncData::entitySlots),
+            Endec.map(MinecraftEndecs.ofRegistry(BuiltInRegistries.ENTITY_TYPE), Endec.STRING.setOf()).fieldOf("entitySlots", SyncData::entitySlots),
             SlotGroupImpl.ENDEC.setOf().fieldOf("slotGroups", SyncData::slotGroups),
             Endec.STRING.setOf().fieldOf("uniqueGroups", SyncData::uniqueGroups),
             ExtraSlotTypeProperties.ENDEC.mapOf().fieldOf("uniqueExtraProperties", SyncData::uniqueExtraProperties),

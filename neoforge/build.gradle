@@ -4,8 +4,8 @@ plugins {
 
 architectury {
     platformSetupLoomIde()
-    neoForge {
-        platformPackage = "neoforge"
+    forge {
+        platformPackage = "forge"
     }
 }
 
@@ -14,7 +14,7 @@ configurations {
     shadowCommon // Don't use shadow from the shadow plugin since it *excludes* files.
     compileClasspath.extendsFrom common
     runtimeClasspath.extendsFrom common
-    developmentNeoForge.extendsFrom common
+    developmentForge.extendsFrom common
 }
 
 repositories {
@@ -39,14 +39,20 @@ sourceSets {
 }
 
 dependencies {
-    neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
+    forge "net.neoforged:forge:${rootProject.neoforge_version}"
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive false }
 
-    modImplementation("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
+    implementation include("io.github.llamalad7:mixinextras-forge:0.3.5")
+
+    modImplementation("me.shedaniel.cloth:cloth-config-forge:${rootProject.cloth_version}")
 
     include modApi("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+e0539096d1"){ exclude group: "fabric-api" }
+
+    include modApi("dev.su5ed.sinytra.fabric-api:fabric-data-attachment-api-v1:1.0.0+30ef839e77"){ exclude group: "fabric-api" } //0.3.37+a6081afc77
+    include modApi("dev.su5ed.sinytra.fabric-api:fabric-entity-events-v1:1.6.0+6274ab9d77"){ exclude group: "fabric-api" }
+    include modApi("dev.su5ed.sinytra.fabric-api:fabric-object-builder-api-v1:11.1.3+2174fc8477"){ exclude group: "fabric-api" }
 
     forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")
     forgeRuntimeLibrary("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
@@ -56,18 +62,17 @@ dependencies {
 
     var type = rootProject.properties.get("item_viewer_type");
 
-    modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-neoforge:${rootProject.rei_version}")
-    modCompileOnly("dev.emi:emi-neoforge:${rootProject.emi_version}:api")
-    modCompileOnly("mezz.jei:jei-1.20.6-neoforge-api:${rootProject.jei_version}")
-    //modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-neoforge-api:${rootProject.jei_version}")
+    modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-forge:${rootProject.rei_version}")
+    modCompileOnly("dev.emi:emi-forge:${rootProject.emi_version}:api")
+    modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-forge-api:${rootProject.jei_version}")
 
     if(type == "rei") {
-        modLocalRuntime("me.shedaniel:RoughlyEnoughItems-neoforge:${rootProject.rei_version}")
-        modLocalRuntime("dev.architectury:architectury-neoforge:${rootProject.arch_api}")
+        modLocalRuntime("me.shedaniel:RoughlyEnoughItems-forge:${rootProject.rei_version}")
+        modLocalRuntime("dev.architectury:architectury-forge:${rootProject.arch_api}")
     } else if(type == "emi") {
-        modLocalRuntime("dev.emi:emi-neoforge:${rootProject.emi_version}")
+        modLocalRuntime("dev.emi:emi-forge:${rootProject.emi_version}")
     } else if(type == "jei") {
-        //modLocalRuntime("mezz.jei:jei-${rootProject.minecraft_version}-neoforge:${rootProject.jei_version}")
+        modLocalRuntime("mezz.jei:jei-${rootProject.minecraft_version}-forge:${rootProject.jei_version}")
     } else if(type != "none") {
         throw new IllegalStateException("Unable to locate the given item viewer!")
     }
@@ -88,17 +93,17 @@ processResources {
 
     finalVersion += "+${rootProject.minecraft_base_version}"
 
-    filesMatching("META-INF/neoforge.mods.toml") {
+    filesMatching("META-INF/mods.toml") {
         expand "version": finalVersion
     }
-    inputs.property "META-INF/neoforge.mods.toml", finalVersion
+    inputs.property "META-INF/mods.toml", finalVersion
 }
 
 processTestmodResources {
-    filesMatching("META-INF/neoforge.mods.toml") {
+    filesMatching("META-INF/mods.toml") {
         expand "version": project.version
     }
-    inputs.property "META-INF/neoforge.mods.toml", project.version
+    inputs.property "META-INF/mods.toml", project.version
 }
 
 loom {
@@ -136,9 +141,9 @@ loom {
 
     accessWidenerPath = project(":common").loom.accessWidenerPath
 
-    neoForge  {
-        //     convertAccessWideners = true
-        //     extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
+    forge  {
+        mixinConfig "accessories-common.mixins.json"
+        mixinConfig "accessories-forge.mixins.json"
     }
 }
 

@@ -13,19 +13,17 @@
     "client.MinecraftMixin",
     "client.ModelPartAccessor",
     "client.PlayerRendererMixin",
-    "client.RenderTargetMixin"
+    "client.RenderTargetMixin",
+    "client.ScreenAccessor"
   ],
   "mixins": [
     "ApplyBonusCountMixin",
     "CriteriaTriggersAccessor",
     "DelegatingOpsAccessor",
-    "EnchantedCountIncreaseFunctionMixin",
-    "EnchantmentAttributeEffectMixin",
     "EnchantmentHelperMixin",
     "EndermanMixin",
     "EquipmentSlotMixin",
     "EquipmentSlotTypeMixin",
-    "HolderLookupAdapterAccessor",
     "InventoryMixin",
     "LevelRendererAccessor",
     "LivingEntityAccessor",

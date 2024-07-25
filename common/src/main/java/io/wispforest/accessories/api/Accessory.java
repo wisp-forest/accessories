@@ -16,7 +16,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -67,7 +66,7 @@ public interface Accessory {
      * @return whether the given stack can be unequipped
      */
     default boolean canUnequip(ItemStack stack, SlotReference reference){
-        if(EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) {
+        if(EnchantmentHelper.hasBindingCurse(stack)) {
             return reference.entity() instanceof Player player && player.isCreative();
         }
 
@@ -122,7 +121,7 @@ public interface Accessory {
 
         if(sound == null) return;
 
-        reference.entity().playSound(sound.event().value(), sound.volume(), sound.pitch());
+        reference.entity().playSound(sound.event(), sound.volume(), sound.pitch());
     }
 
     /**
@@ -172,10 +171,9 @@ public interface Accessory {
      * @param stack The Stack being referenced
      * @param type The SlotType being referenced
      * @param tooltips Final list containing the tooltip info
-     * @param tooltipContext Current tooltip context
      * @param tooltipType Current tooltipFlag
      */
-    default void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips, Item.TooltipContext tooltipContext, TooltipFlag tooltipType){
+    default void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips, TooltipFlag tooltipType){
         getAttributesTooltip(stack, type, tooltips);
     }
 
@@ -191,10 +189,9 @@ public interface Accessory {
      *
      * @param stack The Stack being referenced
      * @param tooltips Final list containing the tooltip info
-     * @param tooltipContext Current tooltip context
      * @param tooltipType Current tooltipFlag
      */
-    default void getExtraTooltip(ItemStack stack, List<Component> tooltips, Item.TooltipContext tooltipContext, TooltipFlag tooltipType){
+    default void getExtraTooltip(ItemStack stack, List<Component> tooltips, TooltipFlag tooltipType){
         getExtraTooltip(stack, tooltips);
     }
 
@@ -208,14 +205,14 @@ public interface Accessory {
     default void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder){}
 
     /**
-     * @deprecated Use {@link #getAttributesTooltip(ItemStack, SlotType, List, Item.TooltipContext, TooltipFlag)}
+     * @deprecated Use {@link #getAttributesTooltip(ItemStack, SlotType, List, TooltipFlag)}
      */
     @Deprecated(forRemoval = true)
     @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
     default void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips){}
 
     /**
-     * @deprecated Use {@link #getExtraTooltip(ItemStack, List, Item.TooltipContext, TooltipFlag)}
+     * @deprecated Use {@link #getExtraTooltip(ItemStack, List, TooltipFlag)}
      */
     @Deprecated(forRemoval = true)
     @ApiStatus.ScheduledForRemoval(inVersion = "1.22")

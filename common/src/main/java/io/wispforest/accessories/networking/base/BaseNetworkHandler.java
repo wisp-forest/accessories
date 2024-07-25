@@ -6,7 +6,6 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.ReflectiveEndecBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -18,8 +17,8 @@ import java.util.function.Supplier;
 
 public abstract class BaseNetworkHandler {
 
-    protected final Map<CustomPacketPayload.Type<?>, PacketBuilder<?>> c2sBuilders = new HashMap<>();
-    protected final Map<CustomPacketPayload.Type<?>, PacketBuilder<?>> s2cBuilders = new HashMap<>();
+    protected final Map<Type<?>, PacketBuilder<?>> c2sBuilders = new HashMap<>();
+    protected final Map<Type<?>, PacketBuilder<?>> s2cBuilders = new HashMap<>();
 
     private final ReflectiveEndecBuilder endecBuilder;
 
@@ -107,7 +106,7 @@ public abstract class BaseNetworkHandler {
         throw new IllegalStateException("Unable to register the given " + direction + " builder as network registration has occurred! [Class: " + packetType.getSimpleName() + "]");
     }
 
-    protected record PacketBuilder<M extends HandledPacketPayload>(CustomPacketPayload.Type<M> id, Class<M> clazz, Endec<M> endec) {
+    protected record PacketBuilder<M extends HandledPacketPayload>(Type<M> id, Class<M> clazz, Endec<M> endec) {
         public static <M extends HandledPacketPayload> PacketBuilder<M> of(Class<M> clazz, Endec<M> endec){
             return new PacketBuilder<>(getId(clazz), clazz, endec);
         }
@@ -117,7 +116,9 @@ public abstract class BaseNetworkHandler {
         }
     }
 
-    public static <M extends HandledPacketPayload> CustomPacketPayload.Type<M> getId(Class<M> mClass){
-        return new CustomPacketPayload.Type<>(Accessories.of(mClass.getName().toLowerCase()));
+    public static <M extends HandledPacketPayload> Type<M> getId(Class<M> mClass){
+        return new Type<>(Accessories.of(mClass.getName().toLowerCase()));
     }
+
+
 }

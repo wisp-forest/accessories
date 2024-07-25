@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Function3;
 import io.netty.buffer.Unpooled;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationAttributes;
+import io.wispforest.endec.format.gson.GsonEndec;
 import io.wispforest.endec.impl.ReflectiveEndecBuilder;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.core.BlockPos;
@@ -12,7 +13,6 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -46,9 +46,15 @@ public class MinecraftEndecs {
                 return bytes;
             });
 
-    public static final Endec<ResourceLocation> IDENTIFIER = Endec.STRING.xmap(ResourceLocation::parse, ResourceLocation::toString);
-    public static final Endec<ItemStack> ITEM_STACK = CodecUtils.ofCodec(ItemStack.OPTIONAL_CODEC);
-    public static final Endec<Component> TEXT = CodecUtils.ofCodec(ComponentSerialization.CODEC);
+    public static final Endec<ResourceLocation> IDENTIFIER = Endec.STRING.xmap(s -> {
+        var location = ResourceLocation.tryParse(s);
+
+        if (location == null) throw new IllegalStateException("Unable to read the given string as a valid ResourceLocation! [Value: " + s + "]");
+
+        return location;
+    }, ResourceLocation::toString);
+    public static final Endec<ItemStack> ITEM_STACK = CodecUtils.ofCodec(ItemStack.CODEC);
+    public static final Endec<Component> TEXT = GsonEndec.INSTANCE.xmap(Component.Serializer::fromJson, Component.Serializer::toJsonTree);
 
     public static final Endec<Vec3i> VEC3I = vectorEndec("Vec3i", Endec.INT, Vec3i::new, Vec3i::getX, Vec3i::getY, Vec3i::getZ);
     public static final Endec<Vec3> VEC3D = vectorEndec("Vec3d", Endec.DOUBLE, Vec3::new, Vec3::x, Vec3::y, Vec3::z);
@@ -108,36 +114,6 @@ public class MinecraftEndecs {
         return builder;
     }
 
-    public static <T> Endec<T> ofRegistry(ResourceKey<? extends Registry<T>> resourceKey) {
-        return Endec.ifAttr(
-                SerializationAttributes.HUMAN_READABLE,
-                IDENTIFIER.xmapWithContext(
-                        (ctx, location) -> {
-                            return ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager()
-                                    .registryOrThrow(resourceKey)
-                                    .get(location);
-                        },
-                        (ctx, t) -> {
-                            return ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager()
-                                    .registryOrThrow(resourceKey)
-                                    .getKey(t);
-                        }
-                )).orElse(
-                        Endec.VAR_INT.xmapWithContext(
-                            (ctx, id) -> {
-                                return ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager()
-                                        .registryOrThrow(resourceKey)
-                                        .getHolder(id)
-                                        .orElseThrow(IllegalStateException::new)
-                                        .value();
-                            },
-                            (ctx, t) -> {
-                                return ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager()
-                                        .registryOrThrow(resourceKey)
-                                        .getId(t);
-                            }));
-    }
-
     public static <T> Endec<T> ofRegistry(Registry<T> registry) {
         return IDENTIFIER.xmap(registry::get, registry::getKey);
     }
@@ -148,7 +124,13 @@ public class MinecraftEndecs {
 
     public static <T> Endec<TagKey<T>> prefixedTagKey(ResourceKey<? extends Registry<T>> registry) {
         return Endec.STRING.xmap(
-                s -> TagKey.create(registry, ResourceLocation.parse(s.substring(1))),
+                s -> {
+                    var location = ResourceLocation.tryParse(s.substring(1));
+
+                    if (location == null) throw new IllegalStateException("Unable to read the given string as a valid ResourceLocation! [Value: " + s + "]");
+
+                    return TagKey.create(registry, location);
+                },
                 tag -> "#" + tag.location()
         );
     }

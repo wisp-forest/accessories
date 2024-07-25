@@ -12,20 +12,25 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class ToggleButton extends Button {
 
-    private static final WidgetSprites SPRITES = new WidgetSprites(
-            ResourceLocation.withDefaultNamespace("widget/button"),
-            ResourceLocation.withDefaultNamespace("widget/button_disabled"),
-            ResourceLocation.withDefaultNamespace("widget/button_highlighted"));
+    static {
+        Function<ResourceLocation, GuiGraphicsUtils.NineSlicingDimensionImpl> func = location -> GuiGraphicsUtils.NineSlicingDimensionImpl.of(location, 200, 20, 3);
+
+        GuiGraphicsUtils.register(Accessories.of("widget/button"), func.apply(Accessories.of("textures/gui/sprites/widget/button.png")));
+        GuiGraphicsUtils.register(Accessories.of("widget/button_disabled"), func.apply(Accessories.of("textures/gui/sprites/widget/button_disabled.png")));
+        GuiGraphicsUtils.register(Accessories.of("widget/button_highlighted"), func.apply(Accessories.of("textures/gui/sprites/widget/button_highlighted.png")));
+    }
+
+    private static final SpriteGetter<ToggleButton> SPRITE_GETTER = SpriteGetter.ofToggle(Accessories.of("widget/button"), Accessories.of("widget/button_disabled"), Accessories.of("widget/button_highlighted"));
 
     private boolean toggled = false;
 
@@ -94,7 +99,7 @@ public class ToggleButton extends Button {
         guiGraphics.setColor(1.0F, 1.0F, 1.0F, this.alpha);
         RenderSystem.enableBlend();
         RenderSystem.enableDepthTest();
-        guiGraphics.blitSprite(SPRITES.get(this.toggled(), this.isHoveredOrFocused()), this.getX(), this.getY(), this.getWidth(), this.getHeight());
+        GuiGraphicsUtils.blitSpriteBatched(guiGraphics, SPRITE_GETTER.getLocation(this), this.getX(), this.getY(), this.getWidth(), this.getHeight());
         guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
         int i = this.active ? 16777215 : 10526880;
         this.renderString(guiGraphics, Minecraft.getInstance().font, i | Mth.ceil(this.alpha * 255.0F) << 24);

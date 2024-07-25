@@ -17,10 +17,10 @@ import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.InstanceEndec;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
+import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.Tag;
@@ -31,27 +31,21 @@ import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.Item;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.attachment.AttachmentType;
-import net.neoforged.neoforge.attachment.IAttachmentHolder;
-import net.neoforged.neoforge.attachment.IAttachmentSerializer;
-import net.neoforged.neoforge.capabilities.EntityCapability;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
-import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
-import net.neoforged.neoforge.event.OnDatapackSyncEvent;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.event.tick.EntityTickEvent;
-import net.neoforged.neoforge.event.tick.LevelTickEvent;
-import net.neoforged.neoforge.registries.NeoForgeRegistries;
-import net.neoforged.neoforge.registries.RegisterEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.OnDatapackSyncEvent;
+import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
+import net.minecraftforge.event.entity.living.LivingDropsEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.RegisterEvent;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -97,43 +91,36 @@ public class AccessoriesForge {
 
     public static IEventBus BUS;
 
-    public AccessoriesForge(final IEventBus eventBus) {
+    public AccessoriesForge() {
+        var eventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
         AccessoriesForge.BUS = eventBus;
 
         Accessories.init();
 
-        NeoForge.EVENT_BUS.addListener(this::attemptEquipFromUse);
-        NeoForge.EVENT_BUS.addListener(this::attemptEquipOnEntity);
-        NeoForge.EVENT_BUS.addListener(this::onEntityDeath);
-        NeoForge.EVENT_BUS.addListener(this::onLivingEntityTick);
-        NeoForge.EVENT_BUS.addListener(this::onDataSync);
-        NeoForge.EVENT_BUS.addListener(this::onEntityLoad);
-        NeoForge.EVENT_BUS.addListener(this::onStartTracking);
-        NeoForge.EVENT_BUS.addListener(this::onWorldTick);
+        MinecraftForge.EVENT_BUS.addListener(this::attemptEquipFromUse);
+        MinecraftForge.EVENT_BUS.addListener(this::attemptEquipOnEntity);
+        MinecraftForge.EVENT_BUS.addListener(this::onEntityDeath);
+        MinecraftForge.EVENT_BUS.addListener(this::onLivingEntityTick);
+        MinecraftForge.EVENT_BUS.addListener(this::onDataSync);
+        MinecraftForge.EVENT_BUS.addListener(this::onEntityLoad);
+        MinecraftForge.EVENT_BUS.addListener(this::onStartTracking);
+        MinecraftForge.EVENT_BUS.addListener(this::onWorldTick);
 
-        NeoForge.EVENT_BUS.addListener(this::registerCommands);
+        MinecraftForge.EVENT_BUS.addListener(this::registerCommands);
 
         eventBus.addListener(AccessoriesForgeNetworkHandler.INSTANCE::initializeNetworking);
         eventBus.addListener(this::registerStuff);
 
-        NeoForge.EVENT_BUS.addListener(this::registerReloadListeners);
+        MinecraftForge.EVENT_BUS.addListener(this::registerReloadListeners);
 
         eventBus.addListener(this::registerCapabilities);
 
-        NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerChangedDimensionEvent event) -> {
+        MinecraftForge.EVENT_BUS.addListener((PlayerEvent.PlayerChangedDimensionEvent event) -> {
             // A hack to deal with player data not being transferred when a ClientboundRespawnPacket occurs for teleporting between two dimensions
             if(!(event.getEntity() instanceof ServerPlayer serverPlayer)) return;
 
             AccessoriesEventHandler.onTracking(serverPlayer, serverPlayer);
-        });
-
-        eventBus.addListener((ModifyDefaultComponentsEvent event) -> {
-            AccessoriesEventHandler.setupItems(new AccessoriesEventHandler.AddDataComponentCallback() {
-                @Override
-                public <T> void addTo(Item item, DataComponentType<T> componentType, T component) {
-                    event.modify(item, builder -> builder.set(componentType, component));
-                }
-            });
         });
     }
 
@@ -208,7 +195,7 @@ public class AccessoriesForge {
         AccessoriesEventHandler.onDeath(event.getEntity(), event.getSource());
     }
 
-    public void onLivingEntityTick(EntityTickEvent.Pre event){
+    public void onLivingEntityTick(LivingEvent.LivingTickEvent event){
         if(!(event.getEntity() instanceof LivingEntity livingEntity)) return;
 
         AccessoriesEventHandler.onLivingEntityTick(livingEntity);
@@ -232,7 +219,9 @@ public class AccessoriesForge {
         AccessoriesEventHandler.onTracking(livingEntity, (ServerPlayer) event.getEntity());
     }
 
-    public void onWorldTick(LevelTickEvent.Pre event){
-        AccessoriesEventHandler.onWorldTick(event.getLevel());
+    public void onWorldTick(TickEvent.LevelTickEvent event){
+        if(!event.phase.equals(TickEvent.Phase.START)) return;
+
+        AccessoriesEventHandler.onWorldTick(event.level);
     }
 }

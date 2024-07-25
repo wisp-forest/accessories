@@ -9,7 +9,6 @@ import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
-import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.util.MapCarrier;
@@ -96,7 +95,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
             var carrier = NbtMapCarrier.of();
 
-            holder.write(carrier, SerializationContext.attributes(RegistriesAttribute.of(this.entity.level().registryAccess())));
+            holder.write(carrier, SerializationContext.empty());
 
             AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(this.entity(), new SyncEntireContainer(this.entity.getId(), carrier));
         }
@@ -166,7 +165,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
             var container = containers.get(entry.getKey());
 
-            entry.getValue().forEach(modifier -> container.removeModifier(modifier.id()));
+            entry.getValue().forEach(modifier -> container.removeModifier(modifier.getId()));
         }
     }
 

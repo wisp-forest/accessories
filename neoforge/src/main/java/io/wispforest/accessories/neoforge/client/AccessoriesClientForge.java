@@ -1,7 +1,6 @@
 package io.wispforest.accessories.neoforge.client;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
@@ -17,18 +16,20 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModLoadingContext;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.event.*;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.client.ConfigScreenHandler;
+import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.event.RegisterShadersEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
@@ -36,7 +37,6 @@ import java.util.ArrayList;
 
 import static io.wispforest.accessories.Accessories.MODID;
 
-@Mod(value = Accessories.MODID, dist = Dist.CLIENT)
 public class AccessoriesClientForge {
 
     public static KeyMapping OPEN_SCREEN;
@@ -52,12 +52,12 @@ public class AccessoriesClientForge {
     public void onInitializeClient(FMLClientSetupEvent event) {
         AccessoriesClient.init();
 
-        NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
-        NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::itemTooltipCallback);
+        MinecraftForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
+        MinecraftForge.EVENT_BUS.addListener(AccessoriesClientForge::itemTooltipCallback);
 
-        ModLoadingContext.get().registerExtensionPoint(IConfigScreenFactory.class, () -> {
-            return (minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get();
-        });
+        ModLoadingContext.get().registerExtensionPoint(
+                ConfigScreenHandler.ConfigScreenFactory.class,
+                () -> new ConfigScreenHandler.ConfigScreenFactory((minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get()));
     }
 
     public void registerClientReloadListeners(RegisterClientReloadListenersEvent event) {
@@ -78,7 +78,9 @@ public class AccessoriesClientForge {
         event.register(OPEN_SCREEN);
     }
 
-    public static void clientTick(ClientTickEvent.Pre event) {
+    public static void clientTick(TickEvent.ClientTickEvent event) {
+        if(!event.phase.equals(TickEvent.Phase.START)) return;
+
         if (OPEN_SCREEN.consumeClick()) {
             AccessoriesClient.attemptToOpenScreen(Minecraft.getInstance().player.isShiftKeyDown());
         }
@@ -91,15 +93,15 @@ public class AccessoriesClientForge {
 
         var tooltipData = new ArrayList<Component>();
 
-        AccessoriesEventHandler.getTooltipData(player, event.getItemStack(), tooltipData, event.getContext(), event.getFlags());
+        AccessoriesEventHandler.getTooltipData(player, event.getItemStack(), tooltipData, event.getFlags());
 
         if (!tooltipData.isEmpty()) stackTooltip.addAll(1, tooltipData);
     }
 
     public void addRenderLayer(EntityRenderersEvent.AddLayers event) {
-        for (EntityType<? extends Entity> entityType : event.getEntityTypes()) {
+        for (EntityType<?> entityType : ForgeRegistries.ENTITY_TYPES) {
             try {
-                var renderer = event.getRenderer(entityType);
+                var renderer = event.getRenderer((EntityType<LivingEntity>) entityType);
 
                 if (renderer instanceof LivingEntityRenderer<? extends LivingEntity, ?> livingEntityRenderer && livingEntityRenderer.getModel() instanceof HumanoidModel) {
                     livingEntityRenderer.addLayer(new AccessoriesRenderLayer(livingEntityRenderer));

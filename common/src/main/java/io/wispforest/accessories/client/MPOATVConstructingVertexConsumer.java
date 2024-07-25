@@ -27,7 +27,8 @@ public final class MPOATVConstructingVertexConsumer implements VertexConsumer {
     }
 
     @Override
-    public VertexConsumer addVertex(float x, float y, float z) {
+    @NotNull
+    public VertexConsumer vertex(double x, double y, double z) {
         var leeway = 10;
 
         var box = AccessoriesScreen.SCISSOR_BOX;
@@ -48,9 +49,12 @@ public final class MPOATVConstructingVertexConsumer implements VertexConsumer {
         return this;
     }
 
-    @Override public VertexConsumer setColor(int i, int j, int k, int l) { return this; }
-    @Override public VertexConsumer setUv(float f, float g) { return this; }
-    @Override public VertexConsumer setUv1(int i, int j) { return this; }
-    @Override public VertexConsumer setUv2(int i, int j) { return this; }
-    @Override public VertexConsumer setNormal(float f, float g, float h) { return this; }
+    @Override public VertexConsumer color(int i, int j, int k, int l) { return this; }
+    @Override public VertexConsumer uv(float f, float g) { return this; }
+    @Override public VertexConsumer overlayCoords(int i, int j) { return this; }
+    @Override public VertexConsumer uv2(int i, int j) { return this; }
+    @Override public VertexConsumer normal(float f, float g, float h) { return this; }
+    @Override public void endVertex() {}
+    @Override public void defaultColor(int defaultR, int defaultG, int defaultB, int defaultA) {}
+    @Override public void unsetDefaultColor() {}
 }
