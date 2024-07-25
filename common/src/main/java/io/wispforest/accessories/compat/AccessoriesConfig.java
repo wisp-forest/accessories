@@ -22,7 +22,6 @@ public class AccessoriesConfig implements ConfigData {
         public boolean showGroupTabs = true;
 
         public boolean showUniqueRendering = false;
-        public boolean showLineRendering = true;
 
         public int inventoryButtonXOffset = 66;
         public int inventoryButtonYOffset = 9;
@@ -39,24 +38,30 @@ public class AccessoriesConfig implements ConfigData {
         public PlayerEquipControl equipControl = PlayerEquipControl.MUST_NOT_CROUCH;
 
         @ConfigEntry.Gui.CollapsibleObject()
-        public HighlightOptions highlightOptions = new HighlightOptions();
+        public HoverOptions hoverOptions = new HoverOptions();
 
-        public static class HighlightOptions {
-            public boolean highlightHovered = true;
+        public static class HoverOptions {
 
-            @ConfigEntry.Gui.CollapsibleObject()
-            public UnselectedOptions unselectedOptions = new UnselectedOptions();
+            @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+            public HoveredOptions hoveredOptions = new HoveredOptions();
 
-            public static class UnselectedOptions {
-                public boolean renderUnselected = true;
-                @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
-                public DarkenOptions darkenOptions = new DarkenOptions();
+            public static class HoveredOptions {
+                public boolean brightenHovered = true;
+                public boolean cycleBrightness = true;
 
-                public static class DarkenOptions {
-                    public boolean darkenUnselected = true;
-                    public float darkenedBrightness = 0.5f;
-                    public float darkenedOpacity = 1f;
-                }
+                public boolean line = false;
+                public boolean clickbait = false;
+            }
+
+            @ConfigEntry.Gui.CollapsibleObject(startExpanded = true)
+            public UnHoveredOptions unHoveredOptions = new UnHoveredOptions();
+
+            public static class UnHoveredOptions {
+                public boolean renderUnHovered = true;
+
+                public boolean darkenUnHovered = true;
+                public float darkenedBrightness = 0.5f;
+                public float darkenedOpacity = 1f;
             }
         }
 

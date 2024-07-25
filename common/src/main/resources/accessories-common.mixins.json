@@ -27,6 +27,7 @@
     "EquipmentSlotTypeMixin",
     "HolderLookupAdapterAccessor",
     "InventoryMixin",
+    "LevelRendererAccessor",
     "LivingEntityAccessor",
     "LivingEntityMixin",
     "PiglinAiMixin",

@@ -98,7 +98,10 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
                         AccessoryRenderer.transformToFace(matrices, humanoidModel.head, Side.TOP);
                         matrices.translate(0, 0.25, 0);
-                        renderCall.accept(matrices);
+                        for (int i = 0; i < reference.getStack().getCount(); i++) {
+                            renderCall.accept(matrices);
+                            matrices.translate(0, 0.5, 0);
+                        }
                     }
                 }),
                 Map.entry("back", new RenderHelper() {
@@ -128,11 +131,29 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 Map.entry("ring", new RenderHelper() {
                     @Override
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
-                        AccessoryRenderer.transformToModelPart(matrices, reference.slot() % 2 == 0 ? humanoidModel.rightArm : humanoidModel.leftArm, reference.slot() % 2 == 0 ? 1 : -1, -1, 0);
-                        matrices.translate(0, 0.25, 0);
+                        AccessoryRenderer.transformToModelPart(
+                                matrices,
+                                reference.slot() % 2 == 0 ? humanoidModel.rightArm : humanoidModel.leftArm,
+                                reference.slot() % 2 == 0 ? 1 : -1,
+                                -1,
+                                0
+                        );
+                        var offset = reference.slot() / 2;
+                        matrices.translate(
+                                (reference.slot() % 2 == 0 ? -1 : 1) * offset * -0.0001,
+                                0.25 * (offset + 1),
+                                0
+                        );
                         matrices.scale(0.5f, 0.5f, 0.5f);
                         matrices.mulPose(Axis.YP.rotationDegrees(90));
-                        renderCall.accept(matrices);
+                        for (int i = 0; i < reference.getStack().getCount(); i++) {
+                            renderCall.accept(matrices);
+                            matrices.translate(
+                                    0,
+                                    0,
+                                    reference.slot() % 2 == 0 ? -0.5 : 0.5
+                            );
+                        }
                     }
                 }),
                 Map.entry("wrist", new RenderHelper() {
