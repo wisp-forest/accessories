@@ -314,7 +314,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
     public static final KeyedEndec<Integer> BASE_SIZE_KEY = Endec.INT.keyed("BaseSize", () -> null);
 
-    public static final KeyedEndec<Integer> CURRENT_SIZE_KEY = Endec.INT.keyed("CurrentSize", 0);
+    public static final KeyedEndec<Integer> CURRENT_SIZE_KEY = Endec.INT.keyed("size", 0);
 
     public static final KeyedEndec<List<Boolean>> RENDER_OPTIONS_KEY = Endec.BOOLEAN.listOf().keyed("RenderOptions", ArrayList::new);
 
