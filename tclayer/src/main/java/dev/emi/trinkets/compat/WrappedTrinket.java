@@ -86,10 +86,10 @@ public class WrappedTrinket implements Accessory {
     }
 
     @Override
-    public void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
+    public void getDynamicModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
         var ref = WrappingTrinketsUtils.createReference(reference);
 
-        if(ref.isEmpty()) Accessory.super.getModifiers(stack, reference, builder);
+        if(ref.isEmpty()) Accessory.super.getDynamicModifiers(stack, reference, builder);
 
         var id = SlotAttributes.getIdentifier(ref.get());
 
