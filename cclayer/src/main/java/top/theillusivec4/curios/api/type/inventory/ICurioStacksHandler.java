@@ -132,7 +132,7 @@ public interface ICurioStacksHandler {
    *
    * @return A map of modifiers with the UUID as keys and {@link AttributeModifier} as values
    */
-  Map<ResourceLocation, AttributeModifier> getModifiers();
+  Map<UUID, AttributeModifier> getModifiers();
 
   /**
    * Retrieves all the permanent slot modifiers on the handler.
@@ -179,9 +179,9 @@ public interface ICurioStacksHandler {
   /**
    * Removes a slot modifier from the handler.
    *
-   * @param id The UUID of the modifier to remove
+   * @param uuid The UUID of the modifier to remove
    */
-  void removeModifier(ResourceLocation id);
+  void removeModifier(UUID uuid);
 
   /**
    * Removes all the slot modifiers on the handler.

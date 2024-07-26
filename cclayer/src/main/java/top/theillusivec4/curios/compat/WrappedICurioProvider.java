@@ -8,6 +8,7 @@ import io.wispforest.accessories.api.SoundEventData;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.events.extra.*;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.utils.AttributeUtils;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
@@ -18,22 +19,18 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
-import net.neoforged.neoforge.capabilities.ICapabilityProvider;
 import top.theillusivec4.curios.CuriosConstants;
+import top.theillusivec4.curios.api.CuriosCapability;
 import top.theillusivec4.curios.api.type.capability.ICurio;
 
 import java.util.UUID;
 
 public class WrappedICurioProvider implements Accessory, LootingAdjustment, FortuneAdjustment, AllowWalkingOnSnow, EndermanMasked, PiglinNeutralInducer {
 
-    private final ICapabilityProvider<ItemStack, Void, ICurio> icurioProvider;
-
-    public WrappedICurioProvider(ICapabilityProvider<ItemStack, Void, ICurio> icurioProvider){
-        this.icurioProvider = icurioProvider;
-    }
+    public WrappedICurioProvider() {}
 
     public ICurio iCurio(ItemStack stack){
-        return icurioProvider.getCapability(stack, null);
+        return stack.getCapability(CuriosCapability.ITEM).orElse(null);
     }
 
     @Override
@@ -78,13 +75,17 @@ public class WrappedICurioProvider implements Accessory, LootingAdjustment, Fort
         Accessory.super.getDynamicModifiers(stack, reference, builder);
         //--
 
-        var id = ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference));
+        var id = new ResourceLocation(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference));
 
-        Multimap<Holder<Attribute>, AttributeModifier> attributes = HashMultimap.create();
+        var data = AttributeUtils.getModifierData(id);
 
-        attributes.putAll(this.iCurio(stack).getAttributeModifiers(context, id));
+        Multimap<Attribute, AttributeModifier> attributes = HashMultimap.create();
 
-        CuriosWrappingUtils.getAttributeModifiers(attributes, context, id, stack).forEach(builder::addExclusive);
+        attributes.putAll(this.iCurio(stack).getAttributeModifiers(context, data.right()));
+
+        CuriosWrappingUtils.getAttributeModifiers(attributes, context, data.right(), stack).forEach((attribute, modifier) -> {
+            builder.addModifier(attribute, modifier, reference, s -> new ResourceLocation(CuriosConstants.MOD_ID, s));
+        });
     }
 
     @Override
@@ -107,7 +108,7 @@ public class WrappedICurioProvider implements Accessory, LootingAdjustment, Fort
 
         var info = this.iCurio(stack).getEquipSound(context);
 
-        return new SoundEventData(Holder.direct(info.soundEvent()), info.volume(), info.pitch());
+        return new SoundEventData(info.soundEvent(), info.volume(), info.pitch());
     }
 
     @Override

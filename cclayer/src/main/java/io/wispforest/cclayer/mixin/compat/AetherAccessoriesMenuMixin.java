@@ -8,7 +8,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 
 @Pseudo
-@Mixin(AccessoriesMenu.class)
+@Mixin(value = AccessoriesMenu.class, remap = false)
 public class AetherAccessoriesMenuMixin {
     @ModifyExpressionValue(method = "lambda$new$0", at = @At(value = "INVOKE", target = "Ltop/theillusivec4/curios/api/type/inventory/ICurioStacksHandler;isVisible()Z"), require = 0, expect = 1)
     private boolean fixEvaluation(boolean value){

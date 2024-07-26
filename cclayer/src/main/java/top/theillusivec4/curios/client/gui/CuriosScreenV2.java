@@ -42,7 +42,7 @@ import javax.annotation.Nonnull;
 public class CuriosScreenV2 extends EffectRenderingInventoryScreen<CuriosContainerV2>
         implements RecipeUpdateListener, ICuriosScreen {
 
-    static final ResourceLocation CURIO_INVENTORY = ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID,
+    static final ResourceLocation CURIO_INVENTORY = new ResourceLocation(CuriosApi.MODID,
             "textures/gui/inventory_revamp.png");
 
     private final RecipeBookComponent recipeBookGui = new RecipeBookComponent();
@@ -144,7 +144,7 @@ public class CuriosScreenV2 extends EffectRenderingInventoryScreen<CuriosContain
     private static int scrollCooldown = 0;
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX) {
         // NO-OP
         return false;
     }

@@ -25,17 +25,15 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.Level;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLLoader;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fml.loading.FMLLoader;
 import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import top.theillusivec4.curios.api.type.ISlotType;
@@ -121,7 +119,7 @@ public final class CuriosApi {
    * @param stack The {@link ItemStack} to get the curio capability from
    * @return {@link Optional} of the curio capability
    */
-  public static Optional<ICurio> getCurio(ItemStack stack) {
+  public static LazyOptional<ICurio> getCurio(ItemStack stack) {
     return CuriosImplMixinHooks.getCurio(stack);
   }
 
@@ -131,7 +129,7 @@ public final class CuriosApi {
    * @param livingEntity The {@link LivingEntity} to get the curio inventory capability from
    * @return {@link Optional} of the curio inventory capability
    */
-  public static Optional<ICuriosItemHandler> getCuriosInventory(LivingEntity livingEntity) {
+  public static LazyOptional<ICuriosItemHandler> getCuriosInventory(LivingEntity livingEntity) {
     return CuriosImplMixinHooks.getCuriosInventory(livingEntity);
   }
 
@@ -155,15 +153,11 @@ public final class CuriosApi {
    *
    * @param slotContext Context about the slot that the ItemStack is equipped in or may potentially
    *                    be equipped in
-   * @param id          Slot-unique id
+   * @param uuid        Slot-unique id
    * @param stack       The ItemStack in question
    * @return A map of attribute modifiers
    */
-  public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, ResourceLocation id, ItemStack stack) {
-    return CuriosImplMixinHooks.getAttributeModifiers(slotContext, id, stack);
-  }
-
-  public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
+  public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
     return CuriosImplMixinHooks.getAttributeModifiers(slotContext, uuid, stack);
   }
 
@@ -175,12 +169,8 @@ public final class CuriosApi {
    * @param amount     The amount of the modifier
    * @param operation  The operation of the modifier
    */
-  public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String identifier, double amount, AttributeModifier.Operation operation) {
-    CuriosImplMixinHooks.addSlotModifier(map, identifier, amount, operation);
-  }
-
-  public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String identifier, ResourceLocation id, double amount, AttributeModifier.Operation operation) {
-    CuriosImplMixinHooks.addSlotModifier(map, identifier, id, amount, operation);
+  public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String identifier, UUID uuid, double amount, AttributeModifier.Operation operation) {
+    CuriosImplMixinHooks.addSlotModifier(map, identifier, uuid, amount, operation);
   }
 
   /**
@@ -193,32 +183,8 @@ public final class CuriosApi {
    * @param operation  The operation of the modifier
    * @param slot       The slot that the ItemStack provides the modifier from
    */
-  public static void addSlotModifier(ItemStack stack, String identifier, String name, double amount, AttributeModifier.Operation operation, String slot) {
-    CuriosImplMixinHooks.addSlotModifier(stack, identifier, name, amount, operation, slot);
-  }
-
-  public static void addSlotModifier(ItemStack stack, String identifier, String name, ResourceLocation id, double amount, AttributeModifier.Operation operation, String slot) {
-    CuriosImplMixinHooks.addSlotModifier(stack, identifier, id, amount, operation, slot);
-  }
-
-  /**
-   * Creates an {@link ItemAttributeModifiers} with an added slot modifier.
-   *
-   * @param itemAttributeModifiers A {@link ItemAttributeModifiers} instance
-   * @param identifier             The identifier of the slot to add the modifier onto
-   * @param id                     id associated with the modifier
-   * @param amount                 The amount of the modifier
-   * @param operation              The operation of the modifier
-   * @param slotGroup              The slot to provide the modifier from
-   */
-  public static ItemAttributeModifiers withSlotModifier(ItemAttributeModifiers itemAttributeModifiers, String identifier, ResourceLocation id, double amount, AttributeModifier.Operation operation, EquipmentSlotGroup slotGroup) {
-    //return CuriosImplMixinHooks.withSlotModifier(itemAttributeModifiers, identifier, id, amount, operation, slotGroup);
-    return ItemAttributeModifiers.EMPTY;
-  }
-
-  public static ItemAttributeModifiers withSlotModifier(ItemAttributeModifiers itemAttributeModifiers, String identifier, UUID uuid, double amount, AttributeModifier.Operation operation, EquipmentSlotGroup slotGroup) {
-    //return CuriosImplMixinHooks.withSlotModifier(itemAttributeModifiers, identifier, uuid, amount, operation, slotGroup);
-    return ItemAttributeModifiers.EMPTY;
+  public static void addSlotModifier(ItemStack stack, String identifier, String name, UUID uuid, double amount, AttributeModifier.Operation operation, String slot) {
+    CuriosImplMixinHooks.addSlotModifier(stack, identifier, name, uuid, amount, operation, slot);
   }
 
   /**
@@ -227,16 +193,13 @@ public final class CuriosApi {
    * @param stack     The ItemStack to add the modifier to
    * @param attribute The attribute to add the modifier onto
    * @param name      The name for the modifier
+   * @param uuid      A UUID associated wth the modifier, or null if the slot UUID should be used
    * @param amount    The amount of the modifier
    * @param operation The operation of the modifier
    * @param slot      The slot that the ItemStack provides the modifier from
    */
-  public static void addModifier(ItemStack stack, Holder<Attribute> attribute, String name, double amount, AttributeModifier.Operation operation, String slot) {
-    CuriosImplMixinHooks.addModifier(stack, attribute, name, amount, operation, slot);
-  }
-
-  public static void addModifier(ItemStack stack, Holder<Attribute> attribute, ResourceLocation id, double amount, AttributeModifier.Operation operation, String slot) {
-    CuriosImplMixinHooks.addModifier(stack, attribute, id, amount, operation, slot);
+  public static void addModifier(ItemStack stack, Attribute attribute, String name, UUID uuid, double amount, AttributeModifier.Operation operation, String slot) {
+    CuriosImplMixinHooks.addModifier(stack, attribute, name, uuid, amount, operation, slot);
   }
 
   /**
@@ -288,17 +251,7 @@ public final class CuriosApi {
    * @return The UUID based on the SlotContext
    */
   public static UUID getSlotUuid(SlotContext slotContext) {
-    return CuriosImplMixinHooks.getSlotUuid(slotContext);
-  }
-
-  /**
-   * Gets a UUID based on the provided {@link SlotContext}.
-   *
-   * @param slotContext The SlotContext to base the ResourceLocation on
-   * @return The ResourceLocation based on the SlotContext
-   */
-  public static ResourceLocation getSlotId(SlotContext slotContext) {
-    return CuriosImplMixinHooks.getSlotId(slotContext);
+    return CuriosImplMixinHooks.getUuid(slotContext);
   }
 
   /**
@@ -339,7 +292,7 @@ public final class CuriosApi {
   @Nonnull
   public static ResourceLocation getSlotIcon(String id) {
     return CuriosApi.getSlot(id, true).map(ISlotType::getIcon)
-            .orElse(ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "slot/empty_curio_slot"));
+            .orElse(new ResourceLocation(CuriosApi.MODID, "slot/empty_curio_slot"));
   }
 
   /**

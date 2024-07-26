@@ -3,7 +3,7 @@ package top.theillusivec4.curios.client.gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.components.WidgetSprites;
+
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -12,18 +12,12 @@ import javax.annotation.Nonnull;
 
 public class CosmeticButton extends ImageButton {
 
-    public static final WidgetSprites OFF =
-            new WidgetSprites(ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "cosmetic_off"),
-                    ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "cosmetic_off_highlighted"));
-
-    public static final WidgetSprites ON =
-            new WidgetSprites(ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "cosmetic_on"),
-                    ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "cosmetic_on_highlighted"));
-
+    private static final ResourceLocation CURIO_INVENTORY =
+            new ResourceLocation(CuriosApi.MODID, "textures/gui/inventory_revamp.png");
     private final CuriosScreenV2 parentGui;
 
     CosmeticButton(CuriosScreenV2 parentGui, int xIn, int yIn, int widthIn, int heightIn) {
-        super(xIn, yIn, widthIn, heightIn, OFF,
+        super(xIn, yIn, widthIn, heightIn, 0, 0, CURIO_INVENTORY,
                 (button) -> {
 //                    parentGui.getMenu().toggleCosmetics();
 //                    NetworkHandler.INSTANCE.send(PacketDistributor.SERVER.noArg(), new CPacketToggleCosmetics(parentGui.getMenu().containerId));
@@ -34,17 +28,21 @@ public class CosmeticButton extends ImageButton {
 
     @Override
     public void renderWidget(@Nonnull GuiGraphics guiGraphics, int x, int y, float partialTicks) {
-        WidgetSprites sprites1;
+        int xTex;
+        int yTex = 0;
 
         if (this.parentGui.getMenu().isViewingCosmetics) {
-            sprites1 = ON;
+            xTex = 143;
         } else {
-            sprites1 = OFF;
+            xTex = 123;
         }
 
+        if (this.isHoveredOrFocused()) {
+            yTex = 17;
+        }
         this.setX(this.parentGui.getGuiLeft() - 27);
         this.setY(this.parentGui.getGuiTop() - 18);
-        ResourceLocation resourceLocation = sprites1.get(this.isActive(), this.isHoveredOrFocused());
-        guiGraphics.blitSprite(resourceLocation, this.getX(), this.getY(), this.width, this.height);
+        guiGraphics.blit(this.resourceLocation, this.getX(), this.getY(), xTex, yTex, this.width,
+                this.height);
     }
 }

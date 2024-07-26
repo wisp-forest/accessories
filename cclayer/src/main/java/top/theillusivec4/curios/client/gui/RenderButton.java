@@ -29,14 +29,13 @@ import net.minecraft.resources.ResourceLocation;
 import top.theillusivec4.curios.common.inventory.CurioSlot;
 
 public class RenderButton extends ImageButton {
-
     private final ResourceLocation resourceLocation;
     private final int yTexStart;
     private final int xTexStart;
     private final CurioSlot slot;
 
-    public RenderButton(CurioSlot slot, int xIn, int yIn, int widthIn, int heightIn, int xTexStartIn, int yTexStartIn, ResourceLocation resourceLocationIn, Button.OnPress onPressIn) {
-        super(xIn, yIn, widthIn, heightIn, RecipeBookComponent.RECIPE_BUTTON_SPRITES, onPressIn);
+    public RenderButton(CurioSlot slot, int xIn, int yIn, int widthIn, int heightIn, int xTexStartIn, int yTexStartIn, int yDiffTextIn, ResourceLocation resourceLocationIn, Button.OnPress onPressIn) {
+        super(xIn, yIn, widthIn, heightIn, xTexStartIn, yTexStartIn, yDiffTextIn, resourceLocationIn, 256, 256, onPressIn);
         this.resourceLocation = resourceLocationIn;
         this.yTexStart = yTexStartIn;
         this.xTexStart = xTexStartIn;

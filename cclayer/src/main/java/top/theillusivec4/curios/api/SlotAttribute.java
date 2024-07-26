@@ -27,14 +27,13 @@ import java.util.Map;
 
 public class SlotAttribute extends Attribute {
 
-  private static final Map<String, Holder<? extends Attribute>> SLOT_ATTRIBUTES = new HashMap<>();
+  private static final Map<String, SlotAttribute> SLOT_ATTRIBUTES = new HashMap<>();
 
   private final String identifier;
 
   @SuppressWarnings("unchecked")
-  public static Holder<Attribute> getOrCreate(String id) {
-    return (Holder<Attribute>) SLOT_ATTRIBUTES.computeIfAbsent(id,
-            (k) -> new Holder.Direct<>(new SlotAttribute(id)));
+  public static SlotAttribute getOrCreate(String id) {
+    return SLOT_ATTRIBUTES.computeIfAbsent(id, (k) -> new SlotAttribute(id));
   }
 
   protected SlotAttribute(String identifier) {

@@ -107,7 +107,7 @@ public class CuriosScreen extends EffectRenderingInventoryScreen<CuriosContainer
             int i = this.leftPos;
             int j = this.topPos;
             guiGraphics.blit(INVENTORY_LOCATION, i, j, 0, 0, this.imageWidth, this.imageHeight);
-            InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i + 26, j + 8, i + 75, j + 78, 30, 0.0625F, mouseX, mouseY, this.minecraft.player);
+            InventoryScreen.renderEntityInInventoryFollowsMouse(guiGraphics, i + 51, j + 75, 30, (float) (i + 51) - mouseX, (float) (j + 75 - 50) - mouseY, this.minecraft.player);
         }
     }
 
@@ -143,7 +143,7 @@ public class CuriosScreen extends EffectRenderingInventoryScreen<CuriosContainer
     }
 
     @Override
-    public boolean mouseScrolled(double pMouseScrolled1, double pMouseScrolled3, double pMouseScrolled5, double pMouseScrolled6) {
+    public boolean mouseScrolled(double pMouseScrolled1, double pMouseScrolled3, double pMouseScrolled5) {
         // NO-OP
         return false;
     }

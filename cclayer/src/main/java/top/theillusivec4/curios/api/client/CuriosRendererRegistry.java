@@ -61,7 +61,7 @@ public class CuriosRendererRegistry {
 
         var renderLayer = new RenderLayerParent<M, EntityModel<M>>(){
           @Override public EntityModel<M> getModel() { return model; }
-          @Override public ResourceLocation getTextureLocation(M entity) { return ResourceLocation.withDefaultNamespace(""); }
+          @Override public ResourceLocation getTextureLocation(M entity) { return new ResourceLocation(""); }
         };
 
         innerRenderer.render(stack, context, matrices, renderLayer, multiBufferSource, light, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);

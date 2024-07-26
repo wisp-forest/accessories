@@ -22,7 +22,6 @@ package top.theillusivec4.curios.client.gui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
-import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
@@ -30,7 +29,6 @@ import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.network.PacketDistributor;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.client.ICuriosScreen;
 
@@ -38,12 +36,10 @@ import javax.annotation.Nonnull;
 
 public class CuriosButton extends ImageButton {
 
-    public static final WidgetSprites BIG = new WidgetSprites(ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "button"), ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "button_highlighted"));
-    public static final WidgetSprites SMALL = new WidgetSprites(ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "button_small"), ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "button_small_highlighted"));
     private final AbstractContainerScreen<?> parentGui;
 
-    CuriosButton(AbstractContainerScreen<?> parentGui, int xIn, int yIn, int widthIn, int heightIn, WidgetSprites sprites) {
-        super(xIn, yIn, widthIn, heightIn, sprites, (button) -> {});
+    CuriosButton(AbstractContainerScreen<?> parentGui, int xIn, int yIn, int widthIn, int heightIn, int textureOffsetX, int textureOffsetY, int yDiffText, ResourceLocation resource) {
+        super(xIn, yIn, widthIn, heightIn, textureOffsetX, textureOffsetY, yDiffText, resource, (button) -> {/* NO-OP */});
         this.parentGui = parentGui;
     }
 
@@ -51,8 +47,8 @@ public class CuriosButton extends ImageButton {
     public void renderWidget(@Nonnull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         Tuple<Integer, Integer> offsets = CuriosScreen.getButtonOffset(parentGui instanceof CreativeModeInventoryScreen);
 
-        this.setX(parentGui.getGuiLeft() + offsets.getA() + 2);
-        int yOffset = parentGui instanceof CreativeModeInventoryScreen ? 70 : 85;
+        this.setX(parentGui.getGuiLeft() + offsets.getA());
+        int yOffset = parentGui instanceof CreativeModeInventoryScreen ? 68 : 83;
         this.setY(parentGui.getGuiTop() + offsets.getB() + yOffset);
 
         if (parentGui instanceof CreativeModeInventoryScreen gui) {

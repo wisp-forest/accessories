@@ -11,7 +11,6 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.common.CuriosRegistry;
@@ -126,8 +125,8 @@ public class CuriosContainerV2 extends CuriosContainer {
     }
 
     @Override
-    public boolean recipeMatches(RecipeHolder<CraftingRecipe> recipe) {
-        return recipe.value().matches(this.craftMatrix.asCraftInput(), this.player.level());
+    public boolean recipeMatches(Recipe<? super CraftingContainer> arg) {
+        return arg.matches(this.craftMatrix, this.player.level());
     }
 
     @Override

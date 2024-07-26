@@ -13,6 +13,6 @@ public class AccessoriesCapabilityImplMixin {
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void attemptCurioConversion(LivingEntity entity, CallbackInfo ci) {
-        WrappedCurioItemHandler.attemptConversion((AccessoriesCapabilityImpl) (Object) this);
+        WrappedCurioItemHandler.attemptConversion(() -> (AccessoriesCapabilityImpl) (Object) this);
     }
 }

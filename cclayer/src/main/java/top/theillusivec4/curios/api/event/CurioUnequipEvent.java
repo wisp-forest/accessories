@@ -19,9 +19,9 @@
 
 package top.theillusivec4.curios.api.event;
 
+import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.util.TriState;
-import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import top.theillusivec4.curios.api.SlotContext;
 
 /**
@@ -37,27 +37,28 @@ import top.theillusivec4.curios.api.SlotContext;
  * <li>{@link TriState#FALSE} means the curio item cannot be unequipped.</li></ul><br>
  * This event is fired on the {@link net.neoforged.neoforge.common.NeoForge#EVENT_BUS}.
  */
-public class CurioCanUnequipEvent extends LivingEvent {
+public class CurioUnequipEvent extends LivingEvent {
 
   private final SlotContext slotContext;
   private final ItemStack stack;
-  private TriState result;
+  private Result result;
 
-  public CurioCanUnequipEvent(ItemStack stack, SlotContext slotContext) {
+  public CurioUnequipEvent(ItemStack stack, SlotContext slotContext) {
     super(slotContext.entity());
     this.slotContext = slotContext;
     this.stack = stack;
   }
 
-  public TriState getUnequipResult() {
+  public Result getUnequipResult() {
     return this.result;
   }
 
-  public void setUnequipResult(TriState result) {
+  public void setUnequipResult(Result result) {
     this.result = result;
   }
 
-  public void setResult(TriState result) {
+  @Override
+  public void setResult(Result result) {
     this.setUnequipResult(result);
   }
 

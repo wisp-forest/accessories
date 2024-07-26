@@ -119,8 +119,7 @@ public class ItemizedCurioCapability implements ICurio {
   }
 
   @Override
-  public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext,
-                                                                              UUID uuid) {
+  public Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid) {
     return this.curioItem.getAttributeModifiers(slotContext, uuid, this.getStack());
   }
 

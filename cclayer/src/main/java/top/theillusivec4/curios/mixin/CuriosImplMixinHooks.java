@@ -31,6 +31,7 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.Util;
 import net.minecraft.core.Holder;
@@ -47,7 +48,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.common.NeoForge;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.LazyOptional;
 import org.slf4j.Logger;
 import top.theillusivec4.curios.CuriosConstants;
 import top.theillusivec4.curios.api.*;
@@ -57,10 +59,8 @@ import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.common.CuriosRegistry;
-import top.theillusivec4.curios.compat.CuriosWrappingUtils;
-import top.theillusivec4.curios.compat.WrappedAccessory;
-import top.theillusivec4.curios.compat.WrappedCurio;
-import top.theillusivec4.curios.compat.WrappedSlotType;
+import top.theillusivec4.curios.common.capability.ItemizedCurioCapability;
+import top.theillusivec4.curios.compat.*;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -91,7 +91,7 @@ public class CuriosImplMixinHooks {
   public static ResourceLocation getSlotIcon(String id) {
     var type = SlotTypeLoader.INSTANCE.getSlotTypes(false).get(CuriosWrappingUtils.curiosToAccessories(id));
 
-    if(type == null) return ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "slot/empty_curio_slot");
+    if(type == null) return new ResourceLocation(CuriosApi.MODID, "slot/empty_curio_slot");
 
     return type.icon();
   }
@@ -218,107 +218,105 @@ public class CuriosImplMixinHooks {
     return result;
   }
 
-  public static Optional<ICurio> getCurio(ItemStack stack) {
-    return Optional.ofNullable(stack.getCapability(CuriosCapability.ITEM));
+  public static LazyOptional<ICurio> getCurio(ItemStack stack) {
+    var capability = stack.getCapability(CuriosCapability.ITEM);
+
+    if(capability.isPresent()) return capability;
+
+    var accessory = AccessoriesAPI.getAccessory(stack);
+
+    if(accessory != null) return LazyOptional.of(() -> new ItemizedCurioCapability(new WrappedAccessory(accessory), stack));
+
+    return LazyOptional.empty();
   }
 
-  public static Optional<ICuriosItemHandler> getCuriosInventory(LivingEntity livingEntity) {
+  public static LazyOptional<ICuriosItemHandler> getCuriosInventory(LivingEntity livingEntity) {
+    var accessoryCapability = (AccessoriesCapabilityImpl) livingEntity.accessoriesCapability();
 
-    if (livingEntity != null) {
-      return Optional.ofNullable(livingEntity.getCapability(CuriosCapability.INVENTORY));
+    if (accessoryCapability != null) {
+      return LazyOptional.of(() -> new WrappedCurioItemHandler(() -> accessoryCapability));
     } else {
-      return Optional.empty();
+      return LazyOptional.empty();
     }
   }
 
   public static boolean isStackValid(SlotContext slotContext, ItemStack stack) {
-    boolean isValid = AccessoriesAPI.canInsertIntoSlot(stack, SlotReference.of(slotContext.entity(), CuriosWrappingUtils.curiosToAccessories(slotContext.identifier()), slotContext.index()));
-    if(isValid) return true;
+    var slotName = CuriosWrappingUtils.curiosToAccessories(slotContext.identifier());
+
+    /*
+     * blodhgarm: This is a cursed workaround for people who decided that passing a null entity for SlotContext
+     * is a valid solution and for the ones that do it... you make my life hard even if it works within curios.
+     * Good news is that this will not be needed within the future... I HOPE!
+     */
+    if(slotContext.entity() == null) {
+      var slotType = SlotTypeLoader.INSTANCE.getSlotTypes(false).get(slotName);
+
+      if(slotType == null) return false;
+
+      boolean bl = false;
+
+      try {
+        bl = AccessoriesAPI.getPredicateResults(slotType.validators(), null, slotType, 0, stack);
+      } catch (Exception ignored) {}
+
+      if(!bl) return false;
+
+      boolean bl2 = false;
+
+      try {
+        bl2 = AccessoriesAPI.canEquip(stack, SlotReference.of(null, slotName, 0));
+      } catch (Exception ignored) {}
+
+      if(bl2) return true;
+    } else {
+      boolean isValid = AccessoriesAPI.canInsertIntoSlot(stack, SlotReference.of(slotContext.entity(), slotName, slotContext.index()));
+
+      if(isValid) return true;
+    }
 
     String id = slotContext.identifier();
     Set<String> slots = getItemStackSlots(stack, slotContext.entity()).keySet();
     return (!slots.isEmpty() && id.equals("curio")) || slots.contains(id) ||
-        slots.contains("curio");
+            slots.contains("curio");
   }
 
-  public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, ResourceLocation id, ItemStack stack) {
-    Multimap<Holder<Attribute>, AttributeModifier> multimap = LinkedHashMultimap.create();
-    CurioAttributeModifiers attributemodifiers =
-            stack.getOrDefault(CuriosRegistry.CURIO_ATTRIBUTE_MODIFIERS, CurioAttributeModifiers.EMPTY);
+  public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
+    Multimap<Attribute, AttributeModifier> multimap = HashMultimap.create();
 
-    if (!attributemodifiers.modifiers().isEmpty()) {
+    if (stack.getTag() != null && stack.getTag().contains("CurioAttributeModifiers", 9)) {
+      ListTag listnbt = stack.getTag().getList("CurioAttributeModifiers", 10);
+      String identifier = slotContext.identifier();
 
-      for (CurioAttributeModifiers.Entry modifier : attributemodifiers.modifiers()) {
+      for (int i = 0; i < listnbt.size(); ++i) {
+        CompoundTag compoundnbt = listnbt.getCompound(i);
 
-        if (modifier.slot().equals(slotContext.identifier())) {
-          ResourceLocation rl = modifier.attribute();
-          AttributeModifier attributeModifier = modifier.modifier();
+        if (compoundnbt.getString("Slot").equals(identifier)) {
+          ResourceLocation rl = ResourceLocation.tryParse(compoundnbt.getString("AttributeName"));
+          UUID id = uuid;
 
           if (rl != null) {
-            AttributeModifier.Operation operation = attributeModifier.operation();
-            double amount = attributeModifier.amount();
 
-            if (rl.getNamespace().equals("curios")) {
-              String identifier1 = rl.getPath();
-              LivingEntity livingEntity = slotContext.entity();
-              boolean clientSide = livingEntity == null || livingEntity.level().isClientSide();
-
-              if (CuriosApi.getSlot(identifier1, clientSide).isPresent()) {
-                CuriosApi.addSlotModifier(multimap, identifier1, id, amount, operation);
-              }
-            } else {
-              Holder<Attribute> attribute =
-                      BuiltInRegistries.ATTRIBUTE.getHolder(rl).orElse(null);
-
-              if (attribute != null) {
-                multimap.put(attribute, new AttributeModifier(id, amount, operation));
-              }
+            if (compoundnbt.contains("UUID")) {
+              id = compoundnbt.getUUID("UUID");
             }
-          }
-        }
-      }
-    } else {
-      multimap = getCurio(stack).map(curio -> curio.getAttributeModifiers(slotContext, id))
-              .orElse(multimap);
-    }
-    CurioAttributeModifierEvent evt =
-            new CurioAttributeModifierEvent(stack, slotContext, id, multimap);
-    NeoForge.EVENT_BUS.post(evt);
-    return LinkedHashMultimap.create(evt.getModifiers());
-  }
 
-  public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
-    Multimap<Holder<Attribute>, AttributeModifier> multimap = LinkedHashMultimap.create();
-    CurioAttributeModifiers attributemodifiers = stack.getOrDefault(CuriosRegistry.CURIO_ATTRIBUTE_MODIFIERS, CurioAttributeModifiers.EMPTY);
-
-    if (!attributemodifiers.modifiers().isEmpty()) {
-
-      for (CurioAttributeModifiers.Entry modifier : attributemodifiers.modifiers()) {
-
-        if (modifier.slot().equals(slotContext.identifier())) {
-          ResourceLocation rl = modifier.attribute();
-          AttributeModifier attributeModifier = modifier.modifier();
-
-          if (rl != null) {
-
-            if (uuid.getLeastSignificantBits() != 0L && uuid.getMostSignificantBits() != 0L) {
-              AttributeModifier.Operation operation = attributeModifier.operation();
-              double amount = attributeModifier.amount();
-              ResourceLocation name = attributeModifier.id();
+            if (id.getLeastSignificantBits() != 0L && id.getMostSignificantBits() != 0L) {
+              AttributeModifier.Operation operation =
+                      AttributeModifier.Operation.fromValue(compoundnbt.getInt("Operation"));
+              double amount = compoundnbt.getDouble("Amount");
+              String name = compoundnbt.getString("Name");
 
               if (rl.getNamespace().equals("curios")) {
-                String identifier1 = rl.getPath();
-                LivingEntity livingEntity = slotContext.entity();
-                boolean clientSide = livingEntity == null || livingEntity.level().isClientSide();
+                String identifier1 = CuriosWrappingUtils.curiosToAccessories(rl.getPath());
 
-                if (CuriosApi.getSlot(identifier1, clientSide).isPresent()) {
-                  CuriosApi.addSlotModifier(multimap, identifier1, amount, operation);
+                if (CuriosApi.getSlot(identifier1).isPresent()) {
+                  CuriosApi.addSlotModifier(multimap, identifier1, id, amount, operation);
                 }
               } else {
-                Holder<Attribute> attribute = BuiltInRegistries.ATTRIBUTE.getHolder(rl).orElse(null);
+                Attribute attribute = BuiltInRegistries.ATTRIBUTE.getOptional(rl).orElse(null);
 
                 if (attribute != null) {
-                  multimap.put(attribute, new AttributeModifier(name, amount, operation));
+                  multimap.put(attribute, new AttributeModifier(id, name, amount, operation));
                 }
               }
             }
@@ -326,41 +324,25 @@ public class CuriosImplMixinHooks {
         }
       }
     } else {
-      multimap = getCurio(stack).map(curio -> curio.getAttributeModifiers(slotContext, uuid)).orElse(multimap);
+      multimap = getCurio(stack).map(curio -> curio.getAttributeModifiers(slotContext, uuid))
+              .orElse(multimap);
     }
-
     CurioAttributeModifierEvent evt = new CurioAttributeModifierEvent(stack, slotContext, uuid, multimap);
-    NeoForge.EVENT_BUS.post(evt);
-    return LinkedHashMultimap.create(evt.getModifiers());
+    MinecraftForge.EVENT_BUS.post(evt);
+    return HashMultimap.create(evt.getModifiers());
   }
 
-  public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String identifier, ResourceLocation id, double amount, AttributeModifier.Operation operation) {
-    map.put(Holder.direct(io.wispforest.accessories.api.attributes.SlotAttribute.getSlotAttribute(CuriosWrappingUtils.curiosToAccessories(identifier))), new AttributeModifier(id, amount, operation));
+  public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String identifier, UUID uuid, double amount, AttributeModifier.Operation operation) {
+    map.put(io.wispforest.accessories.api.attributes.SlotAttribute.getSlotAttribute(CuriosWrappingUtils.curiosToAccessories(identifier)), new AttributeModifier(uuid, identifier, amount, operation));
   }
 
-  public static void addSlotModifier(ItemStack stack, String identifier, ResourceLocation id, double amount, AttributeModifier.Operation operation, String slot) {
-    io.wispforest.accessories.api.attributes.SlotAttribute.addSlotAttribute(stack, CuriosWrappingUtils.curiosToAccessories(identifier), slot, id, amount, operation, false);
+  public static void addSlotModifier(ItemStack stack, String identifier, String name, UUID uuid, double amount, AttributeModifier.Operation operation, String slot) {
+    io.wispforest.accessories.api.attributes.SlotAttribute.addSlotAttribute(stack, CuriosWrappingUtils.curiosToAccessories(identifier), slot, name, uuid, amount, operation, false);
   }
 
-  public static void addModifier(ItemStack stack, Holder<Attribute> attribute, ResourceLocation id, double amount, AttributeModifier.Operation operation, String slot) {
-    AccessoriesAPI.addAttribute(stack, slot, attribute, id, amount, operation, false);
+  public static void addModifier(ItemStack stack, Attribute attribute, String name, UUID uuid, double amount, AttributeModifier.Operation operation, String slot) {
+    AccessoriesAPI.addAttribute(stack, slot, attribute, name, uuid, amount, operation, false);
   }
-
-  //--
-
-  public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String identifier, double amount, AttributeModifier.Operation operation) {
-    addSlotModifier(map, identifier, ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, identifier), amount, operation);
-  }
-
-  public static void addSlotModifier(ItemStack stack, String identifier, String name, double amount, AttributeModifier.Operation operation, String slot) {
-    addSlotModifier(stack, identifier, ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, name), amount, operation, slot);
-  }
-
-  public static void addModifier(ItemStack stack, Holder<Attribute> attribute, String name, double amount, AttributeModifier.Operation operation, String slot) {
-    addModifier(stack, attribute, ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, name), amount, operation, slot);
-  }
-
-
 
   //--
 
@@ -370,14 +352,9 @@ public class CuriosImplMixinHooks {
 
   private static final Map<String, UUID> UUIDS = new HashMap<>();
 
-  public static UUID getSlotUuid(SlotContext slotContext) {
+  public static UUID getUuid(SlotContext slotContext) {
     String key = slotContext.identifier() + slotContext.index();
     return UUIDS.computeIfAbsent(key, (k) -> UUID.nameUUIDFromBytes(k.getBytes()));
-  }
-
-  public static ResourceLocation getSlotId(SlotContext slotContext) {
-    String key = slotContext.identifier() + slotContext.index();
-    return ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, key);
   }
 
   private static final Map<ResourceLocation, Predicate<SlotResult>> SLOT_RESULT_PREDICATES = new HashMap<>();
@@ -427,12 +404,12 @@ public class CuriosImplMixinHooks {
   }
 
   static {
-    registerCurioPredicate(ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "all"), (slotResult) -> true);
-    registerCurioPredicate(ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "none"), (slotResult) -> false);
-    registerCurioPredicate(ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "tag"), (slotResult) -> {
+    registerCurioPredicate(new ResourceLocation(CuriosApi.MODID, "all"), (slotResult) -> true);
+    registerCurioPredicate(new ResourceLocation(CuriosApi.MODID, "none"), (slotResult) -> false);
+    registerCurioPredicate(new ResourceLocation(CuriosApi.MODID, "tag"), (slotResult) -> {
       String id = slotResult.slotContext().identifier();
-      TagKey<Item> tag1 = ItemTags.create(ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, id));
-      TagKey<Item> tag2 = ItemTags.create(ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "curio"));
+      TagKey<Item> tag1 = ItemTags.create(new ResourceLocation(CuriosApi.MODID, id));
+      TagKey<Item> tag2 = ItemTags.create(new ResourceLocation(CuriosApi.MODID, "curio"));
       ItemStack stack = slotResult.stack();
       return stack.is(tag1) || stack.is(tag2);
     });

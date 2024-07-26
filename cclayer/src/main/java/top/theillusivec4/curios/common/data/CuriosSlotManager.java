@@ -29,7 +29,7 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.neoforged.neoforge.common.conditions.ICondition;
+import net.minecraftforge.common.crafting.conditions.ICondition;
 import org.apache.commons.lang3.EnumUtils;
 import top.theillusivec4.curios.CuriosConstants;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -76,7 +76,7 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
           namespace -> packResources.listResources(PackType.SERVER_DATA, namespace, "curios/slots",
               (resourceLocation, inputStreamIoSupplier) -> {
                 String path = resourceLocation.getPath();
-                ResourceLocation rl = ResourceLocation.fromNamespaceAndPath(namespace,
+                ResourceLocation rl = new ResourceLocation(namespace,
                     path.substring("curios/slots/".length(), path.length() - ".json".length()));
 
                 JsonElement el = pObject.get(rl);
@@ -94,7 +94,7 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
         try {
           String id = resourcelocation.getPath();
 
-          if (!ICondition.conditionsMatched(JsonOps.INSTANCE, entry.getValue().getAsJsonObject())) {
+          if (!ICondition.shouldRegisterEntry(entry.getValue().getAsJsonObject())) {
             CuriosConstants.LOG.debug("Skipping loading slot {} as its conditions were not met",
                 resourcelocation);
             continue;
@@ -134,7 +134,7 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
       try {
         String id = resourcelocation.getPath();
 
-        if (!ICondition.conditionsMatched(JsonOps.INSTANCE, entry.getValue().getAsJsonObject())) {
+        if (!ICondition.shouldRegisterEntry(entry.getValue().getAsJsonObject())) {
           CuriosConstants.LOG.debug("Skipping loading slot {} as its conditions were not met",
               resourcelocation);
           continue;
@@ -170,7 +170,7 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
   }
 
   public ResourceLocation getIcon(String identifier) {
-    return this.icons.getOrDefault(identifier, ResourceLocation.fromNamespaceAndPath(CuriosApi.MODID, "slot/empty_curio_slot"));
+    return this.icons.getOrDefault(identifier, new ResourceLocation(CuriosApi.MODID, "slot/empty_curio_slot"));
   }
 
   public Map<String, Set<String>> getModsFromSlots() {
@@ -219,7 +219,7 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
     }
 
     if (!jsonIcon.isEmpty()) {
-      builder.icon(ResourceLocation.parse(jsonIcon));
+      builder.icon(new ResourceLocation(jsonIcon));
     }
 
     if (!jsonDropRule.isEmpty()) {
@@ -245,7 +245,7 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
     if (jsonSlotResultPredicate != null) {
 
       for (JsonElement jsonElement : jsonSlotResultPredicate) {
-        builder.validator(ResourceLocation.parse(jsonElement.getAsString()));
+        builder.validator(new ResourceLocation(jsonElement.getAsString()));
       }
     }
   }

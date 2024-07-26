@@ -1,31 +1,26 @@
 package top.theillusivec4.curios.compat;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.fabricmc.fabric.api.util.TriState;
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.Event;
-import net.neoforged.neoforge.common.NeoForge;
-import top.theillusivec4.curios.api.CurioAttributeModifiers;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.eventbus.api.Event;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.event.CurioAttributeModifierEvent;
 import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
-import top.theillusivec4.curios.common.CuriosRegistry;
 import top.theillusivec4.curios.mixin.CuriosImplMixinHooks;
 
 import java.util.Optional;
@@ -65,12 +60,12 @@ public class CuriosWrappingUtils {
         };
     }
 
-    public static TriState convert(net.neoforged.neoforge.common.util.TriState result){
+    public static TriState convert(Event.Result result){
         if(result == null) return TriState.DEFAULT;
 
         return switch (result){
-            case FALSE -> TriState.FALSE;
-            case TRUE -> TriState.TRUE;
+            case DENY -> TriState.FALSE;
+            case ALLOW -> TriState.TRUE;
             case DEFAULT -> TriState.DEFAULT;
         };
     }
@@ -120,35 +115,44 @@ public class CuriosWrappingUtils {
 
     //--
 
-    public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(Multimap<Holder<Attribute>, AttributeModifier> multimap, SlotContext slotContext, ResourceLocation id, ItemStack stack) {
-        CurioAttributeModifiers attributemodifiers = stack.getOrDefault(CuriosRegistry.CURIO_ATTRIBUTE_MODIFIERS, CurioAttributeModifiers.EMPTY);
+    public static Multimap<Attribute, AttributeModifier> getAttributeModifiers(Multimap<Attribute, AttributeModifier> multimap, SlotContext slotContext, UUID uuid, ItemStack stack) {
+        if (stack.getTag() != null && stack.getTag().contains("CurioAttributeModifiers", 9)) {
+            multimap.clear();
 
-        if (!attributemodifiers.modifiers().isEmpty()) {
+            ListTag listnbt = stack.getTag().getList("CurioAttributeModifiers", 10);
+            String identifier = slotContext.identifier();
 
-            for (CurioAttributeModifiers.Entry modifier : attributemodifiers.modifiers()) {
+            for (int i = 0; i < listnbt.size(); ++i) {
+                CompoundTag compoundnbt = listnbt.getCompound(i);
 
-                if (modifier.slot().equals(slotContext.identifier())) {
-                    ResourceLocation rl = modifier.attribute();
-                    AttributeModifier attributeModifier = modifier.modifier();
+                if (compoundnbt.getString("Slot").equals(identifier)) {
+                    ResourceLocation rl = ResourceLocation.tryParse(compoundnbt.getString("AttributeName"));
+                    UUID id = uuid;
 
                     if (rl != null) {
-                        AttributeModifier.Operation operation = attributeModifier.operation();
-                        double amount = attributeModifier.amount();
 
-                        if (rl.getNamespace().equals("curios")) {
-                            String identifier1 = rl.getPath();
-                            LivingEntity livingEntity = slotContext.entity();
-                            boolean clientSide = livingEntity == null || livingEntity.level().isClientSide();
+                        if (compoundnbt.contains("UUID")) {
+                            id = compoundnbt.getUUID("UUID");
+                        }
 
-                            if (CuriosApi.getSlot(identifier1, clientSide).isPresent()) {
-                                CuriosApi.addSlotModifier(multimap, identifier1, id, amount, operation);
-                            }
-                        } else {
-                            Holder<Attribute> attribute =
-                                    BuiltInRegistries.ATTRIBUTE.getHolder(rl).orElse(null);
+                        if (id.getLeastSignificantBits() != 0L && id.getMostSignificantBits() != 0L) {
+                            AttributeModifier.Operation operation =
+                                    AttributeModifier.Operation.fromValue(compoundnbt.getInt("Operation"));
+                            double amount = compoundnbt.getDouble("Amount");
+                            String name = compoundnbt.getString("Name");
 
-                            if (attribute != null) {
-                                multimap.put(attribute, new AttributeModifier(id, amount, operation));
+                            if (rl.getNamespace().equals("curios")) {
+                                String identifier1 = CuriosWrappingUtils.curiosToAccessories(rl.getPath());
+
+                                if (CuriosApi.getSlot(identifier1).isPresent()) {
+                                    CuriosApi.addSlotModifier(multimap, identifier1, id, amount, operation);
+                                }
+                            } else {
+                                Attribute attribute = BuiltInRegistries.ATTRIBUTE.getOptional(rl).orElse(null);
+
+                                if (attribute != null) {
+                                    multimap.put(attribute, new AttributeModifier(id, name, amount, operation));
+                                }
                             }
                         }
                     }
@@ -156,10 +160,11 @@ public class CuriosWrappingUtils {
             }
         }
 
-        CurioAttributeModifierEvent evt = new CurioAttributeModifierEvent(stack, slotContext, id, multimap);
-        NeoForge.EVENT_BUS.post(evt);
+        CurioAttributeModifierEvent evt = new CurioAttributeModifierEvent(stack, slotContext, uuid, multimap);
 
-        return LinkedHashMultimap.create(evt.getModifiers());
+        MinecraftForge.EVENT_BUS.post(evt);
+
+        return HashMultimap.create(evt.getModifiers());
     }
 
 }

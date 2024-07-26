@@ -19,10 +19,14 @@
 
 package top.theillusivec4.curios.common;
 
+import com.google.common.collect.Multimap;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.items.IItemHandlerModifiable;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.NotNull;
@@ -43,12 +47,12 @@ import java.util.function.Predicate;
 public class CuriosHelper implements ICuriosHelper {
 
   @Override
-  public Optional<ICurio> getCurio(ItemStack stack) {
+  public LazyOptional<ICurio> getCurio(ItemStack stack) {
     return CuriosApi.getCurio(stack);
   }
 
   @Override
-  public Optional<ICuriosItemHandler> getCuriosHandler(@Nonnull final LivingEntity livingEntity) {
+  public LazyOptional<ICuriosItemHandler> getCuriosHandler(@Nonnull final LivingEntity livingEntity) {
     return CuriosApi.getCuriosInventory(livingEntity);
   }
 
@@ -58,15 +62,15 @@ public class CuriosHelper implements ICuriosHelper {
   }
 
   @Override
-  public Optional<IItemHandlerModifiable> getEquippedCurios(LivingEntity livingEntity) {
+  public LazyOptional<IItemHandlerModifiable> getEquippedCurios(LivingEntity livingEntity) {
     return CuriosApi.getCuriosInventory(livingEntity)
-        .map(ICuriosItemHandler::getEquippedCurios);
+            .lazyMap(ICuriosItemHandler::getEquippedCurios);
   }
 
   @Override
   public void setEquippedCurio(@NotNull LivingEntity livingEntity, String identifier, int index, ItemStack stack) {
     CuriosApi.getCuriosInventory(livingEntity)
-        .ifPresent(inv -> inv.setEquippedCurio(identifier, index, stack));
+            .ifPresent(inv -> inv.setEquippedCurio(identifier, index, stack));
   }
 
   @Override
@@ -77,7 +81,7 @@ public class CuriosHelper implements ICuriosHelper {
   @Override
   public Optional<SlotResult> findFirstCurio(@Nonnull LivingEntity livingEntity, Predicate<ItemStack> filter) {
     return CuriosApi.getCuriosInventory(livingEntity).map(inv -> inv.findFirstCurio(filter))
-        .orElse(Optional.empty());
+            .orElse(Optional.empty());
   }
 
   @Override
@@ -88,19 +92,19 @@ public class CuriosHelper implements ICuriosHelper {
   @Override
   public List<SlotResult> findCurios(@Nonnull LivingEntity livingEntity, Predicate<ItemStack> filter) {
     return CuriosApi.getCuriosInventory(livingEntity).map(inv -> inv.findCurios(filter))
-        .orElse(Collections.emptyList());
+            .orElse(Collections.emptyList());
   }
 
   @Override
   public List<SlotResult> findCurios(@NotNull LivingEntity livingEntity, String... identifiers) {
     return CuriosApi.getCuriosInventory(livingEntity).map(inv -> inv.findCurios(identifiers))
-        .orElse(Collections.emptyList());
+            .orElse(Collections.emptyList());
   }
 
   @Override
   public Optional<SlotResult> findCurio(@Nonnull LivingEntity livingEntity, String identifier, int index) {
     return CuriosApi.getCuriosInventory(livingEntity).map(inv -> inv.findCurio(identifier, index))
-        .orElse(Optional.empty());
+            .orElse(Optional.empty());
   }
 
   @Nonnull
@@ -114,25 +118,50 @@ public class CuriosHelper implements ICuriosHelper {
   public Optional<ImmutableTriple<String, Integer, ItemStack>> findEquippedCurio(Predicate<ItemStack> filter, @Nonnull final LivingEntity livingEntity) {
 
     ImmutableTriple<String, Integer, ItemStack> result = getCuriosHandler(livingEntity)
-        .map(handler -> {
-          Map<String, ICurioStacksHandler> curios = handler.getCurios();
+            .map(handler -> {
+              Map<String, ICurioStacksHandler> curios = handler.getCurios();
 
-          for (String id : curios.keySet()) {
-            ICurioStacksHandler stacksHandler = curios.get(id);
-            IDynamicStackHandler stackHandler = stacksHandler.getStacks();
+              for (String id : curios.keySet()) {
+                ICurioStacksHandler stacksHandler = curios.get(id);
+                IDynamicStackHandler stackHandler = stacksHandler.getStacks();
 
-            for (int i = 0; i < stackHandler.getSlots(); i++) {
-              ItemStack stack = stackHandler.getStackInSlot(i);
+                for (int i = 0; i < stackHandler.getSlots(); i++) {
+                  ItemStack stack = stackHandler.getStackInSlot(i);
 
-              if (!stack.isEmpty() && filter.test(stack)) {
-                return new ImmutableTriple<>(id, i, stack);
+                  if (!stack.isEmpty() && filter.test(stack)) {
+                    return new ImmutableTriple<>(id, i, stack);
+                  }
+                }
               }
-            }
-          }
-          return new ImmutableTriple<>("", 0, ItemStack.EMPTY);
-        }).orElse(new ImmutableTriple<>("", 0, ItemStack.EMPTY));
+              return new ImmutableTriple<>("", 0, ItemStack.EMPTY);
+            }).orElse(new ImmutableTriple<>("", 0, ItemStack.EMPTY));
 
     return result.getLeft().isEmpty() ? Optional.empty() : Optional.of(result);
+  }
+
+  @Override
+  public Multimap<Attribute, AttributeModifier> getAttributeModifiers(String identifier, ItemStack stack) {
+    return this.getAttributeModifiers(new SlotContext(identifier, null, 0, false, true), UUID.randomUUID(), stack);
+  }
+
+  @Override
+  public Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
+    return CuriosApi.getAttributeModifiers(slotContext, uuid, stack);
+  }
+
+  @Override
+  public void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String identifier, UUID uuid, double amount, AttributeModifier.Operation operation) {
+    CuriosApi.addSlotModifier(map, identifier, uuid, amount, operation);
+  }
+
+  @Override
+  public void addSlotModifier(ItemStack stack, String identifier, String name, UUID uuid, double amount, AttributeModifier.Operation operation, String slot) {
+    CuriosApi.addSlotModifier(stack, identifier, name, uuid, amount, operation, slot);
+  }
+
+  @Override
+  public void addModifier(ItemStack stack, Attribute attribute, String name, UUID uuid, double amount, AttributeModifier.Operation operation, String slot) {
+    CuriosApi.addModifier(stack, attribute, name, uuid, amount, operation, slot);
   }
 
   @Override

@@ -8,6 +8,7 @@ import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.events.extra.*;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.SoundEventData;
+import io.wispforest.accessories.utils.AttributeUtils;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
@@ -74,13 +75,17 @@ public class WrappedCurio implements Accessory, LootingAdjustment, FortuneAdjust
 
         //--
 
-        var id = ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference));
+        var id = new ResourceLocation(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference));
 
-        Multimap<Holder<Attribute>, AttributeModifier> attributes = HashMultimap.create();
+        var data = AttributeUtils.getModifierData(id);
 
-        attributes.putAll(this.iCurioItem.getAttributeModifiers(context, id, stack));
+        Multimap<Attribute, AttributeModifier> attributes = HashMultimap.create();
 
-        CuriosWrappingUtils.getAttributeModifiers(attributes, context, id, stack).forEach(builder::addExclusive);
+        attributes.putAll(this.iCurioItem.getAttributeModifiers(context, data.right(), stack));
+
+        CuriosWrappingUtils.getAttributeModifiers(attributes, context, data.right(), stack).forEach((attribute, modifier) -> {
+            builder.addModifier(attribute, modifier, reference, s -> new ResourceLocation(CuriosConstants.MOD_ID, s));
+        });
     }
 
     @Override
@@ -103,7 +108,7 @@ public class WrappedCurio implements Accessory, LootingAdjustment, FortuneAdjust
 
         var info = this.iCurioItem.getEquipSound(context, stack);
 
-        return new SoundEventData(Holder.direct(info.soundEvent()), info.volume(), info.pitch());
+        return new SoundEventData(info.soundEvent(), info.volume(), info.pitch());
     }
 
     @Override

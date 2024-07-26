@@ -30,7 +30,7 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraftforge.common.util.LazyOptional;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.ICuriosMenu;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
@@ -50,7 +50,7 @@ public class CuriosContainer extends InventoryMenu implements ICuriosMenu {
             EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS,
             EquipmentSlot.FEET};
 
-    public final Optional<ICuriosItemHandler> curiosHandler;
+    public final LazyOptional<ICuriosItemHandler> curiosHandler;
     public final Player player;
 
     private final boolean isLocalWorld;
@@ -148,8 +148,8 @@ public class CuriosContainer extends InventoryMenu implements ICuriosMenu {
     }
 
     @Override
-    public boolean recipeMatches(RecipeHolder<CraftingRecipe> recipe) {
-        return recipe.value().matches(this.craftMatrix.asCraftInput(), this.player.level());
+    public boolean recipeMatches(Recipe<? super CraftingContainer> arg) {
+        return arg.matches(this.craftMatrix, this.player.level());
     }
 
     @Override

@@ -21,7 +21,7 @@ package top.theillusivec4.curios.api.event;
 
 import com.google.common.collect.ImmutableSet;
 import net.minecraft.world.entity.LivingEntity;
-import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 
 import java.util.Set;
 

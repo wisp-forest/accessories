@@ -10,22 +10,26 @@ import io.wispforest.accessories.api.events.CanEquipCallback;
 import io.wispforest.accessories.api.events.CanUnequipCallback;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
+import io.wispforest.accessories.utils.AttributeUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.capabilities.ICapabilityProvider;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
-import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
+import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
+import net.minecraftforge.event.server.ServerStoppedEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.registries.ForgeRegistries;
 import top.theillusivec4.curios.CuriosConstants;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.CuriosCapability;
@@ -33,14 +37,17 @@ import top.theillusivec4.curios.api.event.*;
 import top.theillusivec4.curios.api.type.ISlotType;
 import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
+import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.common.CuriosHelper;
 import top.theillusivec4.curios.common.CuriosRegistry;
+import top.theillusivec4.curios.common.capability.CurioInventoryCapability;
 import top.theillusivec4.curios.common.capability.CurioItemHandler;
 import top.theillusivec4.curios.common.capability.ItemizedCurioCapability;
 import top.theillusivec4.curios.common.data.CuriosSlotManager;
 import top.theillusivec4.curios.compat.CuriosWrappingUtils;
 import top.theillusivec4.curios.compat.WrappedCurioItemHandler;
 import top.theillusivec4.curios.compat.WrappedAccessory;
+import top.theillusivec4.curios.compat.WrappedICurioProvider;
 import top.theillusivec4.curios.mixin.CuriosImplMixinHooks;
 import top.theillusivec4.curios.server.SlotHelper;
 import top.theillusivec4.curios.server.command.CurioArgumentType;
@@ -53,45 +60,49 @@ public class CCLayer {
 
     public static final String MODID = "cclayer";
 
-    public CCLayer(IEventBus eventBus){
-        eventBus.addListener(this::registerCapabilities);
-        NeoForge.EVENT_BUS.addListener(this::serverAboutToStart);
-        NeoForge.EVENT_BUS.addListener(this::serverStopped);
+    public CCLayer(){
+        MinecraftForge.EVENT_BUS.addGenericListener(Entity.class, this::attachEntitiesCapabilities);
+        MinecraftForge.EVENT_BUS.addListener(this::registerCapabilities);
+
+        MinecraftForge.EVENT_BUS.addListener(this::serverAboutToStart);
+        MinecraftForge.EVENT_BUS.addListener(this::serverStopped);
+        MinecraftForge.EVENT_BUS.addListener(this::onWorldTick);
+
 
         CuriosApi.setCuriosHelper(new CuriosHelper());
 
-        //ModList.get().isLoaded("curios");
-
-        CuriosRegistry.init(eventBus);
+        CuriosRegistry.init();
 
         AccessoryChangeCallback.EVENT.register((prevStack, currentStack, reference, stateChange) -> {
-            NeoForge.EVENT_BUS.post(new CurioChangeEvent(reference.entity(), reference.slotName(), reference.slot(), prevStack, currentStack));
+            MinecraftForge.EVENT_BUS.post(new CurioChangeEvent(reference.entity(), reference.slotName(), reference.slot(), prevStack, currentStack));
         });
 
         DeathWrapperEventsImpl.init();
 
         CanEquipCallback.EVENT.register((stack, reference) -> {
-            var event = new CurioCanEquipEvent(stack, CuriosWrappingUtils.create(reference));
+            var event = new CurioEquipEvent(stack, CuriosWrappingUtils.create(reference));
 
-            NeoForge.EVENT_BUS.post(event);
+            MinecraftForge.EVENT_BUS.post(event);
 
             return CuriosWrappingUtils.convert(event.getEquipResult());
         });
 
         CanUnequipCallback.EVENT.register((stack, reference) -> {
-            var event = new CurioCanUnequipEvent(stack, CuriosWrappingUtils.create(reference));
+            var event = new CurioUnequipEvent(stack, CuriosWrappingUtils.create(reference));
 
-            NeoForge.EVENT_BUS.post(event);
+            MinecraftForge.EVENT_BUS.post(event);
 
             return CuriosWrappingUtils.convert(event.getUnequipResult());
         });
 
         AdjustAttributeModifierCallback.EVENT.register((stack, reference, builder) -> {
-            var modifiers = HashMultimap.<Holder<Attribute>, AttributeModifier>create();
+            var modifiers = HashMultimap.<Attribute, AttributeModifier>create();
 
-            var event = new CurioAttributeModifierEvent(stack, CuriosWrappingUtils.create(reference), ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference)), modifiers);
+            var data = AttributeUtils.getModifierData(new ResourceLocation(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference)));
 
-            NeoForge.EVENT_BUS.post(event);
+            var event = new CurioAttributeModifierEvent(stack, CuriosWrappingUtils.create(reference), data.right(), modifiers);
+
+            MinecraftForge.EVENT_BUS.post(event);
 
             modifiers.clear();
             modifiers.putAll(event.getModifiers());
@@ -99,58 +110,42 @@ public class CCLayer {
     }
 
     private void registerCapabilities(RegisterCapabilitiesEvent event) {
-        for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
-            event.registerEntity(CuriosCapability.ITEM_HANDLER, entityType,
-                    (entity, ctx) -> {
-                        if (entity instanceof LivingEntity livingEntity && !EntitySlotLoader.getEntitySlots(livingEntity).isEmpty()) {
-                            return new CurioItemHandler(livingEntity);
-                        }
+        event.register(ICuriosItemHandler.class);
+        event.register(ICurio.class);
+    }
 
-                        return null;
-                    });
-
-            event.registerEntity(CuriosCapability.INVENTORY, entityType,
-                    (entity, ctx) -> {
-                        if (entity instanceof LivingEntity livingEntity) {
-                            var capability = AccessoriesCapability.get(livingEntity);
-
-                            if(capability != null) return new WrappedCurioItemHandler((AccessoriesCapabilityImpl) capability);
-                        }
-
-                        return null;
-                    });
-        }
-
-        for (Item item : BuiltInRegistries.ITEM) {
-            // Force all items instanceof ICurioItem to register for Accessories systems
-            if(CuriosImplMixinHooks.getCurioFromRegistry(item).isEmpty() && item instanceof ICurioItem iCurioItem){
-                CuriosImplMixinHooks.registerCurio(item, iCurioItem);
-            }
-
-            event.registerItem(CuriosCapability.ITEM, BASE_PROVIDER, item);
+    public void attachEntitiesCapabilities(AttachCapabilitiesEvent<Entity> event) {
+        if (event.getObject() instanceof LivingEntity livingEntity) {
+            event.addCapability(CuriosCapability.ID_INVENTORY, CurioInventoryCapability.createProvider(livingEntity));
         }
     }
 
-    public static final ICapabilityProvider<ItemStack, Void, ICurio> BASE_PROVIDER = (stack, ctx) -> {
-        Item it = stack.getItem();
-        ICurioItem curioItem = CuriosImplMixinHooks.getCurioFromRegistry(it).orElse(null);
+    private boolean attemptRegister = false;
 
-        if (curioItem == null && it instanceof ICurioItem itemCurio) {
-            curioItem = itemCurio;
+    public void onWorldTick(TickEvent.LevelTickEvent event) {
+        if(!event.phase.equals(TickEvent.Phase.START) || attemptRegister) return;
+
+        for (Item item : ForgeRegistries.ITEMS) {
+            var defaultStack = item.getDefaultInstance();
+
+            if(CuriosImplMixinHooks.getCurioFromRegistry(item).isEmpty() && item instanceof ICurioItem iCurioItem){
+                CuriosImplMixinHooks.registerCurio(item, iCurioItem);
+
+                continue;
+            }
+
+            if(AccessoriesAPI.getAccessory(item) != null) {
+                continue;
+            }
+
+            if(defaultStack.getCapability(CuriosCapability.ITEM).isPresent()) {
+                AccessoriesAPI.registerAccessory(item, new WrappedICurioProvider());
+            }
         }
 
-        if(curioItem == null){
-            var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+        attemptRegister = true;
+    }
 
-            curioItem = new WrappedAccessory(accessory);
-        }
-
-        if (curioItem != null && curioItem.hasCurioCapability(stack)) {
-            return new ItemizedCurioCapability(curioItem, stack);
-        }
-
-        return null;
-    };
 
     private void serverAboutToStart(ServerAboutToStartEvent evt) {
         CuriosApi.setSlotHelper(new SlotHelper());

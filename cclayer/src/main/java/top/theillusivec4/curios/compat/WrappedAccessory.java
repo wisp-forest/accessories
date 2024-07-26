@@ -14,6 +14,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.storage.loot.LootContext;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.SlotContext;
@@ -57,11 +58,11 @@ public class WrappedAccessory implements ICurioItem {
     }
 
     @Override
-    public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, ResourceLocation id, ItemStack stack) {
+    public Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
         var ctx = CuriosWrappingUtils.fromContext(slotContext);
         var builder = new AccessoryAttributeBuilder(ctx);
 
-        accessory.getModifiers(stack, ctx, new AccessoryAttributeBuilder(ctx));
+        accessory.getDynamicModifiers(stack, ctx, new AccessoryAttributeBuilder(ctx));
 
         return builder.getAttributeModifiers(false);
     }
@@ -76,9 +77,9 @@ public class WrappedAccessory implements ICurioItem {
     public ICurio.SoundInfo getEquipSound(SlotContext slotContext, ItemStack stack) {
         var data = accessory.getEquipSound(stack, CuriosWrappingUtils.fromContext(slotContext));
 
-        if(data == null) return new ICurio.SoundInfo(SoundEvents.ARMOR_EQUIP_GENERIC.value(), 1.0f, 1.0f);
+        if(data == null) return new ICurio.SoundInfo(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
 
-        return new ICurio.SoundInfo(data.event().value(), data.volume(), data.pitch());
+        return new ICurio.SoundInfo(data.event(), data.volume(), data.pitch());
     }
 
     @Override

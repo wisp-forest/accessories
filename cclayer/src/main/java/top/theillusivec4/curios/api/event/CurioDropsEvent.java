@@ -22,8 +22,8 @@ package top.theillusivec4.curios.api.event;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.neoforged.bus.api.ICancellableEvent;
-import net.neoforged.neoforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.eventbus.api.Cancelable;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 
 import java.util.Collection;
@@ -41,7 +41,8 @@ import java.util.Collection;
  * <br>
  * This event is fired on the {@link net.neoforged.neoforge.common.NeoForge#EVENT_BUS}.
  **/
-public class CurioDropsEvent extends LivingEvent implements ICancellableEvent {
+@Cancelable
+public class CurioDropsEvent extends LivingEvent {
 
   private final DamageSource source;
   private final Collection<ItemEntity> drops;

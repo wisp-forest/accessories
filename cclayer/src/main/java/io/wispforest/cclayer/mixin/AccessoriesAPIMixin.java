@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
-@Mixin(value = AccessoriesAPI.class)
+@Mixin(value = AccessoriesAPI.class, remap = false)
 public abstract class AccessoriesAPIMixin {
 
     @Inject(method = "getUsedSlotsFor(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/Container;)Ljava/util/Collection;",

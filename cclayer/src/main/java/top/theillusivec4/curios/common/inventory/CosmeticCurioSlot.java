@@ -21,8 +21,8 @@ package top.theillusivec4.curios.common.inventory;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
 public class CosmeticCurioSlot extends CurioSlot {

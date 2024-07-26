@@ -21,7 +21,7 @@ package top.theillusivec4.curios.common.slottype;
 
 import com.google.common.collect.ImmutableMap;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.fml.InterModComms;
+import net.minecraftforge.fml.InterModComms;
 import top.theillusivec4.curios.Curios;
 import top.theillusivec4.curios.api.SlotTypeMessage;
 import top.theillusivec4.curios.api.SlotTypePreset;
@@ -86,7 +86,7 @@ public class LegacySlotManager {
         Builder builder = IMC_BUILDERS.get(id);
 
         if (builder == null && create) {
-          builder = new Builder(id).validator(ResourceLocation.fromNamespaceAndPath(Curios.MODID, "tag"));
+          builder = new Builder(id).validator(new ResourceLocation(Curios.MODID, "tag"));
           IMC_BUILDERS.put(id, builder);
           IDS_TO_MODS.computeIfAbsent(id, (k) -> new HashSet<>()).add(modId);
         }

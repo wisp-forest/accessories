@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[1,)"
+loaderVersion = "[47,)"
 #issueTrackerURL = ""
 license = "LGPL-3.0"
 
@@ -27,14 +27,14 @@ config = 'cclayer_curios.mixins.json'
 [[dependencies.cclayer]]
 modId = "neoforge"
 required = true
-versionRange = "[21,)"
+versionRange = "[47,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.cclayer]]
 modId = "minecraft"
 required = true
-versionRange = "[1.21,)"
+versionRange = "[1.20.1,)"
 ordering = "NONE"
 side = "BOTH"
 

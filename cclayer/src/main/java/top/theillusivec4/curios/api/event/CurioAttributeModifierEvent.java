@@ -29,7 +29,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.bus.api.Event;
+import net.minecraftforge.eventbus.api.Event;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.CuriosConstants;
 import top.theillusivec4.curios.api.SlotContext;
@@ -54,27 +54,19 @@ public class CurioAttributeModifierEvent extends Event {
 
   private final ItemStack stack;
   private final SlotContext slotContext;
-  private final ResourceLocation id;
   private final UUID uuid;
-  private final Multimap<Holder<Attribute>, AttributeModifier> originalModifiers;
-  private Multimap<Holder<Attribute>, AttributeModifier> unmodifiableModifiers;
+  private final Multimap<Attribute, AttributeModifier> originalModifiers;
+  private Multimap<Attribute, AttributeModifier> unmodifiableModifiers;
   @Nullable
-  private Multimap<Holder<Attribute>, AttributeModifier> modifiableModifiers;
+  private Multimap<Attribute, AttributeModifier> modifiableModifiers;
 
-  public CurioAttributeModifierEvent(ItemStack stack, SlotContext slotContext, UUID uuid, Multimap<Holder<Attribute>, AttributeModifier> modifiers) {
+
+  public CurioAttributeModifierEvent(ItemStack stack, SlotContext slotContext, UUID uuid,
+                                     Multimap<Attribute, AttributeModifier> modifiers) {
     this.stack = stack;
     this.slotContext = slotContext;
     this.unmodifiableModifiers = this.originalModifiers = modifiers;
-    this.id = ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(slotContext.identifier(), slotContext.index()));
     this.uuid = uuid;
-  }
-
-  public CurioAttributeModifierEvent(ItemStack stack, SlotContext slotContext, ResourceLocation id, Multimap<Holder<Attribute>, AttributeModifier> modifiers) {
-    this.stack = stack;
-    this.slotContext = slotContext;
-    this.unmodifiableModifiers = this.originalModifiers = modifiers;
-    this.id = id;
-    this.uuid = UUID.nameUUIDFromBytes(id.toString().getBytes(StandardCharsets.UTF_8));
   }
 
   /**
@@ -82,21 +74,21 @@ public class CurioAttributeModifierEvent extends Event {
    * Note that adding attributes based on existing attributes may lead to inconsistent results between the tooltip (client)
    * and the actual attributes (server) if the listener order is different. Using {@link #getOriginalModifiers()} instead will give more consistent results.
    */
-  public Multimap<Holder<Attribute>, AttributeModifier> getModifiers() {
+  public Multimap<Attribute, AttributeModifier> getModifiers() {
     return this.unmodifiableModifiers;
   }
 
   /**
    * Returns the attribute map before any changes from other event listeners was made.
    */
-  public Multimap<Holder<Attribute>, AttributeModifier> getOriginalModifiers() {
+  public Multimap<Attribute, AttributeModifier> getOriginalModifiers() {
     return this.originalModifiers;
   }
 
   /**
    * Gets a modifiable map instance, creating it if the current map is currently unmodifiable
    */
-  private Multimap<Holder<Attribute>, AttributeModifier> getModifiableMap() {
+  private Multimap<Attribute, AttributeModifier> getModifiableMap() {
 
     if (this.modifiableModifiers == null) {
       this.modifiableModifiers = HashMultimap.create(this.originalModifiers);
@@ -114,7 +106,7 @@ public class CurioAttributeModifierEvent extends Event {
    * @param modifier  Modifier instance.
    * @return True if the attribute was added, false if it was already present
    */
-  public boolean addModifier(Holder<Attribute> attribute, AttributeModifier modifier) {
+  public boolean addModifier(Attribute attribute, AttributeModifier modifier) {
     return getModifiableMap().put(attribute, modifier);
   }
 
@@ -125,7 +117,7 @@ public class CurioAttributeModifierEvent extends Event {
    * @param modifier  Modifier instance
    * @return True if an attribute was removed, false if no change
    */
-  public boolean removeModifier(Holder<Attribute> attribute, AttributeModifier modifier) {
+  public boolean removeModifier(Attribute attribute, AttributeModifier modifier) {
     return getModifiableMap().remove(attribute, modifier);
   }
 
@@ -135,7 +127,7 @@ public class CurioAttributeModifierEvent extends Event {
    * @param attribute Attribute
    * @return Collection of removed modifiers
    */
-  public Collection<AttributeModifier> removeAttribute(Holder<Attribute> attribute) {
+  public Collection<AttributeModifier> removeAttribute(Attribute attribute) {
     return getModifiableMap().removeAll(attribute);
   }
 
@@ -165,9 +157,5 @@ public class CurioAttributeModifierEvent extends Event {
    */
   public UUID getUuid() {
     return this.uuid;
-  }
-
-  public ResourceLocation getId() {
-    return this.id;
   }
 }

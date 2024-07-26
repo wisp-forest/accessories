@@ -13,7 +13,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.minecraftforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.compat.CuriosWrappingUtils;
@@ -24,14 +24,19 @@ import java.util.function.Function;
 
 public class CurioInventory implements INBTSerializable<CompoundTag> {
 
+    private final AccessoriesCapabilityImpl capability;
+    public CurioInventory(AccessoriesCapabilityImpl capability) {
+        this.capability = capability;
+    }
+
     CompoundTag deserialized = new CompoundTag();
     boolean markDeserialized = false;
 
     public void init(final ICuriosItemHandler curiosItemHandler) {
-        init(((WrappedCurioItemHandler)curiosItemHandler).capability());
-    }
-
-    public void init(AccessoriesCapabilityImpl capability) {
+//        init(((WrappedCurioItemHandler)curiosItemHandler).capability());
+//    }
+//
+//    public void init(AccessoriesCapabilityImpl capability) {
         var livingEntity = capability.entity();
 
         if (this.markDeserialized) {
@@ -75,7 +80,7 @@ public class CurioInventory implements INBTSerializable<CompoundTag> {
     private static List<ItemStack> deserializeNBT_Stacks(LivingEntity livingEntity, @Nullable AccessoriesContainer container, Function<AccessoriesContainer, Container> containerFunc, CompoundTag nbt){
         var list = nbt.getList("Items", Tag.TAG_COMPOUND)
                 .stream()
-                .map(tagEntry -> ItemStack.parseOptional(livingEntity.registryAccess(), (tagEntry instanceof CompoundTag compoundTag) ? compoundTag : new CompoundTag()))
+                .map(tagEntry -> ItemStack.of((tagEntry instanceof CompoundTag compoundTag) ? compoundTag : new CompoundTag()))
                 .toList();
 
         var dropped = new ArrayList<ItemStack>();
@@ -110,12 +115,12 @@ public class CurioInventory implements INBTSerializable<CompoundTag> {
     }
 
     @Override
-    public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+    public CompoundTag serializeNBT() {
         return new CompoundTag();
     }
 
     @Override
-    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+    public void deserializeNBT(CompoundTag nbt) {
         this.deserialized = nbt;
         this.markDeserialized = true;
     }

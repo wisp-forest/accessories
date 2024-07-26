@@ -26,13 +26,13 @@ public record EmptyCuriosStackHandler(String identifier) implements ICurioStacks
     @Override public CompoundTag serializeNBT() { return new CompoundTag(); }
     @Override public void deserializeNBT(CompoundTag nbt) {}
     @Override public String getIdentifier() { return this.identifier; }
-    @Override public Map<ResourceLocation, AttributeModifier> getModifiers() { return Map.of(); }
+    @Override public Map<UUID, AttributeModifier> getModifiers() { return Map.of(); }
     @Override public Set<AttributeModifier> getPermanentModifiers() { return Set.of(); }
     @Override public Set<AttributeModifier> getCachedModifiers() { return Set.of(); }
     @Override public Collection<AttributeModifier> getModifiersByOperation(AttributeModifier.Operation operation) { return Set.of(); }
     @Override public void addTransientModifier(AttributeModifier modifier) {}
     @Override public void addPermanentModifier(AttributeModifier modifier) {}
-    @Override public void removeModifier(ResourceLocation id) {}
+    @Override public void removeModifier(UUID id) {}
     @Override public void clearModifiers() {}
     @Override public void clearCachedModifiers() {}
     @Override public void copyModifiers(ICurioStacksHandler other) {}

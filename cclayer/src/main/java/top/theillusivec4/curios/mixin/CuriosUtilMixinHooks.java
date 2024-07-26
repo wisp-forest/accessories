@@ -33,8 +33,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.IItemHandlerModifiable;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
@@ -136,7 +136,7 @@ public class CuriosUtilMixinHooks {
           if (!stack.isEmpty()) {
             CompoundTag tag = new CompoundTag();
             tag.putByte("Slot", (byte) (4444 + i));
-            stack.save(entity.registryAccess(), tag);
+            stack.save(tag);
             list.add(tag);
           }
         }
@@ -148,7 +148,7 @@ public class CuriosUtilMixinHooks {
 
   public static boolean containsStack(Player player, ItemStack stack) {
     return CuriosApi.getCuriosInventory(player).map(inv -> inv.findFirstCurio(
-            stack2 -> !stack2.isEmpty() && ItemStack.isSameItemSameComponents(stack, stack2)).isPresent())
+            stack2 -> !stack2.isEmpty() && ItemStack.isSameItemSameTags(stack, stack2)).isPresent())
         .orElse(false);
   }
 

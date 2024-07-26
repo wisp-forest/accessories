@@ -12,7 +12,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.NeoForge;
+import net.minecraftforge.common.MinecraftForge;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.event.CurioDropsEvent;
 import top.theillusivec4.curios.api.event.DropRulesEvent;
@@ -37,7 +37,7 @@ public class DeathWrapperEventsImpl implements OnDeathCallback, OnDropCallback {
 
     @Override
     public TriState shouldDrop(TriState currentState, LivingEntity entity, AccessoriesCapability capability, DamageSource damageSource, List<ItemStack> droppedStacks) {
-        var handler = new WrappedCurioItemHandler((AccessoriesCapabilityImpl) capability);
+        var handler = new WrappedCurioItemHandler(() -> (AccessoriesCapabilityImpl) capability);
 
         var itemEntities = droppedStacks.stream()
                 .map(stack -> {
@@ -56,7 +56,7 @@ public class DeathWrapperEventsImpl implements OnDeathCallback, OnDropCallback {
 
         var dropEventTest = new CurioDropsEvent(entity, handler, damageSource, itemEntities, 0, false);
 
-        NeoForge.EVENT_BUS.post(dropEventTest);
+        MinecraftForge.EVENT_BUS.post(dropEventTest);
 
         droppedStacks.addAll(itemEntities.stream().map(ItemEntity::getItem).toList());
 
@@ -64,7 +64,7 @@ public class DeathWrapperEventsImpl implements OnDeathCallback, OnDropCallback {
 
         var event = new DropRulesEvent(entity, handler, damageSource, 0, false);
 
-        NeoForge.EVENT_BUS.post(event);
+        MinecraftForge.EVENT_BUS.post(event);
 
         this.latestDropRules = event;
 

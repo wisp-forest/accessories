@@ -2,8 +2,8 @@ package top.theillusivec4.curios.common.capability;
 
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.CuriosApi;
 
@@ -18,7 +18,7 @@ public class CurioItemHandler implements IItemHandler {
     var handler = CuriosApi.getCuriosInventory(livingEntity);
 
     if (handler.isPresent()) {
-      this.curios = handler.get().getEquippedCurios();
+      this.curios = handler.orElseThrow(() -> new IllegalStateException("[CCLayer] Unable to get the required curios handler!")).getEquippedCurios();
     } else {
       this.curios = new ItemStackHandler();
     }

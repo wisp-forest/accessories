@@ -6,11 +6,9 @@ import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.wrapper.InvWrapper;
+import net.minecraftforge.items.wrapper.InvWrapper;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
 import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
@@ -70,7 +68,7 @@ public class WrappedCurioStackHandler implements ICurioStacksHandler {
     }
 
     @Override
-    public Map<ResourceLocation, AttributeModifier> getModifiers() {
+    public Map<UUID, AttributeModifier> getModifiers() {
         return this.container.getModifiers();
     }
 
@@ -100,7 +98,7 @@ public class WrappedCurioStackHandler implements ICurioStacksHandler {
     }
 
     @Override
-    public void removeModifier(ResourceLocation id) {
+    public void removeModifier(UUID id) {
         this.container.removeModifier(id);
     }
 

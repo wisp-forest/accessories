@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * Builder used to collect the attribute modifications from a given Accessory with the ability
@@ -83,6 +84,27 @@ public final class AccessoryAttributeBuilder {
         var location = AttributeUtils.getLocation(modifier.getName());
 
         stackedAttributes.put(location, new AttributeModificationData(createSlotPath(this.slotReference), attribute, modifier));
+
+        return this;
+    }
+
+    //--
+
+    @ApiStatus.Internal
+    public AccessoryAttributeBuilder addModifier(Attribute attribute, AttributeModifier modifier, SlotReference slotReference, Function<String, ResourceLocation> locationBuilder) {
+        var id = Accessories.of(AccessoryAttributeBuilder.createSlotPath(slotReference));
+
+        var data = AttributeUtils.getModifierData(id);
+
+        var validName = modifier.getName().toLowerCase()
+                .replace(" ", "_")
+                .replaceAll("([^a-z0-9/._-])", "");
+
+        if(modifier.getId().equals(data.right())) {
+            this.addStackable(attribute, locationBuilder.apply(validName), modifier.getAmount(), modifier.getOperation());
+        } else {
+            this.addExclusive(attribute, locationBuilder.apply(validName), modifier.getAmount(), modifier.getOperation());
+        }
 
         return this;
     }

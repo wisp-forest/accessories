@@ -66,7 +66,9 @@ public interface ICurio {
    *
    * @param slotContext Context about the slot that the ItemStack is in
    */
-  default void curioTick(SlotContext slotContext) {}
+  default void curioTick(SlotContext slotContext) {
+    curioTick(slotContext.identifier(), slotContext.index(), slotContext.entity());
+  }
 
   /**
    * Called when the ItemStack is equipped into a slot or its data changes.
@@ -74,7 +76,9 @@ public interface ICurio {
    * @param slotContext Context about the slot that the ItemStack was just unequipped from
    * @param prevStack   The previous ItemStack in the slot
    */
-  default void onEquip(SlotContext slotContext, ItemStack prevStack) {}
+  default void onEquip(SlotContext slotContext, ItemStack prevStack) {
+    onEquip(slotContext.identifier(), slotContext.index(), slotContext.entity());
+  }
 
   /**
    * Called when the ItemStack is unequipped from a slot or its data changes.
@@ -82,7 +86,9 @@ public interface ICurio {
    * @param slotContext Context about the slot that the ItemStack was just unequipped from
    * @param newStack    The new ItemStack in the slot
    */
-  default void onUnequip(SlotContext slotContext, ItemStack newStack) {}
+  default void onUnequip(SlotContext slotContext, ItemStack newStack) {
+    onUnequip(slotContext.identifier(), slotContext.index(), slotContext.entity());
+  }
 
   /**
    * Determines if the ItemStack can be equipped into a slot.
@@ -115,7 +121,7 @@ public interface ICurio {
    * @return A list of ITextComponent to display as curio slot information
    */
   default List<Component> getSlotsTooltip(List<Component> tooltips) {
-    return tooltips;
+    return getTagsTooltip(tooltips);
   }
 
   /**
@@ -126,15 +132,11 @@ public interface ICurio {
    * index is -1 and the wearer may be null.
    *
    * @param slotContext Context about the slot that the ItemStack is in
-   * @param id        Slot-unique id
+   * @param uuid        Slot-unique id
    * @return A map of attribute modifiers to apply
    */
-  default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, ResourceLocation id) {
-    return LinkedHashMultimap.create();
-  }
-
-  default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid) {
-    return LinkedHashMultimap.create();
+  default Multimap<Attribute, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid) {
+    return getAttributeModifiers(slotContext.identifier());
   }
 
   /**
@@ -148,10 +150,7 @@ public interface ICurio {
    * @param slotContext Context about the slot that the ItemStack was just equipped into
    */
   default void onEquipFromUse(SlotContext slotContext) {
-    var soundInfo = getEquipSound(slotContext);
-
-    var entity = slotContext.entity();
-    entity.level().playSound(null, entity.blockPosition(), soundInfo.getSoundEvent(), entity.getSoundSource(), soundInfo.getVolume(), soundInfo.getPitch());
+    playRightClickEquipSound(slotContext.entity());
   }
 
   /**
@@ -162,7 +161,7 @@ public interface ICurio {
    */
   @NotNull
   default SoundInfo getEquipSound(SlotContext slotContext) {
-    return new SoundInfo(SoundEvents.ARMOR_EQUIP_GENERIC.value(), 1.0f, 1.0f);
+    return new SoundInfo(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
   }
 
   /**
@@ -173,7 +172,7 @@ public interface ICurio {
    * @return True to enable auto-equipping when the item is used, false to disable
    */
   default boolean canEquipFromUse(SlotContext slotContext) {
-    return false;
+    return canRightClickEquip();
   }
 
   /**
@@ -183,7 +182,7 @@ public interface ICurio {
    * @param slotContext Context about the slot that the ItemStack broke in
    */
   default void curioBreak(SlotContext slotContext) {
-    playBreakAnimation(getStack(), slotContext.entity());
+    curioBreak(getStack(), slotContext.entity());
   }
 
   /**
@@ -195,7 +194,7 @@ public interface ICurio {
    * @return True to sync the ItemStack change to all tracking clients, false to do nothing
    */
   default boolean canSync(SlotContext slotContext) {
-    return false;
+    return canSync(slotContext.identifier(), slotContext.index(), slotContext.entity());
   }
 
   /**
@@ -207,7 +206,7 @@ public interface ICurio {
    */
   @Nullable
   default CompoundTag writeSyncData(SlotContext slotContext) {
-    return new CompoundTag();
+    return writeSyncData();
   }
 
   /**
@@ -218,6 +217,7 @@ public interface ICurio {
    * @param compound    Data received from the server
    */
   default void readSyncData(SlotContext slotContext, CompoundTag compound) {
+    readSyncData(compound);
   }
 
   /**
@@ -232,12 +232,7 @@ public interface ICurio {
    */
   @NotNull
   default DropRule getDropRule(SlotContext slotContext, DamageSource source, int lootingLevel, boolean recentlyHit) {
-    return DropRule.DEFAULT;
-  }
-
-  @NotNull
-  default DropRule getDropRule(SlotContext slotContext, DamageSource source, boolean recentlyHit) {
-    return DropRule.DEFAULT;
+    return getDropRule(slotContext.entity());
   }
 
   /**
@@ -249,7 +244,7 @@ public interface ICurio {
    * @return A list of ITextComponent to display as curio attribute modifier information
    */
   default List<Component> getAttributesTooltip(List<Component> tooltips) {
-    return tooltips;
+    return showAttributesTooltip("") ? tooltips : new ArrayList<>();
   }
 
   /**
@@ -261,9 +256,8 @@ public interface ICurio {
    * @return Amount of additional Fortune levels that will be applied when mining
    */
   default int getFortuneLevel(SlotContext slotContext, @Nullable LootContext lootContext) {
-    return EnchantmentHelper.getItemEnchantmentLevel(slotContext.entity().level().registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.FORTUNE), getStack());
+    return getFortuneBonus(slotContext.identifier(), slotContext.entity(), getStack(), slotContext.index());
   }
-
   /**
    * Get the amount of bonus Looting levels that are provided by curio.
    * Default implementation returns level of Looting enchantment on ItemStack.
@@ -275,7 +269,7 @@ public interface ICurio {
    * @return Amount of additional Looting levels that will be applied in LootingLevelEvent
    */
   default int getLootingLevel(SlotContext slotContext, DamageSource source, LivingEntity target, int baseLooting) {
-    return EnchantmentHelper.getItemEnchantmentLevel(slotContext.entity().level().registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.LOOTING), getStack());
+    return getLootingBonus(slotContext.identifier(), slotContext.entity(), getStack(), slotContext.index());
   }
 
   /**
@@ -379,5 +373,179 @@ public interface ICurio {
                 vec3d1.z, vec3d.x, vec3d.y + 0.05D, vec3d.z);
       }
     }
+  }
+
+  // ============ DEPRECATED ================
+
+  /**
+   * @deprecated See {@link ICurio#curioTick(SlotContext)}
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default void curioTick(String identifier, int index, LivingEntity livingEntity) {
+
+  }
+
+  /**
+   * @deprecated See {@link ICurio#curioTick(SlotContext)}
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default void curioAnimate(String identifier, int index, LivingEntity livingEntity) {
+
+  }
+
+  /**
+   * @deprecated See {@link ICurio#curioBreak(SlotContext)}
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default void curioBreak(ItemStack stack, LivingEntity livingEntity) {
+    playBreakAnimation(stack, livingEntity);
+  }
+
+  /**
+   * @deprecated See {@link ICurio#onEquip(SlotContext, ItemStack)}
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default void onEquip(String identifier, int index, LivingEntity livingEntity) {
+
+  }
+
+  /**
+   * @deprecated See {@link ICurio#onUnequip(SlotContext, ItemStack)}
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default void onUnequip(String identifier, int index, LivingEntity livingEntity) {
+
+  }
+
+  /**
+   * @deprecated See {@link ICurio#canEquip(SlotContext)}
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default boolean canEquip(String identifier, LivingEntity livingEntity) {
+    return true;
+  }
+
+  /**
+   * @deprecated See {@link ICurio#canUnequip(SlotContext)}
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default boolean canUnequip(String identifier, LivingEntity livingEntity) {
+    return true;
+  }
+
+  /**
+   * @deprecated See {@link ICurio#getSlotsTooltip(List)}
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default List<Component> getTagsTooltip(List<Component> tagTooltips) {
+    return tagTooltips;
+  }
+
+  /**
+   * @deprecated See {@link ICurio#getFortuneLevel(SlotContext, LootContext)}
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default int getFortuneBonus(String identifier, LivingEntity livingEntity, ItemStack curio, int index) {
+    return EnchantmentHelper.getItemEnchantmentLevel(Enchantments.BLOCK_FORTUNE, curio);
+  }
+
+  /**
+   * @deprecated See {@link ICurio#getLootingLevel(SlotContext, DamageSource, LivingEntity, int)}
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default int getLootingBonus(String identifier, LivingEntity livingEntity, ItemStack curio, int index) {
+    return EnchantmentHelper.getItemEnchantmentLevel(Enchantments.MOB_LOOTING, curio);
+  }
+
+  /**
+   * @deprecated See {@link ICurio#getAttributesTooltip(List)}
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default boolean showAttributesTooltip(String identifier) {
+    return true;
+  }
+
+  /**
+   * @deprecated See {@link ICurio#getDropRule(SlotContext, DamageSource, int, boolean)}
+   */
+  @NotNull
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default DropRule getDropRule(LivingEntity livingEntity) {
+    return DropRule.DEFAULT;
+  }
+
+  /**
+   * @deprecated See {@link ICurio#canSync(SlotContext)}
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default boolean canSync(String identifier, int index, LivingEntity livingEntity) {
+    return false;
+  }
+
+  /**
+   * @deprecated See {@link ICurio#writeSyncData(SlotContext)}
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  @Nullable
+  default CompoundTag writeSyncData() {
+    return new CompoundTag();
+  }
+
+  /**
+   * @deprecated See {@link ICurio#readSyncData(SlotContext, CompoundTag)}
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default void readSyncData(CompoundTag compound) {
+
+  }
+
+  /**
+   * @deprecated See {@link ICurio#canEquipFromUse(SlotContext)} for a more appropriately named
+   * alternative with additional context.
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default boolean canRightClickEquip() {
+    return false;
+  }
+
+  /**
+   * @deprecated See {@link ICurio#onEquipFromUse(SlotContext)} for a more appropriately
+   * named alternative with additional context.
+   * <br>
+   * Also see {@link ICurio#getEquipSound(SlotContext)}.
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default void playRightClickEquipSound(LivingEntity livingEntity) {
+    // Not enough context for id and index so we just pass in artificial values with the entity
+    SoundInfo soundInfo = getEquipSound(new SlotContext("", livingEntity, 0, false, true));
+    livingEntity.level().playSound(null, livingEntity.blockPosition(), soundInfo.getSoundEvent(),
+            livingEntity.getSoundSource(), soundInfo.getVolume(), soundInfo.getPitch());
+  }
+
+  /**
+   * @deprecated See {@link ICurio#getAttributeModifiers(SlotContext, UUID)} for an updated
+   * alternative with additional context and a slot-unique UUID parameter.
+   */
+  @Deprecated(forRemoval = true)
+  @ApiStatus.ScheduledForRemoval(inVersion = "1.21")
+  default Multimap<Attribute, AttributeModifier> getAttributeModifiers(String identifier) {
+    return HashMultimap.create();
   }
 }
