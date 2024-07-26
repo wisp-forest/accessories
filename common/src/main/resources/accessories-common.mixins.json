@@ -14,6 +14,7 @@
     "client.ModelPartAccessor",
     "client.PlayerRendererMixin",
     "client.RenderTargetMixin",
+    "client.LoadingOverlayMixin",
     "client.ScreenAccessor"
   ],
   "mixins": [

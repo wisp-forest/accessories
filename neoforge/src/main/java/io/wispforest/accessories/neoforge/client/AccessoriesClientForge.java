@@ -1,6 +1,7 @@
 package io.wispforest.accessories.neoforge.client;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
@@ -11,10 +12,12 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
@@ -41,16 +44,10 @@ import static io.wispforest.accessories.Accessories.MODID;
 @Mod.EventBusSubscriber(modid = MODID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class AccessoriesClientForge {
 
-    static {
-        System.out.println("FUCKKKKY");
-    }
-
     public static KeyMapping OPEN_SCREEN;
 
     @SubscribeEvent
     public static void onInitializeClient(FMLClientSetupEvent event) {
-        System.out.println("CHYZ");
-
         AccessoriesClient.init();
 
         MinecraftForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
@@ -59,19 +56,6 @@ public class AccessoriesClientForge {
         ModLoadingContext.get().registerExtensionPoint(
                 ConfigScreenHandler.ConfigScreenFactory.class,
                 () -> new ConfigScreenHandler.ConfigScreenFactory((minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get()));
-    }
-
-    @SubscribeEvent
-    public static void registerClientReloadListeners(RegisterClientReloadListenersEvent event) {
-        event.registerReloadListener(new SimplePreparableReloadListener<Void>() {
-            @Override
-            protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) {return null;}
-
-            @Override
-            protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profiler) {
-                AccessoriesRendererRegistry.onReload();
-            }
-        });
     }
 
     @SubscribeEvent

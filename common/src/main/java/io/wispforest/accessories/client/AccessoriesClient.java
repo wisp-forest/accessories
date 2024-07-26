@@ -5,6 +5,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.AccessoriesInternalsClient;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.networking.holder.HolderProperty;
@@ -45,6 +46,10 @@ public class AccessoriesClient {
             handleConfigLoad(data);
 
             return InteractionResult.SUCCESS;
+        });
+
+        ClientLifecycleEvents.END_DATA_PACK_RELOAD.register((client, success) -> {
+            AccessoriesRendererRegistry.onReload();
         });
     }
 
