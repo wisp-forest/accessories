@@ -77,7 +77,7 @@ public class WrappedAccessory implements Trinket {
 
         var builder = new AccessoryAttributeBuilder(reference);
 
-        accessory.getModifiers(stack, reference, builder);
+        accessory.getDynamicModifiers(stack, reference, builder);
 
         return builder.getAttributeModifiers(true);
     }

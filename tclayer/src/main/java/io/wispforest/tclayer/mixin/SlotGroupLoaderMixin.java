@@ -14,13 +14,17 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 @Mixin(SlotGroupLoader.class)
 public class SlotGroupLoaderMixin {
 
     @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Ljava/util/HashMap;get(Ljava/lang/Object;)Ljava/lang/Object;"))
-    private void injectTrinketsGroupingInfo(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "slotGroups", ordinal = 0) HashMap<String, SlotGroupLoader.SlotGroupBuilder> slotGroups, @Local(name = "allSlots", ordinal = 1) HashMap<String, SlotType> allSlots){
+    private void injectTrinketsGroupingInfo(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci,
+                                            @Local(name = "slotGroups", ordinal = 0) HashMap<String, SlotGroupLoader.SlotGroupBuilder> slotGroups,
+                                            @Local(name = "allSlots", ordinal = 1) HashMap<String, SlotType> allSlots,
+                                            @Local(name = "remainSlots") HashSet<String> remainSlots) {
         for (var groupEntry : SlotLoader.INSTANCE.getSlots().entrySet()) {
             var groupData = groupEntry.getValue();
             var slots = groupData.slots;
@@ -35,6 +39,7 @@ public class SlotGroupLoaderMixin {
                 group.addSlot(slotName);
 
                 allSlots.remove(slotName);
+                remainSlots.remove(slotName);
             }
         }
     }
