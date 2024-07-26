@@ -3,9 +3,6 @@ package dev.emi.trinkets.api;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import dev.emi.trinkets.compat.WrappingTrinketsUtils;
-import io.wispforest.accessories.api.attributes.SlotAttribute;
-import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
@@ -21,9 +18,11 @@ public class SlotAttributes {
      */
 
     public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String slot, UUID uuid, double amount, AttributeModifier.Operation operation) {
-        var slotType = WrappingTrinketsUtils.trinketsToAccessories_Slot(TrinketConstants.filterGroup(slot));
+        var data = WrappingTrinketsUtils.splitGroupInfo(slot);
 
-        io.wispforest.accessories.api.attributes.SlotAttribute.addSlotModifier(map, WrappingTrinketsUtils.trinketsToAccessories_Slot(TrinketConstants.filterGroup(slot)), slotType, uuid, amount, operation);
+        var slotType = WrappingTrinketsUtils.trinketsToAccessories_Slot(data.left(), data.right());
+
+        io.wispforest.accessories.api.attributes.SlotAttribute.addSlotModifier(map, slotType, slotType, uuid, amount, operation);
     }
 
     public static UUID getUuid(SlotReference ref) {

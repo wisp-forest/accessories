@@ -21,6 +21,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 @Debug(export = true)
 @Mixin(EntitySlotLoader.class)
@@ -38,22 +40,26 @@ public abstract class EntitySlotLoaderMixin {
         for (var entry : loader.slotInfo.entrySet()) {
             var innerMap = tempMap.computeIfAbsent(entry.getKey(), entityType -> new HashMap<>());
 
-            for (String s : entry.getValue()) {
-                var convertedType = WrappingTrinketsUtils.trinketsToAccessories_Slot(s);
+            var groupedSlots = entry.getValue();
 
-                if (innerMap.containsKey(convertedType)) {
-                    continue;
+            for (var groupEntry : groupedSlots.entrySet()) {
+                for (String s : groupEntry.getValue()) {
+                    var convertedType = WrappingTrinketsUtils.trinketsToAccessories_Slot(Optional.of(groupEntry.getKey()), s);
+
+                    if (innerMap.containsKey(convertedType)) {
+                        continue;
+                    }
+
+                    var slotType = slotTypes.get(convertedType);
+
+                    if (slotType == null) {
+                        TRINKET_LOGGER.warn("Unable to locate the given slot for a given entity binding, it will be skipped: [Name: {}]", convertedType);
+
+                        continue;
+                    }
+
+                    innerMap.put(slotType.name(), slotType);
                 }
-
-                var slotType = slotTypes.get(convertedType);
-
-                if (slotType == null) {
-                    TRINKET_LOGGER.warn("Unable to locate the given slot for a given entity binding, it will be skipped: [Name: {}]", convertedType);
-
-                    continue;
-                }
-
-                innerMap.put(slotType.name(), slotType);
             }
         }
     }

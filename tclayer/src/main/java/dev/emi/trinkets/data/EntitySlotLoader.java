@@ -66,7 +66,7 @@ public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String,
                                         }
                                         String group = parsedSlot[0];
                                         String name = parsedSlot[1];
-                                        groups.computeIfAbsent("", (k) -> new HashSet<>()).add(name);
+                                        groups.computeIfAbsent(group, (k) -> new HashSet<>()).add(name);
                                     }
                                 }
                                 JsonArray entities = GsonHelper.getAsJsonArray(jsonObject, "entities", new JsonArray());
@@ -108,7 +108,7 @@ public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String,
     }
 
     public final Map<EntityType<?>, Map<String, SlotGroup.Builder>> groupBuilders = new HashMap<>();
-    public final Map<EntityType<?>, Set<String>> slotInfo = new HashMap<>();
+    public final Map<EntityType<?>, Map<String, Set<String>>> slotInfo = new HashMap<>();
 
     @Override
     protected void apply(Map<String, Map<String, Set<String>>> loader, ResourceManager resourceManager, ProfilerFiller profiler) {
@@ -140,7 +140,7 @@ public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String,
             }
 
             for (EntityType<?> type : types) {
-                slotInfo.put(type, groups.values().stream().flatMap(Collection::stream).collect(Collectors.toSet()));
+                slotInfo.put(type, ImmutableMap.copyOf(groups));
 
                 //Map<String, SlotGroup.Builder> builders = groupBuilders.computeIfAbsent(type, (k) -> new HashMap<>());
 //                groups.forEach((groupName, slotNames) -> {

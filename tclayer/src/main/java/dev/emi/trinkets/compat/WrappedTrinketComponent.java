@@ -160,7 +160,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
                 for (var slotKey : groupTag.getAllKeys()) {
                     var slotTag = groupTag.getCompound(slotKey);
 
-                    var slotName = WrappingTrinketsUtils.trinketsToAccessories_Slot(slotKey);
+                    var slotName = WrappingTrinketsUtils.trinketsToAccessories_Slot(Optional.of(groupKey), slotKey);
 
                     var slotType = SlotTypeLoader.getSlotType(this.getEntity().level(), slotName);
 
