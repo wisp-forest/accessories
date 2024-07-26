@@ -25,22 +25,22 @@ config = 'cclayer.mixins.json'
 config = 'cclayer_curios.mixins.json'
 
 [[dependencies.cclayer]]
-modId = "neoforge"
-required = true
+modId = "forge"
+mandatory = true
 versionRange = "[47,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.cclayer]]
 modId = "minecraft"
-required = true
+mandatory = true
 versionRange = "[1.20.1,)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.cclayer]]
 modId = "accessories"
-required = true
+mandatory = true
 versionRange = "[1.0.0-beta20,)"
 ordering = "NONE"
 side = "BOTH"
