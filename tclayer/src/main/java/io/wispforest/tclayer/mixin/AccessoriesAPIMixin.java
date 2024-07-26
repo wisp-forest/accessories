@@ -44,9 +44,9 @@ public abstract class AccessoriesAPIMixin {
             at = @At(value = "INVOKE", target = "Ljava/util/Optional;orElse(Ljava/lang/Object;)Ljava/lang/Object;"))
     private static Optional<Boolean> checkTrinketTags(Optional<Boolean> optional, Object object, @Local SlotType slotType, @Share("trinketTags") LocalRef<Set<TagKey<Item>>> trinketTagsRef) {
         for (var itemTagKey : trinketTagsRef.get()) {
-            var filterPath = TrinketConstants.filterGroup(itemTagKey.location().getPath());
+            var filterPath = WrappingTrinketsUtils.splitGroupInfo(itemTagKey.location().getPath());
 
-            var accessoryVersion = WrappingTrinketsUtils.trinketsToAccessories_Slot(filterPath);
+            var accessoryVersion = WrappingTrinketsUtils.trinketsToAccessories_Slot(filterPath.left(), filterPath.right());
 
             if((filterPath.equals(slotType.name()) || accessoryVersion.equals(slotType.name())) && !BuiltInRegistries.ITEM.getTag(itemTagKey).isEmpty()) {
                 //System.out.println("Match: " + slotType.name() + " - Tag: " + itemTagKey + " / " + "Path: " + filterPath + " / " + accessoryVersion);

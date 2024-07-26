@@ -19,6 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Mixin(SlotTypeLoader.class)
 public abstract class SlotTypeLoaderMixin {
@@ -27,14 +28,14 @@ public abstract class SlotTypeLoaderMixin {
 
     @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Ljava/util/HashMap;<init>()V", shift = At.Shift.AFTER, ordinal = 2))
     private void injectTrinketSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "builders") HashMap<String, SlotTypeLoader.SlotBuilder> builders){
-        for (var groupsData : SlotLoader.INSTANCE.getSlots().entrySet()) {
-            var groupData = groupsData.getValue();
+        for (var groupDataEntry : SlotLoader.INSTANCE.getSlots().entrySet()) {
+            var groupData = groupDataEntry.getValue();
             var slots = groupData.slots;
 
             SlotTypeLoader.SlotBuilder builder;
 
             for (var entry : slots.entrySet()) {
-                var accessoryType = WrappingTrinketsUtils.trinketsToAccessories_Slot(entry.getKey());
+                var accessoryType = WrappingTrinketsUtils.trinketsToAccessories_Slot(Optional.of(groupDataEntry.getKey()), entry.getKey());
                 var slotData = entry.getValue();
 
                 if (builders.containsKey(accessoryType)) {
@@ -56,7 +57,7 @@ public abstract class SlotTypeLoaderMixin {
 
                     builder.dropRule(TrinketEnums.convert(TrinketEnums.DropRule.valueOf(slotData.dropRule)));
 
-                    builder.alternativeTranslation("trinkets.slot." + WrappingTrinketsUtils.accessoriesToTrinkets_Group(groupsData.getKey()) + "." + entry.getKey());
+                    builder.alternativeTranslation("trinkets.slot." + groupDataEntry.getKey() + "." + entry.getKey());
 
                     builders.put(accessoryType, builder);
                 }

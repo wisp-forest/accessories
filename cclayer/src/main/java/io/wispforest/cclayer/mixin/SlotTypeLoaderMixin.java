@@ -20,7 +20,7 @@ import top.theillusivec4.curios.compat.CuriosWrappingUtils;
 import java.util.HashMap;
 import java.util.Map;
 
-@Mixin(SlotTypeLoader.class)
+@Mixin(value = SlotTypeLoader.class, priority = 900)
 public abstract class SlotTypeLoaderMixin {
 
     @Unique

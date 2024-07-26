@@ -32,22 +32,22 @@ public abstract class ItemStackMixin {
 
         var isInTag = this.getItem().builtInRegistryHolder().is(tag);
         if(namespace.equals(TrinketConstants.MOD_ID)) {
-            var filteredPath = TrinketConstants.filterGroup(path);
+            var filteredPath = WrappingTrinketsUtils.splitGroupInfo(path);
 
-            var accessoryTag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Accessories.MODID, WrappingTrinketsUtils.trinketsToAccessories_Slot(filteredPath)));
+            var accessoryTag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Accessories.MODID, WrappingTrinketsUtils.trinketsToAccessories_Slot(filteredPath.left(), filteredPath.right())));
 
             isInTag = this.getItem().builtInRegistryHolder().is(accessoryTag) || this.getItem().builtInRegistryHolder().is(tag);
         }
 
-        var filteredPath = TrinketConstants.filterGroup(path);
+//        var filteredPath = TrinketConstants.filterGroup(path);
 
-        var trinketsPath = WrappingTrinketsUtils.accessoriesToTrinkets_Slot(filteredPath);
+        var trinketsPath = WrappingTrinketsUtils.accessoriesToTrinkets_Slot(path);
 
         for (TagKey<Item> itemTagKey : this.getTags().toList()) {
             var namespace1 = itemTagKey.location().getNamespace();
             var path1 = itemTagKey.location().getPath();
 
-            if((namespace1.equals(TrinketConstants.MOD_ID) && path1.contains(trinketsPath)) || (namespace1.equals(Accessories.MODID) && path1.contains(filteredPath))) {
+            if((namespace1.equals(TrinketConstants.MOD_ID) && path1.contains(trinketsPath)) || (namespace1.equals(Accessories.MODID) && path1.contains(path))) {
                 isInTag = isInTag || this.getItem().builtInRegistryHolder().is(itemTagKey);
 
                 if (isInTag) break;

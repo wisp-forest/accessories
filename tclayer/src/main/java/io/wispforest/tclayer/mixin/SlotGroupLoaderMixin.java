@@ -2,6 +2,7 @@ package io.wispforest.tclayer.mixin;
 
 import com.google.gson.JsonObject;
 import com.llamalad7.mixinextras.sugar.Local;
+import dev.emi.trinkets.compat.WrappingTrinketsUtils;
 import dev.emi.trinkets.data.SlotLoader;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotGroupLoader;
@@ -16,9 +17,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 
 @Mixin(SlotGroupLoader.class)
-public class SlotGroupLoaderMixin {
+public abstract class SlotGroupLoaderMixin {
 
     @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Ljava/util/HashMap;get(Ljava/lang/Object;)Ljava/lang/Object;"))
     private void injectTrinketsGroupingInfo(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci,
@@ -32,14 +34,16 @@ public class SlotGroupLoaderMixin {
             for (var slotEntry : slots.entrySet()) {
                 var slotName = slotEntry.getKey();
 
-                var group = slotGroups.getOrDefault(groupEntry.getKey(), null);
+                var accessorySlotName = WrappingTrinketsUtils.trinketsToAccessories_Slot(Optional.of(groupEntry.getKey()), slotName);
 
-                if(group == null || !allSlots.containsKey(slotName)) continue;
+                var group = slotGroups.getOrDefault(WrappingTrinketsUtils.trinketsToAccessories_Group(groupEntry.getKey()), null);
 
-                group.addSlot(slotName);
+                if(group == null || !allSlots.containsKey(accessorySlotName)) continue;
 
-                allSlots.remove(slotName);
-                remainSlots.remove(slotName);
+                group.addSlot(accessorySlotName);
+
+                allSlots.remove(accessorySlotName);
+                remainSlots.remove(accessorySlotName);
             }
         }
     }
