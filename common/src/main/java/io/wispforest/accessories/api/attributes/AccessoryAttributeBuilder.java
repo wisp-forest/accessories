@@ -92,9 +92,7 @@ public final class AccessoryAttributeBuilder {
 
     @ApiStatus.Internal
     public AccessoryAttributeBuilder addModifier(Attribute attribute, AttributeModifier modifier, SlotReference slotReference, Function<String, ResourceLocation> locationBuilder) {
-        var id = Accessories.of(AccessoryAttributeBuilder.createSlotPath(slotReference));
-
-        var data = AttributeUtils.getModifierData(id);
+        var data = AttributeUtils.getModifierData(Accessories.of(AccessoryAttributeBuilder.createSlotPath(slotReference)));
 
         var validName = modifier.getName().toLowerCase()
                 .replace(" ", "_")

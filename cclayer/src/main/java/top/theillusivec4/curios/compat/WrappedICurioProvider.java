@@ -2,6 +2,7 @@ package top.theillusivec4.curios.compat;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.SoundEventData;
@@ -75,9 +76,7 @@ public class WrappedICurioProvider implements Accessory, LootingAdjustment, Fort
         Accessory.super.getDynamicModifiers(stack, reference, builder);
         //--
 
-        var id = new ResourceLocation(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference));
-
-        var data = AttributeUtils.getModifierData(id);
+        var data = AttributeUtils.getModifierData(Accessories.of(AccessoryAttributeBuilder.createSlotPath(reference)));
 
         Multimap<Attribute, AttributeModifier> attributes = HashMultimap.create();
 
