@@ -114,24 +114,24 @@ public class SlotType {
             String name = slotData.getString("Name");
             int order = slotData.getInt("Order");
             int amount = slotData.getInt("Amount");
-            ResourceLocation icon = ResourceLocation.tryParse(slotData.getString("Icon"));
+            ResourceLocation icon = new ResourceLocation(slotData.getString("Icon"));
             ListTag quickMoveList = slotData.getList("QuickMovePredicates", NbtType.STRING);
             Set<ResourceLocation> quickMovePredicates = new HashSet<>();
 
             for (Tag tag : quickMoveList) {
-                quickMovePredicates.add(ResourceLocation.tryParse(tag.getAsString()));
+                quickMovePredicates.add(new ResourceLocation(tag.getAsString()));
             }
             ListTag validatorList = slotData.getList("ValidatorPredicates", NbtType.STRING);
             Set<ResourceLocation> validatorPredicates = new HashSet<>();
 
             for (Tag tag : validatorList) {
-                validatorPredicates.add(ResourceLocation.tryParse(tag.getAsString()));
+                validatorPredicates.add(new ResourceLocation(tag.getAsString()));
             }
             ListTag tooltipList = slotData.getList("TooltipPredicates", NbtType.STRING);
             Set<ResourceLocation> tooltipPredicates = new HashSet<>();
 
             for (Tag tag : tooltipList) {
-                tooltipPredicates.add(ResourceLocation.tryParse(tag.getAsString()));
+                tooltipPredicates.add(new ResourceLocation(tag.getAsString()));
             }
             String dropRuleName = slotData.getString("DropRule");
             TrinketEnums.DropRule dropRule = TrinketEnums.DropRule.DEFAULT;

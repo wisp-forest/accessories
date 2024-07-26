@@ -126,11 +126,11 @@ public class SlotLoader extends SimplePreparableReloadListener<Map<String, SlotL
         public String dropRule = TrinketEnums.DropRule.DEFAULT.toString();
 
         SlotType create(String group, String name) {
-            ResourceLocation finalIcon = ResourceLocation.tryParse(icon);
+            ResourceLocation finalIcon = new ResourceLocation(icon);
             finalIcon = new ResourceLocation(finalIcon.getNamespace(), "textures/" + finalIcon.getPath() + ".png");
-            Set<ResourceLocation> finalValidatorPredicates = validatorPredicates.stream().map(ResourceLocation::tryParse).collect(Collectors.toSet());
-            Set<ResourceLocation> finalQuickMovePredicates = quickMovePredicates.stream().map(ResourceLocation::tryParse).collect(Collectors.toSet());
-            Set<ResourceLocation> finalTooltipPredicates = tooltipPredicates.stream().map(ResourceLocation::tryParse).collect(Collectors.toSet());
+            Set<ResourceLocation> finalValidatorPredicates = validatorPredicates.stream().map(ResourceLocation::new).collect(Collectors.toSet());
+            Set<ResourceLocation> finalQuickMovePredicates = quickMovePredicates.stream().map(ResourceLocation::new).collect(Collectors.toSet());
+            Set<ResourceLocation> finalTooltipPredicates = tooltipPredicates.stream().map(ResourceLocation::new).collect(Collectors.toSet());
             if (finalValidatorPredicates.isEmpty()) {
                 finalValidatorPredicates = DEFAULT_VALIDATOR_PREDICATES;
             }
