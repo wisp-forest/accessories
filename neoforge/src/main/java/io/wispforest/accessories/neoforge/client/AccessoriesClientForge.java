@@ -43,7 +43,6 @@ public class AccessoriesClientForge {
 
     public AccessoriesClientForge(final IEventBus eventBus) {
         eventBus.addListener(this::onInitializeClient);
-        eventBus.addListener(this::registerClientReloadListeners);
         eventBus.addListener(this::initKeybindings);
         eventBus.addListener(this::addRenderLayer);
         eventBus.addListener(this::registerShader);
@@ -57,18 +56,6 @@ public class AccessoriesClientForge {
 
         ModLoadingContext.get().registerExtensionPoint(IConfigScreenFactory.class, () -> {
             return (minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get();
-        });
-    }
-
-    public void registerClientReloadListeners(RegisterClientReloadListenersEvent event) {
-        event.registerReloadListener(new SimplePreparableReloadListener<Void>() {
-            @Override
-            protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) {return null;}
-
-            @Override
-            protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profiler) {
-                AccessoriesRendererRegistry.onReload();
-            }
         });
     }
 

@@ -23,6 +23,8 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.CommonLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.client.KeyMapping;
@@ -48,19 +50,6 @@ public class AccessoriesClientFabric implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         AccessoriesClient.init();
-
-        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES)
-                .registerReloadListener(new SimpleSynchronousResourceReloadListener() {
-                    @Override
-                    public ResourceLocation getFabricId() {
-                        return Accessories.of("render_reload");
-                    }
-
-                    @Override
-                    public void onResourceManagerReload(ResourceManager resourceManager) {
-                        AccessoriesRendererRegistry.onReload();
-                    }
-                });
 
         AccessoriesFabricNetworkHandler.INSTANCE.initClient(AccessoriesClientFabric::registerS2C);
 
