@@ -27,7 +27,7 @@ public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String,
     public static final EntitySlotLoader SERVER = new EntitySlotLoader();
 
     private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
-    private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(TrinketConstants.MOD_ID, "entities");
+    private static final ResourceLocation ID = new ResourceLocation(TrinketConstants.MOD_ID, "entities");
 
     private final Map<EntityType<?>, Map<String, SlotGroup>> slots = new HashMap<>();
 

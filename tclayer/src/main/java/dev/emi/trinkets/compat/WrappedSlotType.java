@@ -17,7 +17,7 @@ public class WrappedSlotType extends SlotType {
     private String slotGroup = "";
 
     public WrappedSlotType(io.wispforest.accessories.api.slot.SlotType slotType, boolean isClientSide){
-        super("", "", 0, 0, ResourceLocation.withDefaultNamespace(""), Set.of(), Set.of(), Set.of(), null);
+        super("", "", 0, 0, new ResourceLocation(""), Set.of(), Set.of(), Set.of(), null);
 
         var groups = SlotGroupLoader.INSTANCE.getGroups(isClientSide, false);
 

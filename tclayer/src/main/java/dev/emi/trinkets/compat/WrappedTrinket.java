@@ -11,6 +11,7 @@ import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.SoundEventData;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.utils.AttributeUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
@@ -91,15 +92,19 @@ public class WrappedTrinket implements Accessory {
 
         if(ref.isEmpty()) Accessory.super.getModifiers(stack, reference, builder);
 
-        var id = SlotAttributes.getIdentifier(ref.get());
+        var data = AttributeUtils.getModifierData(Accessories.of(reference.createSlotPath()));
 
-        this.trinket.getModifiers(stack, ref.get(), reference.entity(), SlotAttributes.getIdentifier(ref.get())).asMap()
+        this.trinket.getModifiers(stack, ref.get(), reference.entity(), data.right()).asMap()
                 .forEach((attribute, modifiers) -> {
                     for (var modifier : modifiers) {
-                        if(modifier.id().equals(id)) {
-                            builder.addStackable(attribute, Accessories.of("trinket_converted_attribute"), modifier.amount(), modifier.operation());
+                        var validName = modifier.getName().toLowerCase()
+                                .replace(" ", "_")
+                                .replaceAll("([^a-z0-9/._-])", "");
+
+                        if(modifier.getId().equals(data.right())) {
+                            builder.addStackable(attribute, Accessories.of(validName), modifier.getAmount(), modifier.getOperation());
                         } else {
-                            builder.addExclusive(attribute, modifier);
+                            builder.addExclusive(attribute, Accessories.of(validName), modifier.getAmount(), modifier.getOperation());
                         }
                     }
                 });

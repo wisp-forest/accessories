@@ -84,8 +84,8 @@ public class EmptyComponent implements TrinketComponent {
     public void clearCachedModifiers() {}
 
     @Override
-    public void readFromNbt(CompoundTag tag, HolderLookup.Provider registryLookup) {}
+    public void readFromNbt(CompoundTag tag) {}
 
     @Override
-    public void writeToNbt(CompoundTag tag, HolderLookup.Provider registryLookup) {}
+    public void writeToNbt(CompoundTag tag) {}
 }

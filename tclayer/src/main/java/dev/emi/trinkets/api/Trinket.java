@@ -4,7 +4,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import net.fabricmc.fabric.api.util.NbtType;
-import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -16,7 +15,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.jetbrains.annotations.Nullable;
 
@@ -77,7 +75,7 @@ public interface Trinket {
      * @return Whether the stack can be unequipped
      */
     default boolean canUnequip(ItemStack stack, SlotReference slot, LivingEntity entity) {
-        return !EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE) || (entity instanceof Player player && player.isCreative());
+        return !EnchantmentHelper.hasBindingCurse(stack) || (entity instanceof Player player && player.isCreative());
     }
 
     /**
@@ -101,7 +99,7 @@ public interface Trinket {
      * @return The {@link SoundEvent} to play for equipping
      */
     @Nullable
-    default Holder<SoundEvent> getEquipSound(ItemStack stack, SlotReference slot, LivingEntity entity) {
+    default SoundEvent getEquipSound(ItemStack stack, SlotReference slot, LivingEntity entity) {
         return stack.getItem() instanceof Equipable eq ? eq.getEquipSound() : null;
     }
 
@@ -112,10 +110,35 @@ public interface Trinket {
      * If modifiers do not change based on stack, slot, or entity, caching based on passed UUID
      * should be considered
      *
-     * @param location The ResourceLocation to use for creating attributes
+     * @param uuid The ResourceLocation to use for creating attributes
      */
-    default Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference slot, LivingEntity entity, ResourceLocation location) {
-        return Multimaps.newMultimap(Maps.newLinkedHashMap(), ArrayList::new);
+    default Multimap<Attribute, AttributeModifier> getModifiers(ItemStack stack, SlotReference slot, LivingEntity entity, UUID uuid) {
+        Multimap<Attribute, AttributeModifier> map = Multimaps.newMultimap(Maps.newLinkedHashMap(), ArrayList::new);
+
+        if (stack.hasTag() && stack.getTag().contains("TrinketAttributeModifiers", 9)) {
+            ListTag list = stack.getTag().getList("TrinketAttributeModifiers", 10);
+
+            for (int i = 0; i < list.size(); i++) {
+                CompoundTag tag = list.getCompound(i);
+
+                if (!tag.contains("Slot", NbtType.STRING) || tag.getString("Slot")
+                        .equals(slot.inventory().getSlotType().getName())) {
+                    Optional<Attribute> optional = BuiltInRegistries.ATTRIBUTE
+                            .getOptional(ResourceLocation.tryParse(tag.getString("AttributeName")));
+
+                    if (optional.isPresent()) {
+                        AttributeModifier entityAttributeModifier = AttributeModifier.load(tag);
+
+                        if (entityAttributeModifier != null
+                                && entityAttributeModifier.getId().getLeastSignificantBits() != 0L
+                                && entityAttributeModifier.getId().getMostSignificantBits() != 0L) {
+                            map.put(optional.get(), entityAttributeModifier);
+                        }
+                    }
+                }
+            }
+        }
+        return map;
     }
 
     /**

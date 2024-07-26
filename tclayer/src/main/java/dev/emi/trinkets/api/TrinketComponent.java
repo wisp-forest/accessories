@@ -6,7 +6,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import org.ladysnake.cca.api.v3.component.ComponentV3;
+import dev.onyxstudios.cca.api.v3.component.ComponentV3;
 
 import java.util.List;
 import java.util.Map;

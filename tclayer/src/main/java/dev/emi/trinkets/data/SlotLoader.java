@@ -24,7 +24,7 @@ public class SlotLoader extends SimplePreparableReloadListener<Map<String, SlotL
 
     public static final SlotLoader INSTANCE = new SlotLoader();
 
-    static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(TrinketConstants.MOD_ID, "slots");
+    static final ResourceLocation ID = new ResourceLocation(TrinketConstants.MOD_ID, "slots");
 
     private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
     private static final int FILE_SUFFIX_LENGTH = ".json".length();
@@ -113,9 +113,9 @@ public class SlotLoader extends SimplePreparableReloadListener<Map<String, SlotL
     }
 
     public static class SlotData {
-        public static final Set<ResourceLocation> DEFAULT_QUICK_MOVE_PREDICATES = ImmutableSet.of(ResourceLocation.fromNamespaceAndPath("trinkets", "all"));
-        public static final Set<ResourceLocation> DEFAULT_VALIDATOR_PREDICATES = ImmutableSet.of(ResourceLocation.fromNamespaceAndPath("trinkets", "tag"));
-        public static final Set<ResourceLocation> DEFAULT_TOOLTIP_PREDICATES = ImmutableSet.of(ResourceLocation.fromNamespaceAndPath("trinkets", "all"));
+        public static final Set<ResourceLocation> DEFAULT_QUICK_MOVE_PREDICATES = ImmutableSet.of(new ResourceLocation("trinkets", "all"));
+        public static final Set<ResourceLocation> DEFAULT_VALIDATOR_PREDICATES = ImmutableSet.of(new ResourceLocation("trinkets", "tag"));
+        public static final Set<ResourceLocation> DEFAULT_TOOLTIP_PREDICATES = ImmutableSet.of(new ResourceLocation("trinkets", "all"));
 
         public int order = 0;
         public int amount = -1;
@@ -127,7 +127,7 @@ public class SlotLoader extends SimplePreparableReloadListener<Map<String, SlotL
 
         SlotType create(String group, String name) {
             ResourceLocation finalIcon = ResourceLocation.tryParse(icon);
-            finalIcon = ResourceLocation.fromNamespaceAndPath(finalIcon.getNamespace(), "textures/" + finalIcon.getPath() + ".png");
+            finalIcon = new ResourceLocation(finalIcon.getNamespace(), "textures/" + finalIcon.getPath() + ".png");
             Set<ResourceLocation> finalValidatorPredicates = validatorPredicates.stream().map(ResourceLocation::tryParse).collect(Collectors.toSet());
             Set<ResourceLocation> finalQuickMovePredicates = quickMovePredicates.stream().map(ResourceLocation::tryParse).collect(Collectors.toSet());
             Set<ResourceLocation> finalTooltipPredicates = tooltipPredicates.stream().map(ResourceLocation::tryParse).collect(Collectors.toSet());

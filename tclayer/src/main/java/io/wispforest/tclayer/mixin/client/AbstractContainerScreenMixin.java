@@ -20,7 +20,7 @@ public class AbstractContainerScreenMixin {
     @WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(IIIIILnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V"))
     private void adjustSlotRender(GuiGraphics instance, int x, int y, int blitOffset, int width, int height, TextureAtlasSprite sprite, Operation<Void> original, @Local(argsOnly = true) Slot slot, @Local(ordinal = 0) Pair<ResourceLocation, ResourceLocation> pair) {
         if(slot instanceof AccessoriesBasedSlot && sprite.contents().name().equals(MissingTextureAtlasSprite.getLocation())) {
-            var location = ResourceLocation.fromNamespaceAndPath(pair.getSecond().getNamespace(), "textures/" + pair.getSecond().getPath() + ".png");
+            var location = new ResourceLocation(pair.getSecond().getNamespace(), "textures/" + pair.getSecond().getPath() + ".png");
 
             instance.blit(location, x, y, blitOffset, 0, 0, width, height, width, height);
         } else {

@@ -7,14 +7,12 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
-import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.InstanceEndec;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.LivingEntity;
@@ -149,10 +147,10 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
     private final Endec<AccessoriesHolderImpl> ENDEC = InstanceEndec.constructed(AccessoriesHolderImpl::new);
 
     @Override
-    public void readFromNbt(CompoundTag tag, HolderLookup.Provider registryLookup) {
+    public void readFromNbt(CompoundTag tag) {
         if(tag.getBoolean("is_accessories_data")) {
             ((AccessoriesHolderImpl)this.capability.getHolder())
-                    .read(new NbtMapCarrier(tag.getCompound("main_data")), SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) registryLookup)));
+                    .read(new NbtMapCarrier(tag.getCompound("main_data")), SerializationContext.empty());
         } else {
             var dropped = new ArrayList<ItemStack>();
 
@@ -168,7 +166,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
 
                     var list = slotTag.getList("Items", NbtType.COMPOUND)
                             .stream()
-                            .map(tagEntry -> ItemStack.parseOptional(registryLookup, (tagEntry instanceof CompoundTag compoundTag) ? compoundTag : new CompoundTag()))
+                            .map(tagEntry -> ItemStack.of((tagEntry instanceof CompoundTag compoundTag) ? compoundTag : new CompoundTag()))
                             .toList();
 
                     if (slotType == null) {
@@ -218,11 +216,11 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
     }
 
     @Override
-    public void writeToNbt(CompoundTag tag, HolderLookup.Provider registryLookup) {
+    public void writeToNbt(CompoundTag tag) {
         var innerCarrier = NbtMapCarrier.of();
 
         ((AccessoriesHolderImpl)this.capability.getHolder())
-                .write(innerCarrier, SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) registryLookup)));
+                .write(innerCarrier, SerializationContext.empty());
 
         tag.put("main_data", innerCarrier.compoundTag());
         tag.putBoolean("is_accessories_data", true);

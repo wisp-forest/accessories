@@ -5,6 +5,11 @@ import com.mojang.datafixers.util.Function3;
 import com.mojang.logging.LogUtils;
 import dev.emi.trinkets.TrinketSlotTarget;
 import dev.emi.trinkets.compat.*;
+import dev.onyxstudios.cca.api.v3.component.ComponentKey;
+import dev.onyxstudios.cca.api.v3.component.ComponentRegistryV3;
+import dev.onyxstudios.cca.api.v3.entity.EntityComponentFactoryRegistry;
+import dev.onyxstudios.cca.api.v3.entity.EntityComponentInitializer;
+import dev.onyxstudios.cca.api.v3.entity.RespawnCopyStrategy;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
@@ -24,11 +29,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
-import org.ladysnake.cca.api.v3.component.ComponentKey;
-import org.ladysnake.cca.api.v3.component.ComponentRegistryV3;
-import org.ladysnake.cca.api.v3.entity.EntityComponentFactoryRegistry;
-import org.ladysnake.cca.api.v3.entity.EntityComponentInitializer;
-import org.ladysnake.cca.api.v3.entity.RespawnCopyStrategy;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -36,7 +36,7 @@ import java.util.function.Consumer;
 
 public class TrinketsApi implements EntityComponentInitializer {
     public static final ComponentKey<TrinketComponent> TRINKET_COMPONENT = ComponentRegistryV3.INSTANCE
-            .getOrCreate(ResourceLocation.fromNamespaceAndPath(TrinketConstants.MOD_ID, "trinkets"), TrinketComponent.class);
+            .getOrCreate(new ResourceLocation(TrinketConstants.MOD_ID, "trinkets"), TrinketComponent.class);
     private static final Map<ResourceLocation, Function3<ItemStack, SlotReference, LivingEntity, TriState>> PREDICATES = new HashMap<>();
 
     private static final Map<Item, Trinket> TRINKETS = new HashMap<>();
@@ -212,33 +212,25 @@ public class TrinketsApi implements EntityComponentInitializer {
         return AccessoriesAPI.getPredicateResults(convertedSet, entity.level(), slotType, ref.index(), stack);
     }
 
-    public static Enchantment.EnchantmentDefinition withTrinketSlots(Enchantment.EnchantmentDefinition definition, Set<String> slots) {
-        var def = new Enchantment.EnchantmentDefinition(definition.supportedItems(), definition.primaryItems(), definition.weight(), definition.maxLevel(),
-                definition.minCost(), definition.maxCost(), definition.anvilCost(), definition.slots());
-
-        ((TrinketSlotTarget) (Object) def).trinkets$slots(slots);
-        return def;
-    }
-
     static {
-        TrinketsApi.registerTrinketPredicate(ResourceLocation.fromNamespaceAndPath("trinkets", "all"), (stack, ref, entity) -> TriState.TRUE);
-        TrinketsApi.registerTrinketPredicate(ResourceLocation.fromNamespaceAndPath("trinkets", "none"), (stack, ref, entity) -> TriState.FALSE);
-        TagKey<Item> trinketsAll = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("trinkets", "all"));
+        TrinketsApi.registerTrinketPredicate(new ResourceLocation("trinkets", "all"), (stack, ref, entity) -> TriState.TRUE);
+        TrinketsApi.registerTrinketPredicate(new ResourceLocation("trinkets", "none"), (stack, ref, entity) -> TriState.FALSE);
+        TagKey<Item> trinketsAll = TagKey.create(Registries.ITEM, new ResourceLocation("trinkets", "all"));
 
-        TrinketsApi.registerTrinketPredicate(ResourceLocation.fromNamespaceAndPath("trinkets", "tag"), (stack, ref, entity) -> {
+        TrinketsApi.registerTrinketPredicate(new ResourceLocation("trinkets", "tag"), (stack, ref, entity) -> {
             SlotType slot = ref.inventory().getSlotType();
-            TagKey<Item> tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("trinkets", slot.getId()));
+            TagKey<Item> tag = TagKey.create(Registries.ITEM, new ResourceLocation("trinkets", slot.getId()));
 
             if (stack.is(tag) || stack.is(trinketsAll)) {
                 return TriState.TRUE;
             }
             return TriState.DEFAULT;
         });
-        TrinketsApi.registerTrinketPredicate(ResourceLocation.fromNamespaceAndPath("trinkets", "relevant"), (stack, ref, entity) -> {
+        TrinketsApi.registerTrinketPredicate(new ResourceLocation("trinkets", "relevant"), (stack, ref, entity) -> {
             var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, ref.inventory().getSlotType().getName(), ref.index());
             var builder = new AccessoryAttributeBuilder(reference);
 
-            AccessoriesAPI.getAccessory(stack).getModifiers(stack, reference, builder);
+            AccessoriesAPI.getAccessory(stack).getDynamicModifiers(stack, reference, builder);
 
             if (!builder.getAttributeModifiers(false).isEmpty()) return TriState.TRUE;
             return TriState.DEFAULT;

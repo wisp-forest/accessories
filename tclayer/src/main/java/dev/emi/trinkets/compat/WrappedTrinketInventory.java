@@ -23,7 +23,7 @@ public class WrappedTrinketInventory extends TrinketInventory {
     }
 
     @Override
-    public Map<ResourceLocation, AttributeModifier> getModifiers() {
+    public Map<UUID, AttributeModifier> getModifiers() {
         return container.getModifiers();
     }
 
@@ -43,8 +43,8 @@ public class WrappedTrinketInventory extends TrinketInventory {
     }
 
     @Override
-    public void removeModifier(ResourceLocation location) {
-        container.removeModifier(location);
+    public void removeModifier(UUID uuid) {
+        container.removeModifier(uuid);
     }
 
     @Override

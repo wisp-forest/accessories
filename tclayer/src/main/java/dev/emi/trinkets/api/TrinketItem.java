@@ -51,7 +51,7 @@ public class TrinketItem extends Item implements Trinket {
                                 var soundEvent = trinket.getEquipSound(stack, ref, user);
                                 if (!stack.isEmpty() && soundEvent != null) {
                                     user.gameEvent(GameEvent.EQUIP);
-                                    user.playSound(soundEvent.value(), 1.0F, 1.0F);
+                                    user.playSound(soundEvent, 1.0F, 1.0F);
                                 }
                                 stack.setCount(0);
                                 return true;

@@ -23,7 +23,7 @@ import java.util.Map;
 @Mixin(SlotTypeLoader.class)
 public abstract class SlotTypeLoaderMixin {
 
-    @Unique private final ResourceLocation EMPTY_TEXTURE = ResourceLocation.fromNamespaceAndPath(TrinketConstants.MOD_ID, "gui/slots/empty.png");
+    @Unique private final ResourceLocation EMPTY_TEXTURE = new ResourceLocation(TrinketConstants.MOD_ID, "gui/slots/empty.png");
 
     @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Ljava/util/HashMap;<init>()V", shift = At.Shift.AFTER, ordinal = 2))
     private void injectTrinketSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "builders") HashMap<String, SlotTypeLoader.SlotBuilder> builders){
@@ -50,9 +50,9 @@ public abstract class SlotTypeLoaderMixin {
 
                     builder.order(slotData.order);
 
-                    var icon = ResourceLocation.parse(slotData.icon);
+                    var icon = ResourceLocation.tryParse(slotData.icon);
 
-                    if(!icon.equals(EMPTY_TEXTURE)) builder.icon(icon);
+                    if(!EMPTY_TEXTURE.equals(icon)) builder.icon(icon);
 
                     builder.dropRule(TrinketEnums.convert(TrinketEnums.DropRule.valueOf(slotData.dropRule)));
 

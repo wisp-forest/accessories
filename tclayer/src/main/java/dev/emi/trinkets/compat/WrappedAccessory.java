@@ -70,7 +70,7 @@ public class WrappedAccessory implements Trinket {
     }
 
     @Override
-    public Multimap<Holder<Attribute>, AttributeModifier> getModifiers(ItemStack stack, SlotReference ref, LivingEntity entity, ResourceLocation location) {
+    public Multimap<Attribute, AttributeModifier> getModifiers(ItemStack stack, SlotReference ref, LivingEntity entity, UUID uuid) {
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
         var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());
@@ -110,7 +110,7 @@ public class WrappedAccessory implements Trinket {
     }
 
     @Override
-    public Holder<SoundEvent> getEquipSound(ItemStack stack, SlotReference ref, LivingEntity entity) {
+    public SoundEvent getEquipSound(ItemStack stack, SlotReference ref, LivingEntity entity) {
         var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
         var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, slotName, ref.index());

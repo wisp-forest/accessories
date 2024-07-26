@@ -20,7 +20,7 @@ public class TrinketInventory implements Container {
     private final SlotType slotType;
     private final int baseSize;
     private final TrinketComponent component;
-    private final Map<ResourceLocation, AttributeModifier> modifiers = new HashMap<>();
+    private final Map<UUID, AttributeModifier> modifiers = new HashMap<>();
     private final Set<AttributeModifier> persistentModifiers = new HashSet<>();
     private final Set<AttributeModifier> cachedModifiers = new HashSet<>();
     private final Multimap<AttributeModifier.Operation, AttributeModifier> modifiersByOperation = HashMultimap.create();
@@ -105,7 +105,7 @@ public class TrinketInventory implements Container {
         return true;
     }
 
-    public Map<ResourceLocation, AttributeModifier> getModifiers() {
+    public Map<UUID, AttributeModifier> getModifiers() {
         return this.modifiers;
     }
 
@@ -114,8 +114,8 @@ public class TrinketInventory implements Container {
     }
 
     public void addModifier(AttributeModifier modifier) {
-        this.modifiers.put(modifier.id(), modifier);
-        this.getModifiersByOperation(modifier.operation()).add(modifier);
+        this.modifiers.put(modifier.getId(), modifier);
+        this.getModifiersByOperation(modifier.getOperation()).add(modifier);
         this.markUpdate();
     }
 
@@ -124,17 +124,17 @@ public class TrinketInventory implements Container {
         this.persistentModifiers.add(modifier);
     }
 
-    public void removeModifier(ResourceLocation location) {
-        AttributeModifier modifier = this.modifiers.remove(location);
+    public void removeModifier(UUID uuid) {
+        AttributeModifier modifier = this.modifiers.remove(uuid);
         if (modifier != null) {
             this.persistentModifiers.remove(modifier);
-            this.getModifiersByOperation(modifier.operation()).remove(modifier);
+            this.getModifiersByOperation(modifier.getOperation()).remove(modifier);
             this.markUpdate();
         }
     }
 
     public void clearModifiers() {
-        Iterator<ResourceLocation> iter = this.getModifiers().keySet().iterator();
+        Iterator<UUID> iter = this.getModifiers().keySet().iterator();
 
         while(iter.hasNext()) {
             this.removeModifier(iter.next());
@@ -147,7 +147,7 @@ public class TrinketInventory implements Container {
 
     public void clearCachedModifiers() {
         for (AttributeModifier cachedModifier : this.cachedModifiers) {
-            this.removeModifier(cachedModifier.id());
+            this.removeModifier(cachedModifier.getId());
         }
         this.cachedModifiers.clear();
     }
@@ -156,17 +156,17 @@ public class TrinketInventory implements Container {
         if (this.update) {
             this.update = false;
             double baseSize = this.baseSize;
-            for (AttributeModifier mod : this.getModifiersByOperation(AttributeModifier.Operation.ADD_VALUE)) {
-                baseSize += mod.amount();
+            for (AttributeModifier mod : this.getModifiersByOperation(AttributeModifier.Operation.ADDITION)) {
+                baseSize += mod.getAmount();
             }
 
             double size = baseSize;
-            for (AttributeModifier mod : this.getModifiersByOperation(AttributeModifier.Operation.ADD_MULTIPLIED_BASE)) {
-                size += this.baseSize * mod.amount();
+            for (AttributeModifier mod : this.getModifiersByOperation(AttributeModifier.Operation.MULTIPLY_BASE)) {
+                size += this.baseSize * mod.getAmount();
             }
 
-            for (AttributeModifier mod : this.getModifiersByOperation(AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL)) {
-                size *= mod.amount();
+            for (AttributeModifier mod : this.getModifiersByOperation(AttributeModifier.Operation.MULTIPLY_TOTAL)) {
+                size *= mod.getAmount();
             }
             LivingEntity entity = this.component.getEntity();
 
@@ -255,7 +255,7 @@ public class TrinketInventory implements Container {
         CompoundTag CompoundTag = new CompoundTag();
         if (!this.modifiers.isEmpty()) {
             ListTag ListTag = new ListTag();
-            for (Map.Entry<ResourceLocation, AttributeModifier> modifier : this.modifiers.entrySet()) {
+            for (Map.Entry<UUID, AttributeModifier> modifier : this.modifiers.entrySet()) {
                 ListTag.add(modifier.getValue().save());
             }
 
