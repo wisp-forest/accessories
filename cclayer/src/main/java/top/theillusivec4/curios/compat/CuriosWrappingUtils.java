@@ -33,11 +33,11 @@ public class CuriosWrappingUtils {
     }
 
     public static SlotContext create(SlotReference reference, boolean visible){
-        return new SlotContext(reference.slotName(), reference.entity(), reference.slot(), false, visible);
+        return new SlotContext(accessoriesToCurios(reference.slotName()), reference.entity(), reference.slot(), false, visible);
     }
 
     public static SlotReference fromContext(SlotContext context){
-        return SlotReference.of(context.entity(), context.identifier(), context.index());
+        return SlotReference.of(context.entity(), curiosToAccessories(context.identifier()), context.index());
     }
 
     //--
