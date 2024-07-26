@@ -1,25 +1,18 @@
 package dev.emi.trinkets.compat;
 
-import com.google.common.collect.Multimap;
-import dev.emi.trinkets.api.SlotAttributes;
 import dev.emi.trinkets.api.Trinket;
+import dev.emi.trinkets.api.TrinketConstants;
 import dev.emi.trinkets.api.TrinketEnums;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.SoundEventData;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.utils.AttributeUtils;
-import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
-
-import java.util.UUID;
 
 public class WrappedTrinket implements Accessory {
 
@@ -96,17 +89,9 @@ public class WrappedTrinket implements Accessory {
 
         this.trinket.getModifiers(stack, ref.get(), reference.entity(), data.right()).asMap()
                 .forEach((attribute, modifiers) -> {
-                    for (var modifier : modifiers) {
-                        var validName = modifier.getName().toLowerCase()
-                                .replace(" ", "_")
-                                .replaceAll("([^a-z0-9/._-])", "");
-
-                        if(modifier.getId().equals(data.right())) {
-                            builder.addStackable(attribute, Accessories.of(validName), modifier.getAmount(), modifier.getOperation());
-                        } else {
-                            builder.addExclusive(attribute, Accessories.of(validName), modifier.getAmount(), modifier.getOperation());
-                        }
-                    }
+                    modifiers.forEach(modifier -> {
+                        builder.addModifier(attribute, modifier, reference, s -> new ResourceLocation(TrinketConstants.MOD_ID, s));
+                    });
                 });
     }
 
