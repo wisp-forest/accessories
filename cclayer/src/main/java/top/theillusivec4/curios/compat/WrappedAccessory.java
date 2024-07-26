@@ -13,7 +13,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.monster.EnderMan;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.storage.loot.LootContext;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.SlotContext;
@@ -61,7 +63,7 @@ public class WrappedAccessory implements ICurioItem {
         var ctx = CuriosWrappingUtils.fromContext(slotContext);
         var builder = new AccessoryAttributeBuilder(ctx);
 
-        accessory.getModifiers(stack, ctx, new AccessoryAttributeBuilder(ctx));
+        accessory.getDynamicModifiers(stack, ctx, new AccessoryAttributeBuilder(ctx));
 
         return builder.getAttributeModifiers(false);
     }
@@ -93,7 +95,10 @@ public class WrappedAccessory implements ICurioItem {
 
     @Override
     public List<Component> getAttributesTooltip(List<Component> tooltips, ItemStack stack) {
-        accessory.getAttributesTooltip(stack, null, tooltips);
+        // This is a hack as curios dose not given any flag value or type to say the least\
+        try {
+            accessory.getAttributesTooltip(stack, null, tooltips, Item.TooltipContext.EMPTY, TooltipFlag.NORMAL);
+        } catch (NullPointerException e) {}
 
         return tooltips;
     }
