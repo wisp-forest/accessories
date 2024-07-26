@@ -94,7 +94,10 @@ public class WrappedAccessory implements ICurioItem {
 
     @Override
     public List<Component> getAttributesTooltip(List<Component> tooltips, ItemStack stack) {
-        accessory.getAttributesTooltip(stack, null, tooltips);
+        // This is a hack as curios dose not given any flag value or type to say the least\
+        try {
+            accessory.getAttributesTooltip(stack, null, tooltips, TooltipFlag.NORMAL);
+        } catch (NullPointerException e) {}
 
         return tooltips;
     }
