@@ -9,6 +9,7 @@ import io.wispforest.accessories.api.events.AdjustAttributeModifierCallback;
 import io.wispforest.accessories.api.events.CanEquipCallback;
 import io.wispforest.accessories.api.events.CanUnequipCallback;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.utils.AttributeUtils;
 import net.minecraft.core.Holder;
@@ -29,8 +30,7 @@ import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
-import top.theillusivec4.curios.CuriosConstants;
+import net.minecraftforge.registries.ForgeRegistries;import top.theillusivec4.curios.CuriosConstants;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.CuriosCapability;
 import top.theillusivec4.curios.api.event.*;
@@ -44,10 +44,7 @@ import top.theillusivec4.curios.common.capability.CurioInventoryCapability;
 import top.theillusivec4.curios.common.capability.CurioItemHandler;
 import top.theillusivec4.curios.common.capability.ItemizedCurioCapability;
 import top.theillusivec4.curios.common.data.CuriosSlotManager;
-import top.theillusivec4.curios.compat.CuriosWrappingUtils;
-import top.theillusivec4.curios.compat.WrappedCurioItemHandler;
-import top.theillusivec4.curios.compat.WrappedAccessory;
-import top.theillusivec4.curios.compat.WrappedICurioProvider;
+import top.theillusivec4.curios.compat.*;
 import top.theillusivec4.curios.mixin.CuriosImplMixinHooks;
 import top.theillusivec4.curios.server.SlotHelper;
 import top.theillusivec4.curios.server.command.CurioArgumentType;
@@ -150,10 +147,13 @@ public class CCLayer {
         CuriosApi.setSlotHelper(new SlotHelper());
         Set<String> slotIds = new HashSet<>();
 
-        for (ISlotType value : CuriosSlotManager.INSTANCE.getSlots().values()) {
-            CuriosApi.getSlotHelper().addSlotType(value);
-            slotIds.add(value.getIdentifier());
-        }
+        SlotTypeLoader.INSTANCE.getSlotTypes(false).values()
+                .stream()
+                .map(WrappedSlotType::new)
+                .forEach(value -> {
+                    CuriosApi.getSlotHelper().addSlotType(value);
+                    slotIds.add(value.getIdentifier());
+                });
         CurioArgumentType.slotIds = slotIds;
     }
 
