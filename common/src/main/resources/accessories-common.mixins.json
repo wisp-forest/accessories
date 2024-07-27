@@ -10,11 +10,11 @@
     "client.DefaultTooltipPositionerMixin",
     "client.GuiGraphicsAccessor",
     "client.InventoryScreenMixin",
+    "client.LoadingOverlayMixin",
     "client.MinecraftMixin",
     "client.ModelPartAccessor",
     "client.PlayerRendererMixin",
     "client.RenderTargetMixin",
-    "client.LoadingOverlayMixin",
     "client.ScreenAccessor"
   ],
   "mixins": [
@@ -29,6 +29,8 @@
     "LevelRendererAccessor",
     "LivingEntityAccessor",
     "LivingEntityMixin",
+    "NbtCompoundMixin",
+    "NbtUtilsMixin",
     "PiglinAiMixin",
     "PowderSnowBlockMixin",
     "RegistryOpsAccessor",
