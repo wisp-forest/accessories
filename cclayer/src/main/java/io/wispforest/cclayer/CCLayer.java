@@ -68,7 +68,6 @@ public class CCLayer {
         MinecraftForge.EVENT_BUS.addListener(this::serverStopped);
         MinecraftForge.EVENT_BUS.addListener(this::onWorldTick);
 
-
         CuriosApi.setCuriosHelper(new CuriosHelper());
 
         CuriosRegistry.init();
