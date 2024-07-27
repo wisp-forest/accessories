@@ -41,7 +41,9 @@ public abstract class SlotTypeLoaderMixin {
                 if (builders.containsKey(accessoryType)) {
                     builder = builders.get(accessoryType);
 
-                    if(slotData.amount > ((SlotTypeLoaderBuilderAccessor) builder).getAmount()) {
+                    var slotsCurrentSize = ((SlotTypeLoaderBuilderAccessor) builder).getAmount();
+
+                    if(slotsCurrentSize != null && slotData.amount > slotsCurrentSize) {
                         builder.amount(slotData.amount);
                     }
                 } else {
