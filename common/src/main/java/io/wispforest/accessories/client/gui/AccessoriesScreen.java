@@ -367,8 +367,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
                 guiGraphics.blit(HORIZONTAL_TABS, vector.x, vector.y, 0, v, vector.z, vector.w, 19, vector.w * 4); //32,128
 
-                var textureAtlasSprite = this.minecraft.getTextureAtlas(ResourceLocation.withDefaultNamespace("textures/atlas/blocks.png")).apply(group.icon());
-
                 pose.pushPose();
 
                 pose.translate(vector.x + 3, vector.y + 3, 0);
@@ -377,7 +375,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 if (pair.isSelected) pose.translate(2, 0, 0);
 
                 // MultiDraw?
-                guiGraphics.blit(0, 0, 0, 8, 8, textureAtlasSprite);
+                guiGraphics.blitSprite(group.icon(), 0, 0, 0, 8, 8);
 
                 pose.popPose();
             }
