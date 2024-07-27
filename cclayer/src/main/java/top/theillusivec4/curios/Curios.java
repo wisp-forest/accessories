@@ -11,7 +11,8 @@ import top.theillusivec4.curios.common.slottype.LegacySlotManager;
 public class Curios {
     public static final String MODID = CuriosConstants.MOD_ID;
 
-    public Curios(IEventBus eventBus) {
+    public Curios() {
+        var eventBus = FMLJavaModLoadingContext.get().getModEventBus();
         eventBus.addListener(this::process);
     }
 
