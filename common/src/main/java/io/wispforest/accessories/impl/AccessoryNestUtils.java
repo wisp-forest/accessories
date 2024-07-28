@@ -58,6 +58,8 @@ public class AccessoryNestUtils {
                 if (innerStack.isEmpty()) continue;
 
                 value = recursiveStackHandling(innerStack, create(reference, i), function);
+
+                if(value != null) return value;
             }
         }
 
