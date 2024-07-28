@@ -32,6 +32,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.loading.FMLLoader;
 import org.jetbrains.annotations.ApiStatus;
@@ -43,6 +44,7 @@ import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.api.type.util.ICuriosHelper;
 import top.theillusivec4.curios.api.type.util.IIconHelper;
 import top.theillusivec4.curios.api.type.util.ISlotHelper;
+import top.theillusivec4.curios.common.capability.CurioItemCapability;
 import top.theillusivec4.curios.mixin.CuriosImplMixinHooks;
 
 import javax.annotation.Nonnull;
@@ -121,6 +123,11 @@ public final class CuriosApi {
    */
   public static LazyOptional<ICurio> getCurio(ItemStack stack) {
     return CuriosImplMixinHooks.getCurio(stack);
+  }
+
+  @Nonnull
+  public static ICapabilityProvider createCurioProvider(final ICurio curio) {
+    return CurioItemCapability.createProvider(curio);
   }
 
   /**
