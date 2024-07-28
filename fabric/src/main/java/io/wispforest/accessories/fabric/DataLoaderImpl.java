@@ -14,11 +14,9 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -28,16 +26,28 @@ public class DataLoaderImpl extends DataLoaderBase {
     public static final ResourceLocation ENTITY_SLOT_LOADER_LOCATION = Accessories.of("entity_slot_loader");
     public static final ResourceLocation SLOT_GROUP_LOADER_LOCATION = Accessories.of("slot_group_loader");
 
+    private IdentifiableResourceReloadListener identifiedSlotLoader = null;
+    private IdentifiableResourceReloadListener identifiedEntitySlotLoader = null;
+
+    @Override
+    protected Optional<PreparableReloadListener> getIdentifiedSlotLoader() {
+        return Optional.ofNullable(identifiedSlotLoader);
+    }
+
+    @Override
+    protected Optional<PreparableReloadListener> getIdentifiedEntitySlotLoader() {
+        return Optional.ofNullable(identifiedEntitySlotLoader);
+    }
+
     @Override
     public void registerListeners() {
         var manager = ResourceManagerHelper.get(PackType.SERVER_DATA);
 
-        var SLOT_TYPE_LOADER = (IdentifiableResourceReloadListener) new IdentifiableResourceReloadListenerImpl(SLOT_LOADER_LOCATION, SlotTypeLoader.INSTANCE);
+        this.identifiedSlotLoader = new IdentifiableResourceReloadListenerImpl(SLOT_LOADER_LOCATION, SlotTypeLoader.INSTANCE);
+        this.identifiedEntitySlotLoader = new IdentifiableResourceReloadListenerImpl(ENTITY_SLOT_LOADER_LOCATION, EntitySlotLoader.INSTANCE, SLOT_LOADER_LOCATION);
 
-        var ENTITY_SLOT_LOADER = (IdentifiableResourceReloadListener) new IdentifiableResourceReloadListenerImpl(ENTITY_SLOT_LOADER_LOCATION, EntitySlotLoader.INSTANCE, SLOT_LOADER_LOCATION);
-
-        manager.registerReloadListener(SLOT_TYPE_LOADER);
-        manager.registerReloadListener(ENTITY_SLOT_LOADER);
+        manager.registerReloadListener(identifiedSlotLoader);
+        manager.registerReloadListener(identifiedEntitySlotLoader);
         manager.registerReloadListener(new IdentifiableResourceReloadListenerImpl(SLOT_GROUP_LOADER_LOCATION, SlotGroupLoader.INSTANCE, SLOT_LOADER_LOCATION));
 
         manager.registerReloadListener(new SimpleSynchronousResourceReloadListener() {

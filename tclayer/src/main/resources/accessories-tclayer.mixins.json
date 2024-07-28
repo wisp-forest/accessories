@@ -14,7 +14,6 @@
     "AccessoriesAPIMixin",
     "AccessoriesForgeMixin",
     "DataLoaderBaseMixin",
-    "ResourceManagerHelperImplAccessor",
     "EntitySlotLoaderMixin",
     "ItemStackMixin",
     "SlotTypeLoaderMixin",
