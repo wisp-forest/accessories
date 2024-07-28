@@ -79,7 +79,7 @@
   "text.autoconfig.accessories.option.SlotAmountModifier.slotType": "槽位名称",
   "text.autoconfig.accessories.option.SlotAmountModifier.amount": "偏移量",
 
-  "text.autoconfig.accessories.option.clientData.allowSlotScrolling": "运行屏幕槽位滚动",
+  "text.autoconfig.accessories.option.clientData.allowSlotScrolling": "允许屏幕槽位滚动",
   "text.autoconfig.accessories.option.clientData.equipControl": "手持饰品装备模式",
 
   "argument.livingEntities.nonLiving": "只有生物实体可能会受此命令的影响，但提供的选择器包括非生物实体"
