@@ -20,7 +20,7 @@ public class WrappedSlotType implements ISlotType {
 
     @Override
     public String getIdentifier() {
-        return this.slotType.name();
+        return CuriosWrappingUtils.accessoriesToCurios(this.slotType.name());
     }
 
     @Override
