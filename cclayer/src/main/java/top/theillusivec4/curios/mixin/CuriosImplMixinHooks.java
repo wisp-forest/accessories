@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.slot.SlotBasedPredicate;
@@ -32,6 +33,7 @@ import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
+import io.wispforest.cclayer.CCLayer;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
@@ -78,6 +80,7 @@ import net.minecraft.world.ticks.LevelTickAccess;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fml.loading.FMLLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -184,20 +187,22 @@ public class CuriosImplMixinHooks {
 //      }
 //    }
 //    return result;
+    Level level = CCLayer.getDummyLevel(isClient);
+
     return filteredSlots(slotType -> {
       SlotContext slotContext = new SlotContext(slotType.getIdentifier(), null, 0, false, true);
-      SlotResult slotResult = new CursedSlotResult(slotContext, stack, isClient);
+      SlotResult slotResult = new CursedSlotResult(slotContext, stack, level);
       return CuriosApi.testCurioPredicates(slotType.getValidators(), slotResult);
     }, CuriosApi.getSlots(isClient));
   }
 
   private static class CursedSlotResult extends SlotResult {
 
-    private final boolean isClient;
+    public final Level level;
 
-    public CursedSlotResult(SlotContext slotContext, ItemStack stack, boolean isClient) {
+    public CursedSlotResult(SlotContext slotContext, ItemStack stack, Level level) {
       super(slotContext, stack);
-      this.isClient = isClient;
+      this.level = level;
     }
   }
 
@@ -286,7 +291,9 @@ public class CuriosImplMixinHooks {
       boolean bl = false;
 
       try {
-        bl = AccessoriesAPI.getPredicateResults(slotType.validators(), null, slotType, 0, stack);
+        Level level = CCLayer.getDummyLevel(false);
+
+        bl = AccessoriesAPI.getPredicateResults(slotType.validators(), level, slotType, 0, stack);
       } catch (Exception ignored) {}
 
       if(!bl) return false;
@@ -416,8 +423,8 @@ public class CuriosImplMixinHooks {
     Level level;
 
     if(slotResult instanceof CursedSlotResult cursedSlotResult) {
-      slotType = SlotTypeLoader.INSTANCE.getSlotTypes(cursedSlotResult.isClient).get(ref.slotName());
-      level = new CursedLevel(cursedSlotResult.isClient);
+      slotType = SlotTypeLoader.INSTANCE.getSlotTypes(cursedSlotResult.level.isClientSide).get(ref.slotName());
+      level = cursedSlotResult.level;
     } else {
       slotType = ref.type();
       level = ref.entity().level();
@@ -472,59 +479,6 @@ public class CuriosImplMixinHooks {
       }
 
       return TriState.DEFAULT;
-    }
-  }
-
-  // Another cursed work around for the apothic curios mod... dam it
-  public static class CursedLevel extends Level{
-
-    CursedLevel(boolean isClientSide) {
-        super(
-                null,
-                null,
-                null,
-                Holder.direct(null),
-                null,
-                isClientSide,
-                false,
-                0,
-                0
-        );
-    }
-
-    @Override public LevelData getLevelData() { return throwError(); }
-    @Override public BiomeManager getBiomeManager() { return throwError(); }
-    @Override public DamageSources damageSources() { return throwError(); }
-    @Override public DimensionType dimensionType() { return throwError(); }
-    @Override public ResourceKey<DimensionType> dimensionTypeId() { return throwError(); }
-    @Override public Holder<DimensionType> dimensionTypeRegistration() { return throwError(); }
-    @Override public ProfilerFiller getProfiler() { return throwError(); }
-    @Override public ResourceKey<Level> dimension() { return throwError(); }
-    @Override public RegistryAccess registryAccess() { return throwError(); }
-    @Override public void sendBlockUpdated(BlockPos pos, BlockState oldState, BlockState newState, int flags) { throwError(); }
-    @Override public void playSeededSound(@Nullable Player player, double x, double y, double z, Holder<SoundEvent> sound, SoundSource category, float volume, float pitch, long seed) { throwError(); }
-    @Override public void playSeededSound(@Nullable Player player, Entity entity, Holder<SoundEvent> sound, SoundSource category, float volume, float pitch, long seed) { throwError(); }
-    @Override public String gatherChunkSourceStats() { return throwError(); }
-    @Override public @Nullable Entity getEntity(int id) { return throwError(); }
-    @Override public @Nullable MapItemSavedData getMapData(String mapName) { return throwError(); }
-    @Override public void setMapData(String mapName, MapItemSavedData data) { throwError(); }
-    @Override public int getFreeMapId() { return throwError(); }
-    @Override public void destroyBlockProgress(int breakerId, BlockPos pos, int progress) { throwError(); }
-    @Override public Scoreboard getScoreboard() { return throwError(); }
-    @Override public RecipeManager getRecipeManager() { return throwError(); }
-    @Override protected LevelEntityGetter<Entity> getEntities() { return throwError(); }
-    @Override public LevelTickAccess<Block> getBlockTicks() { return throwError(); }
-    @Override public LevelTickAccess<Fluid> getFluidTicks() { return throwError(); }
-    @Override public ChunkSource getChunkSource() { return throwError(); }
-    @Override public void levelEvent(@Nullable Player player, int type, BlockPos pos, int data) { throwError(); }
-    @Override public void gameEvent(GameEvent event, Vec3 position, GameEvent.Context context) { throwError(); }
-    @Override public float getShade(Direction direction, boolean shade) { return throwError(); }
-    @Override public List<? extends Player> players() { return throwError(); }
-    @Override public Holder<Biome> getUncachedNoiseBiome(int x, int y, int z) { return throwError(); }
-    @Override public FeatureFlagSet enabledFeatures() { return throwError(); }
-
-    public static <T> T throwError() {
-      throw new IllegalStateException("[CCLayer]: Fake level call was attempted which is not allowed as this hack is for `Apothic-Curios` cursed code base that gives me great pain!");
     }
   }
 }

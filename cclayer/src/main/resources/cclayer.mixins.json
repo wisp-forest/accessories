@@ -14,8 +14,7 @@
     "SlotTypeLoaderMixin",
     "compat.AetherAccessoriesMenuMixin",
     "SlotTypeLoaderBuilderAccessor",
-    "NetworkInstanceAccessor",
-    "LevelMixin"
+    "NetworkInstanceAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

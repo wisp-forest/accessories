@@ -1,9 +1,11 @@
 package io.wispforest.cclayer.client;
 
+import com.mojang.authlib.minecraft.client.MinecraftClient;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.cclayer.CCLayer;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -21,6 +23,8 @@ public class CCLayerClient {
 
     @SubscribeEvent
     public static void onClientInit(FMLClientSetupEvent event){
+        CCLayer.clientLevelSupplier = () -> Minecraft.getInstance().level;
+
         var bus = FMLJavaModLoadingContext.get().getModEventBus();
 
         bus.addListener(CCLayerClient::loaderRenders);
