@@ -34,22 +34,52 @@ import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.Util;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.RandomSource;
+import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.damagesource.DamageSources;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.BiomeManager;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.ChunkSource;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.entity.LevelEntityGetter;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
+import net.minecraft.world.level.storage.LevelData;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.scores.Scoreboard;
+import net.minecraft.world.ticks.LevelTickAccess;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import top.theillusivec4.curios.CuriosConstants;
 import top.theillusivec4.curios.api.*;
@@ -383,13 +413,14 @@ public class CuriosImplMixinHooks {
     var ref = CuriosWrappingUtils.fromContext(slotResult.slotContext());
 
     SlotType slotType;
-    LivingEntity entity = null;
+    Level level;
 
     if(slotResult instanceof CursedSlotResult cursedSlotResult) {
       slotType = SlotTypeLoader.INSTANCE.getSlotTypes(cursedSlotResult.isClient).get(ref.slotName());
+      level = new CursedLevel(cursedSlotResult.isClient);
     } else {
       slotType = ref.type();
-      entity = ref.entity();
+      level = ref.entity().level();
     }
 
     if(slotType == null) {
@@ -397,7 +428,7 @@ public class CuriosImplMixinHooks {
     }
 
     try {
-      return AccessoriesAPI.getPredicateResults(convertedSet, entity != null ? entity.level():  null, slotType, ref.slot(), slotResult.stack());
+      return AccessoriesAPI.getPredicateResults(convertedSet, level, slotType, ref.slot(), slotResult.stack());
     } catch (Exception e) {
       return false;
     }
@@ -441,6 +472,59 @@ public class CuriosImplMixinHooks {
       }
 
       return TriState.DEFAULT;
+    }
+  }
+
+  // Another cursed work around for the apothic curios mod... dam it
+  public static class CursedLevel extends Level{
+
+    CursedLevel(boolean isClientSide) {
+        super(
+                null,
+                null,
+                null,
+                Holder.direct(null),
+                null,
+                isClientSide,
+                false,
+                0,
+                0
+        );
+    }
+
+    @Override public LevelData getLevelData() { return throwError(); }
+    @Override public BiomeManager getBiomeManager() { return throwError(); }
+    @Override public DamageSources damageSources() { return throwError(); }
+    @Override public DimensionType dimensionType() { return throwError(); }
+    @Override public ResourceKey<DimensionType> dimensionTypeId() { return throwError(); }
+    @Override public Holder<DimensionType> dimensionTypeRegistration() { return throwError(); }
+    @Override public ProfilerFiller getProfiler() { return throwError(); }
+    @Override public ResourceKey<Level> dimension() { return throwError(); }
+    @Override public RegistryAccess registryAccess() { return throwError(); }
+    @Override public void sendBlockUpdated(BlockPos pos, BlockState oldState, BlockState newState, int flags) { throwError(); }
+    @Override public void playSeededSound(@Nullable Player player, double x, double y, double z, Holder<SoundEvent> sound, SoundSource category, float volume, float pitch, long seed) { throwError(); }
+    @Override public void playSeededSound(@Nullable Player player, Entity entity, Holder<SoundEvent> sound, SoundSource category, float volume, float pitch, long seed) { throwError(); }
+    @Override public String gatherChunkSourceStats() { return throwError(); }
+    @Override public @Nullable Entity getEntity(int id) { return throwError(); }
+    @Override public @Nullable MapItemSavedData getMapData(String mapName) { return throwError(); }
+    @Override public void setMapData(String mapName, MapItemSavedData data) { throwError(); }
+    @Override public int getFreeMapId() { return throwError(); }
+    @Override public void destroyBlockProgress(int breakerId, BlockPos pos, int progress) { throwError(); }
+    @Override public Scoreboard getScoreboard() { return throwError(); }
+    @Override public RecipeManager getRecipeManager() { return throwError(); }
+    @Override protected LevelEntityGetter<Entity> getEntities() { return throwError(); }
+    @Override public LevelTickAccess<Block> getBlockTicks() { return throwError(); }
+    @Override public LevelTickAccess<Fluid> getFluidTicks() { return throwError(); }
+    @Override public ChunkSource getChunkSource() { return throwError(); }
+    @Override public void levelEvent(@Nullable Player player, int type, BlockPos pos, int data) { throwError(); }
+    @Override public void gameEvent(GameEvent event, Vec3 position, GameEvent.Context context) { throwError(); }
+    @Override public float getShade(Direction direction, boolean shade) { return throwError(); }
+    @Override public List<? extends Player> players() { return throwError(); }
+    @Override public Holder<Biome> getUncachedNoiseBiome(int x, int y, int z) { return throwError(); }
+    @Override public FeatureFlagSet enabledFeatures() { return throwError(); }
+
+    public static <T> T throwError() {
+      throw new IllegalStateException("[CCLayer]: Fake level call was attempted which is not allowed as this hack is for `Apothic-Curios` cursed code base that gives me great pain!");
     }
   }
 }
