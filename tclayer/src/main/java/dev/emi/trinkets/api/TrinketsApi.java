@@ -265,7 +265,7 @@ public class TrinketsApi implements EntityComponentInitializer {
                 return this.trinketPredicate.apply(stack, new SlotReference(new CursedTrinketInventory(slotType, level.isClientSide()), slot), null);
             } catch (Exception e) {
                 this.hasErrored = true;
-                LOGGER.warn("Unable to handle Trinket Slot Predicate converted to Accessories Slot Predicate due to fundamental incompatibility, issues may be present with it! [Slot: {}, Predicate ID: {}]", slotType.name(), this.location);
+                LOGGER.warn("Unable to handle Trinket Slot Predicate converted to Accessories Slot Predicate due to fundamental incompatibility, issues may be present with it! [Slot: {}, Predicate ID: {}]", slotType.name(), this.location, e);
             }
 
             return TriState.DEFAULT;
