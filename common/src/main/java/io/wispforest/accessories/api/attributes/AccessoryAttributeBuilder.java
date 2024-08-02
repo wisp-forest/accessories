@@ -74,7 +74,7 @@ public final class AccessoryAttributeBuilder {
      * step of appending slot information when adding to the living entity
      */
     public AccessoryAttributeBuilder addStackable(Holder<Attribute> attribute, AttributeModifier modifier) {
-        stackedAttributes.put(modifier.id(), new AttributeModificationData(createSlotPath(this.slotReference), attribute, modifier));
+        stackedAttributes.put(modifier.id(), new AttributeModificationData(this.slotReference.createSlotPath(), attribute, modifier));
 
         return this;
     }

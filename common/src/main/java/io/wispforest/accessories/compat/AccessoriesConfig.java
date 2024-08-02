@@ -1,16 +1,14 @@
 package io.wispforest.accessories.compat;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.PlayerEquipControl;
+import io.wispforest.accessories.impl.PlayerEquipControl;
 import io.wispforest.accessories.api.client.TargetType;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Config(name = Accessories.MODID)
 public class AccessoriesConfig implements ConfigData {
