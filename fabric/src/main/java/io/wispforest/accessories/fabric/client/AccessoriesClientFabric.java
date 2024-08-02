@@ -12,6 +12,7 @@ import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.networking.base.BaseNetworkHandler;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
+import io.wispforest.accessories.networking.base.PacketBuilderConsumer;
 import io.wispforest.endec.Endec;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
@@ -51,7 +52,12 @@ public class AccessoriesClientFabric implements ClientModInitializer {
     public void onInitializeClient() {
         AccessoriesClient.init();
 
-        AccessoriesFabricNetworkHandler.INSTANCE.initClient(AccessoriesClientFabric::registerS2C);
+        AccessoriesFabricNetworkHandler.INSTANCE.initClient(new PacketBuilderConsumer() {
+            @Override
+            public <M extends HandledPacketPayload> void accept(Class<M> messageType, Endec<M> endec) {
+                ClientPlayNetworking.registerGlobalReceiver(AccessoriesFabricNetworkHandler.INSTANCE.getId(messageType), (packet, context) -> packet.handle(context.player()));
+            }
+        });
 
         OPEN_SCREEN = KeyBindingHelper.registerKeyBinding(new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories"));
 
@@ -85,11 +91,6 @@ public class AccessoriesClientFabric implements ClientModInitializer {
             }
         });
 
-        CoreShaderRegistrationCallback.EVENT.register(context -> context.register( Accessories.of("fish"), DefaultVertexFormat.BLIT_SCREEN, shaderInstance -> AccessoriesClient.BLIT_SHADER = shaderInstance));
-    }
-
-    @Environment(EnvType.CLIENT)
-    protected static <M extends HandledPacketPayload> void registerS2C(Class<M> messageType, Endec<M> endec) {
-        ClientPlayNetworking.registerGlobalReceiver(BaseNetworkHandler.getId(messageType), (packet, context) -> packet.handle(context.player()));
+        CoreShaderRegistrationCallback.EVENT.register(context -> context.register(Accessories.of("fish"), DefaultVertexFormat.BLIT_SCREEN, shaderInstance -> AccessoriesClient.BLIT_SHADER = shaderInstance));
     }
 }

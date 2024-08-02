@@ -721,7 +721,7 @@ public class AccessoriesEventHandler {
 
                     var newHandStack = stack.copy();
 
-                    var possibleSwappedStack = equipReference.second().apply(newHandStack);
+                    var possibleSwappedStack = equipReference.second().equipStack(newHandStack);
 
                     if(possibleSwappedStack.isPresent()) {
                         var swappedStack = possibleSwappedStack.get();
@@ -765,7 +765,7 @@ public class AccessoriesEventHandler {
 
                     var newHandStack = stack.copy();
 
-                    var possibleSwappedStack = equipReference.second().apply(newHandStack);
+                    var possibleSwappedStack = equipReference.second().equipStack(newHandStack);
 
                     if(possibleSwappedStack.isPresent()) {
                         var swappedStack = possibleSwappedStack.get();

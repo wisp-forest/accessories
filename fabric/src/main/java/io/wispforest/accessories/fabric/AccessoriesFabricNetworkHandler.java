@@ -48,7 +48,7 @@ public class AccessoriesFabricNetworkHandler extends BaseNetworkHandler {
     }
 
     protected <M extends HandledPacketPayload> void registerS2CDeferred(Class<M> messageType, Endec<M> endec) {
-        PayloadTypeRegistry.playS2C().register(BaseNetworkHandler.getId(messageType), CodecUtils.packetCodec(endec));
+        PayloadTypeRegistry.playS2C().register(this.getId(messageType), CodecUtils.packetCodec(endec));
     }
 
     @Override
