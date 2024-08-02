@@ -17,6 +17,7 @@ import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
 import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
@@ -54,10 +55,17 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         this.slotName = slotType.name();
         this.baseSize = slotType.amount();
 
-        this.accessories = new ExpandedSimpleContainer(this.baseSize, "Accessories", false);
-        this.cosmeticAccessories = new ExpandedSimpleContainer(this.baseSize, "Cosmetic Accessories", false);
+        this.accessories = new ExpandedSimpleContainer(this::onContainerUpdate, this.baseSize, "accessories", false);
+        this.cosmeticAccessories = new ExpandedSimpleContainer(this::onContainerUpdate, this.baseSize, "cosmetic_accessories", false);
 
         this.renderOptions = getWithSize(baseSize, new ArrayList<>(), true);
+    }
+
+    private void onContainerUpdate(Container container) {
+        if(((ExpandedSimpleContainer) container).name().contains("cosmetic")) return;
+
+        this.markChanged();
+        this.update();
     }
 
     @Nullable
@@ -135,8 +143,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
             var invalidStacks = new ArrayList<ItemStack>();
 
-            var newAccessories = new ExpandedSimpleContainer(currentSize, "Accessories");
-            var newCosmetics = new ExpandedSimpleContainer(currentSize, "Cosmetic Accessories");
+            var newAccessories = new ExpandedSimpleContainer(this::onContainerUpdate, currentSize, "accessories");
+            var newCosmetics = new ExpandedSimpleContainer(this::onContainerUpdate, currentSize, "cosmetic_accessories");
 
             for (int i = 0; i < this.accessories.getContainerSize(); i++) {
                 if (i < newAccessories.getContainerSize()) {
@@ -393,8 +401,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
             this.renderOptions = getWithSize(currentSize, sentOptions, true);
 
             if(this.accessories.getContainerSize() != currentSize) {
-                this.accessories = new ExpandedSimpleContainer(currentSize, "Accessories");
-                this.cosmeticAccessories = new ExpandedSimpleContainer(currentSize, "Cosmetic Accessories");
+                this.accessories = new ExpandedSimpleContainer(this::onContainerUpdate, currentSize, "accessories");
+                this.cosmeticAccessories = new ExpandedSimpleContainer(this::onContainerUpdate, currentSize, "cosmetic_accessories");
             }
 
             this.accessories.fromTag(carrier.get(ITEMS_KEY));
