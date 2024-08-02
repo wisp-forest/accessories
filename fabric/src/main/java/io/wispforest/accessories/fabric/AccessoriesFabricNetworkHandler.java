@@ -1,6 +1,7 @@
 package io.wispforest.accessories.fabric;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.networking.*;
 import io.wispforest.accessories.networking.base.*;
 import io.wispforest.endec.Endec;
