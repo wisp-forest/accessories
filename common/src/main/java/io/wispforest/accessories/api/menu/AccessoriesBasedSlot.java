@@ -93,9 +93,6 @@ public class AccessoriesBasedSlot extends Slot {
     @Override
     public void set(ItemStack stack) {
         super.set(stack);
-
-        this.accessoriesContainer.markChanged();
-        this.accessoriesContainer.update();
     }
 
     @Override
