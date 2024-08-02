@@ -1,6 +1,5 @@
 package io.wispforest.accessories.api;
 
-import com.google.common.collect.ImmutableList;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;

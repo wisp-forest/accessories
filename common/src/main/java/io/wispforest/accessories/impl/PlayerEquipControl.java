@@ -1,4 +1,4 @@
-package io.wispforest.accessories.api;
+package io.wispforest.accessories.impl;
 
 public enum PlayerEquipControl {
     MUST_CROUCH,

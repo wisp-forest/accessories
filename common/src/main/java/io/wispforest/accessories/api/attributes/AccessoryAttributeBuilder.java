@@ -1,10 +1,8 @@
 package io.wispforest.accessories.api.attributes;
 
 import com.google.common.collect.*;
-import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.NestedSlotReferenceImpl;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.utils.AttributeUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -12,9 +10,10 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.function.Function;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * Builder used to collect the attribute modifications from a given Accessory with the ability
@@ -83,7 +82,7 @@ public final class AccessoryAttributeBuilder {
     private AccessoryAttributeBuilder addStackable(Attribute attribute, AttributeModifier modifier) {
         var location = AttributeUtils.getLocation(modifier.getName());
 
-        stackedAttributes.put(location, new AttributeModificationData(createSlotPath(this.slotReference), attribute, modifier));
+        stackedAttributes.put(location, new AttributeModificationData(this.slotReference.createSlotPath(), attribute, modifier));
 
         return this;
     }
