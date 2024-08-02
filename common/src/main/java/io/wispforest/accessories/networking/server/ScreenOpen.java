@@ -2,6 +2,7 @@ package io.wispforest.accessories.networking.server;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.AccessoriesMenu;
+import io.wispforest.accessories.networking.BaseAccessoryPacket;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
@@ -12,7 +13,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-public record ScreenOpen(int entityId, boolean targetLookEntity) implements HandledPacketPayload {
+public record ScreenOpen(int entityId, boolean targetLookEntity) implements BaseAccessoryPacket {
 
     public static final Endec<ScreenOpen> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", ScreenOpen::entityId),

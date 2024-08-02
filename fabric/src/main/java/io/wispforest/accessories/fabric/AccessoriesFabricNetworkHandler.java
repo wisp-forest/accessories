@@ -1,5 +1,6 @@
 package io.wispforest.accessories.fabric;
 
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.networking.*;
 import io.wispforest.accessories.networking.base.BaseNetworkHandler;
@@ -24,7 +25,7 @@ public class AccessoriesFabricNetworkHandler extends BaseNetworkHandler {
     public static final AccessoriesFabricNetworkHandler INSTANCE = new AccessoriesFabricNetworkHandler(AccessoriesPackets::register);
 
     protected AccessoriesFabricNetworkHandler(Consumer<NetworkBuilderRegister> builder) {
-        super(builder);
+        super(Accessories.of("main"), builder);
     }
 
     @Override

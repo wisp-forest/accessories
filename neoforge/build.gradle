@@ -47,7 +47,7 @@ dependencies {
     modImplementation("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
 
     include modApi("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+d1308dedd1"){ exclude group: "fabric-api" }
-    
+
     forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")
     forgeRuntimeLibrary("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
     forgeRuntimeLibrary("io.wispforest.endec:netty:${rootProject.endec_netty_version}")

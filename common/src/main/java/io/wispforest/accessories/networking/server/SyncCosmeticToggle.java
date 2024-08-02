@@ -3,6 +3,7 @@ package io.wispforest.accessories.networking.server;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.networking.BaseAccessoryPacket;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
@@ -10,7 +11,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
-public record SyncCosmeticToggle(@Nullable Integer entityId, String slotName, int slotIndex) implements HandledPacketPayload {
+public record SyncCosmeticToggle(@Nullable Integer entityId, String slotName, int slotIndex) implements BaseAccessoryPacket {
 
     public static final Endec<SyncCosmeticToggle> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.nullableOf().fieldOf("entityId", SyncCosmeticToggle::entityId),

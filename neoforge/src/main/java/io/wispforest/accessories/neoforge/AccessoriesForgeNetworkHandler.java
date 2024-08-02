@@ -30,7 +30,7 @@ public class AccessoriesForgeNetworkHandler extends BaseNetworkHandler {
     private PayloadRegistrar registrar = null;
 
     protected AccessoriesForgeNetworkHandler(Consumer<NetworkBuilderRegister> builder) {
-        super(builder);
+        super(Accessories.of("main"), builder);
     }
 
     public void initializeNetworking(final RegisterPayloadHandlersEvent event) {
