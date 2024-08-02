@@ -7,6 +7,8 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
+import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.events.*;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
@@ -15,6 +17,7 @@ import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
+import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncData;
@@ -23,6 +26,7 @@ import io.wispforest.endec.SerializationContext;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -42,6 +46,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
@@ -710,34 +716,25 @@ public class AccessoriesEventHandler {
             if (shouldAttemptEquip) {
                 var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
-                var equipReference = capability.equipAccessory(stack, true, Accessory::canEquipFromUse);
+                var equipReference = capability.canEquipAccessory(stack, true);
 
                 if (equipReference != null) {
                     accessory.onEquipFromUse(stack, equipReference.left());
 
-                    var stacks = equipReference.second();
+                    var newHandStack = stack.copy();
 
-                    var newHandStack = stacks.get(0);
+                    var possibleSwappedStack = equipReference.second().apply(newHandStack);
 
-                    if (stacks.size() > 1) {
-                        var otherStack = stacks.get(1);
+                    if(possibleSwappedStack.isPresent()) {
+                        var swappedStack = possibleSwappedStack.get();
 
                         if (newHandStack.isEmpty()) {
-                            newHandStack = otherStack;
-                        } else if (ItemStack.isSameItemSameTags(newHandStack, otherStack)) {
-                            int resizingAmount = 0;
-
-                            if ((newHandStack.getCount() + otherStack.getCount()) < newHandStack.getMaxStackSize()) {
-                                resizingAmount = otherStack.getCount();
-                            } else if ((newHandStack.getMaxStackSize() - newHandStack.getCount()) > 0) {
-                                resizingAmount = newHandStack.getMaxStackSize() - newHandStack.getCount();
-                            }
-
-                            otherStack.shrink(resizingAmount);
-                            newHandStack.grow(resizingAmount);
+                            newHandStack = swappedStack;
+                        } else if(ItemStack.isSameItemSameTags(newHandStack, swappedStack) && (newHandStack.getCount() + swappedStack.getCount()) <= newHandStack.getMaxStackSize()) {
+                            newHandStack.grow(swappedStack.getCount());
+                        } else {
+                            player.addItem(swappedStack);
                         }
-
-                        player.addItem(otherStack);
                     }
 
                     return InteractionResultHolder.success(newHandStack);
@@ -753,47 +750,40 @@ public class AccessoriesEventHandler {
     public static InteractionResult attemptEquipOnEntity(Player player, InteractionHand hand, Entity entity) {
         var stack = player.getItemInHand(hand);
 
-        if (entity.getType().is(EQUIPMENT_MANAGEABLE) && !player.isSpectator() && player.isShiftKeyDown()) {
-            var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+        if(!(entity instanceof LivingEntity targetEntity) || !entity.getType().is(EQUIPMENT_MANAGEABLE)) return InteractionResult.PASS;
 
-            if(entity instanceof LivingEntity livingEntity) {
-                var capability = AccessoriesCapability.get(livingEntity);
+        var targetCapability = AccessoriesCapability.get(targetEntity);
 
-                if (capability != null) {
-                    var equipReference = capability.equipAccessory(stack, true, Accessory::canEquipFromUse);
+        var canModify = AllowEntityModificationCallback.EVENT.invoker().allowModifications(targetEntity, player, null).orElse(false);
 
-                    if (equipReference != null) {
-                        if(!stack.isEmpty()) accessory.onEquipFromUse(stack, equipReference.left());
+        if (canModify && targetCapability != null && !player.isSpectator()) {
+            if (player.isShiftKeyDown()) {
+                var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
-                        var stacks = equipReference.second();
+                var equipReference = targetCapability.canEquipAccessory(stack, true);
 
-                        var newHandStack = stacks.get(0);
+                if (equipReference != null && accessory.canEquipFromUse(stack)) {
+                    if(!stack.isEmpty()) accessory.onEquipFromUse(stack, equipReference.left());
 
-                        if(stacks.size() > 1) {
-                            var otherStack = stacks.get(1);
+                    var newHandStack = stack.copy();
 
-                            if (newHandStack.isEmpty()) {
-                                newHandStack = otherStack;
-                            } else if(ItemStack.isSameItemSameTags(newHandStack, otherStack)) {
-                                int resizingAmount = 0;
+                    var possibleSwappedStack = equipReference.second().apply(newHandStack);
 
-                                if((newHandStack.getCount() + otherStack.getCount()) < newHandStack.getMaxStackSize()) {
-                                    resizingAmount = otherStack.getCount();
-                                } else if((newHandStack.getMaxStackSize() - newHandStack.getCount()) > 0) {
-                                    resizingAmount = newHandStack.getMaxStackSize() - newHandStack.getCount();
-                                }
+                    if(possibleSwappedStack.isPresent()) {
+                        var swappedStack = possibleSwappedStack.get();
 
-                                otherStack.shrink(resizingAmount);
-                                newHandStack.grow(resizingAmount);
-                            }
-
-                            player.addItem(otherStack);
+                        if (newHandStack.isEmpty()) {
+                            newHandStack = swappedStack;
+                        } else if(ItemStack.isSameItemSameTags(newHandStack, swappedStack) && (newHandStack.getCount() + swappedStack.getCount()) <= newHandStack.getMaxStackSize()) {
+                            newHandStack.grow(swappedStack.getCount());
+                        } else {
+                            player.addItem(swappedStack);
                         }
-
-                        player.setItemInHand(hand, newHandStack);
-
-                        return InteractionResult.SUCCESS;
                     }
+
+                    player.setItemInHand(hand, newHandStack);
+
+                    return InteractionResult.SUCCESS;
                 }
             }
         }

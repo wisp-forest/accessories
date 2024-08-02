@@ -4,6 +4,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
+import io.wispforest.accessories.api.EquipAction;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
@@ -17,7 +18,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
-import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -221,9 +221,10 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
         return this.holder().containersRequiringUpdates;
     }
 
-    @Override
+    //--
+
     @Nullable
-    public Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack, boolean allowSwapping, TriFunction<Accessory, ItemStack, SlotReference, Boolean> additionalCheck) {
+    public Pair<SlotReference, EquipAction> canEquipAccessory(ItemStack stack, boolean allowSwapping, EquipCheck extraCheck) {
         var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
         if (accessory == null) return null;
@@ -240,34 +241,24 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
             for (var container : this.getContainers().values()) {
                 if (container.getSize() <= 0) continue;
 
-                var accessories = container.getAccessories();
-
                 boolean isValid = AccessoriesAPI.canInsertIntoSlot(stack, container.createReference(0));
 
+                // Prevents checking containers that will never allow for the given stack to be equipped within it
                 if (!isValid || !ExtraSlotTypeProperties.getProperty(container.getSlotName(), entity.level().isClientSide).allowEquipFromUse()) continue;
 
                 if (allowSwapping) validContainers.put(container.getSlotName(), container);
+
+                var accessories = container.getAccessories();
 
                 for (int i = 0; i < container.getSize(); i++) {
                     var slotStack = accessories.getItem(i);
                     var slotReference = container.createReference(i);
 
-                    if (!slotStack.isEmpty()) continue;
-
-                    if (!AccessoriesAPI.canUnequip(slotStack, slotReference)) continue;
-
-                    if (additionalCheck.apply(accessory, stack, slotReference) && AccessoriesAPI.canInsertIntoSlot(stack, slotReference)) {
-                        var stackCopy = stack.copy();
-
-                        if (!entity.level().isClientSide) {
-                            var splitStack = stackCopy.split(accessory.maxStackSize(stackCopy));
-
-                            accessories.setItem(i, splitStack);
-
-                            container.markChanged();
-                        }
-
-                        return Pair.of(container.createReference(i), List.of(stackCopy.isEmpty() ? ItemStack.EMPTY : stackCopy));
+                    if (slotStack.isEmpty()
+                            && AccessoriesAPI.canUnequip(slotStack, slotReference)
+                            && AccessoriesAPI.canInsertIntoSlot(stack, slotReference)
+                            && extraCheck.isValid(slotStack, false)) {
+                        return Pair.of(container.createReference(i), (newStack) -> setStack(slotReference, newStack, false));
                     }
                 }
             }
@@ -281,26 +272,41 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
                 var slotStack = accessories.getItem(i).copy();
                 var slotReference = validContainer.createReference(i);
 
-                if (!AccessoriesAPI.canUnequip(slotStack, slotReference) || slotStack.isEmpty()) continue;
+                if (slotStack.isEmpty() || !AccessoriesAPI.canUnequip(slotStack, slotReference)) continue;
 
-                if (stack.isEmpty() || (additionalCheck.apply(accessory, stack, slotReference) && AccessoriesAPI.canInsertIntoSlot(stack, slotReference))) {
-                    var stackCopy = stack.copy();
-
-                    var splitStack = stackCopy.isEmpty() ? ItemStack.EMPTY : stackCopy.split(accessory.maxStackSize(stackCopy));
-
-                    if (!entity.level().isClientSide) {
-                        accessories.setItem(i, splitStack);
-
-                        validContainer.markChanged();
-                    }
-
-                    return Pair.of(slotReference, List.of(stackCopy, slotStack));
+                if (stack.isEmpty() || (AccessoriesAPI.canInsertIntoSlot(stack, slotReference) && extraCheck.isValid(slotStack, true))) {
+                    return Pair.of(slotReference, (newStack) -> setStack(slotReference, newStack, true));
                 }
             }
         }
 
         return null;
     }
+
+    private Optional<ItemStack> setStack(SlotReference reference, ItemStack newStack, boolean shouldSwapStacks) {
+        var oldStack = reference.getStack().copy();
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(oldStack);
+
+        if(shouldSwapStacks) {
+            var splitStack = newStack.isEmpty() ? ItemStack.EMPTY : newStack.split(accessory.maxStackSize(newStack));
+
+            if (!entity.level().isClientSide) {
+                reference.setStack(splitStack);
+            }
+
+            return Optional.of(oldStack);
+        } else {
+            if (!entity.level().isClientSide) {
+                var splitStack = newStack.split(accessory.maxStackSize(newStack));
+
+                reference.setStack(splitStack);
+            }
+
+            return Optional.empty();
+        }
+    }
+
+    //--
 
     public SlotEntryReference getFirstEquipped(Predicate<ItemStack> predicate, EquipmentChecking check) {
         for (var container : this.getContainers().values()) {
