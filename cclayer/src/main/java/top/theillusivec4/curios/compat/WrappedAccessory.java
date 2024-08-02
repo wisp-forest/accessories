@@ -85,7 +85,7 @@ public class WrappedAccessory implements ICurioItem {
 
     @Override
     public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) {
-        return accessory.canEquipFromUse(stack, CuriosWrappingUtils.fromContext(slotContext));
+        return accessory.canEquipFromUse(stack);
     }
 
     @Override

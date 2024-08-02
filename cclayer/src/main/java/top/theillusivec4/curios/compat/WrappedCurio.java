@@ -107,10 +107,12 @@ public class WrappedCurio implements Accessory, LootingAdjustment, FortuneAdjust
     }
 
     @Override
-    public boolean canEquipFromUse(ItemStack stack, SlotReference reference) {
-        var context = CuriosWrappingUtils.create(reference);
-
-        return this.iCurioItem.canEquipFromUse(context, stack);
+    public boolean canEquipFromUse(ItemStack stack) {
+        try {
+            return this.iCurioItem.canEquipFromUse(null, stack);
+        } catch (NullPointerException e) {
+            return false;
+        }
     }
 
     @Override
