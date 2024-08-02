@@ -1,5 +1,6 @@
 package io.wispforest.accessories.fabric;
 
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.networking.*;
 import io.wispforest.accessories.networking.base.*;
 import io.wispforest.endec.Endec;
@@ -29,7 +30,7 @@ public class AccessoriesFabricNetworkHandler extends BaseNetworkHandler {
     private final Map<Type<?>, PacketType<AccessoriesFabricPacket<?>>> packetTypes = new HashMap<>();
 
     protected AccessoriesFabricNetworkHandler(Consumer<NetworkBuilderRegister> builder) {
-        super(builder);
+        super(Accessories.of("main"), builder);
     }
 
     @Override
@@ -95,7 +96,7 @@ public class AccessoriesFabricNetworkHandler extends BaseNetworkHandler {
 
     public <P extends HandledPacketPayload> Endec<P> getEndec(Class<P> clazz, boolean isClient) {
         return (Endec<P>) ((isClient) ? this.c2sBuilders : this.s2cBuilders)
-                .get(BaseNetworkHandler.getId(clazz)).endec();
+                .get(this.getId(clazz)).endec();
     }
 
     public record AccessoriesFabricPacket<P extends HandledPacketPayload>(P innerPacket, Endec<P> endec) implements FabricPacket {

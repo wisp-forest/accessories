@@ -2,13 +2,14 @@ package io.wispforest.accessories.networking.client;
 
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.networking.BaseAccessoryPacket;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
-public record AccessoryBreak(int entityId, String slotName, int slotIndex) implements HandledPacketPayload {
+public record AccessoryBreak(int entityId, String slotName, int slotIndex) implements BaseAccessoryPacket {
 
     public static Endec<AccessoryBreak> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", AccessoryBreak::entityId),

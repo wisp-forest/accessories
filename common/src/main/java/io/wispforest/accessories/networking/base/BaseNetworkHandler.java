@@ -6,6 +6,7 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.ReflectiveEndecBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -21,9 +22,12 @@ public abstract class BaseNetworkHandler {
     protected final Map<Type<?>, PacketBuilder<?>> c2sBuilders = new LinkedHashMap<>();
     protected final Map<Type<?>, PacketBuilder<?>> s2cBuilders = new LinkedHashMap<>();
 
+    private final ResourceLocation channelId;
+
     private final ReflectiveEndecBuilder endecBuilder;
 
-    protected BaseNetworkHandler(Consumer<NetworkBuilderRegister> builder) {
+    protected BaseNetworkHandler(ResourceLocation channelId, Consumer<NetworkBuilderRegister> builder) {
+        this.channelId = channelId;
         this.endecBuilder = MinecraftEndecs.withExtra(new ReflectiveEndecBuilder());
 
         builder.accept(createRegister());
@@ -63,7 +67,7 @@ public abstract class BaseNetworkHandler {
             public <M extends HandledPacketPayload> void registerBuilderC2S(Class<M> messageType, Endec<M> endec){
                 checkIfFrozen("C2S", messageType);
 
-                var builder = PacketBuilder.of(messageType, endec);
+                var builder = PacketBuilder.of(BaseNetworkHandler.this, messageType, endec);
 
                 if(BaseNetworkHandler.this.c2sBuilders.containsKey(builder.id())) {
                     throw new IllegalStateException("Unable to register the given C2S packet as it already exists within the handler Map! [Class: " + messageType.getSimpleName() + "]");
@@ -76,7 +80,7 @@ public abstract class BaseNetworkHandler {
             public <M extends HandledPacketPayload> void registerBuilderS2C(Class<M> messageType, Endec<M> endec){
                 checkIfFrozen("S2C", messageType);
 
-                var builder = PacketBuilder.of(messageType, endec);
+                var builder = PacketBuilder.of(BaseNetworkHandler.this, messageType, endec);
 
                 if(BaseNetworkHandler.this.c2sBuilders.containsKey(builder.id())) {
                     throw new IllegalStateException("Unable to register the given S2C packet as it already exists within the handler Map! [Class: " + messageType.getSimpleName() + "]");
@@ -89,7 +93,7 @@ public abstract class BaseNetworkHandler {
             public <M extends HandledPacketPayload> void registerBuilderBiDi(Class<M> messageType, Endec<M> endec){
                 checkIfFrozen("Bi-Directional", messageType);
 
-                var builder = PacketBuilder.of(messageType, endec);
+                var builder = PacketBuilder.of(BaseNetworkHandler.this, messageType, endec);
 
                 if(BaseNetworkHandler.this.c2sBuilders.containsKey(builder.id()) || BaseNetworkHandler.this.s2cBuilders.containsKey(builder.id()) ) {
                     throw new IllegalStateException("Unable to register the given Bi-Directional packet as it already exists within the handler Map! [Class: " + messageType.getSimpleName() + "]");
@@ -108,8 +112,8 @@ public abstract class BaseNetworkHandler {
     }
 
     protected record PacketBuilder<M extends HandledPacketPayload>(Type<M> id, Class<M> clazz, Endec<M> endec) {
-        public static <M extends HandledPacketPayload> PacketBuilder<M> of(Class<M> clazz, Endec<M> endec){
-            return new PacketBuilder<>(getId(clazz), clazz, endec);
+        public static <M extends HandledPacketPayload> PacketBuilder<M> of(BaseNetworkHandler handler, Class<M> clazz, Endec<M> endec){
+            return new PacketBuilder<>(handler.getId(clazz), clazz, endec);
         }
 
         public void registerPacket(PacketBuilderConsumer registerFunc){
@@ -117,8 +121,10 @@ public abstract class BaseNetworkHandler {
         }
     }
 
-    public static <M extends HandledPacketPayload> Type<M> getId(Class<M> mClass){
-        return new Type<>(Accessories.of(mClass.getName().toLowerCase()));
+    public <M extends HandledPacketPayload> Type<M> getId(Class<M> mClass){
+        var path = this.channelId.getPath() + "/" + mClass.getName().toLowerCase();
+
+        return new Type<>(new ResourceLocation(this.channelId.getNamespace(), path));
     }
 
 

@@ -43,7 +43,7 @@ public class AccessoriesForgeNetworkHandler extends BaseNetworkHandler {
     private int i = 0;
 
     protected AccessoriesForgeNetworkHandler(Consumer<NetworkBuilderRegister> builder) {
-        super(builder);
+        super(Accessories.of("main"), builder);
     }
 
     public void initializeNetworking() {

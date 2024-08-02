@@ -2,6 +2,7 @@ package io.wispforest.accessories.networking.holder;
 
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
+import io.wispforest.accessories.networking.BaseAccessoryPacket;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.*;
 import net.fabricmc.api.EnvType;
@@ -12,7 +13,7 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.function.Function;
 
-public record SyncHolderChange(HolderProperty<?> property, Object data) implements HandledPacketPayload {
+public record SyncHolderChange(HolderProperty<?> property, Object data) implements BaseAccessoryPacket {
 
     public static final Endec<SyncHolderChange> ENDEC = new StructEndec<SyncHolderChange>() {
         @Override
