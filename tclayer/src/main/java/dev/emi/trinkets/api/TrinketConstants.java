@@ -15,7 +15,7 @@ public class TrinketConstants {
     public static final Logger LOGGER = LogManager.getLogger();
 
     public static boolean isValid(SlotReference slotReference, ItemStack stack){
-        var ref = WrappingTrinketsUtils.createReference(slotReference);
+        var ref = WrappingTrinketsUtils.createTrinketsReference(slotReference);
 
         if(ref.isEmpty()) return false;
 

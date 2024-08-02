@@ -29,7 +29,7 @@ public class TrinketRendererRegistry {
                 public <M extends LivingEntity> void render(ItemStack stack, SlotReference ref, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
                     matrices.pushPose();
 
-                    var reference = WrappingTrinketsUtils.createReference(ref);
+                    var reference = WrappingTrinketsUtils.createTrinketsReference(ref);
 
                     if(reference.isEmpty()) return;
 

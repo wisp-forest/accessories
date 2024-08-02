@@ -4,6 +4,7 @@ import dev.emi.trinkets.api.SlotReference;
 import dev.emi.trinkets.api.Trinket;
 import dev.emi.trinkets.compat.WrappingTrinketsUtils;
 import io.wispforest.accessories.api.events.AccessoryChangeCallback;
+import io.wispforest.accessories.api.events.SlotStateChange;
 import io.wispforest.accessories.impl.event.WrappedEvent;
 import net.fabricmc.fabric.api.event.Event;
 import net.minecraft.world.entity.LivingEntity;
@@ -12,12 +13,16 @@ import net.minecraft.world.item.ItemStack;
 public interface TrinketEquipCallback {
     Event<TrinketEquipCallback> EVENT = new WrappedEvent<>(AccessoryChangeCallback.EVENT, callback -> {
         return (prevStack, currentStack, reference, stateChange) -> {
-            var slotReference = WrappingTrinketsUtils.createReference(reference);
+            var slotReference = WrappingTrinketsUtils.createTrinketsReference(reference);
 
             if(slotReference.isEmpty()) return;
 
             callback.onEquip(currentStack, slotReference.get(), reference.entity());
         };
+    }, accessoryChangeCallbackEvent -> (stack, slot, entity) -> {
+        var ref = WrappingTrinketsUtils.createAccessoriesReference(slot).get();
+
+        accessoryChangeCallbackEvent.invoker().onChange(ref.getStack(), stack, ref, SlotStateChange.REPLACEMENT);
     });
 
     /**
