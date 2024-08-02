@@ -109,7 +109,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
 
         return equipped.stream()
                 .map(slotResult -> {
-                    var reference = WrappingTrinketsUtils.createReference(slotResult.reference());
+                    var reference = WrappingTrinketsUtils.createTrinketsReference(slotResult.reference());
 
                     return reference.map(slotReference -> new Tuple<>(
                             slotReference,
@@ -125,7 +125,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
         var equipped = capability.getEquipped(stack -> true);
 
         equipped.forEach(slotResult -> {
-            var reference = WrappingTrinketsUtils.createReference(slotResult.reference());
+            var reference = WrappingTrinketsUtils.createTrinketsReference(slotResult.reference());
 
             if(reference.isEmpty()) return;
 

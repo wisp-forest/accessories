@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class WrappingTrinketsUtils {
 
-    public static Optional<SlotReference> createReference(io.wispforest.accessories.api.slot.SlotReference slotReference){
+    public static Optional<SlotReference> createTrinketsReference(io.wispforest.accessories.api.slot.SlotReference slotReference){
         try {
             var capability = AccessoriesCapability.get(slotReference.entity());
 
@@ -30,6 +30,19 @@ public class WrappingTrinketsUtils {
             return Optional.empty();
         }
     }
+
+    public static Optional<io.wispforest.accessories.api.slot.SlotReference> createAccessoriesReference(SlotReference slotReference){
+        if(!(slotReference.inventory() instanceof WrappedTrinketInventory wrappedTrinketInventory)) return Optional.empty();
+
+        return Optional.of(
+                io.wispforest.accessories.api.slot.SlotReference.of(
+                        wrappedTrinketInventory.container.capability().entity(),
+                        wrappedTrinketInventory.container.getSlotName(),
+                        slotReference.index()
+                )
+        );
+    }
+
 
     public static final Set<String> defaultSlots = Set.of("anklet", "back", "belt", "cape", "charm", "face", "hand", "hat", "necklace", "ring", "shoes", "wrist");
 
