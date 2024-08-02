@@ -111,10 +111,12 @@ public class WrappedICurioProvider implements Accessory, LootingAdjustment, Fort
     }
 
     @Override
-    public boolean canEquipFromUse(ItemStack stack, SlotReference reference) {
-        var context = CuriosWrappingUtils.create(reference);
-
-        return this.iCurio(stack).canEquipFromUse(context);
+    public boolean canEquipFromUse(ItemStack stack) {
+        try {
+            return this.iCurio(stack).canEquipFromUse(null);
+        } catch (NullPointerException e) {
+            return false;
+        }
     }
 
     @Override

@@ -116,13 +116,11 @@ public class WrappedTrinket implements Accessory {
     }
 
     @Override
-    public boolean canEquipFromUse(ItemStack stack, SlotReference reference) {
-        var ref = WrappingTrinketsUtils.createReference(reference);
-
-        if (ref.isEmpty()) {
-            return Accessory.super.canEquipFromUse(stack, reference);
-        } else {
-            return this.trinket.canEquipFromUse(stack, reference.entity());
+    public boolean canEquipFromUse(ItemStack stack) {
+        try {
+            return this.trinket.canEquipFromUse(stack, null);
+        } catch (NullPointerException e) {
+            return false;
         }
     }
 
