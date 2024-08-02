@@ -66,7 +66,7 @@ public class UniqueSlotHandling {
 
         private boolean strictMode = true;
         private boolean allowResizing = false;
-        private boolean allowEquipFromUse = false;
+        private boolean allowEquipFromUse = true;
 
         private final TriFunction<ResourceLocation, Integer, Collection<ResourceLocation>, SlotTypeReference> slotRegistration;
 
@@ -118,7 +118,7 @@ public class UniqueSlotHandling {
         /**
          * Controls whether accessories can be equipped from use into this slot.
          * <p>
-         * A value of {@code false} overrides {@link Accessory#canEquipFromUse(ItemStack, SlotReference)}.
+         * A value of {@code false} overrides {@link Accessory#canEquipFromUse(ItemStack)}.
          */
         public UniqueSlotBuilder allowEquipFromUse(boolean value) {
             this.allowEquipFromUse = value;
