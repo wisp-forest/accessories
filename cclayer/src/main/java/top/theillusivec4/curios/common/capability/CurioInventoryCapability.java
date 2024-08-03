@@ -53,7 +53,7 @@ public class CurioInventoryCapability {
                 deserializeNBT(this.cachedCompoundTag);
             }
 
-            if (CuriosApi.getEntitySlots(this.wearer.getType()).isEmpty()) {
+            if (CuriosApi.getEntitySlots(this.wearer).isEmpty()) {
                 return LazyOptional.empty();
             }
 
@@ -62,7 +62,7 @@ public class CurioInventoryCapability {
 
         @Override
         public Tag serializeNBT() {
-            if (CuriosApi.getEntitySlots(this.wearer.getType()).isEmpty()) return new CompoundTag();
+            if (CuriosApi.getEntitySlots(this.wearer).isEmpty()) return new CompoundTag();
 
             return this.handler.writeTag();
         }

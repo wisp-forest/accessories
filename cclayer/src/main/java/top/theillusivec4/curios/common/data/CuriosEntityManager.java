@@ -248,11 +248,13 @@ public class CuriosEntityManager extends SimpleJsonResourceReloadListener {
   }
 
   public Map<String, Integer> getClientSlots(EntityType<?> type) {
-    return ImmutableDelegatingMap.slotBaseSize(EntitySlotLoader.INSTANCE.getSlotTypes(true, type));
+    var map = EntitySlotLoader.INSTANCE.getSlotTypes(true, type);
+    return ImmutableDelegatingMap.slotBaseSize(map != null ? map : Map.of());
   }
 
   public Map<String, ISlotType> getEntitySlots(EntityType<?> type) {
-    return ImmutableDelegatingMap.slotType(EntitySlotLoader.INSTANCE.getSlotTypes(false, type));
+    var map = EntitySlotLoader.INSTANCE.getSlotTypes(false, type);
+    return ImmutableDelegatingMap.slotType(map != null ? map : Map.of());
   }
 
   public Map<String, Set<String>> getModsFromSlots() {
