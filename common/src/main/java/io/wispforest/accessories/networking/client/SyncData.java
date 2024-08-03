@@ -10,8 +10,7 @@ import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.MinecraftEndecs;
 import io.wispforest.accessories.impl.SlotGroupImpl;
 import io.wispforest.accessories.impl.SlotTypeImpl;
-import io.wispforest.accessories.networking.BaseAccessoryPacket;
-import io.wispforest.accessories.networking.base.HandledPacketPayload;
+import io.wispforest.accessories.networking.BaseAccessoriesPacket;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.fabricmc.api.EnvType;
@@ -23,7 +22,7 @@ import net.minecraft.world.entity.player.Player;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>> entitySlots, Set<SlotGroup> slotGroups, Set<String> uniqueGroups, Map<String, ExtraSlotTypeProperties> uniqueExtraProperties) implements BaseAccessoryPacket {
+public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>> entitySlots, Set<SlotGroup> slotGroups, Set<String> uniqueGroups, Map<String, ExtraSlotTypeProperties> uniqueExtraProperties) implements BaseAccessoriesPacket {
 
     public static Endec<SyncData> ENDEC = StructEndecBuilder.of(
             SlotTypeImpl.ENDEC.listOf().fieldOf("slotTypes", SyncData::slotTypes),
