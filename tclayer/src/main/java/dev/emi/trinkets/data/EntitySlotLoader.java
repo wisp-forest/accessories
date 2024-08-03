@@ -5,6 +5,8 @@ import com.google.common.collect.Lists;
 import com.google.gson.*;
 import dev.emi.trinkets.api.SlotGroup;
 import dev.emi.trinkets.api.TrinketConstants;
+import dev.emi.trinkets.compat.WrappingTrinketsUtils;
+import io.wispforest.tclayer.ImmutableDelegatingMap;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceReloadListenerKeys;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -23,13 +25,25 @@ import java.util.stream.Collectors;
 
 public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String, Map<String, Set<String>>>> implements IdentifiableResourceReloadListener {
 
-    public static final EntitySlotLoader CLIENT = new EntitySlotLoader();
-    public static final EntitySlotLoader SERVER = new EntitySlotLoader();
+    public static final EntitySlotLoader CLIENT = new EntitySlotLoader(true);
+    public static final EntitySlotLoader SERVER = new EntitySlotLoader(false);
 
     private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
     private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(TrinketConstants.MOD_ID, "entities");
 
     private final Map<EntityType<?>, Map<String, SlotGroup>> slots = new HashMap<>();
+
+    private boolean isClient = false;
+
+    public EntitySlotLoader(boolean isClient) {
+        this();
+
+        this.isClient = isClient;
+    }
+
+    public EntitySlotLoader() {
+        super();
+    }
 
     @Override
     protected Map<String, Map<String, Set<String>>> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
@@ -173,10 +187,7 @@ public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String,
     }
 
     public Map<String, SlotGroup> getEntitySlots(EntityType<?> entityType) {
-        if (this.slots.containsKey(entityType)) {
-            return ImmutableMap.copyOf(this.slots.get(entityType));
-        }
-        return ImmutableMap.of();
+        return ImmutableDelegatingMap.slotGroups(WrappingTrinketsUtils.getGroupedSlots(this.isClient, entityType), this.isClient);
     }
 
     public void setSlots(Map<EntityType<?>, Map<String, SlotGroup>> slots) {

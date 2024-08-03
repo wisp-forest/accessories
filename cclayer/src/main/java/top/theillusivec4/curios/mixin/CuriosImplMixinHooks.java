@@ -31,6 +31,7 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.cclayer.ImmutableDelegatingMap;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.Util;
 import net.minecraft.core.Holder;
@@ -57,6 +58,8 @@ import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.common.CuriosRegistry;
+import top.theillusivec4.curios.common.data.CuriosEntityManager;
+import top.theillusivec4.curios.common.data.CuriosSlotManager;
 import top.theillusivec4.curios.compat.CuriosWrappingUtils;
 import top.theillusivec4.curios.compat.WrappedAccessory;
 import top.theillusivec4.curios.compat.WrappedCurio;
@@ -97,17 +100,11 @@ public class CuriosImplMixinHooks {
   }
 
   public static Map<String, ISlotType> getSlots(boolean isClient) {
-    var slots = SlotTypeLoader.INSTANCE.getSlotTypes(isClient);
-
-    return Util.make(new HashMap<>(), wrappedSlots -> slots.forEach((s, slotType) -> wrappedSlots.put(CuriosWrappingUtils.accessoriesToCurios(s), new WrappedSlotType(slotType))));
+    return (isClient ? CuriosSlotManager.CLIENT : CuriosSlotManager.SERVER).getSlots();
   }
 
   public static Map<String, ISlotType> getEntitySlots(EntityType<?> type, boolean isClient) {
-    var slots = EntitySlotLoader.INSTANCE.getSlotTypes(isClient, type);
-
-    if(slots == null) return Map.of();
-
-    return Util.make(new HashMap<>(), wrappedSlots -> slots.forEach((s, slotType) -> wrappedSlots.put(CuriosWrappingUtils.accessoriesToCurios(s), new WrappedSlotType(slotType))));
+    return (isClient ? CuriosEntityManager.SERVER : CuriosEntityManager.CLIENT).getEntitySlots(type);
   }
 
   public static Map<String, ISlotType> getItemStackSlots(ItemStack stack, boolean isClient) {
