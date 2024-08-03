@@ -5,6 +5,7 @@ import com.mojang.datafixers.util.Function3;
 import com.mojang.logging.LogUtils;
 import dev.emi.trinkets.TrinketSlotTarget;
 import dev.emi.trinkets.compat.*;
+import dev.emi.trinkets.data.EntitySlotLoader;
 import dev.onyxstudios.cca.api.v3.component.ComponentKey;
 import dev.onyxstudios.cca.api.v3.component.ComponentRegistryV3;
 import dev.onyxstudios.cca.api.v3.entity.EntityComponentFactoryRegistry;
@@ -15,7 +16,6 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.slot.SlotBasedPredicate;
-import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.registries.Registries;
@@ -95,79 +95,13 @@ public class TrinketsApi implements EntityComponentInitializer {
         return getEntitySlots(player);
     }
 
-//    @Deprecated
-////    public static Map<String, SlotGroup> getEntitySlots(EntityType<?> type) {
-////        var validEntitySlots = EntitySlotLoader.INSTANCE.getSlotTypes(false, type);
-////
-////        if(validEntitySlots == null) validEntitySlots = Map.of();
-////
-////        var convertedGroups = new HashMap<String, SlotGroup>();
-////
-////        for (var entry : SlotGroupLoader.INSTANCE.getGroups(false).entrySet()) {
-////            Map<String, io.wispforest.accessories.api.slot.SlotType> validSlots = new HashMap<>();
-////
-////            for (String slot : entry.getValue().slots()) {
-////                var slotType = validEntitySlots.get(slot);
-////
-////                if(slotType == null) continue;
-////
-////                validSlots.put(slot, slotType);
-////            }
-////
-////            convertedGroups.put(
-////                    entry.getKey(),
-////                    new WrappedSlotGroup(entry.getValue(), s -> Optional.ofNullable(validSlots.get(s)))
-////            );
-////        }
-////
-////        return convertedGroups;
-////    }
-////    public static Map<String, SlotGroup> getEntitySlots(Level world, EntityType<?> type) {
-////        var validEntitySlots = EntitySlotLoader.INSTANCE.getSlotTypes(false, type);
-////
-////        if(validEntitySlots == null) validEntitySlots = Map.of();
-////
-////        var convertedGroups = new HashMap<String, SlotGroup>();
-////
-////        for (var entry : SlotGroupLoader.INSTANCE.getGroups(world.isClientSide()).entrySet()) {
-////            Map<String, io.wispforest.accessories.api.slot.SlotType> validSlots = new HashMap<>();
-////
-////            for (String slot : entry.getValue().slots()) {
-////                var slotType = validEntitySlots.get(slot);
-////
-////                if(slotType == null) continue;
-////
-////                validSlots.put(slot, slotType);
-////            }
-////
-////            convertedGroups.put(
-////                    entry.getKey(),
-////                    new WrappedSlotGroup(entry.getValue(), s -> Optional.ofNullable(validSlots.get(s)))
-////            );
-////        }
-////
-////        return convertedGroups;
-////    }
-
     @Deprecated
     public static Map<String, SlotGroup> getEntitySlots(EntityType<?> type) {
-        Map<String, SlotType> convertedSlots = new HashMap<>();
-
-        for (var entry : EntitySlotLoader.INSTANCE.getSlotTypes(false, type).entrySet()) {
-            convertedSlots.put(entry.getKey(), new WrappedSlotType(entry.getValue(), false));
-        }
-
-        return Map.of("", new WrappedSlotGroup(convertedSlots));
+        return dev.emi.trinkets.data.EntitySlotLoader.SERVER.getEntitySlots(type);
     }
 
     public static Map<String, SlotGroup> getEntitySlots(Level world, EntityType<?> type) {
-        Map<String, SlotType> convertedSlots = new HashMap<>();
-
-        for (var entry : EntitySlotLoader.getEntitySlots(world, type).entrySet()) {
-            convertedSlots.put(entry.getKey(), new WrappedSlotType(entry.getValue(), world.isClientSide()));
-        }
-
-        return Map.of("", new WrappedSlotGroup(convertedSlots));
+        return ((world.isClientSide) ? dev.emi.trinkets.data.EntitySlotLoader.CLIENT : EntitySlotLoader.SERVER).getEntitySlots(type);
     }
 
     public static Map<String, SlotGroup> getEntitySlots(Entity entity) {
@@ -274,7 +208,7 @@ public class TrinketsApi implements EntityComponentInitializer {
 
     private static final class CursedTrinketInventory extends TrinketInventory {
         public CursedTrinketInventory(io.wispforest.accessories.api.slot.SlotType slotType, boolean isClientSide) {
-            super(new WrappedSlotType(slotType, isClientSide), null, inv -> {});
+            super(WrappedSlotType.of(slotType, isClientSide), null, inv -> {});
         }
     }
 }

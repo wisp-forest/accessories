@@ -87,13 +87,6 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     //--
 
     @Override
-    public int getMaxStackSize(ItemStack itemStack) {
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(itemStack);
-
-        return Math.min(super.getMaxStackSize(itemStack), accessory.maxStackSize(itemStack));
-    }
-
-    @Override
     public ItemStack getItem(int slot) {
         if(!validIndex(slot)) return ItemStack.EMPTY;
 

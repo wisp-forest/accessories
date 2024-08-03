@@ -24,7 +24,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.slot.SlotBasedPredicate;
@@ -36,53 +35,22 @@ import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.cclayer.CCLayer;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.Util;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.RandomSource;
-import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.damagesource.DamageSources;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.biome.Biome;
-import net.minecraft.world.level.biome.BiomeManager;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.ChunkSource;
-import net.minecraft.world.level.dimension.DimensionType;
-import net.minecraft.world.level.entity.LevelEntityGetter;
-import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
-import net.minecraft.world.level.storage.LevelData;
-import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.scores.Scoreboard;
-import net.minecraft.world.ticks.LevelTickAccess;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fml.loading.FMLLoader;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import top.theillusivec4.curios.CuriosConstants;
 import top.theillusivec4.curios.api.*;
@@ -93,6 +61,8 @@ import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.common.CuriosRegistry;
 import top.theillusivec4.curios.common.capability.ItemizedCurioCapability;
+import top.theillusivec4.curios.common.data.CuriosEntityManager;
+import top.theillusivec4.curios.common.data.CuriosSlotManager;
 import top.theillusivec4.curios.compat.*;
 
 import java.util.*;
@@ -130,17 +100,11 @@ public class CuriosImplMixinHooks {
   }
 
   public static Map<String, ISlotType> getSlots(boolean isClient) {
-    var slots = SlotTypeLoader.INSTANCE.getSlotTypes(isClient);
-
-    return Util.make(new HashMap<>(), wrappedSlots -> slots.forEach((s, slotType) -> wrappedSlots.put(CuriosWrappingUtils.accessoriesToCurios(s), new WrappedSlotType(slotType))));
+    return (isClient ? CuriosSlotManager.CLIENT : CuriosSlotManager.SERVER).getSlots();
   }
 
   public static Map<String, ISlotType> getEntitySlots(EntityType<?> type, boolean isClient) {
-    var slots = EntitySlotLoader.INSTANCE.getSlotTypes(isClient, type);
-
-    if(slots == null) return Map.of();
-
-    return Util.make(new HashMap<>(), wrappedSlots -> slots.forEach((s, slotType) -> wrappedSlots.put(CuriosWrappingUtils.accessoriesToCurios(s), new WrappedSlotType(slotType))));
+    return (isClient ? CuriosEntityManager.SERVER : CuriosEntityManager.CLIENT).getEntitySlots(type);
   }
 
   public static Map<String, ISlotType> getItemStackSlots(ItemStack stack, boolean isClient) {

@@ -1,8 +1,10 @@
 package io.wispforest.accessories.api.attributes;
 
 import com.google.common.collect.*;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.NestedSlotReferenceImpl;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.utils.AttributeUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -14,6 +16,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Builder used to collect the attribute modifications from a given Accessory with the ability

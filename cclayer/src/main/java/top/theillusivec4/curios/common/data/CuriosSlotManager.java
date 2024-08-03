@@ -23,6 +23,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.*;
 import com.mojang.serialization.JsonOps;
+import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.cclayer.ImmutableDelegatingMap;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -45,11 +47,20 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
 
   private static final Gson GSON =
       (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
-  public static CuriosSlotManager INSTANCE = new CuriosSlotManager();
+  public static CuriosSlotManager SERVER = new CuriosSlotManager(false);
+  public static CuriosSlotManager CLIENT = new CuriosSlotManager(true);
   private Map<String, ISlotType> slots = ImmutableMap.of();
   private Map<String, ResourceLocation> icons = ImmutableMap.of();
   private Map<String, Set<String>> idToMods = ImmutableMap.of();
   private ICondition.IContext ctx = ICondition.IContext.EMPTY;
+
+  private boolean isClient = false;
+
+  public CuriosSlotManager(boolean isClient) {
+    this();
+
+    this.isClient = isClient;
+  }
 
   public CuriosSlotManager() {
     super(GSON, "curios/slots");
@@ -154,11 +165,11 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
   }
 
   public Map<String, ISlotType> getSlots() {
-    return this.slots;
+    return ImmutableDelegatingMap.slotType(SlotTypeLoader.INSTANCE.getSlotTypes(this.isClient));
   }
 
   public Optional<ISlotType> getSlot(String id) {
-    return Optional.ofNullable(this.slots.get(id));
+    return Optional.ofNullable(this.getSlots().get(id));
   }
 
   public void setIcons(Map<String, ResourceLocation> icons) {
@@ -166,11 +177,11 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
   }
 
   public Map<String, ResourceLocation> getIcons() {
-    return this.icons;
+    return ImmutableDelegatingMap.slotIcon(SlotTypeLoader.INSTANCE.getSlotTypes(this.isClient));
   }
 
   public ResourceLocation getIcon(String identifier) {
-    return this.icons.getOrDefault(identifier, new ResourceLocation(CuriosApi.MODID, "slot/empty_curio_slot"));
+    return this.getIcons().getOrDefault(identifier, io.wispforest.accessories.api.slot.SlotType.EMPTY_SLOT_ICON);
   }
 
   public Map<String, Set<String>> getModsFromSlots() {

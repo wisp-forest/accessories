@@ -11,6 +11,7 @@ import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.InstanceEndec;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
+import io.wispforest.tclayer.ImmutableDelegatingMap;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -25,7 +26,7 @@ import java.util.function.Predicate;
 
 public abstract class WrappedTrinketComponent implements TrinketComponent {
 
-    protected final AccessoriesCapability capability;
+    public final AccessoriesCapability capability;
 
     public WrappedTrinketComponent(AccessoriesCapability capability){
         this.capability = capability;
@@ -43,29 +44,13 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
 
     @Override
     public Map<String, Map<String, TrinketInventory>> getInventory() {
-        //TODO: HANDLE THE TRINKET SPECIFIC NAMES AND GROUPS
-        var groups = SlotGroupLoader.getGroups(capability.entity().level(), false);
-        var containers = capability.getContainers();
+        var entity = this.getEntity();
 
-        var inventories = new HashMap<String, Map<String, TrinketInventory>>();
-
-        for (var group : groups) {
-            var map = new HashMap<String, TrinketInventory>();
-
-            group.slots().forEach(s -> {
-                var container = containers.get(s);
-
-                if(container == null) return;
-
-                var wrappedInv = new WrappedTrinketInventory(WrappedTrinketComponent.this, container, SlotTypeLoader.getSlotType(capability.entity().level(), (String) s));
-
-                map.put(WrappingTrinketsUtils.accessoriesToTrinkets_Slot(s), wrappedInv);
-            });
-
-            inventories.put(WrappingTrinketsUtils.accessoriesToTrinkets_Group(group.name()), map);
-        }
-
-        return inventories;
+        return ImmutableDelegatingMap.trinketComponentView(
+                WrappingTrinketsUtils.getGroupedSlots(entity.level().isClientSide(), entity.getType()),
+                this,
+                capability.getContainers()
+        );
     }
 
     @Override

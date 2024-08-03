@@ -14,6 +14,12 @@ public class WrappedSlotType implements ISlotType {
 
     public WrappedSlotType(SlotType slotType){
         this.slotType = slotType;
+
+        if(slotType == null) throw new IllegalStateException("Found null SlotType for curios WrappedSlotType!");
+    }
+
+    public final SlotType innerSlotType() {
+        return this.slotType;
     }
 
     //--
@@ -72,5 +78,19 @@ public class WrappedSlotType implements ISlotType {
         } else {
             return -1;
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return this.slotType.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof WrappedSlotType wrappedSlotType) {
+            obj = wrappedSlotType.slotType;
+        }
+
+        return this.slotType.equals(obj);
     }
 }

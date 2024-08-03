@@ -4,10 +4,16 @@ import dev.emi.trinkets.api.LivingEntityTrinketComponent;
 import dev.emi.trinkets.api.SlotReference;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -43,6 +49,23 @@ public class WrappingTrinketsUtils {
         );
     }
 
+    public static Map<String, Map<String, SlotType>> getGroupedSlots(boolean isClient, EntityType<?> type) {
+        var groups = new HashMap<String, Map<String, SlotType>>();
+        var entitySlots = EntitySlotLoader.INSTANCE.getSlotTypes(isClient, type);
+
+        if(entitySlots == null) return Map.of();
+
+        for (var group : SlotGroupLoader.INSTANCE.getGroups(false, false)) {
+            for (var slot : group.slots()) {
+                if(!entitySlots.containsKey(slot)) continue;
+
+                groups.computeIfAbsent(group.name(), string -> new HashMap<>())
+                        .put(slot, entitySlots.get(slot));
+            }
+        }
+
+        return groups;
+    }
 
     public static final Set<String> defaultSlots = Set.of("anklet", "back", "belt", "cape", "charm", "face", "hand", "hat", "necklace", "ring", "shoes", "wrist");
 

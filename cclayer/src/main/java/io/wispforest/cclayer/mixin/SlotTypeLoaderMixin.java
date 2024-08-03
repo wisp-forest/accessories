@@ -2,9 +2,7 @@ package io.wispforest.cclayer.mixin;
 
 import com.google.gson.JsonObject;
 import com.llamalad7.mixinextras.sugar.Local;
-import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.impl.SlotTypeImpl;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -28,7 +26,7 @@ public abstract class SlotTypeLoaderMixin {
 
     @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Ljava/util/HashMap;<init>()V", shift = At.Shift.AFTER, ordinal = 2), remap = false)
     private void injectCuriosSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "builders") HashMap<String, SlotTypeLoader.SlotBuilder> tempMap){
-        for (var entry : CuriosSlotManager.INSTANCE.slotTypeBuilders.entrySet()) {
+        for (var entry : CuriosSlotManager.SERVER.slotTypeBuilders.entrySet()) {
             var accessoryType = CuriosWrappingUtils.curiosToAccessories(entry.getKey());
 
             var curiosBuilder = entry.getValue();
