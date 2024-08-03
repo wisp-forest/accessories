@@ -1,9 +1,10 @@
 package io.wispforest.cclayer;
 
+import io.wispforest.accessories.networking.BaseAccessoriesPacket;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.accessories.networking.base.Type;
 
-public class WrappedAccessoriesPacket implements HandledPacketPayload {
+public class WrappedAccessoriesPacket implements BaseAccessoriesPacket {
 
     public final HandledPacketPayload packet;
 

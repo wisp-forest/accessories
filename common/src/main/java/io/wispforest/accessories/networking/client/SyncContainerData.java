@@ -6,8 +6,7 @@ import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
-import io.wispforest.accessories.networking.BaseAccessoryPacket;
-import io.wispforest.accessories.networking.base.HandledPacketPayload;
+import io.wispforest.accessories.networking.BaseAccessoriesPacket;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.impl.StructEndecBuilder;
@@ -25,7 +24,7 @@ import java.util.Map;
  * Catch all packet for handling syncing of containers and accessories within the main container
  * and cosmetic variant with the ability for it to be sync separately
  */
-public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks) implements BaseAccessoryPacket {
+public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks) implements BaseAccessoriesPacket {
 
     public static Endec<SyncContainerData> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", SyncContainerData::entityId),
