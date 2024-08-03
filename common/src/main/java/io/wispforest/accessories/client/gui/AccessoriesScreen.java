@@ -21,6 +21,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderType;
@@ -41,7 +42,7 @@ import org.lwjgl.glfw.GLFW;
 import java.lang.Math;
 import java.util.*;
 
-public class AccessoriesScreen extends EffectRenderingInventoryScreen<AccessoriesMenu> implements ContainerScreenExtension {
+public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> implements ContainerScreenExtension {
 
     private static final ResourceLocation SLOT = Accessories.of("textures/gui/slot.png");
 
@@ -116,7 +117,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         return width;
     }
 
-    private int getStartingPanelX() {
+    public int getStartingPanelX() {
         int x = this.leftPos - ((menu.isCosmeticsOpen()) ? 72 : 52);
 
         if (!menu.overMaxVisibleSlots) x += 12;
