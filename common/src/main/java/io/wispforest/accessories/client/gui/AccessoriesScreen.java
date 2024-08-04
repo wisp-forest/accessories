@@ -377,8 +377,6 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
                 guiGraphics.blit(HORIZONTAL_TABS, vector.x, vector.y, 0, v, vector.z, vector.w, 19, vector.w * 4); //32,128
 
-                var textureAtlasSprite = this.minecraft.getTextureAtlas(new ResourceLocation("textures/atlas/blocks.png")).apply(group.icon());
-
                 pose.pushPose();
 
                 pose.translate(vector.x + 3, vector.y + 3, 0);
@@ -387,7 +385,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
                 if (pair.isSelected) pose.translate(2, 0, 0);
 
                 // MultiDraw?
-                guiGraphics.blit(0, 0, 0, 8, 8, textureAtlasSprite);
+                guiGraphics.blit(group.icon().withPrefix("textures/").withSuffix(".png"),0, 0, 0, 0, 8, 8, 8,8);
 
                 pose.popPose();
             }

@@ -4,11 +4,6 @@
       "type": "directory",
       "source": "gui/slot",
       "prefix": "gui/slot/"
-    },
-    {
-      "type": "directory",
-      "source": "gui/group",
-      "prefix": "gui/group/"
     }
   ]
 }
