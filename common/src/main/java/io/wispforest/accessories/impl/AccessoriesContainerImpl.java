@@ -61,7 +61,11 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         this.renderOptions = getWithSize(baseSize, new ArrayList<>(), true);
     }
 
+    private boolean isWithinUpdateCall = false;
+
     private void onContainerUpdate(Container container) {
+        if(isWithinUpdateCall) return;
+
         if(((ExpandedSimpleContainer) container).name().contains("cosmetic")) return;
 
         this.markChanged();
@@ -143,6 +147,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
             var invalidStacks = new ArrayList<ItemStack>();
 
+            isWithinUpdateCall = true;
+
             var newAccessories = new ExpandedSimpleContainer(this::onContainerUpdate, currentSize, "accessories");
             var newCosmetics = new ExpandedSimpleContainer(this::onContainerUpdate, currentSize, "cosmetic_accessories");
 
@@ -155,6 +161,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                     invalidStacks.add(this.cosmeticAccessories.getItem(i));
                 }
             }
+
+            isWithinUpdateCall = false;
 
             newAccessories.copyPrev(this.accessories);
             newCosmetics.copyPrev(this.cosmeticAccessories);
