@@ -67,6 +67,7 @@ public class UniqueSlotHandling {
         private boolean strictMode = true;
         private boolean allowResizing = false;
         private boolean allowEquipFromUse = false;
+        private boolean allowTooltipInfo = true;
 
         private final TriFunction<ResourceLocation, Integer, Collection<ResourceLocation>, SlotTypeReference> slotRegistration;
 
@@ -126,6 +127,12 @@ public class UniqueSlotHandling {
             return this;
         }
 
+        public UniqueSlotBuilder allowTooltipInfo(boolean value) {
+            this.allowTooltipInfo = value;
+
+            return this;
+        }
+
         /**
          * Builds and registers the unique slot.
          * @return a reference to the unique slot type
@@ -136,7 +143,7 @@ public class UniqueSlotHandling {
             SLOT_TO_ENTITIES.put(slotTypeRef.slotName(), Set.copyOf(this.validTypes));
 
             ExtraSlotTypeProperties.getProperties(false)
-                    .put(slotTypeRef.slotName(), new ExtraSlotTypeProperties(this.allowResizing, this.strictMode, this.allowEquipFromUse));
+                    .put(slotTypeRef.slotName(), new ExtraSlotTypeProperties(this.allowResizing, this.strictMode, this.allowEquipFromUse, this.allowTooltipInfo));
 
             return slotTypeRef;
         }

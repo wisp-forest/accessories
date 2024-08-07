@@ -46,6 +46,11 @@ public class AccessoriesInternalSlot extends AccessoriesBasedSlot {
     }
 
     @Override
+    public boolean isCosmeticSlot() {
+        return this.isCosmetic;
+    }
+
+    @Override
     protected ResourceLocation icon() {
         return (this.isCosmetic && useCosmeticIcon) ? Accessories.of("gui/slot/cosmetic") : super.icon();
     }

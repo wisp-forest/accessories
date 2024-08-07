@@ -14,11 +14,18 @@
     "client.ModelPartAccessor",
     "client.PlayerRendererMixin",
     "client.RenderTargetMixin",
-    "client.HumanoidArmorLayerMixin",
     "client.owo.BaseComponentMixin",
-    "client.owo.ComponentMixin",
     "client.owo.BaseParentComponentMixin",
-    "client.owo.ParentComponentMixin"
+    "client.owo.ComponentMixin",
+    "client.owo.ParentComponentMixin",
+    "client.owo.BaseComponentAccessor",
+    "client.AbstractContainerScreenAccessor",
+    "client.cosmetic.PlayerMixin",
+    "client.cosmetic.MobMixin",
+    "client.cosmetic.ArmorStandMixin",
+    "client.cosmetic.LivingEntityMixin",
+    "client.cosmetic.LivingEntityRendererMixin",
+    "client.ArmorSlotMixin"
   ],
   "mixins": [
     "ApplyBonusCountMixin",
@@ -37,7 +44,9 @@
     "PiglinAiMixin",
     "PowderSnowBlockMixin",
     "RegistryOpsAccessor",
-    "SlotAccessor"
+    "SlotAccessor",
+    "PigEntityMixin",
+    "StriderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

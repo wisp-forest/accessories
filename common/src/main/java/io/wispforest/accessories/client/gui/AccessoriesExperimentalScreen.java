@@ -2,23 +2,22 @@ package io.wispforest.accessories.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
-import io.wispforest.accessories.client.gui.components.ComponentUtils;
-import io.wispforest.accessories.client.gui.components.InventoryEntityComponent;
+import io.wispforest.accessories.client.gui.components.*;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.menu.variants.AccessoriesExperimentalMenu;
+import io.wispforest.accessories.mixin.client.AbstractContainerScreenAccessor;
+import io.wispforest.accessories.networking.holder.HolderProperty;
+import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
-import io.wispforest.accessories.pond.owo.ExclusiveBoundingArea;
-import io.wispforest.accessories.pond.owo.MutableBoundingArea;
 import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
-import io.wispforest.owo.ui.container.GridLayout;
+import io.wispforest.owo.ui.container.StackLayout;
 import io.wispforest.owo.ui.core.*;
-import io.wispforest.owo.util.Observable;
 import io.wispforest.owo.util.pond.OwoSlotExtension;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.RenderStateShard;
@@ -27,15 +26,21 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import oshi.util.tuples.Triplet;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import static io.wispforest.accessories.client.gui.components.ComponentUtils.BACKGROUND_SLOT_RENDERING_SURFACE;
 
 public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayout, AccessoriesExperimentalMenu> implements AccessoriesScreenBase, ContainerScreenExtension {
 
@@ -50,40 +55,50 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         return OwoUIAdapter.create(this, Containers::verticalFlow);
     }
 
-    protected SlotComponent slotAsComponent(int index) {
-        return new ExtendedSlotComponent(index);
+    public ExtendedSlotComponent slotAsComponent(int index) {
+        return new ExtendedSlotComponent(this, index);
     }
 
     //--
 
-    public static final Set<Integer> changedSlots = new HashSet<>();
+    public final Set<Integer> changedSlots = new HashSet<>();
 
     @Override
-    protected void disableSlot(int index) {
+    public void disableSlot(int index) {
         super.disableSlot(index);
 
         changedSlots.add(index);
     }
 
     @Override
-    protected void disableSlot(Slot slot) {
+    public void disableSlot(Slot slot) {
         super.disableSlot(slot);
 
         changedSlots.add(slot.index);
     }
 
     @Override
-    protected void enableSlot(int index) {
+    public void enableSlot(int index) {
         super.enableSlot(index);
 
         changedSlots.add(index);
     }
 
     @Override
-    protected void enableSlot(Slot slot) {
-        super.enableSlot(slot);
+    public void enableSlot(Slot slot) {
+        ((OwoSlotExtension) slot).owo$setDisabledOverride(false);
 
         changedSlots.add(slot.index);
+    }
+
+    @Override
+    protected boolean isSlotEnabled(int index) {
+        return isSlotEnabled(this.menu.slots.get(index));
+    }
+
+    @Override
+    protected boolean isSlotEnabled(Slot slot) {
+        return !((OwoSlotExtension) slot).owo$getDisabledOverride();
     }
 
     @Override
@@ -113,11 +128,12 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
     //--
 
-    public List<io.wispforest.owo.ui.core.Component> hoverComponents = new ArrayList<>();
+    public boolean showCosmeticState = false;
+
+    //--
 
     @Override
     protected void build(FlowLayout rootComponent) {
-        hoverComponents.clear();
         changedSlots.clear();
 
         rootComponent.allowOverflow(true)
@@ -134,89 +150,47 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         var menu = this.getMenu();
 
-        var slots = this.getMenu().slots;
-
         //--
 
-        {
-            var playerLayout = Containers.verticalFlow(Sizing.content(), Sizing.content());
-
-            playerLayout.allowOverflow(true);
-
-            playerLayout.padding(Insets.of(6))
-                    .surface(Surface.PANEL);
-
-            int row = 0;
-
-            var rowLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content())
-                    .configure((FlowLayout layout) -> {
-                        layout.surface(SLOT_RENDERING_SURFACE)
-                                .allowOverflow(true);
-                    });
-
-            int rowCount = 0;
-
-            for (int i = 0; i < menu.startingAccessoriesSlot; i++) {
-                var slotComponent = this.slotAsComponent(i);
-
-                this.enableSlot(i);
-
-                rowLayout.child(slotComponent.margins(Insets.of(1)));
-
-                if(row >= 8) {
-                    playerLayout.child(rowLayout);
-
-                    rowLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content())
-                            .configure((FlowLayout layout) -> {
-                                layout.surface(SLOT_RENDERING_SURFACE)
-                                        .allowOverflow(true);
-                            });
-
-                    rowCount++;
-
-                    if(rowCount == 3) rowLayout.margins(Insets.top(4));
-
-                    row = 0;
-                } else {
-                    row++;
-                }
-            }
-
-            //playerLayout.positioning(Positioning.relative(50, 70));
-
-            baseChildren.add(playerLayout);
-        }
+        baseChildren.add(ComponentUtils.createPlayerInv(menu.startingAccessoriesSlot, this::slotAsComponent, this::enableSlot));
 
         //--
 
         var armorAndEntityLayout = (FlowLayout) Containers.horizontalFlow(Sizing.content(), Sizing.content())
                 .gap(2)
-                .horizontalAlignment(HorizontalAlignment.CENTER);
+                .horizontalAlignment(HorizontalAlignment.CENTER)
+                .id("armor_entity_layout");
 
         {
             var armorsLayout = (FlowLayout) Containers.horizontalFlow(Sizing.content(), Sizing.content())
-                    .horizontalAlignment(HorizontalAlignment.CENTER);
+                    .configure((FlowLayout component) -> {
+                        component.mouseScroll().subscribe((mouseX, mouseY, amount) -> true);
+                    })
+                    .gap(68)
+                    .horizontalAlignment(HorizontalAlignment.CENTER)
+                    .positioning(Positioning.relative(50, 50))
+                    .zIndex(10);
 
-            var innerSpacingComponent = Containers.horizontalFlow(Sizing.fixed(60), Sizing.fixed(84));
+            var innerSpacingComponent = Containers.horizontalFlow(Sizing.fixed(60), Sizing.fixed(0));
 
             var outerLeftArmorLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content());
             var outerRightArmorLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content());
 
             var armorSlotsLayout = Containers.verticalFlow(Sizing.content(), Sizing.content());
 
-            armorSlotsLayout.surface(SLOT_RENDERING_SURFACE)
+            armorSlotsLayout.surface(BACKGROUND_SLOT_RENDERING_SURFACE)
                     .allowOverflow(true);
 
             outerLeftArmorLayout.child(armorSlotsLayout);
 
             var cosmeticArmorSlotsLayout = Containers.verticalFlow(Sizing.content(), Sizing.content());
 
-            cosmeticArmorSlotsLayout.surface(SLOT_RENDERING_SURFACE)
+            cosmeticArmorSlotsLayout.surface(BACKGROUND_SLOT_RENDERING_SURFACE)
                     .allowOverflow(true);
 
             outerRightArmorLayout.child(cosmeticArmorSlotsLayout);
 
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < menu.addedArmorSlots / 2; i++) {
                 var armor = menu.startingAccessoriesSlot + (i * 2);
                 var cosmeticArmor = armor + 1;
 
@@ -235,38 +209,95 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
             //outerArmorLayout.positioning(Positioning.relative(50, 20));
 
-            outerLeftArmorLayout.surface(Surface.PANEL)
+            outerLeftArmorLayout
+                    .configure((FlowLayout component) -> {
+                        component.mouseScroll().subscribe((mouseX, mouseY, amount) -> true);
+                    })
+                    .surface(Surface.PANEL)
                     .padding(Insets.of(6));
 
-            outerRightArmorLayout.surface(Surface.PANEL)
+            outerRightArmorLayout
+                    .configure((FlowLayout component) -> {
+                        component.mouseScroll().subscribe((mouseX, mouseY, amount) -> true);
+                    })
+                    .surface(Surface.PANEL)
                     .padding(Insets.of(6));
 
             armorsLayout.child(outerLeftArmorLayout);
 
             armorsLayout.child(innerSpacingComponent);
-            ((ExclusiveBoundingArea) armorsLayout).addExclusionZone(innerSpacingComponent);
+//            ((ExclusiveBoundingArea) armorsLayout).addExclusionZone(innerSpacingComponent);
 
             armorsLayout.child(outerRightArmorLayout);
 
             //--
 
-            var entityContainer = Containers.verticalFlow(Sizing.content(), Sizing.fixed(131 + 12))
+            var entityContainer = Containers.stack(Sizing.content(), Sizing.fixed(131 + 12))
                     .child(
                             Containers.verticalFlow(Sizing.content(), Sizing.content())
                                     .child(
-                                            new InventoryEntityComponent<>(Sizing.fixed(131), this.targetEntityDefaulted())
-                                                    .scaleToFitVertically(true)
+                                            InventoryEntityComponent.of(Sizing.fixed(131), Sizing.fixed(108), this.targetEntityDefaulted())
+                                                    .scaleToFit(true)
                                                     .allowMouseRotation(true)
-                                                    .horizontalSizing(Sizing.fixed(108))
                                     )
                                     .surface(Surface.flat(Color.BLACK.argb()))
                     )
                     .child(
-                            armorsLayout.positioning(Positioning.relative(50, 50))
+                            outerLeftArmorLayout.positioning(Positioning.relative(0, 45))
+                                    .margins(Insets.left(-6))
+                                    .zIndex(10)
+                    )
+                    .child(
+                            outerRightArmorLayout.positioning(Positioning.relative(100, 45))
+                                    .margins(Insets.right(-6))
                                     .zIndex(10)
                     )
                     .padding(Insets.of(6))
                     .surface(Surface.PANEL);
+
+            var offHandIndex = this.getMenu().startingAccessoriesSlot - (this.getMenu().includeSaddle ? 2 : 1);
+
+            this.enableSlot(offHandIndex);
+
+            if(this.getMenu().includeSaddle) {
+                var saddleIndex = this.getMenu().startingAccessoriesSlot - 1;
+
+                this.enableSlot(saddleIndex);
+
+                ((StackLayout) entityContainer).child(
+                        Containers.verticalFlow(Sizing.content(), Sizing.content())
+                                .child(
+                                        Containers.verticalFlow(Sizing.content(), Sizing.content())
+                                                .child(
+                                                        this.slotAsComponent(saddleIndex)
+                                                                .margins(Insets.of(1))
+                                                )
+                                                .surface(BACKGROUND_SLOT_RENDERING_SURFACE)
+                                ).surface(Surface.PANEL)
+                                .padding(Insets.of(6))
+                                .positioning(Positioning.relative(0, 100))
+                                .margins(Insets.of(0, -6, -6, 0))
+                                .zIndex(10)
+                        );
+            }
+
+            ((StackLayout) entityContainer).child(
+                Containers.verticalFlow(Sizing.content(), Sizing.content())
+                        .child(
+                                Containers.verticalFlow(Sizing.content(), Sizing.content())
+                                        .child(
+                                                this.slotAsComponent(offHandIndex)
+                                                        .margins(Insets.of(1))
+                                        )
+                                        .surface(BACKGROUND_SLOT_RENDERING_SURFACE)
+                        ).surface(Surface.PANEL)
+                        .padding(Insets.of(6))
+                        .positioning(Positioning.relative(100, 100))
+                        .margins(Insets.of(0, -6, 0, -6))
+                        .zIndex(10)
+            );
+
+            //var entityDraggable = Containers.draggable(Sizing.content(), Sizing.content(), entityContainer);
 
             armorAndEntityLayout.child(0, entityContainer);
         }
@@ -275,352 +306,146 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         //--
 
-        int screenState = 1;
+        var cosmeticToggleButton = Components.button(Component.literal(""), btn -> {
+            var showCosmeticState = !this.showCosmeticState;
 
-        if(screenState == 0){
-            var accessoriesStartingIndex = menu.startingAccessoriesSlot + 8;
+            this.showCosmeticState = showCosmeticState;
 
-            var columnCount = 6;
+            var component = this.uiAdapter.rootComponent.childById(AccessoriesContainingComponent.class, AccessoriesContainingComponent.defaultID());
 
-            var rowCount = (int) Math.ceil(((slots.size() - accessoriesStartingIndex) / 2f) / columnCount);
+            if(component != null) component.onCosmeticToggle(this.showCosmeticState);
+        }).renderer((context, button, delta) -> {
+            ButtonComponent.Renderer.VANILLA.draw(context, button, delta);
 
-            var cosmeticGridLayout = Containers.grid(Sizing.content(), Sizing.content(), rowCount, columnCount);
-            var accessoriesGridLayout = Containers.grid(Sizing.content(), Sizing.content(), rowCount, columnCount);
+            var textureAtlasSprite = this.minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
+                    .apply(!showCosmeticState ? Accessories.of("gui/slot/cosmetic") : Accessories.of("gui/slot/charm"));
 
-            rowLoop: for (int row = 0; row < rowCount; row++) {
-                var colStartingIndex = accessoriesStartingIndex + (row * (columnCount * 2));
+            var color = (!showCosmeticState ? Color.WHITE.interpolate(Color.BLACK, 0.3f) : Color.BLACK);
 
-                for (int col = 0; col < columnCount; col++) {
-                    var cosmetic = colStartingIndex + (col * 2);
-                    var accessory = cosmetic + 1;
+            var red = color.red();
+            var green = color.green();
+            var blue = color.blue();
 
-                    if(accessory >= slots.size() || cosmetic >= slots.size()) {
-                        break rowLoop;
-                    }
+            var shard = RenderStateShard.TRANSLUCENT_TRANSPARENCY;
 
-                    this.enableSlot(cosmetic);
-                    this.enableSlot(accessory);
+            //shard.setupRenderState();
 
-                    var cosmeticSlot = this.slotAsComponent(cosmetic)
-                            .margins(Insets.of(1));
-
-                    var accessorySlot = this.slotAsComponent(accessory)
-                            .margins(Insets.of(1));
-
-                    cosmeticGridLayout.child(cosmeticSlot, row, (columnCount - 1) - col);
-                    accessoriesGridLayout.child(accessorySlot, row, col);
-                }
+            if(!showCosmeticState) {
+                GuiGraphicsUtils.drawWithSpectrum(context, button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, 1f);
+                context.blit(button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, red, green, blue, 0.4f);
+            } else {
+                context.blit(button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, red, green, blue, 0.9f);
             }
 
-            accessoriesGridLayout.surface(SLOT_RENDERING_SURFACE)
-                    .allowOverflow(true);
+            //shard.clearRenderState();
+        }).sizing(Sizing.fixed(20));
 
-            cosmeticGridLayout.surface(SLOT_RENDERING_SURFACE)
-                    .allowOverflow(true);
+        var accessoriesComponent = createAccessoriesComponent();
 
-            var groupedContainer = Containers.horizontalFlow(Sizing.content(), Sizing.content());
+        if(accessoriesComponent != null) armorAndEntityLayout.child(0, accessoriesComponent);
 
-            baseChildren.add(groupedContainer);
+        //--
 
-            groupedContainer.child(
-                    Containers.verticalFlow(Sizing.content(), Sizing.content())
-                            .child(
-                                    Components.label(Component.literal("Accessories"))
-                                            .color(Color.ofFormatting(ChatFormatting.BLACK))
-                                            .margins(Insets.of(1, 2, 0, 0))
-                            )
-                            .child(accessoriesGridLayout)
-                            .horizontalAlignment(HorizontalAlignment.CENTER)
-                            .surface(Surface.PANEL)
-                            .padding(Insets.of(6))
-                            .positioning(Positioning.relative(35, 45)));
+        var optionPanel = (FlowLayout) Containers.horizontalFlow(Sizing.content(), Sizing.content())
+                .child(
+                        Components.button(
+                                        unusedSlotsToggleButton(this.getMenu().areUnusedSlotsShown()),
+                                        btn -> {
+                                            AccessoriesInternals.getNetworkHandler()
+                                                    .sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, this.getMenu().owner(), bl -> !bl));
+                                        }
+                                ).horizontalSizing(Sizing.fixed(100))
+                                .id("unused_slots_toggle")
+                )
+                .gap(3)
+                .surface(Surface.PANEL)
+                .padding(Insets.of(5));
 
-            groupedContainer.child(
-                    Containers.verticalFlow(Sizing.content(), Sizing.content())
-                            .child(
-                                    Components.label(Component.literal("Cosmetics"))
-                                            .color(Color.ofFormatting(ChatFormatting.BLACK))
-                                            .margins(Insets.of(1, 2, 0, 0))
-                            )
-                            .child(cosmeticGridLayout)
-                            .horizontalAlignment(HorizontalAlignment.CENTER)
-                            .surface(Surface.PANEL)
-                            .padding(Insets.of(6))
-                            .positioning(Positioning.relative(65, 45)));
-        } else {
-            Map<Integer, PageLayouts> pages = new LinkedHashMap<>();
+        if(!this.menu.addedSlots.isEmpty()) optionPanel.child(cosmeticToggleButton);
 
-            var pageStartingSlotIndex = menu.startingAccessoriesSlot + 8;
+        {
+            var min = 3;
+            var max = 12;
 
-            var gridSize = 6;
+            var step = 1f / (max - min);
 
-            var maxColumnCount = gridSize;
-            var maxRowCount = gridSize;
+            var rowAmountSlider = Components.discreteSlider(Sizing.fixed(60), min, max)
+                    .snap(true)
+                    .setFromDiscreteValue(this.menu.owner().accessoriesHolder().columnAmount())
+                    .scrollStep(step);
 
-            var minimumWidth = maxColumnCount * 18;
-            var minimumHeight = maxRowCount * 18;
+            rowAmountSlider.onChanged().subscribe(value -> {
+                this.menu.owner().accessoriesHolder().columnAmount((int) value);
 
-            var totalRowCount = (int) Math.ceil(((slots.size() - pageStartingSlotIndex) / 2f) / maxColumnCount);
+                var armorAndEntityComp = this.uiAdapter.rootComponent.childById(FlowLayout.class, "armor_entity_layout");
 
-            if(totalRowCount < maxRowCount) maxColumnCount = totalRowCount;
+                for (var child : armorAndEntityComp.children()) {
+                    if (AccessoriesContainingComponent.defaultID().equals(child.id()) && child instanceof AccessoriesContainingComponent accessories) {
+                        var parent = accessories.parent();
 
-            var pageCount = (int) Math.ceil(totalRowCount / (float) maxRowCount);
+                        if (parent != null) {
+                            parent.queue(() -> {
+                                var currentParent = accessories.parent();
 
-            for (int pageIndex = 0; pageIndex < pageCount; pageIndex++) {
-                if(pageIndex != 0) pageStartingSlotIndex += (maxRowCount * maxColumnCount * 2);
-
-                totalRowCount -= maxRowCount;
-
-                var rowCount = (totalRowCount < 0) ? maxRowCount + totalRowCount : maxRowCount;
-
-                var cosmeticGridLayout = Containers.grid(Sizing.content(), Sizing.content(), rowCount, maxColumnCount);
-                var accessoriesGridLayout = Containers.grid(Sizing.content(), Sizing.content(), rowCount, maxColumnCount);
-
-                rowLoop: for (int row = 0; row < rowCount; row++) {
-                    var colStartingIndex = pageStartingSlotIndex + (row * (maxColumnCount * 2));
-
-                    for (int col = 0; col < maxColumnCount; col++) {
-                        var cosmetic = colStartingIndex + (col * 2);
-                        var accessory = cosmetic + 1;
-
-                        if(accessory >= slots.size() || cosmetic >= slots.size()) {
-                            break rowLoop;
+                                if (currentParent != null) currentParent.removeChild(accessories);
+                            });
                         }
-
-                        //this.enableSlot(cosmetic);
-                        if(pageIndex == 0) this.enableSlot(accessory);
-
-                        //--
-
-                        var btnPosition = Positioning.absolute(15, -1);
-
-                        var cosmeticToggleBtn = ComponentUtils.ofSlot((AccessoriesBasedSlot) slots.get(accessory))
-                                .zIndex(0)
-                                .sizing(Sizing.fixed(5))
-                                .positioning(btnPosition);
-
-                        hoverComponents.add(cosmeticToggleBtn);
-
-                        var cosmeticSlot = Containers.verticalFlow(Sizing.fixed(18), Sizing.fixed(18))
-                                .child(
-                                        this.slotAsComponent(cosmetic)
-                                                .margins(Insets.of(1))
-                                )
-                                .child(
-                                        cosmeticToggleBtn
-                                ).allowOverflow(true);
-
-                        var cosmeticArea = ((MutableBoundingArea) cosmeticSlot);
-
-                        cosmeticArea.addInclusionZone(cosmeticToggleBtn);
-                        cosmeticArea.deepRecursiveChecking(true);
-
-                        //--
-
-                        var accessoryToggleBtn = ComponentUtils.ofSlot((AccessoriesBasedSlot) slots.get(accessory))
-                                .zIndex(2)
-                                .sizing(Sizing.fixed(5))
-                                .positioning(btnPosition);
-
-                        hoverComponents.add(accessoryToggleBtn);
-
-                        var accessorySlot = Containers.verticalFlow(Sizing.fixed(18), Sizing.fixed(18))
-                                .child(
-                                        this.slotAsComponent(accessory).margins(Insets.of(1))
-                                                .zIndex(5)
-                                )
-                                .child(accessoryToggleBtn)
-                                .allowOverflow(true)
-                                .id("fucky");
-
-                        var accessoryArea = ((MutableBoundingArea) accessorySlot);
-
-                        accessoryArea.addInclusionZone(accessoryToggleBtn);
-                        accessoryArea.deepRecursiveChecking(true);
-
-                        //--
-
-                        cosmeticGridLayout.child(cosmeticSlot, row, col);
-                        accessoriesGridLayout.child(accessorySlot, row, col);
                     }
                 }
 
-                ((MutableBoundingArea<GridLayout>) accessoriesGridLayout)
-                        .deepRecursiveChecking(true)
-                        .surface(SLOT_RENDERING_SURFACE)
-                        .allowOverflow(true);
+                var accessoriesComp = createAccessoriesComponent();
 
-                ((MutableBoundingArea<GridLayout>) cosmeticGridLayout)
-                        .deepRecursiveChecking(true)
-                        .surface(SLOT_RENDERING_SURFACE)
-                        .allowOverflow(true);
+                if (accessoriesComp != null) {
+                    armorAndEntityComp.child(0, accessoriesComp);
+                }
+            });
 
-                pages.put(pageIndex, new PageLayouts(accessoriesGridLayout, cosmeticGridLayout));
-            }
-
-            var pageIndex = Observable.of(0);
-
-            var showCosmetics = new MutableBoolean(false);
-
-            var pageLabel = Components.label(Component.literal((pageIndex.get() + 1) + " / " + pages.size()));
-
-            pageIndex.observe(integer -> pageLabel.text(Component.literal((pageIndex.get() + 1) + " / " + pages.size())));
-
-            var titleBar = Containers.horizontalFlow(Sizing.fixed(minimumWidth), Sizing.content())
-                    .child(
-                            Components.button(Component.literal("<"), btn -> {
-                                var nextPageIndex = pageIndex.get() - 1;
-
-                                if(nextPageIndex >= 0) {
-                                    var showCosmeticState = showCosmetics.booleanValue();
-
-                                    var prevPageIndex = pageIndex.get();
-
-                                    pageIndex.set(nextPageIndex);
-
-                                    var lastGrid = pages.get(prevPageIndex).getLayout(showCosmeticState);
-                                    var activeGrid = pages.get(nextPageIndex).getLayout(showCosmeticState);
-
-                                    updateSlots(lastGrid, activeGrid);
-
-                                    var titleBarComponent = btn.parent();
-
-                                    var gridContainer = titleBarComponent.parent().childById(FlowLayout.class, "grid_container");
-
-                                    gridContainer.clearChildren();
-
-                                    gridContainer.child(activeGrid);
-                                }
-                            }).sizing(Sizing.fixed(14))
-                                    .margins(Insets.of(2))
-                    )
-                    .child(
-                            Components.button(Component.literal(">"), btn -> {
-                                var nextPageIndex = pageIndex.get() + 1;
-
-                                if(nextPageIndex < pages.size()) {
-                                    var showCosmeticState = showCosmetics.booleanValue();
-
-                                    var prevPageIndex = pageIndex.get();
-
-                                    pageIndex.set(nextPageIndex);
-
-                                    var lastGrid = pages.get(prevPageIndex).getLayout(showCosmeticState);
-                                    var activeGrid = pages.get(nextPageIndex).getLayout(showCosmeticState);
-
-                                    updateSlots(lastGrid, activeGrid);
-
-                                    var titleBarComponent = btn.parent();
-
-                                    var gridContainer = titleBarComponent.parent().childById(FlowLayout.class, "grid_container");
-
-                                    gridContainer.clearChildren();
-
-                                    gridContainer.child(activeGrid);
-                                }
-                            }).sizing(Sizing.fixed(14))
-                    )
-                    .child(
-                            Containers.horizontalFlow(Sizing.expand(100), Sizing.content())
-                                    .child(pageLabel.color(Color.ofFormatting(ChatFormatting.DARK_GRAY)))
-                                    .horizontalAlignment(HorizontalAlignment.CENTER)
-                    )
-                    .child(
-                            Components.button(Component.literal(""), btn -> {
-                                var titleBarComponent = btn.parent();
-
-                                var showCosmeticState = !showCosmetics.booleanValue();
-
-                                showCosmetics.setValue(showCosmeticState);
-
-                                var gridContainer = titleBarComponent.parent().childById(FlowLayout.class, "grid_container");
-
-                                gridContainer.clearChildren();
-
-                                var pageLayouts = pages.getOrDefault(pageIndex.get(), PageLayouts.DEFAULT);
-
-                                var lastGrid = pageLayouts.getLayout(!showCosmeticState);
-                                var activeGrid = pageLayouts.getLayout(showCosmeticState);
-
-                                updateSlots(lastGrid, activeGrid);
-
-                                gridContainer.child(activeGrid);
-                            }).renderer((context, button, delta) -> {
-                                ButtonComponent.Renderer.VANILLA.draw(context, button, delta);
-
-                                var showCosmeticState = showCosmetics.booleanValue();
-
-                                var textureAtlasSprite = this.minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
-                                        .apply(!showCosmeticState ? Accessories.of("gui/slot/cosmetic") : Accessories.of("gui/slot/charm"));
-
-                                var color = (!showCosmeticState ? Color.BLUE.interpolate(Color.WHITE, 0.1f) : Color.BLACK);
-
-                                var red = color.red();
-                                var green = color.green();
-                                var blue = color.blue();
-
-                                var shard = RenderStateShard.TRANSLUCENT_TRANSPARENCY;
-
-                                shard.setupRenderState();
-
-                                context.blit(button.x() + 2, button.y() + 2, 0, 16,16, textureAtlasSprite, red, green, blue, 0.9f);
-
-                                shard.clearRenderState();
-                            }).sizing(Sizing.fixed(20))
-                    )
-                    .horizontalAlignment(HorizontalAlignment.RIGHT)
-                    .verticalAlignment(VerticalAlignment.CENTER);
-
-            var outerCheatLayout = (FlowLayout) Containers.verticalFlow(Sizing.content(), Sizing.fixed((minimumHeight) + 3 + 20 + (2 * 6)))
-                    .allowOverflow(true);
-
-            var accessoriesMainLayout = Containers.verticalFlow(Sizing.content(), Sizing.content())
-                    .gap(3)
-                    .child(titleBar)
-                    .child(
-                            ((MutableBoundingArea<FlowLayout>)Containers.verticalFlow(Sizing.content(), Sizing.content()))
-                                    .deepRecursiveChecking(true)
-                                    .child(pages.getOrDefault(pageIndex.get(), PageLayouts.DEFAULT).getLayout(false))
-                                    .allowOverflow(true)
-                                    .id("grid_container")
-                    )
-                    .horizontalAlignment(HorizontalAlignment.RIGHT)
-                    .surface(Surface.PANEL.and((context, component) -> {
-                        var x = component.x();
-                        var y = component.y();
-
-                        var width = component.width();
-                        var height = component.height();
-
-                        var outerRadius = 3;
-
-                        var color = Color.BLUE.interpolate(Color.WHITE, 0.3f);
-
-                        if(showCosmetics.booleanValue()) {
-                            context.drawRectOutline(
-                                    x + outerRadius + 1,
-                                    y + outerRadius + 1,
-                                    width - (outerRadius * 2) - 2,
-                                    height - (outerRadius * 2) - 2,
-                                    color.argb());
-                        }
-                    }))
-                    .allowOverflow(true)
-                    .padding(Insets.of(6))
-                    .id("deez_nuts");
-                    //.positioning(Positioning.relative(50, 45));
-
-            ((MutableBoundingArea) accessoriesMainLayout).deepRecursiveChecking(true);
-
-            outerCheatLayout.child(accessoriesMainLayout);
-            outerCheatLayout.child(Containers.verticalFlow(Sizing.content(), Sizing.expand()));
-
-            ((MutableBoundingArea) outerCheatLayout).deepRecursiveChecking(true);
-
-            armorAndEntityLayout.child(0, outerCheatLayout);
-
-            //baseChildren.add(accessoriesMainLayout);
+            optionPanel.child(rowAmountSlider);
         }
+
+        {
+            var min = 1;
+            var max = 2;
+
+            var step = 1f / (max - min);
+
+            var widgetTypeSlider = Components.discreteSlider(Sizing.fixed(60), min, max)
+                    .snap(true)
+                    .setFromDiscreteValue(this.menu.owner().accessoriesHolder().widgetType())
+                    .scrollStep(step);
+
+            widgetTypeSlider.onChanged().subscribe(value -> {
+                this.menu.owner().accessoriesHolder().widgetType((int) value);
+
+                var armorAndEntityComp = this.uiAdapter.rootComponent.childById(FlowLayout.class, "armor_entity_layout");
+
+                for (var child : armorAndEntityComp.children()) {
+                    if (AccessoriesContainingComponent.defaultID().equals(child.id()) && child instanceof AccessoriesContainingComponent accessories) {
+                        var parent = accessories.parent();
+
+                        if (parent != null) {
+                            parent.queue(() -> {
+                                var currentParent = accessories.parent();
+
+                                if (currentParent != null) currentParent.removeChild(accessories);
+                            });
+                        }
+                    }
+                }
+
+                var accessoriesComp = createAccessoriesComponent();
+
+                if (accessoriesComp != null) {
+                    armorAndEntityComp.child(0, accessoriesComp);
+                }
+            });
+
+            optionPanel.child(widgetTypeSlider);
+        }
+
+        baseChildren.addLast(optionPanel);
+
+        //--
 
         var baseLayout = Containers.verticalFlow(Sizing.content(), Sizing.fill())
                 .gap(2)
@@ -630,14 +455,31 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 .verticalAlignment(VerticalAlignment.CENTER)
                 .positioning(Positioning.relative(50, 50));
 
+        //--
+
         rootComponent.child(baseLayout);
+    }
+
+    @Nullable
+    private AccessoriesContainingComponent createAccessoriesComponent() {
+        var widgetType = this.menu.owner().accessoriesHolder().widgetType();
+
+        return switch (widgetType) {
+            case 3 -> null;
+            case 2 -> null;
+            default -> GriddedAccessoriesComponent.createOrNull(this);
+        };
     }
 
     @Override
     @Nullable
     public Boolean isHovering_Logical(Slot slot, double mouseX, double mouseY) {
-        for (var child : hoverComponents) {
-            if (child.isInBoundingBox(mouseX, mouseY)) return false;
+        var accessories = this.uiAdapter.rootComponent.childById(AccessoriesContainingComponent.class, AccessoriesContainingComponent.defaultID());
+
+        if(accessories != null) {
+            var result = accessories.isHovering_Logical(slot, mouseX, mouseY);
+
+            if(result != null) return result;
         }
 
         return ContainerScreenExtension.super.isHovering_Logical(slot, mouseX, mouseY);
@@ -646,39 +488,29 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     @Override
     @Nullable
     public Boolean isHovering_Rendering(Slot slot, double mouseX, double mouseY) {
-        if(slot instanceof SlotTypeAccessible) return false;
-
-        return ContainerScreenExtension.super.isHovering_Rendering(slot, mouseX, mouseY);
+        return (slot instanceof SlotTypeAccessible) ? Boolean.FALSE : ContainerScreenExtension.super.isHovering_Rendering(slot, mouseX, mouseY);
     }
 
     @Override
-    public @Nullable Boolean shouldRenderSlot(Slot slot, double mouseX, double mouseY) {
-//        if(true) return null;
-        if(slot instanceof SlotTypeAccessible) return false;
-
-        return ContainerScreenExtension.super.shouldRenderSlot(slot, mouseX, mouseY);
-    }
-
-    public void updateSlots(ParentComponent prevComp, ParentComponent newComp) {
-        recursiveSearch(prevComp, ExtendedSlotComponent.class, slotComponent -> this.disableSlot(slotComponent.index()));
-        recursiveSearch(newComp, ExtendedSlotComponent.class, slotComponent -> this.enableSlot(slotComponent.index()));
-    }
-
-    public static <C extends io.wispforest.owo.ui.core.Component> void recursiveSearch(ParentComponent parentComponent, Class<C> target, Consumer<C> action) {
-        for (var child : parentComponent.children()) {
-            if(target.isInstance(child)) {
-                action.accept((C) child);
-            } else if(child instanceof ParentComponent childParent) {
-                recursiveSearch(childParent, target, action);
-            }
-        }
+    public @Nullable Boolean shouldRenderSlot(Slot slot) {
+        return (slot instanceof SlotTypeAccessible) ? Boolean.FALSE : ContainerScreenExtension.super.shouldRenderSlot(slot);
     }
 
     @Override
     public void onHolderChange(String key) {
-//        switch (key) {
-//            case "cosmetic" -> updateCosmeticToggleButton();
-//        }
+        switch (key) {
+            case "unused_slots" -> updateUnusedSlotToggleButton();
+        }
+    }
+
+    public void updateUnusedSlotToggleButton() {
+        var btn = this.uiAdapter.rootComponent.childById(ButtonComponent.class, "unused_slots_toggle");
+        btn.setMessage(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()));
+        this.menu.reopenMenu();
+    }
+
+    private static Component unusedSlotsToggleButton(boolean value) {
+        return createToggleTooltip("unused_slots", value);
     }
 
     private static Component cosmeticsToggleTooltip(boolean value) {
@@ -695,92 +527,315 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
     public class ExtendedSlotComponent extends SlotComponent {
 
+        private boolean isBatched = false;
+
+        protected final AccessoriesExperimentalScreen screen;
         protected final int index;
 
-        protected ExtendedSlotComponent(int index) {
+        protected ExtendedSlotComponent(AccessoriesExperimentalScreen screen, int index) {
             super(index);
 
+            this.screen = screen;
             this.index = index;
         }
 
-        public Slot slot() {
+        public final Slot slot() {
             return this.slot;
         }
 
-        public int index() {
+        public final int index() {
             return index;
+        }
+
+        public final boolean isBatched() {
+            return this.isBatched;
+        }
+
+        public ExtendedSlotComponent isBatched(boolean value) {
+            this.isBatched = value;
+
+            return this;
         }
 
         @Override
         public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
-            var screen = AccessoriesExperimentalScreen.this;
-
-            var hoveredSlot = screen.hoveredSlot;
-
-            if(slot() instanceof SlotTypeAccessible || true) {
+            if(!this.screen.isSlotEnabled(index())) {
+                this.didDraw = true;
+            } else if(slot() instanceof SlotTypeAccessible) {
                 this.didDraw = true;
 
-                int i = screen.leftPos;
-                int j = screen.topPos;
+                if(isBatched) return;
 
-                boolean bl = true;
+                RenderSystem.enableDepthTest();
+                RenderSystem.enableBlend();
 
                 //RenderStateShard.LEQUAL_DEPTH_TEST.setupRenderState();
 
-                if(bl) {
-                    context.push();
-                    context.translate((float) i, (float) j, 0.0F);
+                renderSlot(context);
 
-                    screen.renderSlot(context, slot());
+                renderCosmeticOverlay(context, false);
 
-                    context.pop();
+                renderHover(context, () -> screen.hoveredSlot);
 
-                    RenderSystem.disableDepthTest();
-
-                }
-
-                if (this.slot.equals(hoveredSlot) && hoveredSlot.isHighlightable()) {
-                    context.push();
-                    //context.translate(0, 0, 8);
-
-                    context.fillGradient(RenderType.guiOverlay(), x(), y(), x() + 16, y() + 16, -2130706433, -2130706433, 0);
-
-                    context.pop();
-
-                    //RenderSystem.disableDepthTest();
-                }
+//                RenderSystem.disableBlend();
+//                RenderSystem.disableDepthTest();
             } else {
                 super.draw(context, mouseX, mouseY, partialTicks, delta);
             }
         }
+
+        public void renderSlot(OwoUIDrawContext context) {
+            int i = screen.leftPos;
+            int j = screen.topPos;
+
+            boolean bl = true;
+
+            if (bl) {
+                context.push();
+                context.translate((float) i, (float) j, 0);
+
+                screen.forceRenderSlot(context, slot());
+
+                context.pop();
+            }
+        }
+
+        public void renderCosmeticOverlay(OwoUIDrawContext context, boolean externalBatching) {
+            if(!(slot() instanceof SlotTypeAccessible slotTypeAccessible)) return;
+
+            if (slotTypeAccessible.isCosmeticSlot()) {
+                //GuiGraphicsUtils.blitWithAlpha(context, Accessories.of("textures/gui/slot_frame.png"), this.x(), this.y(), 0, 0, 16, 16, 18, 18, new Vector4f(0.2f, 0.8f, 0.8f, 1.0f));
+
+                //context.blit(Accessories.of("textures/gui/slot_frame.png"), this.x() - 1, this.y() - 1, 0, 0, 18, 18, 18,18);
+                //RenderStateShard.TRANSLUCENT_TRANSPARENCY.setupRenderState();
+                context.push();
+                context.translate(0.0F, 0.0F, 101.0F);
+
+                if(externalBatching) {
+                    GuiGraphicsUtils.drawRectOutlineWithSpectrumWithoutRecord(context, this.x(), this.y(), 0, 16, 16, 0.35f, true);
+                } else {
+                    GuiGraphicsUtils.drawRectOutlineWithSpectrum(context, this.x(), this.y(), 0, 16, 16, 0.35f, true);
+
+                }
+                context.pop();
+            }
+        }
+
+        public void renderHover(OwoUIDrawContext context, Supplier<Slot> hoverSlot) {
+            var hoveredSlot = hoverSlot.get();
+
+            if (this.slot.equals(hoveredSlot) && hoveredSlot.isHighlightable()) {
+                context.push();
+
+                context.fillGradient(RenderType.gui(), x(), y(), x() + 16, y() + 16, -2130706433, -2130706433, 330);
+
+                context.pop();
+            }
+        }
     }
 
-    private static final Surface SLOT_RENDERING_SURFACE = (context, component) -> {
-        var slotComponents = new ArrayList<AccessoriesExperimentalScreen.ExtendedSlotComponent>();
-
-        recursiveSearch(component, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponents::add);
-
+    private final Surface SLOT_RENDERING_SURFACE = (context, component) -> {
         context.push();
-        context.translate(component.x(), component.y(), 0);
 
-        GuiGraphicsUtils.batched(context, SLOT, slotComponents, (bufferBuilder, poseStack, slotComponent) -> {
-            var slot = slotComponent.slot();
+        if(false) {
+            safeBatching(context, hasDrawCallOccur -> {
+                ComponentUtils.recursiveSearch(component, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> {
+                    if(!this.isSlotEnabled(slotComponent.index())) return;
 
-            if (!slot.isActive()) return;
+                    if(!slotComponent.isBatched() || !(slotComponent.slot() instanceof SlotTypeAccessible)) return;
 
-            GuiGraphicsUtils.blit(bufferBuilder, poseStack, slotComponent.x() - component.x() - 1, slotComponent.y() - component.y() - 1, 18);
+                    slotComponent.renderSlot(context);
+
+                    hasDrawCallOccur.setValue(true);
+                });
+            });
+        } else {
+            renderSlotsBatched(context, component);
+        }
+
+        safeBatching(context, hasDrawCallOccur -> {
+            ComponentUtils.recursiveSearch(component, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> {
+                if(!this.isSlotEnabled(slotComponent.index())) return;
+
+                if(!slotComponent.isBatched() || !(slotComponent.slot() instanceof SlotTypeAccessible)) return;
+
+                slotComponent.renderCosmeticOverlay(context, true);
+
+                hasDrawCallOccur.setValue(true);
+            });
+        });
+
+        ComponentUtils.recursiveSearch(component, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> {
+            if(!slotComponent.isBatched() || !(slotComponent.slot() instanceof SlotTypeAccessible)) return;
+
+            slotComponent.renderHover(context, () -> this.hoveredSlot);
         });
 
         context.pop();
     };
 
-    public record PageLayouts(GridLayout accessoriesLayout, GridLayout cosmeticLayout) {
-        private static final PageLayouts DEFAULT = new PageLayouts(
-                Containers.grid(Sizing.content(), Sizing.content(), 0, 0),
-                Containers.grid(Sizing.content(), Sizing.content(), 0, 0));
+    //--
 
-        public GridLayout getLayout(boolean isCosmetic) {
-            return isCosmetic ? cosmeticLayout : accessoriesLayout;
+    @Nullable
+    public Triplet<ItemStack, Boolean, @Nullable String> getRenderStack(Slot slot) {
+        var accessor = (AbstractContainerScreenAccessor) this;
+
+        ItemStack itemStack = slot.getItem();
+
+        boolean bl = false;
+
+        ItemStack itemStack2 = this.menu.getCarried();
+
+        String string = null;
+
+        if (slot == accessor.accessories$getClickedSlot() && !accessor.accessories$getDraggingItem().isEmpty() && accessor.accessories$isSplittingStack() && !itemStack.isEmpty()) {
+            itemStack = itemStack.copyWithCount(itemStack.getCount() / 2);
+        } else if (this.isQuickCrafting && this.quickCraftSlots.contains(slot) && !itemStack2.isEmpty()) {
+            if (this.quickCraftSlots.size() == 1) return null;
+
+            if (AbstractContainerMenu.canItemQuickReplace(slot, itemStack2, true) && this.menu.canDragTo(slot)) {
+                bl = true;
+
+                int maxSlotStackSize = Math.min(itemStack2.getMaxStackSize(), slot.getMaxStackSize(itemStack2));
+                int currentSlotStackSize = slot.getItem().isEmpty() ? 0 : slot.getItem().getCount();
+
+                int newStackSize = AbstractContainerMenu.getQuickCraftPlaceCount(this.quickCraftSlots, accessor.accessories$getQuickCraftingType(), itemStack2) + currentSlotStackSize;
+
+                if (newStackSize > maxSlotStackSize) {
+                    newStackSize = maxSlotStackSize;
+                    string = ChatFormatting.YELLOW.toString() + maxSlotStackSize;
+                }
+
+                itemStack = itemStack2.copyWithCount(newStackSize);
+            } else {
+                this.quickCraftSlots.remove(slot);
+                accessor.accessories$recalculateQuickCraftRemaining();
+            }
+        }
+
+        return new Triplet<>(itemStack, bl, string);
+    }
+
+    public void renderSlotsBatched(OwoUIDrawContext context, ParentComponent parentComponent) {
+
+        context.push();
+        context.translate(0, 0, 100.0F);
+
+        //--
+
+        Map<Slot, Triplet<ItemStack, Boolean, @Nullable String>> slotStateData = new HashMap<>();
+        Map<Slot, Boolean> allBl2s = new HashMap<>();
+
+        //--
+
+        var accessor = (AbstractContainerScreenAccessor) this;
+
+        //--
+
+        int i = this.leftPos;
+        int j = this.topPos;
+
+        context.push();
+        context.translate(i, j, 0);
+
+        safeBatching(context, hasDrawCallOccur -> {
+            ComponentUtils.recursiveSearch(parentComponent, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> {
+                if(!this.isSlotEnabled(slotComponent.index())) return;
+
+                var slot = slotComponent.slot();
+
+                if(!slotComponent.isBatched() || !(slot instanceof SlotTypeAccessible)) return;
+
+                var data = slotStateData.computeIfAbsent(slot, this::getRenderStack);
+
+                if(data == null) return;
+
+                var itemStack = data.getA();
+
+                if (itemStack.isEmpty() && slot.isActive()) {
+                    var pair = slot.getNoItemIcon();
+
+                    if (pair != null) {
+                        var textureAtlasSprite = this.minecraft.getTextureAtlas(pair.getFirst()).apply(pair.getSecond());
+
+                        context.blit(slot.x, slot.y, 0, 16, 16, textureAtlasSprite);
+
+                        allBl2s.put(slot, true);
+                    }
+                }
+
+                hasDrawCallOccur.setValue(true);
+            });
+        });
+
+        //--
+
+        //if(true) return;
+
+        safeBatching(context, hasDrawCallOccur -> {
+            ComponentUtils.recursiveSearch(parentComponent, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> {
+                if(!this.isSlotEnabled(slotComponent.index())) return;
+
+                var slot = slotComponent.slot();
+
+                if(!slotComponent.isBatched() || !(slot instanceof SlotTypeAccessible)) return;
+
+                var data = slotStateData.computeIfAbsent(slot, this::getRenderStack);
+
+                if(data == null) return;
+
+                var itemStack = data.getA();
+
+                var bl2 = allBl2s.getOrDefault(slot, false)
+                        || (slot == accessor.accessories$getClickedSlot() && !accessor.accessories$getDraggingItem().isEmpty() && !accessor.accessories$isSplittingStack());
+
+                if (!bl2) {
+                    int slotX = slot.x;
+                    int slotY = slot.y;
+
+                    if (data.getB()) {
+                        context.fill(slotX, slotY, slotX + 16, slotY + 16, -2130706433);
+                    }
+
+                    int k = slot.x + slot.y * this.imageWidth;
+
+                    if (slot.isFake()) {
+                        context.renderFakeItem(itemStack, slotX, slotY, k);
+                    } else {
+                        context.renderItem(itemStack, slotX, slotY, k);
+                    }
+
+                    context.renderItemDecorations(this.font, itemStack, slotX, slotY, data.getC());
+                }
+
+                hasDrawCallOccur.setValue(true);
+            });
+        });
+
+        context.pop();
+
+        //--
+
+        context.pop();
+    }
+
+    //--
+
+
+    public static void safeBatching(OwoUIDrawContext context, Consumer<MutableBoolean> drawCallback) {
+        context.recordQuads();
+
+        var hasDrawCallOccur = new MutableBoolean(false);
+
+        drawCallback.accept(hasDrawCallOccur);
+
+        try {
+            if(hasDrawCallOccur.booleanValue()) context.submitQuads();
+        } catch (Exception e) {
+            var test = "this is for debugging only really!";
         }
     }
+
+    public final Surface FULL_SLOT_RENDERING = BACKGROUND_SLOT_RENDERING_SURFACE.and(SLOT_RENDERING_SURFACE);
+
 }

@@ -12,6 +12,7 @@ import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.InstanceEndec;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
+import io.wispforest.accessories.menu.ArmorSlotTypes;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
@@ -22,8 +23,10 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
+import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
+import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.EntityType;
@@ -47,6 +50,10 @@ public class AccessoriesFabric implements ModInitializer {
     @Override
     public void onInitialize() {
         Accessories.init();
+
+        ArmorSlotTypes.INSTANCE.registerAccessories((consumer) -> {
+            RegistryEntryAddedCallback.event(BuiltInRegistries.ITEM).register(consumer::accept);
+        });
 
         AccessoriesDataComponents.init();
 

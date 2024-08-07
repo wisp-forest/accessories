@@ -6,4 +6,8 @@ public interface SlotTypeAccessible {
     String slotName();
 
     SlotType slotType();
+
+    default boolean isCosmeticSlot() {
+        return false;
+    }
 }

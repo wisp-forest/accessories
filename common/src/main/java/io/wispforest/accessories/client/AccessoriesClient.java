@@ -3,10 +3,7 @@ package io.wispforest.accessories.client;
 import com.mojang.blaze3d.platform.Window;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.AccessoriesInternalsClient;
 import io.wispforest.accessories.api.AccessoriesAPI;
-import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
-import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
@@ -14,6 +11,7 @@ import io.wispforest.accessories.networking.holder.HolderProperty;
 import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
+import io.wispforest.owo.shader.GlProgram;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.Minecraft;
@@ -29,6 +27,7 @@ public class AccessoriesClient {
 
     public static final ResourceLocation BLIT_SHADER_ID = Accessories.of("fish");
     public static ShaderInstance BLIT_SHADER;
+    public static GlProgram SPECTRUM_PROGRAM;
 
     public static final Event<WindowResizeCallback> WINDOW_RESIZE_CALLBACK_EVENT = EventFactory.createArrayBacked(WindowResizeCallback.class, callbacks -> (client, window) -> {
         for (var callback : callbacks) callback.onResized(client, window);

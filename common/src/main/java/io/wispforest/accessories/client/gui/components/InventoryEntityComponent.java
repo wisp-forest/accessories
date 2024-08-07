@@ -15,6 +15,7 @@ import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.lwjgl.glfw.GLFW;
 
 public class InventoryEntityComponent<E extends Entity> extends EntityComponent<E> {
 
@@ -24,6 +25,37 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
 
     public InventoryEntityComponent(Sizing sizing, EntityType<E> type, @Nullable CompoundTag nbt) {
         super(sizing, type, nbt);
+    }
+
+    public static <E extends Entity> InventoryEntityComponent<E> of(Sizing verticalSizing, Sizing horizontalSizing, E entity) {
+        var component = new InventoryEntityComponent<E>(verticalSizing, entity);
+
+        component.horizontalSizing(horizontalSizing);
+
+        return component;
+    }
+
+    public float xOffset = 0.0f;
+    public float yOffset = 0.0f;
+
+    public EntityComponent<E> scaleToFit(boolean scaleToFit) {
+        if(scaleToFit) {
+            var componentHeight = (float) this.verticalSizing().get().value;
+            var componentWidth = (float) this.horizontalSizing().get().value - 40;
+
+            var entityHeight = entity.getBbHeight() * (Math.min(componentWidth, componentHeight) / Math.max(componentWidth, componentHeight));
+            var entityWidth = entity.getBbWidth() * (Math.max(componentWidth, componentHeight) / Math.min(componentWidth, componentHeight));
+
+            var length = Math.max(entityHeight, entityWidth);
+
+            float baseScale = (.35f / length);
+
+            this.scale(baseScale);
+        } else {
+            this.scale(1);
+        }
+
+        return this;
     }
 
     public EntityComponent<E> scaleToFitVertically(boolean scaleToFit) {
@@ -105,6 +137,8 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
 //            this.dispatcher.overrideCameraOrientation(quaternionf2.conjugate(new Quaternionf()).rotateY((float) Math.PI));
 //        }
 
+            matrices.translate(this.xOffset, this.yOffset, 0);
+
             this.dispatcher.setRenderShadow(false);
             this.dispatcher.render(this.entity, 0, 0, 0, 0, 0, matrices, this.entityBuffers, LightTexture.FULL_BRIGHT);
 
@@ -128,5 +162,29 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
 
         dispatcher.owo$setCounterRotate(false);
         dispatcher.owo$setShowNametag(true);
+    }
+
+    @Override
+    public boolean onMouseScroll(double mouseX, double mouseY, double amount) {
+        this.scale += (float) (amount * this.scale * 0.1f);
+
+        return true;
+    }
+
+    @Override
+    public boolean onKeyPress(int keyCode, int scanCode, int modifiers) {
+        if(keyCode == GLFW.GLFW_KEY_LEFT) {
+            this.xOffset -= 0.05f;
+        } else if(keyCode == GLFW.GLFW_KEY_RIGHT) {
+            this.xOffset += 0.05f;
+        }
+
+        if(keyCode == GLFW.GLFW_KEY_UP) {
+            this.yOffset += 0.05f;
+        } else if(keyCode == GLFW.GLFW_KEY_DOWN) {
+            this.yOffset -= 0.05f;
+        }
+
+        return super.onKeyPress(keyCode, scanCode, modifiers);
     }
 }

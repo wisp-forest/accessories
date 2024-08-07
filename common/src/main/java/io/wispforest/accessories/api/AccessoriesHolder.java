@@ -2,11 +2,9 @@ package io.wispforest.accessories.api;
 
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -60,4 +58,11 @@ public interface AccessoriesHolder {
 
     AccessoriesHolder equipControl(PlayerEquipControl value);
 
+    int columnAmount();
+
+    AccessoriesHolder columnAmount(int value);
+
+    int widgetType();
+
+    AccessoriesHolder widgetType(int value);
 }

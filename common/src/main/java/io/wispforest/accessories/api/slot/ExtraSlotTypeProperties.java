@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ApiStatus.Internal
-public record ExtraSlotTypeProperties(boolean allowResizing, boolean strictMode, boolean allowEquipFromUse) {
+public record ExtraSlotTypeProperties(boolean allowResizing, boolean strictMode, boolean allowEquipFromUse, boolean allowTooltipInfo) {
 
     private static final Map<String, ExtraSlotTypeProperties> EXTRA_PROPS_SERVER = new HashMap<>();
     private static final Map<String, ExtraSlotTypeProperties> EXTRA_PROPS_CLIENT = new HashMap<>();
@@ -29,12 +29,13 @@ public record ExtraSlotTypeProperties(boolean allowResizing, boolean strictMode,
         EXTRA_PROPS_CLIENT.putAll(map);
     }
 
-    public static final ExtraSlotTypeProperties DEFAULT = new ExtraSlotTypeProperties(true, false, true);
+    public static final ExtraSlotTypeProperties DEFAULT = new ExtraSlotTypeProperties(true, false, true, true);
 
     public static final Endec<ExtraSlotTypeProperties> ENDEC = StructEndecBuilder.of(
             Endec.BOOLEAN.fieldOf("allowResizing", ExtraSlotTypeProperties::allowResizing),
             Endec.BOOLEAN.fieldOf("strictMode", ExtraSlotTypeProperties::strictMode),
             Endec.BOOLEAN.fieldOf("allowEquipFromUse", ExtraSlotTypeProperties::allowEquipFromUse),
+            Endec.BOOLEAN.fieldOf("allowTooltipInfo", ExtraSlotTypeProperties::allowTooltipInfo),
             ExtraSlotTypeProperties::new
     );
 }

@@ -117,7 +117,11 @@ public class AccessoriesAPI {
      * default or if the given stack has valid slots which it can be equipped
      */
     public static boolean isValidAccessory(ItemStack stack, Level level){
-        return getAccessory(stack) != null || !getStackSlotTypes(level, stack).isEmpty();
+        return isValidAccessory(stack, level, null);
+    }
+
+    public static boolean isValidAccessory(ItemStack stack, Level level, @Nullable LivingEntity entity){
+        return getAccessory(stack) != null || !getStackSlotTypes(level, entity, stack).isEmpty();
     }
 
     //--
@@ -202,7 +206,7 @@ public class AccessoriesAPI {
             throw new IllegalStateException("Unable to get the needed SlotType from the SlotReference passed within `canInsertIntoSlot`! [Name: " + reference.slotName() + "]");
         }
 
-        return getPredicateResults(slotType.validators(), reference.entity().level(), slotType, 0, stack) && canEquip(stack, reference);
+        return getPredicateResults(slotType.validators(), reference.entity().level(), reference.entity(), slotType, 0, stack) && canEquip(stack, reference);
     }
 
     /**
@@ -270,10 +274,14 @@ public class AccessoriesAPI {
     }
 
     public static Collection<SlotType> getStackSlotTypes(Level level, ItemStack stack){
+        return getStackSlotTypes(level, null, stack);
+    }
+
+    public static Collection<SlotType> getStackSlotTypes(Level level, @Nullable LivingEntity entity, ItemStack stack) {
         var validSlots = new ArrayList<SlotType>();
 
         for (SlotType value : SlotTypeLoader.getSlotTypes(level).values()) {
-            if(getPredicateResults(value.validators(), level, value, 0, stack)) validSlots.add(value);
+            if(getPredicateResults(value.validators(), level, entity, value, 0, stack)) validSlots.add(value);
         }
 
         return validSlots;
@@ -341,6 +349,10 @@ public class AccessoriesAPI {
     }
 
     public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, Level level, SlotType slotType, int index, ItemStack stack){
+        return getPredicateResults(predicateIds, level, null, slotType, index, stack);
+    }
+
+    public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, Level level, @Nullable LivingEntity entity, SlotType slotType, int index, ItemStack stack){
         var result = TriState.DEFAULT;
 
         for (var predicateId : predicateIds) {
@@ -348,7 +360,11 @@ public class AccessoriesAPI {
 
             if(predicate == null) continue;
 
-            result = predicate.isValid(level, slotType, index, stack);
+            if(predicate instanceof EntityBasedPredicate entityBasedPredicate) {
+                result = entityBasedPredicate.isValid(level, entity, slotType, index, stack);
+            } else {
+                result = predicate.isValid(level, slotType, index, stack);
+            }
 
             if(result != TriState.DEFAULT) break;
         }

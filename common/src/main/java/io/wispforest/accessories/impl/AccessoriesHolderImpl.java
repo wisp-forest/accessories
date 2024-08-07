@@ -29,6 +29,14 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     public final List<ItemStack> invalidStacks = new ArrayList<>();
     protected final Map<AccessoriesContainer, Boolean> containersRequiringUpdates = new HashMap<>();
 
+    //-- Logical Stuff
+
+    private PlayerEquipControl equipControl = PlayerEquipControl.MUST_CROUCH;
+
+    //--
+
+    //-- Rendering Stuff
+
     private boolean showUnusedSlots = false;
     private boolean showUniqueSlots = false;
 
@@ -38,7 +46,11 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
     private boolean linesShown = false;
 
-    private PlayerEquipControl equipControl = PlayerEquipControl.MUST_CROUCH;
+    private int columnAmount = 6;
+
+    private int widgetType = 1;
+
+    // --
 
     private MapCarrier carrier;
     protected boolean loadedFromTag = false;
@@ -125,6 +137,30 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     @Override
     public AccessoriesHolder equipControl(PlayerEquipControl value) {
         this.equipControl = value;
+
+        return this;
+    }
+
+    @Override
+    public int columnAmount() {
+        return Math.max(columnAmount, 1);
+    }
+
+    @Override
+    public AccessoriesHolder columnAmount(int value) {
+        this.columnAmount = value;
+
+        return this;
+    }
+
+    @Override
+    public int widgetType() {
+        return Math.max(widgetType, 0);
+    }
+
+    @Override
+    public AccessoriesHolder widgetType(int value) {
+        this.widgetType = value;
 
         return this;
     }

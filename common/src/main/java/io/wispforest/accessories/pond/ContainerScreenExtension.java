@@ -1,6 +1,8 @@
 package io.wispforest.accessories.pond;
 
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 public interface ContainerScreenExtension {
@@ -16,7 +18,11 @@ public interface ContainerScreenExtension {
     }
 
     @Nullable
-    default Boolean shouldRenderSlot(Slot slot, double mouseX, double mouseY) {
+    default Boolean shouldRenderSlot(Slot slot) {
         return null;
+    }
+
+    default void forceRenderSlot(GuiGraphics context, Slot slot) {
+        throw new IllegalStateException("Interface injected method not implemented!");
     }
 }

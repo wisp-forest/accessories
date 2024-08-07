@@ -14,6 +14,8 @@ import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.networking.base.BaseNetworkHandler;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
+import io.wispforest.owo.client.OwoClient;
+import io.wispforest.owo.shader.GlProgram;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -104,7 +106,9 @@ public class AccessoriesClientFabric implements ClientModInitializer {
             }
         });
 
-        CoreShaderRegistrationCallback.EVENT.register(context -> context.register( Accessories.of("fish"), DefaultVertexFormat.BLIT_SCREEN, shaderInstance -> AccessoriesClient.BLIT_SHADER = shaderInstance));
+        CoreShaderRegistrationCallback.EVENT.register(context -> context.register(Accessories.of("fish"), DefaultVertexFormat.BLIT_SCREEN, shaderInstance -> AccessoriesClient.BLIT_SHADER = shaderInstance));
+
+        AccessoriesClient.SPECTRUM_PROGRAM = new GlProgram(Accessories.of("spectrum_position_tex"), DefaultVertexFormat.POSITION_TEX_COLOR);
     }
 
     @Environment(EnvType.CLIENT)

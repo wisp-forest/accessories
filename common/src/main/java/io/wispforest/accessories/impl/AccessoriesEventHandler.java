@@ -10,6 +10,7 @@ import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.events.*;
+import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
@@ -366,88 +367,99 @@ public class AccessoriesEventHandler {
         // TODO: ADD BETTER HANDLING FOR POSSIBLE SLOTS THAT ARE EQUIPABLE IN BUT IS AT ZERO SIZE
         var validSlotTypes = new HashSet<>(AccessoriesAPI.getValidSlotTypes(entity, stack));
 
-        var validUniqueSlots = validSlotTypes.stream()
-                .filter(slotType -> UniqueSlotHandling.isUniqueSlot(slotType.name()))
-                .collect(Collectors.toSet());
-
         if (validSlotTypes.isEmpty()) return;
 
-        validSlotTypes.removeAll(validUniqueSlots);
+        {
+            final var validUniqueSlots = new HashSet<SlotType>();
 
-        var sharedSlotTypes = SlotTypeLoader.getSlotTypes(entity.level()).values()
-                .stream()
-                .filter(slotType -> /*slotType.amount() > 0 &&*/ !UniqueSlotHandling.isUniqueSlot(slotType.name()))
-                .collect(Collectors.toSet());
+            validSlotTypes.removeIf(slotType -> {
+                var isUnique = UniqueSlotHandling.isUniqueSlot(slotType.name());
 
-        var slotInfoComponent = Component.literal("");
+                if(isUnique) validUniqueSlots.add(slotType);
 
-        var slotsComponent = Component.literal("");
-        boolean allSlots = false;
+                return isUnique;
+            });
 
+            var sharedSlotTypes = SlotTypeLoader.getSlotTypes(entity.level()).values()
+                    .stream()
+                    .filter(slotType -> !UniqueSlotHandling.isUniqueSlot(slotType.name()))
+                    .collect(Collectors.toSet());
 
-        if (validSlotTypes.containsAll(sharedSlotTypes)) {
-            slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
-            allSlots = true;
-        } else {
-            var entitySlotTypes = Set.copyOf(EntitySlotLoader.getEntitySlots(entity).values());
+            var slotInfoComponent = Component.literal("");
 
-            var differenceSlotTypes = Sets.difference(entitySlotTypes, validSlotTypes);
+            var slotsComponent = Component.literal("");
+            boolean allSlots = false;
 
-            if(differenceSlotTypes.size() < validSlotTypes.size()) {
+            if (validSlotTypes.containsAll(sharedSlotTypes)) {
                 slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
-                slotsComponent.append(Component.literal(" except ").withStyle(ChatFormatting.GRAY));
-
-                var slotTypesList = List.copyOf(differenceSlotTypes);
-
-                for (int i = 0; i < slotTypesList.size(); i++) {
-                    var type = slotTypesList.get(i);
-
-                    slotsComponent.append(Component.translatable(type.translation()).withStyle(ChatFormatting.RED));
-
-                    if (i + 1 != slotTypesList.size()) {
-                        slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
-                    }
-                }
+                allSlots = true;
             } else {
-                var slotTypesList = List.copyOf(validSlotTypes);
+                var entitySlotTypes = Set.copyOf(EntitySlotLoader.getEntitySlots(entity).values());
 
-                for (int i = 0; i < slotTypesList.size(); i++) {
-                    var type = slotTypesList.get(i);
+                var invalidSlotsTypes = Sets.difference(entitySlotTypes, validSlotTypes);
 
-                    slotsComponent.append(Component.translatable(type.translation()));
+                if (invalidSlotsTypes.size() < validSlotTypes.size()) {
+                    slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
+                    slotsComponent.append(Component.literal(" except ").withStyle(ChatFormatting.GRAY));
 
-                    if (i + 1 != slotTypesList.size()) {
-                        slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                    var invalidSlotsItr = invalidSlotsTypes.iterator();
+
+                    while(invalidSlotsItr.hasNext()) {
+                        var type = invalidSlotsItr.next();
+
+                        slotsComponent.append(Component.translatable(type.translation()).withStyle(ChatFormatting.RED));
+
+                        if(invalidSlotsItr.hasNext()) {
+                            slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                        }
                     }
-                }
-            }
-        }
+                } else {
+                    var validSlotsItr = validSlotTypes.iterator();
 
-        if(!validUniqueSlots.isEmpty()) {
-            var uniqueSlotTypes = List.copyOf(validUniqueSlots);
+                    while(validSlotsItr.hasNext()) {
+                        var type = validSlotsItr.next();
 
-            for (int i = 0; i < uniqueSlotTypes.size(); i++) {
-                var type = uniqueSlotTypes.get(i);
+                        slotsComponent.append(Component.translatable(type.translation()));
 
-                slotsComponent.append(Component.translatable(type.translation()));
-
-                if (i + 1 != uniqueSlotTypes.size()) {
-                    slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                        if(validSlotsItr.hasNext()) {
+                            slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                        }
+                    }
                 }
             }
 
             validSlotTypes.addAll(validUniqueSlots);
+
+            final var filteredValidUniqueSlots = validUniqueSlots.stream()
+                    .filter(slotType -> ExtraSlotTypeProperties.getProperty(slotType.name(), true).allowTooltipInfo())
+                    .toList();
+
+            if (!filteredValidUniqueSlots.isEmpty()) {
+                var uniqueItr = filteredValidUniqueSlots.iterator();
+
+                while(uniqueItr.hasNext()) {
+                    var type = uniqueItr.next();
+
+                    slotsComponent.append(Component.translatable(type.translation()));
+
+                    if(uniqueItr.hasNext()) {
+                        slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                    }
+                }
+            }
+
+            if(!slotsComponent.getSiblings().isEmpty()) {
+                var slotTranslationKey = "slot.tooltip." + ((validSlotTypes.size() > 1 && !allSlots) ? "plural" : "singular");
+
+                slotInfoComponent.append(
+                        Component.translatable(Accessories.translation(slotTranslationKey))
+                                .withStyle(ChatFormatting.GRAY)
+                                .append(slotsComponent.withStyle(ChatFormatting.BLUE))
+                );
+
+                tooltip.add(slotInfoComponent);
+            }
         }
-
-        var slotTranslationKey = "slot.tooltip." + ((validSlotTypes.size() > 1 && !allSlots) ? "plural" : "singular");
-
-        slotInfoComponent.append(
-                Component.translatable(Accessories.translation(slotTranslationKey))
-                        .withStyle(ChatFormatting.GRAY)
-                        .append(slotsComponent.withStyle(ChatFormatting.BLUE))
-        );
-
-        tooltip.add(slotInfoComponent);
 
         var slotSpecificModifiers = new HashMap<SlotType, AccessoryAttributeBuilder>();
         AccessoryAttributeBuilder defaultModifiers = null;

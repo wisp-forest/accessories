@@ -1,6 +1,11 @@
 {
   "replace": false,
   "values": [
-    "minecraft:armor_stand"
+    "minecraft:armor_stand",
+    "minecraft:horse",
+    "minecraft:donkey",
+    "minecraft:mule",
+    "minecraft:llama",
+    "minecraft:pig"
   ]
 }

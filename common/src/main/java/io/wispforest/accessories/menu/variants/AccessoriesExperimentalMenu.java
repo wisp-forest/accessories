@@ -1,11 +1,14 @@
 package io.wispforest.accessories.menu.variants;
 
 import com.google.common.collect.ImmutableSet;
+import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.menu.*;
@@ -13,12 +16,15 @@ import io.wispforest.owo.client.screens.ScreenUtils;
 import io.wispforest.owo.client.screens.SlotGenerator;
 import io.wispforest.owo.util.pond.OwoSlotExtension;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.SaddleItem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -35,7 +41,11 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
     public final List<SlotType> addedSlots = new ArrayList<>();
 
+    public int addedArmorSlots = 0;
+
     public int startingAccessoriesSlot = 0;
+
+    public boolean includeSaddle = false;
 
     public AccessoriesExperimentalMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
         super(AccessoriesMenuTypes.EXPERIMENTAL_MENU, containerId, inventory, targetEntity);
@@ -57,28 +67,63 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
         //--
 
-        startingAccessoriesSlot = this.slots.size();
+        this.addSlot(new Slot(inventory, 40, 0, 0) {
+            @Override
+            public void setByPlayer(ItemStack itemStack, ItemStack itemStack2) {
+                inventory.player.onEquipItem(EquipmentSlot.OFFHAND, itemStack2, itemStack);
+                super.setByPlayer(itemStack, itemStack2);
+            }
 
-        var armorTypes = ArmorSlotTypes.getArmorReferences();
+            @Override
+            public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+                return Pair.of(InventoryMenu.BLOCK_ATLAS, InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD);
+            }
+        });
+
+        var saddleInv = SlotAccessContainer.ofSaddleSlot(accessoryTarget);
+
+        if(saddleInv != null) {
+            this.includeSaddle = true;
+
+            var iconPath = targetEntity instanceof Llama ? "container/horse/llama_armor_slot" : "container/horse/saddle_slot" ;
+
+            this.addSlot(
+                    new Slot(saddleInv, 0, 0, 0){
+                        @Override
+                        public boolean mayPlace(ItemStack stack) {
+                            if(!(stack.getItem() instanceof SaddleItem)) return false;
+
+                            return super.mayPlace(stack);
+                        }
+
+                        @Override
+                        public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+                            return Pair.of(ArmorSlotTypes.SPRITE_ATLAS_LOCATION, ResourceLocation.withDefaultNamespace(iconPath));
+                        }
+                    }
+            );
+        }
+
+        startingAccessoriesSlot = this.slots.size();
 
         var containers = capability.getContainers();
 
-        for (int i = 0; i < 4; i++) {
-            var equipmentSlot = ArmorSlotTypes.SLOT_IDS[i];
-            var location = ArmorSlotTypes.TEXTURE_EMPTY_SLOTS.get(equipmentSlot);
+        var validEquipmentSlots = new ArrayList<EquipmentSlot>();
 
-            var armorReference = armorTypes.get(i);
+        for (EquipmentSlot value : EquipmentSlot.values()) {
+            if (!accessoryTarget.canUseSlot(value)) continue;
 
-            var armorContainer = containers.get(armorReference.slotName());
+            var armorRef = ArmorSlotTypes.getReferenceFromSlot(value);
 
-            this.addSlot(new AccessoriesArmorSlot(armorContainer, inventory, owner, equipmentSlot, 39 - i, 0, 0, location)); // 39 - i
+            if (armorRef == null || containers.get(armorRef.slotName()) == null) continue;
 
-            var cosmeticSlot = new AccessoriesInternalSlot(armorContainer, true, 0, 0, 0){
-                @Override protected ResourceLocation icon() { return location; }
-            }.isActive((slot1) -> /*this.isCosmeticsOpen() &&*/ this.slotToView.getOrDefault(slot1.index, true))
-                    .isAccessible((slot1) -> /*this.isCosmeticsOpen() &&*/ slot1.isCosmetic);
+            validEquipmentSlots.add(value);
+        }
 
-            this.addSlot(cosmeticSlot);
+        for (EquipmentSlot equipmentSlot : validEquipmentSlots.reversed()) {
+            if (addArmorSlot(equipmentSlot, accessoryTarget, ArmorSlotTypes.getReferenceFromSlot(equipmentSlot), containers)) {
+                addedArmorSlots += 2;
+            }
         }
 
         //--
@@ -131,6 +176,37 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
                 }
             });
         });
+    }
+
+    private boolean addArmorSlot(EquipmentSlot equipmentSlot, LivingEntity targetEntity, SlotTypeReference armorReference, Map<String, AccessoriesContainer> containers) {
+        var location = ArmorSlotTypes.getEmptyTexture(equipmentSlot, targetEntity);
+
+        var armorContainer = containers.get(armorReference.slotName());
+
+        if(armorContainer == null) return false;
+
+        var armorSlot = new AccessoriesArmorSlot(armorContainer, SlotAccessContainer.ofArmor(equipmentSlot, targetEntity), targetEntity, equipmentSlot, 0, 0, 0, location != null ? location.second() : null)
+                .setAtlasLocation(location != null ? location.first() : null); // 39 - i
+
+        this.addSlot(armorSlot);
+
+        var cosmeticSlot = new AccessoriesInternalSlot(armorContainer, true, 0, 0, 0){
+            @Override
+            public @Nullable Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+                if(location == null) return null;
+
+                var atlasLocation = location.first();
+
+                if(atlasLocation == null) atlasLocation = ResourceLocation.withDefaultNamespace("textures/atlas/blocks.png");
+
+                return Pair.of(atlasLocation, location.second());
+            }
+        }.isActive((slot1) -> /*this.isCosmeticsOpen() &&*/ this.slotToView.getOrDefault(slot1.index, true))
+                .isAccessible((slot1) -> /*this.isCosmeticsOpen() &&*/ slot1.isCosmetic);
+
+        this.addSlot(cosmeticSlot);
+
+        return true;
     }
 
     public static AccessoriesExperimentalMenu of(int containerId, Inventory inventory, AccessoriesMenuData data) {
