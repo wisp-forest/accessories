@@ -3,6 +3,7 @@ package io.wispforest.accessories.api.menu;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
@@ -11,6 +12,7 @@ import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
+import io.wispforest.accessories.pond.owo.AccessoriesLivingEntityExtension;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -107,6 +109,12 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
 
         this.accessoriesContainer.markChanged();
         this.accessoriesContainer.update();
+    }
+
+    @Override
+    public void setByPlayer(ItemStack newStack, ItemStack oldStack) {
+        ((AccessoriesLivingEntityExtension)this.entity).onEquipItem(accessoriesContainer.createReference(this.getContainerSlot()), oldStack, newStack);
+        super.setByPlayer(newStack, oldStack);
     }
 
     @Override
