@@ -36,9 +36,18 @@ public abstract class SlotGroupLoaderMixin {
 
                 var accessorySlotName = WrappingTrinketsUtils.trinketsToAccessories_Slot(Optional.of(groupEntry.getKey()), slotName);
 
-                var group = slotGroups.getOrDefault(WrappingTrinketsUtils.trinketsToAccessories_Group(groupEntry.getKey()), null);
+                if(!allSlots.containsKey(accessorySlotName)) continue;
 
-                if(group == null || !allSlots.containsKey(accessorySlotName)) continue;
+                var groupName = WrappingTrinketsUtils.trinketsToAccessories_Group(groupEntry.getKey());
+
+                var group = slotGroups.getOrDefault(groupName, null);
+
+                if(group == null) {
+                    group = new SlotGroupLoader.SlotGroupBuilder(groupName)
+                            .order(0);
+
+                    slotGroups.put(groupName, group);
+                }
 
                 group.addSlot(accessorySlotName);
 
