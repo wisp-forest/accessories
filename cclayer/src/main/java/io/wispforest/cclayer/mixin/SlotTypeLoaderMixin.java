@@ -68,8 +68,10 @@ public abstract class SlotTypeLoaderMixin {
                 tempMap.put(accessoryType, builder);
             }
 
-            for (ResourceLocation validatorPredicate : curiosBuilder.validators) {
-                builder.validator(CuriosWrappingUtils.curiosToAccessories_Validators(validatorPredicate));
+            if(curiosBuilder.validators != null) {
+                for (var validatorPredicate : curiosBuilder.validators) {
+                    builder.validator(CuriosWrappingUtils.curiosToAccessories_Validators(validatorPredicate));
+                }
             }
         }
     }
