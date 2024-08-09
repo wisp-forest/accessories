@@ -111,16 +111,16 @@ public class CuriosEntityManager extends SimpleJsonResourceReloadListener {
       try {
         JsonObject jsonObject = GsonHelper.convertToJsonObject(entry.getValue(), "top element");
 
-        for (Map.Entry<EntityType<?>, Map<String, ISlotType>> entry1 : getSlotsForEntities(
+        for (Map.Entry<EntityType<?>, Set<String>> entry1 : getSlotsForEntities(
             jsonObject, resourcelocation, this.ctx).entrySet()) {
 
           if (GsonHelper.getAsBoolean(jsonObject, "replace", false)) {
             ImmutableSet.Builder<String> builder = ImmutableSet.builder();
-            builder.addAll(entry1.getValue().keySet());
+            builder.addAll(entry1.getValue());
             map.put(entry1.getKey(), builder);
           } else {
             map.computeIfAbsent(entry1.getKey(), (k) -> ImmutableSet.builder())
-                .addAll(entry1.getValue().keySet());
+                .addAll(entry1.getValue());
           }
           modMap.computeIfAbsent(resourcelocation.getPath(), (k) -> ImmutableSet.builder())
               .add(resourcelocation.getNamespace());
@@ -195,9 +195,9 @@ public class CuriosEntityManager extends SimpleJsonResourceReloadListener {
         ImmutableMap.toImmutableMap(Map.Entry::getKey, (entry) -> entry.getValue().build()));
   }
 
-  private static Map<EntityType<?>, Map<String, ISlotType>> getSlotsForEntities(
+  private static Map<EntityType<?>, Set<String>> getSlotsForEntities(
       JsonObject jsonObject, ResourceLocation resourceLocation, ICondition.IContext ctx) {
-    Map<EntityType<?>, Map<String, ISlotType>> map = new HashMap<>();
+    Map<EntityType<?>, Set<String>> map = new HashMap<>();
 
     if (!ICondition.conditionsMatched(JsonOps.INSTANCE, jsonObject)) {
       CuriosConstants.LOG.debug("Skipping loading entity file {} as its conditions were not met",
@@ -230,16 +230,14 @@ public class CuriosEntityManager extends SimpleJsonResourceReloadListener {
       }
     }
     JsonArray jsonSlots = GsonHelper.getAsJsonArray(jsonObject, "slots", new JsonArray());
-    Map<String, ISlotType> slots = new HashMap<>();
+    Set<String> slots = new HashSet<>();
 
     for (JsonElement jsonSlot : jsonSlots) {
-      String id = jsonSlot.getAsString();
-      CuriosSlotManager.SERVER.getSlot(id).ifPresentOrElse(slot -> slots.put(id, slot),
-              () -> CuriosConstants.LOG.error("{} is not a registered slot type!", id));
+      slots.add(jsonSlot.getAsString());
     }
 
     for (EntityType<?> entityType : toAdd) {
-      map.computeIfAbsent(entityType, (k) -> new HashMap<>()).putAll(slots);
+      map.computeIfAbsent(entityType, (k) -> new HashSet<>()).addAll(slots);
     }
     return map;
   }
