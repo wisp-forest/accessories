@@ -1,29 +1,35 @@
 package io.wispforest.accessories.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.api.AccessoriesHolder;
+import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.client.gui.components.*;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.menu.variants.AccessoriesExperimentalMenu;
 import io.wispforest.accessories.mixin.client.AbstractContainerScreenAccessor;
+import io.wispforest.accessories.mixin.client.owo.DiscreteSliderComponentAccessor;
 import io.wispforest.accessories.networking.holder.HolderProperty;
 import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
+import io.wispforest.owo.mixin.ui.SlotAccessor;
 import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.Components;
+import io.wispforest.owo.ui.component.DiscreteSliderComponent;
 import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.container.StackLayout;
 import io.wispforest.owo.ui.core.*;
 import io.wispforest.owo.util.pond.OwoSlotExtension;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -33,16 +39,18 @@ import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 import oshi.util.tuples.Triplet;
 
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.function.*;
 import java.util.stream.Collectors;
 
 import static io.wispforest.accessories.client.gui.components.ComponentUtils.BACKGROUND_SLOT_RENDERING_SURFACE;
 
 public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayout, AccessoriesExperimentalMenu> implements AccessoriesScreenBase, ContainerScreenExtension {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     public AccessoriesExperimentalScreen(AccessoriesExperimentalMenu handler, Inventory inventory, Component title) {
         super(handler, inventory, title);
@@ -55,40 +63,51 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         return OwoUIAdapter.create(this, Containers::verticalFlow);
     }
 
-    public ExtendedSlotComponent slotAsComponent(int index) {
-        return new ExtendedSlotComponent(this, index);
-    }
-
     //--
 
-    public final Set<Integer> changedSlots = new HashSet<>();
+    public final Map<Integer, Boolean> changedSlots = new HashMap<>();
+
+    public void hideSlot(int index) {
+        hideSlot(this.menu.slots.get(index));
+    }
+
+    public void hideSlot(Slot slot) {
+        ((SlotAccessor) slot).owo$setX(-300);
+        ((SlotAccessor) slot).owo$setY(-300);
+    }
+
+    @Override
+    public void disableSlot(Slot slot) {
+        disableSlot(slot.index);
+    }
 
     @Override
     public void disableSlot(int index) {
         super.disableSlot(index);
 
-        changedSlots.add(index);
+        var state = this.changedSlots.getOrDefault(index, null);
+
+        if(state != null && !state) return;
+
+        hideSlot(index);
+
+        this.changedSlots.put(index, true);
     }
 
     @Override
-    public void disableSlot(Slot slot) {
-        super.disableSlot(slot);
-
-        changedSlots.add(slot.index);
+    public void enableSlot(Slot slot) {
+        enableSlot(slot.index);
     }
 
     @Override
     public void enableSlot(int index) {
         super.enableSlot(index);
 
-        changedSlots.add(index);
-    }
+        var state = this.changedSlots.getOrDefault(index, null);
 
-    @Override
-    public void enableSlot(Slot slot) {
-        ((OwoSlotExtension) slot).owo$setDisabledOverride(false);
+        if(state != null && state) return;
 
-        changedSlots.add(slot.index);
+        this.changedSlots.put(index, false);
     }
 
     @Override
@@ -105,18 +124,18 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     protected void containerTick() {
         super.containerTick();
 
-        if(!changedSlots.isEmpty()) {
-            var slots = this.getMenu().slots;
+        if(this.changedSlots.isEmpty()) return;
 
-            var changes = changedSlots.stream()
-                    .map(i -> (i < slots.size()) ? slots.get(i) : null)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toMap(slot -> slot.index, slot -> ((OwoSlotExtension)slot).owo$getDisabledOverride()));
+        var slots = this.getMenu().slots;
 
-            this.getMenu().sendMessage(new AccessoriesExperimentalMenu.ToggledSlots(changes));
+        var changes = this.changedSlots.keySet().stream()
+                .map(i -> (i < slots.size()) ? slots.get(i) : null)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(slot -> slot.index, slot -> ((OwoSlotExtension)slot).owo$getDisabledOverride()));
 
-            changedSlots.clear();
-        }
+        this.getMenu().sendMessage(new AccessoriesExperimentalMenu.ToggledSlots(changes));
+
+        this.changedSlots.clear();
     }
 
     @Override
@@ -128,9 +147,15 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
     //--
 
-    public boolean showCosmeticState = false;
+    private boolean showCosmeticState = false;
 
-    //--
+    public void showCosmeticState(boolean value) {
+        this.showCosmeticState = value;
+    }
+
+    public boolean showCosmeticState() {
+        return showCosmeticState;
+    }
 
     @Override
     protected void build(FlowLayout rootComponent) {
@@ -152,7 +177,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         //--
 
-        baseChildren.add(ComponentUtils.createPlayerInv(menu.startingAccessoriesSlot, this::slotAsComponent, this::enableSlot));
+        baseChildren.add(ComponentUtils.createPlayerInv(menu.startingAccessoriesSlot(), this::slotAsComponent, this::enableSlot));
 
         //--
 
@@ -190,8 +215,8 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
             outerRightArmorLayout.child(cosmeticArmorSlotsLayout);
 
-            for (int i = 0; i < menu.addedArmorSlots / 2; i++) {
-                var armor = menu.startingAccessoriesSlot + (i * 2);
+            for (int i = 0; i < menu.addedArmorSlots() / 2; i++) {
+                var armor = menu.startingAccessoriesSlot() + (i * 2);
                 var cosmeticArmor = armor + 1;
 
                 this.enableSlot(armor);
@@ -200,8 +225,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 var armorSlot = this.slotAsComponent(armor)
                         .margins(Insets.of(1));
 
-                var cosmeticArmorSlot = this.slotAsComponent(cosmeticArmor)
-                        .margins(Insets.of(1));
+                var cosmeticArmorSlot = ComponentUtils.slotAndToggle((AccessoriesBasedSlot) this.menu.slots.get(cosmeticArmor), false, this::slotAsComponent).left();
 
                 armorSlotsLayout.child(armorSlot);
                 cosmeticArmorSlotsLayout.child(cosmeticArmorSlot);
@@ -232,35 +256,57 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
             //--
 
-            var entityContainer = Containers.stack(Sizing.content(), Sizing.fixed(131 + 12))
+            var entityComponentSize = 126;
+
+            var entityContainer = Containers.stack(Sizing.content(), Sizing.fixed(entityComponentSize + 12))
                     .child(
                             Containers.verticalFlow(Sizing.content(), Sizing.content())
                                     .child(
-                                            InventoryEntityComponent.of(Sizing.fixed(131), Sizing.fixed(108), this.targetEntityDefaulted())
+                                            InventoryEntityComponent.of(Sizing.fixed(entityComponentSize), Sizing.fixed(108), this.targetEntityDefaulted())
+                                                    .startingRotation(this.leftPositioned() ? -45 : 45)
                                                     .scaleToFit(true)
                                                     .allowMouseRotation(true)
+                                                    .id("entity_rendering_component")
                                     )
                                     .surface(Surface.flat(Color.BLACK.argb()))
                     )
                     .child(
-                            outerLeftArmorLayout.positioning(Positioning.relative(0, 45))
+                            outerLeftArmorLayout.positioning(Positioning.relative(0, 40))
                                     .margins(Insets.left(-6))
                                     .zIndex(10)
                     )
                     .child(
-                            outerRightArmorLayout.positioning(Positioning.relative(100, 45))
+                            outerRightArmorLayout.positioning(Positioning.relative(100, 40))
                                     .margins(Insets.right(-6))
                                     .zIndex(10)
+                    )
+                    .child(
+                            Components.button(Component.literal(""), (btn) -> {
+                                this.minecraft.setScreen(new InventoryScreen(minecraft.player));
+                            }).renderer((context, btn, delta) -> {
+                                        ButtonComponent.Renderer.VANILLA.draw(context, btn, delta);
+
+                                        context.push().translate(0.5, 0.5, 0.0);
+
+                                        var BACK_ICON = Accessories.of("widget/back");
+
+                                        context.blitSprite(BACK_ICON, btn.x(), btn.y(), btn.width() - 1, btn.height() - 1);
+
+                                        context.pop();
+                                    })
+                                    .positioning(Positioning.relative(100, 0))
+                                    .margins(Insets.of(1, 0, 0, 1))
+                                    .sizing(Sizing.fixed(8))
                     )
                     .padding(Insets.of(6))
                     .surface(Surface.PANEL);
 
-            var offHandIndex = this.getMenu().startingAccessoriesSlot - (this.getMenu().includeSaddle ? 2 : 1);
+            var offHandIndex = this.getMenu().startingAccessoriesSlot() - (this.getMenu().includeSaddle() ? 2 : 1);
 
             this.enableSlot(offHandIndex);
 
-            if(this.getMenu().includeSaddle) {
-                var saddleIndex = this.getMenu().startingAccessoriesSlot - 1;
+            if(this.getMenu().includeSaddle()) {
+                var saddleIndex = this.getMenu().startingAccessoriesSlot() - 1;
 
                 this.enableSlot(saddleIndex);
 
@@ -299,148 +345,168 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
             //var entityDraggable = Containers.draggable(Sizing.content(), Sizing.content(), entityContainer);
 
-            armorAndEntityLayout.child(0, entityContainer);
+            armorAndEntityLayout.child(entityContainer); //0,
         }
 
         baseChildren.add(armorAndEntityLayout);
 
-        //--
-
-        var cosmeticToggleButton = Components.button(Component.literal(""), btn -> {
-            var showCosmeticState = !this.showCosmeticState;
-
-            this.showCosmeticState = showCosmeticState;
-
-            var component = this.uiAdapter.rootComponent.childById(AccessoriesContainingComponent.class, AccessoriesContainingComponent.defaultID());
-
-            if(component != null) component.onCosmeticToggle(this.showCosmeticState);
-        }).renderer((context, button, delta) -> {
-            ButtonComponent.Renderer.VANILLA.draw(context, button, delta);
-
-            var textureAtlasSprite = this.minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
-                    .apply(!showCosmeticState ? Accessories.of("gui/slot/cosmetic") : Accessories.of("gui/slot/charm"));
-
-            var color = (!showCosmeticState ? Color.WHITE.interpolate(Color.BLACK, 0.3f) : Color.BLACK);
-
-            var red = color.red();
-            var green = color.green();
-            var blue = color.blue();
-
-            var shard = RenderStateShard.TRANSLUCENT_TRANSPARENCY;
-
-            //shard.setupRenderState();
-
-            if(!showCosmeticState) {
-                GuiGraphicsUtils.drawWithSpectrum(context, button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, 1f);
-                context.blit(button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, red, green, blue, 0.4f);
-            } else {
-                context.blit(button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, red, green, blue, 0.9f);
-            }
-
-            //shard.clearRenderState();
-        }).sizing(Sizing.fixed(20));
-
         var accessoriesComponent = createAccessoriesComponent();
 
-        if(accessoriesComponent != null) armorAndEntityLayout.child(0, accessoriesComponent);
+        if(accessoriesComponent != null) armorAndEntityLayout.child((this.leftPositioned() ? 0 : 1), accessoriesComponent); //1,
 
         //--
 
         var optionPanel = (FlowLayout) Containers.horizontalFlow(Sizing.content(), Sizing.content())
-                .child(
-                        Components.button(
-                                        unusedSlotsToggleButton(this.getMenu().areUnusedSlotsShown()),
-                                        btn -> {
-                                            AccessoriesInternals.getNetworkHandler()
-                                                    .sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, this.getMenu().owner(), bl -> !bl));
-                                        }
-                                ).horizontalSizing(Sizing.fixed(100))
-                                .id("unused_slots_toggle")
-                )
-                .gap(3)
                 .surface(Surface.PANEL)
+                .verticalAlignment(VerticalAlignment.CENTER)
                 .padding(Insets.of(5));
 
-        if(!this.menu.addedSlots.isEmpty()) optionPanel.child(cosmeticToggleButton);
+        {
+            var cosmeticToggleButton = Components.button(Component.literal(""), btn -> {
+                        showCosmeticState(!showCosmeticState());
+
+                        btn.tooltip(createToggleTooltip("slot_cosmetics", false, showCosmeticState()));
+
+                        var component = this.uiAdapter.rootComponent.childById(AccessoriesContainingComponent.class, AccessoriesContainingComponent.defaultID());
+
+                        if(component != null) component.onCosmeticToggle(showCosmeticState());
+                    }).renderer((context, button, delta) -> {
+                        ButtonComponent.Renderer.VANILLA.draw(context, button, delta);
+
+                        var textureAtlasSprite = this.minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
+                                .apply(!showCosmeticState() ? Accessories.of("gui/slot/cosmetic") : Accessories.of("gui/slot/charm"));
+
+                        var color = (!showCosmeticState() ? Color.WHITE.interpolate(Color.BLACK, 0.3f) : Color.BLACK);
+
+                        var red = color.red();
+                        var green = color.green();
+                        var blue = color.blue();
+
+                        var shard = RenderStateShard.TRANSLUCENT_TRANSPARENCY;
+
+                        //shard.setupRenderState();
+
+                        if(!showCosmeticState()) {
+                            GuiGraphicsUtils.drawWithSpectrum(context, button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, 1f);
+                            context.blit(button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, red, green, blue, 0.4f);
+                        } else {
+                            context.blit(button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, red, green, blue, 0.9f);
+                        }
+
+                        //shard.clearRenderState();
+                    }).sizing(Sizing.fixed(20))
+                    .tooltip(createToggleTooltip("slot_cosmetics", false, showCosmeticState()));
+
+            /*if(!this.menu.addedSlots.isEmpty()) */optionPanel.child(cosmeticToggleButton);
+        }
+
+        //--
+
+        var showAdvancedOptions = this.showAdvancedOptions();
+
+        var initalSizing = Sizing.fixed(0);
+        var finalSizing = Sizing.content();
+
+        var advancedOptions = (FlowLayout) Containers.horizontalFlow(showAdvancedOptions ? finalSizing : initalSizing, Sizing.content())
+                .gap(3)
+                .verticalAlignment(VerticalAlignment.CENTER);
+
+        var animation = advancedOptions.horizontalSizing().animate(1000, Easing.CUBIC, showAdvancedOptions ? initalSizing : finalSizing);
+
+        optionPanel.child(
+                Components.button(createToggleTooltip("advanced_options", false, showAdvancedOptions), btn -> {
+                    this.showAdvancedOptions(!this.showAdvancedOptions());
+
+                    btn.setMessage(createToggleTooltip("advanced_options", false, this.showAdvancedOptions()));
+                    btn.tooltip(createToggleTooltip("advanced_options", true, this.showAdvancedOptions()));
+
+                    animation.reverse();
+                }).tooltip(createToggleTooltip("advanced_options", true, showAdvancedOptions))
+                        .margins(Insets.left(3))
+        );
+
+        optionPanel.child(advancedOptions);
+
+        advancedOptions.child(
+                Components.box(Sizing.fixed(1), Sizing.fixed(18))
+                        .margins(Insets.left(3))
+        );
+
+        advancedOptions.child(
+                Components.button(
+                                createToggleTooltip("unused_slots", false, this.showUnusedSlots()),
+                                btn -> {
+                                    AccessoriesInternals.getNetworkHandler()
+                                            .sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, this.getMenu().owner(), bl -> !bl));
+                                }
+                        )
+                        .tooltip(createToggleTooltip("unused_slots", true, this.showUnusedSlots()))
+                        .horizontalSizing(Sizing.fixed(64))
+                        .id("unused_slots_toggle")
+        );
 
         {
-            var min = 3;
-            var max = 12;
+            var min = getMinimumColumnAmount();
+            var max = 18;
 
             var step = 1f / (max - min);
 
-            var rowAmountSlider = Components.discreteSlider(Sizing.fixed(60), min, max)
+            var columnAmountSlider = Components.discreteSlider(Sizing.fixed(45), min, max)
                     .snap(true)
-                    .setFromDiscreteValue(this.menu.owner().accessoriesHolder().columnAmount())
+                    .setFromDiscreteValue(this.columnAmount())
                     .scrollStep(step);
 
-            rowAmountSlider.onChanged().subscribe(value -> {
-                this.menu.owner().accessoriesHolder().columnAmount((int) value);
+            columnAmountSlider.tooltip(Accessories.translation("column_slider.tooltip"));
 
-                var armorAndEntityComp = this.uiAdapter.rootComponent.childById(FlowLayout.class, "armor_entity_layout");
+            columnAmountSlider.id("column_amount_slider");
 
-                for (var child : armorAndEntityComp.children()) {
-                    if (AccessoriesContainingComponent.defaultID().equals(child.id()) && child instanceof AccessoriesContainingComponent accessories) {
-                        var parent = accessories.parent();
+            columnAmountSlider.onChanged().subscribe(value -> {
+                AccessoriesInternals.getNetworkHandler()
+                        .sendToServer(SyncHolderChange.of(HolderProperty.COLUMN_AMOUNT_PROP, (int) value));
 
-                        if (parent != null) {
-                            parent.queue(() -> {
-                                var currentParent = accessories.parent();
+                this.columnAmount((int) value);
 
-                                if (currentParent != null) currentParent.removeChild(accessories);
-                            });
-                        }
-                    }
-                }
-
-                var accessoriesComp = createAccessoriesComponent();
-
-                if (accessoriesComp != null) {
-                    armorAndEntityComp.child(0, accessoriesComp);
-                }
+                rebuildAccessoriesComponent();
             });
 
-            optionPanel.child(rowAmountSlider);
+            advancedOptions.child(columnAmountSlider);
         }
 
         {
-            var min = 1;
-            var max = 2;
+            advancedOptions.child(
+                    Components.button(
+                            widgetTypeToggleMessage(this.widgetType(), false),
+                            btn -> {
+                                var newWidget = this.widgetType() + 1;
 
-            var step = 1f / (max - min);
+                                if(newWidget > 2) newWidget = 1;
 
-            var widgetTypeSlider = Components.discreteSlider(Sizing.fixed(60), min, max)
-                    .snap(true)
-                    .setFromDiscreteValue(this.menu.owner().accessoriesHolder().widgetType())
-                    .scrollStep(step);
+                                AccessoriesInternals.getNetworkHandler()
+                                        .sendToServer(SyncHolderChange.of(HolderProperty.WIDGET_TYPE_PROP, newWidget));
 
-            widgetTypeSlider.onChanged().subscribe(value -> {
-                this.menu.owner().accessoriesHolder().widgetType((int) value);
+                                this.widgetType(newWidget);
 
-                var armorAndEntityComp = this.uiAdapter.rootComponent.childById(FlowLayout.class, "armor_entity_layout");
+                                updateWidgetTypeToggleButton();
+                            }).tooltip(widgetTypeToggleMessage(this.widgetType(), true))
+                            .id("widget_type_toggle")
+            );
+        }
 
-                for (var child : armorAndEntityComp.children()) {
-                    if (AccessoriesContainingComponent.defaultID().equals(child.id()) && child instanceof AccessoriesContainingComponent accessories) {
-                        var parent = accessories.parent();
+        {
+            advancedOptions.child(
+                    Components.button(
+                            createToggleTooltip("left_handed_accessories", false, this.leftPositioned()),
+                            btn -> {
+                                AccessoriesInternals.getNetworkHandler()
+                                        .sendToServer(SyncHolderChange.of(HolderProperty.LEFT_POSITIONED_PROP, this.menu.owner(), bl -> !bl));
 
-                        if (parent != null) {
-                            parent.queue(() -> {
-                                var currentParent = accessories.parent();
+                                this.leftPositioned(!this.leftPositioned());
 
-                                if (currentParent != null) currentParent.removeChild(accessories);
-                            });
-                        }
-                    }
-                }
-
-                var accessoriesComp = createAccessoriesComponent();
-
-                if (accessoriesComp != null) {
-                    armorAndEntityComp.child(0, accessoriesComp);
-                }
-            });
-
-            optionPanel.child(widgetTypeSlider);
+                                this.uiAdapter.rootComponent.childById(InventoryEntityComponent.class, "entity_rendering_component")
+                                        .startingRotation(this.leftPositioned() ? -45 : 45);
+                            }).tooltip(createToggleTooltip("left_handed_accessories", true, this.leftPositioned()))
+                            .id("left_positioned_toggle")
+            );
         }
 
         baseChildren.addLast(optionPanel);
@@ -461,20 +527,73 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     }
 
     @Nullable
-    private AccessoriesContainingComponent createAccessoriesComponent() {
-        var widgetType = this.menu.owner().accessoriesHolder().widgetType();
+    private AccessoriesContainingComponent topComponent = null;
+
+    private void rebuildAccessoriesComponent() {
+        var columnAmountSlider = this.uiAdapter.rootComponent.childById(DiscreteSliderComponent.class, "column_amount_slider");
+
+        var previousValue = columnAmountSlider.discreteValue();
+
+        var newMinimum = getMinimumColumnAmount();
+
+        ((DiscreteSliderComponentAccessor) columnAmountSlider).accessories$setMin(newMinimum);
+
+        var newValue = Math.max((int) Math.round(previousValue), newMinimum);
+
+        columnAmountSlider.setFromDiscreteValue(newValue);
+
+        ((DiscreteSliderComponentAccessor) columnAmountSlider).accessories$updateMessage();
+
+        this.columnAmount(newValue);
+
+        //--
+
+        var armorAndEntityComp = this.uiAdapter.rootComponent.childById(FlowLayout.class, "armor_entity_layout");
+
+        for (var child : List.copyOf(armorAndEntityComp.children())) {
+            if (AccessoriesContainingComponent.defaultID().equals(child.id()) && child instanceof AccessoriesContainingComponent accessories) {
+                var parent = accessories.parent();
+
+                if (parent != null) {
+                    ComponentUtils.recursiveSearch(parent, ExtendedSlotComponent.class, slotComponent -> this.hideSlot(slotComponent.slot()));
+
+                    parent.removeChild(accessories);
+                }
+            }
+        }
+
+        var accessoriesComp = createAccessoriesComponent();
+
+        if (accessoriesComp != null) armorAndEntityComp.child((this.leftPositioned() ? 0 : 1), accessoriesComp);
+    }
+
+    private int getMinimumColumnAmount() {
+        var widgetType = this.widgetType();
 
         return switch (widgetType) {
-            case 3 -> null;
-            case 2 -> null;
-            default -> GriddedAccessoriesComponent.createOrNull(this);
+            case 2 -> 1;
+            default -> 3;
         };
+    }
+
+    @Nullable
+    private AccessoriesContainingComponent createAccessoriesComponent() {
+        var widgetType = this.widgetType();
+
+        var component = switch (widgetType) {
+            case 2 -> ScrollableAccessoriesComponent.createOrNull(this); // 2
+            default -> GriddedAccessoriesComponent.createOrNull(this); // 1
+        };
+
+        this.topComponent = component;
+
+        return component;
     }
 
     @Override
     @Nullable
     public Boolean isHovering_Logical(Slot slot, double mouseX, double mouseY) {
-        var accessories = this.uiAdapter.rootComponent.childById(AccessoriesContainingComponent.class, AccessoriesContainingComponent.defaultID());
+        var accessories = this.topComponent;
 
         if(accessories != null) {
             var result = accessories.isHovering_Logical(slot, mouseX, mouseY);
@@ -482,61 +601,95 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
             if(result != null) return result;
         }
 
-        return ContainerScreenExtension.super.isHovering_Logical(slot, mouseX, mouseY);
+        return null;
     }
 
     @Override
     @Nullable
     public Boolean isHovering_Rendering(Slot slot, double mouseX, double mouseY) {
-        return (slot instanceof SlotTypeAccessible) ? Boolean.FALSE : ContainerScreenExtension.super.isHovering_Rendering(slot, mouseX, mouseY);
+        return (slot instanceof SlotTypeAccessible) ? Boolean.FALSE : null;
     }
 
     @Override
     public @Nullable Boolean shouldRenderSlot(Slot slot) {
-        return (slot instanceof SlotTypeAccessible) ? Boolean.FALSE : ContainerScreenExtension.super.shouldRenderSlot(slot);
+        return (slot instanceof SlotTypeAccessible) ? Boolean.FALSE : null;
     }
 
     @Override
     public void onHolderChange(String key) {
         switch (key) {
             case "unused_slots" -> updateUnusedSlotToggleButton();
+            case "left_positioned" -> updateLeftPositionedToggleButton();
         }
     }
 
     public void updateUnusedSlotToggleButton() {
         var btn = this.uiAdapter.rootComponent.childById(ButtonComponent.class, "unused_slots_toggle");
-        btn.setMessage(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()));
+
+        var value = this.showUnusedSlots();
+
+        btn.setMessage(createToggleTooltip("unused_slots", false, value));
+        btn.tooltip(createToggleTooltip("unused_slots", true, value));
+
         this.menu.reopenMenu();
     }
 
-    private static Component unusedSlotsToggleButton(boolean value) {
-        return createToggleTooltip("unused_slots", value);
+    public void updateLeftPositionedToggleButton() {
+        var btn = this.uiAdapter.rootComponent.childById(ButtonComponent.class, "left_positioned_toggle");
+
+        var value = this.leftPositioned();
+
+        btn.setMessage(createToggleTooltip("left_handed_accessories", false, value));
+        btn.tooltip(createToggleTooltip("left_handed_accessories", true, value));
+
+        this.rebuildAccessoriesComponent();
     }
 
-    private static Component cosmeticsToggleTooltip(boolean value) {
-        return createToggleTooltip("slot.cosmetics", value);
+    public void updateWidgetTypeToggleButton() {
+        var btn = this.uiAdapter.rootComponent.childById(ButtonComponent.class, "widget_type_toggle");
+
+        var value = this.widgetType();
+
+        btn.setMessage(widgetTypeToggleMessage(value, false));
+        btn.tooltip(widgetTypeToggleMessage(value, true));
+
+        this.rebuildAccessoriesComponent();
     }
 
-    private static Component createToggleTooltip(String type, boolean value) {
-        var key = type + ".toggle." + (!value ? "show" : "hide");
+    private static Component widgetTypeToggleMessage(int value, boolean isTooltip) {
+        var type = switch (value) {
+            case 2 -> "scrollable";
+            case 1 -> "paginated";
+            default -> "";
+        };
 
-        return Component.translatable(Accessories.translation(key));
+        return Accessories.translation("widget_type." + type + (isTooltip ? ".tooltip" : ""));
     }
 
-    private static final ResourceLocation SLOT = Accessories.of("textures/gui/slot.png");
+    private static Component createToggleTooltip(String type, boolean isTooltip, boolean value) {
+        return Accessories.translation(type + ".toggle." + (value ? "enabled" : "disabled") + (isTooltip ? ".tooltip" : ""));
+    }
+
+    //--
+
+    public ExtendedSlotComponent slotAsComponent(int index) {
+        return new ExtendedSlotComponent(this, index);
+    }
 
     public class ExtendedSlotComponent extends SlotComponent {
 
         private boolean isBatched = false;
 
         protected final AccessoriesExperimentalScreen screen;
-        protected final int index;
+        protected int index;
 
         protected ExtendedSlotComponent(AccessoriesExperimentalScreen screen, int index) {
             super(index);
 
             this.screen = screen;
             this.index = index;
+
+            this.didDraw = true;
         }
 
         public final Slot slot() {
@@ -558,67 +711,62 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         }
 
         @Override
-        public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
-            if(!this.screen.isSlotEnabled(index())) {
-                this.didDraw = true;
-            } else if(slot() instanceof SlotTypeAccessible) {
-                this.didDraw = true;
+        public void dismount(DismountReason reason) {
+            super.dismount(reason);
 
-                if(isBatched) return;
-
-                RenderSystem.enableDepthTest();
-                RenderSystem.enableBlend();
-
-                //RenderStateShard.LEQUAL_DEPTH_TEST.setupRenderState();
-
-                renderSlot(context);
-
-                renderCosmeticOverlay(context, false);
-
-                renderHover(context, () -> screen.hoveredSlot);
-
-//                RenderSystem.disableBlend();
-//                RenderSystem.disableDepthTest();
-            } else {
-                super.draw(context, mouseX, mouseY, partialTicks, delta);
+            if(reason == DismountReason.REMOVED) {
+                ((SlotAccessor) slot).owo$setX(-300);
+                ((SlotAccessor) slot).owo$setY(-300);
             }
+        }
+
+        @Override
+        public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
+            if(!(slot() instanceof SlotTypeAccessible)) {
+                super.draw(context, mouseX, mouseY, partialTicks, delta);
+
+                return;
+            }
+
+            this.didDraw = true;
+
+            if (isBatched) return;
+
+            RenderSystem.enableDepthTest();
+            RenderSystem.enableBlend();
+
+            renderSlot(context);
+
+            renderCosmeticOverlay(context, false);
+
+            renderHover(context, () -> screen.hoveredSlot);
         }
 
         public void renderSlot(OwoUIDrawContext context) {
             int i = screen.leftPos;
             int j = screen.topPos;
 
-            boolean bl = true;
+            context.push();
+            context.translate((float) i, (float) j, 0);
 
-            if (bl) {
-                context.push();
-                context.translate((float) i, (float) j, 0);
+            screen.forceRenderSlot(context, slot());
 
-                screen.forceRenderSlot(context, slot());
-
-                context.pop();
-            }
+            context.pop();
         }
 
         public void renderCosmeticOverlay(OwoUIDrawContext context, boolean externalBatching) {
-            if(!(slot() instanceof SlotTypeAccessible slotTypeAccessible)) return;
+            if (!(slot() instanceof SlotTypeAccessible slotTypeAccessible) || !slotTypeAccessible.isCosmeticSlot()) return;
 
-            if (slotTypeAccessible.isCosmeticSlot()) {
-                //GuiGraphicsUtils.blitWithAlpha(context, Accessories.of("textures/gui/slot_frame.png"), this.x(), this.y(), 0, 0, 16, 16, 18, 18, new Vector4f(0.2f, 0.8f, 0.8f, 1.0f));
+            context.push();
+            context.translate(0.0F, 0.0F, 101.0F);
 
-                //context.blit(Accessories.of("textures/gui/slot_frame.png"), this.x() - 1, this.y() - 1, 0, 0, 18, 18, 18,18);
-                //RenderStateShard.TRANSLUCENT_TRANSPARENCY.setupRenderState();
-                context.push();
-                context.translate(0.0F, 0.0F, 101.0F);
-
-                if(externalBatching) {
-                    GuiGraphicsUtils.drawRectOutlineWithSpectrumWithoutRecord(context, this.x(), this.y(), 0, 16, 16, 0.35f, true);
-                } else {
-                    GuiGraphicsUtils.drawRectOutlineWithSpectrum(context, this.x(), this.y(), 0, 16, 16, 0.35f, true);
-
-                }
-                context.pop();
+            if(externalBatching) {
+                GuiGraphicsUtils.drawRectOutlineWithSpectrumWithoutRecord(context, this.x(), this.y(), 0, 16, 16, 0.35f, true);
+            } else {
+                GuiGraphicsUtils.drawRectOutlineWithSpectrum(context, this.x(), this.y(), 0, 16, 16, 0.35f, true);
             }
+
+            context.pop();
         }
 
         public void renderHover(OwoUIDrawContext context, Supplier<Slot> hoverSlot) {
@@ -635,44 +783,137 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     }
 
     private final Surface SLOT_RENDERING_SURFACE = (context, component) -> {
-        context.push();
-
-        if(false) {
-            safeBatching(context, hasDrawCallOccur -> {
-                ComponentUtils.recursiveSearch(component, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> {
-                    if(!this.isSlotEnabled(slotComponent.index())) return;
-
-                    if(!slotComponent.isBatched() || !(slotComponent.slot() instanceof SlotTypeAccessible)) return;
-
-                    slotComponent.renderSlot(context);
-
-                    hasDrawCallOccur.setValue(true);
-                });
-            });
-        } else {
-            renderSlotsBatched(context, component);
-        }
-
-        safeBatching(context, hasDrawCallOccur -> {
-            ComponentUtils.recursiveSearch(component, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> {
-                if(!this.isSlotEnabled(slotComponent.index())) return;
-
-                if(!slotComponent.isBatched() || !(slotComponent.slot() instanceof SlotTypeAccessible)) return;
-
-                slotComponent.renderCosmeticOverlay(context, true);
-
-                hasDrawCallOccur.setValue(true);
-            });
-        });
+        var validComponents = new ArrayList<ExtendedSlotComponent>();
 
         ComponentUtils.recursiveSearch(component, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> {
             if(!slotComponent.isBatched() || !(slotComponent.slot() instanceof SlotTypeAccessible)) return;
 
-            slotComponent.renderHover(context, () -> this.hoveredSlot);
+            validComponents.add(slotComponent);
         });
+
+        context.push();
+
+        {
+            /*
+            safeBatching(context, hasDrawCallOccur -> {
+                for (var slotComponent : validComponents) {
+                    slotComponent.renderSlot(context);
+
+                    hasDrawCallOccur.setValue(true);
+                }
+            });
+            */
+
+            context.push();
+            context.translate(0, 0, 100.0F);
+
+            //--
+
+            Map<Slot, Triplet<ItemStack, Boolean, @Nullable String>> slotStateData = new HashMap<>();
+            Map<Slot, Boolean> allBl2s = new HashMap<>();
+
+            //--
+
+            var accessor = (AbstractContainerScreenAccessor) this;
+
+            //--
+
+            int i = this.leftPos;
+            int j = this.topPos;
+
+            context.push();
+            context.translate(i, j, 0);
+
+            safeBatching(context, hasDrawCallOccur -> {
+                for (var slotComponent : validComponents) {
+                    var slot = slotComponent.slot();
+
+                    var data = slotStateData.computeIfAbsent(slot, this::getRenderStack);
+
+                    if (data == null) return;
+
+                    var itemStack = data.getA();
+
+                    if (itemStack.isEmpty() /*&& slot.isActive()*/) {
+                        var pair = slot.getNoItemIcon();
+
+                        if (pair != null) {
+                            var textureAtlasSprite = this.minecraft.getTextureAtlas(pair.getFirst()).apply(pair.getSecond());
+
+                            context.blit(slot.x, slot.y, 0, 16, 16, textureAtlasSprite);
+
+                            allBl2s.put(slot, true);
+                        }
+                    }
+
+                    hasDrawCallOccur.setValue(true);
+                }
+            });
+
+            //--
+
+            //if(true) return;
+
+            safeBatching(context, hasDrawCallOccur -> {
+                for (var slotComponent : validComponents) {
+                    var slot = slotComponent.slot();
+
+                    var data = slotStateData.computeIfAbsent(slot, this::getRenderStack);
+
+                    if (data == null) return;
+
+                    var itemStack = data.getA();
+
+                    var bl2 = allBl2s.getOrDefault(slot, false)
+                            || (slot == accessor.accessories$getClickedSlot() && !accessor.accessories$getDraggingItem().isEmpty() && !accessor.accessories$isSplittingStack());
+
+                    if (!bl2) {
+                        int slotX = slot.x;
+                        int slotY = slot.y;
+
+                        if (data.getB()) {
+                            context.fill(slotX, slotY, slotX + 16, slotY + 16, -2130706433);
+                        }
+
+                        int k = slot.x + slot.y * this.imageWidth;
+
+                        if (slot.isFake()) {
+                            context.renderFakeItem(itemStack, slotX, slotY, k);
+                        } else {
+                            context.renderItem(itemStack, slotX, slotY, k);
+                        }
+
+                        context.renderItemDecorations(this.font, itemStack, slotX, slotY, data.getC());
+                    }
+
+                    hasDrawCallOccur.setValue(true);
+                }
+            });
+
+            context.pop();
+
+            //--
+
+            context.pop();
+
+        }
+
+        safeBatching(context, hasDrawCallOccur -> {
+            for (var slotComponent : validComponents) {
+                slotComponent.renderCosmeticOverlay(context, true);
+
+                hasDrawCallOccur.setValue(true);
+            }
+        });
+
+        for (var slotComponent : validComponents) {
+            slotComponent.renderHover(context, () -> this.hoveredSlot);
+        }
 
         context.pop();
     };
+
+    public final Surface FULL_SLOT_RENDERING = BACKGROUND_SLOT_RENDERING_SURFACE.and(SLOT_RENDERING_SURFACE);
 
     //--
 
@@ -716,111 +957,71 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         return new Triplet<>(itemStack, bl, string);
     }
 
-    public void renderSlotsBatched(OwoUIDrawContext context, ParentComponent parentComponent) {
+    //--
 
-        context.push();
-        context.translate(0, 0, 100.0F);
+    private <T> T getHolderValue(Function<AccessoriesHolder, T> getter, T defaultValue, String valueType) {
+        return Optional.ofNullable(AccessoriesHolder.get(this.menu.owner()))
+                .map(getter)
+                .orElseGet(() -> {
+                    LOGGER.warn("[AccessoriesScreen] Unable to get the given holder value '{}' for the given owner: {}", valueType, this.menu.owner().getName());
 
-        //--
+                    return defaultValue;
+                });
+    }
 
-        Map<Slot, Triplet<ItemStack, Boolean, @Nullable String>> slotStateData = new HashMap<>();
-        Map<Slot, Boolean> allBl2s = new HashMap<>();
+    private <T> void setHolderValue(BiFunction<AccessoriesHolder, T, AccessoriesHolder> setter, T value, String valueType) {
+        var holder = AccessoriesHolder.get(this.menu.owner());
 
-        //--
+        if(holder == null) {
+            LOGGER.warn("[AccessoriesScreen] Unable to set the given holder value '{}' for the given owner: {}", valueType, this.menu.owner().getName());
 
-        var accessor = (AbstractContainerScreenAccessor) this;
+            return;
+        }
 
-        //--
+        setter.apply(holder, value);
+    }
 
-        int i = this.leftPos;
-        int j = this.topPos;
+    private int widgetType() {
+        return this.getHolderValue(AccessoriesHolder::widgetType, 1, "widgetType");
+    }
 
-        context.push();
-        context.translate(i, j, 0);
+    private void widgetType(int type) {
+        this.setHolderValue(AccessoriesHolder::widgetType, type, "widgetType");
+    }
 
-        safeBatching(context, hasDrawCallOccur -> {
-            ComponentUtils.recursiveSearch(parentComponent, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> {
-                if(!this.isSlotEnabled(slotComponent.index())) return;
+    private int columnAmount() {
+        return this.getHolderValue(AccessoriesHolder::columnAmount, 1, "columnAmount");
+    }
 
-                var slot = slotComponent.slot();
+    private void columnAmount(int type) {
+        this.setHolderValue(AccessoriesHolder::columnAmount, type, "columnAmount");
+    }
 
-                if(!slotComponent.isBatched() || !(slot instanceof SlotTypeAccessible)) return;
+    public boolean leftPositioned() {
+        return this.getHolderValue(AccessoriesHolder::leftPositionedAccessories, false, "leftPositioned");
+    }
 
-                var data = slotStateData.computeIfAbsent(slot, this::getRenderStack);
+    private void leftPositioned(boolean value) {
+        this.setHolderValue(AccessoriesHolder::leftPositionedAccessories, value, "leftPositioned");
+    }
 
-                if(data == null) return;
+    private boolean showUnusedSlots() {
+        return this.getHolderValue(AccessoriesHolder::showUnusedSlots, false, "showUnusedSlots");
+    }
 
-                var itemStack = data.getA();
+    private void showUnusedSlots(boolean value) {
+        this.setHolderValue(AccessoriesHolder::showUnusedSlots, value, "showUnusedSlots");
+    }
 
-                if (itemStack.isEmpty() && slot.isActive()) {
-                    var pair = slot.getNoItemIcon();
+    private boolean showAdvancedOptions() {
+        return this.getHolderValue(AccessoriesHolder::advancedOptions, false, "showAdvancedOptions");
+    }
 
-                    if (pair != null) {
-                        var textureAtlasSprite = this.minecraft.getTextureAtlas(pair.getFirst()).apply(pair.getSecond());
-
-                        context.blit(slot.x, slot.y, 0, 16, 16, textureAtlasSprite);
-
-                        allBl2s.put(slot, true);
-                    }
-                }
-
-                hasDrawCallOccur.setValue(true);
-            });
-        });
-
-        //--
-
-        //if(true) return;
-
-        safeBatching(context, hasDrawCallOccur -> {
-            ComponentUtils.recursiveSearch(parentComponent, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> {
-                if(!this.isSlotEnabled(slotComponent.index())) return;
-
-                var slot = slotComponent.slot();
-
-                if(!slotComponent.isBatched() || !(slot instanceof SlotTypeAccessible)) return;
-
-                var data = slotStateData.computeIfAbsent(slot, this::getRenderStack);
-
-                if(data == null) return;
-
-                var itemStack = data.getA();
-
-                var bl2 = allBl2s.getOrDefault(slot, false)
-                        || (slot == accessor.accessories$getClickedSlot() && !accessor.accessories$getDraggingItem().isEmpty() && !accessor.accessories$isSplittingStack());
-
-                if (!bl2) {
-                    int slotX = slot.x;
-                    int slotY = slot.y;
-
-                    if (data.getB()) {
-                        context.fill(slotX, slotY, slotX + 16, slotY + 16, -2130706433);
-                    }
-
-                    int k = slot.x + slot.y * this.imageWidth;
-
-                    if (slot.isFake()) {
-                        context.renderFakeItem(itemStack, slotX, slotY, k);
-                    } else {
-                        context.renderItem(itemStack, slotX, slotY, k);
-                    }
-
-                    context.renderItemDecorations(this.font, itemStack, slotX, slotY, data.getC());
-                }
-
-                hasDrawCallOccur.setValue(true);
-            });
-        });
-
-        context.pop();
-
-        //--
-
-        context.pop();
+    private void showAdvancedOptions(boolean value) {
+        this.setHolderValue(AccessoriesHolder::advancedOptions, value, "showAdvancedOptions");
     }
 
     //--
-
 
     public static void safeBatching(OwoUIDrawContext context, Consumer<MutableBoolean> drawCallback) {
         context.recordQuads();
@@ -835,7 +1036,4 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
             var test = "this is for debugging only really!";
         }
     }
-
-    public final Surface FULL_SLOT_RENDERING = BACKGROUND_SLOT_RENDERING_SURFACE.and(SLOT_RENDERING_SURFACE);
-
 }

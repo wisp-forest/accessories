@@ -19,11 +19,17 @@ public record HolderProperty<T>(String name, Endec<T> endec, BiConsumer<Accessor
 
     private static final Map<String, HolderProperty<?>> ALL_PROPERTIES = new HashMap<>();
 
-    public static HolderProperty<Boolean> LINES_PROP;
-    public static HolderProperty<Boolean> COSMETIC_PROP;
+    public static HolderProperty<PlayerEquipControl> EQUIP_CONTROL;
+
     public static HolderProperty<Boolean> UNUSED_PROP;
     public static HolderProperty<Boolean> UNIQUE_PROP;
-    public static HolderProperty<PlayerEquipControl> EQUIP_CONTROL;
+
+    public static HolderProperty<Boolean> LINES_PROP;
+    public static HolderProperty<Boolean> COSMETIC_PROP;
+
+    public static HolderProperty<Integer> COLUMN_AMOUNT_PROP;
+    public static HolderProperty<Integer> WIDGET_TYPE_PROP;
+    public static HolderProperty<Boolean> LEFT_POSITIONED_PROP;
 
     static { init(); }
 
@@ -59,10 +65,16 @@ public record HolderProperty<T>(String name, Endec<T> endec, BiConsumer<Accessor
     public static void init() {
         if(!ALL_PROPERTIES.isEmpty()) return;
 
-        LINES_PROP = new HolderProperty<>("lines", Endec.BOOLEAN, AccessoriesHolder::linesShown, AccessoriesHolder::linesShown);
-        COSMETIC_PROP = new HolderProperty<>("cosmetic", Endec.BOOLEAN, AccessoriesHolder::cosmeticsShown, AccessoriesHolder::cosmeticsShown);
+        EQUIP_CONTROL = new HolderProperty<>("equip_control", Endec.forEnum(PlayerEquipControl.class), AccessoriesHolder::equipControl, AccessoriesHolder::equipControl);
+
         UNUSED_PROP = new HolderProperty<>("unused_slots", Endec.BOOLEAN, AccessoriesHolder::showUnusedSlots, AccessoriesHolder::showUnusedSlots);
         UNIQUE_PROP = new HolderProperty<>("unique_slots", Endec.BOOLEAN, AccessoriesHolder::showUniqueSlots, AccessoriesHolder::showUniqueSlots);
-        EQUIP_CONTROL = new HolderProperty<>("equip_control", Endec.forEnum(PlayerEquipControl.class), AccessoriesHolder::equipControl, AccessoriesHolder::equipControl);
+
+        LINES_PROP = new HolderProperty<>("lines", Endec.BOOLEAN, AccessoriesHolder::linesShown, AccessoriesHolder::linesShown);
+        COSMETIC_PROP = new HolderProperty<>("cosmetic", Endec.BOOLEAN, AccessoriesHolder::cosmeticsShown, AccessoriesHolder::cosmeticsShown);
+
+        COLUMN_AMOUNT_PROP = new HolderProperty<>("column_amount", Endec.VAR_INT, AccessoriesHolder::columnAmount, AccessoriesHolder::columnAmount);
+        WIDGET_TYPE_PROP = new HolderProperty<>("widget_type", Endec.VAR_INT, AccessoriesHolder::widgetType, AccessoriesHolder::widgetType);
+        LEFT_POSITIONED_PROP = new HolderProperty<>("left_positioned", Endec.BOOLEAN, AccessoriesHolder::leftPositionedAccessories, AccessoriesHolder::leftPositionedAccessories);
     }
 }

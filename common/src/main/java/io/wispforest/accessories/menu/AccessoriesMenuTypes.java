@@ -16,11 +16,11 @@ import org.apache.commons.lang3.function.TriFunction;
 
 public class AccessoriesMenuTypes {
 
-    public static MenuType<AccessoriesMenu> BASE_MENU;
+    public static MenuType<AccessoriesMenu> ORIGINAL_MENU;
     public static MenuType<AccessoriesExperimentalMenu> EXPERIMENTAL_MENU;
 
     public static void registerMenuType() {
-        BASE_MENU = registerMenuType("base_menu", AccessoriesMenu::of);
+        ORIGINAL_MENU = registerMenuType("original_menu", AccessoriesMenu::of);
         EXPERIMENTAL_MENU = registerMenuType("experimental_menu", AccessoriesExperimentalMenu::of);
     }
 
@@ -30,7 +30,7 @@ public class AccessoriesMenuTypes {
 
     @Environment(EnvType.CLIENT)
     public static void registerClientMenuConstructors() {
-        AccessoriesInternalsClient.registerMenuConstructor(AccessoriesMenuTypes.BASE_MENU, AccessoriesScreen::new);
+        AccessoriesInternalsClient.registerMenuConstructor(AccessoriesMenuTypes.ORIGINAL_MENU, AccessoriesScreen::new);
         AccessoriesInternalsClient.registerMenuConstructor(AccessoriesMenuTypes.EXPERIMENTAL_MENU, AccessoriesExperimentalScreen::new);
     }
 }

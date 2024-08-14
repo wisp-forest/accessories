@@ -37,18 +37,20 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
     //-- Rendering Stuff
 
+    private boolean showAdvancedOptions = false;
+
     private boolean showUnusedSlots = false;
     private boolean showUniqueSlots = false;
 
     private boolean cosmeticsShown = false;
 
-    private int scrolledSlot = 0;
-
     private boolean linesShown = false;
 
-    private int columnAmount = 6;
+    private int columnAmount = 1;
 
-    private int widgetType = 1;
+    private int widgetType = 2;
+
+    private boolean leftPositionedAccessories = true;
 
     // --
 
@@ -69,41 +71,21 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         return this.slotContainers;
     }
 
+    //--
+
     @Override
-    public boolean cosmeticsShown() {
-        return this.cosmeticsShown;
+    public PlayerEquipControl equipControl() {
+        return equipControl;
     }
 
     @Override
-    public AccessoriesHolder cosmeticsShown(boolean value) {
-        this.cosmeticsShown = value;
+    public AccessoriesHolder equipControl(PlayerEquipControl value) {
+        this.equipControl = value;
 
         return this;
     }
 
-    @Override
-    public int scrolledSlot() {
-        return this.scrolledSlot;
-    }
-
-    @Override
-    public AccessoriesHolder scrolledSlot(int slot) {
-        this.scrolledSlot = slot;
-
-        return this;
-    }
-
-    @Override
-    public boolean linesShown() {
-        return this.linesShown;
-    }
-
-    @Override
-    public AccessoriesHolder linesShown(boolean value) {
-        this.linesShown = value;
-
-        return this;
-    }
+    //--
 
     @Override
     public boolean showUnusedSlots() {
@@ -130,13 +112,25 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     }
 
     @Override
-    public PlayerEquipControl equipControl() {
-        return equipControl;
+    public boolean cosmeticsShown() {
+        return this.cosmeticsShown;
     }
 
     @Override
-    public AccessoriesHolder equipControl(PlayerEquipControl value) {
-        this.equipControl = value;
+    public AccessoriesHolder cosmeticsShown(boolean value) {
+        this.cosmeticsShown = value;
+
+        return this;
+    }
+
+    @Override
+    public boolean linesShown() {
+        return this.linesShown;
+    }
+
+    @Override
+    public AccessoriesHolder linesShown(boolean value) {
+        this.linesShown = value;
 
         return this;
     }
@@ -155,7 +149,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
     @Override
     public int widgetType() {
-        return Math.max(widgetType, 0);
+        return Math.max(widgetType, 1);
     }
 
     @Override
@@ -164,6 +158,33 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
         return this;
     }
+
+    @Override
+    public boolean leftPositionedAccessories() {
+        return this.leftPositionedAccessories;
+    }
+
+    @Override
+    public AccessoriesHolder leftPositionedAccessories(boolean value) {
+        this.leftPositionedAccessories = value;
+
+        return this;
+    }
+
+    @Override
+    public boolean advancedOptions() {
+        return this.showAdvancedOptions;
+    }
+
+    @Override
+    public AccessoriesHolder advancedOptions(boolean value) {
+        this.showAdvancedOptions = value;
+
+        return this;
+    }
+
+    //--
+
 
     public void init(AccessoriesCapability capability) {
         var livingEntity = capability.entity();
@@ -285,14 +306,14 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     }
 
     private record ContainersAttribute(Map<String, AccessoriesContainer> slotContainers) implements SerializationAttribute.Instance {
-        public static final SerializationAttribute.WithValue<ContainersAttribute> CONTAINERS = SerializationAttribute.withValue(Accessories.translation("containers"));
+        public static final SerializationAttribute.WithValue<ContainersAttribute> CONTAINERS = SerializationAttribute.withValue(Accessories.translationKey("containers"));
 
         @Override public SerializationAttribute attribute() { return CONTAINERS; }
         @Override public Object value() { return this; }
     }
 
     private record InvalidStacksAttribute(List<ItemStack> invalidStacks) implements SerializationAttribute.Instance {
-        public static final SerializationAttribute.WithValue<InvalidStacksAttribute> INVALID_STACKS = SerializationAttribute.withValue(Accessories.translation("invalidStacks"));
+        public static final SerializationAttribute.WithValue<InvalidStacksAttribute> INVALID_STACKS = SerializationAttribute.withValue(Accessories.translationKey("invalidStacks"));
 
         @Override public SerializationAttribute attribute() { return INVALID_STACKS; }
         @Override public Object value() { return this; }

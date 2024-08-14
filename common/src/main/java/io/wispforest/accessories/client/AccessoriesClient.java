@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.Window;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.client.gui.ScreenVariantSelectionScreen;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
@@ -22,6 +23,8 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.phys.EntityHitResult;
+
+import java.util.function.Consumer;
 
 public class AccessoriesClient {
 
@@ -75,12 +78,18 @@ public class AccessoriesClient {
 
     private static boolean displayUnusedSlotWarning = false;
 
-    public static boolean attemptToOpenScreen(AccessoriesMenuVariant variant) {
-        return attemptToOpenScreen(false, variant);
+    public static boolean attemptToOpenScreen() {
+        return attemptToOpenScreen(false);
     }
 
-    public static boolean attemptToOpenScreen(boolean targetingLookingEntity, AccessoriesMenuVariant variant) {
+    public static boolean attemptToOpenScreen(boolean targetingLookingEntity) {
+        return attemptToOpenScreen(targetingLookingEntity, Accessories.getConfig().clientData.selectedScreenType);
+    }
+
+    private static boolean attemptToOpenScreen(boolean targetingLookingEntity, AccessoriesConfig.ScreenType screenType) {
         var player = Minecraft.getInstance().player;
+
+        var selectedVariant = AccessoriesMenuVariant.getVariant(screenType);
 
         if(targetingLookingEntity) {
             var result = ProjectileUtil.getHitResultOnViewVector(player, e -> e instanceof LivingEntity, player.entityInteractionRange());
@@ -90,8 +99,6 @@ public class AccessoriesClient {
                     || EntitySlotLoader.getEntitySlots(living).isEmpty();
 
             if(bl) return false;
-
-            AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(true, variant));
         } else {
             var slots = AccessoriesAPI.getUsedSlotsFor(player);
 
@@ -104,8 +111,14 @@ public class AccessoriesClient {
 
                 displayUnusedSlotWarning = true;
             }
+        }
 
-            AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(false, variant));
+        if(selectedVariant != null) {
+            AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(targetingLookingEntity, selectedVariant));
+        } else {
+            Minecraft.getInstance().setScreen(new ScreenVariantSelectionScreen(variant -> {
+                AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(targetingLookingEntity, variant));
+            }));
         }
 
         return true;

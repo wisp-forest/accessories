@@ -7,10 +7,12 @@ import io.wispforest.accessories.impl.AccessoriesTags;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.menu.ArmorSlotTypes;
 import io.wispforest.accessories.mixin.CriteriaTriggersAccessor;
+import io.wispforest.accessories.networking.client.ScreenVariantPing;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
@@ -29,14 +31,26 @@ public class Accessories {
         return ResourceLocation.fromNamespaceAndPath(MODID, path);
     }
 
-    public static String translation(String path){
+    public static String translationKey(String path){
         return MODID + "." + path;
+    }
+
+    public static Component translation(String path) {
+        return Component.translatable(translationKey(path));
     }
 
     public static AccessoriesConfig getConfig(){
         if(CONFIG_HOLDER == null) return null;
 
         return CONFIG_HOLDER.getConfig();
+    }
+
+    public static void askPlayerForVariant(ServerPlayer player) {
+        askPlayerForVariant(player, null);
+    }
+
+    public static void askPlayerForVariant(ServerPlayer player, @Nullable LivingEntity targetEntity) {
+        AccessoriesInternals.getNetworkHandler().sendToPlayer(player, ScreenVariantPing.of(targetEntity));
     }
 
     public static boolean attemptOpenScreenPlayer(ServerPlayer player, AccessoriesMenuVariant variant) {

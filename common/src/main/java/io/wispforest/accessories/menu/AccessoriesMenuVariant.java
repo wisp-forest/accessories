@@ -1,5 +1,6 @@
 package io.wispforest.accessories.menu;
 
+import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.menu.variants.AccessoriesExperimentalMenu;
 import io.wispforest.accessories.menu.variants.AccessoriesMenu;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
@@ -14,13 +15,22 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Supplier;
 
 public enum AccessoriesMenuVariant {
-    DEFAULT(() -> AccessoriesMenuTypes.BASE_MENU),
-    EXPERIMENTAL_1(() -> AccessoriesMenuTypes.EXPERIMENTAL_MENU);
+    ORIGINAL(() -> AccessoriesMenuTypes.ORIGINAL_MENU),
+    EXPERIMENTAL_V1(() -> AccessoriesMenuTypes.EXPERIMENTAL_MENU);
 
     public final Supplier<MenuType<? extends AccessoriesMenuBase>> supplier;
 
     AccessoriesMenuVariant(Supplier<MenuType<? extends AccessoriesMenuBase>> supplier) {
         this.supplier = supplier;
+    }
+
+    @Nullable
+    public static AccessoriesMenuVariant getVariant(AccessoriesConfig.ScreenType screenType) {
+        return switch (screenType) {
+            case ORIGINAL -> ORIGINAL;
+            case EXPERIMENTAL_V1 -> EXPERIMENTAL_V1;
+            default -> null;
+        };
     }
 
     public static AccessoriesMenuVariant getVariant(MenuType<? extends AccessoriesMenuBase> menuType) {
@@ -33,8 +43,8 @@ public enum AccessoriesMenuVariant {
 
     public static AbstractContainerMenu openMenu(int i, Inventory inv, AccessoriesMenuVariant variant, @Nullable LivingEntity target, @Nullable ItemStack carriedStack) {
         var menu = switch (variant) {
-            case AccessoriesMenuVariant.EXPERIMENTAL_1 -> new AccessoriesExperimentalMenu(i, inv, target);
-            case DEFAULT -> new AccessoriesMenu(i, inv, target);
+            case AccessoriesMenuVariant.EXPERIMENTAL_V1 -> new AccessoriesExperimentalMenu(i, inv, target);
+            case ORIGINAL -> new AccessoriesMenu(i, inv, target);
             default -> throw new IllegalArgumentException("Unknown AccessoriesMenuVariant passed to construct Menu! [Variant: " + variant.name() + "]");
         };
 

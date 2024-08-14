@@ -7,6 +7,7 @@ import io.wispforest.owo.ui.component.EntityComponent;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
 import io.wispforest.owo.ui.core.Sizing;
 import io.wispforest.owo.util.pond.OwoEntityRenderDispatcherExtension;
+import it.unimi.dsi.fastutil.floats.FloatBinaryOperator;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
@@ -17,7 +18,11 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.function.BinaryOperator;
+
 public class InventoryEntityComponent<E extends Entity> extends EntityComponent<E> {
+
+    private float startingRotation = -45;
 
     public InventoryEntityComponent(Sizing sizing, E entity) {
         super(sizing, entity);
@@ -54,6 +59,12 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
         } else {
             this.scale(1);
         }
+
+        return this;
+    }
+
+    public EntityComponent<E> startingRotation(float value) {
+        this.startingRotation = value;
 
         return this;
     }
@@ -110,7 +121,7 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
             matrices.mulPose(Axis.XP.rotationDegrees(xRotation * .15f));
 
             matrices.mulPose(Axis.XP.rotationDegrees(15));
-            matrices.mulPose(Axis.YP.rotationDegrees(-45 + this.mouseRotation));
+            matrices.mulPose(Axis.YP.rotationDegrees(startingRotation + this.mouseRotation));
 
             dispatcher.owo$setCounterRotate(true);
             dispatcher.owo$setShowNametag(this.showNametag);

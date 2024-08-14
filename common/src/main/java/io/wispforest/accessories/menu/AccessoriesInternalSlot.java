@@ -62,7 +62,7 @@ public class AccessoriesInternalSlot extends AccessoriesBasedSlot {
 
         var slotType = this.accessoriesContainer.slotType();
 
-        tooltipData.add(Component.translatable(Accessories.translation(key + "slot.tooltip.singular"))
+        tooltipData.add(Component.translatable(Accessories.translationKey(key + "slot.tooltip.singular"))
                 .withStyle(ChatFormatting.GRAY)
                 .append(Component.translatable(slotType.translation()).withStyle(ChatFormatting.BLUE)));
 

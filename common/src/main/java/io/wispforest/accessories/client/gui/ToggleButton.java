@@ -4,7 +4,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
-import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.networking.server.SyncCosmeticToggle;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -60,7 +59,7 @@ public class ToggleButton extends Button {
     private static Tooltip accessoriesToggleTooltip(boolean value) {
         var key = "display.toggle." + (!value ? "show" : "hide");
 
-        return Tooltip.create(Component.translatable(Accessories.translation(key)));
+        return Tooltip.create(Component.translatable(Accessories.translationKey(key)));
     }
 
     public ToggleButton toggled(boolean value){

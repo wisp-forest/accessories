@@ -1,11 +1,9 @@
 package io.wispforest.accessories.mixin.client;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.pond.ArmorSlotExtension;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.ArmorSlot;
-import net.minecraft.world.inventory.Slot;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;

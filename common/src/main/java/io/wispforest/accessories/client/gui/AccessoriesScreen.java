@@ -3,7 +3,6 @@ package io.wispforest.accessories.client.gui;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotGroup;
-import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import io.wispforest.accessories.menu.variants.AccessoriesMenu;
@@ -467,7 +466,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         this.backButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), (btn) -> this.minecraft.setScreen(new InventoryScreen(minecraft.player)))
                         .bounds(this.leftPos + 141, this.topPos + 9, 8, 8)
-                        .tooltip(Tooltip.create(Component.translatable(Accessories.translation("back.screen"))))
+                        .tooltip(Tooltip.create(Component.translatable(Accessories.translationKey("back.screen"))))
                         .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
             guiGraphics.blitSprite(SPRITES_8X8.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
 
@@ -701,7 +700,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     private static Tooltip createToggleTooltip(String type, boolean value) {
         var key = type + ".toggle." + (!value ? "show" : "hide");
 
-        return Tooltip.create(Component.translatable(Accessories.translation(key)));
+        return Tooltip.create(Component.translatable(Accessories.translationKey(key)));
     }
 
     @Override

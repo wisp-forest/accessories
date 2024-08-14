@@ -15,8 +15,8 @@ public class AccessoriesArmorSlot extends ArmorSlot implements SlotTypeAccessibl
 
     public final AccessoriesContainer accessoriesContainer;
 
-    public AccessoriesArmorSlot(AccessoriesContainer accessoriesContainer, Container container, LivingEntity livingEntity, EquipmentSlot equipmentSlot, int i, int j, int k, @Nullable ResourceLocation resourceLocation) {
-        super(container, livingEntity, equipmentSlot, i, j, k, resourceLocation);
+    public AccessoriesArmorSlot(AccessoriesContainer accessoriesContainer, Container container, LivingEntity livingEntity, EquipmentSlot equipmentSlot, int slot, int x, int y, @Nullable ResourceLocation resourceLocation) {
+        super(container, livingEntity, equipmentSlot, slot, x, y, resourceLocation);
 
         this.accessoriesContainer = accessoriesContainer;
     }
@@ -29,5 +29,10 @@ public class AccessoriesArmorSlot extends ArmorSlot implements SlotTypeAccessibl
     @Override
     public SlotType slotType() {
         return accessoriesContainer.slotType();
+    }
+
+    @Override
+    public AccessoriesContainer getContainer() {
+        return this.accessoriesContainer;
     }
 }

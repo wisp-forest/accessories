@@ -20,7 +20,7 @@ public interface InclusiveBoundingArea<T extends Component> {
     List<AbstractPolygon> getInclusionZones();
 
     default boolean isWithinInclusionZone(float x, float y){
-        for(AbstractPolygon polygon : getInclusionZones()){
+        for(var polygon : getInclusionZones()){
             if(polygon.withinShape(x, y)) return true;
         }
 

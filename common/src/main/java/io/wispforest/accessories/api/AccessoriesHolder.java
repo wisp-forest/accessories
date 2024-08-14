@@ -22,23 +22,11 @@ public interface AccessoriesHolder {
 
     //--
 
-    /**
-     * @return If the cosmetic slots should be shown within the {@link AccessoriesScreen}
-     */
-    boolean cosmeticsShown();
+    PlayerEquipControl equipControl();
 
-    AccessoriesHolder cosmeticsShown(boolean value);
+    AccessoriesHolder equipControl(PlayerEquipControl value);
 
-    /**
-     * @return If the fancy line rendering utility should be shown within the {@link AccessoriesScreen}
-     */
-    boolean linesShown();
-
-    AccessoriesHolder linesShown(boolean value);
-
-    int scrolledSlot();
-
-    AccessoriesHolder scrolledSlot(int slot);
+    //--
 
     /**
      * @return If unused accessory slots should be present within the {@link AccessoriesScreen}
@@ -54,9 +42,19 @@ public interface AccessoriesHolder {
 
     AccessoriesHolder showUniqueSlots(boolean value);
 
-    PlayerEquipControl equipControl();
+    /**
+     * @return If the cosmetic slots should be shown within the {@link AccessoriesScreen}
+     */
+    boolean cosmeticsShown();
 
-    AccessoriesHolder equipControl(PlayerEquipControl value);
+    AccessoriesHolder cosmeticsShown(boolean value);
+
+    /**
+     * @return If the fancy line rendering utility should be shown within the {@link AccessoriesScreen}
+     */
+    boolean linesShown();
+
+    AccessoriesHolder linesShown(boolean value);
 
     int columnAmount();
 
@@ -65,4 +63,12 @@ public interface AccessoriesHolder {
     int widgetType();
 
     AccessoriesHolder widgetType(int value);
+
+    boolean leftPositionedAccessories();
+
+    AccessoriesHolder leftPositionedAccessories(boolean value);
+
+    boolean advancedOptions();
+
+    AccessoriesHolder advancedOptions(boolean value);
 }

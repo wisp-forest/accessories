@@ -39,6 +39,81 @@
   "accessories.lines.toggle.hide": "Hide All Lines",
   "accessories.unused_slots.toggle.show": "Show Unused Slots",
   "accessories.unused_slots.toggle.hide": "Hide Unused Slots",
+  "accessories.slot_cosmetics.toggle.enabled": "Show Accessories Slots",
+  "accessories.slot_cosmetics.toggle.disabled": "Show Cosmetic Slots",
+  "accessories.unused_slots.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Unused"
+  ],
+  "accessories.unused_slots.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Unused"
+  ],
+  "accessories.unused_slots.toggle.enabled.tooltip": "Hide all Unused Slots",
+  "accessories.unused_slots.toggle.disabled.tooltip": "Show all Unused Slots",
+  "accessories.column_slider.tooltip": "Slider used to adjust Column amount for Accessories Layout",
+  "accessories.advanced_options.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " \uD83E\uDDEA"
+  ],
+  "accessories.advanced_options.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " \uD83E\uDDEA"
+  ],
+  "accessories.advanced_options.toggle.enabled.tooltip": "Hide Extra Screen configuration options",
+  "accessories.advanced_options.toggle.disabled.tooltip": "Show Extra Screen configuration options",
+  "accessories.left_handed_accessories.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "←", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Accessories"
+  ],
+  "accessories.left_handed_accessories.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "→", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Accessories"
+  ],
+  "accessories.left_handed_accessories.toggle.enabled.tooltip": "Move Accessories Widget to the Right",
+  "accessories.left_handed_accessories.toggle.disabled.tooltip": "Move Accessories Widget to the Left",
+  "accessories.widget_type.paginated": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☰", "color": "#347ecf"},
+    {"text": "]", "color": "gray"},
+    " Paginated"
+  ],
+  "accessories.widget_type.paginated.tooltip": "A Paginated Layout for Accessories Slots",
+  "accessories.widget_type.scrollable": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "⏷", "color": "#953abd"},
+    {"text": "]", "color": "gray"},
+    " Scrollable"
+  ],
+  "accessories.widget_type.scrollable.tooltip": "A Scrollable Layout for Accessories Slots",
+  "accessories.selection_screen.message": [
+    "Below is a set of screen options that you \n",
+    "can choose from depending on the style of \n",
+    "Modpack or your play style. \n\n",
+    "Do note that you can change such within the \n",
+    "Accessories Config if the given option is not \n",
+    "to your liking."
+  ],
   "accessories.unique_slots.toggle.show": "Show Unique Slots",
   "accessories.unique_slots.toggle.hide": "Hide Unique Slots",
   "accessories.back.screen": "To Previous Screen",

@@ -3,33 +3,37 @@ package io.wispforest.accessories.client.gui.components;
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
+import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.networking.server.SyncCosmeticToggle;
-import io.wispforest.owo.ui.base.BaseComponent;
+import io.wispforest.accessories.pond.owo.ComponentExtension;
+import io.wispforest.accessories.pond.owo.MutableBoundingArea;
 import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
-import io.wispforest.owo.ui.core.Insets;
-import io.wispforest.owo.ui.core.ParentComponent;
-import io.wispforest.owo.ui.core.Sizing;
-import io.wispforest.owo.ui.core.Surface;
+import io.wispforest.owo.ui.core.*;
 import io.wispforest.owo.ui.util.NinePatchTexture;
+import io.wispforest.owo.ui.util.ScissorStack;
+import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.Slot;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ComponentUtils {
+
+    public static final ResourceLocation ENABLED_TEXTURE = Accessories.of("button/enabled");
+    public static final ResourceLocation ENABLED_HOVERED_TEXTURE = Accessories.of("button/enabled_hovered");
+    public static final ResourceLocation DISABLED_TEXTURE = Accessories.of("button/disabled");
+    public static final ResourceLocation DISABLED_HOVERED_TEXTURE = Accessories.of("button/disabled_hovered");
 
     private static final ResourceLocation SLOT = Accessories.of("textures/gui/slot.png");
 
@@ -42,10 +46,6 @@ public class ComponentUtils {
         context.translate(component.x(), component.y(), 0);
 
         GuiGraphicsUtils.batched(context, SLOT, slotComponents, (bufferBuilder, poseStack, slotComponent) -> {
-            var slot = slotComponent.slot();
-
-            if (!slot.isActive()) return;
-
             GuiGraphicsUtils.blit(bufferBuilder, poseStack, slotComponent.x() - component.x() - 1, slotComponent.y() - component.y() - 1, 18);
         });
 
@@ -53,46 +53,87 @@ public class ComponentUtils {
     };
 
     public static <C extends io.wispforest.owo.ui.core.Component> void recursiveSearch(ParentComponent parentComponent, Class<C> target, Consumer<C> action) {
+        if(parentComponent == null) return;
+
         for (var child : parentComponent.children()) {
-            if(target.isInstance(child)) {
-                action.accept((C) child);
-            } else if(child instanceof ParentComponent childParent) {
-                recursiveSearch(childParent, target, action);
-            }
+            if(target.isInstance(child)) action.accept((C) child);
+            if(child instanceof ParentComponent childParent) recursiveSearch(childParent, target, action);
         }
     }
 
-    public static ButtonComponent ofSlot(AccessoriesBasedSlot slot) {
+    public static <S extends Slot & SlotTypeAccessible> Pair<io.wispforest.owo.ui.core.Component, PositionedRectangle> slotAndToggle(S slot, Function<Integer, AccessoriesExperimentalScreen.ExtendedSlotComponent> slotBuilder) {
+        return slotAndToggle(slot, true, slotBuilder);
+    }
+
+    public static <S extends Slot & SlotTypeAccessible> Pair<io.wispforest.owo.ui.core.Component, PositionedRectangle> slotAndToggle(S slot, boolean isBatched, Function<Integer, AccessoriesExperimentalScreen.ExtendedSlotComponent> slotBuilder) {
+        var btnPosition = Positioning.absolute(14, -1); //15, -1
+
+        var toggleBtn = ComponentUtils.slotToggleBtn(slot)
+                .configure(component -> {
+                    component.zIndex(360)
+                            .sizing(Sizing.fixed(5))
+                            .positioning(btnPosition);
+                });
+
+        ((ComponentExtension)(toggleBtn)).allowIndividualOverdraw(true);
+
+        var combinedLayout = Containers.verticalFlow(Sizing.fixed(18), Sizing.fixed(18))
+                .child(
+                        slotBuilder.apply(slot.index)
+                                .isBatched(isBatched)
+                                .margins(Insets.of(1))
+                ).child(toggleBtn);
+
+        var combinedArea = ((MutableBoundingArea) combinedLayout);
+
+        //combinedArea.addInclusionZone(toggleBtn);
+        //combinedArea.deepRecursiveChecking(true);
+
+        return Pair.of(
+                combinedLayout,
+                toggleBtn
+        );
+    }
+
+    public static <S extends Slot & SlotTypeAccessible> ButtonComponent slotToggleBtn(S slot) {
         return toggleBtn(Component.literal(""),
-                () -> slot.accessoriesContainer.shouldRender(slot.getContainerSlot()),
+                () -> slot.getContainer().shouldRender(slot.getContainerSlot()),
                 (btn) -> {
+                    var entity = slot.getContainer().capability().entity();
+
                     AccessoriesInternals.getNetworkHandler()
-                            .sendToServer(SyncCosmeticToggle.of(slot.entity.equals(Minecraft.getInstance().player) ? null : slot.entity, slot.accessoriesContainer.slotType(), slot.getContainerSlot()));
+                            .sendToServer(SyncCosmeticToggle.of(entity.equals(Minecraft.getInstance().player) ? null : entity, slot.slotType(), slot.getContainerSlot()));
                 });
     }
 
     public static ButtonComponent toggleBtn(net.minecraft.network.chat.Component message, Supplier<Boolean> stateSupplier, Consumer<ButtonComponent> onToggle) {
-        ButtonComponent.Renderer renderer = (context, btn, delta) -> {
+        ButtonComponent.Renderer texturedRenderer = (context, btn, delta) -> {
             RenderSystem.enableDepthTest();
             var state = stateSupplier.get();
 
             ResourceLocation texture;
 
             if(btn.isHovered()) {
-                texture = ButtonComponent.HOVERED_TEXTURE;
+                texture = (state) ? ENABLED_HOVERED_TEXTURE : DISABLED_HOVERED_TEXTURE;
             } else {
-                texture = (state.booleanValue()) ? ButtonComponent.ACTIVE_TEXTURE : ButtonComponent.DISABLED_TEXTURE;
+                texture = (state) ? ENABLED_TEXTURE : DISABLED_TEXTURE;
             }
 
             context.push();
 
-            NinePatchTexture.draw(texture, context, btn.getX(), btn.getY(), btn.width(), btn.height());
+            Runnable drawCall = () -> NinePatchTexture.draw(texture, context, btn.getX(), btn.getY(), btn.width(), btn.height());
+
+            if(btn instanceof ComponentExtension<?> extension && extension.allowIndividualOverdraw()) {
+                ScissorStack.popFramesAndDraw(7, drawCall);
+            } else {
+                drawCall.run();
+            }
 
             context.pop();
         };
 
         return Components.button(message, onToggle)
-                .renderer(renderer);
+                .renderer(texturedRenderer);
     }
 
     public static  <C extends BaseOwoHandledScreen.SlotComponent> io.wispforest.owo.ui.core.Component createPlayerInv(int end, Function<Integer, C> componentFactory, Consumer<Integer> slotEnabler) {

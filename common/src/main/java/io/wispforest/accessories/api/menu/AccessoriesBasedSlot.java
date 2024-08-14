@@ -3,7 +3,6 @@ package io.wispforest.accessories.api.menu;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
@@ -90,6 +89,11 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
     }
 
     @Override
+    public AccessoriesContainer getContainer() {
+        return accessoriesContainer;
+    }
+
+    @Override
     @Deprecated
     public int getMaxStackSize() {
         // TODO: API TO LIMIT IDK
@@ -146,7 +150,7 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
 
         var slotType = this.accessoriesContainer.slotType();
 
-        tooltipData.add(Component.translatable(Accessories.translation( "slot.tooltip.singular"))
+        tooltipData.add(Component.translatable(Accessories.translationKey( "slot.tooltip.singular"))
                 .withStyle(ChatFormatting.GRAY)
                 .append(Component.translatable(slotType.translation()).withStyle(ChatFormatting.BLUE)));
 

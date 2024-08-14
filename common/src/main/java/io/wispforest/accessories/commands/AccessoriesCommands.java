@@ -21,10 +21,8 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.ResourceArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
@@ -65,15 +63,16 @@ public class AccessoriesCommands {
                                         .then(
                                                 Commands.argument("entity", EntityArgument.entity())
                                                         .executes((ctx) -> {
-                                                            Accessories.openAccessoriesMenu(ctx.getSource().getPlayerOrException(), AccessoriesMenuVariant.DEFAULT, getOrThrowLivingEntity(ctx));
+                                                            Accessories.askPlayerForVariant(ctx.getSource().getPlayerOrException(), getOrThrowLivingEntity(ctx));
 
                                                             return 1;
                                                         })
                                         )
                                         .executes(ctx -> {
-                                            return Accessories.attemptOpenScreenPlayer(ctx.getSource().getPlayerOrException(), AccessoriesMenuVariant.DEFAULT)
-                                                    ? 1
-                                                    : 0;
+                                            Accessories.askPlayerForVariant(ctx.getSource().getPlayerOrException());
+
+
+                                            return 1;
                                         })
                         )
                         .then(

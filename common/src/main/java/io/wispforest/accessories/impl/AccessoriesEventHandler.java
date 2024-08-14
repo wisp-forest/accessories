@@ -391,7 +391,7 @@ public class AccessoriesEventHandler {
             boolean allSlots = false;
 
             if (validSlotTypes.containsAll(sharedSlotTypes)) {
-                slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
+                slotsComponent.append(Component.translatable(Accessories.translationKey("slot.any")));
                 allSlots = true;
             } else {
                 var entitySlotTypes = Set.copyOf(EntitySlotLoader.getEntitySlots(entity).values());
@@ -399,7 +399,7 @@ public class AccessoriesEventHandler {
                 var invalidSlotsTypes = Sets.difference(entitySlotTypes, validSlotTypes);
 
                 if (invalidSlotsTypes.size() < validSlotTypes.size()) {
-                    slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
+                    slotsComponent.append(Component.translatable(Accessories.translationKey("slot.any")));
                     slotsComponent.append(Component.literal(" except ").withStyle(ChatFormatting.GRAY));
 
                     var invalidSlotsItr = invalidSlotsTypes.iterator();
@@ -452,7 +452,7 @@ public class AccessoriesEventHandler {
                 var slotTranslationKey = "slot.tooltip." + ((validSlotTypes.size() > 1 && !allSlots) ? "plural" : "singular");
 
                 slotInfoComponent.append(
-                        Component.translatable(Accessories.translation(slotTranslationKey))
+                        Component.translatable(Accessories.translationKey(slotTranslationKey))
                                 .withStyle(ChatFormatting.GRAY)
                                 .append(slotsComponent.withStyle(ChatFormatting.BLUE))
                 );
@@ -541,7 +541,7 @@ public class AccessoriesEventHandler {
                 tooltip.add(CommonComponents.EMPTY);
 
                 tooltip.add(
-                        Component.translatable(Accessories.translation("tooltip.attributes.any"))
+                        Component.translatable(Accessories.translationKey("tooltip.attributes.any"))
                                 .withStyle(ChatFormatting.GRAY)
                 );
 
@@ -561,7 +561,7 @@ public class AccessoriesEventHandler {
 
                 tooltip.add(
                         Component.translatable(
-                                Accessories.translation("tooltip.attributes.slot"),
+                                Accessories.translationKey("tooltip.attributes.slot"),
                                 Component.translatable(entry.getKey().translation()).withStyle(ChatFormatting.BLUE)
                         ).withStyle(ChatFormatting.GRAY)
                 );

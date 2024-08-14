@@ -2,13 +2,10 @@ package io.wispforest.accessories.mixin.client;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.networking.server.NukeAccessories;
-import io.wispforest.accessories.networking.server.ScreenOpen;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
@@ -51,9 +48,9 @@ public abstract class CreativeInventoryScreenMixin extends EffectRenderingInvent
 
         this.accessoryButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), button -> {
-                            AccessoriesClient.attemptToOpenScreen(AccessoriesMenuVariant.DEFAULT);
+                            AccessoriesClient.attemptToOpenScreen();
                         }).bounds(this.leftPos + xOffset, this.topPos + yOffset, 8, 8)
-                        .tooltip(Tooltip.create(Component.translatable(Accessories.translation("open.screen"))))
+                        .tooltip(Tooltip.create(Component.translatable(Accessories.translationKey("open.screen"))))
                         .build()
         ).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
             guiGraphics.blitSprite(AccessoriesScreen.SPRITES_8X8.get(button.active, button.isHoveredOrFocused()), x, y, width, height);

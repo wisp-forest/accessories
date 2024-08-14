@@ -8,9 +8,7 @@ import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Config(name = Accessories.MODID)
 public class AccessoriesConfig implements ConfigData {
@@ -23,6 +21,8 @@ public class AccessoriesConfig implements ConfigData {
 
         public boolean showUniqueRendering = false;
         public boolean showLineRendering = true;
+
+        public ScreenType selectedScreenType = ScreenType.NONE;
 
         public int inventoryButtonXOffset = 66;
         public int inventoryButtonYOffset = 9;
@@ -73,5 +73,21 @@ public class AccessoriesConfig implements ConfigData {
     public static class RenderSlotTarget {
         public String slotType = "";
         public TargetType targetType = TargetType.ALL;
+    }
+
+    public enum ScreenType {
+        NONE(-1),
+        ORIGINAL(1),
+        EXPERIMENTAL_V1(2);
+
+        private final int screenIndex;
+
+        ScreenType(int screenIndex) {
+            this.screenIndex = screenIndex;
+        }
+
+        public boolean isValid() {
+            return this.screenIndex >= 1;
+        }
     }
 }

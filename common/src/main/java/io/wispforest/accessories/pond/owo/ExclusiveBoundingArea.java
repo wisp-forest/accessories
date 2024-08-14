@@ -20,7 +20,7 @@ public interface ExclusiveBoundingArea<T extends Component> {
     List<AbstractPolygon> getExclusionZones();
 
     default boolean isWithinExclusionZone(float x, float y){
-        for(AbstractPolygon polygon : getExclusionZones()){
+        for(var polygon : getExclusionZones()){
             if(polygon.withinShape(x, y)) return true;
         }
 

@@ -1,7 +1,6 @@
 package io.wispforest.accessories.networking.holder;
 
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.*;

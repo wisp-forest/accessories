@@ -1,6 +1,5 @@
 package io.wispforest.accessories.pond;
 
-import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.menu.ArmorSlotTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -22,7 +21,7 @@ public interface CosmeticArmorLookupTogglable {
 
         var cosmetic = ArmorSlotTypes.getAlternativeStack(livingEntity, equipmentSlot);
 
-        if(cosmetic == null || cosmetic.isEmpty()) return;
+        if(cosmetic == null) return;
 
         consumer.accept(cosmetic);
     }

@@ -16,7 +16,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ArmorSlot;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -53,7 +52,7 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
     private Map<AccessoriesInternalSlot, Integer> slotToPageIndex = new HashMap<>();
 
     public AccessoriesMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
-        super(AccessoriesMenuTypes.BASE_MENU, containerId, inventory, targetEntity);
+        super(AccessoriesMenuTypes.ORIGINAL_MENU, containerId, inventory, targetEntity);
 
         var accessoryTarget = targetEntity != null ? targetEntity : owner;
 

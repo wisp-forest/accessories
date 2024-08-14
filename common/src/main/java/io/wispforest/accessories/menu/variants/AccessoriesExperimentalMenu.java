@@ -39,13 +39,25 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
     @Nullable
     private Set<SlotType> usedSlots = null;
 
-    public final List<SlotType> addedSlots = new ArrayList<>();
+    private final List<SlotType> addedSlots = new ArrayList<>();
 
-    public int addedArmorSlots = 0;
+    private int addedArmorSlots = 0;
 
-    public int startingAccessoriesSlot = 0;
+    private int startingAccessoriesSlot = 0;
 
-    public boolean includeSaddle = false;
+    private boolean includeSaddle = false;
+
+    public static AccessoriesExperimentalMenu of(int containerId, Inventory inventory, AccessoriesMenuData data) {
+        var targetEntity = data.targetEntityId().map(i -> {
+            var entity = inventory.player.level().getEntity(i);
+
+            if(entity instanceof LivingEntity livingEntity) return livingEntity;
+
+            return null;
+        }).orElse(null);
+
+        return new AccessoriesExperimentalMenu(containerId, inventory, targetEntity);
+    }
 
     public AccessoriesExperimentalMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
         super(AccessoriesMenuTypes.EXPERIMENTAL_MENU, containerId, inventory, targetEntity);
@@ -62,12 +74,12 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
         //--
 
-        SlotGenerator.begin(this::addSlot, 0, 0)
+        SlotGenerator.begin(this::addSlot, -300, -300)
                 .playerInventory(inventory);
 
         //--
 
-        this.addSlot(new Slot(inventory, 40, 0, 0) {
+        this.addSlot(new Slot(inventory, 40, -300, -300) {
             @Override
             public void setByPlayer(ItemStack itemStack, ItemStack itemStack2) {
                 inventory.player.onEquipItem(EquipmentSlot.OFFHAND, itemStack2, itemStack);
@@ -88,7 +100,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
             var iconPath = targetEntity instanceof Llama ? "container/horse/llama_armor_slot" : "container/horse/saddle_slot" ;
 
             this.addSlot(
-                    new Slot(saddleInv, 0, 0, 0){
+                    new Slot(saddleInv, 0, -300, -300){
                         @Override
                         public boolean mayPlace(ItemStack stack) {
                             if(!(stack.getItem() instanceof SaddleItem)) return false;
@@ -146,21 +158,21 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
                 }).toList();
 
         for (var slot : slotTypes) {
-            addedSlots.add(slot);
+            this.addedSlots.add(slot);
 
             var accessoryContainer = containers.get(slot.name());
 
             if (accessoryContainer == null || accessoryContainer.slotType() == null) continue;
 
             for (int i = 0; i < accessoryContainer.getSize(); i++) {
-                var cosmeticSlot = new AccessoriesInternalSlot(accessoryContainer, true, i, 0, 0)
+                var cosmeticSlot = new AccessoriesInternalSlot(accessoryContainer, true, i, -300, -300)
                         .useCosmeticIcon(false)
                         .isActive((slot1) -> /*this.isCosmeticsOpen() &&*/ this.slotToView.getOrDefault(slot1.index, true))
                         .isAccessible((slot1) -> /*this.isCosmeticsOpen() &&*/ slot1.isCosmetic);
 
                 this.addSlot(cosmeticSlot);
 
-                var baseSlot = new AccessoriesInternalSlot(accessoryContainer, false, i, 0, 0)
+                var baseSlot = new AccessoriesInternalSlot(accessoryContainer, false, i, -300, -300)
                         .isActive(slot1 -> this.slotToView.getOrDefault(slot1.index, true));
 
                 this.addSlot(baseSlot);
@@ -185,12 +197,12 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
         if(armorContainer == null) return false;
 
-        var armorSlot = new AccessoriesArmorSlot(armorContainer, SlotAccessContainer.ofArmor(equipmentSlot, targetEntity), targetEntity, equipmentSlot, 0, 0, 0, location != null ? location.second() : null)
+        var armorSlot = new AccessoriesArmorSlot(armorContainer, SlotAccessContainer.ofArmor(equipmentSlot, targetEntity), targetEntity, equipmentSlot, 0, -300, -300, location != null ? location.second() : null)
                 .setAtlasLocation(location != null ? location.first() : null); // 39 - i
 
         this.addSlot(armorSlot);
 
-        var cosmeticSlot = new AccessoriesInternalSlot(armorContainer, true, 0, 0, 0){
+        var cosmeticSlot = new AccessoriesInternalSlot(armorContainer, true, 0, -300, -300){
             @Override
             public @Nullable Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
                 if(location == null) return null;
@@ -209,24 +221,16 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         return true;
     }
 
-    public static AccessoriesExperimentalMenu of(int containerId, Inventory inventory, AccessoriesMenuData data) {
-        var targetEntity = data.targetEntityId().map(i -> {
-            var entity = inventory.player.level().getEntity(i);
-
-            if(entity instanceof LivingEntity livingEntity) return livingEntity;
-
-            return null;
-        }).orElse(null);
-
-        return new AccessoriesExperimentalMenu(containerId, inventory, targetEntity);
+    public int startingAccessoriesSlot() {
+        return this.startingAccessoriesSlot;
     }
 
-    public boolean isCosmeticsOpen() {
-        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::cosmeticsShown).orElse(false);
+    public int addedArmorSlots() {
+        return this.addedArmorSlots;
     }
 
-    public boolean areLinesShown() {
-        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::linesShown).orElse(false);
+    public boolean includeSaddle() {
+        return this.includeSaddle;
     }
 
     public boolean areUnusedSlotsShown() {
@@ -239,8 +243,25 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
+        ItemStack itemStack = ItemStack.EMPTY;
+        Slot slot = (Slot)this.slots.get(index);
+        if (slot.hasItem()) {
+            ItemStack itemStack2 = slot.getItem();
+            itemStack = itemStack2.copy();
+            EquipmentSlot equipmentSlot = player.getEquipmentSlotForItem(itemStack);
+            if (equipmentSlot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR && !((Slot)this.slots.get(8 - equipmentSlot.getIndex())).hasItem()) {
+                int i = 8 - equipmentSlot.getIndex();
+                if (!this.moveItemStackTo(itemStack2, i, i + 1, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (equipmentSlot == EquipmentSlot.OFFHAND && !((Slot)this.slots.get(45)).hasItem()) {
+                if (!this.moveItemStackTo(itemStack2, 45, 46, false)) {
+                    return ItemStack.EMPTY;
+                }
+            }
+        }
+
         return ScreenUtils.handleSlotTransfer(this, index, this.startingAccessoriesSlot);
-        //return ItemStack.EMPTY;
     }
 
     @Override

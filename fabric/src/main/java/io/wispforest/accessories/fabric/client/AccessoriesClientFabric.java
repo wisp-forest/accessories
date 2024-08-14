@@ -9,18 +9,15 @@ import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.fabric.AccessoriesFabric;
 import io.wispforest.accessories.fabric.AccessoriesFabricNetworkHandler;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
-import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.networking.base.BaseNetworkHandler;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.endec.Endec;
-import io.wispforest.owo.client.OwoClient;
 import io.wispforest.owo.shader.GlProgram;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -29,10 +26,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRe
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -40,14 +35,11 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
-
 import static io.wispforest.accessories.Accessories.MODID;
 
 public class AccessoriesClientFabric implements ClientModInitializer {
 
     public static KeyMapping OPEN_SCREEN;
-    public static KeyMapping OPEN_EXPERIMENTAL_SCREEN;
 
     @Override
     public void onInitializeClient() {
@@ -70,15 +62,9 @@ public class AccessoriesClientFabric implements ClientModInitializer {
 
         OPEN_SCREEN = KeyBindingHelper.registerKeyBinding(new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories"));
 
-        OPEN_EXPERIMENTAL_SCREEN = KeyBindingHelper.registerKeyBinding(new KeyMapping(MODID + ".key.open_accessories_experminetal_screen", GLFW.GLFW_KEY_J, MODID + ".key.category.accessories"));
-
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (OPEN_SCREEN.consumeClick()){
-                AccessoriesClient.attemptToOpenScreen(client.player.isShiftKeyDown(), AccessoriesMenuVariant.DEFAULT);
-            }
-
-            if (OPEN_EXPERIMENTAL_SCREEN.consumeClick()){
-                AccessoriesClient.attemptToOpenScreen(client.player.isShiftKeyDown(), AccessoriesMenuVariant.EXPERIMENTAL_1);
+                AccessoriesClient.attemptToOpenScreen(client.player.isShiftKeyDown());
             }
         });
 

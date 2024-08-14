@@ -230,6 +230,8 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
                 var container = capability.getContainer(reference);
 
                 if(container != null) {
+                    if(!container.shouldRender(0)) return ItemStack.EMPTY;
+
                     var stack = container.getCosmeticAccessories().getItem(0);
 
                     if(!stack.isEmpty()) return stack;
