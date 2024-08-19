@@ -178,16 +178,22 @@ public class CCLayer {
     }
 
     public static Level getDummyLevel(boolean isClient) {
+        if(isClient && clientLevelSupplier != null) {
+            var clientLevel = clientLevelSupplier.get();
+
+            if(clientLevel != null) return clientLevel;
+        }
+
         var server = CCLayer.currentServer();
 
-        if(!isClient && server != null) return server.getAllLevels().iterator().next();
-
-        var clientLevel = clientLevelSupplier.get();
-
-        if(clientLevel != null) return clientLevel;
-
-        throw new IllegalStateException("Unable to get the needed level for CCLayer method passed without proper context!");
+        if(server != null) {
+            return server.getAllLevels().iterator().next();
+        } else if (!isClient) {
+            throw new IllegalStateException("Unable to get the needed Server Level for CCLayer method passed without proper context!");
+        } else {
+            throw new IllegalStateException("Unable to get the needed Client Level for CCLayer method passed without proper context!");
+        }
     }
 
-    public static Supplier<Level> clientLevelSupplier = () -> null;
+    public static Supplier<Level> clientLevelSupplier = null;
 }
