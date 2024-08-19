@@ -35,10 +35,14 @@ public abstract class SlotTypeLoaderMixin {
             if (tempMap.containsKey(accessoryType)) {
                 builder = tempMap.get(accessoryType);
 
-                var slotsCurrentSize = ((SlotTypeLoaderBuilderAccessor) builder).getAmount();
+                var slotsCurrentSize = builder.baseAmount;
 
                 if(curiosBuilder.size != null && slotsCurrentSize != null && curiosBuilder.size > slotsCurrentSize) {
                     builder.amount(curiosBuilder.size);
+                }
+
+                if(curiosBuilder.sizeMod != 0) {
+                    builder.addAmount(curiosBuilder.sizeMod);
                 }
             } else {
                 builder = new SlotTypeLoader.SlotBuilder(accessoryType);
