@@ -12,8 +12,7 @@
     "ItemStackMixin",
     "RegisterCapabilitiesEventMixin",
     "SlotTypeLoaderMixin",
-    "compat.AetherAccessoriesMenuMixin",
-    "SlotTypeLoaderBuilderAccessor"
+    "compat.AetherAccessoriesMenuMixin"
   ],
   "injectors": {
     "defaultRequire": 1
