@@ -18,7 +18,7 @@ public class AccessoriesTCLayerMixinConfig implements IMixinConfigPlugin {
 
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
-        if(mixinClassName.contains("DataLoaderBase")) {
+        if(mixinClassName.contains("DataLoaderBase") || mixinClassName.contains("ResourceManagerHelperImpl")) {
             return testForClass("io/wispforest/accessories/fabric/AccessoriesFabric");
         }
 
