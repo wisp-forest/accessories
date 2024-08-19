@@ -176,7 +176,10 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         private final String name;
         private ResourceLocation icon = null;
         private Integer order = null;
-        private Integer amount = null;
+
+        private Integer baseAmount = null;
+        private Integer offsetAmount = 0;
+
         private final Set<ResourceLocation> validators = new HashSet<>();
         private DropRule dropRule = null;
 
@@ -202,17 +205,17 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         }
 
         public SlotBuilder amount(int value){
-            this.amount = value;
+            this.baseAmount = value;
             return this;
         }
 
         public SlotBuilder addAmount(int value){
-            this.amount += value;
+            this.offsetAmount += value;
             return this;
         }
 
         public SlotBuilder subtractAmount(int value){
-            this.amount -= value;
+            this.offsetAmount -= value;
             return this;
         }
 
@@ -227,19 +230,23 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         }
 
         public SlotType create(){
-            if(validators.isEmpty()) {
-                validators.add(Accessories.of("tag"));
-                validators.add(Accessories.of("component"));
+            if(this.validators.isEmpty()) {
+                this.validators.add(Accessories.of("tag"));
+                this.validators.add(Accessories.of("component"));
             }
 
+            var defaultedBaseAmount = Optional.ofNullable(this.baseAmount).map(i -> Math.max(i, 0)).orElse(1);
+
+            defaultedBaseAmount = this.offsetAmount + defaultedBaseAmount;
+
             return new SlotTypeImpl(
-                    name,
-                    alternativeTranslation,
-                    Optional.ofNullable(icon).orElse(SlotType.EMPTY_SLOT_ICON),
-                    Optional.ofNullable(order).orElse(1000),
-                    Optional.ofNullable(amount).map(i -> Math.max(i, 0)).orElse(1),
-                    validators,
-                    Optional.ofNullable(dropRule).orElse(DropRule.DEFAULT)
+                    this.name,
+                    this.alternativeTranslation,
+                    Optional.ofNullable(this.icon).orElse(SlotType.EMPTY_SLOT_ICON),
+                    Optional.ofNullable(this.order).orElse(1000),
+                    defaultedBaseAmount,
+                    this.validators,
+                    Optional.ofNullable(this.dropRule).orElse(DropRule.DEFAULT)
             );
         }
     }
