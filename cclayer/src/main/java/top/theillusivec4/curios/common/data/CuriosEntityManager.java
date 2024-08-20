@@ -100,6 +100,11 @@ public class CuriosEntityManager extends SimpleJsonResourceReloadListener {
               }));
     });
 
+    // Legacy IMC slot registrations - players only
+    for (String s : LegacySlotManager.getImcBuilders().keySet()) {
+      map.computeIfAbsent(EntityType.PLAYER, (k) -> ImmutableSet.builder()).add(s);
+    }
+
     for (Map.Entry<ResourceLocation, JsonElement> entry : sorted.entrySet()) {
       ResourceLocation resourcelocation = entry.getKey();
 
