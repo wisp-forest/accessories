@@ -177,7 +177,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         private ResourceLocation icon = null;
         private Integer order = null;
 
-        private Integer baseAmount = null;
+        public Integer baseAmount = null;
         private Integer offsetAmount = 0;
 
         private final Set<ResourceLocation> validators = new HashSet<>();
