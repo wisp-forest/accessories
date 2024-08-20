@@ -10,12 +10,17 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.Dynamic3CommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.components.AccessorySlotValidationComponent;
 import io.wispforest.accessories.api.components.AccessoryStackSizeComponent;
+import io.wispforest.accessories.api.slot.SlotGroup;
+import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.data.SlotGroupLoader;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.utils.AttributeUtils;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -31,6 +36,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.slf4j.Logger;
 
 import java.util.Arrays;
 
@@ -39,6 +45,8 @@ public class AccessoriesCommands {
     public static final SimpleCommandExceptionType NON_LIVING_ENTITY_TARGET = new SimpleCommandExceptionType(Component.translatable("argument.livingEntities.nonLiving"));
 
     public static final SimpleCommandExceptionType INVALID_SLOT_TYPE = new SimpleCommandExceptionType(new LiteralMessage("Invalid Slot Type"));
+
+    public static final Logger LOGGER = LogUtils.getLogger();
 
     public static void registerCommandArgTypes() {
         AccessoriesInternals.registerCommandArgumentType(Accessories.of("slot_type"), SlotArgumentType.class, RecordArgumentTypeInfo.of(ctx -> SlotArgumentType.INSTANCE));
@@ -207,6 +215,44 @@ public class AccessoriesCommands {
                                                                                         )
                                                                         )
                                                         )
+                                        )
+                        ).then(
+                                Commands.literal("log")
+                                        .then(
+                                                Commands.literal("slots")
+                                                        .executes(ctx -> {
+                                                            LOGGER.info("All given Slots registered:");
+
+                                                            for (var slotType : SlotTypeLoader.getSlotTypes(ctx.getSource().getLevel()).values()) {
+                                                                LOGGER.info(slotType.toString());
+                                                            }
+
+                                                            return 1;
+                                                        })
+                                        )
+                                        .then(
+                                                Commands.literal("groups")
+                                                        .executes(ctx -> {
+                                                            LOGGER.info("All given Slot Groups registered:");
+
+                                                            for (var group : SlotGroupLoader.getGroups(ctx.getSource().getLevel())) {
+                                                                LOGGER.info(group.toString());
+                                                            }
+
+                                                            return 1;
+                                                        })
+                                        )
+                                        .then(
+                                                Commands.literal("entity_bindings")
+                                                        .executes(ctx -> {
+                                                            LOGGER.info("All given Entity Bindings registered:");
+
+                                                            EntitySlotLoader.INSTANCE.getEntitySlotData(false).forEach((type, slots) -> {
+                                                                LOGGER.info("[{}]: {}", type, slots.keySet());
+                                                            });
+
+                                                            return 1;
+                                                        })
                                         )
                         )
         );
