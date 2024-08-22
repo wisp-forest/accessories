@@ -129,7 +129,7 @@ public class CCLayer {
         for (Item item : ForgeRegistries.ITEMS) {
             var defaultStack = item.getDefaultInstance();
 
-            if(CuriosImplMixinHooks.getCurioFromRegistry(item).isEmpty() && item instanceof ICurioItem iCurioItem){
+            if(!CuriosImplMixinHooks.REGISTRY.containsKey(item) && item instanceof ICurioItem iCurioItem){
                 CuriosImplMixinHooks.registerCurio(item, iCurioItem);
 
                 continue;
