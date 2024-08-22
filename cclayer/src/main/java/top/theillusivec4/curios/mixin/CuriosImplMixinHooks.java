@@ -71,7 +71,7 @@ import java.util.function.Predicate;
 
 public class CuriosImplMixinHooks {
 
-  private static final Map<Item, ICurioItem> REGISTRY = new ConcurrentHashMap<>();
+  public static final Map<Item, ICurioItem> REGISTRY = new ConcurrentHashMap<>();
 
   public static void registerCurio(Item item, ICurioItem icurio) {
     REGISTRY.put(item, icurio);
@@ -84,7 +84,7 @@ public class CuriosImplMixinHooks {
 
     if(iCurioItem != null) return Optional.of(iCurioItem);
 
-    return Optional.ofNullable(AccessoriesAPI.getAccessory(item)).map(WrappedAccessory::new);
+    return Optional.of(new WrappedAccessory(AccessoriesAPI.getOrDefaultAccessory(item)));
   }
 
   public static Optional<ISlotType> getSlot(String id) {
@@ -222,11 +222,15 @@ public class CuriosImplMixinHooks {
 
     if(capability.isPresent()) return capability;
 
-    var accessory = AccessoriesAPI.getAccessory(stack);
+    var registeredCurio = REGISTRY.get(stack.getItem());
 
-    if(accessory != null) return LazyOptional.of(() -> new ItemizedCurioCapability(new WrappedAccessory(accessory), stack));
+    if(registeredCurio == null) {
+      registeredCurio = new WrappedAccessory(AccessoriesAPI.getOrDefaultAccessory(stack));
+    }
 
-    return LazyOptional.empty();
+    var itemizedCurio = new ItemizedCurioCapability(registeredCurio, stack);
+
+    return LazyOptional.of(() -> itemizedCurio);
   }
 
   public static LazyOptional<ICuriosItemHandler> getCuriosInventory(LivingEntity livingEntity) {
