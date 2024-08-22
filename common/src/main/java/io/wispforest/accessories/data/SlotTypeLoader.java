@@ -156,6 +156,8 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             builders.put(slotBuilder.name, slotBuilder);
         }
 
+        var tempMap = new HashMap<String, SlotType>();
+
         for (AccessoriesConfig.SlotAmountModifier modifier : Accessories.getConfig().modifiers) {
             var builder = builders.getOrDefault(modifier.slotType, null);
 
@@ -163,8 +165,6 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
             builder.addAmount(modifier.amount);
         }
-
-        var tempMap = new HashMap<String, SlotType>();
 
         uniqueSlots.forEach((s, slotBuilder) -> tempMap.put(s, slotBuilder.create()));
         builders.forEach((s, slotBuilder) -> tempMap.put(s, slotBuilder.create()));
