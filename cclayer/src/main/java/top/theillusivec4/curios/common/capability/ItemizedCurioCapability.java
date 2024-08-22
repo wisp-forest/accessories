@@ -40,7 +40,7 @@ import java.util.UUID;
 
 public class ItemizedCurioCapability implements ICurio {
   private final ItemStack stack;
-  private final ICurioItem curioItem;
+  public final ICurioItem curioItem;
 
   public ItemizedCurioCapability(ICurioItem curio, ItemStack stack) {
     this.curioItem = curio;
