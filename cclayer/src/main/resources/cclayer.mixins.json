@@ -3,7 +3,10 @@
   "package": "io.wispforest.cclayer.mixin",
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
-  "client": [],
+  "client": [
+    "client.ClientLanguageMixin",
+    "client.AccessoriesRendererRegistryMixin"
+  ],
   "mixins": [
     "AccessoriesAPIMixin",
     "AccessoriesCapabilityImplMixin",
