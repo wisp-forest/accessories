@@ -1,5 +1,6 @@
 package io.wispforest.accessories.api.components;
 
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.endec.format.nbt.NbtDeserializer;
@@ -14,12 +15,15 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
+import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 
 public class AccessoriesDataComponents {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     /*
      * {
@@ -66,21 +70,19 @@ public class AccessoriesDataComponents {
             .keyed(Accessories.of("stack_size").toString(), AccessoryStackSizeComponent.DEFAULT);
 
     public static final Endec<Map<ResourceLocation, Tag>> COMPONENTS_ENDEC = NbtEndec.COMPOUND.xmap(compoundTag -> {
-        Map<ResourceLocation, Tag> map = new HashMap<>();
+        var map = new HashMap<ResourceLocation, Tag>();
 
-        for (String key : compoundTag.getAllKeys()) {
+        for (var key : compoundTag.getAllKeys()) {
             var location = ResourceLocation.tryParse(key);
 
-            if (location == null) continue;
-
-            map.put(location, compoundTag.get(key));
+            if (location != null) map.put(location, compoundTag.get(key));
         }
 
         return map;
     }, map -> {
         var compound = new CompoundTag();
 
-        map.forEach((resourceLocation, tag) -> compound.put(resourceLocation.toString(), tag));
+        map.forEach((location, tag) -> compound.put(location.toString(), tag));
 
         return compound;
     });
@@ -88,37 +90,49 @@ public class AccessoriesDataComponents {
     public static final KeyedEndec<Map<ResourceLocation, Tag>> COMPONENTS_KEY = COMPONENTS_ENDEC.keyed("components", HashMap::new);
 
     @ApiStatus.Internal
-    public static void init() {
-    }
+    public static void init() {}
 
     public static <T> boolean has(KeyedEndec<T> keyedEndec, ItemStack stack) {
         var tag = stack.getTag();
 
-        if (tag == null) return false;
+        if (tag != null) {
+            var location = ResourceLocation.tryParse(keyedEndec.key());
 
-        var components = new NbtMapCarrier(tag).get(COMPONENTS_KEY);
+            if (location != null) return new NbtMapCarrier(tag).get(COMPONENTS_KEY).containsKey(location);
+        }
 
-        var location = ResourceLocation.tryParse(keyedEndec.key());
-
-        return location != null && components.containsKey(location);
+        return false;
     }
 
     public static <T> T readOrDefault(KeyedEndec<T> keyedEndec, ItemStack stack) {
         var tag = stack.getTag();
 
-        if (tag == null) return keyedEndec.defaultValue();
+        if (tag != null) {
+            var location = ResourceLocation.tryParse(keyedEndec.key());
 
-        var components = new NbtMapCarrier(tag).get(COMPONENTS_KEY);
+            if (location != null) {
+                var carrier = new NbtMapCarrier(tag);
 
-        var location = ResourceLocation.tryParse(keyedEndec.key());
+                var components = carrier
+                        .get(COMPONENTS_KEY);
 
-        if (location == null) return keyedEndec.defaultValue();
+                var data = components.get(location);
 
-        var data = components.get(location);
+                if (data != null) {
+                    try {
+                        return keyedEndec.endec().decodeFully(SerializationContext.attributes(new StackAttribute(stack.copy())), NbtDeserializer::of, data);
+                    } catch (Exception e) {
+                        LOGGER.warn("Unable to read the given component from the given stack: [Key: {}]", keyedEndec.key(), e);
 
-        if (data == null) return keyedEndec.defaultValue();
+                        components.remove(location);
 
-        return keyedEndec.endec().decodeFully(SerializationContext.attributes(new StackAttribute(stack.copy())), NbtDeserializer::of, data);
+                        carrier.put(SerializationContext.attributes(new StackAttribute(stack.copy())), COMPONENTS_KEY, components);
+                    }
+                }
+            }
+        }
+
+        return keyedEndec.defaultValue();
     }
 
     public static <T> void write(KeyedEndec<T> keyedEndec, ItemStack stack, T data) {
@@ -129,18 +143,18 @@ public class AccessoriesDataComponents {
         var location = ResourceLocation.tryParse(keyedEndec.key());
 
         if (location != null) {
-            components.put(location, keyedEndec.endec().encodeFully(NbtSerializer::of, data));
+            try {
+                components.put(location, keyedEndec.endec().encodeFully(NbtSerializer::of, data));
+            } catch (Exception e) {
+                LOGGER.warn("Unable to write the given component from the given stack: [Key: {}]", keyedEndec.key(), e);
+            }
         }
 
         carrier.put(COMPONENTS_KEY, components);
     }
 
     public static <T> void update(KeyedEndec<T> keyedEndec, ItemStack stack, UnaryOperator<T> operator) {
-        var value = readOrDefault(keyedEndec, stack);
-
-        value = operator.apply(value);
-
-        write(keyedEndec, stack, value);
+        write(keyedEndec, stack, operator.apply(readOrDefault(keyedEndec, stack)));
     }
 
     //--
@@ -149,14 +163,7 @@ public class AccessoriesDataComponents {
 
         public static final SerializationAttribute.WithValue<StackAttribute> INSTANCE = SerializationAttribute.withValue("accessories:stack");
 
-        @Override
-        public SerializationAttribute attribute() {
-            return INSTANCE;
-        }
-
-        @Override
-        public Object value() {
-            return this;
-        }
+        @Override public SerializationAttribute attribute() { return INSTANCE; }
+        @Override public Object value() { return this; }
     }
 }
