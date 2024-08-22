@@ -126,7 +126,7 @@ public class CCLayer {
 
         for (Item item : BuiltInRegistries.ITEM) {
             // Force all items instanceof ICurioItem to register for Accessories systems
-            if(CuriosImplMixinHooks.getCurioFromRegistry(item).isEmpty() && item instanceof ICurioItem iCurioItem){
+            if(!CuriosImplMixinHooks.REGISTRY.containsKey(item) && item instanceof ICurioItem iCurioItem){
                 CuriosImplMixinHooks.registerCurio(item, iCurioItem);
             }
 
