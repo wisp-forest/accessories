@@ -91,15 +91,15 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
             });
         } else {
             holder.init(this);
-
-            if (!(this.entity instanceof ServerPlayer serverPlayer) || serverPlayer.connection == null) return;
-
-            var carrier = NbtMapCarrier.of();
-
-            holder.write(carrier, SerializationContext.attributes(RegistriesAttribute.of(this.entity.level().registryAccess())));
-
-            AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(this.entity(), new SyncEntireContainer(this.entity.getId(), carrier));
         }
+
+        if (!(this.entity instanceof ServerPlayer serverPlayer) || serverPlayer.connection == null) return;
+
+        var carrier = NbtMapCarrier.of();
+
+        holder.write(carrier, SerializationContext.attributes(RegistriesAttribute.of(this.entity.level().registryAccess())));
+
+        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(serverPlayer.getId(), carrier));
     }
 
     private boolean updateContainersLock = false;
