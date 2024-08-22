@@ -12,7 +12,7 @@ import java.util.Map;
 
 @Mixin(ClientLanguage.class)
 public abstract class ClientLanguageMixin {
-    @WrapOperation(method = "loadFrom", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/ImmutableMap;copyOf(Ljava/util/Map;)Lcom/google/common/collect/ImmutableMap;"))
+    @WrapOperation(method = "loadFrom", at = @At(value = "INVOKE", target = "Lcom/google/common/collect/ImmutableMap;copyOf(Ljava/util/Map;)Lcom/google/common/collect/ImmutableMap;", ordinal = 0))
     private static ImmutableMap<String, String> dynamicLangStuff(Map<String, String> kvMap, Operation<ImmutableMap<String, String>> original) {
         TranslationInjectionEvent.AFTER_LANGUAGE_LOAD.invoker()
                 .generateLanguageTranslations(new TranslationInjectionEvent.TranslationMapHelper(kvMap));
