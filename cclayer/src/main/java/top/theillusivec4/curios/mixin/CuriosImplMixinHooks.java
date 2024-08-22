@@ -58,6 +58,7 @@ import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.common.CuriosRegistry;
+import top.theillusivec4.curios.common.capability.ItemizedCurioCapability;
 import top.theillusivec4.curios.common.data.CuriosEntityManager;
 import top.theillusivec4.curios.common.data.CuriosSlotManager;
 import top.theillusivec4.curios.compat.CuriosWrappingUtils;
@@ -71,7 +72,7 @@ import java.util.function.Predicate;
 
 public class CuriosImplMixinHooks {
 
-  private static final Map<Item, ICurioItem> REGISTRY = new ConcurrentHashMap<>();
+  public static final Map<Item, ICurioItem> REGISTRY = new ConcurrentHashMap<>();
 
   public static void registerCurio(Item item, ICurioItem icurio) {
     REGISTRY.put(item, icurio);
@@ -84,7 +85,7 @@ public class CuriosImplMixinHooks {
 
     if(iCurioItem != null) return Optional.of(iCurioItem);
 
-    return Optional.ofNullable(AccessoriesAPI.getAccessory(item)).map(WrappedAccessory::new);
+    return Optional.of(new WrappedAccessory(AccessoriesAPI.getOrDefaultAccessory(item)));
   }
 
   public static Optional<ISlotType> getSlot(String id) {
@@ -216,7 +217,17 @@ public class CuriosImplMixinHooks {
   }
 
   public static Optional<ICurio> getCurio(ItemStack stack) {
-    return Optional.ofNullable(stack.getCapability(CuriosCapability.ITEM));
+      var capability = stack.getCapability(CuriosCapability.ITEM);
+
+      if(capability != null) return Optional.of(capability);
+
+      var registeredCurio = REGISTRY.get(stack.getItem());
+
+      if(registeredCurio == null) {
+          registeredCurio = new WrappedAccessory(AccessoriesAPI.getOrDefaultAccessory(stack));
+      }
+
+      return Optional.of(new ItemizedCurioCapability(registeredCurio, stack));
   }
 
   public static Optional<ICuriosItemHandler> getCuriosInventory(LivingEntity livingEntity) {
