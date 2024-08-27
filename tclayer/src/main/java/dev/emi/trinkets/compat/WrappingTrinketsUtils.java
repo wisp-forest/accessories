@@ -29,7 +29,7 @@ public class WrappingTrinketsUtils {
 
             var slotType = SlotTypeLoader.getSlotType(slotReference.entity().level(), container.getSlotName());
 
-            var trinketInv = new WrappedTrinketInventory(new LivingEntityTrinketComponent(capability), container, slotType);
+            var trinketInv = new WrappedTrinketInventory(new LivingEntityTrinketComponent(slotReference.entity()), container, slotType);
 
             return Optional.of(new SlotReference(trinketInv, slotReference.slot()));
         } catch (Exception e){
