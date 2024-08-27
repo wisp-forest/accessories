@@ -49,6 +49,11 @@ public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) impl
 
         var holder = ((AccessoriesHolderImpl) capability.getHolder());
 
+//        if(entity instanceof Player) {
+//            LOGGER.info("[SyncEntireContainer] Container data has been received on the client!");
+//            LOGGER.info("[SyncEntireContainer] {}", containerMap);
+//        }
+
         holder.read(containerMap, SerializationContext.attributes(RegistriesAttribute.of(level.registryAccess())));
         holder.init(capability);
     }

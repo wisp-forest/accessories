@@ -2,6 +2,7 @@ package io.wispforest.accessories.impl;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.EquipAction;
@@ -21,6 +22,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.function.*;
@@ -28,12 +30,15 @@ import java.util.function.*;
 @ApiStatus.Internal
 public class AccessoriesCapabilityImpl implements AccessoriesCapability, InstanceEndec {
 
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     private final LivingEntity entity;
 
     public AccessoriesCapabilityImpl(LivingEntity entity) {
         this.entity = entity;
 
-        if (holder().loadedFromTag) this.reset(true);
+        // Runs various Init calls to properly setup holder
+        getHolder();
     }
 
     @Override
@@ -43,9 +48,13 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     @Override
     public AccessoriesHolder getHolder() {
-        var holder = AccessoriesInternals.getHolder(entity);
+        var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
 
-        if (((AccessoriesHolderImpl) holder).loadedFromTag) this.reset(true);
+        // Attempts to reset the container when loaded from tag on the server
+        if (holder.loadedFromTag) this.reset(true);
+
+        // Prevents containers from not existing even if a given entity will have such slots but have yet to be synced to the client
+        if (holder.getSlotContainers().size() != EntitySlotLoader.getEntitySlots(entity).size()) holder.init(this);
 
         return holder;
     }
@@ -214,6 +223,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
             var container = containers.get(name);
 
             modifiers.forEach(container.getCachedModifiers()::remove);
+
             container.clearCachedModifiers();
         });
     }
