@@ -145,7 +145,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
                 }
             }
 
-            if(ExtraSlotTypeProperties.getProperty(slotBuilder.name, false).strictMode()) {
+            if(!ExtraSlotTypeProperties.getProperty(slotBuilder.name, false).strictMode()) {
                 var validators = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "validators", new JsonArray(), location);
 
                 decodeJsonArray(validators, "validator", location, element -> ResourceLocation.tryParse(element.getAsString()), slotBuilder::validator);
@@ -167,7 +167,11 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         }
 
         uniqueSlots.forEach((s, slotBuilder) -> tempMap.put(s, slotBuilder.create()));
-        builders.forEach((s, slotBuilder) -> tempMap.put(s, slotBuilder.create()));
+        builders.forEach((s, slotBuilder) -> {
+            if(s.equals("any")) return;
+
+            tempMap.put(s, slotBuilder.create());
+        });
 
         this.server = ImmutableMap.copyOf(tempMap);
     }
