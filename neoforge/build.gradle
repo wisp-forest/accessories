@@ -74,19 +74,7 @@ dependencies {
 }
 
 processResources {
-    var versionParts = (project.mod_version as String).split("-");
-
-    String finalVersion;
-
-    if(versionParts.size() > 1) {
-        versionParts[1] = versionParts[1].replace(".", "")
-
-        finalVersion = "${versionParts[0]}-${versionParts[1]}"
-    } else {
-        finalVersion = project.mod_version
-    }
-
-    finalVersion += "+${rootProject.minecraft_base_version}"
+    String finalVersion = "${project.mod_version}+${rootProject.minecraft_base_version}"
 
     filesMatching("META-INF/neoforge.mods.toml") {
         expand "version": finalVersion
