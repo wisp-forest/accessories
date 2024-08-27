@@ -27,10 +27,11 @@ public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) impl
     @Environment(EnvType.CLIENT)
     @Override
     public void handle(Player player) {
-        var entity = player.level().getEntity(entityId);
+        var level = player.level();
+        var entity = level.getEntity(entityId);
 
         if(entity == null) {
-            LOGGER.info("Unable to Sync Container Data for a given Entity as it is null on the Client! [EntityId: {}]", entityId);
+            LOGGER.error("Unable to Sync Container Data for a given Entity as it is null on the Client! [EntityId: {}]", entityId);
 
             return;
         }
@@ -39,10 +40,15 @@ public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) impl
 
         var capability = AccessoriesCapability.get(livingEntity);
 
-        if(capability == null) return;
+        if(capability == null) {
+            LOGGER.error("Unable to Sync Container Data for a given Entity as its Capability is null on the Client! [EntityId: {}]", entityId);
 
-        ((AccessoriesHolderImpl) capability.getHolder()).read(containerMap, SerializationContext.empty());
+            return;
+        }
 
-        ((AccessoriesHolderImpl) capability.getHolder()).init(capability);
+        var holder = ((AccessoriesHolderImpl) capability.getHolder());
+
+        holder.read(containerMap, SerializationContext.empty());
+        holder.init(capability);
     }
 }
