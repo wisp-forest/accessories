@@ -21,6 +21,7 @@ package top.theillusivec4.curios.common.data;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Streams;
 import com.google.gson.*;
 import com.mojang.serialization.JsonOps;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -41,6 +42,7 @@ import top.theillusivec4.curios.common.slottype.SlotType;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
 
@@ -157,6 +159,8 @@ public class CuriosSlotManager extends SimpleJsonResourceReloadListener {
         CuriosConstants.LOG.error("Parsing error loading curio slot {}", resourcelocation, e);
       }
     }
+
+    this.idToMods = modMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().build(), (set1, set2) -> Streams.concat(set1.stream(), set2.stream()).collect(Collectors.toUnmodifiableSet())));
 
     this.slotTypeBuilders.putAll(map);
 
