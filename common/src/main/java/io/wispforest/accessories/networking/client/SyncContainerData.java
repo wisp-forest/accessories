@@ -1,5 +1,6 @@
 package io.wispforest.accessories.networking.client;
 
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.client.AccessoriesMenu;
@@ -16,6 +17,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,6 +51,8 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
         return new SyncContainerData(livingEntity.getId(), updatedContainerTags, dirtyStacks, dirtyCosmeticStacks);
     }
 
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     @Environment(EnvType.CLIENT)
     @Override
     public void handle(Player player) {
@@ -56,11 +60,21 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
 
         var entity = level.getEntity(entityId);
 
+        if(entity == null) {
+            LOGGER.error("Unable to Sync Container Data for a given Entity as it is null on the Client! [EntityId: {}]", entityId);
+
+            return;
+        }
+
         if(!(entity instanceof LivingEntity livingEntity)) return;
 
         var capability = AccessoriesCapability.get(livingEntity);
 
-        if(capability == null) return;
+        if(capability == null) {
+            LOGGER.error("Unable to Sync Container Data for a given Entity as its Capability is null on the Client! [EntityId: {}]", entityId);
+
+            return;
+        }
 
         var containers = capability.getContainers();
 
