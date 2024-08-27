@@ -6,6 +6,7 @@ import dev.emi.trinkets.api.SlotType;
 import dev.emi.trinkets.api.TrinketInventory;
 import dev.emi.trinkets.compat.*;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,6 +17,8 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 public final class ImmutableDelegatingMap<K, V, I> implements Map<K, V> {
+
+    public final String debugNaming;
 
     public final Class<K> keyClass;
     public final Class<V> valueClass;
@@ -29,25 +32,31 @@ public final class ImmutableDelegatingMap<K, V, I> implements Map<K, V> {
     public final Function<V, @Nullable I> fromValueMapFunc;
 
 
-    private ImmutableDelegatingMap(Class<K> keyClass,
-                                   Class<V> valueClass,
-                                   Map<K, I> map,
-                                   UnaryOperator<K> toKeyNamespace,
-                                   UnaryOperator<K> fromKeyNamespace,
-                                   Function<I, V> toValueMapFunc,
-                                   Function<V, @Nullable I> fromValueMapFunc
+    private ImmutableDelegatingMap(
+            String debugNaming,
+            Class<K> keyClass,
+            Class<V> valueClass,
+            Map<K, I> map,
+            UnaryOperator<K> toKeyNamespace,
+            UnaryOperator<K> fromKeyNamespace,
+            Function<I, V> toValueMapFunc,
+            Function<V, @Nullable I> fromValueMapFunc
     ) {
-        this(keyClass, valueClass, map, toKeyNamespace, fromKeyNamespace, (K k, I i) -> toValueMapFunc.apply(i), fromValueMapFunc);
+        this(debugNaming, keyClass, valueClass, map, toKeyNamespace, fromKeyNamespace, (K k, I i) -> toValueMapFunc.apply(i), fromValueMapFunc);
     }
 
-    private ImmutableDelegatingMap(Class<K> keyClass,
-                                   Class<V> valueClass,
-                                   Map<K, I> map,
-                                   UnaryOperator<K> toKeyNamespace,
-                                   UnaryOperator<K> fromKeyNamespace,
-                                   BiFunction<K, I, V> toValueMapFunc,
-                                   Function<V, @Nullable I> fromValueMapFunc
+    private ImmutableDelegatingMap(
+            String debugNaming,
+            Class<K> keyClass,
+            Class<V> valueClass,
+            Map<K, I> map,
+            UnaryOperator<K> toKeyNamespace,
+            UnaryOperator<K> fromKeyNamespace,
+            BiFunction<K, I, V> toValueMapFunc,
+            Function<V, @Nullable I> fromValueMapFunc
     ) {
+        this.debugNaming = debugNaming;
+
         this.keyClass = keyClass;
         this.valueClass = valueClass;
 
@@ -60,44 +69,55 @@ public final class ImmutableDelegatingMap<K, V, I> implements Map<K, V> {
         this.fromValueMapFunc = fromValueMapFunc;
     }
 
-    public static <I, V> Map<String, V> of(Class<V> valueClass, Map<String, I> map, UnaryOperator<String> toKeyNamespace, UnaryOperator<String> fromKeyNamespace, Function<I, V> toValueMapFunc, Function<V, @Nullable I> fromValueMapFunc) {
-        return new ImmutableDelegatingMap<>(String.class, valueClass,map, toKeyNamespace, fromKeyNamespace, toValueMapFunc, fromValueMapFunc);
-    }
+//    public static <I, V> Map<String, V> of(Class<V> valueClass, Map<String, I> map, UnaryOperator<String> toKeyNamespace, UnaryOperator<String> fromKeyNamespace, Function<I, V> toValueMapFunc, Function<V, @Nullable I> fromValueMapFunc) {
+//        return new ImmutableDelegatingMap<>(String.class, valueClass,map, toKeyNamespace, fromKeyNamespace, toValueMapFunc, fromValueMapFunc);
+//    }
 
     public static Map<String, SlotType> slotType(Map<String, io.wispforest.accessories.api.slot.SlotType> map, String group) {
-        return new ImmutableDelegatingMap<>(String.class, SlotType.class, map,
+        return new ImmutableDelegatingMap<>(
+                "slot_types",
+                String.class, SlotType.class, map,
                 WrappingTrinketsUtils::accessoriesToTrinkets_Slot,
                 string -> WrappingTrinketsUtils.trinketsToAccessories_Slot(Optional.empty(), string),
                 slotType -> new WrappedSlotType(slotType, group),
-                curiosSlot -> curiosSlot instanceof WrappedSlotType wrappedSlotType ? wrappedSlotType.slotType : null);
+                trinketSlot -> trinketSlot instanceof WrappedSlotType wrappedSlotType ? wrappedSlotType.slotType : null);
     }
 
     public static Map<String, SlotGroup> slotGroups(Map<String, Map<String, io.wispforest.accessories.api.slot.SlotType>> map, boolean isClientSide) {
-        return new ImmutableDelegatingMap<>(String.class, SlotGroup.class, map,
+        return new ImmutableDelegatingMap<>(
+                "slot_group",
+                String.class, SlotGroup.class, map,
                 WrappingTrinketsUtils::accessoriesToTrinkets_Group,
                 WrappingTrinketsUtils::trinketsToAccessories_Group,
                 (group, slotData) -> new WrappedSlotGroup(group, slotData, isClientSide),
-                curiosSlot -> curiosSlot instanceof WrappedSlotGroup wrappedSlotType ? wrappedSlotType.innerSlots() : null);
+                trinketSlot -> trinketSlot instanceof WrappedSlotGroup wrappedSlotType ? wrappedSlotType.innerSlots() : null);
     }
 
     public static Map<String, Map<String, TrinketInventory>> trinketComponentView(Map<String, Map<String, io.wispforest.accessories.api.slot.SlotType>> map, WrappedTrinketComponent component, Map<String, AccessoriesContainer> containerMap) {
-        return (Map<String, Map<String, TrinketInventory>>) (Map) new ImmutableDelegatingMap<>(String.class, Map.class, map,
+        return (Map<String, Map<String, TrinketInventory>>) (Map) new ImmutableDelegatingMap<>(
+                "grouped_trinket_inventories",
+                String.class, Map.class, map,
                 WrappingTrinketsUtils::accessoriesToTrinkets_Group,
                 WrappingTrinketsUtils::trinketsToAccessories_Group,
-                (group, slotData) -> {
-                    var trinketInv = new HashMap<String, TrinketInventory>();
+                (group, slotData) -> groupedTrinketInventories(group, component, slotData, containerMap),
+                trinketSlots -> null);
+    }
 
-                    for (var entry : slotData.entrySet()) {
-                        var container = containerMap.get(entry.getKey());
+    public static Map<String, TrinketInventory> groupedTrinketInventories(String group, WrappedTrinketComponent component, Map<String, io.wispforest.accessories.api.slot.SlotType> slotTypeMap, Map<String, AccessoriesContainer> containerMap) {
+        return new ImmutableDelegatingMap<>(
+                "trinket_inventories",
+                String.class, TrinketInventory.class, slotTypeMap,
+                WrappingTrinketsUtils::accessoriesToTrinkets_Slot,
+                (string) -> WrappingTrinketsUtils.trinketsToAccessories_Slot(Optional.of(group), string),
+                (key, type) -> {
+                    var container = containerMap.get(type.name());
 
-                        if(container == null) continue;
+                    if(container == null) throw new IllegalStateException("Unable to get the required Accessories container to wrap for Trinkets API call: [Slot: " + type.name() + "]");
 
-                        trinketInv.put(WrappingTrinketsUtils.accessoriesToTrinkets_Slot(entry.getKey()), new WrappedTrinketInventory(component, container, entry.getValue()));
-                    }
-
-                    return trinketInv;
+                    return new WrappedTrinketInventory(component, container, type);
                 },
-                curiosSlot -> null);
+                object -> null
+        );
     }
 
     @Override
