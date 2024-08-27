@@ -4,6 +4,7 @@ import dev.emi.trinkets.compat.WrappedTrinketComponent;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Tuple;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.ladysnake.cca.api.v3.component.sync.AutoSyncedComponent;
 
@@ -15,8 +16,8 @@ import java.util.function.Predicate;
 
 public class LivingEntityTrinketComponent extends WrappedTrinketComponent implements AutoSyncedComponent {
 
-    public LivingEntityTrinketComponent(AccessoriesCapability capability) {
-        super(capability);
+    public LivingEntityTrinketComponent(LivingEntity entity) {
+        super(entity);
     }
 
     @Override

@@ -73,7 +73,7 @@ public class TrinketsApi implements EntityComponentInitializer {
 
         var capability = AccessoriesCapability.get(livingEntity);
 
-        return Optional.of(capability != null ? new LivingEntityTrinketComponent(capability) : new EmptyComponent(livingEntity));
+        return Optional.of(capability != null ? new LivingEntityTrinketComponent(livingEntity) : new EmptyComponent(livingEntity));
     }
 
     public static void onTrinketBroken(ItemStack stack, SlotReference ref, LivingEntity entity) {

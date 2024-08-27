@@ -1,6 +1,7 @@
 package io.wispforest.tclayer;
 
 
+import com.mojang.logging.LogUtils;
 import dev.emi.trinkets.api.SlotGroup;
 import dev.emi.trinkets.api.SlotType;
 import dev.emi.trinkets.api.TrinketInventory;
@@ -9,16 +10,21 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 public final class ImmutableDelegatingMap<K, V, I> implements Map<K, V> {
 
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     public final String debugNaming;
+    private Runnable errorMessage;
 
     public final Class<K> keyClass;
     public final Class<V> valueClass;
@@ -93,14 +99,15 @@ public final class ImmutableDelegatingMap<K, V, I> implements Map<K, V> {
                 trinketSlot -> trinketSlot instanceof WrappedSlotGroup wrappedSlotType ? wrappedSlotType.innerSlots() : null);
     }
 
-    public static Map<String, Map<String, TrinketInventory>> trinketComponentView(Map<String, Map<String, io.wispforest.accessories.api.slot.SlotType>> map, WrappedTrinketComponent component, Map<String, AccessoriesContainer> containerMap) {
+    public static Map<String, Map<String, TrinketInventory>> trinketComponentView(Map<String, Map<String, io.wispforest.accessories.api.slot.SlotType>> map, WrappedTrinketComponent component, Map<String, AccessoriesContainer> containerMap, Runnable errorMessage) {
         return (Map<String, Map<String, TrinketInventory>>) (Map) new ImmutableDelegatingMap<>(
                 "grouped_trinket_inventories",
                 String.class, Map.class, map,
                 WrappingTrinketsUtils::accessoriesToTrinkets_Group,
                 WrappingTrinketsUtils::trinketsToAccessories_Group,
                 (group, slotData) -> groupedTrinketInventories(group, component, slotData, containerMap),
-                trinketSlots -> null);
+                trinketSlots -> null)
+                .errorMessageSupplier(errorMessage);
     }
 
     public static Map<String, TrinketInventory> groupedTrinketInventories(String group, WrappedTrinketComponent component, Map<String, io.wispforest.accessories.api.slot.SlotType> slotTypeMap, Map<String, AccessoriesContainer> containerMap) {
@@ -118,6 +125,12 @@ public final class ImmutableDelegatingMap<K, V, I> implements Map<K, V> {
                 },
                 object -> null
         );
+    }
+
+    private ImmutableDelegatingMap<K, V, I> errorMessageSupplier(Runnable errorMessage) {
+        this.errorMessage = errorMessage;
+
+        return this;
     }
 
     @Override
@@ -151,9 +164,18 @@ public final class ImmutableDelegatingMap<K, V, I> implements Map<K, V> {
     public V get(Object key) {
         if(!(keyClass.isInstance(key))) return null;
 
-        var entry = this.map.get(this.fromKeyNamespace.apply((K) key));
+        var convertedKey = this.fromKeyNamespace.apply((K) key);
 
-        if(entry == null) return null;
+        var entry = this.map.get(convertedKey);
+
+        if(entry == null) {
+//            LOGGER.error("[ImmutableDelegatingMap - {}]: Unable to get the desired entry from the given key [{}] as the converted value [{}] was not found!", this.debugNaming, key, convertedKey);
+//            LOGGER.error("[ImmutableDelegatingMap - {}]: Dumping entire map: {}", this.debugNaming, this.map);
+//
+//            errorMessage.run();
+
+            return null;
+        }
 
         return this.toValueMapFunc.apply((K) key, entry);
     }
