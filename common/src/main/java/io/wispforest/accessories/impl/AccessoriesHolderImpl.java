@@ -1,5 +1,6 @@
 package io.wispforest.accessories.impl;
 
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -13,13 +14,17 @@ import io.wispforest.endec.util.MapCarrier;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
+import org.slf4j.Logger;
 
 import java.util.*;
 
 @ApiStatus.Internal
 public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final MapCarrier EMPTY = new NbtMapCarrier(new CompoundTag());
 
@@ -41,6 +46,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
     private MapCarrier carrier;
     protected boolean loadedFromTag = false;
+
+    public AccessoriesHolderImpl(){}
 
     public static AccessoriesHolderImpl of(){
         var holder = new AccessoriesHolderImpl();
@@ -136,6 +143,9 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
         var entitySlots = EntitySlotLoader.getEntitySlots(livingEntity);
 
+        if(livingEntity instanceof Player && entitySlots.isEmpty()) {
+            LOGGER.warn("It seems the given player has no slots bound to it within a init call, is that desired?");
+        }
 
         if (loadedFromTag) {
             entitySlots.forEach((s, slotType) -> {
