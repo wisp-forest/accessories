@@ -134,17 +134,20 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         this.slotContainers.clear();
         //this.invalidStacks.clear();
 
+        var entitySlots = EntitySlotLoader.getEntitySlots(livingEntity);
+
+
         if (loadedFromTag) {
-            EntitySlotLoader.getEntitySlots(livingEntity).forEach((s, slotType) -> {
-                slotContainers.putIfAbsent(s, new AccessoriesContainerImpl(capability, slotType));
+            entitySlots.forEach((s, slotType) -> {
+                this.slotContainers.putIfAbsent(s, new AccessoriesContainerImpl(capability, slotType));
             });
 
             var ctx = SerializationContext.attributes(new EntityAttribute(livingEntity));
 
             read(capability, livingEntity, this.carrier, ctx);
         } else {
-            EntitySlotLoader.getEntitySlots(livingEntity).forEach((s, slotType) -> {
-                slotContainers.put(s, new AccessoriesContainerImpl(capability, slotType));
+            entitySlots.forEach((s, slotType) -> {
+                this.slotContainers.put(s, new AccessoriesContainerImpl(capability, slotType));
             });
         }
     }
