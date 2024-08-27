@@ -2,6 +2,7 @@ package io.wispforest.accessories.client;
 
 import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
@@ -23,10 +24,14 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.util.*;
 
 public final class AccessoriesMenu extends AbstractContainerMenu {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     public static final ResourceLocation BLOCK_ATLAS = new ResourceLocation("textures/atlas/blocks.png");
 
     public static final ResourceLocation EMPTY_ARMOR_SLOT_SHIELD = new ResourceLocation("item/empty_armor_slot_shield");
@@ -130,51 +135,57 @@ public final class AccessoriesMenu extends AbstractContainerMenu {
 
         var containers = capability.getContainers();
 
-        for (var group : groups.stream().sorted(Comparator.comparingInt(SlotGroup::order).reversed()).toList()) {
-            var slotNames = group.slots();
+        var slotTypes = groups.stream().sorted(Comparator.comparingInt(SlotGroup::order).reversed())
+                .flatMap(slotGroup -> {
+                    return slotGroup.slots().stream()
+                            .map(s -> {
+                                var slotType = SlotTypeLoader.getSlotType(owner.level(), s);
 
-            var slotTypes = slotNames.stream()
-                    .map(s -> SlotTypeLoader.getSlotType(owner.level(), s)) // TODO: FILTER NULLS?
-                    .sorted(Comparator.comparingInt(SlotType::order).reversed())
-                    .toList();
+                                if(this.usedSlots != null && !this.usedSlots.contains(slotType)) return null;
 
-            for (var slot : slotTypes) {
-                if(this.usedSlots != null && !this.usedSlots.contains(slot)) continue;
+                                this.validGroups.add(slotGroup);
 
-                this.validGroups.add(group);
+                                return slotType;
+                            })
+                            .filter(Objects::nonNull)
+                            .sorted(Comparator.comparingInt(SlotType::order).reversed());
+                }).toList();
 
-                var accessoryContainer = containers.get(slot.name());
+        //LOGGER.info("SlotTypes for [{}] Screen: {}", (owner.level().isClientSide() ? "client" : "server"), slotTypes);
+        //LOGGER.info("Containers for [{}] Screen: {}", (owner.level().isClientSide() ? "client" : "server"), containers.keySet());
 
-                if (accessoryContainer == null || accessoryContainer.slotType() == null) continue;
+        for (var slot : slotTypes) {
+            var accessoryContainer = containers.get(slot.name());
 
-                var size = accessoryContainer.getSize();
+            if (accessoryContainer == null || accessoryContainer.slotType() == null) continue;
 
-                for (int i = 0; i < size; i++) {
-                    int currentY = (yIndex * 18) + minY + 8;
+            var size = accessoryContainer.getSize();
 
-                    int currentX = minX;
+            for (int i = 0; i < size; i++) {
+                int currentY = (yIndex * 18) + minY + 8;
 
-                    var cosmeticSlot = new AccessoriesInternalSlot(yIndex, accessoryContainer, true, i, currentX, currentY)
-                                    .isActive((slot1) -> this.isCosmeticsOpen() && this.slotToView.getOrDefault(slot1.index, true))
-                                    .isAccessible(slot1 -> slot1.isCosmetic && isCosmeticsOpen());
+                int currentX = minX;
 
-                    cosmeticSlots.add(cosmeticSlot);
+                var cosmeticSlot = new AccessoriesInternalSlot(yIndex, accessoryContainer, true, i, currentX, currentY)
+                                .isActive((slot1) -> this.isCosmeticsOpen() && this.slotToView.getOrDefault(slot1.index, true))
+                                .isAccessible(slot1 -> slot1.isCosmetic && isCosmeticsOpen());
 
-                    slotVisibility.put(cosmeticSlot, !this.overMaxVisibleSlots);
+                cosmeticSlots.add(cosmeticSlot);
 
-                    currentX += 18 + 2;
+                slotVisibility.put(cosmeticSlot, !this.overMaxVisibleSlots);
 
-                    var baseSlot = new AccessoriesInternalSlot(yIndex, accessoryContainer, false, i, currentX, currentY)
-                                    .isActive(slot1 -> this.slotToView.getOrDefault(slot1.index, true));
+                currentX += 18 + 2;
 
-                    accessoriesSlots.add(baseSlot);
+                var baseSlot = new AccessoriesInternalSlot(yIndex, accessoryContainer, false, i, currentX, currentY)
+                                .isActive(slot1 -> this.slotToView.getOrDefault(slot1.index, true));
 
-                    slotVisibility.put(baseSlot, !this.overMaxVisibleSlots);
+                accessoriesSlots.add(baseSlot);
 
-                    yIndex++;
+                slotVisibility.put(baseSlot, !this.overMaxVisibleSlots);
 
-                    if (!this.overMaxVisibleSlots && currentY + 18 > maxY) this.overMaxVisibleSlots = true;
-                }
+                yIndex++;
+
+                if (!this.overMaxVisibleSlots && currentY + 18 > maxY) this.overMaxVisibleSlots = true;
             }
         }
 
