@@ -830,7 +830,10 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             var usedSlots = this.getMenu().usedSlots();
             if (usedSlots != null && !usedSlots.contains(slotType)) continue;
 
-            slotToSize.put(slotType.name(), containers.get(slotType.name()).getAccessories().getContainerSize());
+            var container = containers.get(slotType.name());
+            if(container == null) continue;
+
+            slotToSize.put(slotType.name(), container.getAccessories().getContainerSize());
         }
 
         int currentIndexOffset = 0;
