@@ -35,12 +35,13 @@ public class CurioInventory implements INBTSerializable<CompoundTag> {
         var livingEntity = capability.entity();
 
         if (this.markDeserialized) {
+            this.markDeserialized = false;
+
             var tagList = this.deserialized.getList("Curios", Tag.TAG_COMPOUND);
 
             readData(livingEntity, capability, tagList);
 
             this.deserialized = new CompoundTag();
-            this.markDeserialized = false;
         }
     }
 
