@@ -42,7 +42,7 @@
     "minecraft": ">=1.20.1",
     "cardinal-components-base": ">=3.0.0-0",
     "cardinal-components-entity": ">=3.0.0-0",
-    "accessories": ">=1.0.0-beta.28"
+    "accessories": ">=1.0.0-beta.31"
   },
   "custom": {
     "cardinal-components": [
