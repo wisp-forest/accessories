@@ -117,7 +117,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
             decodeJsonArray(slotElements, "slot", location, JsonElement::getAsString, s -> {
                 for (var builderEntry : slotGroups.entrySet()) {
                     if (builderEntry.getValue().slots.contains(s)) {
-                        LOGGER.error("Unable to assign a give slot [" + s + "] to the group [" + group + "] as it already exists within the group [" + builderEntry.getKey() + "]");
+                        LOGGER.error("Unable to assign a give slot [{}] to the group [{}] as it already exists within the group [{}]", s, group, builderEntry.getKey());
                         return;
                     }
                 }
@@ -125,10 +125,10 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
                 var slotType = allSlots.remove(s);
 
                 if (slotType == null) {
-                    LOGGER.warn("SlotType added to a given group without being in the main map for slots!");
+                    LOGGER.warn("SlotType added to a given group without being in the main map for slots! [Name: {}]", slotType.name());
+                } else {
+                    group.addSlot(s);
                 }
-
-                group.addSlot(s);
             });
 
             if(isShared) group.order(safeHelper(GsonHelper::getAsInt, jsonObject, "order", 100, location));
