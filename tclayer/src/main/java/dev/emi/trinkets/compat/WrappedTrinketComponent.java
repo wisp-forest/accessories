@@ -63,6 +63,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
                     LOGGER.warn("Unable to get some value leading to an error, here comes the dumping data!");
                     LOGGER.warn("Entity: {}", this.getEntity());
                     LOGGER.warn("Entity Slots: {}", EntitySlotLoader.getEntitySlots(this.getEntity()));
+                    LOGGER.warn("Current Containers: {}", this.getEntity().accessoriesCapability().getContainers());
                 }
         );
     }

@@ -1,5 +1,6 @@
 package dev.emi.trinkets.compat;
 
+import com.mojang.logging.LogUtils;
 import dev.emi.trinkets.api.LivingEntityTrinketComponent;
 import dev.emi.trinkets.api.SlotReference;
 import io.wispforest.accessories.Accessories;
@@ -11,6 +12,7 @@ import io.wispforest.accessories.data.SlotTypeLoader;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
+import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +20,8 @@ import java.util.Optional;
 import java.util.Set;
 
 public class WrappingTrinketsUtils {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     public static Optional<SlotReference> createTrinketsReference(io.wispforest.accessories.api.slot.SlotReference slotReference){
         try {
@@ -55,7 +59,7 @@ public class WrappingTrinketsUtils {
 
         if(entitySlots == null) return Map.of();
 
-        for (var group : SlotGroupLoader.INSTANCE.getGroups(false, false)) {
+        for (var group : SlotGroupLoader.INSTANCE.getGroups(isClient, false)) {
             for (var slot : group.slots()) {
                 if(!entitySlots.containsKey(slot)) continue;
 
