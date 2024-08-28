@@ -19,9 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Catch all packet for handling syncing of containers and accessories within the main container
@@ -80,22 +78,42 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
 
         var aContainerHasResized = false;
 
+        //--
+
+        Set<String> invalidSyncedContainers = new HashSet<>();
+
         for (var entry : this.updatedContainers.entrySet()) {
-            if(!containers.containsKey(entry.getKey())) continue;
+            if (!containers.containsKey(entry.getKey())) {
+                invalidSyncedContainers.add(entry.getKey());
+
+                continue;
+            }
 
             var container = containers.get(entry.getKey());
 
             ((AccessoriesContainerImpl) container).read(entry.getValue(), SerializationContext.attributes(RegistriesAttribute.of(player.level().registryAccess())), true);
 
-            if(container.getAccessories().wasNewlyConstructed()) aContainerHasResized = true;
+            if (container.getAccessories().wasNewlyConstructed()) aContainerHasResized = true;
         }
+
+        if(!invalidSyncedContainers.isEmpty()) {
+            LOGGER.warn("Unable to sync container data for the following containers: {}", invalidSyncedContainers);
+        }
+
+        //--
+
+        Set<String> invalidDirtyStackContainers = new HashSet<>();
 
         for (var entry : dirtyStacks.entrySet()) {
             var parts = entry.getKey().split("/");
 
             var slot = parts[0];
 
-            if(!containers.containsKey(slot)) continue;
+            if(!containers.containsKey(slot)) {
+                invalidDirtyStackContainers.add(slot);
+
+                continue;
+            }
 
             var container = containers.get(slot);
 
@@ -104,12 +122,24 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
             } catch (NumberFormatException ignored){}
         }
 
+        if(!invalidDirtyStackContainers.isEmpty()) {
+            LOGGER.warn("Unable to sync dirty stack data for the following containers: {}", invalidSyncedContainers);
+        }
+
+        //--
+
+        Set<String> invalidDirtyCosmeticContainers = new HashSet<>();
+
         for (var entry : dirtyCosmeticStacks.entrySet()) {
             var parts = entry.getKey().split("/");
 
             var slot = parts[0];
 
-            if(!containers.containsKey(slot)) continue;
+            if(!containers.containsKey(slot)) {
+                invalidDirtyCosmeticContainers.add(slot);
+
+                continue;
+            }
 
             var container = containers.get(slot);
 
@@ -117,6 +147,12 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
                 container.getCosmeticAccessories().setItem(Integer.parseInt(parts[1]), entry.getValue());
             } catch (NumberFormatException ignored){}
         }
+
+        if(!invalidDirtyCosmeticContainers.isEmpty()) {
+            LOGGER.warn("Unable to sync dirty stack data for the following containers: {}", invalidSyncedContainers);
+        }
+
+        //--
 
         if(player.containerMenu instanceof AccessoriesMenu menu && aContainerHasResized) {
             menu.reopenMenu();
