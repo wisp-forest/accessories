@@ -107,6 +107,10 @@ public final class CuriosApi {
     return CuriosImplMixinHooks.getEntitySlots(type, isClient);
   }
 
+  public static Map<String, ISlotType> getItemStackSlots(ItemStack stack, Level level) {
+    return CuriosApi.getItemStackSlots(stack, level.isClientSide());
+  }
+
   public static Map<String, ISlotType> getItemStackSlots(ItemStack stack, boolean isClient) {
     return CuriosImplMixinHooks.getItemStackSlots(stack, isClient);
   }
