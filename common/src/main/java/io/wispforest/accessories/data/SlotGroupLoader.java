@@ -110,7 +110,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
             if(!isShared) name = location.getNamespace() + ":" + name;
 
-            var group = new SlotGroupBuilder(name);
+            var group = slotGroups.computeIfAbsent(name, SlotGroupBuilder::new) ;
 
             var slotElements = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "slots", new JsonArray(), location);
 
