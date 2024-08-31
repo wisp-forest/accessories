@@ -18,6 +18,7 @@ import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.endec.RegistriesAttribute;
+import io.wispforest.accessories.mixin.ItemStackAccessor;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncData;
@@ -475,7 +476,7 @@ public class AccessoriesEventHandler {
             if (!defaultModifiers.isEmpty()) {
                 var attributeTooltip = new ArrayList<Component>();
 
-                addAttributeTooltip(defaultModifiers.getAttributeModifiers(false), attributeTooltip);
+                addAttributeTooltip(entity, defaultModifiers.getAttributeModifiers(false), attributeTooltip);
 
                 slotTypeToTooltipInfo.put(null, attributeTooltip);
             }
@@ -488,7 +489,7 @@ public class AccessoriesEventHandler {
 
                 var attributeTooltip = new ArrayList<Component>();
 
-                addAttributeTooltip(modifiers.getAttributeModifiers(false), attributeTooltip);
+                addAttributeTooltip(entity, modifiers.getAttributeModifiers(false), attributeTooltip);
 
                 slotTypeToTooltipInfo.put(slotType, attributeTooltip);
             }
@@ -559,40 +560,15 @@ public class AccessoriesEventHandler {
         }
     }
 
-    private static void addAttributeTooltip(Multimap<Holder<Attribute>, AttributeModifier> multimap, List<Component> tooltip) {
+    private static void addAttributeTooltip(LivingEntity entity, Multimap<Holder<Attribute>, AttributeModifier> multimap, List<Component> tooltip) {
         if (multimap.isEmpty()) return;
 
         for (Map.Entry<Holder<Attribute>, AttributeModifier> entry : multimap.entries()) {
-            AttributeModifier attributeModifier = entry.getValue();
-            double d = attributeModifier.amount();
-
-            if (attributeModifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE
-                    || attributeModifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL) {
-                d *= 100.0;
-            } else if (entry.getKey().equals(Attributes.KNOCKBACK_RESISTANCE)) {
-                d *= 10.0;
-            }
-
-            if (d > 0.0) {
-                tooltip.add(
-                        Component.translatable(
-                                        "attribute.modifier.plus." + attributeModifier.operation().id(),
-                                        ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(d),
-                                        Component.translatable(entry.getKey().value().getDescriptionId())
-                                )
-                                .withStyle(ChatFormatting.BLUE)
-                );
-            } else if (d < 0.0) {
-                d *= -1.0;
-                tooltip.add(
-                        Component.translatable(
-                                        "attribute.modifier.take." + attributeModifier.operation().id(),
-                                        ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(d),
-                                        Component.translatable(entry.getKey().value().getDescriptionId())
-                                )
-                                .withStyle(ChatFormatting.RED)
-                );
-            }
+            ((ItemStackAccessor) (Object) ItemStack.EMPTY).accessories$addModifierTooltip(
+                    tooltip::add,
+                    (entity instanceof Player player ? player : null),
+                    entry.getKey(),
+                    entry.getValue());
         }
     }
 
