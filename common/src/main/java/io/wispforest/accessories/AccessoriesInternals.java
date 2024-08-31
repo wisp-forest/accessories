@@ -40,6 +40,10 @@ public class AccessoriesInternals {
     @Nullable
     public static EquipmentSlot.Type ACCESSORIES_TYPE = null;
 
+    public static boolean isDevelopmentEnv() {
+        throw new AssertionError();
+    }
+
     /**
      * @return {@link AccessoriesHolder} attached to a given {@link LivingEntity} based on the Platforms method for getting it
      */

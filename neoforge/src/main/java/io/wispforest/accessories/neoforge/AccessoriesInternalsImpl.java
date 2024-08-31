@@ -31,6 +31,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
@@ -42,6 +43,10 @@ import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 public class AccessoriesInternalsImpl {
+
+    public static boolean isDevelopmentEnv() {
+        return !FMLLoader.isProduction();
+    }
 
     public static AccessoriesHolder getHolder(LivingEntity livingEntity){
         return livingEntity.getData(AccessoriesForge.HOLDER_ATTACHMENT_TYPE);
