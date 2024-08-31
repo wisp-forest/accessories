@@ -32,9 +32,11 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.crafting.conditions.ICondition;
 import net.minecraftforge.common.extensions.IForgeMenuType;
+import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.network.NetworkHooks;
 import net.minecraftforge.registries.ForgeRegistries;
+
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,6 +45,10 @@ import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 public class AccessoriesInternalsImpl {
+
+    public static boolean isDevelopmentEnv() {
+        return !FMLLoader.isProduction();
+    }
 
     public static AccessoriesHolder getHolder(LivingEntity livingEntity){
         return ((AttachmentTarget) livingEntity).getAttachedOrCreate(AccessoriesForge.HOLDER_ATTACHMENT_TYPE);
