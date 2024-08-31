@@ -41,6 +41,7 @@ import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurio.DropRule;
 import top.theillusivec4.curios.platform.Services;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -154,7 +155,9 @@ public interface ICurioItem {
    * @return A map of attribute modifiers to apply
    */
   default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, ResourceLocation id, ItemStack stack) {
-    return defaultInstance.getAttributeModifiers(slotContext, id);
+    var uuid = UUID.nameUUIDFromBytes(id.toString().getBytes(StandardCharsets.UTF_8));
+
+    return getAttributeModifiers(slotContext, uuid, stack);
   }
 
   default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
@@ -264,7 +267,7 @@ public interface ICurioItem {
    */
   @NotNull
   default DropRule getDropRule(SlotContext slotContext, DamageSource source, int lootingLevel, boolean recentlyHit, ItemStack stack) {
-    return defaultInstance.getDropRule(slotContext, source, lootingLevel, recentlyHit);
+    return getDropRule(slotContext, source, recentlyHit, stack);
   }
 
   default DropRule getDropRule(SlotContext slotContext, DamageSource source, boolean recentlyHit, ItemStack stack) {

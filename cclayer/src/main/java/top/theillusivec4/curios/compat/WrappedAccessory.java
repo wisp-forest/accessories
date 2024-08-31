@@ -2,6 +2,7 @@ package top.theillusivec4.curios.compat;
 
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.events.extra.*;
 import net.minecraft.core.Holder;
@@ -59,6 +60,11 @@ public class WrappedAccessory implements ICurioItem {
     }
 
     @Override
+    public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
+        return getAttributeModifiers(slotContext, ResourceLocation.withDefaultNamespace(""), stack);
+    }
+
+    @Override
     public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, ResourceLocation id, ItemStack stack) {
         var ctx = CuriosWrappingUtils.fromContext(slotContext);
         var builder = new AccessoryAttributeBuilder(ctx);
@@ -90,6 +96,11 @@ public class WrappedAccessory implements ICurioItem {
 
     @Override
     public ICurio.@NotNull DropRule getDropRule(SlotContext slotContext, DamageSource source, int lootingLevel, boolean recentlyHit, ItemStack stack) {
+        return CuriosWrappingUtils.convert(accessory.getDropRule(stack, CuriosWrappingUtils.fromContext(slotContext), source));
+    }
+
+    @Override
+    public ICurio.DropRule getDropRule(SlotContext slotContext, DamageSource source, boolean recentlyHit, ItemStack stack) {
         return CuriosWrappingUtils.convert(accessory.getDropRule(stack, CuriosWrappingUtils.fromContext(slotContext), source));
     }
 

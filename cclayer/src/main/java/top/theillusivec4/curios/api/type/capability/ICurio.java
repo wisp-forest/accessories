@@ -19,7 +19,6 @@
 
 package top.theillusivec4.curios.api.type.capability;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import net.minecraft.core.Holder;
@@ -48,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.platform.Services;
 
-import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
@@ -130,7 +129,9 @@ public interface ICurio {
    * @return A map of attribute modifiers to apply
    */
   default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, ResourceLocation id) {
-    return LinkedHashMultimap.create();
+    var uuid = UUID.nameUUIDFromBytes(id.toString().getBytes(StandardCharsets.UTF_8));
+
+    return getAttributeModifiers(slotContext, uuid);
   }
 
   default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid) {
@@ -232,7 +233,7 @@ public interface ICurio {
    */
   @NotNull
   default DropRule getDropRule(SlotContext slotContext, DamageSource source, int lootingLevel, boolean recentlyHit) {
-    return DropRule.DEFAULT;
+    return getDropRule(slotContext, source, recentlyHit);
   }
 
   @NotNull

@@ -24,8 +24,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.storage.loot.LootContext;
 import top.theillusivec4.curios.CuriosConstants;
+import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -77,13 +79,9 @@ public class WrappedCurio implements Accessory, LootingAdjustment, FortuneAdjust
     public void getDynamicModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
         var context = CuriosWrappingUtils.create(reference);
 
-        Accessory.super.getDynamicModifiers(stack, reference, builder);
-
-        //--
-
         var id = ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference));
 
-        Multimap<Holder<Attribute>, AttributeModifier> attributes = HashMultimap.create();
+        var attributes = HashMultimap.<Holder<Attribute>, AttributeModifier>create();
 
         attributes.putAll(this.iCurioItem.getAttributeModifiers(context, id, stack));
 
@@ -94,7 +92,9 @@ public class WrappedCurio implements Accessory, LootingAdjustment, FortuneAdjust
     public DropRule getDropRule(ItemStack stack, SlotReference reference, DamageSource source) {
         var context = CuriosWrappingUtils.create(reference);
 
-        return CuriosWrappingUtils.convert(this.iCurioItem.getDropRule(context, source, 0, true, stack));
+        var droprule = this.iCurioItem.getDropRule(context, source, 0, true, stack);
+
+        return CuriosWrappingUtils.convert(droprule);
     }
 
     @Override
