@@ -29,7 +29,7 @@ subprojects {
         if(!name.equals("common-mojmap")) {
             mappings loom.layered() {
                 officialMojangMappings()
-                parchment("org.parchmentmc.data:parchment-1.20.3:2023.12.31@zip")
+                parchment("org.parchmentmc.data:parchment-1.21:2024.07.28@zip")
             }
         } else {
             mappings loom.officialMojangMappings()
