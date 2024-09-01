@@ -1,6 +1,8 @@
 package io.wispforest.accessories.api.attributes;
 
 import com.google.common.collect.*;
+import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.NestedSlotReferenceImpl;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.core.Holder;
@@ -9,11 +11,9 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Builder used to collect the attribute modifications from a given Accessory with the ability
@@ -21,8 +21,10 @@ import java.util.Map;
  */
 public final class AccessoryAttributeBuilder {
 
-    private final Map<ResourceLocation, AttributeModificationData> exclusiveAttributes = new HashMap<>();
-    private final Multimap<ResourceLocation, AttributeModificationData> stackedAttributes = LinkedHashMultimap.create();
+    private final Logger LOGGER = LogUtils.getLogger();
+
+    private final Map<Holder<Attribute>, Map<ResourceLocation, AttributeModificationData>> exclusiveAttributes = new HashMap<>();
+    private final Multimap<Holder<Attribute>, AttributeModificationData> stackedAttributes = LinkedHashMultimap.create();
 
     private final SlotReference slotReference;
 
@@ -60,11 +62,23 @@ public final class AccessoryAttributeBuilder {
         return this;
     }
 
+    private final Set<ResourceLocation> previouslyWarnedLocations = new HashSet<>();
+
     /**
      * Adds a given attribute modifier as an exclusive modifier meaning that only one instance should ever exist
      */
     public AccessoryAttributeBuilder addExclusive(Holder<Attribute> attribute, AttributeModifier modifier) {
-        exclusiveAttributes.putIfAbsent(modifier.id(), new AttributeModificationData(attribute, modifier));
+        var id = modifier.id();
+
+        var innerMap = this.exclusiveAttributes.computeIfAbsent(attribute, attributeHolder -> new HashMap<>());
+
+        if(AccessoriesInternals.isDevelopmentEnv() && innerMap.containsKey(id) && !this.previouslyWarnedLocations.contains(id)) {
+            LOGGER.warn("A given Modifier was found to have a duplicate location but was added as exclusive, was such on purpose as such will not stack with the other: {}", id);
+
+            this.previouslyWarnedLocations.add(id);
+        }
+
+        innerMap.putIfAbsent(id, new AttributeModificationData(attribute, modifier));
 
         return this;
     }
@@ -74,26 +88,45 @@ public final class AccessoryAttributeBuilder {
      * step of appending slot information when adding to the living entity
      */
     public AccessoryAttributeBuilder addStackable(Holder<Attribute> attribute, AttributeModifier modifier) {
-        stackedAttributes.put(modifier.id(), new AttributeModificationData(this.slotReference.createSlotPath(), attribute, modifier));
+        this.stackedAttributes.put(attribute, new AttributeModificationData(this.slotReference.createSlotPath(), attribute, modifier));
 
         return this;
     }
 
     @Nullable
-    public AttributeModificationData getExclusive(ResourceLocation location) {
-        return this.exclusiveAttributes.get(location);
+    public AttributeModificationData getExclusive(Holder<Attribute> attribute, ResourceLocation location) {
+        var innerMap = this.exclusiveAttributes.get(attribute);
+
+        if(innerMap == null) return null;
+
+        return innerMap.get(location);
     }
 
-    public Collection<AttributeModificationData> getStacks(ResourceLocation location) {
-        return this.stackedAttributes.get(location);
+    public Collection<AttributeModificationData> getStacks(Holder<Attribute> attribute, ResourceLocation location) {
+        return this.stackedAttributes.get(attribute).stream().filter(data -> data.modifier().id().equals(location)).toList();
     }
 
-    public AttributeModificationData removeExclusive(ResourceLocation location) {
-        return this.exclusiveAttributes.remove(location);
+    @Nullable
+    public AttributeModificationData removeExclusive(Holder<Attribute> attribute, ResourceLocation location) {
+        var innerMap = this.exclusiveAttributes.get(attribute);
+
+        if(innerMap == null) return null;
+
+        return innerMap.remove(location);
     }
 
-    public Collection<AttributeModificationData> removeStacks(ResourceLocation location) {
-        return this.stackedAttributes.removeAll(location);
+    public Collection<AttributeModificationData> removeStacks(Holder<Attribute> attribute, ResourceLocation location) {
+        Set<AttributeModificationData> removedData = new HashSet<>();
+
+        for (var data : List.copyOf(this.stackedAttributes.get(attribute))) {
+            if(!data.modifier().id().equals(location)) continue;
+
+            removedData.add(data);
+
+            this.stackedAttributes.remove(attribute, data);
+        }
+
+        return removedData;
     }
 
     //--
@@ -101,10 +134,12 @@ public final class AccessoryAttributeBuilder {
     public Multimap<String, AttributeModifier> getSlotModifiers() {
         var map = LinkedHashMultimap.<String, AttributeModifier>create();
 
-        this.exclusiveAttributes.forEach((location, uniqueInstance) -> {
-            if(!(uniqueInstance.attribute().value() instanceof SlotAttribute slotAttribute)) return;
+        this.exclusiveAttributes.forEach((attribute, innerMap) -> {
+            innerMap.forEach((location, uniqueInstance) -> {
+                if(!(uniqueInstance.attribute().value() instanceof SlotAttribute slotAttribute)) return;
 
-            map.put(slotAttribute.slotName(), uniqueInstance.modifier());
+                map.put(slotAttribute.slotName(), uniqueInstance.modifier());
+            });
         });
 
         this.stackedAttributes.forEach((location, stackedInstance) -> {
@@ -119,10 +154,12 @@ public final class AccessoryAttributeBuilder {
     public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(boolean filterSlots) {
         var map = LinkedHashMultimap.<Holder<Attribute>, AttributeModifier>create();
 
-        this.exclusiveAttributes.forEach((location, uniqueInstance) -> {
-            if(filterSlots && uniqueInstance.attribute().value() instanceof SlotAttribute) return;
+        this.exclusiveAttributes.forEach((attribute, innerMap) -> {
+            innerMap.forEach((location, uniqueInstance) -> {
+                if (filterSlots && uniqueInstance.attribute().value() instanceof SlotAttribute) return;
 
-            map.put(uniqueInstance.attribute(), uniqueInstance.modifier());
+                map.put(uniqueInstance.attribute(), uniqueInstance.modifier());
+            });
         });
 
         this.stackedAttributes.forEach((location, stackedInstance) -> {
@@ -138,11 +175,11 @@ public final class AccessoryAttributeBuilder {
         return this.exclusiveAttributes.isEmpty() && this.stackedAttributes.isEmpty();
     }
 
-    public Map<ResourceLocation, AttributeModificationData> exclusiveAttributes() {
+    public Map<Holder<Attribute>, Map<ResourceLocation, AttributeModificationData>> exclusiveAttributes() {
         return ImmutableMap.copyOf(this.exclusiveAttributes);
     }
 
-    public Multimap<ResourceLocation, AttributeModificationData> stackedAttributes() {
+    public Multimap<Holder<Attribute>, AttributeModificationData> stackedAttributes() {
         return ImmutableMultimap.copyOf(this.stackedAttributes);
     }
 
@@ -151,18 +188,6 @@ public final class AccessoryAttributeBuilder {
         this.stackedAttributes.putAll(builder.stackedAttributes);
 
         return this;
-    }
-
-    // slotPath          = {slot_name}/{slot_index}[{nested_layer_info}]
-    // nested_layer_info = /nest_{layer_index}_{slot_index}
-    @Deprecated
-    public static String createSlotPath(SlotReference ref) {
-        return ref.createSlotPath();
-    }
-
-    @Deprecated
-    public static String createSlotPath(String slotname, int slot) {
-        return slotname.replace(":", "-") + "/" + slot;
     }
 
     @Override
@@ -179,5 +204,19 @@ public final class AccessoryAttributeBuilder {
         }
 
         return true;
+    }
+
+    //--
+
+    // slotPath          = {slot_name}/{slot_index}[{nested_layer_info}]
+    // nested_layer_info = /nest_{layer_index}_{slot_index}
+    @Deprecated
+    public static String createSlotPath(SlotReference ref) {
+        return ref.createSlotPath();
+    }
+
+    @Deprecated
+    public static String createSlotPath(String slotname, int slot) {
+        return slotname.replace(":", "-") + "/" + slot;
     }
 }
