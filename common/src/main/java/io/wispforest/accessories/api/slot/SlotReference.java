@@ -6,6 +6,7 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.AccessoryNest;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.endec.Endec;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
@@ -43,6 +44,18 @@ public sealed interface SlotReference permits NestedSlotReferenceImpl, SlotRefer
     int slot();
 
     //--
+
+    default boolean isValid() {
+        var capability = this.capability();
+
+        if(capability == null) return false;
+
+        var container = capability.getContainers().get(this.slotName());
+
+        if(container == null) return false;
+
+        return slot() < container.getSize();
+    }
 
     default String createSlotPath() {
         return this.slotName().replace(":", "-") + "/" + this.slot();
