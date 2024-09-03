@@ -13,6 +13,7 @@ import io.wispforest.accessories.api.events.CanUnequipCallback;
 import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.impl.AccessoryNestUtils;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.Holder;
@@ -144,11 +145,17 @@ public class AccessoriesAPI {
      * to the {@link ItemStack}'s item
      */
     public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot, boolean hideTooltipIfDisabled){
-        var component = stack.getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
+        var builder = new AccessoryAttributeBuilder();
 
-        var builder = (!hideTooltipIfDisabled || component.showInTooltip())
-                ? component.gatherAttributes(entity, slotName, slot)
-                : new AccessoryAttributeBuilder(slotName, slot);
+        AccessoryNest.attemptConsumer(stack, SlotReference.of(entity, slotName, slot), innerMap -> innerMap.forEach((entryRef, accessory) -> {
+            var component = entryRef.stack().getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
+
+            var innerBuilder = (!hideTooltipIfDisabled || component.showInTooltip())
+                    ? component.gatherAttributes(entity, slotName, slot)
+                    : new AccessoryAttributeBuilder(slotName, slot);
+
+            builder.addFrom(innerBuilder);
+        }));
 
         if(entity != null) {
             var reference = SlotReference.of(entity, slotName, slot);
