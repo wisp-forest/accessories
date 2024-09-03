@@ -2,20 +2,20 @@ package io.wispforest.accessories.api.components;
 
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.events.SlotStateChange;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public record AccessoryNestContainerContents(List<ItemStack> accessories) {
+public final class AccessoryNestContainerContents {
 
     public static final AccessoryNestContainerContents EMPTY = new AccessoryNestContainerContents(List.of());
 
@@ -24,12 +24,29 @@ public record AccessoryNestContainerContents(List<ItemStack> accessories) {
             AccessoryNestContainerContents::new
     );
 
+    private final List<ItemStack> accessories;
+
+    private final Map<Integer, SlotStateChange> slotChanges = new Int2ObjectOpenHashMap<>();
+
+    public AccessoryNestContainerContents(List<ItemStack> accessories) {
+        this.accessories = accessories;
+    }
+
     public AccessoryNestContainerContents setStack(int index, ItemStack stack) {
         var accessories = new ArrayList<>(accessories());
 
         accessories.set(index, stack);
 
-        return new AccessoryNestContainerContents(accessories);
+        var contents = new AccessoryNestContainerContents(accessories);
+
+        contents.slotChanges.putAll(slotChanges);
+        contents.slotChanges.put(index, SlotStateChange.REPLACEMENT);
+
+        return contents;
+    }
+
+    public Map<Integer, SlotStateChange> slotChanges() {
+        return this.slotChanges;
     }
 
     public Map<ItemStack, Accessory> getMap() {
@@ -55,4 +72,28 @@ public record AccessoryNestContainerContents(List<ItemStack> accessories) {
 
         return map;
     }
+
+    public List<ItemStack> accessories() {
+        return accessories;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (AccessoryNestContainerContents) obj;
+        return Objects.equals(this.accessories, that.accessories);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(accessories);
+    }
+
+    @Override
+    public String toString() {
+        return "AccessoryNestContainerContents[" +
+                "accessories=" + accessories + ']';
+    }
+
 }

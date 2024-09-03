@@ -356,6 +356,10 @@ public class AccessoriesEventHandler {
     }
 
     private static void recursiveStackChange(SlotReference slotReference, @Nullable AccessoryNestContainerContents lastNestData, @Nullable AccessoryNestContainerContents currentNestData) {
+        var currentNestChanges = (currentNestData != null)
+                ? currentNestData.slotChanges()
+                : Map.<Integer, SlotStateChange>of();
+
         var lastInnerStacks = lastNestData != null ? List.copyOf(lastNestData.getMap(slotReference).entrySet()) : List.<Map.Entry<SlotEntryReference, Accessory>>of();
         var currentInnerStacks = currentNestData != null ? List.copyOf(currentNestData.getMap(slotReference).entrySet()) : List.<Map.Entry<SlotEntryReference, Accessory>>of();
 
@@ -365,15 +369,17 @@ public class AccessoriesEventHandler {
             var lastInnerEntry = (i < lastInnerStacks.size()) ? lastInnerStacks.get(i) : null;
             var currentInnerEntry = (i < currentInnerStacks.size()) ? currentInnerStacks.get(i) : null;
 
-            if(lastInnerEntry == null && currentInnerEntry != null) {
+            var changeType = currentNestChanges.getOrDefault(i, SlotStateChange.REPLACEMENT);
+
+            if (lastInnerEntry == null && currentInnerEntry != null) {
                 var currentRef = currentInnerEntry.getKey();
 
-                AccessoryChangeCallback.EVENT.invoker().onChange(ItemStack.EMPTY, currentRef.stack(), currentRef.reference(), SlotStateChange.REPLACEMENT);
-            } else if(currentInnerEntry == null && lastInnerEntry != null) {
+                onStackChange(currentRef.reference(), ItemStack.EMPTY, currentRef.stack(), changeType);
+            } else if (currentInnerEntry == null && lastInnerEntry != null) {
                 var lastRef = lastInnerEntry.getKey();
 
-                AccessoryChangeCallback.EVENT.invoker().onChange(lastRef.stack(), ItemStack.EMPTY, lastRef.reference(), SlotStateChange.REPLACEMENT);
-            } else if(lastInnerEntry != null && currentInnerEntry != null) {
+                onStackChange(lastRef.reference(), lastRef.stack(), ItemStack.EMPTY, changeType);
+            } else if (lastInnerEntry != null && currentInnerEntry != null) {
                 var currentRef = currentInnerEntry.getKey();
                 var lastRef = lastInnerEntry.getKey();
 
@@ -382,11 +388,27 @@ public class AccessoriesEventHandler {
                 var currentInnerStack = currentRef.stack();
                 var lastInnerStack = lastRef.stack();
 
-                AccessoryChangeCallback.EVENT.invoker().onChange(lastInnerStack, currentInnerStack, innerRef, SlotStateChange.REPLACEMENT);
+                onStackChange(innerRef, lastInnerStack, currentInnerStack, changeType);
 
                 recursiveStackChange(slotReference, AccessoryNestUtils.getData(lastInnerStack), AccessoryNestUtils.getData(currentInnerStack));
             }
         }
+
+        currentNestData.slotChanges().clear();
+    }
+
+    private static void onStackChange(SlotReference slotReference, ItemStack lastStack, ItemStack currentStack, SlotStateChange stateChange) {
+        if (slotReference.entity() instanceof ServerPlayer serverPlayer) {
+            if (!currentStack.isEmpty()) {
+                ACCESSORY_EQUIPPED.trigger(serverPlayer, currentStack, slotReference, false);
+            }
+
+            if (!lastStack.isEmpty()) {
+                ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, false);
+            }
+        }
+
+        AccessoryChangeCallback.EVENT.invoker().onChange(lastStack, currentStack, slotReference, stateChange);
     }
 
     public static void getTooltipData(@Nullable LivingEntity entity, ItemStack stack, List<Component> tooltip, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {

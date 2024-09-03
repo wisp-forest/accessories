@@ -3,6 +3,7 @@ package io.wispforest.accessories.api;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
+import io.wispforest.accessories.api.events.SlotStateChange;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
@@ -160,15 +161,14 @@ public interface AccessoryNest extends Accessory {
     private static boolean checkIfChangesOccurred(ItemStack holderStack, @Nullable LivingEntity livingEntity, AccessoryNestContainerContents data) {
         boolean hasChangeOccurred = false;
 
-        for (var entry : data.getMap().entrySet()) {
-            var stack = entry.getKey();
-            var accessory = entry.getValue();
+        var accessories = data.accessories();
+
+        for (int i = 0; i < accessories.size(); i++) {
+            var stack = accessories.get(i);
 
             if(!stack.getComponentsPatch().isEmpty()){
                 hasChangeOccurred = true;
-
-                break;
-            } else if(accessory instanceof AccessoryNest) {
+            } else if(AccessoriesAPI.getOrDefaultAccessory(stack) instanceof AccessoryNest) {
                 var innerData = AccessoryNestUtils.getData(stack);
 
                 if(innerData != null) {
@@ -176,6 +176,10 @@ public interface AccessoryNest extends Accessory {
 
                     if(hasChangeOccurred) break;
                 }
+            }
+
+            if(hasChangeOccurred) {
+                data.slotChanges().putIfAbsent(i, SlotStateChange.MUTATION);
             }
         }
 
