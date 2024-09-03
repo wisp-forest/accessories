@@ -96,13 +96,9 @@ public interface AccessoryNest extends Accessory {
 
         if(data == null) return defaultValue;
 
-        var nest = (AccessoryNest) AccessoriesAPI.getAccessory(holderStack);
-
         var t = func.apply(data.getMap(slotReference));
 
-        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
-
-        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), slotReference.entity());
+        checkIfChangesOccurred(holderStack, null, data);
 
         return t;
     }
@@ -120,13 +116,9 @@ public interface AccessoryNest extends Accessory {
 
         if(data == null) return defaultValue;
 
-        var nest = (AccessoryNest) AccessoriesAPI.getAccessory(holderStack);
-
         var t = func.apply(data.getMap());
 
-        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
-
-        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), livingEntity);
+        checkIfChangesOccurred(holderStack, livingEntity, data);
 
         return t;
     }
@@ -143,13 +135,9 @@ public interface AccessoryNest extends Accessory {
 
         if(data == null) return;
 
-        var nest = (AccessoryNest) AccessoriesAPI.getAccessory(holderStack);
-
         consumer.accept(data.getMap(slotReference));
 
-        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
-
-        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), slotReference.entity());
+        checkIfChangesOccurred(holderStack, slotReference.entity(), data);
     }
 
     /**
@@ -164,13 +152,42 @@ public interface AccessoryNest extends Accessory {
 
         if (data == null) return;
 
-        var nest = (AccessoryNest) AccessoriesAPI.getAccessory(holderStack);
-
         consumer.accept(data.getMap());
 
-        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
+        checkIfChangesOccurred(holderStack, livingEntity, data);
+    }
 
-        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), livingEntity);
+    private static boolean checkIfChangesOccurred(ItemStack holderStack, @Nullable LivingEntity livingEntity, AccessoryNestContainerContents data) {
+        boolean hasChangeOccurred = false;
+
+        for (var entry : data.getMap().entrySet()) {
+            var stack = entry.getKey();
+            var accessory = entry.getValue();
+
+            if(!stack.getComponentsPatch().isEmpty()){
+                hasChangeOccurred = true;
+
+                break;
+            } else if(accessory instanceof AccessoryNest) {
+                var innerData = AccessoryNestUtils.getData(stack);
+
+                if(innerData != null) {
+                    hasChangeOccurred = checkIfChangesOccurred(stack, livingEntity, innerData);
+
+                    if(hasChangeOccurred) break;
+                }
+            }
+        }
+
+        if(hasChangeOccurred) {
+            var nest = (AccessoryNest) AccessoriesAPI.getAccessory(holderStack);
+
+            holderStack.set(AccessoriesDataComponents.NESTED_ACCESSORIES, data);
+
+            nest.onStackChanges(holderStack, data, livingEntity);
+        }
+
+        return hasChangeOccurred;
     }
 
     //--
@@ -186,7 +203,7 @@ public interface AccessoryNest extends Accessory {
      * @param data         StackData linked to the given HolderStack
      * @param livingEntity Potential Living Entity involved with any stack changes
      */
-    default void onStackChanges(ItemStack holderStack, AccessoryNestContainerContents data,  @Nullable LivingEntity livingEntity){}
+    default void onStackChanges(ItemStack holderStack, AccessoryNestContainerContents data, @Nullable LivingEntity livingEntity){}
 
     //--
 
