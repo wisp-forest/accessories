@@ -9,7 +9,9 @@ import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
+import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
 import io.wispforest.accessories.api.events.*;
+import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
@@ -283,6 +285,8 @@ public class AccessoriesEventHandler {
                         }
 
                         AccessoryChangeCallback.EVENT.invoker().onChange(lastStack, currentStack, slotReference, equipmentChange ? SlotStateChange.REPLACEMENT : SlotStateChange.MUTATION);
+
+                        recursiveStackChange(slotReference, AccessoryNestUtils.getData(lastStack), AccessoryNestUtils.getData(currentStack));
                     }
 
                     var currentCosmeticStack = cosmetics.getItem(i);
@@ -348,6 +352,40 @@ public class AccessoriesEventHandler {
             }
 
             invalidStacks.clear();
+        }
+    }
+
+    private static void recursiveStackChange(SlotReference slotReference, @Nullable AccessoryNestContainerContents lastNestData, @Nullable AccessoryNestContainerContents currentNestData) {
+        var lastInnerStacks = lastNestData != null ? List.copyOf(lastNestData.getMap(slotReference).entrySet()) : List.<Map.Entry<SlotEntryReference, Accessory>>of();
+        var currentInnerStacks = currentNestData != null ? List.copyOf(currentNestData.getMap(slotReference).entrySet()) : List.<Map.Entry<SlotEntryReference, Accessory>>of();
+
+        var maxIterationLength = Math.max(lastInnerStacks.size(), currentInnerStacks.size());
+
+        for (int i = 0; i < maxIterationLength; i++) {
+            var lastInnerEntry = (i < lastInnerStacks.size()) ? lastInnerStacks.get(i) : null;
+            var currentInnerEntry = (i < currentInnerStacks.size()) ? currentInnerStacks.get(i) : null;
+
+            if(lastInnerEntry == null && currentInnerEntry != null) {
+                var currentRef = currentInnerEntry.getKey();
+
+                AccessoryChangeCallback.EVENT.invoker().onChange(ItemStack.EMPTY, currentRef.stack(), currentRef.reference(), SlotStateChange.REPLACEMENT);
+            } else if(currentInnerEntry == null && lastInnerEntry != null) {
+                var lastRef = lastInnerEntry.getKey();
+
+                AccessoryChangeCallback.EVENT.invoker().onChange(lastRef.stack(), ItemStack.EMPTY, lastRef.reference(), SlotStateChange.REPLACEMENT);
+            } else if(lastInnerEntry != null && currentInnerEntry != null) {
+                var currentRef = currentInnerEntry.getKey();
+                var lastRef = lastInnerEntry.getKey();
+
+                var innerRef = lastRef.reference();
+
+                var currentInnerStack = currentRef.stack();
+                var lastInnerStack = lastRef.stack();
+
+                AccessoryChangeCallback.EVENT.invoker().onChange(lastInnerStack, currentInnerStack, innerRef, SlotStateChange.REPLACEMENT);
+
+                recursiveStackChange(slotReference, AccessoryNestUtils.getData(lastInnerStack), AccessoryNestUtils.getData(currentInnerStack));
+            }
         }
     }
 
