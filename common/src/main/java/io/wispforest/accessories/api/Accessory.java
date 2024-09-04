@@ -94,9 +94,7 @@ public interface Accessory {
      * @param item      The item to which the given attributes will be defaulted for
      * @param builder   The builder to which attributes are to be added
      */
-    default void getStaticModifiers(Item item, AccessoryItemAttributeModifiers.Builder builder){
-
-    }
+    default void getStaticModifiers(Item item, AccessoryItemAttributeModifiers.Builder builder){}
 
     /**
      * Returns the following drop rule for the given Item

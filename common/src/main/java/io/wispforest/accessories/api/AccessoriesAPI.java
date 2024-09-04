@@ -7,6 +7,7 @@ import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.components.AccessoryStackSizeComponent;
+import io.wispforest.accessories.api.data.AccessoriesBaseData;
 import io.wispforest.accessories.api.events.AdjustAttributeModifierCallback;
 import io.wispforest.accessories.api.events.CanEquipCallback;
 import io.wispforest.accessories.api.events.CanUnequipCallback;
@@ -403,17 +404,17 @@ public class AccessoriesAPI {
     }
 
     static {
-        registerPredicate(Accessories.of("all"), (level, slotType, i, stack) -> TriState.TRUE);
-        registerPredicate(Accessories.of("none"), (level, slotType, i, stack) -> TriState.FALSE);
-        registerPredicate(Accessories.of("tag"), (level, slotType, i, stack) -> {
+        registerPredicate(AccessoriesBaseData.ALL_PREDICATE_ID, (level, slotType, i, stack) -> TriState.TRUE);
+        registerPredicate(AccessoriesBaseData.NONE_PREDICATE_ID, (level, slotType, i, stack) -> TriState.FALSE);
+        registerPredicate(AccessoriesBaseData.TAG_PREDICATE_ID, (level, slotType, i, stack) -> {
             return (stack.is(getSlotTag(slotType)) || stack.is(ANY_ACCESSORIES)) ? TriState.TRUE : TriState.DEFAULT;
         });
-        registerPredicate(Accessories.of("relevant"), (level, slotType, i, stack) -> {
+        registerPredicate(AccessoriesBaseData.RELEVANT_PREDICATE_ID, (level, slotType, i, stack) -> {
             var bl = !getAttributeModifiers(stack, null, slotType.name(), i).getAttributeModifiers(false).isEmpty();
 
             return bl ? TriState.TRUE : TriState.DEFAULT;
         });
-        registerPredicate(Accessories.of("component"), (level, slotType, index, stack) -> {
+        registerPredicate(AccessoriesBaseData.COMPONENT_PREDICATE_ID, (level, slotType, index, stack) -> {
             if(stack.has(AccessoriesDataComponents.SLOT_VALIDATION)) {
                 var slotValidationData = stack.get(AccessoriesDataComponents.SLOT_VALIDATION);
                 var name = slotType.name();
