@@ -358,7 +358,7 @@ public class AccessoriesEventHandler {
     private static void recursiveStackChange(SlotReference slotReference, @Nullable AccessoryNestContainerContents lastNestData, @Nullable AccessoryNestContainerContents currentNestData) {
         var currentNestChanges = (currentNestData != null)
                 ? currentNestData.slotChanges()
-                : Map.<Integer, SlotStateChange>of();
+                : new HashMap<Integer, SlotStateChange>();
 
         var lastInnerStacks = lastNestData != null ? List.copyOf(lastNestData.getMap(slotReference).entrySet()) : List.<Map.Entry<SlotEntryReference, Accessory>>of();
         var currentInnerStacks = currentNestData != null ? List.copyOf(currentNestData.getMap(slotReference).entrySet()) : List.<Map.Entry<SlotEntryReference, Accessory>>of();
@@ -373,12 +373,18 @@ public class AccessoriesEventHandler {
 
             if (lastInnerEntry == null && currentInnerEntry != null) {
                 var currentRef = currentInnerEntry.getKey();
+                var currentInnerStack = currentRef.stack();
 
                 onStackChange(currentRef.reference(), ItemStack.EMPTY, currentRef.stack(), changeType);
+
+                recursiveStackChange(slotReference, null, AccessoryNestUtils.getData(currentInnerStack));
             } else if (currentInnerEntry == null && lastInnerEntry != null) {
                 var lastRef = lastInnerEntry.getKey();
+                var lastInnerStack = lastRef.stack();
 
                 onStackChange(lastRef.reference(), lastRef.stack(), ItemStack.EMPTY, changeType);
+
+                recursiveStackChange(slotReference, AccessoryNestUtils.getData(lastInnerStack), null);
             } else if (lastInnerEntry != null && currentInnerEntry != null) {
                 var currentRef = currentInnerEntry.getKey();
                 var lastRef = lastInnerEntry.getKey();
@@ -394,7 +400,7 @@ public class AccessoriesEventHandler {
             }
         }
 
-        currentNestData.slotChanges().clear();
+        currentNestChanges.clear();
     }
 
     private static void onStackChange(SlotReference slotReference, ItemStack lastStack, ItemStack currentStack, SlotStateChange stateChange) {
