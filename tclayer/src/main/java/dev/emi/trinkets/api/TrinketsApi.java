@@ -174,7 +174,9 @@ public class TrinketsApi implements EntityComponentInitializer {
             var reference = io.wispforest.accessories.api.slot.SlotReference.of(entity, ref.inventory().getSlotType().getName(), ref.index());
             var builder = new AccessoryAttributeBuilder(reference);
 
-            AccessoriesAPI.getAccessory(stack).getDynamicModifiers(stack, reference, builder);
+            var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+
+            if(accessory != null) accessory.getDynamicModifiers(stack, reference, builder);
 
             if (!builder.getAttributeModifiers(false).isEmpty()) return TriState.TRUE;
             return TriState.DEFAULT;
