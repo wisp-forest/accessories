@@ -187,7 +187,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
                 AttributeUtils.removeTransientAttributeModifiers(livingEntity, AccessoriesAPI.getAttributeModifiers(invalidStack, slotReference));
 
-                var accessory = AccessoriesAPI.getAccessory(invalidStack);
+                var accessory = AccessoriesAPI.getOrDefaultAccessory(invalidStack);
 
                 if (accessory != null) accessory.onUnequip(invalidStack, slotReference);
 

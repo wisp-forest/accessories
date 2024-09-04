@@ -13,10 +13,7 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.components.AccessoriesDataComponents;
-import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
-import io.wispforest.accessories.api.components.AccessorySlotValidationComponent;
-import io.wispforest.accessories.api.components.AccessoryStackSizeComponent;
+import io.wispforest.accessories.api.components.*;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
@@ -28,6 +25,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -85,6 +83,26 @@ public class AccessoriesCommands {
                                                     ? 1
                                                     : 0;
                                         })
+                        )
+                        .then(
+                                Commands.literal("nest")
+                                        .then(
+                                                Commands.argument("item", ItemArgument.item(context))
+                                                        .executes((ctx) -> {
+                                                            var player = ctx.getSource().getPlayerOrException();
+
+                                                            var stack = player.getMainHandItem();
+
+                                                            var innerStack = ItemArgument.getItem(ctx, "item").createItemStack(1, false);
+
+                                                            stack.update(
+                                                                    AccessoriesDataComponents.NESTED_ACCESSORIES,
+                                                                    AccessoryNestContainerContents.EMPTY,
+                                                                    data -> data.addStack(innerStack));
+
+                                                            return 1;
+                                                        })
+                                        )
                         )
                         .then(
                                 Commands.literal("slot")

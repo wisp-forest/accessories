@@ -81,11 +81,15 @@ public class CuriosImplMixinHooks {
   }
 
   public static Optional<ICurioItem> getCurioFromRegistry(Item item) {
-    var iCurioItem = REGISTRY.get(item);
+    return getCurioFromRegistry(item.getDefaultInstance());
+  }
+
+  public static Optional<ICurioItem> getCurioFromRegistry(ItemStack itemStack) {
+    var iCurioItem = REGISTRY.get(itemStack.getItem());
 
     if(iCurioItem != null) return Optional.of(iCurioItem);
 
-    return Optional.of(new WrappedAccessory(AccessoriesAPI.getOrDefaultAccessory(item)));
+    return Optional.of(new WrappedAccessory(AccessoriesAPI.getOrDefaultAccessory(itemStack)));
   }
 
   public static Optional<ISlotType> getSlot(String id) {

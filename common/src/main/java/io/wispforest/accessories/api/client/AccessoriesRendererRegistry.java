@@ -51,7 +51,7 @@ public class AccessoriesRendererRegistry {
         if(shouldOverride != TriState.DEFAULT) {
             if(shouldOverride.get()) {
                 return DefaultAccessoryRenderer.INSTANCE;
-            } else if(AccessoriesAPI.getOrDefaultAccessory(stack.getItem()) == AccessoriesAPI.defaultAccessory()) {
+            } else if(AccessoriesAPI.isDefaultAccessory(AccessoriesAPI.getOrDefaultAccessory(stack))) {
                 return null;
             }
         }

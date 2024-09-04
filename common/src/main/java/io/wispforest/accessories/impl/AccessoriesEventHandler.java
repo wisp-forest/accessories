@@ -10,6 +10,7 @@ import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
+import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.*;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
@@ -75,7 +76,7 @@ public class AccessoriesEventHandler {
     }
 
     public static void revalidatePlayersOnReload(PlayerList playerList) {
-        if(!dataReloadOccurred) return;
+        if (!dataReloadOccurred) return;
 
         for (var player : playerList.getPlayers()) revalidatePlayer(player);
 
@@ -143,7 +144,7 @@ public class AccessoriesEventHandler {
 
         var capability = AccessoriesCapability.get(serverPlayer);
 
-        if(capability == null) return;
+        if (capability == null) return;
 
         var carrier = NbtMapCarrier.of();
 
@@ -155,7 +156,7 @@ public class AccessoriesEventHandler {
     public static void onTracking(LivingEntity entity, ServerPlayer serverPlayer) {
         var capability = AccessoriesCapability.get(entity);
 
-        if(capability == null) return;
+        if (capability == null) return;
 
         var carrier = NbtMapCarrier.of();
 
@@ -177,7 +178,7 @@ public class AccessoriesEventHandler {
 
                 var capability = AccessoriesCapability.get(playerEntry);
 
-                if(capability == null) return;
+                if (capability == null) return;
 
                 var carrier = NbtMapCarrier.of();
 
@@ -185,7 +186,7 @@ public class AccessoriesEventHandler {
 
                 networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(capability.entity().getId(), carrier));
 
-                if(playerEntry.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
+                if (playerEntry.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
                     Accessories.openAccessoriesMenu(playerEntry, accessoriesMenu.targetEntity());
                 }
             }
@@ -196,7 +197,7 @@ public class AccessoriesEventHandler {
 
             var capability = AccessoriesCapability.get(player);
 
-            if(capability == null) return;
+            if (capability == null) return;
 
             var carrier = NbtMapCarrier.of();
 
@@ -204,14 +205,14 @@ public class AccessoriesEventHandler {
 
             networkHandler.sendToPlayer(player, new SyncEntireContainer(capability.entity().getId(), carrier));
 
-            if(player.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
+            if (player.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
                 Accessories.openAccessoriesMenu(player, accessoriesMenu.targetEntity());
             }
         }
     }
 
     public static void onLivingEntityTick(LivingEntity entity) {
-        if(entity.isRemoved()) return;
+        if (entity.isRemoved()) return;
 
         var capability = AccessoriesCapability.get(entity);
 
@@ -226,7 +227,7 @@ public class AccessoriesEventHandler {
                 var container = containerEntry.getValue();
                 var slotType = container.slotType();
 
-                var accessories = (ExpandedSimpleContainer) container.getAccessories();
+                var accessories = container.getAccessories();
                 var cosmetics = container.getCosmeticAccessories();
 
                 for (int i = 0; i < accessories.getContainerSize(); i++) {
@@ -241,7 +242,7 @@ public class AccessoriesEventHandler {
                         // TODO: Document this behavior to prevent double ticking maybe!!!
                         currentStack.inventoryTick(entity.level(), entity, -1, false);
 
-                        var accessory = AccessoriesAPI.getAccessory(currentStack);
+                        var accessory = AccessoriesAPI.getOrDefaultAccessory(currentStack);
 
                         if (accessory != null) accessory.tick(currentStack, slotReference);
                     }
@@ -268,8 +269,8 @@ public class AccessoriesEventHandler {
                          * TODO: Does item check need to exist anymore?
                          */
                         if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlagged(i)) {
-                            AccessoriesAPI.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);
-                            AccessoriesAPI.getOrDefaultAccessory(currentStack.getItem()).onEquip(currentStack, slotReference);
+                            AccessoriesAPI.getOrDefaultAccessory(lastStack).onUnequip(lastStack, slotReference);
+                            AccessoriesAPI.getOrDefaultAccessory(currentStack).onEquip(currentStack, slotReference);
 
                             if (entity instanceof ServerPlayer serverPlayer) {
                                 if (!currentStack.isEmpty()) {
@@ -336,7 +337,8 @@ public class AccessoriesEventHandler {
 
         var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
 
-        if(holder.loadedFromTag && capability == null) {
+        // Fix for holder data not being loaded so invalid stacks can be collected
+        if (holder.loadedFromTag && capability == null) {
             var tempCapability = new AccessoriesCapabilityImpl(entity);
         }
 
@@ -421,7 +423,8 @@ public class AccessoriesEventHandler {
         var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
         if (accessory != null) {
-            if(entity != null && AccessoriesCapability.get(entity) != null) addEntityBasedTooltipData(entity, accessory, stack, tooltip, tooltipContext, tooltipType);
+            if (entity != null && AccessoriesCapability.get(entity) != null)
+                addEntityBasedTooltipData(entity, accessory, stack, tooltip, tooltipContext, tooltipType);
 
             accessory.getExtraTooltip(stack, tooltip, tooltipContext, tooltipType);
         }
@@ -460,7 +463,7 @@ public class AccessoriesEventHandler {
 
             var differenceSlotTypes = Sets.difference(entitySlotTypes, validSlotTypes);
 
-            if(differenceSlotTypes.size() < validSlotTypes.size()) {
+            if (differenceSlotTypes.size() < validSlotTypes.size()) {
                 slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
                 slotsComponent.append(Component.literal(" except ").withStyle(ChatFormatting.GRAY));
 
@@ -490,7 +493,7 @@ public class AccessoriesEventHandler {
             }
         }
 
-        if(!validUniqueSlots.isEmpty()) {
+        if (!validUniqueSlots.isEmpty()) {
             var uniqueSlotTypes = List.copyOf(validUniqueSlots);
 
             for (int i = 0; i < uniqueSlotTypes.size(); i++) {
@@ -589,7 +592,7 @@ public class AccessoriesEventHandler {
             });
         }
 
-        if(slotTypeToTooltipInfo.containsKey(null)) {
+        if (slotTypeToTooltipInfo.containsKey(null)) {
             var anyTooltipInfo = slotTypeToTooltipInfo.get(null);
 
             if (anyTooltipInfo.size() > 0) {
@@ -606,11 +609,11 @@ public class AccessoriesEventHandler {
             slotTypeToTooltipInfo.remove(null);
         }
 
-        if(!slotTypeToTooltipInfo.isEmpty()) {
+        if (!slotTypeToTooltipInfo.isEmpty()) {
             for (var entry : slotTypeToTooltipInfo.entrySet()) {
                 var tooltipData = entry.getValue();
 
-                if(tooltipData.size() == 0) continue;
+                if (tooltipData.size() == 0) continue;
 
                 tooltip.add(CommonComponents.EMPTY);
 
@@ -682,7 +685,7 @@ public class AccessoriesEventHandler {
     @Nullable
     private static ItemStack dropStack(DropRule dropRule, LivingEntity entity, Container container, SlotReference reference, DamageSource source) {
         var stack = container.getItem(reference.slot());
-        var accessory = AccessoriesAPI.getAccessory(stack);
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
         if (accessory != null && dropRule == DropRule.DEFAULT) {
             dropRule = accessory.getDropRule(stack, reference, source);
@@ -742,14 +745,14 @@ public class AccessoriesEventHandler {
 
         var capability = AccessoriesCapability.get(player);
 
-        if(capability != null && !player.isSpectator() && !stack.isEmpty()) {
+        if (capability != null && !player.isSpectator() && !stack.isEmpty()) {
             var equipControl = capability.getHolder().equipControl();
 
             var shouldAttemptEquip = false;
 
-            if(equipControl == PlayerEquipControl.MUST_CROUCH && player.isShiftKeyDown()) {
+            if (equipControl == PlayerEquipControl.MUST_CROUCH && player.isShiftKeyDown()) {
                 shouldAttemptEquip = true;
-            } else if(equipControl == PlayerEquipControl.MUST_NOT_CROUCH && !player.isShiftKeyDown()) {
+            } else if (equipControl == PlayerEquipControl.MUST_NOT_CROUCH && !player.isShiftKeyDown()) {
                 shouldAttemptEquip = true;
             }
 
@@ -765,12 +768,12 @@ public class AccessoriesEventHandler {
 
                     var possibleSwappedStack = equipReference.second().equipStack(newHandStack);
 
-                    if(possibleSwappedStack.isPresent()) {
+                    if (possibleSwappedStack.isPresent()) {
                         var swappedStack = possibleSwappedStack.get();
 
                         if (newHandStack.isEmpty()) {
                             newHandStack = swappedStack;
-                        } else if(ItemStack.isSameItemSameComponents(newHandStack, swappedStack) && (newHandStack.getCount() + swappedStack.getCount()) <= newHandStack.getMaxStackSize()) {
+                        } else if (ItemStack.isSameItemSameComponents(newHandStack, swappedStack) && (newHandStack.getCount() + swappedStack.getCount()) <= newHandStack.getMaxStackSize()) {
                             newHandStack.grow(swappedStack.getCount());
                         } else {
                             player.addItem(swappedStack);
@@ -785,12 +788,11 @@ public class AccessoriesEventHandler {
         return InteractionResultHolder.pass(stack);
     }
 
-    public static final TagKey<EntityType<?>> EQUIPMENT_MANAGEABLE = TagKey.create(Registries.ENTITY_TYPE, Accessories.of("equipment_manageable"));
-
     public static InteractionResult attemptEquipOnEntity(Player player, InteractionHand hand, Entity entity) {
         var stack = player.getItemInHand(hand);
 
-        if(!(entity instanceof LivingEntity targetEntity) || !entity.getType().is(EQUIPMENT_MANAGEABLE)) return InteractionResult.PASS;
+        if (!(entity instanceof LivingEntity targetEntity) || !entity.getType().is(AccessoriesTags.EQUIPMENT_MANAGEABLE))
+            return InteractionResult.PASS;
 
         var targetCapability = AccessoriesCapability.get(targetEntity);
 
@@ -803,18 +805,18 @@ public class AccessoriesEventHandler {
                 var equipReference = targetCapability.canEquipAccessory(stack, true);
 
                 if (equipReference != null && accessory.canEquipFromUse(stack)) {
-                    if(!stack.isEmpty()) accessory.onEquipFromUse(stack, equipReference.left());
+                    if (!stack.isEmpty()) accessory.onEquipFromUse(stack, equipReference.left());
 
                     var newHandStack = stack.copy();
 
                     var possibleSwappedStack = equipReference.second().equipStack(newHandStack);
 
-                    if(possibleSwappedStack.isPresent()) {
+                    if (possibleSwappedStack.isPresent()) {
                         var swappedStack = possibleSwappedStack.get();
 
                         if (newHandStack.isEmpty()) {
                             newHandStack = swappedStack;
-                        } else if(ItemStack.isSameItemSameComponents(newHandStack, swappedStack) && (newHandStack.getCount() + swappedStack.getCount()) <= newHandStack.getMaxStackSize()) {
+                        } else if (ItemStack.isSameItemSameComponents(newHandStack, swappedStack) && (newHandStack.getCount() + swappedStack.getCount()) <= newHandStack.getMaxStackSize()) {
                             newHandStack.grow(swappedStack.getCount());
                         } else {
                             player.addItem(swappedStack);
@@ -837,7 +839,7 @@ public class AccessoriesEventHandler {
 
             accessory.getStaticModifiers(item, builder);
 
-            if(!builder.isEmpty()) {
+            if (!builder.isEmpty()) {
                 callback.addTo(item, AccessoriesDataComponents.ATTRIBUTES, builder.build());
             }
         });

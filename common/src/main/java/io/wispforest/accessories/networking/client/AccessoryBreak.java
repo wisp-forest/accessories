@@ -37,7 +37,7 @@ public record AccessoryBreak(int entityId, String slotName, int slotIndex) imple
 
         var stack = container.getAccessories().getItem(slotReference.slot());
 
-        var accessory = AccessoriesAPI.getAccessory(stack);
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
         if(accessory != null) accessory.onBreak(stack, slotReference);
     }

@@ -136,7 +136,7 @@ public class CCLayer {
 
     public static final ICapabilityProvider<ItemStack, Void, ICurio> BASE_PROVIDER = (stack, ctx) -> {
         Item it = stack.getItem();
-        ICurioItem curioItem = CuriosImplMixinHooks.getCurioFromRegistry(it).orElse(null);
+        ICurioItem curioItem = CuriosImplMixinHooks.getCurioFromRegistry(stack).orElse(null);
 
         if (curioItem == null && it instanceof ICurioItem itemCurio) {
             curioItem = itemCurio;

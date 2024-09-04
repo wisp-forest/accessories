@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.attributes.SlotAttribute;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.MinecraftEndecs;
@@ -13,6 +14,7 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -155,9 +157,10 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
                     }
 
                     return context.requireAttributeValue(RegistriesAttribute.REGISTRIES)
-                            .registryManager()
-                            .registryOrThrow(Registries.ATTRIBUTE)
-                            .getHolder(attributeType)
+                            .infoGetter().lookup(Registries.ATTRIBUTE)
+                            .orElseThrow(IllegalStateException::new)
+                            .getter()
+                            .get(ResourceKey.create(Registries.ATTRIBUTE, attributeType))
                             .orElseThrow(IllegalStateException::new);
                 },
                 (context, attributeHolder) -> {

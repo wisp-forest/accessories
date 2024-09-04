@@ -184,7 +184,7 @@ public interface AccessoryNest extends Accessory {
         }
 
         if(hasChangeOccurred) {
-            var nest = (AccessoryNest) AccessoriesAPI.getAccessory(holderStack);
+            var nest = (AccessoryNest) AccessoriesAPI.getOrDefaultAccessory(holderStack);
 
             holderStack.set(AccessoriesDataComponents.NESTED_ACCESSORIES, data);
 
@@ -197,7 +197,7 @@ public interface AccessoryNest extends Accessory {
     //--
 
     static boolean isAccessoryNest(ItemStack holderStack) {
-        return AccessoriesAPI.getAccessory(holderStack) instanceof AccessoryNest;
+        return AccessoriesAPI.getOrDefaultAccessory(holderStack) instanceof AccessoryNest;
     }
 
     /**

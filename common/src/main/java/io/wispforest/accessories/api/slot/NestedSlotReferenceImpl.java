@@ -82,7 +82,7 @@ public record NestedSlotReferenceImpl(LivingEntity entity, String slotName, int 
 
     @Nullable
     private static Pair<NestLayer, ItemStack> tryAndGet(ItemStack holderStack, int innerIndex) {
-        var accessory = AccessoriesAPI.getAccessory(holderStack);
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(holderStack);
 
         if(!(accessory instanceof AccessoryNest accessoryNest)) return null;
 

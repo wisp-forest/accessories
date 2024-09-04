@@ -57,6 +57,18 @@ public class AccessoriesAPI {
         }
     };
 
+    @ApiStatus.Internal
+    private static final AccessoryNest DEFAULT_NEST = new AccessoryNest() {
+        @Override
+        public int maxStackSize(ItemStack stack) {
+            var data = stack.getOrDefault(AccessoriesDataComponents.STACK_SIZE, AccessoryStackSizeComponent.DEFAULT);
+
+            if(data.useStackSize()) return stack.getMaxStackSize();
+
+            return Math.min(Math.max(data.sizeOverride(), 1), stack.getMaxStackSize());
+        }
+    };
+
     private static final Map<ResourceLocation, SlotBasedPredicate> PREDICATE_REGISTRY = new HashMap<>();
 
     private static final Map<Item, Accessory> REGISTER = new HashMap<>();
@@ -95,14 +107,20 @@ public class AccessoriesAPI {
      * @return the accessory bound to this stack or {@link #defaultAccessory()} if there is none
      */
     public static Accessory getOrDefaultAccessory(ItemStack stack){
-        return getOrDefaultAccessory(stack.getItem());
+        var accessory = REGISTER.get(stack.getItem());
+
+        if(accessory == null) {
+            accessory = stack.has(AccessoriesDataComponents.NESTED_ACCESSORIES) ? DEFAULT_NEST : DEFAULT;
+        }
+
+        return accessory;
     }
 
     /**
      * @return the accessory bound to this item or {@link #defaultAccessory()} if there is none
      */
     public static Accessory getOrDefaultAccessory(Item item){
-        return REGISTER.getOrDefault(item, defaultAccessory());
+        return REGISTER.getOrDefault(item, DEFAULT);
     }
 
     /**
@@ -112,12 +130,17 @@ public class AccessoriesAPI {
         return DEFAULT;
     }
 
+    public static boolean isDefaultAccessory(Accessory accessory) {
+        return accessory == DEFAULT || accessory == DEFAULT_NEST;
+    }
+
     /**
      * @return If a given {@link ItemStack} is found either to have an {@link Accessory} besides the
      * default or if the given stack has valid slots which it can be equipped
      */
     public static boolean isValidAccessory(ItemStack stack, Level level){
-        return getAccessory(stack) != null || !getStackSlotTypes(level, stack).isEmpty();
+        return !isDefaultAccessory(getOrDefaultAccessory(stack))
+                || !getStackSlotTypes(level, stack).isEmpty();
     }
 
     //--

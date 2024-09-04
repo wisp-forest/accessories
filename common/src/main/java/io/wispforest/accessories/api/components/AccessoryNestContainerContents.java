@@ -45,6 +45,21 @@ public final class AccessoryNestContainerContents {
         return contents;
     }
 
+    public AccessoryNestContainerContents addStack(ItemStack stack) {
+        var accessories = new ArrayList<>(accessories());
+
+        var index = accessories.size();
+
+        accessories.add(stack);
+
+        var contents = new AccessoryNestContainerContents(accessories);
+
+        contents.slotChanges.putAll(slotChanges);
+        contents.slotChanges.put(index, SlotStateChange.REPLACEMENT);
+
+        return contents;
+    }
+
     public Map<Integer, SlotStateChange> slotChanges() {
         return this.slotChanges;
     }
