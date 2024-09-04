@@ -147,25 +147,25 @@ public class AccessoriesAPI {
     public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot, boolean hideTooltipIfDisabled){
         var builder = new AccessoryAttributeBuilder();
 
-        AccessoryNest.attemptConsumer(stack, SlotReference.of(entity, slotName, slot), innerMap -> innerMap.forEach((entryRef, accessory) -> {
-            var component = entryRef.stack().getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
+        var slotReference = SlotReference.of(entity, slotName, slot);
+
+        AccessoryNestUtils.recursiveStackConsumption(stack, slotReference, (innerStack, innerRef) -> {
+            var component = innerStack.getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
 
             var innerBuilder = (!hideTooltipIfDisabled || component.showInTooltip())
-                    ? component.gatherAttributes(entity, slotName, slot)
+                    ? component.gatherAttributes(innerRef)
                     : new AccessoryAttributeBuilder(slotName, slot);
 
             builder.addFrom(innerBuilder);
-        }));
+        });
 
         if(entity != null) {
-            var reference = SlotReference.of(entity, slotName, slot);
-
             //TODO: Decide if the presence of modifiers prevents the accessory modifiers from existing
             var accessory = AccessoriesAPI.getAccessory(stack);
 
-            if(accessory != null) accessory.getDynamicModifiers(stack, reference, builder);
+            if(accessory != null) accessory.getDynamicModifiers(stack, slotReference, builder);
 
-            AdjustAttributeModifierCallback.EVENT.invoker().adjustAttributes(stack, reference, builder);
+            AdjustAttributeModifierCallback.EVENT.invoker().adjustAttributes(stack, slotReference, builder);
         }
 
         return builder;
