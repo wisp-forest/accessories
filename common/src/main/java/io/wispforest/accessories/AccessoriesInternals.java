@@ -40,6 +40,7 @@ public class AccessoriesInternals {
     @Nullable
     public static EquipmentSlot.Type ACCESSORIES_TYPE = null;
 
+    @ExpectPlatform
     public static boolean isDevelopmentEnv() {
         throw new AssertionError();
     }
