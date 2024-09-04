@@ -95,18 +95,20 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
         return new AccessoryItemAttributeModifiers(builder.build(), this.showInTooltip());
     }
 
-    public AccessoryAttributeBuilder gatherAttributes(LivingEntity entity, String slotName, int slot) {
-        var builder = new AccessoryAttributeBuilder(slotName, slot);
+    @ApiStatus.Internal
+    public AccessoryAttributeBuilder gatherAttributes(SlotReference slotReference) {
+        var builder = new AccessoryAttributeBuilder(slotReference);
 
         if(this.modifiers().isEmpty()) return builder;
 
+        var entity = slotReference.entity();
         var slots = (entity != null) ? SlotTypeLoader.getSlotTypes(entity.level()) : Map.of();
 
         for (var entry : this.modifiers()) {
             var modifer = entry.modifier();
             var slotTarget = entry.slotName();
 
-            if(slots.containsKey(slotTarget) || slotName.equals(slotTarget) || slotTarget.equals("any")) {
+            if(slots.containsKey(slotTarget) || slotReference.slotName().equals(slotTarget) || slotTarget.equals("any")) {
                 if (entry.isStackable()) {
                     builder.addStackable(entry.attribute(), AttributeUtils.getLocation(modifer.getName()), modifer.getAmount(), modifer.getOperation());
                 } else {
