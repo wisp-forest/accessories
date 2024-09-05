@@ -1,11 +1,9 @@
 package io.wispforest.accessories.api.components;
 
-import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public record AccessorySlotValidationComponent(Set<String> validSlotOverrides, Set<String> invalidSlotOverrides) {

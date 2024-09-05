@@ -10,7 +10,6 @@ import io.wispforest.accessories.impl.AccessoryNestUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.*;
@@ -20,7 +19,7 @@ public final class AccessoryNestContainerContents {
     public static final AccessoryNestContainerContents EMPTY = new AccessoryNestContainerContents(List.of());
 
     public static final Endec<AccessoryNestContainerContents> ENDEC = StructEndecBuilder.of(
-            CodecUtils.ofCodec(ItemStack.OPTIONAL_CODEC).listOf().fieldOf("accessories", AccessoryNestContainerContents::accessories),
+            CodecUtils.toEndec(ItemStack.OPTIONAL_CODEC).listOf().fieldOf("accessories", AccessoryNestContainerContents::accessories),
             AccessoryNestContainerContents::new
     );
 

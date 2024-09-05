@@ -5,8 +5,9 @@ import com.mojang.logging.LogUtils;
 import com.mojang.math.Axis;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.api.components.AccessoryRenderTransformations;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.compat.AccessoriesConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -64,9 +65,23 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
 
         Consumer<PoseStack> render = (poseStack) -> Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
 
-        var helper = slotToHelpers.get(reference.slotName());
+        var translationData = stack.getOrDefault(AccessoriesDataComponents.RENDER_TRANSFORMATIONS, AccessoryRenderTransformations.EMPTY);
 
-        if(helper != null) helper.render(render, matrices, humanoidModel, reference);
+        Consumer<PoseStack> translationAndRender = poseStack -> {
+            ClientTransformationUtils.transformStack(translationData.transformations(), poseStack, humanoidModel, () -> {
+                render.accept(poseStack);
+            });
+        };
+
+        if(!translationData.disableDefaultTranslations()) {
+            var helper = slotToHelpers.get(reference.slotName());
+
+            if (helper != null) {
+                helper.render(translationAndRender, matrices, humanoidModel, reference);
+            }
+        } else {
+            translationAndRender.accept(matrices);
+        }
     }
 
     @Override

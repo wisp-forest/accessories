@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-@Debug(export = true)
 @Mixin(EntitySlotLoader.class)
 public abstract class EntitySlotLoaderMixin {
 

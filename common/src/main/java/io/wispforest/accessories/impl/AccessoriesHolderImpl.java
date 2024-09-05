@@ -139,10 +139,11 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     public void init(AccessoriesCapability capability) {
         var livingEntity = capability.entity();
 
-        this.slotContainers.clear();
-        //this.invalidStacks.clear();
+        //this.slotContainers.clear();
 
         var entitySlots = EntitySlotLoader.getEntitySlots(livingEntity);
+
+        //LOGGER.error("Entity Slots for [{}]: {}", livingEntity, entitySlots.keySet());
 
         if(livingEntity instanceof Player && entitySlots.isEmpty()) {
             LOGGER.warn("It seems the given player has no slots bound to it within a init call, is that desired?");

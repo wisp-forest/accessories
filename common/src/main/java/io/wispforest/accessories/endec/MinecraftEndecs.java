@@ -47,8 +47,8 @@ public class MinecraftEndecs {
             });
 
     public static final Endec<ResourceLocation> IDENTIFIER = Endec.STRING.xmap(ResourceLocation::parse, ResourceLocation::toString);
-    public static final Endec<ItemStack> ITEM_STACK = CodecUtils.ofCodec(ItemStack.OPTIONAL_CODEC);
-    public static final Endec<Component> TEXT = CodecUtils.ofCodec(ComponentSerialization.CODEC);
+    public static final Endec<ItemStack> ITEM_STACK = CodecUtils.toEndec(ItemStack.OPTIONAL_CODEC);
+    public static final Endec<Component> TEXT = CodecUtils.toEndec(ComponentSerialization.CODEC);
 
     public static final Endec<Vec3i> VEC3I = vectorEndec("Vec3i", Endec.INT, Vec3i::new, Vec3i::getX, Vec3i::getY, Vec3i::getZ);
     public static final Endec<Vec3> VEC3D = vectorEndec("Vec3d", Endec.DOUBLE, Vec3::new, Vec3::x, Vec3::y, Vec3::z);
