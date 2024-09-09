@@ -5,6 +5,7 @@ import dev.emi.trinkets.api.LivingEntityTrinketComponent;
 import dev.emi.trinkets.api.SlotReference;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
@@ -12,6 +13,7 @@ import io.wispforest.accessories.data.SlotTypeLoader;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
@@ -69,6 +71,22 @@ public class WrappingTrinketsUtils {
         }
 
         return groups;
+    }
+
+    public static SlotGroup getGroup(Level level, String accessoriesSlot) {
+        var groups = SlotGroupLoader.getGroups(level, false);
+
+        var foundGroup = SlotGroupLoader.getGroup(level, "unsorted").get();
+
+        for (var group : groups) {
+            if(group.slots().contains(accessoriesSlot)) {
+                foundGroup = group;
+
+                break;
+            }
+        }
+
+        return foundGroup;
     }
 
     public static final Set<String> defaultSlots = Set.of("anklet", "back", "belt", "cape", "charm", "face", "hand", "hat", "necklace", "ring", "shoes", "wrist");
