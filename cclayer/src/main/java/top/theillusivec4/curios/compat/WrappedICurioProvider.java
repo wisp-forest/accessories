@@ -87,11 +87,7 @@ public class WrappedICurioProvider implements Accessory, LootingAdjustment, Fort
 
         var id = ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference));
 
-        Multimap<Holder<Attribute>, AttributeModifier> attributes = HashMultimap.create();
-
-        attributes.putAll(this.iCurio(stack).getAttributeModifiers(context, id));
-
-        CuriosWrappingUtils.getAttributeModifiers(attributes, context, id, stack).forEach(builder::addExclusive);
+        this.iCurio(stack).getAttributeModifiers(context, id).forEach(builder::addExclusive);
     }
 
     @Override
