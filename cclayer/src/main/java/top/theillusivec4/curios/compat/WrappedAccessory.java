@@ -60,11 +60,6 @@ public class WrappedAccessory implements ICurioItem {
     }
 
     @Override
-    public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
-        return getAttributeModifiers(slotContext, ResourceLocation.withDefaultNamespace(""), stack);
-    }
-
-    @Override
     public Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, ResourceLocation id, ItemStack stack) {
         var ctx = CuriosWrappingUtils.fromContext(slotContext);
         var builder = new AccessoryAttributeBuilder(ctx);

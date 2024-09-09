@@ -40,6 +40,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -117,6 +118,11 @@ public interface ICurio {
     return tooltips;
   }
 
+  @Deprecated(forRemoval = true)
+  default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid) {
+    return LinkedHashMultimap.create();
+  }
+
   /**
    * Retrieves a map of attribute modifiers for the curio.
    * <br>
@@ -134,10 +140,6 @@ public interface ICurio {
     return getAttributeModifiers(slotContext, uuid);
   }
 
-  default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid) {
-    return LinkedHashMultimap.create();
-  }
-
   /**
    * Called server-side when the ItemStack is equipped by using it (i.e. from the hotbar), after
    * calling {@link ICurio#canEquipFromUse(SlotContext)}.
@@ -149,9 +151,9 @@ public interface ICurio {
    * @param slotContext Context about the slot that the ItemStack was just equipped into
    */
   default void onEquipFromUse(SlotContext slotContext) {
+    var entity = slotContext.entity();
     var soundInfo = getEquipSound(slotContext);
 
-    var entity = slotContext.entity();
     entity.level().playSound(null, entity.blockPosition(), soundInfo.getSoundEvent(), entity.getSoundSource(), soundInfo.getVolume(), soundInfo.getPitch());
   }
 
@@ -221,6 +223,11 @@ public interface ICurio {
   default void readSyncData(SlotContext slotContext, CompoundTag compound) {
   }
 
+  @NotNull
+  default DropRule getDropRule(SlotContext slotContext, DamageSource source, boolean recentlyHit) {
+    return DropRule.DEFAULT;
+  }
+
   /**
    * Determines if the ItemStack should drop on death and persist through respawn. This will persist
    * the ItemStack in the curio slot to the respawned player if applicable.
@@ -234,11 +241,6 @@ public interface ICurio {
   @NotNull
   default DropRule getDropRule(SlotContext slotContext, DamageSource source, int lootingLevel, boolean recentlyHit) {
     return getDropRule(slotContext, source, recentlyHit);
-  }
-
-  @NotNull
-  default DropRule getDropRule(SlotContext slotContext, DamageSource source, boolean recentlyHit) {
-    return DropRule.DEFAULT;
   }
 
   /**
@@ -264,6 +266,17 @@ public interface ICurio {
   default int getFortuneLevel(SlotContext slotContext, @Nullable LootContext lootContext) {
     return EnchantmentHelper.getItemEnchantmentLevel(slotContext.entity().level().registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.FORTUNE), getStack());
   }
+
+  default int getLootingLevel(SlotContext slotContext, @Nullable LootContext lootContext) {
+    if(lootContext != null && lootContext.getParam(LootContextParams.ATTACKING_ENTITY) instanceof LivingEntity living){
+      var damageSource = lootContext.getParamOrNull(LootContextParams.DAMAGE_SOURCE);
+
+      if(damageSource != null) return getLootingLevel(slotContext, damageSource, living, 0);
+    }
+
+    return EnchantmentHelper.getItemEnchantmentLevel(slotContext.entity().level().registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.LOOTING), getStack());
+  }
+
 
   /**
    * Get the amount of bonus Looting levels that are provided by curio.

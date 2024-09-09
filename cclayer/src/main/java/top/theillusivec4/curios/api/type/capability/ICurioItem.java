@@ -37,6 +37,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurio.DropRule;
 import top.theillusivec4.curios.platform.Services;
@@ -143,6 +144,11 @@ public interface ICurioItem {
     return defaultInstance.getSlotsTooltip(tooltips);
   }
 
+  @Deprecated(forRemoval = true)
+  default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
+    return defaultInstance.getAttributeModifiers(slotContext, uuid);
+  }
+
   /**
    * Retrieves a map of attribute modifiers for the curio.
    * <br>
@@ -158,10 +164,6 @@ public interface ICurioItem {
     var uuid = UUID.nameUUIDFromBytes(id.toString().getBytes(StandardCharsets.UTF_8));
 
     return getAttributeModifiers(slotContext, uuid, stack);
-  }
-
-  default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid, ItemStack stack) {
-    return defaultInstance.getAttributeModifiers(slotContext, uuid);
   }
 
   /**
@@ -313,6 +315,10 @@ public interface ICurioItem {
    */
   default int getLootingLevel(SlotContext slotContext, DamageSource source, LivingEntity target, int baseLooting, ItemStack stack) {
     return defaultInstance.getLootingLevel(slotContext, source, target, baseLooting);
+  }
+
+  default int getLootingLevel(SlotContext slotContext, @Nullable LootContext lootContext, ItemStack stack) {
+    return defaultInstance.getLootingLevel(slotContext, lootContext);
   }
 
   /**

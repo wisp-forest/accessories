@@ -44,10 +44,14 @@ public class CurioCanEquipEvent extends LivingEvent {
   private TriState result;
 
   public CurioCanEquipEvent(ItemStack stack, SlotContext slotContext) {
+    this(stack, slotContext, TriState.DEFAULT);
+  }
+
+  public CurioCanEquipEvent(ItemStack stack, SlotContext slotContext, TriState result) {
     super(slotContext.entity());
     this.slotContext = slotContext;
     this.stack = stack;
-    this.result = TriState.DEFAULT;
+    this.result = result;
   }
 
   public TriState getEquipResult() {

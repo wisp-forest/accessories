@@ -204,6 +204,11 @@ public record WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) impl
     }
 
     @Override
+    public int getLootingLevel(@Nullable LootContext lootContext) {
+        return 0;
+    }
+
+    @Override
     public int getLootingLevel(DamageSource source, LivingEntity target, int baseLooting) {
         return 0;
     }

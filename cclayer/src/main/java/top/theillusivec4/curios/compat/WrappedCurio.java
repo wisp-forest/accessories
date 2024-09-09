@@ -81,11 +81,7 @@ public class WrappedCurio implements Accessory, LootingAdjustment, FortuneAdjust
 
         var id = ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference));
 
-        var attributes = HashMultimap.<Holder<Attribute>, AttributeModifier>create();
-
-        attributes.putAll(this.iCurioItem.getAttributeModifiers(context, id, stack));
-
-        CuriosWrappingUtils.getAttributeModifiers(attributes, context, id, stack).forEach(builder::addExclusive);
+        this.iCurioItem.getAttributeModifiers(context, id, stack).forEach(builder::addExclusive);
     }
 
     @Override
