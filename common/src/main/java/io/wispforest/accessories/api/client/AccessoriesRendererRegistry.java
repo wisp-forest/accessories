@@ -48,8 +48,8 @@ public class AccessoriesRendererRegistry {
     public static AccessoryRenderer getRender(ItemStack stack){
         var shouldOverride = stack.getOrDefault(AccessoriesDataComponents.RENDER_OVERRIDE, AccessoryRenderOverrideComponent.DEFAULT).defaultRenderOverride();
 
-        if(shouldOverride != TriState.DEFAULT) {
-            if(shouldOverride.get()) {
+        if(shouldOverride != null) {
+            if(shouldOverride) {
                 return DefaultAccessoryRenderer.INSTANCE;
             } else if(AccessoriesAPI.isDefaultAccessory(AccessoriesAPI.getOrDefaultAccessory(stack))) {
                 return null;
