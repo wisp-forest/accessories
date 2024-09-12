@@ -78,7 +78,7 @@ public class CodecUtils {
             var pair = CodecUtils.convertToOps(deserializer, ctx);
 
             return (pair != null)
-                    ? codec.parse(pair.getFirst(), getEncodedValueUnsafe(pair.getSecond(), deserializer)).getOrThrow()
+                    ? codec.parse((DynamicOps<Object>) pair.getFirst(), getEncodedValueUnsafe(pair.getSecond(), deserializer)).getOrThrow()
                     : codec.parse(createEdmOps(ctx), EdmEndec.INSTANCE.decode(ctx, deserializer)).getOrThrow();
         };
     }
@@ -264,7 +264,7 @@ public class CodecUtils {
      *
      * blodhgarm: 21.07.2024
      */
-    @Scary
+    //@Scary
     @ApiStatus.Experimental
     public static <T> StructEndec<T> toStructEndec(MapCodec<T> mapCodec) {
         return new StructEndec<T>() {
