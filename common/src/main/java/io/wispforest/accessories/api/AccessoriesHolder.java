@@ -56,6 +56,10 @@ public interface AccessoriesHolder {
 
     AccessoriesHolder linesShown(boolean value);
 
+    boolean showAdvancedOptions();
+
+    AccessoriesHolder showAdvancedOptions(boolean value);
+
     int columnAmount();
 
     AccessoriesHolder columnAmount(int value);
@@ -64,11 +68,20 @@ public interface AccessoriesHolder {
 
     AccessoriesHolder widgetType(int value);
 
-    boolean leftPositionedAccessories();
+    boolean showGroupFilter();
 
-    AccessoriesHolder leftPositionedAccessories(boolean value);
+    AccessoriesHolder showGroupFilter(boolean value);
 
-    boolean advancedOptions();
+    boolean mainWidgetPosition();
 
-    AccessoriesHolder advancedOptions(boolean value);
+    AccessoriesHolder mainWidgetPosition(boolean value);
+
+    boolean sideWidgetPosition();
+
+    AccessoriesHolder sideWidgetPosition(boolean value);
+
+    boolean showCraftingGrid();
+
+    AccessoriesHolder showCraftingGrid(boolean value);
+
 }

@@ -6,17 +6,27 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotGroup;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.impl.SlotGroupImpl;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import org.apache.commons.compress.utils.Lists;
 import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
@@ -40,6 +50,34 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
     public static List<SlotGroup> getGroups(Level level, boolean filterUniqueGroups){
         return INSTANCE.getGroups(level.isClientSide(), filterUniqueGroups);
+    }
+
+    public static Map<SlotGroup, List<SlotType>> getValidGroups(LivingEntity living) {
+        var entitySpecificSlots = EntitySlotLoader.getEntitySlots(living);
+
+        var groups = SlotGroupLoader.getGroups(living.level(), false);
+
+        return groups.stream()
+                .sorted(Comparator.comparingInt(SlotGroup::order).reversed())
+                .map(slotGroup -> {
+                    if(UniqueSlotHandling.isUniqueGroup(slotGroup.name(), living.level().isClientSide())) return null;
+
+                    var slots = slotGroup.slots()
+                            .stream()
+                            .filter(entitySpecificSlots::containsKey)
+                            .map(slot -> SlotTypeLoader.getSlotType(living.level(), slot))
+                            .sorted(Comparator.comparingInt(SlotType::order).reversed())
+                            .toList();
+
+                    return slots.isEmpty() ? null : Map.entry(slotGroup, slots);
+                })
+                .filter(Objects::nonNull)
+                .collect(
+                        Collectors.toMap(
+                                Map.Entry::getKey,
+                                Map.Entry::getValue,
+                                (slotTypes, slotTypes2) -> Stream.concat(slotTypes.stream(), slotTypes2.stream()).toList(),
+                                LinkedHashMap::new));
     }
 
     public static Optional<SlotGroup> getGroup(Level level, String group){

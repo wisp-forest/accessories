@@ -24,11 +24,11 @@ public class AccessoriesConfig implements ConfigData {
 
         public ScreenType selectedScreenType = ScreenType.NONE;
 
-        public int inventoryButtonXOffset = 66;
-        public int inventoryButtonYOffset = 9;
+        public int inventoryButtonXOffset = 62;
+        public int inventoryButtonYOffset = 8;
 
         public int creativeInventoryButtonXOffset = 96;
-        public int creativeInventoryButtonYOffset = 7;
+        public int creativeInventoryButtonYOffset = 6;
 
         public boolean forceNullRenderReplacement = false;
 

@@ -30,15 +30,6 @@ public abstract class AbstractContainerScreenMixin implements ContainerScreenExt
         if(override != null) cir.setReturnValue(override);
     }
 
-    @WrapOperation(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/Slot;isHighlightable()Z"))
-    private boolean accessories$isHoveringOverride(Slot slot, Operation<Boolean> original, @Local(argsOnly = true, ordinal = 0) int mouseX, @Local(argsOnly = true, ordinal = 1) int mouseY){
-        var override = this.isHovering_Rendering(slot, mouseX, mouseY);
-
-        return (override == null)
-                ? original.call(slot)
-                : override;
-    }
-
     @Inject(method = "renderSlot", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V"), cancellable = true)
     private void accessories$shouldRenderSlot(GuiGraphics guiGraphics, Slot slot, CallbackInfo ci) {
         if(accessories$bypassSlotCheck) return;

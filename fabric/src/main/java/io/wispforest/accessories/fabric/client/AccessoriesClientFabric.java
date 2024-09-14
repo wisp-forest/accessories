@@ -93,8 +93,6 @@ public class AccessoriesClientFabric implements ClientModInitializer {
         });
 
         CoreShaderRegistrationCallback.EVENT.register(context -> context.register(Accessories.of("fish"), DefaultVertexFormat.BLIT_SCREEN, shaderInstance -> AccessoriesClient.BLIT_SHADER = shaderInstance));
-
-        AccessoriesClient.SPECTRUM_PROGRAM = new GlProgram(Accessories.of("spectrum_position_tex"), DefaultVertexFormat.POSITION_TEX_COLOR);
     }
 
     @Environment(EnvType.CLIENT)

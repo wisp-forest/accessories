@@ -20,4 +20,8 @@ public interface AbstractContainerScreenAccessor {
     @Accessor("quickCraftingType") int accessories$getQuickCraftingType();
 
     @Invoker("recalculateQuickCraftRemaining") void accessories$recalculateQuickCraftRemaining();
+
+    @Accessor("leftPos") int accessories$leftPos();
+
+    @Accessor("topPos") int accessories$topPos();
 }

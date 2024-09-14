@@ -1,4 +1,4 @@
-package io.wispforest.accessories.fabric.mixin;
+package io.wispforest.accessories.fabric.mixin.client;
 
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import net.minecraft.network.chat.Component;

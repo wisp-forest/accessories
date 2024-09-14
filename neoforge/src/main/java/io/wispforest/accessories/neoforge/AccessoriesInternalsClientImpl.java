@@ -1,7 +1,6 @@
 package io.wispforest.accessories.neoforge;
 
-import io.wispforest.accessories.client.gui.AccessoriesScreen;
-import io.wispforest.accessories.registries.MenuTypes;
+
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;

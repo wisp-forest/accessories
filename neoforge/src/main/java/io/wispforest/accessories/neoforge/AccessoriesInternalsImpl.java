@@ -6,12 +6,12 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.menu.AccessoriesExperimentalMenu;
-import io.wispforest.accessories.menu.AccessoriesMenu;
 import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.networking.base.BaseNetworkHandler;
+import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.format.bytebuf.ByteBufDeserializer;
 import io.wispforest.endec.format.bytebuf.ByteBufSerializer;
@@ -84,9 +84,9 @@ public class AccessoriesInternalsImpl {
         return ICondition.conditionsMatched(ops, object);
     }
 
-    public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(ResourceLocation location, TriFunction<Integer, Inventory, AccessoriesMenuData, T> func) {
+    public static <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(ResourceLocation location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func) {
         return Registry.register(BuiltInRegistries.MENU, location, IMenuTypeExtension.create((i, arg, arg2) -> {
-            return func.apply(i, arg, AccessoriesMenuData.ENDEC.decodeFully(SerializationContext.attributes(RegistriesAttribute.of(arg2.registryAccess())), ByteBufDeserializer::of, arg2));
+            return func.apply(i, arg, endec.decodeFully(SerializationContext.attributes(RegistriesAttribute.of(arg2.registryAccess())), ByteBufDeserializer::of, arg2));
         }));
     }
 
@@ -96,17 +96,10 @@ public class AccessoriesInternalsImpl {
         return Registry.register(BuiltInRegistries.COMMAND_ARGUMENT_TYPE, location, info);
     }
 
-    public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack, int screenType) {
+    public static void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         player.openMenu(
                 new SimpleMenuProvider((i, inventory, arg2) -> {
-                    var menu = switch (screenType) {
-                        case 1 -> new AccessoriesExperimentalMenu(i, inventory, targetEntity);
-                        default -> new AccessoriesMenu(i, inventory, targetEntity);
-                    };
-
-                    if(carriedStack != null) menu.setCarried(carriedStack);
-
-                    return menu;
+                    return AccessoriesMenuVariant.openMenu(i, inventory, variant, targetEntity, carriedStack);
                 }, Component.empty()),
                 buf -> {
                     AccessoriesMenuData.ENDEC.encode(SerializationContext.attributes(RegistriesAttribute.of(buf.registryAccess())), ByteBufSerializer.of(buf), AccessoriesMenuData.of(targetEntity));

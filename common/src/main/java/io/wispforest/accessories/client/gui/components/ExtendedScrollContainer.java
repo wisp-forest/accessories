@@ -1,12 +1,12 @@
 package io.wispforest.accessories.client.gui.components;
 
 import io.wispforest.owo.ui.container.ScrollContainer;
-import io.wispforest.owo.ui.core.Component;
-import io.wispforest.owo.ui.core.OwoUIDrawContext;
-import io.wispforest.owo.ui.core.Size;
-import io.wispforest.owo.ui.core.Sizing;
+import io.wispforest.owo.ui.core.*;
+import io.wispforest.owo.ui.util.ScissorStack;
 import net.minecraft.util.Mth;
 import org.apache.logging.log4j.util.TriConsumer;
+
+import java.util.List;
 
 public class ExtendedScrollContainer<C extends Component> extends ScrollContainer<C> {
 
@@ -15,8 +15,16 @@ public class ExtendedScrollContainer<C extends Component> extends ScrollContaine
     protected boolean oppositeScrollbar = false;
     protected boolean strictMouseScrolling = false;
 
-    protected ExtendedScrollContainer(ScrollDirection direction, Sizing horizontalSizing, Sizing verticalSizing, C child) {
+    private Insets customClippingInsets = Insets.none();
+
+    public ExtendedScrollContainer(ScrollDirection direction, Sizing horizontalSizing, Sizing verticalSizing, C child) {
         super(direction, horizontalSizing, verticalSizing, child);
+    }
+
+    public ExtendedScrollContainer<C> customClippingInsets(Insets insets) {
+        this.customClippingInsets = insets;
+
+        return this;
     }
 
     public ExtendedScrollContainer<C> oppositeScrollbar(boolean value) {
@@ -102,5 +110,23 @@ public class ExtendedScrollContainer<C extends Component> extends ScrollContaine
         if(this.strictMouseScrolling && !this.isInScrollbar(this.x + mouseX, this.y + mouseY)) return false;
 
         return super.onMouseScroll(mouseX, mouseY, amount);
+    }
+
+    @Override
+    protected void drawChildren(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta, List<? extends Component> children) {
+        if (this.customClippingInsets != Insets.none()) {
+            ScissorStack.push(
+                    this.x + customClippingInsets.left(),
+                    this.y + customClippingInsets.top(),
+                    this.width - customClippingInsets.horizontal(),
+                    this.height - customClippingInsets.vertical(),
+                    context.pose());
+        }
+
+        super.drawChildren(context, mouseX, mouseY, partialTicks, delta, children);
+
+        if (this.customClippingInsets != Insets.none()) {
+            ScissorStack.pop();
+        }
     }
 }

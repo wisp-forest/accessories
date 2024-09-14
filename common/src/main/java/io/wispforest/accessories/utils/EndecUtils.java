@@ -1,8 +1,12 @@
 package io.wispforest.accessories.utils;
 
+import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.endec.*;
+import io.wispforest.endec.util.MapCarrier;
 import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.nbt.CompoundTag;
 
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class EndecUtils {
@@ -29,5 +33,23 @@ public class EndecUtils {
             @Override public void encodeStruct(SerializationContext ctx, Serializer<?> serializer, Serializer.Struct struct, T value) {}
             @Override public T decodeStruct(SerializationContext ctx, Deserializer<?> deserializer, Deserializer.Struct struct) { return supplier.get(); }
         };
+    }
+
+    public static void dfuKeysCarrier(MapCarrier carrier, Map<String, String> changedKeys) {
+        CompoundTag compoundTag;
+
+        if (carrier instanceof NbtMapCarrier nbtMapCarrier) {
+            compoundTag = nbtMapCarrier.compoundTag();
+        } else if (carrier instanceof CompoundTag carrierTag) {
+            compoundTag = carrierTag;
+        } else {
+            compoundTag = null;
+        }
+
+        if(compoundTag != null) {
+            changedKeys.forEach((prevKey, newKey) -> {
+                if (compoundTag.contains(prevKey)) compoundTag.put(newKey, compoundTag.get(prevKey));
+            });
+        }
     }
 }

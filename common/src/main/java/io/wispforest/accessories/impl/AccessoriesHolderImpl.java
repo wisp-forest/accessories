@@ -6,6 +6,7 @@ import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.endec.format.nbt.NbtEndec;
+import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationAttribute;
 import io.wispforest.endec.SerializationContext;
@@ -43,14 +44,15 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     private boolean showUniqueSlots = false;
 
     private boolean cosmeticsShown = false;
-
     private boolean linesShown = false;
 
     private int columnAmount = 1;
-
     private int widgetType = 2;
+    private boolean showGroupFilter = false;
+    private boolean mainWidgetPosition = true;
+    private boolean sideWidgetPosition = false;
 
-    private boolean leftPositionedAccessories = true;
+    private boolean showCraftingGrid = false;
 
     // --
 
@@ -160,25 +162,57 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     }
 
     @Override
-    public boolean leftPositionedAccessories() {
-        return this.leftPositionedAccessories;
+    public boolean mainWidgetPosition() {
+        return this.mainWidgetPosition;
     }
 
     @Override
-    public AccessoriesHolder leftPositionedAccessories(boolean value) {
-        this.leftPositionedAccessories = value;
+    public AccessoriesHolder mainWidgetPosition(boolean value) {
+        this.mainWidgetPosition = value;
 
         return this;
     }
 
     @Override
-    public boolean advancedOptions() {
+    public boolean showAdvancedOptions() {
         return this.showAdvancedOptions;
     }
 
     @Override
-    public AccessoriesHolder advancedOptions(boolean value) {
+    public AccessoriesHolder showAdvancedOptions(boolean value) {
         this.showAdvancedOptions = value;
+
+        return this;
+    }
+
+    public boolean showGroupFilter() {
+        return this.showGroupFilter;
+    }
+
+    public AccessoriesHolder showGroupFilter(boolean value) {
+        this.showGroupFilter = value;
+
+        return this;
+    }
+
+    public boolean sideWidgetPosition() {
+        return this.sideWidgetPosition;
+    }
+
+    public AccessoriesHolder sideWidgetPosition(boolean value) {
+        this.sideWidgetPosition = value;
+
+        return this;
+    }
+
+    @Override
+    public boolean showCraftingGrid() {
+        return this.showCraftingGrid;
+    }
+
+    @Override
+    public AccessoriesHolder showCraftingGrid(boolean value) {
+        this.showCraftingGrid = value;
 
         return this;
     }
@@ -264,11 +298,11 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
                 });
 
                 return containerMap;
-            }).keyed("AccessoriesContainers", HashMap::new);
+            }).keyed("accessories_containers", HashMap::new);
 
-    private static final KeyedEndec<Boolean> COSMETICS_SHOWN_KEY = Endec.BOOLEAN.keyed("CosmeticsShown", false);
-    private static final KeyedEndec<Boolean> LINES_SHOWN_KEY = Endec.BOOLEAN.keyed("LinesShown", false);
-    private static final KeyedEndec<PlayerEquipControl> EQUIP_CONTROL_KEY = Endec.forEnum(PlayerEquipControl.class).keyed("EquipControl", PlayerEquipControl.MUST_CROUCH);
+    private static final KeyedEndec<Boolean> COSMETICS_SHOWN_KEY = Endec.BOOLEAN.keyed("cosmetics_shown", false);
+    private static final KeyedEndec<Boolean> LINES_SHOWN_KEY = Endec.BOOLEAN.keyed("lines_shown", false);
+    private static final KeyedEndec<PlayerEquipControl> EQUIP_CONTROL_KEY = Endec.forEnum(PlayerEquipControl.class).keyed("equip_control", PlayerEquipControl.MUST_CROUCH);
 
     @Override
     public void write(MapCarrier carrier, SerializationContext ctx) {
@@ -288,6 +322,15 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     public void read(AccessoriesCapability capability, LivingEntity entity, MapCarrier carrier, SerializationContext ctx) {
         this.loadedFromTag = false;
 
+        EndecUtils.dfuKeysCarrier(
+                carrier,
+                Map.of(
+                        "AccessoriesContainers", "accessories_containers",
+                        "CosmeticsShown", "cosmetics_shown",
+                        "LinesShown", "lines_shown",
+                        "EquipControl", "equip_control"
+                ));
+
         this.cosmeticsShown = carrier.get(COSMETICS_SHOWN_KEY);
         this.linesShown = carrier.get(LINES_SHOWN_KEY);
         this.equipControl = carrier.get(EQUIP_CONTROL_KEY);
@@ -302,6 +345,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     @Override
     public void read(MapCarrier carrier, SerializationContext context) {
         this.loadedFromTag = true;
+
         this.carrier = carrier;
     }
 

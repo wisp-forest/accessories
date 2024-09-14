@@ -15,6 +15,7 @@ import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.InstanceEndec;
+import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import net.minecraft.core.HolderLookup;
@@ -47,6 +48,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.EntityEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
@@ -146,7 +148,7 @@ public class AccessoriesForge {
     }
 
     public void registerStuff(RegisterEvent event){
-        event.register(Registries.MENU, (helper) -> MenuTypes.registerMenuType());
+        event.register(Registries.MENU, (helper) -> AccessoriesMenuTypes.registerMenuType());
         event.register(Registries.TRIGGER_TYPE, (helper) -> Accessories.registerCriteria());
         event.register(Registries.DATA_COMPONENT_TYPE, (helper) -> AccessoriesDataComponents.init());
         event.register(Registries.COMMAND_ARGUMENT_TYPE, (helper) -> AccessoriesCommands.registerCommandArgTypes());

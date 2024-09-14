@@ -12,6 +12,7 @@ import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.endec.RegistriesAttribute;
 import io.wispforest.accessories.endec.format.nbt.NbtEndec;
 import io.wispforest.accessories.utils.AttributeUtils;
+import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.impl.KeyedEndec;
@@ -311,21 +312,21 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
     //--
 
-    public static final KeyedEndec<String> SLOT_NAME_KEY = Endec.STRING.keyed("SlotName", "UNKNOWN");
+    public static final KeyedEndec<String> SLOT_NAME_KEY = Endec.STRING.keyed("slot_name", "UNKNOWN");
 
-    public static final KeyedEndec<Integer> BASE_SIZE_KEY = Endec.INT.keyed("BaseSize", () -> null);
+    public static final KeyedEndec<Integer> BASE_SIZE_KEY = Endec.INT.keyed("base_size", () -> null);
 
-    public static final KeyedEndec<Integer> CURRENT_SIZE_KEY = Endec.INT.keyed("CurrentSize", 0);
+    public static final KeyedEndec<Integer> CURRENT_SIZE_KEY = Endec.INT.keyed("current_size", 0);
 
-    public static final KeyedEndec<List<Boolean>> RENDER_OPTIONS_KEY = Endec.BOOLEAN.listOf().keyed("RenderOptions", ArrayList::new);
+    public static final KeyedEndec<List<Boolean>> RENDER_OPTIONS_KEY = Endec.BOOLEAN.listOf().keyed("render_options", ArrayList::new);
 
-    public static final KeyedEndec<List<CompoundTag>> MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("Modifiers", ArrayList::new);
-    public static final KeyedEndec<List<CompoundTag>> PERSISTENT_MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("PersistentModifiers", ArrayList::new);
-    public static final KeyedEndec<List<CompoundTag>> CACHED_MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("CachedModifiers", ArrayList::new);
+    public static final KeyedEndec<List<CompoundTag>> MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("modifiers", ArrayList::new);
+    public static final KeyedEndec<List<CompoundTag>> PERSISTENT_MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("persistent_modifiers", ArrayList::new);
+    public static final KeyedEndec<List<CompoundTag>> CACHED_MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("cached_modifiers", ArrayList::new);
 
-    public static final KeyedEndec<ListTag> ITEMS_KEY = NbtEndec.LIST.keyed("Items", ListTag::new);
-    public static final KeyedEndec<ListTag> COSMETICS_KEY = NbtEndec.LIST.keyed("Cosmetics", ListTag::new);
-
+    public static final KeyedEndec<ListTag> ITEMS_KEY = NbtEndec.LIST.keyed("items", ListTag::new);
+    public static final KeyedEndec<ListTag> COSMETICS_KEY = NbtEndec.LIST.keyed("cosmetics", ListTag::new);
+    
     @Override
     public void write(MapCarrier carrier, SerializationContext ctx) {
         write(carrier, ctx, false);
@@ -385,6 +386,20 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
     public void read(MapCarrier carrier, SerializationContext ctx, boolean sync){
         var registryAccess = ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager();
+
+        EndecUtils.dfuKeysCarrier(
+                carrier,
+                Map.of(
+                        "SlotName", "slot_name",
+                        "BaseSize", "base_size",
+                        "CurrentSize", "current_size",
+                        "RenderOptions", "render_options",
+                        "Modifiers", "modifiers",
+                        "PersistentModifiers", "persistent_modifiers",
+                        "CachedModifiers", "cached_modifiers",
+                        "Items", "items",
+                        "Cosmetics", "cosmetics"
+                ));
 
         this.slotName = carrier.get(SLOT_NAME_KEY);
 

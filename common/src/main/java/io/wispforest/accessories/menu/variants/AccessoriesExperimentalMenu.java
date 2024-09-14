@@ -1,18 +1,17 @@
 package io.wispforest.accessories.menu.variants;
 
-import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.AccessoriesHolder;
+import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.menu.*;
-import io.wispforest.owo.client.screens.ScreenUtils;
 import io.wispforest.owo.client.screens.SlotGenerator;
 import io.wispforest.owo.util.pond.OwoSlotExtension;
 import net.minecraft.resources.ResourceLocation;
@@ -21,25 +20,23 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SaddleItem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Stream;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
-    private final Map<Integer, Boolean> slotToView = new HashMap<>();
+    private final Set<SlotType> usedSlots = new HashSet<>();
+    private final Set<SlotGroup> usedGroups = new HashSet<>();
 
-    private final Set<SlotGroup> validGroups = new HashSet<>();
+    private final Set<SlotGroup> selectedGroups = new HashSet<>();
 
-    @Nullable
-    private Set<SlotType> usedSlots = null;
-
-    private final List<SlotType> addedSlots = new ArrayList<>();
+    private final List<AccessoriesBasedSlot> accessoriesSpecificSlots = new ArrayList<>();
 
     private int addedArmorSlots = 0;
 
@@ -48,13 +45,11 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
     private boolean includeSaddle = false;
 
     public static AccessoriesExperimentalMenu of(int containerId, Inventory inventory, AccessoriesMenuData data) {
-        var targetEntity = data.targetEntityId().map(i -> {
-            var entity = inventory.player.level().getEntity(i);
-
-            if(entity instanceof LivingEntity livingEntity) return livingEntity;
-
-            return null;
-        }).orElse(null);
+        var targetEntity = data.targetEntityId()
+                .map(i -> (inventory.player.level().getEntity(i) instanceof LivingEntity livingEntity)
+                        ? livingEntity
+                        : null
+                ).orElse(null);
 
         return new AccessoriesExperimentalMenu(containerId, inventory, targetEntity);
     }
@@ -68,9 +63,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
         if (capability == null) return;
 
-        if(!this.areUnusedSlotsShown()) {
-            this.usedSlots = ImmutableSet.copyOf(AccessoriesAPI.getUsedSlotsFor(targetEntity != null ? targetEntity : owner, owner.getInventory()));
-        }
+        this.updateUsedSlots();
 
         //--
 
@@ -103,9 +96,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
                     new Slot(saddleInv, 0, -300, -300){
                         @Override
                         public boolean mayPlace(ItemStack stack) {
-                            if(!(stack.getItem() instanceof SaddleItem)) return false;
-
-                            return super.mayPlace(stack);
+                            return stack.getItem() instanceof SaddleItem && super.mayPlace(stack);
                         }
 
                         @Override
@@ -116,13 +107,13 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
             );
         }
 
-        startingAccessoriesSlot = this.slots.size();
+        this.startingAccessoriesSlot = this.slots.size();
 
         var containers = capability.getContainers();
 
         var validEquipmentSlots = new ArrayList<EquipmentSlot>();
 
-        for (EquipmentSlot value : EquipmentSlot.values()) {
+        for (var value : EquipmentSlot.values()) {
             if (!accessoryTarget.canUseSlot(value)) continue;
 
             var armorRef = ArmorSlotTypes.getReferenceFromSlot(value);
@@ -132,7 +123,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
             validEquipmentSlots.add(value);
         }
 
-        for (EquipmentSlot equipmentSlot : validEquipmentSlots.reversed()) {
+        for (var equipmentSlot : validEquipmentSlots.reversed()) {
             if (addArmorSlot(equipmentSlot, accessoryTarget, ArmorSlotTypes.getReferenceFromSlot(equipmentSlot), containers)) {
                 addedArmorSlots += 2;
             }
@@ -140,42 +131,31 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
         //--
 
-        var slotTypes = SlotGroupLoader.getGroups(inventory.player.level(), !this.areUniqueSlotsShown()).stream()
-                .sorted(Comparator.comparingInt(SlotGroup::order).reversed())
-                .flatMap(slotGroup -> {
-                    var slots = slotGroup.slots()
-                            .stream()
-                            .map(slot -> SlotTypeLoader.getSlotType(owner.level(), slot))
-                            .filter(slotType -> this.usedSlots == null || this.usedSlots.contains(slotType))
-                            .sorted(Comparator.comparingInt(SlotType::order).reversed())
-                            .toList();
+        var validGroupData = SlotGroupLoader.getValidGroups(accessoryTarget);
 
-                    if(slots.isEmpty()) return Stream.of();
+        usedGroups.addAll(validGroupData.keySet());
 
-                    this.validGroups.add(slotGroup);
-
-                    return slots.stream();
-                }).toList();
+        var slotTypes = validGroupData.values()
+                .stream()
+                .flatMap(Collection::stream)
+                .toList();
 
         for (var slot : slotTypes) {
-            this.addedSlots.add(slot);
-
             var accessoryContainer = containers.get(slot.name());
 
             if (accessoryContainer == null || accessoryContainer.slotType() == null) continue;
 
             for (int i = 0; i < accessoryContainer.getSize(); i++) {
                 var cosmeticSlot = new AccessoriesInternalSlot(accessoryContainer, true, i, -300, -300)
-                        .useCosmeticIcon(false)
-                        .isActive((slot1) -> /*this.isCosmeticsOpen() &&*/ this.slotToView.getOrDefault(slot1.index, true))
-                        .isAccessible((slot1) -> /*this.isCosmeticsOpen() &&*/ slot1.isCosmetic);
+                        .useCosmeticIcon(false);
 
                 this.addSlot(cosmeticSlot);
+                this.accessoriesSpecificSlots.add(cosmeticSlot);
 
-                var baseSlot = new AccessoriesInternalSlot(accessoryContainer, false, i, -300, -300)
-                        .isActive(slot1 -> this.slotToView.getOrDefault(slot1.index, true));
+                var baseSlot = new AccessoriesInternalSlot(accessoryContainer, false, i, -300, -300);
 
                 this.addSlot(baseSlot);
+                this.accessoriesSpecificSlots.add(baseSlot);
             }
         }
 
@@ -213,16 +193,89 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
                 return Pair.of(atlasLocation, location.second());
             }
-        }.isActive((slot1) -> /*this.isCosmeticsOpen() &&*/ this.slotToView.getOrDefault(slot1.index, true))
-                .isAccessible((slot1) -> /*this.isCosmeticsOpen() &&*/ slot1.isCosmetic);
+        };
 
         this.addSlot(cosmeticSlot);
 
         return true;
     }
 
+    public final LivingEntity targetEntityDefaulted() {
+        var targetEntity = this.targetEntity();
+
+        return (targetEntity != null) ? targetEntity : this.owner();
+    }
+
     public int startingAccessoriesSlot() {
         return this.startingAccessoriesSlot;
+    }
+
+    public List<AccessoriesBasedSlot> getAccessoriesSlots() {
+        return this.accessoriesSpecificSlots;
+    }
+
+    public List<Slot> getVisibleAccessoriesSlots() {
+        var filteredList = new ArrayList<Slot>();
+
+        var selectedGroupedSlots = SlotGroupLoader.getValidGroups(this.targetEntityDefaulted()).entrySet()
+                .stream()
+                .filter(entry -> this.selectedGroups.isEmpty() || this.selectedGroups.contains(entry.getKey()))
+                .flatMap(entry -> entry.getValue().stream())
+                .toList();
+
+        for (int i = 0; i < (this.accessoriesSpecificSlots.size() / 2); i++) {
+            var cosmetic = (i * 2);
+            var accessory = cosmetic + 1;
+
+            var cosmeticSlot = this.accessoriesSpecificSlots.get(cosmetic);
+            var accessorySlot = this.accessoriesSpecificSlots.get(accessory);
+
+            var slotType = accessorySlot.slotType();
+
+            var isVisible = (this.usedSlots.isEmpty() || this.usedSlots.contains(slotType))
+                    && (selectedGroupedSlots.isEmpty() || selectedGroupedSlots.contains(slotType));
+
+            if(isVisible){
+                filteredList.add(cosmeticSlot);
+                filteredList.add(accessorySlot);
+            }
+        }
+
+        return filteredList;
+    }
+
+    public void updateUsedSlots() {
+        this.usedSlots.clear();
+
+        if(!this.areUnusedSlotsShown()) {
+            var currentlyUsedSlots = AccessoriesAPI.getUsedSlotsFor(this.targetEntity != null ? this.targetEntity : this.owner, this.owner.getInventory());
+
+            if(!currentlyUsedSlots.isEmpty()) {
+                this.usedSlots.addAll(currentlyUsedSlots);
+            } else {
+                this.usedSlots.add(null);
+            }
+        }
+    }
+
+    public Set<SlotGroup> selectedGroups() {
+        return this.selectedGroups;
+    }
+
+    public boolean isGroupSelected(SlotGroup slotGroup) {
+        return this.selectedGroups.contains(slotGroup);
+    }
+
+    public void addSelectedGroup(SlotGroup slotGroup) {
+        this.selectedGroups.add(slotGroup);
+
+        if (this.selectedGroups.containsAll(usedGroups)) {
+            this.selectedGroups.clear();
+        }
+    }
+
+    public void removeSelectedGroup(SlotGroup slotGroup) {
+        this.selectedGroups.remove(slotGroup);
     }
 
     public int addedArmorSlots() {
@@ -237,31 +290,74 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::showUnusedSlots).orElse(false);
     }
 
-    public boolean areUniqueSlotsShown() {
-        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::showUniqueSlots).orElse(false);
-    }
-
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
-        ItemStack itemStack = ItemStack.EMPTY;
-        Slot slot = (Slot)this.slots.get(index);
-        if (slot.hasItem()) {
-            ItemStack itemStack2 = slot.getItem();
-            itemStack = itemStack2.copy();
-            EquipmentSlot equipmentSlot = player.getEquipmentSlotForItem(itemStack);
-            if (equipmentSlot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR && !((Slot)this.slots.get(8 - equipmentSlot.getIndex())).hasItem()) {
-                int i = 8 - equipmentSlot.getIndex();
-                if (!this.moveItemStackTo(itemStack2, i, i + 1, false)) {
-                    return ItemStack.EMPTY;
-                }
-            } else if (equipmentSlot == EquipmentSlot.OFFHAND && !((Slot)this.slots.get(45)).hasItem()) {
-                if (!this.moveItemStackTo(itemStack2, 45, 46, false)) {
-                    return ItemStack.EMPTY;
-                }
-            }
+        var slot = this.slots.get(index);
+
+        if(!slot.hasItem()) return ItemStack.EMPTY;
+
+        var itemStack2 = slot.getItem();
+        var itemStack = itemStack2.copy();
+
+        // 0 1 2 3 : 6 - 7 / 4 - 5 / 2 - 3 / 0 - 1
+        var equipmentSlot = player.getEquipmentSlotForItem(itemStack);
+        int bottomEquipmentIndex = 8 - ((equipmentSlot.getIndex() + 1) * 2);
+        int topEquipmentIndex = bottomEquipmentIndex + 1;
+
+        var upperInventorySize = this.startingAccessoriesSlot;
+
+        /*
+         * Player Indies
+         *       0: Result slot
+         *  1 -  5: Crafting Grid
+         *  5 - 41: Player Inv
+         *      41: Offhand Slot
+         * 41 - 49: Armor Slots
+         * 49 -   : Accessories Slots
+         */
+
+        if (index == 0) {
+            if (!this.moveItemStackTo(itemStack2, 5, 41, true)) return ItemStack.EMPTY;
+
+            slot.onQuickCraft(itemStack2, itemStack);
+        }
+        else if (index >= 1 && index < 5) {
+            if (!this.moveItemStackTo(itemStack2, 5, 41, false)) return ItemStack.EMPTY;
+        }
+        else if(index >= upperInventorySize) {
+            if (!moveItemStackTo(itemStack2, 5, 41, false)) return ItemStack.EMPTY;
+        }
+        else if (equipmentSlot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR && (!this.slots.get(42 + bottomEquipmentIndex).hasItem() || !this.slots.get(42 + topEquipmentIndex).hasItem())) {
+            if(!this.moveItemStackTo(itemStack2, 42 + bottomEquipmentIndex, 42 + topEquipmentIndex + 1, false)) return ItemStack.EMPTY;
+        }
+        else if (equipmentSlot == EquipmentSlot.OFFHAND && !this.slots.get(45).hasItem()) {
+            if(!this.moveItemStackTo(itemStack2, 41, 42, false)) return ItemStack.EMPTY;
+        }
+        else if (canMoveToAccessorySlot(itemStack2, this.targetEntityDefaulted()) && index < this.startingAccessoriesSlot) {
+            if(!moveItemStackTo(itemStack2, upperInventorySize, slots.size(), false)) return ItemStack.EMPTY;
+        }
+        else if (index >= 5 && index < 32) {
+            if (!this.moveItemStackTo(itemStack2, 32, 41, false)) return ItemStack.EMPTY;
+        }
+        else if (index >= 32 && index < 41) {
+            if (!this.moveItemStackTo(itemStack2, 5, 32, false)) return ItemStack.EMPTY;
         }
 
-        return ScreenUtils.handleSlotTransfer(this, index, this.startingAccessoriesSlot);
+        if (itemStack2.getCount() == itemStack.getCount()) return ItemStack.EMPTY;
+
+        if (itemStack2.isEmpty()) {
+            slot.setByPlayer(ItemStack.EMPTY, itemStack);
+        } else {
+            slot.setChanged();
+        }
+
+        if (itemStack2.getCount() == itemStack.getCount()) return ItemStack.EMPTY;
+
+        slot.onTake(player, itemStack2);
+
+        if (index == 0) player.drop(itemStack2, false);
+
+        return itemStack;
     }
 
     @Override
@@ -269,78 +365,74 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         return true;
     }
 
-    @Override
-    protected boolean moveItemStackTo(ItemStack stack, int startIndex, int endIndex, boolean reverseDirection) {
-        boolean bl = false;
-        int i = startIndex;
-        if (reverseDirection) {
-            i = endIndex - 1;
+    protected boolean canMoveToAccessorySlot(ItemStack stack, LivingEntity living) {
+        var capability = living.accessoriesCapability();
+
+        if (capability == null) return false;
+
+        var validSlotTypes = AccessoriesAPI.getStackSlotTypes(living, stack);
+
+        for (var slot : this.slots.subList(this.startingAccessoriesSlot, this.slots.size())) {
+            if (slot instanceof SlotTypeAccessible accessible && validSlotTypes.contains(accessible.slotType())) return true;
         }
 
-        if (stack.isStackable()) {
-            while(!stack.isEmpty() && (reverseDirection ? i >= startIndex : i < endIndex)) {
-                Slot slot = this.slots.get(i);
-                ItemStack itemStack = slot.getItem();
+        return false;
+    }
 
-                if(slot.isActive()) {
-                    //Check if the slot dose not permit the given amount
-                    if (slot.getMaxStackSize(itemStack) < itemStack.getCount()) {
-                        if (!itemStack.isEmpty() && ItemStack.isSameItemSameComponents(stack, itemStack)) {
-                            int j = itemStack.getCount() + stack.getCount();
-                            if (j <= stack.getMaxStackSize()) {
-                                stack.setCount(0);
-                                itemStack.setCount(j);
-                                slot.setChanged();
-                                bl = true;
-                            } else if (itemStack.getCount() < stack.getMaxStackSize()) {
-                                stack.shrink(stack.getMaxStackSize() - itemStack.getCount());
-                                itemStack.setCount(stack.getMaxStackSize());
-                                slot.setChanged();
-                                bl = true;
-                            }
+    protected boolean moveItemStackTo(ItemStack stack, int startIndex, int endIndex, boolean reverseDirection) {
+        boolean bl = false;
+        int i = reverseDirection ? endIndex - 1 : startIndex;
+
+        if (stack.isStackable()) {
+            while (!stack.isEmpty() && (reverseDirection ? i >= startIndex : i < endIndex)) {
+                var slot = this.slots.get(i);
+
+                if (slot.isActive()) {
+                    var itemStack = slot.getItem();
+
+                    if (!itemStack.isEmpty() && ItemStack.isSameItemSameComponents(stack, itemStack)) {
+                        int j = itemStack.getCount() + stack.getCount();
+                        int k = slot.getMaxStackSize(itemStack);
+
+                        if (j <= k) {
+                            stack.setCount(0);
+                            itemStack.setCount(j);
+                            slot.setChanged();
+                            bl = true;
+                        } else if (itemStack.getCount() < k) {
+                            stack.shrink(k - itemStack.getCount());
+                            itemStack.setCount(k);
+                            slot.setChanged();
+                            bl = true;
                         }
                     }
                 }
 
-                if (reverseDirection) {
-                    --i;
-                } else {
-                    ++i;
-                }
+                i += (reverseDirection) ? -1 : 1;
             }
         }
 
         if (!stack.isEmpty()) {
-            if (reverseDirection) {
-                i = endIndex - 1;
-            } else {
-                i = startIndex;
-            }
+            i = reverseDirection ? endIndex - 1 : startIndex;
 
-            while(reverseDirection ? i >= startIndex : i < endIndex) {
-                Slot slot = this.slots.get(i);
+            while (reverseDirection ? i >= startIndex : i < endIndex) {
+                var slot = this.slots.get(i);
 
                 if(slot.isActive()) {
-                    ItemStack itemStack = slot.getItem();
-                    if (itemStack.isEmpty() && slot.mayPlace(stack)) {
-                        //Use Stack aware form of getMaxStackSize
-                        if (stack.getCount() > slot.getMaxStackSize(stack)) {
-                            slot.setByPlayer(stack.split(slot.getMaxStackSize(stack)));
-                        } else {
-                            slot.setByPlayer(stack.split(stack.getCount()));
-                        }
+                    var itemStack = slot.getItem();
 
+                    if (itemStack.isEmpty() && slot.mayPlace(stack)) {
+                        int j = slot.getMaxStackSize(stack);
+
+                        slot.setByPlayer(stack.split(Math.min(stack.getCount(), j)));
                         slot.setChanged();
+
                         bl = true;
                         break;
                     }
                 }
 
-                if (reverseDirection) {
-                    --i;
-                } else {
-                    ++i;
-                }
+                i += (reverseDirection) ? -1 : 1;
             }
         }
 

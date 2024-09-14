@@ -59,16 +59,16 @@ public class GriddedAccessoriesComponent extends FlowLayout implements Accessori
 
         var menu = screen.getMenu();
 
-        var slots = menu.slots;
+        var slots = menu.getVisibleAccessoriesSlots();
 
-        var pageStartingSlotIndex = menu.startingAccessoriesSlot() + menu.addedArmorSlots();
+        var pageStartingSlotIndex = 0;
 
         var gridSize = 6;
 
         var maxColumnCount = menu.owner().accessoriesHolder().columnAmount();
         var maxRowCount = gridSize;
 
-        var totalRowCount = (int) Math.ceil(((slots.size() - pageStartingSlotIndex) / 2f) / maxColumnCount);
+        var totalRowCount = (int) Math.ceil((slots.size() / 2f) / maxColumnCount);
 
         int pageCount;
 
@@ -130,16 +130,19 @@ public class GriddedAccessoriesComponent extends FlowLayout implements Accessori
                             break;
                         }
 
-                        //this.enableSlot(cosmetic);
-                        screen.hideSlot(accessory);
-                        screen.hideSlot(cosmetic);
+                        var cosmeticSlot = (AccessoriesBasedSlot) slots.get(cosmetic);
+                        var accessorySlot = (AccessoriesBasedSlot) slots.get(accessory);
 
-                        screen.enableSlot(screen.showCosmeticState() ? cosmetic : accessory);
-                        screen.disableSlot(screen.showCosmeticState() ? accessory : cosmetic);
+                        //this.enableSlot(cosmetic);
+                        screen.hideSlot(cosmeticSlot);
+                        screen.hideSlot(accessorySlot);
+
+                        screen.enableSlot(screen.showCosmeticState() ? cosmeticSlot : accessorySlot);
+                        screen.disableSlot(screen.showCosmeticState() ? accessorySlot : cosmeticSlot);
 
                         //--
 
-                        var accessoryComponentData = ComponentUtils.slotAndToggle((AccessoriesBasedSlot) slots.get(accessory), screen::slotAsComponent);
+                        var accessoryComponentData = ComponentUtils.slotAndToggle(accessorySlot, screen::slotAsComponent);
 
                         accessoriesRowLayout.child(accessoryComponentData.first());
 
@@ -147,7 +150,7 @@ public class GriddedAccessoriesComponent extends FlowLayout implements Accessori
 
                         //--
 
-                        var cosmeticComponentData = ComponentUtils.slotAndToggle((AccessoriesBasedSlot) slots.get(cosmetic), screen::slotAsComponent);
+                        var cosmeticComponentData = ComponentUtils.slotAndToggle(cosmeticSlot, screen::slotAsComponent);
 
                         cosmeticRowLayout.child(cosmeticComponentData.first());
 

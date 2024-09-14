@@ -4,7 +4,6 @@ import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.PlayerEquipControl;
 import io.wispforest.endec.Endec;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.HashMap;
@@ -29,7 +28,12 @@ public record HolderProperty<T>(String name, Endec<T> endec, BiConsumer<Accessor
 
     public static HolderProperty<Integer> COLUMN_AMOUNT_PROP;
     public static HolderProperty<Integer> WIDGET_TYPE_PROP;
-    public static HolderProperty<Boolean> LEFT_POSITIONED_PROP;
+    public static HolderProperty<Boolean> GROUP_FILTER_PROP;
+
+    public static HolderProperty<Boolean> MAIN_WIDGET_POSITION_PROP;
+    public static HolderProperty<Boolean> SIDE_WIDGET_POSITION_PROP;
+
+    public static HolderProperty<Boolean> CRAFTING_GRID_PROP;
 
     static { init(); }
 
@@ -75,6 +79,11 @@ public record HolderProperty<T>(String name, Endec<T> endec, BiConsumer<Accessor
 
         COLUMN_AMOUNT_PROP = new HolderProperty<>("column_amount", Endec.VAR_INT, AccessoriesHolder::columnAmount, AccessoriesHolder::columnAmount);
         WIDGET_TYPE_PROP = new HolderProperty<>("widget_type", Endec.VAR_INT, AccessoriesHolder::widgetType, AccessoriesHolder::widgetType);
-        LEFT_POSITIONED_PROP = new HolderProperty<>("left_positioned", Endec.BOOLEAN, AccessoriesHolder::leftPositionedAccessories, AccessoriesHolder::leftPositionedAccessories);
+        GROUP_FILTER_PROP = new HolderProperty<>("group_filter", Endec.BOOLEAN, AccessoriesHolder::showGroupFilter, AccessoriesHolder::showGroupFilter);
+
+        MAIN_WIDGET_POSITION_PROP = new HolderProperty<>("main_widget_position", Endec.BOOLEAN, AccessoriesHolder::mainWidgetPosition, AccessoriesHolder::mainWidgetPosition);
+        SIDE_WIDGET_POSITION_PROP = new HolderProperty<>("side_widget_position", Endec.BOOLEAN, AccessoriesHolder::sideWidgetPosition, AccessoriesHolder::sideWidgetPosition);
+
+        CRAFTING_GRID_PROP = new HolderProperty<>("crafting_grid", Endec.BOOLEAN, AccessoriesHolder::showCraftingGrid, AccessoriesHolder::showCraftingGrid);
     }
 }

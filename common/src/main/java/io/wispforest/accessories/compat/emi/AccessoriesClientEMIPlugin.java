@@ -4,7 +4,9 @@ import dev.emi.emi.api.EmiEntrypoint;
 import dev.emi.emi.api.EmiPlugin;
 import dev.emi.emi.api.EmiRegistry;
 import dev.emi.emi.api.widget.Bounds;
+import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
+import me.shedaniel.math.Rectangle;
 
 @EmiEntrypoint
 public class AccessoriesClientEMIPlugin implements EmiPlugin {
@@ -24,6 +26,12 @@ public class AccessoriesClientEMIPlugin implements EmiPlugin {
             var height = screen.getPanelHeight();
 
             consumer.accept(new Bounds(x, y, width, height));
+        });
+
+        registry.addExclusionArea(AccessoriesExperimentalScreen.class, (screen, consumer) -> {
+            screen.getComponentRectangles().forEach(rectangle -> {
+                consumer.accept(new Bounds(rectangle.x(), rectangle.y(), rectangle.width(), rectangle.height()));
+            });
         });
     }
 }

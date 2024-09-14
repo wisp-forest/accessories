@@ -22,6 +22,8 @@
     "client.owo.ScissorStackMixin",
     "client.owo.DiscreteSliderComponentAccessor",
     "client.owo.ScrollContainerMixin",
+    "client.owo.OwoReiPluginMixin",
+    "client.owo.OwoEmiPluginMixin",
     "client.AbstractContainerScreenAccessor",
     "client.cosmetic.PlayerMixin",
     "client.cosmetic.MobMixin",
@@ -49,7 +51,8 @@
     "RegistryOpsAccessor",
     "SlotAccessor",
     "PigEntityMixin",
-    "StriderMixin"
+    "StriderMixin",
+    "CraftingMenuAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

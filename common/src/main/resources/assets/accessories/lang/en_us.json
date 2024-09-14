@@ -46,50 +46,26 @@
     {"text": "[", "color": "gray"},
     {"text": "✔", "color": "#28FFBF"},
     {"text": "]", "color": "gray"},
-    " Unused"
+    " Shown"
   ],
   "accessories.unused_slots.toggle.disabled": [
     "",
     {"text": "[", "color": "gray"},
     {"text": "❌", "color": "#EB1D36"},
     {"text": "]", "color": "gray"},
-    " Unused"
+    " Hidden"
   ],
   "accessories.unused_slots.toggle.enabled.tooltip": "Hide all Unused Slots",
   "accessories.unused_slots.toggle.disabled.tooltip": "Show all Unused Slots",
   "accessories.column_slider.tooltip": "Slider used to adjust Column amount for Accessories Layout",
   "accessories.advanced_options.toggle.enabled": [
-    "",
-    {"text": "[", "color": "gray"},
-    {"text": "✔", "color": "#28FFBF"},
-    {"text": "]", "color": "gray"},
-    " \uD83E\uDDEA"
+    "⛄"
   ],
   "accessories.advanced_options.toggle.disabled": [
-    "",
-    {"text": "[", "color": "gray"},
-    {"text": "❌", "color": "#EB1D36"},
-    {"text": "]", "color": "gray"},
-    " \uD83E\uDDEA"
+    "\uD83E\uDDEA"
   ],
   "accessories.advanced_options.toggle.enabled.tooltip": "Hide Extra Screen configuration options",
   "accessories.advanced_options.toggle.disabled.tooltip": "Show Extra Screen configuration options",
-  "accessories.left_handed_accessories.toggle.enabled": [
-    "",
-    {"text": "[", "color": "gray"},
-    {"text": "←", "color": "#32a852"},
-    {"text": "]", "color": "gray"},
-    " Accessories"
-  ],
-  "accessories.left_handed_accessories.toggle.disabled": [
-    "",
-    {"text": "[", "color": "gray"},
-    {"text": "→", "color": "#32a852"},
-    {"text": "]", "color": "gray"},
-    " Accessories"
-  ],
-  "accessories.left_handed_accessories.toggle.enabled.tooltip": "Move Accessories Widget to the Right",
-  "accessories.left_handed_accessories.toggle.disabled.tooltip": "Move Accessories Widget to the Left",
   "accessories.widget_type.paginated": [
     "",
     {"text": "[", "color": "gray"},
@@ -105,6 +81,58 @@
     {"text": "]", "color": "gray"},
     " Scrollable"
   ],
+  "accessories.group_filter.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Shown"
+  ],
+  "accessories.group_filter.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Hidden"
+  ],
+  "accessories.group_filter.toggle.enabled.tooltip": "Hide group filter widget",
+  "accessories.group_filter.toggle.disabled.tooltip": "Show group filter widget",
+  "accessories.main_widget_position.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "←", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Left"
+  ],
+  "accessories.main_widget_position.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "→", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Right"
+  ],
+  "accessories.main_widget_position.toggle.enabled.tooltip": "Move Accessories Widget to the Right",
+  "accessories.main_widget_position.toggle.disabled.tooltip": "Move Accessories Widget to the Left",
+  "accessories.side_widget_position.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "()", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Together"
+  ],
+  "accessories.side_widget_position.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "||", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Separate"
+  ],
+  "accessories.side_widget_position.toggle.enabled.tooltip": "Move Side Widget to be with the Accessories Widget",
+  "accessories.side_widget_position.toggle.disabled.tooltip": "Move Side widget to be opposite to Accessories Widget",
+  "accessories.crafting_grid.toggle.enabled": "☒",
+  "accessories.crafting_grid.toggle.disabled": "☐",
+  "accessories.crafting_grid.toggle.enabled.tooltip": "Hide the small crafting grid",
+  "accessories.crafting_grid.toggle.disabled.tooltip": "Show the small crafting grid",
   "accessories.widget_type.scrollable.tooltip": "A Scrollable Layout for Accessories Slots",
   "accessories.selection_screen.message": [
     "Below is a set of screen options that you \n",
@@ -117,7 +145,8 @@
   "accessories.unique_slots.toggle.show": "Show Unique Slots",
   "accessories.unique_slots.toggle.hide": "Hide Unique Slots",
   "accessories.back.screen": "To Previous Screen",
-  "accessories.open.screen": "Open Accessories",
+  "accessories.open.screen": "Open Accessories Screen",
+  "accessories.reset.group_filter": "Reset Group Filters",
   "text.autoconfig.accessories.title": "Accessories Config",
   "text.autoconfig.accessories.option.clientData": "Client Options",
   "text.autoconfig.accessories.option.clientData.showGroupTabs": "Show Group Tabs",

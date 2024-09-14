@@ -1,29 +1,54 @@
 package io.wispforest.accessories.client;
 
 import com.mojang.blaze3d.platform.Window;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.slot.SlotEntryReference;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.client.gui.ScreenVariantSelectionScreen;
+import io.wispforest.accessories.client.gui.components.ComponentUtils;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
+import io.wispforest.accessories.mixin.client.AbstractContainerScreenAccessor;
 import io.wispforest.accessories.networking.holder.HolderProperty;
 import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
+import io.wispforest.owo.mixin.itemgroup.CreativeInventoryScreenMixin;
 import io.wispforest.owo.shader.GlProgram;
+import io.wispforest.owo.ui.component.ButtonComponent;
+import io.wispforest.owo.ui.component.Components;
+import io.wispforest.owo.ui.container.Containers;
+import io.wispforest.owo.ui.core.Color;
+import io.wispforest.owo.ui.core.Insets;
+import io.wispforest.owo.ui.core.Positioning;
+import io.wispforest.owo.ui.core.Sizing;
+import io.wispforest.owo.ui.layers.Layer;
+import io.wispforest.owo.ui.layers.Layers;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class AccessoriesClient {
@@ -52,6 +77,10 @@ public class AccessoriesClient {
 
             return InteractionResult.SUCCESS;
         });
+
+        AccessoriesClient.SPECTRUM_PROGRAM = new GlProgram(Accessories.of("spectrum_position_tex"), DefaultVertexFormat.POSITION_TEX_COLOR);
+
+        initLayer();
     }
 
     private static void handleConfigLoad(AccessoriesConfig config) {
@@ -122,5 +151,76 @@ public class AccessoriesClient {
         }
 
         return true;
+    }
+
+
+
+    public static void initLayer() {
+        Layers.add(Containers::verticalFlow, instance -> {
+            var creativeScreen = instance.screen instanceof CreativeModeInventoryScreen;
+
+            instance.adapter.rootComponent.allowOverflow(true);
+
+            var data = Accessories.getConfig().clientData;
+
+            var xOffset = creativeScreen ? data.creativeInventoryButtonXOffset : data.inventoryButtonXOffset;
+            var yOffset = creativeScreen ? data.creativeInventoryButtonYOffset : data.inventoryButtonYOffset;
+
+            var button = (ButtonComponent) Components.button(Component.literal(""), (btn) -> AccessoriesClient.attemptToOpenScreen())
+                    .renderer((context, btn, delta) -> {
+                        ButtonComponent.Renderer.VANILLA.draw(context, btn, delta);
+
+                        context.push()/*.translate(1, 1, 0.0)*/;
+
+                        //--
+                        var groupIcon = Accessories.of("gui/group/misc");
+
+                        var textureAtlasSprite = Minecraft.getInstance()
+                                .getTextureAtlas(ResourceLocation.withDefaultNamespace("textures/atlas/blocks.png"))
+                                .apply(groupIcon);
+
+                        var color = Color.BLACK.interpolate(Color.WHITE, 0.4f);
+
+                        RenderSystem.depthMask(false);
+
+                        //RenderSystem.setShaderColor(color.red(), color.green(), color.blue(), 1f);
+                        //RenderSystem.enableBlend();
+                        //RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
+
+                        context.blit(btn.x() + 2, btn.y() + 2, 2, btn.horizontalSizing().get().value - 4, btn.verticalSizing().get().value - 4, textureAtlasSprite, color.red(), color.green(), color.blue(), 1f);
+
+                        //RenderSystem.defaultBlendFunc();
+                        //RenderSystem.disableBlend();
+                        //RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+
+                        RenderSystem.depthMask(true);
+
+                        //--
+
+//                                        var BACK_ICON = Accessories.of("widget/back");
+//
+//                                        context.blitSprite(BACK_ICON, btn.x(), btn.y(), 8, 8);
+
+                        //--
+
+                        context.pop();
+                    })
+                    .tooltip(Component.translatable(Accessories.translationKey("open.screen")))
+                    .margins(Insets.of(1, 0, 0, 1))
+                    .sizing(Sizing.fixed(creativeScreen ? 8 : 12));
+
+            if(creativeScreen){
+                var extension = ((ComponentUtils.CreativeScreenExtension) instance.screen);
+
+                button.visible = extension.getTab().getType().equals(CreativeModeTab.Type.INVENTORY);
+
+                extension.getEvent().register(tab -> button.visible = tab.getType().equals(CreativeModeTab.Type.INVENTORY));
+            }
+
+            instance.adapter.rootComponent.child(button);
+
+            instance.alignComponentToHandledScreenCoordinates(button, xOffset, yOffset);
+
+        }, InventoryScreen.class, CreativeModeInventoryScreen.class);
     }
 }

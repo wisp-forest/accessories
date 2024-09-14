@@ -3,8 +3,6 @@ package io.wispforest.accessories.client.gui.components;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
-import io.wispforest.accessories.pond.owo.ComponentExtension;
-import io.wispforest.accessories.pond.owo.MutableBoundingArea;
 import io.wispforest.owo.ui.base.BaseParentComponent;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.container.Containers;
@@ -70,16 +68,14 @@ public class ScrollableAccessoriesComponent extends FlowLayout implements Access
     private static Data buildPages(AccessoriesExperimentalScreen screen) {
         var menu = screen.getMenu();
 
-        var slots = menu.slots;
-
-        var pageStartingSlotIndex = menu.startingAccessoriesSlot() + menu.addedArmorSlots();
+        var slots = menu.getVisibleAccessoriesSlots();
 
         var gridSize = 7;
 
         var maxColumnCount = menu.owner().accessoriesHolder().columnAmount();
         var maxRowCount = gridSize;
 
-        var totalRowCount = (int) Math.ceil(((slots.size() - pageStartingSlotIndex) / 2f) / maxColumnCount);
+        var totalRowCount = (int) Math.ceil(((slots.size()) / 2f) / maxColumnCount);
 
         if (totalRowCount <= 0) return null;
 
@@ -103,7 +99,7 @@ public class ScrollableAccessoriesComponent extends FlowLayout implements Access
         var alternativeButtonChecks = new ArrayList<PositionedRectangle>();
 
         for (int row = 0; row < totalRowCount; row++) {
-            var colStartingIndex = pageStartingSlotIndex + (row * (maxColumnCount * 2));
+            var colStartingIndex = (row * (maxColumnCount * 2));
 
             var accessoriesRowLayout = (FlowLayout) Containers.horizontalFlow(Sizing.content(), Sizing.content())
                     .surface(screen.FULL_SLOT_RENDERING)
@@ -133,17 +129,20 @@ public class ScrollableAccessoriesComponent extends FlowLayout implements Access
                     break;
                 }
 
+                var cosmeticSlot = (AccessoriesBasedSlot) slots.get(cosmetic);
+                var accessorySlot = (AccessoriesBasedSlot) slots.get(accessory);
+
                 //this.enableSlot(cosmetic);
 //                if(row < maxRowCount)
-                screen.hideSlot(accessory);
-                screen.hideSlot(cosmetic);
+                screen.hideSlot(cosmeticSlot);
+                screen.hideSlot(accessorySlot);
 
-                screen.enableSlot(screen.showCosmeticState() ? cosmetic : accessory);
-                screen.disableSlot(screen.showCosmeticState() ? accessory : cosmetic);
+                screen.enableSlot(screen.showCosmeticState() ? cosmeticSlot : accessorySlot);
+                screen.disableSlot(screen.showCosmeticState() ? accessorySlot : cosmeticSlot);
 
                 //--
 
-                var accessoryComponentData = ComponentUtils.slotAndToggle((AccessoriesBasedSlot) slots.get(accessory), screen::slotAsComponent);
+                var accessoryComponentData = ComponentUtils.slotAndToggle(accessorySlot, screen::slotAsComponent);
 
                 accessoriesRowLayout.child(accessoryComponentData.first());
 
@@ -151,7 +150,7 @@ public class ScrollableAccessoriesComponent extends FlowLayout implements Access
 
                 //--
 
-                var cosmeticComponentData = ComponentUtils.slotAndToggle((AccessoriesBasedSlot) slots.get(cosmetic), screen::slotAsComponent);
+                var cosmeticComponentData = ComponentUtils.slotAndToggle(cosmeticSlot, screen::slotAsComponent);
 
                 cosmeticRowLayout.child(cosmeticComponentData.first());
 
@@ -178,14 +177,14 @@ public class ScrollableAccessoriesComponent extends FlowLayout implements Access
 
         var paddingValue = (showScrollBar ? 3 : 0);
 
-        fullLayout.padding(this.screen.leftPositioned() ? Insets.left(paddingValue) : Insets.right(paddingValue));
+        fullLayout.padding(this.screen.mainWidgetPosition() ? Insets.left(paddingValue) : Insets.right(paddingValue));
 
         BaseParentComponent innerAccessoriesLayout;
 
         if(showScrollBar) {
             innerAccessoriesLayout = new ExtendedScrollContainer<>(ScrollContainer.ScrollDirection.VERTICAL, Sizing.fixed(minimumWidth + 8 + 3), Sizing.fixed(minimumHeight), fullLayout)
                     .strictMouseScrolling(!Accessories.getConfig().clientData.allowSlotScrolling)
-                    .oppositeScrollbar(this.screen.leftPositioned())
+                    .oppositeScrollbar(this.screen.mainWidgetPosition())
                     .scrolledToCallback((container, prevOffset, scrollOffset) -> {
                         if(prevOffset == scrollOffset) return;
 
@@ -356,7 +355,7 @@ public class ScrollableAccessoriesComponent extends FlowLayout implements Access
 
         var paddingValue = (showScrollbar ? 3 : 0);
 
-        newLayout.padding(this.screen.leftPositioned() ? Insets.left(paddingValue) : Insets.right(paddingValue));
+        newLayout.padding(this.screen.mainWidgetPosition() ? Insets.left(paddingValue) : Insets.right(paddingValue));
 
         childSetter.accept(newLayout);
 

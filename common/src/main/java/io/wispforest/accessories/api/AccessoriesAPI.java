@@ -277,6 +277,10 @@ public class AccessoriesAPI {
         return getStackSlotTypes(level, null, stack);
     }
 
+    public static Collection<SlotType> getStackSlotTypes(LivingEntity entity, ItemStack stack) {
+        return getStackSlotTypes(entity.level(), entity, stack);
+    }
+
     public static Collection<SlotType> getStackSlotTypes(Level level, @Nullable LivingEntity entity, ItemStack stack) {
         var validSlots = new ArrayList<SlotType>();
 

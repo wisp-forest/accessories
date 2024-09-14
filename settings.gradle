@@ -13,7 +13,7 @@ include("common-mojmap")
 
 include("common")
 include("fabric")
-//include("neoforge")
+include("neoforge")
 
 //include("cclayer")
 //include("tclayer")
