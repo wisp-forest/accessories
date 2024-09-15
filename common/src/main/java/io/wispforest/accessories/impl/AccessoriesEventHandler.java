@@ -184,9 +184,9 @@ public class AccessoriesEventHandler {
                 }
             }
         } else if (player != null) {
-            revalidatePlayer(player);
-
             networkHandler.sendToPlayer(player, syncPacket);
+
+            revalidatePlayer(player);
 
             var capability = AccessoriesCapability.get(player);
 
