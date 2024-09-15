@@ -62,6 +62,8 @@ public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>>
 
         SlotTypeLoader.INSTANCE.setSlotType(slotTypes);
 
+        UniqueSlotHandling.buildClientSlotReferences();
+
         Map<EntityType<?>, Map<String, SlotType>> entitySlotTypes = new HashMap<>();
 
         for (var entry : this.entitySlots().entrySet()) {
