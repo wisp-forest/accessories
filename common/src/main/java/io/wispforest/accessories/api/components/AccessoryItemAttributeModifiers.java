@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.attributes.SlotAttribute;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.MinecraftEndecs;

@@ -75,9 +75,11 @@ public class SlotReferenceEncoding {
                 case "nested" -> NESTED_SLOT_REFERENCE_ENDEC;
                 case "base" -> BASE_SLOT_REFERENCE_ENDEC;
                 default -> throw new IllegalStateException("Unable to find endec for the given SlotReference type: " + key);
-            }, slotReference -> switch (slotReference) {
-                case NestedSlotReferenceImpl ignored -> "nested";
-                case SlotReferenceImpl ignored -> "base";
+            }, slotReference -> {
+                if(slotReference instanceof NestedSlotReferenceImpl) return "nested";
+                if(slotReference instanceof SlotReferenceImpl) return "base";
+
+                return "";
             }, Endec.STRING);
 
     @ApiStatus.Experimental
