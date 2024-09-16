@@ -82,8 +82,6 @@ public class GriddedAccessoriesComponent extends FlowLayout implements Accessori
         var minimumWidth = maxColumnCount * 18;
         var minimumHeight = maxRowCount * 18;
 
-        //if(totalRowCount < maxRowCount) maxColumnCount = totalRowCount;
-
         if (totalRowCount > 0) {
             for (int pageIndex = 0; pageIndex < pageCount; pageIndex++) {
                 if (pageIndex != 0) pageStartingSlotIndex += (maxRowCount * maxColumnCount * 2);
@@ -103,17 +101,11 @@ public class GriddedAccessoriesComponent extends FlowLayout implements Accessori
 
                     var accessoriesRowLayout = (FlowLayout) Containers.horizontalFlow(Sizing.content(), Sizing.content())
                             .surface(screen.FULL_SLOT_RENDERING)
-                            //.allowOverflow(true)
                             .id("row_" + row);
-
-                    //((MutableBoundingArea<FlowLayout>) accessoriesRowLayout).deepRecursiveChecking(true);
 
                     var cosmeticRowLayout = (FlowLayout) Containers.horizontalFlow(Sizing.content(), Sizing.content())
                             .surface(screen.FULL_SLOT_RENDERING)
-                            //.allowOverflow(true)
                             .id("row_" + row);
-
-                    //((MutableBoundingArea<FlowLayout>) cosmeticRowLayout).deepRecursiveChecking(true);
 
                     var accessoriesRowButtons = new ArrayList<PositionedRectangle>();
                     var cosmeticsRowButtons = new ArrayList<PositionedRectangle>();
@@ -133,7 +125,6 @@ public class GriddedAccessoriesComponent extends FlowLayout implements Accessori
                         var cosmeticSlot = (AccessoriesBasedSlot) slots.get(cosmetic);
                         var accessorySlot = (AccessoriesBasedSlot) slots.get(accessory);
 
-                        //this.enableSlot(cosmetic);
                         screen.hideSlot(cosmeticSlot);
                         screen.hideSlot(accessorySlot);
 
@@ -166,12 +157,6 @@ public class GriddedAccessoriesComponent extends FlowLayout implements Accessori
                     if(overMaxSlots) break;
                 }
 
-                //((MutableBoundingArea<FlowLayout>) accessoriesPageLayout).deepRecursiveChecking(true);
-                        //.allowOverflow(true);
-
-                //((MutableBoundingArea<FlowLayout>) cosmeticsPageLayout).deepRecursiveChecking(true);
-                        //.allowOverflow(true);
-
                 slotPages.put(pageIndex, new PageLayouts(accessoriesPageLayout, cosmeticsPageLayout, alternativeAccessoriesChecks, alternativeCosmeticButtons));
             }
         }
@@ -184,23 +169,15 @@ public class GriddedAccessoriesComponent extends FlowLayout implements Accessori
 
         var holder = Containers.verticalFlow(Sizing.content(), Sizing.content())
                 .child(getCurrentPageDefaulted().getLayout(screen.showCosmeticState()))
-                //.allowOverflow(true)
                 .id("accessories_container_holder");
-
-        //((MutableBoundingArea<FlowLayout>) holder).deepRecursiveChecking(true);
 
         var accessoriesMainLayout = (FlowLayout) Containers.verticalFlow(Sizing.content(), Sizing.content())
                 .gap(2)
                 .child(holder)
                 .horizontalAlignment(HorizontalAlignment.RIGHT)
-                .surface(Surface.PANEL)
-                //.allowOverflow(true)
+                .surface(ComponentUtils.getPanelSurface())
                 .padding(Insets.of(6))
                 .id("accessories_layout");
-
-        //((MutableBoundingArea) accessoriesMainLayout).deepRecursiveChecking(true);
-
-        //((MutableBoundingArea) this).deepRecursiveChecking(true);
 
         if (this.slotPages.size() <= 1) {
             this.child(accessoriesMainLayout);
@@ -242,14 +219,12 @@ public class GriddedAccessoriesComponent extends FlowLayout implements Accessori
                                 .child(pageLabel.color(Color.ofFormatting(ChatFormatting.DARK_GRAY)))
                                 .horizontalAlignment(HorizontalAlignment.CENTER)
                 )
-                //.child(cosmeticToggleButton)
                 .horizontalAlignment(HorizontalAlignment.RIGHT)
                 .verticalAlignment(VerticalAlignment.CENTER)
                 .id("page_title_bar");
 
         accessoriesMainLayout.child(0, titleBar);
 
-        //this.allowOverflow(true)
         this.sizing(Sizing.content(), Sizing.fixed(minimumLayoutHeight));
 
         this.child(accessoriesMainLayout);
@@ -270,8 +245,6 @@ public class GriddedAccessoriesComponent extends FlowLayout implements Accessori
             var activeGrid = slotPages.get(nextPageIndex).getLayout(showCosmeticState);
 
             ComponentUtils.recursiveSearch(lastGrid, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> screen.hideSlot(slotComponent.index()));
-
-            //updateSlots(lastGrid, activeGrid);
 
             var titleBarComponent = this.childById(FlowLayout.class, "page_title_bar");
 
@@ -305,8 +278,6 @@ public class GriddedAccessoriesComponent extends FlowLayout implements Accessori
             updateDisabledStateSlots(
                     lastGrid,
                     pageLayout.getLayout(showCosmeticState));
-
-            //ComponentUtils.recursiveSearch(lastGrid, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> screen.hideSlot(slotComponent.index()));
         }
 
         var activeGrid = getCurrentPageDefaulted().getLayout(showCosmeticState);
@@ -314,37 +285,13 @@ public class GriddedAccessoriesComponent extends FlowLayout implements Accessori
         gridContainer.child(activeGrid);
     }
 
-    private CachedHoverCheck previousCheckResult = null;
-
     @Override
     public @Nullable Boolean isHovering_Logical(Slot slot, double mouseX, double mouseY) {
-//        if(previousCheckResult != null) {
-//            var result = previousCheckResult.isValid(mouseX, mouseY);
-//
-//            if(result == null) {
-//                previousCheckResult = null;
-//            } else if(result) {
-//                return false;
-//            }
-//        }
-
         for (var child : getCurrentPageDefaulted().getAlternativeChecks(this.screen.showCosmeticState())) {
-            //if(!((BaseComponentAccessor)child).accessories$IsMounted()) continue;
-
             if (child.isInBoundingBox(mouseX, mouseY)) return false;
         }
 
         return null;
-    }
-
-    private record CachedHoverCheck(double prevMouseX, double prevMouseY, boolean value){
-        private Boolean isValid(double mouseX, double mouseY) {
-            if(Math.abs(mouseX - prevMouseX) < 1 && Math.abs(mouseY - prevMouseY) < 1){
-                return value;
-            }
-
-            return null;
-        }
     }
 
     private void updateDisabledStateSlots(ParentComponent prevComp, ParentComponent newComp) {

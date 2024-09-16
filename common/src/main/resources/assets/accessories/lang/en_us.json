@@ -41,6 +41,11 @@
   "accessories.unused_slots.toggle.hide": "Hide Unused Slots",
   "accessories.slot_cosmetics.toggle.enabled": "Show Accessories Slots",
   "accessories.slot_cosmetics.toggle.disabled": "Show Cosmetic Slots",
+  "accessories.advanced_options.toggle.enabled": "⛄",
+  "accessories.advanced_options.toggle.disabled": "\uD83E\uDDEA",
+  "accessories.advanced_options.toggle.enabled.tooltip": "Hide Extra Screen configuration options",
+  "accessories.advanced_options.toggle.disabled.tooltip": "Show Extra Screen configuration options",
+  "accessories.unused_slots.label": "Unused Slots:",
   "accessories.unused_slots.toggle.enabled": [
     "",
     {"text": "[", "color": "gray"},
@@ -57,15 +62,9 @@
   ],
   "accessories.unused_slots.toggle.enabled.tooltip": "Hide all Unused Slots",
   "accessories.unused_slots.toggle.disabled.tooltip": "Show all Unused Slots",
-  "accessories.column_slider.tooltip": "Slider used to adjust Column amount for Accessories Layout",
-  "accessories.advanced_options.toggle.enabled": [
-    "⛄"
-  ],
-  "accessories.advanced_options.toggle.disabled": [
-    "\uD83E\uDDEA"
-  ],
-  "accessories.advanced_options.toggle.enabled.tooltip": "Hide Extra Screen configuration options",
-  "accessories.advanced_options.toggle.disabled.tooltip": "Show Extra Screen configuration options",
+  "accessories.column_amount_slider.label": "Column Amount:",
+  "accessories.column_amount_slider.tooltip": "Slider used to adjust Column amount for Accessories Layout",
+  "accessories.widget_type.label": "Widget Variant:",
   "accessories.widget_type.paginated": [
     "",
     {"text": "[", "color": "gray"},
@@ -81,22 +80,7 @@
     {"text": "]", "color": "gray"},
     " Scrollable"
   ],
-  "accessories.group_filter.toggle.enabled": [
-    "",
-    {"text": "[", "color": "gray"},
-    {"text": "✔", "color": "#28FFBF"},
-    {"text": "]", "color": "gray"},
-    " Shown"
-  ],
-  "accessories.group_filter.toggle.disabled": [
-    "",
-    {"text": "[", "color": "gray"},
-    {"text": "❌", "color": "#EB1D36"},
-    {"text": "]", "color": "gray"},
-    " Hidden"
-  ],
-  "accessories.group_filter.toggle.enabled.tooltip": "Hide group filter widget",
-  "accessories.group_filter.toggle.disabled.tooltip": "Show group filter widget",
+  "accessories.main_widget_position.label": "Widget Position:",
   "accessories.main_widget_position.toggle.enabled": [
     "",
     {"text": "[", "color": "gray"},
@@ -113,6 +97,24 @@
   ],
   "accessories.main_widget_position.toggle.enabled.tooltip": "Move Accessories Widget to the Right",
   "accessories.main_widget_position.toggle.disabled.tooltip": "Move Accessories Widget to the Left",
+  "accessories.group_filter.label": "Group Filters:",
+  "accessories.group_filter.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Shown"
+  ],
+  "accessories.group_filter.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Hidden"
+  ],
+  "accessories.group_filter.toggle.enabled.tooltip": "Hide group filter widget",
+  "accessories.group_filter.toggle.disabled.tooltip": "Show group filter widget",
+  "accessories.side_widget_position.label": "Side Position:",
   "accessories.side_widget_position.toggle.enabled": [
     "",
     {"text": "[", "color": "gray"},
@@ -129,6 +131,40 @@
   ],
   "accessories.side_widget_position.toggle.enabled.tooltip": "Move Side Widget to be with the Accessories Widget",
   "accessories.side_widget_position.toggle.disabled.tooltip": "Move Side widget to be opposite to Accessories Widget",
+  "accessories.dark_mode_toggle.label": "Theme Mode:",
+  "accessories.dark_mode_toggle.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☽", "color": "#3d29c2"},
+    {"text": "]", "color": "gray"},
+    " Dark"
+  ],
+  "accessories.dark_mode_toggle.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☀", "color": "#bffa9b"},
+    {"text": "]", "color": "gray"},
+    " Light"
+  ],
+  "accessories.dark_mode_toggle.toggle.enabled.tooltip": "Change theme to Light Mode",
+  "accessories.dark_mode_toggle.toggle.disabled.tooltip": "Change theme to Dark Mode",
+  "accessories.lines.label": "Line Rendering:",
+  "accessories.lines.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Shown"
+  ],
+  "accessories.lines.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Hidden"
+  ],
+  "accessories.lines.toggle.enabled.tooltip": "Hide all Line Rendering",
+  "accessories.lines.toggle.disabled.tooltip": "Show all Line Rendering",
   "accessories.crafting_grid.toggle.enabled": "☒",
   "accessories.crafting_grid.toggle.disabled": "☐",
   "accessories.crafting_grid.toggle.enabled.tooltip": "Hide the small crafting grid",

@@ -39,6 +39,9 @@ public class AccessoriesConfig implements ConfigData {
         public PlayerEquipControl equipControl = PlayerEquipControl.MUST_NOT_CROUCH;
 
         @ConfigEntry.Gui.CollapsibleObject()
+        public ExperimentalScreenData experimentalScreenData = new ExperimentalScreenData();
+
+        @ConfigEntry.Gui.CollapsibleObject()
         public HighlightOptions highlightOptions = new HighlightOptions();
 
         public static class HighlightOptions {
@@ -61,6 +64,10 @@ public class AccessoriesConfig implements ConfigData {
         }
 
         public List<RenderSlotTarget> disabledDefaultRenders = new ArrayList<>();
+    }
+
+    public static class ExperimentalScreenData {
+        public boolean isDarkMode = false;
     }
 
     public List<SlotAmountModifier> modifiers = new ArrayList<>();

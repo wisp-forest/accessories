@@ -3,7 +3,10 @@ package io.wispforest.accessories.client.gui.components;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Axis;
+import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.owo.ui.component.EntityComponent;
+import io.wispforest.owo.ui.core.Component;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
 import io.wispforest.owo.ui.core.Sizing;
 import io.wispforest.owo.util.pond.OwoEntityRenderDispatcherExtension;
@@ -18,7 +21,9 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 
 public class InventoryEntityComponent<E extends Entity> extends EntityComponent<E> {
 
@@ -43,7 +48,15 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
     public float xOffset = 0.0f;
     public float yOffset = 0.0f;
 
-    public EntityComponent<E> scaleToFit(boolean scaleToFit) {
+    private BiConsumer<Component, Runnable> renderWrapping = (component, runnable) -> runnable.run();
+
+    public InventoryEntityComponent<E> renderWrapping(BiConsumer<Component, Runnable> renderWrapping) {
+        this.renderWrapping = renderWrapping;
+
+        return this;
+    }
+
+    public InventoryEntityComponent<E> scaleToFit(boolean scaleToFit) {
         if(scaleToFit) {
             var componentHeight = (float) this.verticalSizing().get().value;
             var componentWidth = (float) this.horizontalSizing().get().value - 40;
@@ -63,19 +76,19 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
         return this;
     }
 
-    public EntityComponent<E> startingRotation(float value) {
+    public InventoryEntityComponent<E> startingRotation(float value) {
         this.startingRotation = value;
 
         return this;
     }
 
-    public EntityComponent<E> scaleToFitVertically(boolean scaleToFit) {
+    public InventoryEntityComponent<E> scaleToFitVertically(boolean scaleToFit) {
         this.scale(scaleToFit ? (.5f / entity.getBbHeight()) : 1);
 
         return this;
     }
 
-    public EntityComponent<E> scaleToFitHorizontally(boolean scaleToFit) {
+    public InventoryEntityComponent<E> scaleToFitHorizontally(boolean scaleToFit) {
         this.scale(scaleToFit ? (.5f / entity.getBbWidth()) : 1);
 
         return this;
@@ -140,18 +153,13 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
             living.yHeadRot = living.yBodyRot; //living.getYRot();
             living.yHeadRotO = living.yBodyRotO; //living.getYRot();
 
-//        Quaternionf quaternionf = new Quaternionf().rotateZ((float) Math.PI);
-//        Quaternionf quaternionf2 = new Quaternionf().rotateX(i * 20.0F * (float) (Math.PI / 180.0));
-//        quaternionf.mul(quaternionf2);
-//
-//        if (quaternionf2 != null) {
-//            this.dispatcher.overrideCameraOrientation(quaternionf2.conjugate(new Quaternionf()).rotateY((float) Math.PI));
-//        }
-
             matrices.translate(this.xOffset, this.yOffset, 0);
 
             this.dispatcher.setRenderShadow(false);
-            this.dispatcher.render(this.entity, 0, 0, 0, 0, 0, matrices, this.entityBuffers, LightTexture.FULL_BRIGHT);
+
+            this.renderWrapping.accept(this,
+                    () -> this.dispatcher.render(this.entity, 0, 0, 0, 0, 0, matrices, this.entityBuffers, LightTexture.FULL_BRIGHT)
+            );
 
             this.dispatcher.setRenderShadow(true);
         }

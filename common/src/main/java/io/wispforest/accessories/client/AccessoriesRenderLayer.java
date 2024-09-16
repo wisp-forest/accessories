@@ -9,8 +9,10 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
+import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -63,9 +65,9 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
         float scale = (float) (1 + (0.5 * (0.75 + (Math.sin((System.currentTimeMillis()) / 250d)))));
 
-        var renderingLines = AccessoriesScreen.HOLD_LINE_INFO;
+        var renderingLines = AccessoriesScreen.HOLD_LINE_INFO.getValue();
 
-        var useCustomerBuffer = IS_RENDERING_UI_ENTITY;
+        var useCustomerBuffer = AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.getValue();
 
         if (!renderingLines && !AccessoriesScreen.NOT_VERY_NICE_POSITIONS.isEmpty()) {
             AccessoriesScreen.NOT_VERY_NICE_POSITIONS.clear();
@@ -84,7 +86,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
         AccessoriesInternalSlot selected = null;
 
-        if (screen instanceof AccessoriesScreen accessoriesScreen && accessoriesScreen.getHoveredSlot() instanceof AccessoriesInternalSlot slot) {
+        if (screen instanceof AccessoriesScreenBase screenBase && screenBase.getHoveredSlot() instanceof AccessoriesInternalSlot slot) {
             selected = slot;
         }
 
@@ -139,7 +141,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                             multiBufferSource.getBuffer(renderType);
                 };
 
-                if (!IS_RENDERING_UI_ENTITY || isSelected || selected == null || highlightOptions.unselectedOptions.renderUnselected) {
+                if (!AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.getValue() || isSelected || selected == null || highlightOptions.unselectedOptions.renderUnselected) {
                     renderer.render(
                             stack,
                             SlotReference.of(entity, container.getSlotName(), i),
@@ -203,7 +205,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                         }
                     }
 
-                    if (renderingLines && AccessoriesScreen.IS_RENDERING_LINE_TARGET) {
+                    if (renderingLines && AccessoriesScreen.IS_RENDERING_LINE_TARGET.getValue()) {
                         AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, mpoatv.meanPos());
                     }
                 }

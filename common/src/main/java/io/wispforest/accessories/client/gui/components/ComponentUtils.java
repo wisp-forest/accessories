@@ -18,6 +18,7 @@ import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
+import io.wispforest.owo.ui.container.ScrollContainer;
 import io.wispforest.owo.ui.core.*;
 import io.wispforest.owo.ui.util.NinePatchTexture;
 import io.wispforest.owo.ui.util.ScissorStack;
@@ -43,7 +44,8 @@ public class ComponentUtils {
     public static final ResourceLocation DISABLED_TEXTURE = Accessories.of("button/disabled");
     public static final ResourceLocation DISABLED_HOVERED_TEXTURE = Accessories.of("button/disabled_hovered");
 
-    private static final ResourceLocation SLOT = Accessories.of("textures/gui/slot.png");
+    private static final ResourceLocation SLOT = ResourceLocation.withDefaultNamespace("textures/gui/sprites/container/slot.png");
+    private static final ResourceLocation DARK_SLOT = Accessories.of("textures/gui/dark_slot.png");
 
     public static final Surface BACKGROUND_SLOT_RENDERING_SURFACE = (context, component) -> {
         var slotComponents = new ArrayList<AccessoriesExperimentalScreen.ExtendedSlotComponent>();
@@ -53,12 +55,88 @@ public class ComponentUtils {
         context.push();
         context.translate(component.x(), component.y(), 0);
 
-        GuiGraphicsUtils.batched(context, SLOT, slotComponents, (bufferBuilder, poseStack, slotComponent) -> {
+        GuiGraphicsUtils.batched(context, getSlotTexture(), slotComponents, (bufferBuilder, poseStack, slotComponent) -> {
             GuiGraphicsUtils.blit(bufferBuilder, poseStack, slotComponent.x() - component.x() - 1, slotComponent.y() - component.y() - 1, 18);
         });
 
         context.pop();
     };
+
+    private static final ResourceLocation VERTICAL_VANILLA_SCROLLBAR_TEXTURE = Accessories.of("scrollbar_dark/vanilla_vertical");
+    private static final ResourceLocation DISABLED_VERTICAL_VANILLA_SCROLLBAR_TEXTURE = Accessories.of("scrollbar_dark/vanilla_vertical_disabled");
+    private static final ResourceLocation HORIZONTAL_VANILLA_SCROLLBAR_TEXTURE = Accessories.of("scrollbar_dark/vanilla_horizontal_disabled");
+    private static final ResourceLocation DISABLED_HORIZONTAL_VANILLA_SCROLLBAR_TEXTURE = Accessories.of("scrollbar_dark/vanilla_horizontal_disabled");
+    private static final ResourceLocation VANILLA_SCROLLBAR_TRACK_TEXTURE = Accessories.of("scrollbar_dark/track");
+
+    public static final ScrollContainer.Scrollbar DARK_VANILLA = (context, x, y, width, height, trackX, trackY, trackWidth, trackHeight, lastInteractTime, direction, active) -> {
+        NinePatchTexture.draw(VANILLA_SCROLLBAR_TRACK_TEXTURE, context, trackX, trackY, trackWidth, trackHeight);
+
+        var texture = direction == ScrollContainer.ScrollDirection.VERTICAL
+                ? active ? VERTICAL_VANILLA_SCROLLBAR_TEXTURE : DISABLED_VERTICAL_VANILLA_SCROLLBAR_TEXTURE
+                : active ? HORIZONTAL_VANILLA_SCROLLBAR_TEXTURE : DISABLED_HORIZONTAL_VANILLA_SCROLLBAR_TEXTURE;
+
+        NinePatchTexture.draw(texture, context, x + 1, y + 1, width - 2, height - 2);
+    };
+
+    public static final ResourceLocation DARK_PANEL_INSET_NINE_PATCH_TEXTURE = Accessories.of("panel/dark_inset");
+
+    public static final Surface DARK_PANEL_INSET = (context, component) -> {
+        NinePatchTexture.draw(DARK_PANEL_INSET_NINE_PATCH_TEXTURE, context, component);
+    };
+
+    public static final ResourceLocation DARK_ACTIVE_TEXTURE = Accessories.of("button_dark/active");
+    public static final ResourceLocation DARK_HOVERED_TEXTURE = Accessories.of("button_dark/hovered");
+    public static final ResourceLocation DARK_DISABLED_TEXTURE = Accessories.of("button_dark/disabled");
+
+    private static final ButtonComponent.Renderer DARK_BUTTON_RENDERER = (context, button, delta) -> {
+        RenderSystem.enableDepthTest();
+
+        var texture = button.active ? (button.isHovered() ? DARK_HOVERED_TEXTURE : DARK_ACTIVE_TEXTURE) : DARK_DISABLED_TEXTURE;
+
+        NinePatchTexture.draw(texture, context, button.getX(), button.getY(), button.width(), button.height());
+    };
+
+    public static ResourceLocation getSlotTexture() {
+        return (Accessories.getConfig().clientData.experimentalScreenData.isDarkMode) ? DARK_SLOT : SLOT;
+    }
+
+    public static Surface getPanelSurface() {
+        return (context, component) -> {
+            ((Accessories.getConfig().clientData.experimentalScreenData.isDarkMode) ? Surface.DARK_PANEL : Surface.PANEL)
+                    .draw(context, component);
+        };
+    }
+
+    public static Surface getInsetPanelSurface() {
+        return (context, component) -> {
+            ((Accessories.getConfig().clientData.experimentalScreenData.isDarkMode) ? DARK_PANEL_INSET : Surface.PANEL_INSET)
+                    .draw(context, component);
+        };
+    }
+
+    public static Surface getPanelWithInset(int insetWidth) {
+        return (context, component) -> {
+            var location = ((Accessories.getConfig().clientData.experimentalScreenData.isDarkMode)
+                    ? DARK_PANEL_INSET_NINE_PATCH_TEXTURE
+                    : OwoUIDrawContext.PANEL_INSET_NINE_PATCH_TEXTURE);
+
+            NinePatchTexture.draw(location, context, component.x() + insetWidth, component.y() + insetWidth, component.width() - insetWidth * 2, component.height() - insetWidth * 2);
+        };
+    }
+
+    public static ButtonComponent.Renderer getButtonRenderer() {
+        return (context, button, delta) -> {
+            ((Accessories.getConfig().clientData.experimentalScreenData.isDarkMode) ? DARK_BUTTON_RENDERER : ButtonComponent.Renderer.VANILLA)
+                    .draw(context, button, delta);
+        };
+    }
+
+    public static ScrollContainer.Scrollbar getScrollbarRenderer() {
+        return (context, x, y, width, height, trackX, trackY, trackWidth, trackHeight, lastInteractTime, direction, active) -> {
+            ((Accessories.getConfig().clientData.experimentalScreenData.isDarkMode) ? DARK_VANILLA : ScrollContainer.Scrollbar.vanilla())
+                    .draw(context, x, y, width, height, trackX, trackY, trackWidth, trackHeight, lastInteractTime, direction, active);
+        };
+    }
 
     public static <C extends io.wispforest.owo.ui.core.Component> void recursiveSearch(ParentComponent parentComponent, Class<C> target, Consumer<C> action) {
         if(parentComponent == null) return;

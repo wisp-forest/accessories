@@ -66,20 +66,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     private static final ResourceLocation UNUSED_SLOTS_HIDDEN = Accessories.of("widget/unused_slots_hidden");
     private static final ResourceLocation UNUSED_SLOTS_SHOWN = Accessories.of("widget/unused_slots_shown");
 
-    public static Vector4i SCISSOR_BOX = new Vector4i();
-    // are we currently rendering an entity in a screen
-    public static boolean IS_RENDERING_UI_ENTITY = false;
-    // are we currently rendering the entity that lines should be drawn to
-    public static boolean IS_RENDERING_LINE_TARGET = false;
-
-    public static boolean HOLD_LINE_INFO = false;
-
-    public static final Map<String, Vector3d> NOT_VERY_NICE_POSITIONS = new HashMap<>();
-
-    public static boolean FORCE_TOOLTIP_LEFT = false;
-
-    private final List<Pair<Vector3d, Vector3d>> accessoryLines = new ArrayList<>();
-
     private final Map<AccessoriesInternalSlot, ToggleButton> cosmeticButtons = new LinkedHashMap<>();
 
     private int currentTabPage = 1;
@@ -208,21 +194,21 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         // --
 
-        HOLD_LINE_INFO = this.getMenu().areLinesShown() && Accessories.getConfig().clientData.showLineRendering;
+        HOLD_LINE_INFO.setValue(this.getMenu().areLinesShown() && Accessories.getConfig().clientData.showLineRendering);
 
-        IS_RENDERING_UI_ENTITY = true;
+        AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.setValue(true);
 
-        IS_RENDERING_LINE_TARGET = true;
+        IS_RENDERING_LINE_TARGET.setValue(true);
 
         renderEntityInInventoryFollowingMouseRotated(guiGraphics, scissorStart, size, scissorStart, scissorEnd, mouseX, mouseY, 0);
 
-        IS_RENDERING_LINE_TARGET = false;
+        IS_RENDERING_LINE_TARGET.setValue(false);
 
         renderEntityInInventoryFollowingMouseRotated(guiGraphics, new Vector2i(scissorStart).add(size.x, 0), size, scissorStart, scissorEnd, mouseX, mouseY, 180);
 
-        IS_RENDERING_UI_ENTITY = false;
+        AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.setValue(false);
 
-        HOLD_LINE_INFO = false;
+        HOLD_LINE_INFO.setValue(false);
 
 
 //        HOVERED_SLOT_TYPE = null;
@@ -267,7 +253,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                     var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
                     var vec3 = vec.add(0, 0, 5000);
 
-                    this.accessoryLines.add(Pair.of(start, vec3));
+                    ACCESSORY_LINES.add(Pair.of(start, vec3));
                 }
             }
         }
@@ -372,11 +358,11 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
 
-        if (Accessories.getConfig().clientData.showLineRendering && !this.accessoryLines.isEmpty()) {
+        if (Accessories.getConfig().clientData.showLineRendering && !ACCESSORY_LINES.isEmpty()) {
             var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
             var lastPose = guiGraphics.pose().last();
 
-            for (Pair<Vector3d, Vector3d> line : this.accessoryLines) {
+            for (Pair<Vector3d, Vector3d> line : ACCESSORY_LINES) {
                 var normalVec = line.second().sub(line.first(), new Vector3d()).normalize().get(new Vector3f());
 
                 double segments = Math.max(10, ((int) (line.first().distance(line.second()) * 10)) / 100);
@@ -440,7 +426,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
             minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
 
-            this.accessoryLines.clear();
+            ACCESSORY_LINES.clear();
         }
     }
 
@@ -715,7 +701,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     @Override
     protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
         if (this.hoveredSlot instanceof AccessoriesInternalSlot slot) {
-            FORCE_TOOLTIP_LEFT = true;
+            AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(true);
 
             if (slot.getItem().isEmpty() && slot.accessoriesContainer.slotType() != null) {
                 guiGraphics.renderTooltip(Minecraft.getInstance().font, slot.getTooltipData(), Optional.empty(), x, y);
@@ -745,7 +731,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         super.renderTooltip(guiGraphics, x, y);
 
-        FORCE_TOOLTIP_LEFT = false;
+        AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(false);
     }
 
     @Override

@@ -326,7 +326,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
     public static final KeyedEndec<ListTag> ITEMS_KEY = NbtEndec.LIST.keyed("items", ListTag::new);
     public static final KeyedEndec<ListTag> COSMETICS_KEY = NbtEndec.LIST.keyed("cosmetics", ListTag::new);
-    
+
     @Override
     public void write(MapCarrier carrier, SerializationContext ctx) {
         write(carrier, ctx, false);

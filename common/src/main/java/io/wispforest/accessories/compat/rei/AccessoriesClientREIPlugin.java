@@ -3,6 +3,7 @@ package io.wispforest.accessories.compat.rei;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.client.gui.components.ArrowComponent;
+import io.wispforest.accessories.mixin.client.AbstractContainerScreenAccessor;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import me.shedaniel.math.Rectangle;
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
@@ -15,6 +16,7 @@ import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.transfer.info.stack.SlotAccessor;
 import me.shedaniel.rei.plugin.autocrafting.InventoryCraftingTransferHandler;
 import me.shedaniel.rei.plugin.common.BuiltinPlugin;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CraftingScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -54,11 +56,13 @@ public class AccessoriesClientREIPlugin implements REIClientPlugin {
     public void registerScreens(ScreenRegistry registry) {
         registry.registerContainerClickArea(
                 screen -> {
+                    var accessor = ((AbstractContainerScreenAccessor) (screen));
+
                     if(screen.showCraftingGrid()) {
                         var component = screen.component(ArrowComponent.class, "crafting_arrow");
 
                         if (component != null) {
-                            return new Rectangle(component.x(), component.y(), component.width(), component.height());
+                            return new Rectangle(component.x() - accessor.accessories$leftPos(), component.y() - accessor.accessories$topPos(), component.width(), component.height());
                         }
                     }
 
