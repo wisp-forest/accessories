@@ -104,7 +104,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         var state = this.changedSlots.getOrDefault(index, null);
 
-        if(state != null && !state) return;
+        if (state != null && state) return;
 
         hideSlot(index);
 
@@ -122,7 +122,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         var state = this.changedSlots.getOrDefault(index, null);
 
-        if(state != null && state) return;
+        if (state != null && !state) return;
 
         this.changedSlots.put(index, false);
     }
@@ -141,14 +141,13 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     protected void containerTick() {
         super.containerTick();
 
-        if(this.changedSlots.isEmpty()) return;
+        if (this.changedSlots.isEmpty()) return;
 
         var slots = this.getMenu().slots;
 
-        var changes = this.changedSlots.keySet().stream()
-                .map(i -> (i < slots.size()) ? slots.get(i) : null)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(slot -> slot.index, slot -> ((OwoSlotExtension)slot).owo$getDisabledOverride()));
+        var changes = this.changedSlots.entrySet().stream()
+                .filter(entry -> entry.getKey() < slots.size())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         this.getMenu().sendMessage(new AccessoriesExperimentalMenu.ToggledSlots(changes));
 
@@ -171,14 +170,8 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
         boolean hasRendererTooltip = false;
 
-        if (this.hoveredSlot instanceof AccessoriesInternalSlot slot) {
+        if (this.hoveredSlot instanceof AccessoriesInternalSlot) {
             AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(this.mainWidgetPosition());
-
-//            if (slot.getItem().isEmpty() && slot.accessoriesContainer.slotType() != null) {
-//                guiGraphics.renderTooltip(Minecraft.getInstance().font, slot.getTooltipData(), Optional.empty(), x, y);
-//
-//                hasRendererTooltip = true;
-//            }
         }
 
         if (!hasRendererTooltip) super.renderTooltip(guiGraphics, x, y);
@@ -1301,7 +1294,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     //--
 
     @Nullable
-    public Triplet<ItemStack, Boolean, @Nullable String> getRenderStack(Slot slot) {
+    private Triplet<ItemStack, Boolean, @Nullable String> getRenderStack(Slot slot) {
         var accessor = (AbstractContainerScreenAccessor) this;
 
         ItemStack itemStack = slot.getItem();

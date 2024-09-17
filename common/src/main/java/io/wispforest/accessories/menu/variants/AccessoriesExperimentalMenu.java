@@ -332,15 +332,24 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         }
         else if (equipmentSlot == EquipmentSlot.OFFHAND && !this.slots.get(45).hasItem()) {
             if(!this.moveItemStackTo(itemStack2, 41, 42, false)) return ItemStack.EMPTY;
-        }
-        else if (canMoveToAccessorySlot(itemStack2, this.targetEntityDefaulted()) && index < this.startingAccessoriesSlot) {
-            if(!moveItemStackTo(itemStack2, upperInventorySize, slots.size(), false)) return ItemStack.EMPTY;
-        }
-        else if (index >= 5 && index < 32) {
-            if (!this.moveItemStackTo(itemStack2, 32, 41, false)) return ItemStack.EMPTY;
-        }
-        else if (index >= 32 && index < 41) {
-            if (!this.moveItemStackTo(itemStack2, 5, 32, false)) return ItemStack.EMPTY;
+        } else {
+            boolean changeOccured = false;
+
+            if (canMoveToAccessorySlot(itemStack2, this.targetEntityDefaulted()) && index < this.startingAccessoriesSlot) {
+                moveItemStackTo(itemStack2, upperInventorySize, slots.size(), false);
+
+                if (itemStack2.getCount() != itemStack.getCount() || itemStack2.isEmpty()) {
+                    changeOccured = true;
+                }
+            }
+
+            if(!changeOccured) {
+                if (index >= 5 && index < 32) {
+                    if (!this.moveItemStackTo(itemStack2, 32, 41, false)) return ItemStack.EMPTY;
+                } else if (index >= 32 && index < 41) {
+                    if (!this.moveItemStackTo(itemStack2, 5, 32, false)) return ItemStack.EMPTY;
+                }
+            }
         }
 
         if (itemStack2.getCount() == itemStack.getCount()) return ItemStack.EMPTY;
