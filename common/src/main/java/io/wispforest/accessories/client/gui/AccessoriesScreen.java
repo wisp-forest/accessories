@@ -270,11 +270,12 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
                 var positionKey = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
                 var vec = NOT_VERY_NICE_POSITIONS.getOrDefault(positionKey, null);
 
-                if (!slot.isCosmetic && vec != null && (menu.areLinesShown())) {
+                if (!slot.isCosmetic && vec != null && (Accessories.getConfig().clientData.hoverOptions.hoveredOptions.line)) {
                     var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
                     var vec3 = vec.add(0, 0, 5000);
 
-                    ACCESSORY_LINES.add(Pair.of(start, vec3));}
+                    ACCESSORY_LINES.add(Pair.of(start, vec3));
+                }
             }
         }
 

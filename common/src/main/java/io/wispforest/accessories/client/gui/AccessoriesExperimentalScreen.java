@@ -191,7 +191,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 var positionKey = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
                 var vec = NOT_VERY_NICE_POSITIONS.getOrDefault(positionKey, null);
 
-                if (!slot.isCosmetic && vec != null && (this.showLines())) {
+                if (!slot.isCosmetic && vec != null && (Accessories.getConfig().clientData.hoverOptions.hoveredOptions.line)) {
                     var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
                     var vec3 = vec.add(0, 0, 5000);
 
@@ -979,25 +979,6 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                         ),
                 3, 0);
 
-        baseOptionPanel.child(
-                Containers.verticalFlow(Sizing.content(), Sizing.content())
-                        .child(Components.label(Accessories.translation("lines.label")))
-                        .child(
-                                Components.button(
-                                                createToggleTooltip("lines", false, this.showLines()),
-                                                btn -> {
-                                                    this.showLines(!this.showLines());
-
-                                                    btn.setMessage(createToggleTooltip("lines", false, this.showLines()));
-                                                    btn.tooltip(createToggleTooltip("lines", true, this.showLines()));
-                                                })
-                                        .renderer(ComponentUtils.getButtonRenderer())
-                                        .tooltip(createToggleTooltip("lines", true, this.showLines()))
-                                        .id("lines")
-                                        .horizontalSizing(Sizing.fixed(74))
-                        ),
-                3, 1);
-
         return Containers.verticalScroll(Sizing.expand(), Sizing.expand(), baseOptionPanel);
     }
 
@@ -1441,14 +1422,6 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
     public void showCraftingGrid(boolean value) {
         this.setHolderValue(AccessoriesHolder::showCraftingGrid, value, "showCraftingGrid");
-    }
-
-    public boolean showLines() {
-        return this.getHolderValue(AccessoriesHolder::linesShown, false, "showLines");
-    }
-
-    public void showLines(boolean value) {
-        this.setHolderValue(AccessoriesHolder::linesShown, value, "showLines");
     }
 
     //--

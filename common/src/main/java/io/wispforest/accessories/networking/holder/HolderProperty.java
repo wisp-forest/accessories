@@ -21,9 +21,7 @@ public record HolderProperty<T>(String name, Endec<T> endec, BiConsumer<Accessor
     public static HolderProperty<PlayerEquipControl> EQUIP_CONTROL;
 
     public static HolderProperty<Boolean> UNUSED_PROP;
-    public static HolderProperty<Boolean> UNIQUE_PROP;
 
-    public static HolderProperty<Boolean> LINES_PROP;
     public static HolderProperty<Boolean> COSMETIC_PROP;
 
     public static HolderProperty<Integer> COLUMN_AMOUNT_PROP;
@@ -80,7 +78,6 @@ public record HolderProperty<T>(String name, Endec<T> endec, BiConsumer<Accessor
 
         UNUSED_PROP = new HolderProperty<>("unused_slots", Endec.BOOLEAN, AccessoriesHolder::showUnusedSlots, AccessoriesHolder::showUnusedSlots);
 
-        LINES_PROP = new HolderProperty<>("lines", Endec.BOOLEAN, AccessoriesHolder::linesShown, AccessoriesHolder::linesShown);
         COSMETIC_PROP = new HolderProperty<>("cosmetic", Endec.BOOLEAN, AccessoriesHolder::cosmeticsShown, AccessoriesHolder::cosmeticsShown);
 
         GROUP_FILTER_PROP = new HolderProperty<>("group_filter", Endec.BOOLEAN, AccessoriesHolder::showGroupFilter, AccessoriesHolder::showGroupFilter);

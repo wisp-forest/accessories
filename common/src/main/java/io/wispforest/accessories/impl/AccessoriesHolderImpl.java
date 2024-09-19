@@ -48,7 +48,6 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     private boolean showUnusedSlots = false;
 
     private boolean showCosmetics = false;
-    private boolean showLines = false;
 
     private int columnAmount = 1;
     private int widgetType = 2;
@@ -115,18 +114,6 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     @Override
     public AccessoriesHolder cosmeticsShown(boolean value) {
         this.showCosmetics = value;
-
-        return this;
-    }
-
-    @Override
-    public boolean linesShown() {
-        return this.showLines;
-    }
-
-    @Override
-    public AccessoriesHolder linesShown(boolean value) {
-        this.showLines = value;
 
         return this;
     }
@@ -317,7 +304,6 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     private static final KeyedEndec<PlayerEquipControl> EQUIP_CONTROL_KEY = Endec.forEnum(PlayerEquipControl.class).keyed("equip_control", PlayerEquipControl.MUST_CROUCH);
 
     private static final KeyedEndec<Boolean> SHOW_COSMETICS_KEY = Endec.BOOLEAN.keyed("show_cosmetics", false);
-    private static final KeyedEndec<Boolean> SHOW_LINES_KEY = Endec.BOOLEAN.keyed("show_lines", false);
 
     private static final KeyedEndec<Integer> COLUMN_AMOUNT_KEY = Endec.INT.keyed("column_amount", 1);
     private static final KeyedEndec<Integer> WIDGET_TYPE_KEY = Endec.INT.keyed("widget_type", 2);
@@ -343,7 +329,6 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         carrier.put(ctx, SIDE_WIDGET_POSITION, this.sideWidgetPosition);
 
         carrier.put(ctx, SHOW_COSMETICS_KEY, this.showCosmetics);
-        carrier.put(ctx, SHOW_LINES_KEY, this.showLines);
 
         carrier.put(ctx, SHOW_GROUP_FILTER, this.showGroupFilter);
         carrier.put(ctx, IS_GROUP_FILTERS_OPEN_KEY, this.isGroupFiltersOpen);
@@ -377,7 +362,6 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         this.sideWidgetPosition = carrier.get(ctx, SIDE_WIDGET_POSITION);
 
         this.showCosmetics = carrier.get(ctx, SHOW_COSMETICS_KEY);
-        this.showLines = carrier.get(ctx, SHOW_LINES_KEY);
 
         this.showGroupFilter = carrier.get(ctx, SHOW_GROUP_FILTER);
         this.isGroupFiltersOpen = carrier.get(ctx, IS_GROUP_FILTERS_OPEN_KEY);

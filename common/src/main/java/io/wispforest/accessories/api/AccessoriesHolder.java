@@ -36,15 +36,7 @@ public interface AccessoriesHolder {
 
     AccessoriesHolder showUnusedSlots(boolean value);
 
-    @Deprecated(forRemoval = true)
-    default boolean showUniqueSlots() {
-        return false;
-    }
 
-    @Deprecated(forRemoval = true)
-    default AccessoriesHolder showUniqueSlots(boolean value) {
-        return this;
-    }
 
     /**
      * @return If the cosmetic slots should be shown within the {@link AccessoriesScreen}
@@ -52,13 +44,6 @@ public interface AccessoriesHolder {
     boolean cosmeticsShown();
 
     AccessoriesHolder cosmeticsShown(boolean value);
-
-    /**
-     * @return If the fancy line rendering utility should be shown within the {@link AccessoriesScreen}
-     */
-    boolean linesShown();
-
-    AccessoriesHolder linesShown(boolean value);
 
     boolean showAdvancedOptions();
 
@@ -92,4 +77,25 @@ public interface AccessoriesHolder {
 
     AccessoriesHolder showCraftingGrid(boolean value);
 
+    //--
+
+    @Deprecated(forRemoval = true)
+    default boolean showUniqueSlots() {
+        return false;
+    }
+
+    @Deprecated(forRemoval = true)
+    default AccessoriesHolder showUniqueSlots(boolean value) {
+        return this;
+    }
+
+    @Deprecated(forRemoval = true)
+    default boolean linesShown() {
+        return false;
+    }
+
+    @Deprecated(forRemoval = true)
+    default AccessoriesHolder linesShown(boolean value) {
+        return this;
+    }
 }

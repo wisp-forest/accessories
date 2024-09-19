@@ -259,10 +259,6 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
         return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::cosmeticsShown).orElse(false);
     }
 
-    public boolean areLinesShown() {
-        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::linesShown).orElse(false);
-    }
-
     public boolean areUnusedSlotsShown() {
         return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::showUnusedSlots).orElse(false);
     }
