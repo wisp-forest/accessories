@@ -213,7 +213,7 @@ public class ComponentUtils {
                 },
                 (context, button, delta) -> {
                     var textureAtlasSprite = Minecraft.getInstance()
-                            .getTextureAtlas(ResourceLocation.withDefaultNamespace("textures/atlas/blocks.png"))
+                            .getTextureAtlas(ResourceLocation.withDefaultNamespace("textures/atlas/gui.png"))
                             .apply(group.icon());
 
                     var color = Color.WHITE;

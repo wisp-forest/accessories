@@ -4,7 +4,6 @@ import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.criteria.AccessoryChangedCriterion;
-import io.wispforest.accessories.impl.AccessoriesTags;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.menu.ArmorSlotTypes;
 import io.wispforest.accessories.mixin.CriteriaTriggersAccessor;

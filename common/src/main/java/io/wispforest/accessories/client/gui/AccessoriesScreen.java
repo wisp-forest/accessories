@@ -23,7 +23,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -195,7 +194,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         // --
 
-        HOLD_LINE_INFO.setValue(Accessories.getConfig().clientData.hoverOptions.hoveredOptions.line || Accessories.getConfig().clientData.hoverOptions.hoveredOptions.clickbait);
+        AccessoriesScreenBase.togglePositionCollection();
 
         AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.setValue(true);
 
@@ -209,7 +208,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.setValue(false);
 
-        HOLD_LINE_INFO.setValue(false);
+        COLLECT_ACCESSORY_POSITIONS.setValue(false);
 
 
 //        HOVERED_SLOT_TYPE = null;
@@ -266,7 +265,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         if (getHoveredSlot() != null && getHoveredSlot() instanceof AccessoriesInternalSlot slot && slot.isActive() && !slot.getItem().isEmpty()) {
             if (NOT_VERY_NICE_POSITIONS.containsKey(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot())) {
-                this.accessoryPositions.add(NOT_VERY_NICE_POSITIONS.get(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot()));
+                ACCESSORY_POSITIONS.add(NOT_VERY_NICE_POSITIONS.get(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot()));
 
                 var positionKey = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
                 var vec = NOT_VERY_NICE_POSITIONS.getOrDefault(positionKey, null);
@@ -370,8 +369,8 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         //--
 
         if (Accessories.getConfig().clientData.hoverOptions.hoveredOptions.clickbait) {
-            accessoryPositions.forEach(pos -> guiGraphics.blitSprite(Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 100, 256, 256));
-            this.accessoryPositions.clear();
+            ACCESSORY_POSITIONS.forEach(pos -> guiGraphics.blitSprite(Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 100, 256, 256));
+            ACCESSORY_POSITIONS.clear();
         }
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);

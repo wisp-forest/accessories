@@ -89,6 +89,8 @@ public class UniqueSlotHandling {
          */
         UniqueSlotBuilder allowEquipFromUse(boolean value);
 
+        UniqueSlotBuilder allowTooltipInfo(boolean value);
+
         /**
          * Builds and registers the unique slot.
          * @return a reference to the unique slot type
@@ -116,6 +118,7 @@ public class UniqueSlotHandling {
             @Override public UniqueSlotBuilder strictMode(boolean value) { return this; }
             @Override public UniqueSlotBuilder allowResizing(boolean value) { return this; }
             @Override public UniqueSlotBuilder allowEquipFromUse(boolean value) { return this; }
+            @Override public UniqueSlotBuilder allowTooltipInfo(boolean value) { return this; }
 
             @Override
             public SlotTypeReference build() {

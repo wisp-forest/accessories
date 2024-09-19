@@ -119,7 +119,7 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
 
         var slotTypes = groups.stream().sorted(Comparator.comparingInt(SlotGroup::order).reversed())
                 .flatMap(slotGroup -> {
-                    if(group.name().equals(Accessories.MODID)) return Stream.of();
+                    if(slotGroup.name().equals(Accessories.MODID)) return Stream.of();
 
                     return slotGroup.slots().stream()
                             .map(s -> {

@@ -2,10 +2,9 @@ package io.wispforest.accessories.networking.client;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.gui.ScreenVariantSelectionScreen;
-import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
+import io.wispforest.accessories.networking.BaseAccessoriesPacket;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.endec.Endec;
@@ -17,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
-public record ScreenVariantPing(int entityId, boolean targetLookEntity) implements HandledPacketPayload {
+public record ScreenVariantPing(int entityId, boolean targetLookEntity) implements BaseAccessoriesPacket {
 
     public static final Endec<ScreenVariantPing> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", ScreenVariantPing::entityId),

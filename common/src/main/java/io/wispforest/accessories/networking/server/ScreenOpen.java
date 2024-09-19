@@ -1,6 +1,7 @@
 package io.wispforest.accessories.networking.server;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.networking.BaseAccessoriesPacket;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;

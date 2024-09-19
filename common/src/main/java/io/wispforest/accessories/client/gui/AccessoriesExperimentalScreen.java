@@ -31,7 +31,6 @@ import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.network.chat.Component;
@@ -209,7 +208,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        if (Accessories.getConfig().clientData.showLineRendering && !ACCESSORY_LINES.isEmpty()) {
+        if (!ACCESSORY_LINES.isEmpty() || Accessories.getConfig().clientData.hoverOptions.hoveredOptions.line) {
             var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
             var lastPose = guiGraphics.pose().last();
 
@@ -440,7 +439,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                                     .renderWrapping((component, renderCall) -> {
                                                         AccessoriesScreenBase.SCISSOR_BOX.set(component.x(), component.y(), component.x() + component.width(), component.y() + component.height());
 
-                                                        AccessoriesScreenBase.HOLD_LINE_INFO.setValue(this.showLines() && Accessories.getConfig().clientData.showLineRendering);
+                                                        AccessoriesScreenBase.togglePositionCollection();
 
                                                         AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.setValue(true);
                                                         AccessoriesScreenBase.IS_RENDERING_LINE_TARGET.setValue(true);
@@ -450,7 +449,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                                         AccessoriesScreenBase.IS_RENDERING_LINE_TARGET.setValue(false);
                                                         AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.setValue(false);
 
-                                                        AccessoriesScreenBase.HOLD_LINE_INFO.setValue(false);
+                                                        AccessoriesScreenBase.COLLECT_ACCESSORY_POSITIONS.setValue(false);
 
                                                         //AccessoriesScreenBase.SCISSOR_BOX.set(0, 0, 0, 0);
                                                     })

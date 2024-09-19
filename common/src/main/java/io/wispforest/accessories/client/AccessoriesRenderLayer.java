@@ -11,7 +11,6 @@ import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -27,8 +26,6 @@ import java.awt.*;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-
-import static io.wispforest.accessories.client.gui.AccessoriesScreen.*;
 
 
 /**
@@ -74,7 +71,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
         float scale = (float) (1 + (0.5 * (0.75 + (Math.sin((System.currentTimeMillis()) / 250d)))));
 
-        var renderingLines = AccessoriesScreen.HOLD_LINE_INFO.getValue();
+        var renderingLines = AccessoriesScreen.COLLECT_ACCESSORY_POSITIONS.getValue();
 
         var useCustomerBuffer = AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.getValue();
 
