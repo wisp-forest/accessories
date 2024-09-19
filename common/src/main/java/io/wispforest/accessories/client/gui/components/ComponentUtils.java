@@ -9,7 +9,6 @@ import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
-import io.wispforest.accessories.menu.variants.AccessoriesExperimentalMenu;
 import io.wispforest.accessories.networking.server.SyncCosmeticToggle;
 import io.wispforest.accessories.pond.owo.ComponentExtension;
 import io.wispforest.accessories.pond.owo.MutableBoundingArea;
@@ -26,7 +25,6 @@ import it.unimi.dsi.fastutil.Pair;
 import net.fabricmc.fabric.api.event.Event;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.Slot;
@@ -97,26 +95,26 @@ public class ComponentUtils {
     };
 
     public static ResourceLocation getSlotTexture() {
-        return (Accessories.getConfig().clientData.experimentalScreenData.isDarkMode) ? DARK_SLOT : SLOT;
+        return (Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode) ? DARK_SLOT : SLOT;
     }
 
     public static Surface getPanelSurface() {
         return (context, component) -> {
-            ((Accessories.getConfig().clientData.experimentalScreenData.isDarkMode) ? Surface.DARK_PANEL : Surface.PANEL)
+            ((Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode) ? Surface.DARK_PANEL : Surface.PANEL)
                     .draw(context, component);
         };
     }
 
     public static Surface getInsetPanelSurface() {
         return (context, component) -> {
-            ((Accessories.getConfig().clientData.experimentalScreenData.isDarkMode) ? DARK_PANEL_INSET : Surface.PANEL_INSET)
+            ((Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode) ? DARK_PANEL_INSET : Surface.PANEL_INSET)
                     .draw(context, component);
         };
     }
 
     public static Surface getPanelWithInset(int insetWidth) {
         return (context, component) -> {
-            var location = ((Accessories.getConfig().clientData.experimentalScreenData.isDarkMode)
+            var location = ((Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode)
                     ? DARK_PANEL_INSET_NINE_PATCH_TEXTURE
                     : OwoUIDrawContext.PANEL_INSET_NINE_PATCH_TEXTURE);
 
@@ -126,14 +124,14 @@ public class ComponentUtils {
 
     public static ButtonComponent.Renderer getButtonRenderer() {
         return (context, button, delta) -> {
-            ((Accessories.getConfig().clientData.experimentalScreenData.isDarkMode) ? DARK_BUTTON_RENDERER : ButtonComponent.Renderer.VANILLA)
+            ((Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode) ? DARK_BUTTON_RENDERER : ButtonComponent.Renderer.VANILLA)
                     .draw(context, button, delta);
         };
     }
 
     public static ScrollContainer.Scrollbar getScrollbarRenderer() {
         return (context, x, y, width, height, trackX, trackY, trackWidth, trackHeight, lastInteractTime, direction, active) -> {
-            ((Accessories.getConfig().clientData.experimentalScreenData.isDarkMode) ? DARK_VANILLA : ScrollContainer.Scrollbar.vanilla())
+            ((Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode) ? DARK_VANILLA : ScrollContainer.Scrollbar.vanilla())
                     .draw(context, x, y, width, height, trackX, trackY, trackWidth, trackHeight, lastInteractTime, direction, active);
         };
     }

@@ -145,7 +145,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             return true;
         }
 
-        if (Accessories.getConfig().clientData.showGroupTabs && this.menu.maxScrollableIndex() > 0) {
+        if (Accessories.getConfig().clientData.legacyScreenSettings.showGroupTabs && this.menu.maxScrollableIndex() > 0) {
             int x = getStartingPanelX();
             int y = this.topPos;
 
@@ -342,7 +342,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         var pose = guiGraphics.pose();
 
-        if (Accessories.getConfig().clientData.showGroupTabs) {
+        if (Accessories.getConfig().clientData.legacyScreenSettings.showGroupTabs) {
             for (var entry : getGroups(x, y).entrySet()) {
                 var group = entry.getKey();
                 var pair = entry.getValue();
@@ -698,7 +698,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             }
         }
 
-        if (Accessories.getConfig().clientData.showGroupTabs) {
+        if (Accessories.getConfig().clientData.legacyScreenSettings.showGroupTabs) {
             int panelX = getStartingPanelX();
             int panelY = this.topPos;
 
@@ -738,7 +738,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         boolean insideGroupPanel = false;
 
-        if (Accessories.getConfig().clientData.showGroupTabs && this.menu.maxScrollableIndex() > 0) {
+        if (Accessories.getConfig().clientData.legacyScreenSettings.showGroupTabs && this.menu.maxScrollableIndex() > 0) {
             for (var value : this.getGroups(sidePanelX, sidePanelY).values()) {
                 if (value.isInBounds((int) Math.round(mouseX), (int) Math.round(mouseY))) {
                     insideGroupPanel = true;

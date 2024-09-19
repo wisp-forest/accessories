@@ -10,7 +10,6 @@ import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.client.gui.components.*;
 import io.wispforest.accessories.data.SlotGroupLoader;
-import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.menu.variants.AccessoriesExperimentalMenu;
@@ -956,7 +955,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                         ).margins(Insets.bottom(3)),
                 2, 1);
 
-        var isDarkMode = Accessories.getConfig().clientData.experimentalScreenData.isDarkMode;
+        var isDarkMode = Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode;
 
         baseOptionPanel.child(
                 Containers.verticalFlow(Sizing.content(), Sizing.content())
@@ -965,9 +964,9 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                 Components.button(
                                         createToggleTooltip("dark_mode_toggle", false, isDarkMode),
                                         btn -> {
-                                            var newIsDarkMode = !Accessories.getConfig().clientData.experimentalScreenData.isDarkMode;
+                                            var newIsDarkMode = !Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode;
 
-                                            Accessories.getConfig().clientData.experimentalScreenData.isDarkMode = newIsDarkMode;
+                                            Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode = newIsDarkMode;
 
                                             btn.setMessage(createToggleTooltip("dark_mode_toggle", false, newIsDarkMode));
                                             btn.tooltip(createToggleTooltip("dark_mode_toggle", true, newIsDarkMode));

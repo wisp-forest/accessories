@@ -17,15 +17,6 @@ public class AccessoriesConfig implements ConfigData {
     public ClientData clientData = new ClientData();
 
     public static class ClientData {
-        public boolean showGroupTabs = true;
-
-        public ScreenType selectedScreenType = ScreenType.NONE;
-
-        public int inventoryButtonXOffset = 62;
-        public int inventoryButtonYOffset = 8;
-
-        public int creativeInventoryButtonXOffset = 96;
-        public int creativeInventoryButtonYOffset = 6;
 
         public boolean forceNullRenderReplacement = false;
 
@@ -35,8 +26,32 @@ public class AccessoriesConfig implements ConfigData {
 
         public PlayerEquipControl equipControl = PlayerEquipControl.MUST_NOT_CROUCH;
 
+        public ScreenType selectedScreenType = ScreenType.NONE;
+
         @ConfigEntry.Gui.CollapsibleObject()
-        public ExperimentalScreenData experimentalScreenData = new ExperimentalScreenData();
+        public ExperimentalScreenSettings experimentalScreenSettings = new ExperimentalScreenSettings();
+
+        public static class ExperimentalScreenSettings {
+            public boolean isDarkMode = false;
+        }
+
+        @ConfigEntry.Gui.CollapsibleObject()
+        public LegacyScreenSettings legacyScreenSettings = new LegacyScreenSettings();
+
+        public static class LegacyScreenSettings {
+            public boolean showGroupTabs = true;
+        }
+
+        @ConfigEntry.Gui.CollapsibleObject()
+        public ScreenButtonPositions screenButtonPositions = new ScreenButtonPositions();
+
+        public static class ScreenButtonPositions {
+            public int inventoryButtonXOffset = 62;
+            public int inventoryButtonYOffset = 8;
+
+            public int creativeInventoryButtonXOffset = 96;
+            public int creativeInventoryButtonYOffset = 6;
+        }
 
         @ConfigEntry.Gui.CollapsibleObject()
         public HoverOptions hoverOptions = new HoverOptions();
@@ -69,9 +84,7 @@ public class AccessoriesConfig implements ConfigData {
         public List<RenderSlotTarget> disabledDefaultRenders = new ArrayList<>();
     }
 
-    public static class ExperimentalScreenData {
-        public boolean isDarkMode = false;
-    }
+
 
     public List<SlotAmountModifier> modifiers = new ArrayList<>();
 

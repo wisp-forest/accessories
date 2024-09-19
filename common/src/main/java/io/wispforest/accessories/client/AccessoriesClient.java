@@ -161,7 +161,7 @@ public class AccessoriesClient {
 
             instance.adapter.rootComponent.allowOverflow(true);
 
-            var data = Accessories.getConfig().clientData;
+            var data = Accessories.getConfig().clientData.screenButtonPositions;
 
             var xOffset = creativeScreen ? data.creativeInventoryButtonXOffset : data.inventoryButtonXOffset;
             var yOffset = creativeScreen ? data.creativeInventoryButtonYOffset : data.inventoryButtonYOffset;
