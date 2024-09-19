@@ -17,7 +17,7 @@ public abstract class AccessoriesForgeMixin {
 
     @Inject(method = "intermediateRegisterListeners", at = @At("HEAD"))
     private void registerAdditionalResourceLoaders(Consumer<PreparableReloadListener> registrationMethod, CallbackInfo ci) {
-        registrationMethod.accept(CuriosSlotManager.INSTANCE);
-        registrationMethod.accept(CuriosEntityManager.INSTANCE);
+        registrationMethod.accept(CuriosSlotManager.SERVER);
+        registrationMethod.accept(CuriosEntityManager.SERVER);
     }
 }

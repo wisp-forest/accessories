@@ -8,7 +8,9 @@ import io.wispforest.accessories.api.events.AccessoryChangeCallback;
 import io.wispforest.accessories.api.events.AdjustAttributeModifierCallback;
 import io.wispforest.accessories.api.events.CanEquipCallback;
 import io.wispforest.accessories.api.events.CanUnequipCallback;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -41,6 +43,7 @@ import top.theillusivec4.curios.common.data.CuriosSlotManager;
 import top.theillusivec4.curios.compat.CuriosWrappingUtils;
 import top.theillusivec4.curios.compat.WrappedCurioItemHandler;
 import top.theillusivec4.curios.compat.WrappedAccessory;
+import top.theillusivec4.curios.compat.WrappedSlotType;
 import top.theillusivec4.curios.mixin.CuriosImplMixinHooks;
 import top.theillusivec4.curios.server.SlotHelper;
 import top.theillusivec4.curios.server.command.CurioArgumentType;
@@ -123,7 +126,7 @@ public class CCLayer {
 
         for (Item item : BuiltInRegistries.ITEM) {
             // Force all items instanceof ICurioItem to register for Accessories systems
-            if(CuriosImplMixinHooks.getCurioFromRegistry(item).isEmpty() && item instanceof ICurioItem iCurioItem){
+            if(!CuriosImplMixinHooks.REGISTRY.containsKey(item) && item instanceof ICurioItem iCurioItem){
                 CuriosImplMixinHooks.registerCurio(item, iCurioItem);
             }
 
@@ -133,7 +136,7 @@ public class CCLayer {
 
     public static final ICapabilityProvider<ItemStack, Void, ICurio> BASE_PROVIDER = (stack, ctx) -> {
         Item it = stack.getItem();
-        ICurioItem curioItem = CuriosImplMixinHooks.getCurioFromRegistry(it).orElse(null);
+        ICurioItem curioItem = CuriosImplMixinHooks.getCurioFromRegistry(stack).orElse(null);
 
         if (curioItem == null && it instanceof ICurioItem itemCurio) {
             curioItem = itemCurio;
@@ -156,10 +159,13 @@ public class CCLayer {
         CuriosApi.setSlotHelper(new SlotHelper());
         Set<String> slotIds = new HashSet<>();
 
-        for (ISlotType value : CuriosSlotManager.INSTANCE.getSlots().values()) {
-            CuriosApi.getSlotHelper().addSlotType(value);
-            slotIds.add(value.getIdentifier());
-        }
+        SlotTypeLoader.INSTANCE.getSlotTypes(false).values()
+                .stream()
+                .map(WrappedSlotType::new)
+                .forEach(value -> {
+                    CuriosApi.getSlotHelper().addSlotType(value);
+                    slotIds.add(value.getIdentifier());
+                });
         CurioArgumentType.slotIds = slotIds;
     }
 

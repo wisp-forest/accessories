@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.client.Side;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
@@ -59,7 +60,7 @@ public class AppleAccessory implements Accessory {
         public <M extends LivingEntity> void align(ItemStack stack, SlotReference reference, EntityModel<M> model, PoseStack matrices) {
             if (!(model instanceof HumanoidModel<? extends LivingEntity> humanoidModel)) return;
 
-            AccessoryRenderer.translateToFace(matrices, humanoidModel, reference.entity());
+            AccessoryRenderer.transformToFace(matrices, humanoidModel.head, Side.FRONT);
         }
 
         @Override

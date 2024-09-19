@@ -42,7 +42,7 @@ public class AccessoriesFabric implements ModInitializer {
     static {
         HOLDER_ATTACHMENT_TYPE = AttachmentRegistry.<AccessoriesHolderImpl>builder()
                 .initializer(AccessoriesHolderImpl::of)
-                .persistent(CodecUtils.ofEndec(InstanceEndec.constructed(AccessoriesHolderImpl::new)))
+                .persistent(CodecUtils.toCodec(InstanceEndec.constructed(AccessoriesHolderImpl::new)))
                 .copyOnDeath()
                 .buildAndRegister(Accessories.of("inventory_holder"));
     }

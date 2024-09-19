@@ -20,7 +20,9 @@
 package top.theillusivec4.curios.api.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
+import io.wispforest.accessories.api.client.DefaultAccessoryRenderer;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
 import net.minecraft.client.model.EntityModel;
@@ -30,6 +32,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.compat.CuriosWrappingUtils;
 
 import java.util.HashMap;
@@ -78,7 +81,24 @@ public class CuriosRendererRegistry {
    * @return An optional renderer value associated with the item
    */
   public static Optional<ICurioRenderer> getRenderer(Item item) {
-    return Optional.ofNullable(RENDERERS.get(item));
+    return Optional.ofNullable(RENDERERS.get(item)).or(() -> {
+      return Optional.ofNullable(AccessoriesRendererRegistry.getRender(item)).flatMap(accessoryRenderer -> {
+        if(accessoryRenderer == DefaultAccessoryRenderer.INSTANCE && !Accessories.getConfig().clientData.forceNullRenderReplacement) {
+          return Optional.empty();
+        }
+
+        return Optional.of(
+          new ICurioRenderer() {
+            @Override
+            public <T extends LivingEntity, M extends EntityModel<T>> void render(ItemStack stack, SlotContext slotContext, PoseStack matrixStack, RenderLayerParent<T, M> renderLayerParent, MultiBufferSource renderTypeBuffer, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+              var ref = CuriosWrappingUtils.fromContext(slotContext);
+
+              accessoryRenderer.render(stack, ref, matrixStack, renderLayerParent.getModel(), renderTypeBuffer, light, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
+            }
+          }
+        );
+      });
+    });
   }
 
   /**

@@ -77,7 +77,7 @@ public class WrappedAccessory implements Trinket {
 
         var builder = new AccessoryAttributeBuilder(reference);
 
-        accessory.getModifiers(stack, reference, builder);
+        accessory.getDynamicModifiers(stack, reference, builder);
 
         return builder.getAttributeModifiers(true);
     }
@@ -106,7 +106,7 @@ public class WrappedAccessory implements Trinket {
 
     @Override
     public boolean canEquipFromUse(ItemStack stack, LivingEntity entity) {
-        return accessory.canEquipFromUse(stack, io.wispforest.accessories.api.slot.SlotReference.of(entity, "", 0));
+        return accessory.canEquipFromUse(stack);
     }
 
     @Override

@@ -156,7 +156,7 @@ public record WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) impl
                         var stack = stackEntry.getSecond();
                         var reference = container.createReference(stackEntry.getFirst());
 
-                        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
+                        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
                         references.add(new SlotEntryReference(reference, stack));
 
@@ -200,6 +200,11 @@ public record WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) impl
 
     @Override
     public int getFortuneLevel(@Nullable LootContext lootContext) {
+        return 0;
+    }
+
+    @Override
+    public int getLootingLevel(@Nullable LootContext lootContext) {
         return 0;
     }
 

@@ -24,7 +24,7 @@ public class AccessoryNestUtils {
 
     @Nullable
     public static AccessoryNestContainerContents getData(ItemStack stack){
-        var accessory = AccessoriesAPI.getAccessory(stack.getItem());
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
         if(!(accessory instanceof AccessoryNest)) return null;
 
@@ -32,7 +32,7 @@ public class AccessoryNestUtils {
     }
 
     public static <T> @Nullable T recursiveStackHandling(ItemStack stack, SlotReference reference, BiFunction<ItemStack, SlotReference, @Nullable T> function) {
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
         var value = function.apply(stack, reference);
 
@@ -45,6 +45,8 @@ public class AccessoryNestUtils {
                 if (innerStack.isEmpty()) continue;
 
                 value = recursiveStackHandling(innerStack, create(reference, i), function);
+
+                if(value != null) return value;
             }
         }
 
@@ -52,7 +54,7 @@ public class AccessoryNestUtils {
     }
 
     public static void recursiveStackConsumption(ItemStack stack, SlotReference reference, BiConsumer<ItemStack, SlotReference> consumer) {
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack.getItem());
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
         consumer.accept(stack, reference);
 

@@ -2,9 +2,7 @@ package io.wispforest.cclayer.mixin;
 
 import com.google.gson.JsonObject;
 import com.llamalad7.mixinextras.sugar.Local;
-import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.impl.SlotTypeImpl;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -20,7 +18,7 @@ import top.theillusivec4.curios.compat.CuriosWrappingUtils;
 import java.util.HashMap;
 import java.util.Map;
 
-@Mixin(SlotTypeLoader.class)
+@Mixin(value = SlotTypeLoader.class, priority = 900)
 public abstract class SlotTypeLoaderMixin {
 
     @Unique
@@ -28,7 +26,7 @@ public abstract class SlotTypeLoaderMixin {
 
     @Inject(method = "apply(Ljava/util/Map;Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)V", at = @At(value = "INVOKE", target = "Ljava/util/HashMap;<init>()V", shift = At.Shift.AFTER, ordinal = 2), remap = false)
     private void injectCuriosSpecificSlots(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler, CallbackInfo ci, @Local(name = "builders") HashMap<String, SlotTypeLoader.SlotBuilder> tempMap){
-        for (var entry : CuriosSlotManager.INSTANCE.slotTypeBuilders.entrySet()) {
+        for (var entry : CuriosSlotManager.SERVER.slotTypeBuilders.entrySet()) {
             var accessoryType = CuriosWrappingUtils.curiosToAccessories(entry.getKey());
 
             var curiosBuilder = entry.getValue();
@@ -37,8 +35,14 @@ public abstract class SlotTypeLoaderMixin {
             if (tempMap.containsKey(accessoryType)) {
                 builder = tempMap.get(accessoryType);
 
-                if(curiosBuilder.size != null && curiosBuilder.size > ((SlotTypeLoaderBuilderAccessor) builder).getAmount()) {
+                var slotsCurrentSize = builder.baseAmount;
+
+                if(curiosBuilder.size != null && slotsCurrentSize != null && curiosBuilder.size > slotsCurrentSize) {
                     builder.amount(curiosBuilder.size);
+                }
+
+                if(curiosBuilder.sizeMod != 0) {
+                    builder.addAmount(curiosBuilder.sizeMod);
                 }
             } else {
                 builder = new SlotTypeLoader.SlotBuilder(accessoryType);
@@ -68,8 +72,10 @@ public abstract class SlotTypeLoaderMixin {
                 tempMap.put(accessoryType, builder);
             }
 
-            for (ResourceLocation validatorPredicate : curiosBuilder.validators) {
-                builder.validator(CuriosWrappingUtils.curiosToAccessories_Validators(validatorPredicate));
+            if(curiosBuilder.validators != null) {
+                for (var validatorPredicate : curiosBuilder.validators) {
+                    builder.validator(CuriosWrappingUtils.curiosToAccessories_Validators(validatorPredicate));
+                }
             }
         }
     }

@@ -8,12 +8,13 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.enchantment.Enchantment;
 
+@Deprecated(forRemoval = true)
 public class AccessoriesTags {
 
-    public static final TagKey<EntityType<?>> MODIFIABLE_ENTITY_WHITELIST = ofTag(Registries.ENTITY_TYPE,"modifiable_entity_accessories_whitelist");
-    public static final TagKey<EntityType<?>> MODIFIABLE_ENTITY_BLACKLIST = ofTag(Registries.ENTITY_TYPE,"modifiable_entity_accessories_blacklist");
+    public static final TagKey<EntityType<?>> MODIFIABLE_ENTITY_WHITELIST = io.wispforest.accessories.api.data.AccessoriesTags.MODIFIABLE_ENTITY_WHITELIST;
+    public static final TagKey<EntityType<?>> MODIFIABLE_ENTITY_BLACKLIST = io.wispforest.accessories.api.data.AccessoriesTags.MODIFIABLE_ENTITY_BLACKLIST;
 
-    public static final TagKey<Enchantment> VALID_FOR_REDIRECTION = ofTag(Registries.ENCHANTMENT,"valid_for_redirection");
+    public static final TagKey<Enchantment> VALID_FOR_REDIRECTION = io.wispforest.accessories.api.data.AccessoriesTags.VALID_FOR_REDIRECTION;
 
     public static <T, R extends Registry<T>> TagKey<T> ofTag(ResourceKey<R> resourceKey, String path) {
         return TagKey.create(resourceKey, Accessories.of(path));

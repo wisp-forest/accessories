@@ -22,6 +22,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderType;
@@ -42,7 +43,7 @@ import org.lwjgl.glfw.GLFW;
 import java.lang.Math;
 import java.util.*;
 
-public class AccessoriesScreen extends EffectRenderingInventoryScreen<AccessoriesMenu> implements ContainerScreenExtension, AccessoriesScreenBase {
+public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> implements ContainerScreenExtension, AccessoriesScreenBase {
 
     private static final ResourceLocation SLOT = Accessories.of("textures/gui/slot.png");
 
@@ -101,7 +102,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         return width;
     }
 
-    private int getStartingPanelX() {
+    public int getStartingPanelX() {
         int x = this.leftPos - ((menu.isCosmeticsOpen()) ? 72 : 52);
 
         if (!menu.overMaxVisibleSlots) x += 12;
@@ -194,7 +195,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         // --
 
-        HOLD_LINE_INFO.setValue(this.getMenu().areLinesShown() && Accessories.getConfig().clientData.showLineRendering);
+        HOLD_LINE_INFO.setValue(Accessories.getConfig().clientData.hoverOptions.hoveredOptions.line || Accessories.getConfig().clientData.hoverOptions.hoveredOptions.clickbait);
 
         AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.setValue(true);
 
@@ -241,28 +242,42 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
         pose.pushPose();
         pose.translate(-1, -1, 0);
 
-        for (Slot slot : this.menu.slots) {
-            if (!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) continue;
-
-            if (slot instanceof AccessoriesInternalSlot accessoriesSlot && !accessoriesSlot.getItem().isEmpty()) {
-                var positionKey = accessoriesSlot.accessoriesContainer.getSlotName() + accessoriesSlot.getContainerSlot();
-
-                var vec = NOT_VERY_NICE_POSITIONS.getOrDefault(positionKey, null);
-
-                if (!accessoriesSlot.isCosmetic && vec != null && (menu.areLinesShown())) {
-                    var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
-                    var vec3 = vec.add(0, 0, 5000);
-
-                    ACCESSORY_LINES.add(Pair.of(start, vec3));
-                }
-            }
-        }
+//        for (Slot slot : this.menu.slots) {
+//            if (!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) continue;
+//
+//            if (slot instanceof AccessoriesInternalSlot accessoriesSlot && !accessoriesSlot.getItem().isEmpty()) {
+//                var positionKey = accessoriesSlot.accessoriesContainer.getSlotName() + accessoriesSlot.getContainerSlot();
+//
+//                var vec = NOT_VERY_NICE_POSITIONS.getOrDefault(positionKey, null);
+//
+//                if (!accessoriesSlot.isCosmetic && vec != null && (menu.areLinesShown())) {
+//                    var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
+//                    var vec3 = vec.add(0, 0, 5000);
+//
+//                    this.accessoryLines.add(Pair.of(start, vec3));}
+//            }
+//        }
 
         GuiGraphicsUtils.batched(guiGraphics, SLOT, this.menu.slots, (bufferBuilder, poseStack, slot) -> {
             if (!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) return;
 
             GuiGraphicsUtils.blit(bufferBuilder, poseStack, slot.x + this.leftPos, slot.y + this.topPos, 18);
         });
+
+        if (getHoveredSlot() != null && getHoveredSlot() instanceof AccessoriesInternalSlot slot && slot.isActive() && !slot.getItem().isEmpty()) {
+            if (NOT_VERY_NICE_POSITIONS.containsKey(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot())) {
+                this.accessoryPositions.add(NOT_VERY_NICE_POSITIONS.get(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot()));
+
+                var positionKey = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
+                var vec = NOT_VERY_NICE_POSITIONS.getOrDefault(positionKey, null);
+
+                if (!slot.isCosmetic && vec != null && (menu.areLinesShown())) {
+                    var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
+                    var vec3 = vec.add(0, 0, 5000);
+
+                    ACCESSORY_LINES.add(Pair.of(start, vec3));}
+            }
+        }
 
         pose.popPose();
     }
@@ -338,8 +353,6 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
                 guiGraphics.blit(HORIZONTAL_TABS, vector.x, vector.y, 0, v, vector.z, vector.w, 19, vector.w * 4); //32,128
 
-                var textureAtlasSprite = this.minecraft.getTextureAtlas(ResourceLocation.withDefaultNamespace("textures/atlas/blocks.png")).apply(group.icon());
-
                 pose.pushPose();
 
                 pose.translate(vector.x + 3, vector.y + 3, 0);
@@ -348,7 +361,7 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
                 if (pair.isSelected) pose.translate(2, 0, 0);
 
                 // MultiDraw?
-                guiGraphics.blit(0, 0, 0, 8, 8, textureAtlasSprite);
+                guiGraphics.blitSprite(group.icon(), 0, 0, 0, 8, 8);
 
                 pose.popPose();
             }
@@ -356,9 +369,14 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
 
         //--
 
+        if (Accessories.getConfig().clientData.hoverOptions.hoveredOptions.clickbait) {
+            accessoryPositions.forEach(pos -> guiGraphics.blitSprite(Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 100, 256, 256));
+            this.accessoryPositions.clear();
+        }
+
         this.renderTooltip(guiGraphics, mouseX, mouseY);
 
-        if (Accessories.getConfig().clientData.showLineRendering && !ACCESSORY_LINES.isEmpty()) {
+        if (!ACCESSORY_LINES.isEmpty() && Accessories.getConfig().clientData.hoverOptions.hoveredOptions.line) {
             var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
             var lastPose = guiGraphics.pose().last();
 
@@ -521,21 +539,21 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             }
         }
 
-        if (Accessories.getConfig().clientData.showLineRendering) {
-            this.linesToggleButton = this.addRenderableWidget(
-                    Button.builder(Component.empty(), (btn) -> {
-                                AccessoriesInternals.getNetworkHandler()
-                                        .sendToServer(SyncHolderChange.of(HolderProperty.LINES_PROP, this.getMenu().owner(), bl -> !bl));
-                            })
-                            .bounds(this.leftPos + 154, btnOffset, 12, 12)
-                            //.bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6)
-                            .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-                guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
-                guiGraphics.blitSprite((this.menu.areLinesShown() ? LINE_SHOWN : LINE_HIDDEN), x, y, width, height);
-
-                return true;
-            });
-        }
+//        if (Accessories.getConfig().clientData.showLineRendering) {
+//            this.linesToggleButton = this.addRenderableWidget(
+//                    Button.builder(Component.empty(), (btn) -> {
+//                                AccessoriesInternals.getNetworkHandler()
+//                                        .sendToServer(SyncHolderChange.of(HolderProperty.LINES_PROP, this.getMenu().owner(), bl -> !bl));
+//                            })
+//                            .bounds(this.leftPos + 154, btnOffset, 12, 12)
+//                            //.bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6)
+//                            .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
+//                guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
+//                guiGraphics.blitSprite((this.menu.areLinesShown() ? LINE_SHOWN : LINE_HIDDEN), x, y, width, height);
+//
+//                return true;
+//            });
+//        }
 
         int accessoriesSlots = 0;
 
@@ -619,9 +637,9 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
     }
 
     public void updateLinesButton() {
-        if (Accessories.getConfig().clientData.showLineRendering) {
-            this.linesToggleButton.setTooltip(linesToggleTooltip(this.menu.areLinesShown()));
-        }
+//        if (Accessories.getConfig().clientData.showLineRendering) {
+//            this.linesToggleButton.setTooltip(linesToggleTooltip(this.menu.areLinesShown()));
+//        }
     }
 
     public void updateCosmeticToggleButton() {
@@ -797,7 +815,10 @@ public class AccessoriesScreen extends EffectRenderingInventoryScreen<Accessorie
             var usedSlots = this.getMenu().usedSlots();
             if (usedSlots != null && !usedSlots.contains(slotType)) continue;
 
-            slotToSize.put(slotType.name(), containers.get(slotType.name()).getAccessories().getContainerSize());
+            var container = containers.get(slotType.name());
+            if(container == null) continue;
+
+            slotToSize.put(slotType.name(), container.getAccessories().getContainerSize());
         }
 
         int currentIndexOffset = 0;

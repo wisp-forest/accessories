@@ -1,24 +1,16 @@
 package dev.emi.trinkets.compat;
 
-import com.google.common.collect.Multimap;
 import dev.emi.trinkets.api.SlotAttributes;
 import dev.emi.trinkets.api.Trinket;
 import dev.emi.trinkets.api.TrinketEnums;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.SoundEventData;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.slot.SlotReference;
-import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
-
-import java.util.UUID;
 
 public class WrappedTrinket implements Accessory {
 
@@ -30,7 +22,7 @@ public class WrappedTrinket implements Accessory {
 
     @Override
     public void tick(ItemStack stack, SlotReference reference) {
-        var ref = WrappingTrinketsUtils.createReference(reference);
+        var ref = WrappingTrinketsUtils.createTrinketsReference(reference);
 
         if(ref.isEmpty()) {
             Accessory.super.tick(stack, reference);
@@ -43,7 +35,7 @@ public class WrappedTrinket implements Accessory {
 
     @Override
     public void onEquip(ItemStack stack, SlotReference reference) {
-        var ref = WrappingTrinketsUtils.createReference(reference);
+        var ref = WrappingTrinketsUtils.createTrinketsReference(reference);
 
         if(ref.isEmpty()) {
             Accessory.super.onEquip(stack, reference);
@@ -56,7 +48,7 @@ public class WrappedTrinket implements Accessory {
 
     @Override
     public void onUnequip(ItemStack stack, SlotReference reference) {
-        var ref = WrappingTrinketsUtils.createReference(reference);
+        var ref = WrappingTrinketsUtils.createTrinketsReference(reference);
 
         if(ref.isEmpty()) {
             Accessory.super.onUnequip(stack, reference);
@@ -69,7 +61,7 @@ public class WrappedTrinket implements Accessory {
 
     @Override
     public boolean canEquip(ItemStack stack, SlotReference reference) {
-        var ref = WrappingTrinketsUtils.createReference(reference);
+        var ref = WrappingTrinketsUtils.createTrinketsReference(reference);
 
         if(ref.isEmpty()) return Accessory.super.canEquip(stack, reference);
 
@@ -78,7 +70,7 @@ public class WrappedTrinket implements Accessory {
 
     @Override
     public boolean canUnequip(ItemStack stack, SlotReference reference) {
-        var ref = WrappingTrinketsUtils.createReference(reference);
+        var ref = WrappingTrinketsUtils.createTrinketsReference(reference);
 
         if(ref.isEmpty()) return Accessory.super.canUnequip(stack, reference);
 
@@ -86,10 +78,10 @@ public class WrappedTrinket implements Accessory {
     }
 
     @Override
-    public void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
-        var ref = WrappingTrinketsUtils.createReference(reference);
+    public void getDynamicModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
+        var ref = WrappingTrinketsUtils.createTrinketsReference(reference);
 
-        if(ref.isEmpty()) Accessory.super.getModifiers(stack, reference, builder);
+        if(ref.isEmpty()) Accessory.super.getDynamicModifiers(stack, reference, builder);
 
         var id = SlotAttributes.getIdentifier(ref.get());
 
@@ -107,7 +99,7 @@ public class WrappedTrinket implements Accessory {
 
     @Override
     public DropRule getDropRule(ItemStack stack, SlotReference reference, DamageSource source) {
-        var ref = WrappingTrinketsUtils.createReference(reference);
+        var ref = WrappingTrinketsUtils.createTrinketsReference(reference);
 
         if(ref.isEmpty()) return Accessory.super.getDropRule(stack, reference, source);
 
@@ -116,7 +108,7 @@ public class WrappedTrinket implements Accessory {
 
     @Override
     public void onBreak(ItemStack stack, SlotReference reference) {
-        var ref = WrappingTrinketsUtils.createReference(reference);
+        var ref = WrappingTrinketsUtils.createTrinketsReference(reference);
 
         if(ref.isEmpty()) {
             Accessory.super.onBreak(stack, reference);
@@ -126,19 +118,17 @@ public class WrappedTrinket implements Accessory {
     }
 
     @Override
-    public boolean canEquipFromUse(ItemStack stack, SlotReference reference) {
-        var ref = WrappingTrinketsUtils.createReference(reference);
-
-        if (ref.isEmpty()) {
-            return Accessory.super.canEquipFromUse(stack, reference);
-        } else {
-            return this.trinket.canEquipFromUse(stack, reference.entity());
+    public boolean canEquipFromUse(ItemStack stack) {
+        try {
+            return this.trinket.canEquipFromUse(stack, null);
+        } catch (NullPointerException e) {
+            return false;
         }
     }
 
     @Override
     public SoundEventData getEquipSound(ItemStack stack, SlotReference reference) {
-        var ref = WrappingTrinketsUtils.createReference(reference);
+        var ref = WrappingTrinketsUtils.createTrinketsReference(reference);
 
         if (ref.isEmpty()) {
             return Accessory.super.getEquipSound(stack, reference);

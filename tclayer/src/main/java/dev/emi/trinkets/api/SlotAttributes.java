@@ -19,8 +19,12 @@ public class SlotAttributes {
     /**
      * Adds an Entity Attribute Nodifier for slot count to the provided multimap
      */
-    public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String slot, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
-        io.wispforest.accessories.api.attributes.SlotAttribute.addSlotModifier(map, WrappingTrinketsUtils.trinketsToAccessories_Slot(TrinketConstants.filterGroup(slot)), location, amount, operation);
+    public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String slot, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
+        var data = WrappingTrinketsUtils.splitGroupInfo(slot);
+
+        var slotType = WrappingTrinketsUtils.trinketsToAccessories_Slot(data.left(), data.right());
+
+        io.wispforest.accessories.api.attributes.SlotAttribute.addSlotModifier(map, slotType, location, amount, operation);
     }
 
     public static ResourceLocation getIdentifier(SlotReference ref) {

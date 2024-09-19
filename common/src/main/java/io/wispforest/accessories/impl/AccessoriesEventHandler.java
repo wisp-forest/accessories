@@ -9,8 +9,11 @@ import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
+import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
+import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.*;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
+import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
@@ -19,6 +22,7 @@ import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.endec.RegistriesAttribute;
+import io.wispforest.accessories.mixin.ItemStackAccessor;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncData;
@@ -73,7 +77,7 @@ public class AccessoriesEventHandler {
     }
 
     public static void revalidatePlayersOnReload(PlayerList playerList) {
-        if(!dataReloadOccurred) return;
+        if (!dataReloadOccurred) return;
 
         for (var player : playerList.getPlayers()) revalidatePlayer(player);
 
@@ -141,7 +145,7 @@ public class AccessoriesEventHandler {
 
         var capability = AccessoriesCapability.get(serverPlayer);
 
-        if(capability == null) return;
+        if (capability == null) return;
 
         var carrier = NbtMapCarrier.of();
 
@@ -153,7 +157,7 @@ public class AccessoriesEventHandler {
     public static void onTracking(LivingEntity entity, ServerPlayer serverPlayer) {
         var capability = AccessoriesCapability.get(entity);
 
-        if(capability == null) return;
+        if (capability == null) return;
 
         var carrier = NbtMapCarrier.of();
 
@@ -175,7 +179,7 @@ public class AccessoriesEventHandler {
 
                 var capability = AccessoriesCapability.get(playerEntry);
 
-                if(capability == null) return;
+                if (capability == null) return;
 
                 var carrier = NbtMapCarrier.of();
 
@@ -183,18 +187,18 @@ public class AccessoriesEventHandler {
 
                 networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(capability.entity().getId(), carrier));
 
-                if(playerEntry.containerMenu instanceof AccessoriesMenuBase base) {
+                if (playerEntry.containerMenu instanceof AccessoriesMenuBase base) {
                     Accessories.openAccessoriesMenu(playerEntry, base.menuVariant(), base.targetEntity());
                 }
             }
         } else if (player != null) {
-            revalidatePlayer(player);
-
             networkHandler.sendToPlayer(player, syncPacket);
+
+            revalidatePlayer(player);
 
             var capability = AccessoriesCapability.get(player);
 
-            if(capability == null) return;
+            if (capability == null) return;
 
             var carrier = NbtMapCarrier.of();
 
@@ -202,14 +206,14 @@ public class AccessoriesEventHandler {
 
             networkHandler.sendToPlayer(player, new SyncEntireContainer(capability.entity().getId(), carrier));
 
-            if(player.containerMenu instanceof AccessoriesMenuBase base) {
+            if (player.containerMenu instanceof AccessoriesMenuBase base) {
                 Accessories.openAccessoriesMenu(player, base.menuVariant(), base.targetEntity());
             }
         }
     }
 
     public static void onLivingEntityTick(LivingEntity entity) {
-        if(entity.isRemoved()) return;
+        if (entity.isRemoved()) return;
 
         var capability = AccessoriesCapability.get(entity);
 
@@ -224,7 +228,7 @@ public class AccessoriesEventHandler {
                 var container = containerEntry.getValue();
                 var slotType = container.slotType();
 
-                var accessories = (ExpandedSimpleContainer) container.getAccessories();
+                var accessories = container.getAccessories();
                 var cosmetics = container.getCosmeticAccessories();
 
                 for (int i = 0; i < accessories.getContainerSize(); i++) {
@@ -239,7 +243,7 @@ public class AccessoriesEventHandler {
                         // TODO: Document this behavior to prevent double ticking maybe!!!
                         currentStack.inventoryTick(entity.level(), entity, -1, false);
 
-                        var accessory = AccessoriesAPI.getAccessory(currentStack);
+                        var accessory = AccessoriesAPI.getOrDefaultAccessory(currentStack);
 
                         if (accessory != null) accessory.tick(currentStack, slotReference);
                     }
@@ -266,8 +270,8 @@ public class AccessoriesEventHandler {
                          * TODO: Does item check need to exist anymore?
                          */
                         if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlagged(i)) {
-                            AccessoriesAPI.getOrDefaultAccessory(lastStack.getItem()).onUnequip(lastStack, slotReference);
-                            AccessoriesAPI.getOrDefaultAccessory(currentStack.getItem()).onEquip(currentStack, slotReference);
+                            AccessoriesAPI.getOrDefaultAccessory(lastStack).onUnequip(lastStack, slotReference);
+                            AccessoriesAPI.getOrDefaultAccessory(currentStack).onEquip(currentStack, slotReference);
 
                             if (entity instanceof ServerPlayer serverPlayer) {
                                 if (!currentStack.isEmpty()) {
@@ -283,6 +287,8 @@ public class AccessoriesEventHandler {
                         }
 
                         AccessoryChangeCallback.EVENT.invoker().onChange(lastStack, currentStack, slotReference, equipmentChange ? SlotStateChange.REPLACEMENT : SlotStateChange.MUTATION);
+
+                        recursiveStackChange(slotReference, AccessoryNestUtils.getData(lastStack), AccessoryNestUtils.getData(currentStack));
                     }
 
                     var currentCosmeticStack = cosmetics.getItem(i);
@@ -332,7 +338,8 @@ public class AccessoriesEventHandler {
 
         var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
 
-        if(holder.loadedFromTag && capability == null) {
+        // Fix for holder data not being loaded so invalid stacks can be collected
+        if (holder.loadedFromTag && capability == null) {
             var tempCapability = new AccessoriesCapabilityImpl(entity);
         }
 
@@ -351,11 +358,74 @@ public class AccessoriesEventHandler {
         }
     }
 
+    private static void recursiveStackChange(SlotReference slotReference, @Nullable AccessoryNestContainerContents lastNestData, @Nullable AccessoryNestContainerContents currentNestData) {
+        var currentNestChanges = (currentNestData != null)
+                ? currentNestData.slotChanges()
+                : new HashMap<Integer, SlotStateChange>();
+
+        var lastInnerStacks = lastNestData != null ? List.copyOf(lastNestData.getMap(slotReference).entrySet()) : List.<Map.Entry<SlotEntryReference, Accessory>>of();
+        var currentInnerStacks = currentNestData != null ? List.copyOf(currentNestData.getMap(slotReference).entrySet()) : List.<Map.Entry<SlotEntryReference, Accessory>>of();
+
+        var maxIterationLength = Math.max(lastInnerStacks.size(), currentInnerStacks.size());
+
+        for (int i = 0; i < maxIterationLength; i++) {
+            var lastInnerEntry = (i < lastInnerStacks.size()) ? lastInnerStacks.get(i) : null;
+            var currentInnerEntry = (i < currentInnerStacks.size()) ? currentInnerStacks.get(i) : null;
+
+            var changeType = currentNestChanges.getOrDefault(i, SlotStateChange.REPLACEMENT);
+
+            if (lastInnerEntry == null && currentInnerEntry != null) {
+                var currentRef = currentInnerEntry.getKey();
+                var currentInnerStack = currentRef.stack();
+
+                onStackChange(currentRef.reference(), ItemStack.EMPTY, currentRef.stack(), changeType);
+
+                recursiveStackChange(slotReference, null, AccessoryNestUtils.getData(currentInnerStack));
+            } else if (currentInnerEntry == null && lastInnerEntry != null) {
+                var lastRef = lastInnerEntry.getKey();
+                var lastInnerStack = lastRef.stack();
+
+                onStackChange(lastRef.reference(), lastRef.stack(), ItemStack.EMPTY, changeType);
+
+                recursiveStackChange(slotReference, AccessoryNestUtils.getData(lastInnerStack), null);
+            } else if (lastInnerEntry != null && currentInnerEntry != null) {
+                var currentRef = currentInnerEntry.getKey();
+                var lastRef = lastInnerEntry.getKey();
+
+                var innerRef = lastRef.reference();
+
+                var currentInnerStack = currentRef.stack();
+                var lastInnerStack = lastRef.stack();
+
+                onStackChange(innerRef, lastInnerStack, currentInnerStack, changeType);
+
+                recursiveStackChange(slotReference, AccessoryNestUtils.getData(lastInnerStack), AccessoryNestUtils.getData(currentInnerStack));
+            }
+        }
+
+        currentNestChanges.clear();
+    }
+
+    private static void onStackChange(SlotReference slotReference, ItemStack lastStack, ItemStack currentStack, SlotStateChange stateChange) {
+        if (slotReference.entity() instanceof ServerPlayer serverPlayer) {
+            if (!currentStack.isEmpty()) {
+                ACCESSORY_EQUIPPED.trigger(serverPlayer, currentStack, slotReference, false);
+            }
+
+            if (!lastStack.isEmpty()) {
+                ACCESSORY_UNEQUIPPED.trigger(serverPlayer, lastStack, slotReference, false);
+            }
+        }
+
+        AccessoryChangeCallback.EVENT.invoker().onChange(lastStack, currentStack, slotReference, stateChange);
+    }
+
     public static void getTooltipData(@Nullable LivingEntity entity, ItemStack stack, List<Component> tooltip, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
         var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
         if (accessory != null) {
-            if(entity != null && AccessoriesCapability.get(entity) != null) addEntityBasedTooltipData(entity, accessory, stack, tooltip, tooltipContext, tooltipType);
+            if (entity != null && AccessoriesCapability.get(entity) != null)
+                addEntityBasedTooltipData(entity, accessory, stack, tooltip, tooltipContext, tooltipType);
 
             accessory.getExtraTooltip(stack, tooltip, tooltipContext, tooltipType);
         }
@@ -428,7 +498,7 @@ public class AccessoriesEventHandler {
                 }
             }
 
-            validSlotTypes.addAll(validUniqueSlots);
+            validSlotTypes.addAll (validUniqueSlots);
 
             final var filteredValidUniqueSlots = validUniqueSlots.stream()
                     .filter(slotType -> ExtraSlotTypeProperties.getProperty(slotType.name(), true).allowTooltipInfo())
@@ -487,7 +557,7 @@ public class AccessoriesEventHandler {
             if (!defaultModifiers.isEmpty()) {
                 var attributeTooltip = new ArrayList<Component>();
 
-                addAttributeTooltip(defaultModifiers.getAttributeModifiers(false), attributeTooltip);
+                addAttributeTooltip(entity, defaultModifiers.getAttributeModifiers(false), attributeTooltip);
 
                 slotTypeToTooltipInfo.put(null, attributeTooltip);
             }
@@ -500,7 +570,7 @@ public class AccessoriesEventHandler {
 
                 var attributeTooltip = new ArrayList<Component>();
 
-                addAttributeTooltip(modifiers.getAttributeModifiers(false), attributeTooltip);
+                addAttributeTooltip(entity, modifiers.getAttributeModifiers(false), attributeTooltip);
 
                 slotTypeToTooltipInfo.put(slotType, attributeTooltip);
             }
@@ -534,7 +604,7 @@ public class AccessoriesEventHandler {
             });
         }
 
-        if(slotTypeToTooltipInfo.containsKey(null)) {
+        if (slotTypeToTooltipInfo.containsKey(null)) {
             var anyTooltipInfo = slotTypeToTooltipInfo.get(null);
 
             if (anyTooltipInfo.size() > 0) {
@@ -551,11 +621,11 @@ public class AccessoriesEventHandler {
             slotTypeToTooltipInfo.remove(null);
         }
 
-        if(!slotTypeToTooltipInfo.isEmpty()) {
+        if (!slotTypeToTooltipInfo.isEmpty()) {
             for (var entry : slotTypeToTooltipInfo.entrySet()) {
                 var tooltipData = entry.getValue();
 
-                if(tooltipData.size() == 0) continue;
+                if (tooltipData.size() == 0) continue;
 
                 tooltip.add(CommonComponents.EMPTY);
 
@@ -571,40 +641,15 @@ public class AccessoriesEventHandler {
         }
     }
 
-    private static void addAttributeTooltip(Multimap<Holder<Attribute>, AttributeModifier> multimap, List<Component> tooltip) {
+    private static void addAttributeTooltip(LivingEntity entity, Multimap<Holder<Attribute>, AttributeModifier> multimap, List<Component> tooltip) {
         if (multimap.isEmpty()) return;
 
         for (Map.Entry<Holder<Attribute>, AttributeModifier> entry : multimap.entries()) {
-            AttributeModifier attributeModifier = entry.getValue();
-            double d = attributeModifier.amount();
-
-            if (attributeModifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_BASE
-                    || attributeModifier.operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL) {
-                d *= 100.0;
-            } else if (entry.getKey().equals(Attributes.KNOCKBACK_RESISTANCE)) {
-                d *= 10.0;
-            }
-
-            if (d > 0.0) {
-                tooltip.add(
-                        Component.translatable(
-                                        "attribute.modifier.plus." + attributeModifier.operation().id(),
-                                        ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(d),
-                                        Component.translatable(entry.getKey().value().getDescriptionId())
-                                )
-                                .withStyle(ChatFormatting.BLUE)
-                );
-            } else if (d < 0.0) {
-                d *= -1.0;
-                tooltip.add(
-                        Component.translatable(
-                                        "attribute.modifier.take." + attributeModifier.operation().id(),
-                                        ItemAttributeModifiers.ATTRIBUTE_MODIFIER_FORMAT.format(d),
-                                        Component.translatable(entry.getKey().value().getDescriptionId())
-                                )
-                                .withStyle(ChatFormatting.RED)
-                );
-            }
+            ((ItemStackAccessor) (Object) ItemStack.EMPTY).accessories$addModifierTooltip(
+                    tooltip::add,
+                    (entity instanceof Player player ? player : null),
+                    entry.getKey(),
+                    entry.getValue());
         }
     }
 
@@ -652,7 +697,7 @@ public class AccessoriesEventHandler {
     @Nullable
     private static ItemStack dropStack(DropRule dropRule, LivingEntity entity, Container container, SlotReference reference, DamageSource source) {
         var stack = container.getItem(reference.slot());
-        var accessory = AccessoriesAPI.getAccessory(stack);
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
         if (accessory != null && dropRule == DropRule.DEFAULT) {
             dropRule = accessory.getDropRule(stack, reference, source);
@@ -712,48 +757,39 @@ public class AccessoriesEventHandler {
 
         var capability = AccessoriesCapability.get(player);
 
-        if(capability != null && !player.isSpectator() && !stack.isEmpty()) {
+        if (capability != null && !player.isSpectator() && !stack.isEmpty()) {
             var equipControl = capability.getHolder().equipControl();
 
             var shouldAttemptEquip = false;
 
-            if(equipControl == PlayerEquipControl.MUST_CROUCH && player.isShiftKeyDown()) {
+            if (equipControl == PlayerEquipControl.MUST_CROUCH && player.isShiftKeyDown()) {
                 shouldAttemptEquip = true;
-            } else if(equipControl == PlayerEquipControl.MUST_NOT_CROUCH && !player.isShiftKeyDown()) {
+            } else if (equipControl == PlayerEquipControl.MUST_NOT_CROUCH && !player.isShiftKeyDown()) {
                 shouldAttemptEquip = true;
             }
 
             if (shouldAttemptEquip) {
                 var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
-                var equipReference = capability.equipAccessory(stack, true, Accessory::canEquipFromUse);
+                var equipReference = capability.canEquipAccessory(stack, true);
 
                 if (equipReference != null) {
                     accessory.onEquipFromUse(stack, equipReference.left());
 
-                    var stacks = equipReference.second();
+                    var newHandStack = stack.copy();
 
-                    var newHandStack = stacks.get(0);
+                    var possibleSwappedStack = equipReference.second().equipStack(newHandStack);
 
-                    if (stacks.size() > 1) {
-                        var otherStack = stacks.get(1);
+                    if (possibleSwappedStack.isPresent()) {
+                        var swappedStack = possibleSwappedStack.get();
 
                         if (newHandStack.isEmpty()) {
-                            newHandStack = otherStack;
-                        } else if (ItemStack.isSameItemSameComponents(newHandStack, otherStack)) {
-                            int resizingAmount = 0;
-
-                            if ((newHandStack.getCount() + otherStack.getCount()) < newHandStack.getMaxStackSize()) {
-                                resizingAmount = otherStack.getCount();
-                            } else if ((newHandStack.getMaxStackSize() - newHandStack.getCount()) > 0) {
-                                resizingAmount = newHandStack.getMaxStackSize() - newHandStack.getCount();
-                            }
-
-                            otherStack.shrink(resizingAmount);
-                            newHandStack.grow(resizingAmount);
+                            newHandStack = swappedStack;
+                        } else if (ItemStack.isSameItemSameComponents(newHandStack, swappedStack) && (newHandStack.getCount() + swappedStack.getCount()) <= newHandStack.getMaxStackSize()) {
+                            newHandStack.grow(swappedStack.getCount());
+                        } else {
+                            player.addItem(swappedStack);
                         }
-
-                        player.addItem(otherStack);
                     }
 
                     return InteractionResultHolder.success(newHandStack);
@@ -764,52 +800,44 @@ public class AccessoriesEventHandler {
         return InteractionResultHolder.pass(stack);
     }
 
-    public static final TagKey<EntityType<?>> EQUIPMENT_MANAGEABLE = TagKey.create(Registries.ENTITY_TYPE, Accessories.of("equipment_manageable"));
-
     public static InteractionResult attemptEquipOnEntity(Player player, InteractionHand hand, Entity entity) {
         var stack = player.getItemInHand(hand);
 
-        if (entity.getType().is(EQUIPMENT_MANAGEABLE) && !player.isSpectator() && player.isShiftKeyDown()) {
-            var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+        if (!(entity instanceof LivingEntity targetEntity) || !entity.getType().is(AccessoriesTags.EQUIPMENT_MANAGEABLE))
+            return InteractionResult.PASS;
 
-            if(entity instanceof LivingEntity livingEntity) {
-                var capability = AccessoriesCapability.get(livingEntity);
+        var targetCapability = AccessoriesCapability.get(targetEntity);
 
-                if (capability != null) {
-                    var equipReference = capability.equipAccessory(stack, true, Accessory::canEquipFromUse);
+        var canModify = AllowEntityModificationCallback.EVENT.invoker().allowModifications(targetEntity, player, null).orElse(false);
 
-                    if (equipReference != null) {
-                        if(!stack.isEmpty()) accessory.onEquipFromUse(stack, equipReference.left());
+        if (canModify && targetCapability != null && !player.isSpectator()) {
+            if (player.isShiftKeyDown()) {
+                var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
-                        var stacks = equipReference.second();
+                var equipReference = targetCapability.canEquipAccessory(stack, true);
 
-                        var newHandStack = stacks.get(0);
+                if (equipReference != null && accessory.canEquipFromUse(stack)) {
+                    if (!stack.isEmpty()) accessory.onEquipFromUse(stack, equipReference.left());
 
-                        if(stacks.size() > 1) {
-                            var otherStack = stacks.get(1);
+                    var newHandStack = stack.copy();
 
-                            if (newHandStack.isEmpty()) {
-                                newHandStack = otherStack;
-                            } else if(ItemStack.isSameItemSameComponents(newHandStack, otherStack)) {
-                                int resizingAmount = 0;
+                    var possibleSwappedStack = equipReference.second().equipStack(newHandStack);
 
-                                if((newHandStack.getCount() + otherStack.getCount()) < newHandStack.getMaxStackSize()) {
-                                    resizingAmount = otherStack.getCount();
-                                } else if((newHandStack.getMaxStackSize() - newHandStack.getCount()) > 0) {
-                                    resizingAmount = newHandStack.getMaxStackSize() - newHandStack.getCount();
-                                }
+                    if (possibleSwappedStack.isPresent()) {
+                        var swappedStack = possibleSwappedStack.get();
 
-                                otherStack.shrink(resizingAmount);
-                                newHandStack.grow(resizingAmount);
-                            }
-
-                            player.addItem(otherStack);
+                        if (newHandStack.isEmpty()) {
+                            newHandStack = swappedStack;
+                        } else if (ItemStack.isSameItemSameComponents(newHandStack, swappedStack) && (newHandStack.getCount() + swappedStack.getCount()) <= newHandStack.getMaxStackSize()) {
+                            newHandStack.grow(swappedStack.getCount());
+                        } else {
+                            player.addItem(swappedStack);
                         }
-
-                        player.setItemInHand(hand, newHandStack);
-
-                        return InteractionResult.SUCCESS;
                     }
+
+                    player.setItemInHand(hand, newHandStack);
+
+                    return InteractionResult.SUCCESS;
                 }
             }
         }
@@ -823,7 +851,7 @@ public class AccessoriesEventHandler {
 
             accessory.getStaticModifiers(item, builder);
 
-            if(!builder.isEmpty()) {
+            if (!builder.isEmpty()) {
                 callback.addTo(item, AccessoriesDataComponents.ATTRIBUTES, builder.build());
             }
         });

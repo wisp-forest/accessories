@@ -54,7 +54,7 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
         var capability = livingEntity.accessoriesCapability();
 
         if(capability == null) {
-            LOGGER.error("Unable to locate a capability for the given livingEntity meaning it does not have a valid Accessory Inventory [EntityType: " + livingEntity.getType() + "]");
+            LOGGER.error("Unable to locate a capability for the given livingEntity meaning it does not have a valid Accessory Inventory [EntityType: {}]", livingEntity.getType());
 
             return null;
         }
@@ -62,7 +62,7 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
         var validEntitySlots = EntitySlotLoader.getEntitySlots(livingEntity);
 
         if(!validEntitySlots.containsKey(slotType.name())) {
-            LOGGER.error("Unable to create Accessory Slot due to the given LivingEntity not having the given SlotType bound to it! [EntityType: " + livingEntity.getType() + ", SlotType: " + slotType.name() + "]");
+            LOGGER.error("Unable to create Accessory Slot due to the given LivingEntity not having the given SlotType bound to it! [EntityType: {}, SlotType: {}]", livingEntity.getType(), slotType.name());
 
             return null;
         }
@@ -70,7 +70,7 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
         var container = capability.getContainer(slotType);
 
         if(container == null){
-            LOGGER.error("Unable to locate the given container for the passed slotType. [SlotType:" + slotType.name() + "]");
+            LOGGER.error("Unable to locate the given container for the passed slotType. [SlotType:{}]", slotType.name());
 
             return null;
         }
@@ -110,9 +110,6 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
     @Override
     public void set(ItemStack stack) {
         super.set(stack);
-
-        this.accessoriesContainer.markChanged();
-        this.accessoriesContainer.update();
     }
 
     @Override

@@ -1,5 +1,6 @@
 package io.wispforest.accessories.impl;
 
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -15,13 +16,17 @@ import io.wispforest.endec.util.MapCarrier;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
+import org.slf4j.Logger;
 
 import java.util.*;
 
 @ApiStatus.Internal
 public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final MapCarrier EMPTY = new NbtMapCarrier(new CompoundTag());
 
@@ -58,6 +63,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
     private MapCarrier carrier;
     protected boolean loadedFromTag = false;
+
+    public AccessoriesHolderImpl(){}
 
     public static AccessoriesHolderImpl of(){
         var holder = new AccessoriesHolderImpl();
@@ -223,12 +230,19 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     public void init(AccessoriesCapability capability) {
         var livingEntity = capability.entity();
 
-        this.slotContainers.clear();
-        //this.invalidStacks.clear();
+        //this.slotContainers.clear();
+
+        var entitySlots = EntitySlotLoader.getEntitySlots(livingEntity);
+
+        //LOGGER.error("Entity Slots for [{}]: {}", livingEntity, entitySlots.keySet());
+
+        if(livingEntity instanceof Player && entitySlots.isEmpty()) {
+            LOGGER.warn("It seems the given player has no slots bound to it within a init call, is that desired?");
+        }
 
         if (loadedFromTag) {
-            EntitySlotLoader.getEntitySlots(livingEntity).forEach((s, slotType) -> {
-                slotContainers.putIfAbsent(s, new AccessoriesContainerImpl(capability, slotType));
+            entitySlots.forEach((s, slotType) -> {
+                this.slotContainers.putIfAbsent(s, new AccessoriesContainerImpl(capability, slotType));
             });
 
             var ctx = SerializationContext.attributes(
@@ -238,8 +252,8 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
             read(capability, livingEntity, this.carrier, ctx);
         } else {
-            EntitySlotLoader.getEntitySlots(livingEntity).forEach((s, slotType) -> {
-                slotContainers.put(s, new AccessoriesContainerImpl(capability, slotType));
+            entitySlots.forEach((s, slotType) -> {
+                this.slotContainers.put(s, new AccessoriesContainerImpl(capability, slotType));
             });
         }
     }

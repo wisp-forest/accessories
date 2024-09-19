@@ -14,22 +14,8 @@ public class TrinketConstants {
     public static final String MOD_ID = "trinkets";
     public static final Logger LOGGER = LogManager.getLogger();
 
-    public static String filterGroup(String path){
-        if(!path.contains("/")) return path;
-
-        var parts = path.split("/");
-
-        if(parts.length <= 1) return path;
-
-        StringBuilder builder = new StringBuilder();
-
-        for (int i = 1; i < parts.length; i++) builder.append(parts[i]);
-
-        return builder.toString();
-    }
-
     public static boolean isValid(SlotReference slotReference, ItemStack stack){
-        var ref = WrappingTrinketsUtils.createReference(slotReference);
+        var ref = WrappingTrinketsUtils.createTrinketsReference(slotReference);
 
         if(ref.isEmpty()) return false;
 

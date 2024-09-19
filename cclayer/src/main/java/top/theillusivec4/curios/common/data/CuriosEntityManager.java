@@ -23,13 +23,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.*;
 import com.mojang.serialization.JsonOps;
+import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.cclayer.ImmutableDelegatingMap;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.IntTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -52,11 +51,20 @@ public class CuriosEntityManager extends SimpleJsonResourceReloadListener {
   private static final Gson GSON =
       (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
 
-  public static CuriosEntityManager INSTANCE = new CuriosEntityManager();
-  private Map<EntityType<?>, Map<String, ISlotType>> server = ImmutableMap.of();
+  public static CuriosEntityManager SERVER = new CuriosEntityManager(false);
+  public static CuriosEntityManager CLIENT = new CuriosEntityManager(true);
+
+  private Map<EntityType<?>, Map<String, ISlotType>> entitySlots = ImmutableMap.of();
   private Map<String, Set<String>> idToMods = ImmutableMap.of();
-  private Map<EntityType<?>, Map<String, Integer>> client = ImmutableMap.of();
   private ICondition.IContext ctx = ICondition.IContext.EMPTY;
+
+  private boolean isClient = false;
+
+  public CuriosEntityManager(boolean isClient) {
+    this();
+
+    this.isClient = isClient;
+  }
 
   public CuriosEntityManager() {
     super(GSON, "curios/entities");
@@ -72,7 +80,7 @@ public class CuriosEntityManager extends SimpleJsonResourceReloadListener {
   protected void apply(Map<ResourceLocation, JsonElement> pObject,
                        @Nonnull ResourceManager pResourceManager,
                        @Nonnull ProfilerFiller pProfiler) {
-    this.entityTypeSlotData.clear();
+    entityTypeSlotData.clear();
 
     Map<EntityType<?>, ImmutableSet.Builder<String>> map = new HashMap<>();
     Map<String, ImmutableSet.Builder<String>> modMap = new HashMap<>();
@@ -95,9 +103,7 @@ public class CuriosEntityManager extends SimpleJsonResourceReloadListener {
 
     // Legacy IMC slot registrations - players only
     for (String s : LegacySlotManager.getImcBuilders().keySet()) {
-      ImmutableSet.Builder<String> builder = map.computeIfAbsent(EntityType.PLAYER, (k) -> ImmutableSet.builder());
-
-      builder.add(s);
+      map.computeIfAbsent(EntityType.PLAYER, (k) -> ImmutableSet.builder()).add(s);
     }
 
     for (Map.Entry<ResourceLocation, JsonElement> entry : sorted.entrySet()) {
@@ -128,7 +134,21 @@ public class CuriosEntityManager extends SimpleJsonResourceReloadListener {
         CuriosConstants.LOG.error("Parsing error loading curio entity {}", resourcelocation, e);
       }
     }
-    this.entityTypeSlotData.putAll(map);
+
+    //TODO: Look into emulate Config slot loading or maybe not?
+    /*
+    Map<String, ISlotType> configSlots = new HashMap<>();
+    for (String configSlot : CuriosSlotManager.SERVER.getConfigSlots()) {
+      CuriosSlotManager.SERVER.getSlot(configSlot)
+              .ifPresentOrElse(slot -> configSlots.put(configSlot, slot),
+                      () -> CuriosConstants.LOG.error("{} is not a registered slot type!", configSlot));
+    }
+    map.computeIfAbsent(EntityType.PLAYER, (k) -> ImmutableMap.builder()).putAll(configSlots);*/
+
+    this.idToMods = modMap.entrySet().stream()
+            .collect(ImmutableMap.toImmutableMap(Map.Entry::getKey, entry -> entry.getValue().build()));
+
+    entityTypeSlotData.putAll(map);
 
     CuriosConstants.LOG.info("Loaded {} curio entities", map.size());
   }
@@ -136,15 +156,15 @@ public class CuriosEntityManager extends SimpleJsonResourceReloadListener {
   public static ListTag getSyncPacket() {
     ListTag tag = new ListTag();
 
-    for (Map.Entry<EntityType<?>, Map<String, ISlotType>> entry : INSTANCE.server.entrySet()) {
+    for (Map.Entry<EntityType<?>, Map<String, ISlotType>> entry : SERVER.entitySlots.entrySet()) {
       ResourceLocation rl = BuiltInRegistries.ENTITY_TYPE.getKey(entry.getKey());
 
       CompoundTag entity = new CompoundTag();
       entity.putString("Entity", rl.toString());
-      CompoundTag tag1 = new CompoundTag();
+      ListTag tag1 = new ListTag();
 
       for (Map.Entry<String, ISlotType> val : entry.getValue().entrySet()) {
-        tag1.put(val.getKey(), IntTag.valueOf(val.getValue().getSize()));
+        tag1.add(StringTag.valueOf(val.getKey()));
       }
       entity.put("Slots", tag1);
       tag.add(entity);
@@ -153,24 +173,30 @@ public class CuriosEntityManager extends SimpleJsonResourceReloadListener {
   }
 
   public static void applySyncPacket(ListTag tag) {
-    Map<EntityType<?>, ImmutableMap.Builder<String, Integer>> map = new HashMap<>();
+    Map<EntityType<?>, ImmutableMap.Builder<String, ISlotType>> map = new HashMap<>();
 
     for (Tag tag1 : tag) {
 
       if (tag1 instanceof CompoundTag entity) {
-        EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.getOptional(ResourceLocation.parse(entity.getString("Entity"))).orElse(null);
+        EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.getOptional(ResourceLocation.parse(entity.getString("Entity")))
+                .orElse(null);
 
         if (type != null) {
-          CompoundTag slots = entity.getCompound("Slots");
+          ListTag slots = entity.getList("Slots", Tag.TAG_STRING);
 
-          for (String key : slots.getAllKeys()) {
-            int size = slots.getInt(key);
-            map.computeIfAbsent(type, (k) -> ImmutableMap.builder()).put(key, size);
+          for (Tag slot : slots) {
+
+            if (slot instanceof StringTag stringTag) {
+              String id = stringTag.getAsString();
+              CuriosSlotManager.CLIENT.getSlot(id).ifPresent(
+                      slotType -> map.computeIfAbsent(type, (k) -> ImmutableMap.builder())
+                              .put(id, slotType));
+            }
           }
         }
       }
     }
-    INSTANCE.client = map.entrySet().stream().collect(
+    CLIENT.entitySlots = map.entrySet().stream().collect(
         ImmutableMap.toImmutableMap(Map.Entry::getKey, (entry) -> entry.getValue().build()));
   }
 
@@ -209,10 +235,11 @@ public class CuriosEntityManager extends SimpleJsonResourceReloadListener {
       }
     }
     JsonArray jsonSlots = GsonHelper.getAsJsonArray(jsonObject, "slots", new JsonArray());
-
     Set<String> slots = new HashSet<>();
 
-    for (JsonElement jsonSlot : jsonSlots) slots.add(jsonSlot.getAsString());
+    for (JsonElement jsonSlot : jsonSlots) {
+      slots.add(jsonSlot.getAsString());
+    }
 
     for (EntityType<?> entityType : toAdd) {
       map.computeIfAbsent(entityType, (k) -> new HashSet<>()).addAll(slots);
@@ -221,23 +248,15 @@ public class CuriosEntityManager extends SimpleJsonResourceReloadListener {
   }
 
   public boolean hasSlots(EntityType<?> type) {
-    return this.client.containsKey(type);
+    return this.getClientSlots(type).containsKey(type);
   }
 
   public Map<String, Integer> getClientSlots(EntityType<?> type) {
-
-    if (this.client.containsKey(type)) {
-      return this.client.get(type);
-    }
-    return ImmutableMap.of();
+    return ImmutableDelegatingMap.slotBaseSize(EntitySlotLoader.INSTANCE.getSlotTypes(true, type));
   }
 
   public Map<String, ISlotType> getEntitySlots(EntityType<?> type) {
-
-    if (this.server.containsKey(type)) {
-      return this.server.get(type);
-    }
-    return ImmutableMap.of();
+    return ImmutableDelegatingMap.slotType(EntitySlotLoader.INSTANCE.getSlotTypes(false, type));
   }
 
   public Map<String, Set<String>> getModsFromSlots() {

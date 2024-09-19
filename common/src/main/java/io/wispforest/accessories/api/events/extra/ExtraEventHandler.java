@@ -30,7 +30,7 @@ public class ExtraEventHandler {
                     var reference = entryRef.reference();
                     var stack = entryRef.stack();
 
-                    var accessory = AccessoriesAPI.getAccessory(stack);
+                    var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
                     if(accessory instanceof LootingAdjustment lootingAdjustment){
                         currentLevel += lootingAdjustment.getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
@@ -53,7 +53,7 @@ public class ExtraEventHandler {
                     var reference = entryRef.reference();
                     var stack = entryRef.stack();
 
-                    var accessory = AccessoriesAPI.getAccessory(stack);
+                    var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
                     if (accessory instanceof FortuneAdjustment fortuneAdjustment) {
                         currentLevel += fortuneAdjustment.getFortuneAdjustment(stack, reference, context, currentLevel);
@@ -77,7 +77,7 @@ public class ExtraEventHandler {
                 var reference = entryRef.reference();
                 var stack = entryRef.stack();
 
-                var accessory = AccessoriesAPI.getAccessory(stack);
+                var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
                 if(accessory instanceof PiglinNeutralInducer inducer){
                     state = inducer.makePiglinsNeutral(stack, reference);
@@ -104,7 +104,7 @@ public class ExtraEventHandler {
                 var reference = entryRef.reference();
                 var stack = entryRef.stack();
 
-                var accessory = AccessoriesAPI.getAccessory(stack);
+                var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
                 if(accessory instanceof AllowWalkingOnSnow event){
                     state = event.allowWalkingOnSnow(stack, reference);
@@ -141,7 +141,7 @@ public class ExtraEventHandler {
                 var reference = entryRef.reference();
                 var stack = entryRef.stack();
 
-                var accessory = AccessoriesAPI.getAccessory(stack);
+                var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
                 if(accessory instanceof EndermanMasked masked){
                     state = masked.isEndermanMasked(enderMan, stack, reference);

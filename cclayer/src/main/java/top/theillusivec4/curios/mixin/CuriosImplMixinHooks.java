@@ -31,6 +31,7 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.cclayer.ImmutableDelegatingMap;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.Util;
 import net.minecraft.core.Holder;
@@ -57,6 +58,9 @@ import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 import top.theillusivec4.curios.api.type.capability.ICuriosItemHandler;
 import top.theillusivec4.curios.common.CuriosRegistry;
+import top.theillusivec4.curios.common.capability.ItemizedCurioCapability;
+import top.theillusivec4.curios.common.data.CuriosEntityManager;
+import top.theillusivec4.curios.common.data.CuriosSlotManager;
 import top.theillusivec4.curios.compat.CuriosWrappingUtils;
 import top.theillusivec4.curios.compat.WrappedAccessory;
 import top.theillusivec4.curios.compat.WrappedCurio;
@@ -68,7 +72,7 @@ import java.util.function.Predicate;
 
 public class CuriosImplMixinHooks {
 
-  private static final Map<Item, ICurioItem> REGISTRY = new ConcurrentHashMap<>();
+  public static final Map<Item, ICurioItem> REGISTRY = new ConcurrentHashMap<>();
 
   public static void registerCurio(Item item, ICurioItem icurio) {
     REGISTRY.put(item, icurio);
@@ -77,11 +81,15 @@ public class CuriosImplMixinHooks {
   }
 
   public static Optional<ICurioItem> getCurioFromRegistry(Item item) {
-    var iCurioItem = REGISTRY.get(item);
+    return getCurioFromRegistry(item.getDefaultInstance());
+  }
+
+  public static Optional<ICurioItem> getCurioFromRegistry(ItemStack itemStack) {
+    var iCurioItem = REGISTRY.get(itemStack.getItem());
 
     if(iCurioItem != null) return Optional.of(iCurioItem);
 
-    return Optional.ofNullable(AccessoriesAPI.getAccessory(item)).map(WrappedAccessory::new);
+    return Optional.of(new WrappedAccessory(AccessoriesAPI.getOrDefaultAccessory(itemStack)));
   }
 
   public static Optional<ISlotType> getSlot(String id) {
@@ -97,17 +105,11 @@ public class CuriosImplMixinHooks {
   }
 
   public static Map<String, ISlotType> getSlots(boolean isClient) {
-    var slots = SlotTypeLoader.INSTANCE.getSlotTypes(isClient);
-
-    return Util.make(new HashMap<>(), wrappedSlots -> slots.forEach((s, slotType) -> wrappedSlots.put(CuriosWrappingUtils.accessoriesToCurios(s), new WrappedSlotType(slotType))));
+    return (isClient ? CuriosSlotManager.CLIENT : CuriosSlotManager.SERVER).getSlots();
   }
 
   public static Map<String, ISlotType> getEntitySlots(EntityType<?> type, boolean isClient) {
-    var slots = EntitySlotLoader.INSTANCE.getSlotTypes(isClient, type);
-
-    if(slots == null) return Map.of();
-
-    return Util.make(new HashMap<>(), wrappedSlots -> slots.forEach((s, slotType) -> wrappedSlots.put(CuriosWrappingUtils.accessoriesToCurios(s), new WrappedSlotType(slotType))));
+    return (isClient ? CuriosEntityManager.SERVER : CuriosEntityManager.CLIENT).getEntitySlots(type);
   }
 
   public static Map<String, ISlotType> getItemStackSlots(ItemStack stack, boolean isClient) {
@@ -219,7 +221,17 @@ public class CuriosImplMixinHooks {
   }
 
   public static Optional<ICurio> getCurio(ItemStack stack) {
-    return Optional.ofNullable(stack.getCapability(CuriosCapability.ITEM));
+      var capability = stack.getCapability(CuriosCapability.ITEM);
+
+      if(capability != null) return Optional.of(capability);
+
+      var registeredCurio = REGISTRY.get(stack.getItem());
+
+      if(registeredCurio == null) {
+          registeredCurio = new WrappedAccessory(AccessoriesAPI.getOrDefaultAccessory(stack));
+      }
+
+      return Optional.of(new ItemizedCurioCapability(registeredCurio, stack));
   }
 
   public static Optional<ICuriosItemHandler> getCuriosInventory(LivingEntity livingEntity) {
@@ -460,7 +472,7 @@ public class CuriosImplMixinHooks {
         return TriState.of(this.curiosValidator.test(new SlotResult(new SlotContext(slotType.name(), null, slot, false, true), stack)));
       } catch (Exception e) {
         this.hasErrored = true;
-        LOGGER.warn("Unable to handle Curios Slot Predicate converted to Accessories Slot Predicate due to fundamental incompatibility, issues may be present with it! [Slot: {}, Predicate ID: {}]", slotType.name(), this.location);
+        LOGGER.warn("Unable to handle Curios Slot Predicate converted to Accessories Slot Predicate due to fundamental incompatibility, issues may be present with it! [Slot: {}, Predicate ID: {}]", slotType.name(), this.location, e);
       }
 
       return TriState.DEFAULT;

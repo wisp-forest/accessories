@@ -5,8 +5,9 @@ import com.mojang.logging.LogUtils;
 import com.mojang.math.Axis;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.api.components.AccessoryRenderTransformations;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.compat.AccessoriesConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -64,9 +65,23 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
 
         Consumer<PoseStack> render = (poseStack) -> Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, reference.entity().level(), 0);
 
-        var helper = slotToHelpers.get(reference.slotName());
+        var translationData = stack.getOrDefault(AccessoriesDataComponents.RENDER_TRANSFORMATIONS, AccessoryRenderTransformations.EMPTY);
 
-        if(helper != null) helper.render(render, matrices, humanoidModel, reference);
+        Consumer<PoseStack> translationAndRender = poseStack -> {
+            ClientTransformationUtils.transformStack(translationData.transformations(), poseStack, humanoidModel, () -> {
+                render.accept(poseStack);
+            });
+        };
+
+        if(!translationData.disableDefaultTranslations()) {
+            var helper = slotToHelpers.get(reference.slotName());
+
+            if (helper != null) {
+                helper.render(translationAndRender, matrices, humanoidModel, reference);
+            }
+        } else {
+            translationAndRender.accept(matrices);
+        }
     }
 
     @Override
@@ -98,7 +113,10 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
                         AccessoryRenderer.transformToFace(matrices, humanoidModel.head, Side.TOP);
                         matrices.translate(0, 0.25, 0);
-                        renderCall.accept(matrices);
+                        for (int i = 0; i < reference.getStack().getCount(); i++) {
+                            renderCall.accept(matrices);
+                            matrices.translate(0, 0.5, 0);
+                        }
                     }
                 }),
                 Map.entry("back", new RenderHelper() {
@@ -128,11 +146,29 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 Map.entry("ring", new RenderHelper() {
                     @Override
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
-                        AccessoryRenderer.transformToModelPart(matrices, reference.slot() % 2 == 0 ? humanoidModel.rightArm : humanoidModel.leftArm, reference.slot() % 2 == 0 ? 1 : -1, -1, 0);
-                        matrices.translate(0, 0.25, 0);
+                        AccessoryRenderer.transformToModelPart(
+                                matrices,
+                                reference.slot() % 2 == 0 ? humanoidModel.rightArm : humanoidModel.leftArm,
+                                reference.slot() % 2 == 0 ? 1 : -1,
+                                -1,
+                                0
+                        );
+                        var offset = reference.slot() / 2;
+                        matrices.translate(
+                                (reference.slot() % 2 == 0 ? -1 : 1) * offset * -0.0001,
+                                0.25 * (offset + 1),
+                                0
+                        );
                         matrices.scale(0.5f, 0.5f, 0.5f);
                         matrices.mulPose(Axis.YP.rotationDegrees(90));
-                        renderCall.accept(matrices);
+                        for (int i = 0; i < reference.getStack().getCount(); i++) {
+                            renderCall.accept(matrices);
+                            matrices.translate(
+                                    0,
+                                    0,
+                                    reference.slot() % 2 == 0 ? -0.5 : 0.5
+                            );
+                        }
                     }
                 }),
                 Map.entry("wrist", new RenderHelper() {

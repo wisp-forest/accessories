@@ -3,7 +3,9 @@ package dev.emi.trinkets.api.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.emi.trinkets.compat.WrappedTrinketInventory;
 import dev.emi.trinkets.compat.WrappingTrinketsUtils;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
+import io.wispforest.accessories.api.client.DefaultAccessoryRenderer;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
 import net.minecraft.client.model.EntityModel;
@@ -29,7 +31,7 @@ public class TrinketRendererRegistry {
                 public <M extends LivingEntity> void render(ItemStack stack, SlotReference ref, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
                     matrices.pushPose();
 
-                    var reference = WrappingTrinketsUtils.createReference(ref);
+                    var reference = WrappingTrinketsUtils.createTrinketsReference(ref);
 
                     if(reference.isEmpty()) return;
 
@@ -46,14 +48,20 @@ public class TrinketRendererRegistry {
 
     public static Optional<TrinketRenderer> getRenderer(Item item) {
         return Optional.ofNullable(RENDERERS.get(item)).or(() -> {
-            return Optional.ofNullable(AccessoriesRendererRegistry.getRender(item)).map(accessoryRenderer -> {
-                return (stack, ref, contextModel, matrices, vertexConsumers, light, entity, limbAngle, limbDistance, tickDelta, animationProgress, headYaw, headPitch) -> {
-                    var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
+            return Optional.ofNullable(AccessoriesRendererRegistry.getRender(item)).flatMap(accessoryRenderer -> {
+                if(accessoryRenderer == DefaultAccessoryRenderer.INSTANCE && !Accessories.getConfig().clientData.forceNullRenderReplacement) {
+                    return Optional.empty();
+                }
 
-                    var reference = SlotReference.of(entity, slotName, ref.index());
+                return Optional.of(
+                        (stack, ref, contextModel, matrices, vertexConsumers, light, entity, limbAngle, limbDistance, tickDelta, animationProgress, headYaw, headPitch) -> {
+                            var slotName = ((WrappedTrinketInventory) ref.inventory()).container.getSlotName();
 
-                    accessoryRenderer.render(stack, reference, matrices, contextModel, vertexConsumers, light, limbAngle, limbDistance, tickDelta, animationProgress, headYaw, headPitch);
-                };
+                            var reference = SlotReference.of(entity, slotName, ref.index());
+
+                            accessoryRenderer.render(stack, reference, matrices, contextModel, vertexConsumers, light, limbAngle, limbDistance, tickDelta, animationProgress, headYaw, headPitch);
+                        }
+                );
             });
         });
     }

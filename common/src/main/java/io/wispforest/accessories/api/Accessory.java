@@ -94,9 +94,7 @@ public interface Accessory {
      * @param item      The item to which the given attributes will be defaulted for
      * @param builder   The builder to which attributes are to be added
      */
-    default void getStaticModifiers(Item item, AccessoryItemAttributeModifiers.Builder builder){
-
-    }
+    default void getStaticModifiers(Item item, AccessoryItemAttributeModifiers.Builder builder){}
 
     /**
      * Returns the following drop rule for the given Item
@@ -139,9 +137,17 @@ public interface Accessory {
     /**
      * Returns whether the given stack can be equipped from use
      *
-     * @param stack The Stack being prepared for dropping
-     * @param reference The reference to the targeted {@link LivingEntity}, slot and index
+     * @param stack The Stack attempted to be equipped
      */
+    default boolean canEquipFromUse(ItemStack stack){
+        try {
+            return canEquipFromUse(stack, null);
+        } catch (NullPointerException e) {
+            return false;
+        }
+    }
+
+    @Deprecated(forRemoval = true)
     default boolean canEquipFromUse(ItemStack stack, SlotReference reference){
         return true;
     }
@@ -150,7 +156,7 @@ public interface Accessory {
      * Method used to render client based particles when {@link AccessoriesAPI#breakStack(SlotReference)} is
      * called on the server and the {@link AccessoryBreak} packet is received
      *
-     * @param stack The Stack being prepared for dropping
+     * @param stack The Stack that broke
      * @param reference The reference to the targeted {@link LivingEntity}, slot and index
      */
     default void onBreak(ItemStack stack, SlotReference reference) {

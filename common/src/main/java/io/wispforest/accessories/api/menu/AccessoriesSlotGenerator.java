@@ -58,7 +58,7 @@ public class AccessoriesSlotGenerator {
             var slotType = ref.get(level);
 
             if(slotType == null) {
-                LOGGER.error("Unable to find the SlotType based on the passed reference! [SlotName: " + ref.slotName()  + "]");
+                LOGGER.error("Unable to find the SlotType based on the passed reference! [SlotName: {}]", ref.slotName());
             }
 
             return slotType;
@@ -79,7 +79,7 @@ public class AccessoriesSlotGenerator {
 
         for (var slotType : slotTypes) {
             if(!validEntitySlotTypes.contains(slotType)){
-                LOGGER.error("Unable to create Accessory Slot due to the given LivingEntity not having the given SlotType bound to it! [EntityType: " + livingEntity.getType() + ", SlotType: " + slotType.name() + "]");
+                LOGGER.error("Unable to create Accessory Slot due to the given LivingEntity not having the given SlotType bound to it! [EntityType: {}, SlotType: {}]", livingEntity.getType(), slotType.name());
 
                 continue;
             }
@@ -146,6 +146,17 @@ public class AccessoriesSlotGenerator {
      * Layout the given slots based as a row from the given starting position
      */
     public int row() {
+        return layoutSlots(LayoutType.ROW);
+    }
+
+    /**
+     * Layout the given slots based as a column from the given starting position
+     */
+    public int column() {
+        return layoutSlots(LayoutType.COLUMN);
+    }
+
+    private int layoutSlots(LayoutType type) {
         int xOffset = this.horizontalPadding;
         int yOffset = this.verticalPadding;
 
@@ -158,7 +169,7 @@ public class AccessoriesSlotGenerator {
                     var container = allContainers.getOrDefault(slotType.name(), null);
 
                     if(container == null){
-                        LOGGER.error("Unable to locate the given container for the passed slotType. [Type:" + slotType.name() + "]");
+                        LOGGER.error("Unable to locate the given container for the passed slotType. [Type: {}]", slotType.name());
                     }
 
                     return container;
@@ -168,7 +179,11 @@ public class AccessoriesSlotGenerator {
             for (int i = 0; i < container.getSize(); i++) {
                 slotConsumer.accept(new AccessoriesBasedSlot(container, container.getAccessories(), i, this.startX + xOffset, this.startY + yOffset));
 
-                xOffset += (this.horizontalPadding) + 18;
+                if(type == LayoutType.COLUMN) {
+                    yOffset += (this.verticalPadding) + 18;
+                } else  {
+                    xOffset += (this.horizontalPadding) + 18;
+                }
 
                 slotAddedAmount++;
             }
@@ -177,38 +192,8 @@ public class AccessoriesSlotGenerator {
         return slotAddedAmount;
     }
 
-    /**
-     * Layout the given slots based as a column from the given starting position
-     */
-    public int column() {
-        int xOffset = this.horizontalPadding;
-        int yOffset = this.verticalPadding;
-
-        int slotAddedAmount = 0;
-
-        var allContainers = capability.getContainers();
-
-        var containers = slotTypes.stream()
-                .map(slotType -> {
-                    var container = allContainers.getOrDefault(slotType.name(), null);
-
-                    if(container == null){
-                        LOGGER.error("Unable to locate the given container for the passed slotType. [Type:" + slotType.name() + "]");
-                    }
-
-                    return container;
-                }).filter(Objects::nonNull).toList();
-
-        for (var container : containers) {
-            for (int i = 0; i < container.getSize(); i++) {
-                slotConsumer.accept(new AccessoriesBasedSlot(container, container.getAccessories(), i, this.startX + xOffset, this.startY + yOffset));
-
-                yOffset += (this.verticalPadding) + 18;
-
-                slotAddedAmount++;
-            }
-        }
-
-        return slotAddedAmount;
+    public enum LayoutType {
+        COLUMN,
+        ROW;
     }
 }

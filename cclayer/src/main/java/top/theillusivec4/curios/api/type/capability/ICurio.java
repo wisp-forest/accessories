@@ -19,7 +19,6 @@
 
 package top.theillusivec4.curios.api.type.capability;
 
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import net.minecraft.core.Holder;
@@ -41,6 +40,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +48,7 @@ import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.platform.Services;
 
-import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
@@ -118,6 +118,11 @@ public interface ICurio {
     return tooltips;
   }
 
+  @Deprecated(forRemoval = true)
+  default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid) {
+    return LinkedHashMultimap.create();
+  }
+
   /**
    * Retrieves a map of attribute modifiers for the curio.
    * <br>
@@ -130,11 +135,9 @@ public interface ICurio {
    * @return A map of attribute modifiers to apply
    */
   default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, ResourceLocation id) {
-    return LinkedHashMultimap.create();
-  }
+    var uuid = UUID.nameUUIDFromBytes(id.toString().getBytes(StandardCharsets.UTF_8));
 
-  default Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(SlotContext slotContext, UUID uuid) {
-    return LinkedHashMultimap.create();
+    return getAttributeModifiers(slotContext, uuid);
   }
 
   /**
@@ -148,9 +151,9 @@ public interface ICurio {
    * @param slotContext Context about the slot that the ItemStack was just equipped into
    */
   default void onEquipFromUse(SlotContext slotContext) {
+    var entity = slotContext.entity();
     var soundInfo = getEquipSound(slotContext);
 
-    var entity = slotContext.entity();
     entity.level().playSound(null, entity.blockPosition(), soundInfo.getSoundEvent(), entity.getSoundSource(), soundInfo.getVolume(), soundInfo.getPitch());
   }
 
@@ -162,7 +165,7 @@ public interface ICurio {
    */
   @NotNull
   default SoundInfo getEquipSound(SlotContext slotContext) {
-    return new SoundInfo(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
+    return new SoundInfo(SoundEvents.ARMOR_EQUIP_GENERIC.value(), 1.0f, 1.0f);
   }
 
   /**
@@ -220,6 +223,11 @@ public interface ICurio {
   default void readSyncData(SlotContext slotContext, CompoundTag compound) {
   }
 
+  @NotNull
+  default DropRule getDropRule(SlotContext slotContext, DamageSource source, boolean recentlyHit) {
+    return DropRule.DEFAULT;
+  }
+
   /**
    * Determines if the ItemStack should drop on death and persist through respawn. This will persist
    * the ItemStack in the curio slot to the respawned player if applicable.
@@ -232,12 +240,7 @@ public interface ICurio {
    */
   @NotNull
   default DropRule getDropRule(SlotContext slotContext, DamageSource source, int lootingLevel, boolean recentlyHit) {
-    return DropRule.DEFAULT;
-  }
-
-  @NotNull
-  default DropRule getDropRule(SlotContext slotContext, DamageSource source, boolean recentlyHit) {
-    return DropRule.DEFAULT;
+    return getDropRule(slotContext, source, recentlyHit);
   }
 
   /**
@@ -263,6 +266,17 @@ public interface ICurio {
   default int getFortuneLevel(SlotContext slotContext, @Nullable LootContext lootContext) {
     return EnchantmentHelper.getItemEnchantmentLevel(slotContext.entity().level().registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.FORTUNE), getStack());
   }
+
+  default int getLootingLevel(SlotContext slotContext, @Nullable LootContext lootContext) {
+    if(lootContext != null && lootContext.getParam(LootContextParams.ATTACKING_ENTITY) instanceof LivingEntity living){
+      var damageSource = lootContext.getParamOrNull(LootContextParams.DAMAGE_SOURCE);
+
+      if(damageSource != null) return getLootingLevel(slotContext, damageSource, living, 0);
+    }
+
+    return EnchantmentHelper.getItemEnchantmentLevel(slotContext.entity().level().registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.LOOTING), getStack());
+  }
+
 
   /**
    * Get the amount of bonus Looting levels that are provided by curio.
@@ -327,12 +341,12 @@ public interface ICurio {
     DEFAULT, ALWAYS_DROP, ALWAYS_KEEP, DESTROY
   }
 
-  record SoundInfo(Holder<SoundEvent> soundEvent, float volume, float pitch) {
+  record SoundInfo(SoundEvent soundEvent, float volume, float pitch) {
 
     @Deprecated(forRemoval = true, since = "1.20.1")
     @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
     public SoundEvent getSoundEvent() {
-      return soundEvent.value();
+      return soundEvent;
     }
 
     @Deprecated(forRemoval = true, since = "1.20.1")

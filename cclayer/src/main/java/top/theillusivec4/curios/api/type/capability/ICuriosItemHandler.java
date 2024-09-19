@@ -201,6 +201,9 @@ public interface ICuriosItemHandler {
    */
   int getFortuneLevel(@Nullable LootContext lootContext);
 
+
+  int getLootingLevel(@Nullable LootContext lootContext);
+
   /**
    * Get the amount of Looting levels that are provided by curios.
    */

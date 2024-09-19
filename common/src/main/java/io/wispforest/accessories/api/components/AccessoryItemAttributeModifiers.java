@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.attributes.SlotAttribute;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.MinecraftEndecs;
@@ -13,6 +14,7 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -80,18 +82,20 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
         return new AccessoryItemAttributeModifiers(builder.build(), this.showInTooltip());
     }
 
-    public AccessoryAttributeBuilder gatherAttributes(LivingEntity entity, String slotName, int slot) {
-        var builder = new AccessoryAttributeBuilder(slotName, slot);
+    @ApiStatus.Internal
+    public AccessoryAttributeBuilder gatherAttributes(SlotReference slotReference) {
+        var builder = new AccessoryAttributeBuilder(slotReference);
 
         if(this.modifiers().isEmpty()) return builder;
 
+        var entity = slotReference.entity();
         var slots = (entity != null) ? SlotTypeLoader.getSlotTypes(entity.level()) : Map.of();
 
         for (var entry : this.modifiers()) {
             var attributeModifier = entry.modifier();
             var slotTarget = entry.slotName();
 
-            if(slots.containsKey(slotTarget) || slotName.equals(slotTarget) || slotTarget.equals("any")) {
+            if(slots.containsKey(slotTarget) || slotReference.slotName().equals(slotTarget) || slotTarget.equals("any")) {
                 if (entry.isStackable()) {
                     builder.addStackable(entry.attribute(), attributeModifier);
                 } else {
@@ -153,9 +157,10 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
                     }
 
                     return context.requireAttributeValue(RegistriesAttribute.REGISTRIES)
-                            .registryManager()
-                            .registryOrThrow(Registries.ATTRIBUTE)
-                            .getHolder(attributeType)
+                            .infoGetter().lookup(Registries.ATTRIBUTE)
+                            .orElseThrow(IllegalStateException::new)
+                            .getter()
+                            .get(ResourceKey.create(Registries.ATTRIBUTE, attributeType))
                             .orElseThrow(IllegalStateException::new);
                 },
                 (context, attributeHolder) -> {

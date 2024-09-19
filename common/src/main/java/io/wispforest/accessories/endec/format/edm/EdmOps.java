@@ -4,6 +4,7 @@ import com.mojang.datafixers.DataFixUtils;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+import io.wispforest.accessories.endec.format.ContextHolder;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.format.edm.EdmElement;
 import net.minecraft.nbt.*;
@@ -13,7 +14,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class EdmOps implements DynamicOps<EdmElement<?>> {
+public class EdmOps implements DynamicOps<EdmElement<?>>, ContextHolder {
 
     private static final EdmOps NO_CONTEXT = new EdmOps(SerializationContext.empty());
 
@@ -30,6 +31,7 @@ public class EdmOps implements DynamicOps<EdmElement<?>> {
         return NO_CONTEXT;
     }
 
+    @Override
     public SerializationContext capturedContext() {
         return this.capturedContext;
     }

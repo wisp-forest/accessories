@@ -1,6 +1,5 @@
 package io.wispforest.accessories.api;
 
-import com.google.common.collect.ImmutableList;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
@@ -8,12 +7,14 @@ import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.components.AccessoryStackSizeComponent;
+import io.wispforest.accessories.api.data.AccessoriesBaseData;
 import io.wispforest.accessories.api.events.AdjustAttributeModifierCallback;
 import io.wispforest.accessories.api.events.CanEquipCallback;
 import io.wispforest.accessories.api.events.CanUnequipCallback;
 import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.impl.AccessoryNestUtils;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.Holder;
@@ -47,6 +48,18 @@ public class AccessoriesAPI {
      */
     @ApiStatus.Internal
     public static final Accessory DEFAULT = new Accessory() {
+        @Override
+        public int maxStackSize(ItemStack stack) {
+            var data = stack.getOrDefault(AccessoriesDataComponents.STACK_SIZE, AccessoryStackSizeComponent.DEFAULT);
+
+            if(data.useStackSize()) return stack.getMaxStackSize();
+
+            return Math.min(Math.max(data.sizeOverride(), 1), stack.getMaxStackSize());
+        }
+    };
+
+    @ApiStatus.Internal
+    private static final AccessoryNest DEFAULT_NEST = new AccessoryNest() {
         @Override
         public int maxStackSize(ItemStack stack) {
             var data = stack.getOrDefault(AccessoriesDataComponents.STACK_SIZE, AccessoryStackSizeComponent.DEFAULT);
@@ -95,14 +108,20 @@ public class AccessoriesAPI {
      * @return the accessory bound to this stack or {@link #defaultAccessory()} if there is none
      */
     public static Accessory getOrDefaultAccessory(ItemStack stack){
-        return getOrDefaultAccessory(stack.getItem());
+        var accessory = REGISTER.get(stack.getItem());
+
+        if(accessory == null) {
+            accessory = stack.has(AccessoriesDataComponents.NESTED_ACCESSORIES) ? DEFAULT_NEST : DEFAULT;
+        }
+
+        return accessory;
     }
 
     /**
      * @return the accessory bound to this item or {@link #defaultAccessory()} if there is none
      */
     public static Accessory getOrDefaultAccessory(Item item){
-        return REGISTER.getOrDefault(item, defaultAccessory());
+        return REGISTER.getOrDefault(item, DEFAULT);
     }
 
     /**
@@ -110,6 +129,10 @@ public class AccessoriesAPI {
      */
     public static Accessory defaultAccessory(){
         return DEFAULT;
+    }
+
+    public static boolean isDefaultAccessory(Accessory accessory) {
+        return accessory == DEFAULT || accessory == DEFAULT_NEST;
     }
 
     /**
@@ -121,7 +144,8 @@ public class AccessoriesAPI {
     }
 
     public static boolean isValidAccessory(ItemStack stack, Level level, @Nullable LivingEntity entity){
-        return getAccessory(stack) != null || !getStackSlotTypes(level, entity, stack).isEmpty();
+        return !isDefaultAccessory(getOrDefaultAccessory(stack))
+                || !getStackSlotTypes(level, entity, stack).isEmpty();
     }
 
     //--
@@ -149,21 +173,27 @@ public class AccessoriesAPI {
      * to the {@link ItemStack}'s item
      */
     public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot, boolean hideTooltipIfDisabled){
-        var component = stack.getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
+        var builder = new AccessoryAttributeBuilder();
 
-        var builder = (!hideTooltipIfDisabled || component.showInTooltip())
-                ? component.gatherAttributes(entity, slotName, slot)
-                : new AccessoryAttributeBuilder(slotName, slot);
+        var slotReference = SlotReference.of(entity, slotName, slot);
+
+        AccessoryNestUtils.recursiveStackConsumption(stack, slotReference, (innerStack, innerRef) -> {
+            var component = innerStack.getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
+
+            var innerBuilder = (!hideTooltipIfDisabled || component.showInTooltip())
+                    ? component.gatherAttributes(innerRef)
+                    : new AccessoryAttributeBuilder(slotName, slot);
+
+            builder.addFrom(innerBuilder);
+        });
 
         if(entity != null) {
-            var reference = SlotReference.of(entity, slotName, slot);
-
             //TODO: Decide if the presence of modifiers prevents the accessory modifiers from existing
             var accessory = AccessoriesAPI.getAccessory(stack);
 
-            if(accessory != null) accessory.getDynamicModifiers(stack, reference, builder);
+            if(accessory != null) accessory.getDynamicModifiers(stack, slotReference, builder);
 
-            AdjustAttributeModifierCallback.EVENT.invoker().adjustAttributes(stack, reference, builder);
+            AdjustAttributeModifierCallback.EVENT.invoker().adjustAttributes(stack, slotReference, builder);
         }
 
         return builder;
@@ -394,17 +424,17 @@ public class AccessoriesAPI {
     }
 
     static {
-        registerPredicate(Accessories.of("all"), (level, slotType, i, stack) -> TriState.TRUE);
-        registerPredicate(Accessories.of("none"), (level, slotType, i, stack) -> TriState.FALSE);
-        registerPredicate(Accessories.of("tag"), (level, slotType, i, stack) -> {
+        registerPredicate(AccessoriesBaseData.ALL_PREDICATE_ID, (level, slotType, i, stack) -> TriState.TRUE);
+        registerPredicate(AccessoriesBaseData.NONE_PREDICATE_ID, (level, slotType, i, stack) -> TriState.FALSE);
+        registerPredicate(AccessoriesBaseData.TAG_PREDICATE_ID, (level, slotType, i, stack) -> {
             return (stack.is(getSlotTag(slotType)) || stack.is(ANY_ACCESSORIES)) ? TriState.TRUE : TriState.DEFAULT;
         });
-        registerPredicate(Accessories.of("relevant"), (level, slotType, i, stack) -> {
+        registerPredicate(AccessoriesBaseData.RELEVANT_PREDICATE_ID, (level, slotType, i, stack) -> {
             var bl = !getAttributeModifiers(stack, null, slotType.name(), i).getAttributeModifiers(false).isEmpty();
 
             return bl ? TriState.TRUE : TriState.DEFAULT;
         });
-        registerPredicate(Accessories.of("component"), (level, slotType, index, stack) -> {
+        registerPredicate(AccessoriesBaseData.COMPONENT_PREDICATE_ID, (level, slotType, index, stack) -> {
             if(stack.has(AccessoriesDataComponents.SLOT_VALIDATION)) {
                 var slotValidationData = stack.get(AccessoriesDataComponents.SLOT_VALIDATION);
                 var name = slotType.name();

@@ -1,9 +1,11 @@
 package dev.emi.trinkets.compat;
 
 import com.google.common.collect.Multimap;
+import com.mojang.logging.LogUtils;
 import dev.emi.trinkets.api.*;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
@@ -12,6 +14,7 @@ import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.InstanceEndec;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
+import io.wispforest.tclayer.ImmutableDelegatingMap;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
@@ -20,6 +23,7 @@ import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
+import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -27,15 +31,21 @@ import java.util.function.Predicate;
 
 public abstract class WrappedTrinketComponent implements TrinketComponent {
 
-    protected final AccessoriesCapability capability;
+    private static final Logger LOGGER = LogUtils.getLogger();
 
-    public WrappedTrinketComponent(AccessoriesCapability capability){
-        this.capability = capability;
+    public final LivingEntity entity;
+
+    public WrappedTrinketComponent(LivingEntity entity){
+        this.entity = entity;
     }
 
     @Override
     public LivingEntity getEntity() {
-        return capability.entity();
+        return entity;
+    }
+
+    public AccessoriesCapability capability() {
+        return entity.accessoriesCapability();
     }
 
     @Override
@@ -45,29 +55,19 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
 
     @Override
     public Map<String, Map<String, TrinketInventory>> getInventory() {
-        //TODO: HANDLE THE TRINKET SPECIFIC NAMES AND GROUPS
-        var groups = SlotGroupLoader.getGroups(capability.entity().level(), false);
-        var containers = capability.getContainers();
+        var entity = this.getEntity();
 
-        var inventories = new HashMap<String, Map<String, TrinketInventory>>();
-
-        for (var group : groups) {
-            var map = new HashMap<String, TrinketInventory>();
-
-            group.slots().forEach(s -> {
-                var container = containers.get(s);
-
-                if(container == null) return;
-
-                var wrappedInv = new WrappedTrinketInventory(WrappedTrinketComponent.this, container, SlotTypeLoader.getSlotType(capability.entity().level(), (String) s));
-
-                map.put(WrappingTrinketsUtils.accessoriesToTrinkets_Slot(s), wrappedInv);
-            });
-
-            inventories.put(WrappingTrinketsUtils.accessoriesToTrinkets_Group(group.name()), map);
-        }
-
-        return inventories;
+        return ImmutableDelegatingMap.trinketComponentView(
+                WrappingTrinketsUtils.getGroupedSlots(entity.level().isClientSide(), entity.getType()),
+                this,
+                capability().getContainers(),
+                () -> {
+                    LOGGER.warn("Unable to get some value leading to an error, here comes the dumping data!");
+                    LOGGER.warn("Entity: {}", this.getEntity());
+                    LOGGER.warn("Entity Slots: {}", EntitySlotLoader.getEntitySlots(this.getEntity()));
+                    LOGGER.warn("Current Containers: {}", this.getEntity().accessoriesCapability().getContainers());
+                }
+        );
     }
 
     @Override
@@ -75,41 +75,41 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
 
     @Override
     public void addTemporaryModifiers(Multimap<String, AttributeModifier> modifiers) {
-        capability.addTransientSlotModifiers(modifiers);
+        capability().addTransientSlotModifiers(modifiers);
     }
 
     @Override
     public void addPersistentModifiers(Multimap<String, AttributeModifier> modifiers) {
-        capability.addPersistentSlotModifiers(modifiers);
+        capability().addPersistentSlotModifiers(modifiers);
     }
 
     @Override
     public void removeModifiers(Multimap<String, AttributeModifier> modifiers) {
-        capability.removeSlotModifiers(modifiers);
+        capability().removeSlotModifiers(modifiers);
     }
 
     @Override
     public void clearModifiers() {
-        capability.clearSlotModifiers();
+        capability().clearSlotModifiers();
     }
 
     @Override
     public Multimap<String, AttributeModifier> getModifiers() {
-        return capability.getSlotModifiers();
+        return capability().getSlotModifiers();
     }
 
     @Override
     public boolean isEquipped(Predicate<ItemStack> predicate) {
-        return capability.isEquipped(predicate);
+        return capability().isEquipped(predicate);
     }
 
     @Override
     public List<Tuple<SlotReference, ItemStack>> getEquipped(Predicate<ItemStack> predicate) {
-        var equipped = capability.getEquipped(predicate);
+        var equipped = capability().getEquipped(predicate);
 
         return equipped.stream()
                 .map(slotResult -> {
-                    var reference = WrappingTrinketsUtils.createReference(slotResult.reference());
+                    var reference = WrappingTrinketsUtils.createTrinketsReference(slotResult.reference());
 
                     return reference.map(slotReference -> new Tuple<>(
                             slotReference,
@@ -122,10 +122,10 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
 
     @Override
     public void forEach(BiConsumer<SlotReference, ItemStack> consumer) {
-        var equipped = capability.getEquipped(stack -> true);
+        var equipped = capability().getEquipped(stack -> true);
 
         equipped.forEach(slotResult -> {
-            var reference = WrappingTrinketsUtils.createReference(slotResult.reference());
+            var reference = WrappingTrinketsUtils.createTrinketsReference(slotResult.reference());
 
             if(reference.isEmpty()) return;
 
@@ -143,15 +143,13 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
 
     @Override
     public void clearCachedModifiers() {
-        capability.clearCachedSlotModifiers();
+        capability().clearCachedSlotModifiers();
     }
-
-    private final Endec<AccessoriesHolderImpl> ENDEC = InstanceEndec.constructed(AccessoriesHolderImpl::new);
 
     @Override
     public void readFromNbt(CompoundTag tag, HolderLookup.Provider registryLookup) {
         if(tag.getBoolean("is_accessories_data")) {
-            ((AccessoriesHolderImpl)this.capability.getHolder())
+            ((AccessoriesHolderImpl)this.capability().getHolder())
                     .read(new NbtMapCarrier(tag.getCompound("main_data")), SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) registryLookup)));
         } else {
             var dropped = new ArrayList<ItemStack>();
@@ -162,7 +160,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
                 for (var slotKey : groupTag.getAllKeys()) {
                     var slotTag = groupTag.getCompound(slotKey);
 
-                    var slotName = WrappingTrinketsUtils.trinketsToAccessories_Slot(slotKey);
+                    var slotName = WrappingTrinketsUtils.trinketsToAccessories_Slot(Optional.of(groupKey), slotKey);
 
                     var slotType = SlotTypeLoader.getSlotType(this.getEntity().level(), slotName);
 
@@ -177,7 +175,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
                         continue;
                     }
 
-                    var container = this.capability.getContainer(slotType);
+                    var container = this.capability().getContainer(slotType);
 
                     if (container == null) {
                         dropped.addAll(list);
@@ -213,7 +211,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
                 }
             }
 
-            ((AccessoriesHolderImpl) this.capability.getHolder()).invalidStacks.addAll(dropped);
+            ((AccessoriesHolderImpl) this.capability().getHolder()).invalidStacks.addAll(dropped);
         }
     }
 
@@ -221,7 +219,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
     public void writeToNbt(CompoundTag tag, HolderLookup.Provider registryLookup) {
         var innerCarrier = NbtMapCarrier.of();
 
-        ((AccessoriesHolderImpl)this.capability.getHolder())
+        ((AccessoriesHolderImpl)this.capability().getHolder())
                 .write(innerCarrier, SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) registryLookup)));
 
         tag.put("main_data", innerCarrier.compoundTag());

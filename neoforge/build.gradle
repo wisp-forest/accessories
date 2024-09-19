@@ -62,8 +62,7 @@ dependencies {
 
     modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-neoforge:${rootProject.rei_version}")
     modCompileOnly("dev.emi:emi-neoforge:${rootProject.emi_version}:api")
-    modCompileOnly("mezz.jei:jei-1.20.6-neoforge-api:${rootProject.jei_version}")
-    //modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-neoforge-api:${rootProject.jei_version}")
+    modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-neoforge-api:${rootProject.jei_version}")
 
     if(type == "rei") {
         modLocalRuntime("me.shedaniel:RoughlyEnoughItems-neoforge:${rootProject.rei_version}")
@@ -71,26 +70,14 @@ dependencies {
     } else if(type == "emi") {
         modLocalRuntime("dev.emi:emi-neoforge:${rootProject.emi_version}")
     } else if(type == "jei") {
-        //modLocalRuntime("mezz.jei:jei-${rootProject.minecraft_version}-neoforge:${rootProject.jei_version}")
+        modLocalRuntime("mezz.jei:jei-${rootProject.minecraft_version}-neoforge:${rootProject.jei_version}")
     } else if(type != "none") {
         throw new IllegalStateException("Unable to locate the given item viewer!")
     }
 }
 
 processResources {
-    var versionParts = (project.mod_version as String).split("-");
-
-    String finalVersion;
-
-    if(versionParts.size() > 1) {
-        versionParts[1] = versionParts[1].replace(".", "")
-
-        finalVersion = "${versionParts[0]}-${versionParts[1]}"
-    } else {
-        finalVersion = project.mod_version
-    }
-
-    finalVersion += "+${rootProject.minecraft_base_version}"
+    String finalVersion = "${project.mod_version}+${rootProject.minecraft_base_version}"
 
     filesMatching("META-INF/neoforge.mods.toml") {
         expand "version": finalVersion

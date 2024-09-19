@@ -1,4 +1,4 @@
-package io.wispforest.accessories.api.slot;
+package io.wispforest.accessories.data;
 
 public enum OperationType {
     SET,

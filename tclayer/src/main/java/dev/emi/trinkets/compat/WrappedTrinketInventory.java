@@ -4,6 +4,7 @@ import dev.emi.trinkets.api.TrinketComponent;
 import dev.emi.trinkets.api.TrinketInventory;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.tclayer.pond.CosmeticLookupTogglable;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
@@ -17,7 +18,7 @@ public class WrappedTrinketInventory extends TrinketInventory {
     public final AccessoriesContainer container;
 
     public WrappedTrinketInventory(TrinketComponent component, AccessoriesContainer container, SlotType slotType) {
-        super(new WrappedSlotType(slotType, container.capability().entity().level().isClientSide()), component, trinketInventory -> {});
+        super(WrappedSlotType.of(slotType, container.capability().entity().level().isClientSide()), component, trinketInventory -> {});
 
         this.container = (AccessoriesContainer) container;
     }
@@ -94,6 +95,16 @@ public class WrappedTrinketInventory extends TrinketInventory {
 
     @Override
     public ItemStack getItem(int slot) {
+        if(this.container.capability().entity() instanceof CosmeticLookupTogglable lookup && lookup.getLookupToggle()) {
+            if(!this.container.shouldRender(slot)) return ItemStack.EMPTY;
+
+            var accessoryStack = container.getCosmeticAccessories().getItem(slot);
+
+            if(accessoryStack.isEmpty()) accessoryStack = container.getAccessories().getItem(slot);
+
+            return accessoryStack;
+        }
+
         return container.getAccessories().getItem(slot);
     }
 

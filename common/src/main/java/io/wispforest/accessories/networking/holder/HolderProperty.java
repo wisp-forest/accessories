@@ -2,7 +2,7 @@ package io.wispforest.accessories.networking.holder;
 
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.api.PlayerEquipControl;
+import io.wispforest.accessories.impl.PlayerEquipControl;
 import io.wispforest.endec.Endec;
 import net.minecraft.world.entity.player.Player;
 

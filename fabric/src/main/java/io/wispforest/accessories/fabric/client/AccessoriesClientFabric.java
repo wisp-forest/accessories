@@ -12,6 +12,7 @@ import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.networking.base.BaseNetworkHandler;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
+import io.wispforest.accessories.networking.base.PacketBuilderConsumer;
 import io.wispforest.endec.Endec;
 import io.wispforest.owo.shader.GlProgram;
 import net.fabricmc.api.ClientModInitializer;
@@ -23,6 +24,9 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
+import net.fabricmc.fabric.api.event.Event;
+import net.fabricmc.fabric.api.event.lifecycle.v1.CommonLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.client.KeyMapping;
@@ -33,6 +37,7 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 
 import static io.wispforest.accessories.Accessories.MODID;
@@ -45,20 +50,26 @@ public class AccessoriesClientFabric implements ClientModInitializer {
     public void onInitializeClient() {
         AccessoriesClient.init();
 
-        ResourceManagerHelper.get(PackType.CLIENT_RESOURCES)
-                .registerReloadListener(new SimpleSynchronousResourceReloadListener() {
-                    @Override
-                    public ResourceLocation getFabricId() {
-                        return Accessories.of("render_reload");
-                    }
+        {
+            var afterOthers = Accessories.of("accessories_after_others");
 
-                    @Override
-                    public void onResourceManagerReload(ResourceManager resourceManager) {
-                        AccessoriesRendererRegistry.onReload();
-                    }
-                });
+            ItemTooltipCallback.EVENT.addPhaseOrdering(Event.DEFAULT_PHASE, afterOthers);
 
-        AccessoriesFabricNetworkHandler.INSTANCE.initClient(AccessoriesClientFabric::registerS2C);
+            ItemTooltipCallback.EVENT.register(afterOthers, (stack, tooltipContext, tooltipType, lines) -> {
+                var tooltipData = new ArrayList<Component>();
+
+                AccessoriesEventHandler.getTooltipData(Minecraft.getInstance().player, stack, tooltipData, tooltipContext, tooltipType);
+
+                if(!tooltipData.isEmpty()) lines.addAll(1, tooltipData);
+            });
+        }
+
+        AccessoriesFabricNetworkHandler.INSTANCE.initClient(new PacketBuilderConsumer() {
+            @Override
+            public <M extends HandledPacketPayload> void accept(Class<M> messageType, Endec<M> endec) {
+                ClientPlayNetworking.registerGlobalReceiver(AccessoriesFabricNetworkHandler.INSTANCE.getId(messageType), (packet, context) -> packet.handle(context.player()));
+            }
+        });
 
         OPEN_SCREEN = KeyBindingHelper.registerKeyBinding(new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories"));
 
@@ -93,10 +104,5 @@ public class AccessoriesClientFabric implements ClientModInitializer {
         });
 
         CoreShaderRegistrationCallback.EVENT.register(context -> context.register(Accessories.of("fish"), DefaultVertexFormat.BLIT_SCREEN, shaderInstance -> AccessoriesClient.BLIT_SHADER = shaderInstance));
-    }
-
-    @Environment(EnvType.CLIENT)
-    protected static <M extends HandledPacketPayload> void registerS2C(Class<M> messageType, Endec<M> endec) {
-        ClientPlayNetworking.registerGlobalReceiver(BaseNetworkHandler.getId(messageType), (packet, context) -> packet.handle(context.player()));
     }
 }

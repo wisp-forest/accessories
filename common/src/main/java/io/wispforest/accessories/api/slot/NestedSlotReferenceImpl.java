@@ -20,6 +20,12 @@ import java.util.List;
 @ApiStatus.Internal
 public record NestedSlotReferenceImpl(LivingEntity entity, String slotName, int initialHolderSlot, List<Integer> innerSlotIndices) implements SlotReference {
 
+    public NestedSlotReferenceImpl {
+        if(initialHolderSlot < -1) {
+            throw new IndexOutOfBoundsException("A given Nested Slot Reference was attempted to be created with a negative initialHolderSlot value!");
+        }
+    }
+
     public String createSlotPath() {
         var slotPath = new StringBuilder(SlotReference.super.createSlotPath());
 
@@ -36,6 +42,22 @@ public record NestedSlotReferenceImpl(LivingEntity entity, String slotName, int 
         return slotPath.toString();
     }
 
+    @Override
+    public boolean isValid() {
+        if(!SlotReference.super.isValid()) return false;
+
+        var selectedStack = SlotReference.super.getStack();
+
+        for (var innerSlotIndex : this.innerSlotIndices()) {
+            var innerData = tryAndGet(selectedStack, innerSlotIndex);
+
+            if(innerData == null) return false;
+
+            selectedStack = innerData.right();
+        }
+
+        return true;
+    }
 
     @Override
     public int slot() {
@@ -47,7 +69,7 @@ public record NestedSlotReferenceImpl(LivingEntity entity, String slotName, int 
     public ItemStack getStack() {
         var selectedStack = SlotReference.super.getStack();
 
-        for (var innerSlotIndex : innerSlotIndices) {
+        for (var innerSlotIndex : this.innerSlotIndices()) {
             var innerData = tryAndGet(selectedStack, innerSlotIndex);
 
             if(innerData == null) return null;
@@ -60,7 +82,7 @@ public record NestedSlotReferenceImpl(LivingEntity entity, String slotName, int 
 
     @Nullable
     private static Pair<NestLayer, ItemStack> tryAndGet(ItemStack holderStack, int innerIndex) {
-        var accessory = AccessoriesAPI.getAccessory(holderStack);
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(holderStack);
 
         if(!(accessory instanceof AccessoryNest accessoryNest)) return null;
 
@@ -75,7 +97,7 @@ public record NestedSlotReferenceImpl(LivingEntity entity, String slotName, int 
 
         var layerStack = new ArrayList<NestLayer>();
 
-        for (var innerSlotIndex : innerSlotIndices) {
+        for (var innerSlotIndex : innerSlotIndices()) {
             var innerData = tryAndGet(selectedStack, innerSlotIndex);
 
             if(innerData == null) return false;
@@ -89,7 +111,7 @@ public record NestedSlotReferenceImpl(LivingEntity entity, String slotName, int 
         for (var layer : Lists.reverse(layerStack)){
             if(!layer.setStack(innerStack)) return false;
 
-            innerStack = layer.holderStack;
+            innerStack = layer.holderStack();
         }
 
         SlotReference.super.setStack(innerStack);

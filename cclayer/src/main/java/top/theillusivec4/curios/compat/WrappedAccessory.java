@@ -2,6 +2,7 @@ package top.theillusivec4.curios.compat;
 
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.events.extra.*;
 import net.minecraft.core.Holder;
@@ -13,7 +14,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.monster.EnderMan;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.storage.loot.LootContext;
 import org.jetbrains.annotations.NotNull;
 import top.theillusivec4.curios.api.SlotContext;
@@ -61,7 +64,7 @@ public class WrappedAccessory implements ICurioItem {
         var ctx = CuriosWrappingUtils.fromContext(slotContext);
         var builder = new AccessoryAttributeBuilder(ctx);
 
-        accessory.getModifiers(stack, ctx, new AccessoryAttributeBuilder(ctx));
+        accessory.getDynamicModifiers(stack, ctx, new AccessoryAttributeBuilder(ctx));
 
         return builder.getAttributeModifiers(false);
     }
@@ -76,14 +79,14 @@ public class WrappedAccessory implements ICurioItem {
     public ICurio.SoundInfo getEquipSound(SlotContext slotContext, ItemStack stack) {
         var data = accessory.getEquipSound(stack, CuriosWrappingUtils.fromContext(slotContext));
 
-        if(data == null) return new ICurio.SoundInfo(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
+        if(data == null) return new ICurio.SoundInfo(SoundEvents.ARMOR_EQUIP_GENERIC.value(), 1.0f, 1.0f);
 
-        return new ICurio.SoundInfo(data.event(), data.volume(), data.pitch());
+        return new ICurio.SoundInfo(data.event().value(), data.volume(), data.pitch());
     }
 
     @Override
     public boolean canEquipFromUse(SlotContext slotContext, ItemStack stack) {
-        return accessory.canEquipFromUse(stack, CuriosWrappingUtils.fromContext(slotContext));
+        return accessory.canEquipFromUse(stack);
     }
 
     @Override
@@ -92,8 +95,16 @@ public class WrappedAccessory implements ICurioItem {
     }
 
     @Override
+    public ICurio.DropRule getDropRule(SlotContext slotContext, DamageSource source, boolean recentlyHit, ItemStack stack) {
+        return CuriosWrappingUtils.convert(accessory.getDropRule(stack, CuriosWrappingUtils.fromContext(slotContext), source));
+    }
+
+    @Override
     public List<Component> getAttributesTooltip(List<Component> tooltips, ItemStack stack) {
-        accessory.getAttributesTooltip(stack, null, tooltips);
+        // This is a hack as curios dose not given any flag value or type to say the least\
+        try {
+            accessory.getAttributesTooltip(stack, null, tooltips, Item.TooltipContext.EMPTY, TooltipFlag.NORMAL);
+        } catch (NullPointerException e) {}
 
         return tooltips;
     }

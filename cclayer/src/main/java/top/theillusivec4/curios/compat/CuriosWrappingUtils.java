@@ -38,11 +38,11 @@ public class CuriosWrappingUtils {
     }
 
     public static SlotContext create(SlotReference reference, boolean visible){
-        return new SlotContext(reference.slotName(), reference.entity(), reference.slot(), false, visible);
+        return new SlotContext(accessoriesToCurios(reference.slotName()), reference.entity(), reference.slot(), false, visible);
     }
 
     public static SlotReference fromContext(SlotContext context){
-        return SlotReference.of(context.entity(), context.identifier(), context.index());
+        return SlotReference.of(context.entity(), curiosToAccessories(context.identifier()), context.index());
     }
 
     //--
@@ -119,47 +119,5 @@ public class CuriosWrappingUtils {
     }
 
     //--
-
-    public static Multimap<Holder<Attribute>, AttributeModifier> getAttributeModifiers(Multimap<Holder<Attribute>, AttributeModifier> multimap, SlotContext slotContext, ResourceLocation id, ItemStack stack) {
-        CurioAttributeModifiers attributemodifiers = stack.getOrDefault(CuriosRegistry.CURIO_ATTRIBUTE_MODIFIERS, CurioAttributeModifiers.EMPTY);
-
-        if (!attributemodifiers.modifiers().isEmpty()) {
-
-            for (CurioAttributeModifiers.Entry modifier : attributemodifiers.modifiers()) {
-
-                if (modifier.slot().equals(slotContext.identifier())) {
-                    ResourceLocation rl = modifier.attribute();
-                    AttributeModifier attributeModifier = modifier.modifier();
-
-                    if (rl != null) {
-                        AttributeModifier.Operation operation = attributeModifier.operation();
-                        double amount = attributeModifier.amount();
-
-                        if (rl.getNamespace().equals("curios")) {
-                            String identifier1 = rl.getPath();
-                            LivingEntity livingEntity = slotContext.entity();
-                            boolean clientSide = livingEntity == null || livingEntity.level().isClientSide();
-
-                            if (CuriosApi.getSlot(identifier1, clientSide).isPresent()) {
-                                CuriosApi.addSlotModifier(multimap, identifier1, id, amount, operation);
-                            }
-                        } else {
-                            Holder<Attribute> attribute =
-                                    BuiltInRegistries.ATTRIBUTE.getHolder(rl).orElse(null);
-
-                            if (attribute != null) {
-                                multimap.put(attribute, new AttributeModifier(id, amount, operation));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        CurioAttributeModifierEvent evt = new CurioAttributeModifierEvent(stack, slotContext, id, multimap);
-        NeoForge.EVENT_BUS.post(evt);
-
-        return LinkedHashMultimap.create(evt.getModifiers());
-    }
 
 }

@@ -50,7 +50,7 @@ public class SlotLoader extends SimplePreparableReloadListener<Map<String, SlotL
                             String[] parsed = path.substring(dataType.length() + 1, path.length() - FILE_SUFFIX_LENGTH).split("/");
                             String groupName = parsed[0];
                             String fileName = parsed[parsed.length - 1];
-                            GroupData group = map.computeIfAbsent(WrappingTrinketsUtils.trinketsToAccessories_Group(groupName), (k) -> new GroupData());
+                            GroupData group = map.computeIfAbsent(groupName, (k) -> new GroupData());
 
                             try {
                                 if (fileName.equals("group")) {

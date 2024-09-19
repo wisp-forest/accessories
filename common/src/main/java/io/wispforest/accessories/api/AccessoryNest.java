@@ -3,6 +3,7 @@ package io.wispforest.accessories.api;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
+import io.wispforest.accessories.api.events.SlotStateChange;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
@@ -96,13 +97,9 @@ public interface AccessoryNest extends Accessory {
 
         if(data == null) return defaultValue;
 
-        var nest = (AccessoryNest) AccessoriesAPI.getAccessory(holderStack);
-
         var t = func.apply(data.getMap(slotReference));
 
-        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
-
-        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), slotReference.entity());
+        checkIfChangesOccurred(holderStack, null, data);
 
         return t;
     }
@@ -120,13 +117,9 @@ public interface AccessoryNest extends Accessory {
 
         if(data == null) return defaultValue;
 
-        var nest = (AccessoryNest) AccessoriesAPI.getAccessory(holderStack);
-
         var t = func.apply(data.getMap());
 
-        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
-
-        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), livingEntity);
+        checkIfChangesOccurred(holderStack, livingEntity, data);
 
         return t;
     }
@@ -143,13 +136,9 @@ public interface AccessoryNest extends Accessory {
 
         if(data == null) return;
 
-        var nest = (AccessoryNest) AccessoriesAPI.getAccessory(holderStack);
-
         consumer.accept(data.getMap(slotReference));
 
-        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
-
-        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), slotReference.entity());
+        checkIfChangesOccurred(holderStack, slotReference.entity(), data);
     }
 
     /**
@@ -164,19 +153,51 @@ public interface AccessoryNest extends Accessory {
 
         if (data == null) return;
 
-        var nest = (AccessoryNest) AccessoriesAPI.getAccessory(holderStack);
-
         consumer.accept(data.getMap());
 
-        var changedData = holderStack.getComponentsPatch().get(AccessoriesDataComponents.NESTED_ACCESSORIES);
+        checkIfChangesOccurred(holderStack, livingEntity, data);
+    }
 
-        if(changedData != null && changedData.isPresent()) nest.onStackChanges(holderStack, changedData.get(), livingEntity);
+    private static boolean checkIfChangesOccurred(ItemStack holderStack, @Nullable LivingEntity livingEntity, AccessoryNestContainerContents data) {
+        boolean hasChangeOccurred = false;
+
+        var accessories = data.accessories();
+
+        for (int i = 0; i < accessories.size(); i++) {
+            var stack = accessories.get(i);
+
+            if(!stack.getComponentsPatch().isEmpty()){
+                hasChangeOccurred = true;
+            } else if(AccessoriesAPI.getOrDefaultAccessory(stack) instanceof AccessoryNest) {
+                var innerData = AccessoryNestUtils.getData(stack);
+
+                if(innerData != null) {
+                    hasChangeOccurred = checkIfChangesOccurred(stack, livingEntity, innerData);
+
+                    if(hasChangeOccurred) break;
+                }
+            }
+
+            if(hasChangeOccurred) {
+                data.slotChanges().putIfAbsent(i, SlotStateChange.MUTATION);
+            }
+        }
+
+        if(hasChangeOccurred) {
+            var nest = (AccessoryNest) AccessoriesAPI.getOrDefaultAccessory(holderStack);
+
+            holderStack.set(AccessoriesDataComponents.NESTED_ACCESSORIES, data);
+
+            nest.onStackChanges(holderStack, data, livingEntity);
+        }
+
+        return hasChangeOccurred;
     }
 
     //--
 
     static boolean isAccessoryNest(ItemStack holderStack) {
-        return AccessoriesAPI.getAccessory(holderStack) instanceof AccessoryNest;
+        return AccessoriesAPI.getOrDefaultAccessory(holderStack) instanceof AccessoryNest;
     }
 
     /**
@@ -186,7 +207,7 @@ public interface AccessoryNest extends Accessory {
      * @param data         StackData linked to the given HolderStack
      * @param livingEntity Potential Living Entity involved with any stack changes
      */
-    default void onStackChanges(ItemStack holderStack, AccessoryNestContainerContents data,  @Nullable LivingEntity livingEntity){}
+    default void onStackChanges(ItemStack holderStack, AccessoryNestContainerContents data, @Nullable LivingEntity livingEntity){}
 
     //--
 

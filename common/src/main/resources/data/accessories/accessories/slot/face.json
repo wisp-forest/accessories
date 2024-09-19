@@ -3,5 +3,9 @@
   "amount": 1,
   "operation": "set",
   "order": 900,
-  "icon": "accessories:gui/slot/face"
+  "icon": "accessories:gui/slot/face",
+  "validators": [
+    "accessories:tag",
+    "accessories:component"
+  ]
 }

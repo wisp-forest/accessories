@@ -1,10 +1,7 @@
 package io.wispforest.accessories.api;
 
 import com.google.common.collect.Multimap;
-import io.wispforest.accessories.api.slot.SlotEntryReference;
-import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.api.slot.SlotTypeReference;
+import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.world.entity.LivingEntity;
@@ -15,6 +12,7 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -76,26 +74,92 @@ public interface AccessoriesCapability {
     //--
 
     /**
-     * Attempts to equip a given item stack within any valid accessory container without swapping
+     * Used to attempt to equip a given stack within any available {@link AccessoriesContainer} returning a
+     * reference and list within a pair. The given list may contain the overflow that could not fit based
+     * on the containers max stack size.
+     * <p>
+     * <b>WARNING: THE GIVEN STACK PASSED WILL NOT BE MUTATED AT ALL!</b>
      *
-     * @param stack The desired stack to equip
-     * @return The stack replaced within the slot or null if unable to equip
+     * @param stack          The given stack attempting to be equipped
      */
+    @Deprecated
     @Nullable
     default Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack){
-        return equipAccessory(stack, false, (accessory, stack1, reference) -> true);
+        return equipAccessory(stack, false);
     }
 
     /**
-     * Attempts to equip a given item stack within any valid accessory container
+     * Used to attempt to equip a given stack within any available {@link AccessoriesContainer} returning a
+     * reference and list within a pair. The given list may contain the overflow that could not fit based
+     * on the containers max stack size and the old stack found if swapping was allowed.
+     * <p>
+     * <b>WARNING: THE GIVEN STACK PASSED WILL NOT BE MUTATED AT ALL!</b>
      *
-     * @param stack The desired stack to equip
-     * @param allowSwapping Toggles check to allow for swapping stack if no empty spot is found
-     * @param additionalCheck Additional Check function used to see if it can be equipped
-     * @return The stack replaced within the slot or null if unable to equip
+     * @param stack          The given stack attempting to be equipped
+     * @param allowSwapping  If the given call can attempt to swap accessories
+     */
+    @Deprecated
+    default Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack, boolean allowSwapping) {
+        var stackCopy = stack.copy();
+
+        var result = attemptToEquipAccessory(stackCopy, allowSwapping);
+
+        if(result == null) return null;
+
+        var returnStacks = new ArrayList<ItemStack>();
+
+        if(!stackCopy.isEmpty()) returnStacks.add(stackCopy);
+
+        result.second().ifPresent(returnStacks::add);
+
+        return Pair.of(result.first(), returnStacks);
+    }
+
+    /**
+     * Attempts to equip a given stack within any available {@link AccessoriesContainer} returning a
+     * reference to where it was equipped. The given passed stack <b>will</b> be adjusted passed on
+     * the amount of room that can be found within the found container.
+     *
+     * @param stack The given stack attempting to be equipped
      */
     @Nullable
-    Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack, boolean allowSwapping, TriFunction<Accessory, ItemStack, SlotReference, Boolean> additionalCheck);
+    default SlotReference attemptToEquipAccessory(ItemStack stack) {
+        var result = attemptToEquipAccessory(stack, false);
+
+        return result != null ? result.first() : null;
+    }
+
+    /**
+     * Attempts to equip a given stack within any available {@link AccessoriesContainer} returning a
+     * reference to where it was equipped and an {@link Optional} of the previous stack if swapped for
+     * the passed stack. The given passed stack <b>will</b> be adjusted passed on the amount of room that
+     * can be found within the found container.
+     *
+     * @param stack The given stack attempting to be equipped
+     */
+    @Nullable
+    default Pair<SlotReference, Optional<ItemStack>> attemptToEquipAccessory(ItemStack stack, boolean allowSwapping) {
+        var result = canEquipAccessory(stack, allowSwapping, (slotStack, slotReference) -> true);
+
+        return result != null ? Pair.of(result.first(), result.second().equipStack(stack)) : null;
+    }
+
+    default Pair<SlotReference, EquipAction> canEquipAccessory(ItemStack stack, boolean allowSwapping) {
+        return canEquipAccessory(stack, allowSwapping, (slotStack, slotReference) -> true);
+    }
+
+    /**
+     * Attempts to equip a given stack within any available {@link AccessoriesContainer} returning a
+     * reference to where it can be equipped and a function to attempt equipping of the item which
+     * may return an {@link Optional} of the previous stack if allowing for swapping.
+     * <p>
+     * Info: The passed stack will not be mutated in any way! Such only occurs on call of the possible
+     * returned function.
+     *
+     * @param stack The given stack attempting to be equipped
+     */
+    @Nullable
+    Pair<SlotReference, EquipAction> canEquipAccessory(ItemStack stack, boolean allowSwapping, EquipCheck extraCheck);
 
     //--
 
@@ -202,4 +266,12 @@ public interface AccessoriesCapability {
      * Remove all cached modifiers from the given containers bound to the capability
      */
     void clearCachedSlotModifiers();
+
+    //--
+
+    @Nullable
+    @Deprecated
+    default Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack, boolean allowSwapping, TriFunction<Accessory, ItemStack, SlotReference, Boolean> additionalCheck) {
+        return equipAccessory(stack, allowSwapping);
+    }
 }

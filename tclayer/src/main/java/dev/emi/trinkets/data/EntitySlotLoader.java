@@ -5,6 +5,8 @@ import com.google.common.collect.Lists;
 import com.google.gson.*;
 import dev.emi.trinkets.api.SlotGroup;
 import dev.emi.trinkets.api.TrinketConstants;
+import dev.emi.trinkets.compat.WrappingTrinketsUtils;
+import io.wispforest.tclayer.ImmutableDelegatingMap;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceReloadListenerKeys;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -23,13 +25,25 @@ import java.util.stream.Collectors;
 
 public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String, Map<String, Set<String>>>> implements IdentifiableResourceReloadListener {
 
-    public static final EntitySlotLoader CLIENT = new EntitySlotLoader();
-    public static final EntitySlotLoader SERVER = new EntitySlotLoader();
+    public static final EntitySlotLoader CLIENT = new EntitySlotLoader(true);
+    public static final EntitySlotLoader SERVER = new EntitySlotLoader(false);
 
     private static final Gson GSON = (new GsonBuilder()).setPrettyPrinting().disableHtmlEscaping().create();
     private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(TrinketConstants.MOD_ID, "entities");
 
     private final Map<EntityType<?>, Map<String, SlotGroup>> slots = new HashMap<>();
+
+    private boolean isClient = false;
+
+    public EntitySlotLoader(boolean isClient) {
+        this();
+
+        this.isClient = isClient;
+    }
+
+    public EntitySlotLoader() {
+        super();
+    }
 
     @Override
     protected Map<String, Map<String, Set<String>>> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
@@ -66,7 +80,7 @@ public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String,
                                         }
                                         String group = parsedSlot[0];
                                         String name = parsedSlot[1];
-                                        groups.computeIfAbsent("", (k) -> new HashSet<>()).add(name);
+                                        groups.computeIfAbsent(group, (k) -> new HashSet<>()).add(name);
                                     }
                                 }
                                 JsonArray entities = GsonHelper.getAsJsonArray(jsonObject, "entities", new JsonArray());
@@ -108,7 +122,7 @@ public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String,
     }
 
     public final Map<EntityType<?>, Map<String, SlotGroup.Builder>> groupBuilders = new HashMap<>();
-    public final Map<EntityType<?>, Set<String>> slotInfo = new HashMap<>();
+    public final Map<EntityType<?>, Map<String, Set<String>>> slotInfo = new HashMap<>();
 
     @Override
     protected void apply(Map<String, Map<String, Set<String>>> loader, ResourceManager resourceManager, ProfilerFiller profiler) {
@@ -140,7 +154,7 @@ public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String,
             }
 
             for (EntityType<?> type : types) {
-                slotInfo.put(type, groups.values().stream().flatMap(Collection::stream).collect(Collectors.toSet()));
+                slotInfo.put(type, ImmutableMap.copyOf(groups));
 
                 //Map<String, SlotGroup.Builder> builders = groupBuilders.computeIfAbsent(type, (k) -> new HashMap<>());
 //                groups.forEach((groupName, slotNames) -> {
@@ -173,10 +187,7 @@ public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String,
     }
 
     public Map<String, SlotGroup> getEntitySlots(EntityType<?> entityType) {
-        if (this.slots.containsKey(entityType)) {
-            return ImmutableMap.copyOf(this.slots.get(entityType));
-        }
-        return ImmutableMap.of();
+        return ImmutableDelegatingMap.slotGroups(WrappingTrinketsUtils.getGroupedSlots(this.isClient, entityType), this.isClient);
     }
 
     public void setSlots(Map<EntityType<?>, Map<String, SlotGroup>> slots) {

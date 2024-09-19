@@ -145,7 +145,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
                 }
             }
 
-            if(ExtraSlotTypeProperties.getProperty(slotBuilder.name, false).strictMode()) {
+            if(!ExtraSlotTypeProperties.getProperty(slotBuilder.name, false).strictMode()) {
                 var validators = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "validators", new JsonArray(), location);
 
                 decodeJsonArray(validators, "validator", location, element -> ResourceLocation.tryParse(element.getAsString()), slotBuilder::validator);
@@ -156,6 +156,8 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             builders.put(slotBuilder.name, slotBuilder);
         }
 
+        var tempMap = new HashMap<String, SlotType>();
+
         for (AccessoriesConfig.SlotAmountModifier modifier : Accessories.getConfig().modifiers) {
             var builder = builders.getOrDefault(modifier.slotType, null);
 
@@ -164,10 +166,12 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             builder.addAmount(modifier.amount);
         }
 
-        var tempMap = new HashMap<String, SlotType>();
-
         uniqueSlots.forEach((s, slotBuilder) -> tempMap.put(s, slotBuilder.create()));
-        builders.forEach((s, slotBuilder) -> tempMap.put(s, slotBuilder.create()));
+        builders.forEach((s, slotBuilder) -> {
+            if(s.equals("any")) return;
+
+            tempMap.put(s, slotBuilder.create());
+        });
 
         this.server = ImmutableMap.copyOf(tempMap);
     }
@@ -176,7 +180,10 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         private final String name;
         private ResourceLocation icon = null;
         private Integer order = null;
-        private Integer amount = null;
+
+        public Integer baseAmount = null;
+        private Integer offsetAmount = 0;
+
         private final Set<ResourceLocation> validators = new HashSet<>();
         private DropRule dropRule = null;
 
@@ -202,17 +209,17 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         }
 
         public SlotBuilder amount(int value){
-            this.amount = value;
+            this.baseAmount = value;
             return this;
         }
 
         public SlotBuilder addAmount(int value){
-            this.amount += value;
+            this.offsetAmount += value;
             return this;
         }
 
         public SlotBuilder subtractAmount(int value){
-            this.amount -= value;
+            this.offsetAmount -= value;
             return this;
         }
 
@@ -227,19 +234,23 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         }
 
         public SlotType create(){
-            if(validators.isEmpty()) {
-                validators.add(Accessories.of("tag"));
-                validators.add(Accessories.of("component"));
+            if(this.validators.isEmpty()) {
+                this.validators.add(Accessories.of("tag"));
+                this.validators.add(Accessories.of("component"));
             }
 
+            var defaultedBaseAmount = Optional.ofNullable(this.baseAmount).map(i -> Math.max(i, 0)).orElse(1);
+
+            defaultedBaseAmount = this.offsetAmount + defaultedBaseAmount;
+
             return new SlotTypeImpl(
-                    name,
-                    alternativeTranslation,
-                    Optional.ofNullable(icon).orElse(SlotType.EMPTY_SLOT_ICON),
-                    Optional.ofNullable(order).orElse(1000),
-                    Optional.ofNullable(amount).map(i -> Math.max(i, 0)).orElse(1),
-                    validators,
-                    Optional.ofNullable(dropRule).orElse(DropRule.DEFAULT)
+                    this.name,
+                    this.alternativeTranslation,
+                    Optional.ofNullable(this.icon).orElse(SlotType.EMPTY_SLOT_ICON),
+                    Optional.ofNullable(this.order).orElse(1000),
+                    defaultedBaseAmount,
+                    this.validators,
+                    Optional.ofNullable(this.dropRule).orElse(DropRule.DEFAULT)
             );
         }
     }

@@ -60,15 +60,14 @@ dependencies {
 
     modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-fabric:${rootProject.rei_version}")
     modCompileOnly("dev.emi:emi-fabric:${rootProject.emi_version}:api")
-    modCompileOnly("mezz.jei:jei-1.20.6-fabric-api:${rootProject.jei_version}")
-    //modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-fabric-api:${rootProject.jei_version}")
+    modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-fabric-api:${rootProject.jei_version}")
 
     if(type == "rei") {
         modLocalRuntime("me.shedaniel:RoughlyEnoughItems-fabric:${rootProject.rei_version}")
     } else if(type == "emi") {
         modLocalRuntime("dev.emi:emi-fabric:${rootProject.emi_version}")
     } else if(type == "jei") {
-        //modLocalRuntime("mezz.jei:jei-${rootProject.minecraft_version}-fabric:${rootProject.jei_version}")
+        modLocalRuntime("mezz.jei:jei-${rootProject.minecraft_version}-fabric:${rootProject.jei_version}")
     } else if(type != "none") {
         throw new IllegalStateException("Unable to locate the given item viewer!")
     }

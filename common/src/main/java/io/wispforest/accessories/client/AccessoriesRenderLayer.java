@@ -1,6 +1,5 @@
 package io.wispforest.accessories.client;
 
-import com.mojang.authlib.minecraft.client.MinecraftClient;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
@@ -28,7 +27,6 @@ import java.awt.*;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import static io.wispforest.accessories.client.gui.AccessoriesScreen.*;
 
@@ -54,8 +52,19 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
     }
 
     @Override
-    public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-        var highlightOptions = Accessories.getConfig().clientData.highlightOptions;
+    public void render(
+            PoseStack poseStack,
+            MultiBufferSource multiBufferSource,
+            int light,
+            T entity,
+            float limbSwing,
+            float limbSwingAmount,
+            float partialTicks,
+            float ageInTicks,
+            float netHeadYaw,
+            float headPitch
+    ) {
+        var highlightOptions = Accessories.getConfig().clientData.hoverOptions;
 
         var capability = AccessoriesCapability.get(entity);
 
@@ -104,15 +113,15 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                 var isSelected = containerSelected && selected.getContainerSlot() == i;
 
                 if (shouldUpdate) {
-                    var currentBrightness = brightnessMap.getOrDefault(entry.getKey(), 1f);
-                    var currentOpacity = opacityMap.getOrDefault(entry.getKey(), 1f);
+                    var currentBrightness = brightnessMap.getOrDefault(entry.getKey() + i, 1f);
+                    var currentOpacity = opacityMap.getOrDefault(entry.getKey() + i, 1f);
 
                     if (selected != null && !isSelected) {
-                        brightnessMap.put(entry.getKey(), Math.max(highlightOptions.unselectedOptions.darkenOptions.darkenedBrightness, currentBrightness - increment));
-                        opacityMap.put(entry.getKey(), Math.max(highlightOptions.unselectedOptions.darkenOptions.darkenedOpacity, currentOpacity - increment));
+                        brightnessMap.put(entry.getKey() + i, Math.max(highlightOptions.unHoveredOptions.darkenedBrightness, currentBrightness - increment));
+                        opacityMap.put(entry.getKey() + i, Math.max(highlightOptions.unHoveredOptions.darkenedOpacity, currentOpacity - increment));
                     } else {
-                        brightnessMap.put(entry.getKey(), Math.min(1, currentBrightness + increment));
-                        opacityMap.put(entry.getKey(), Math.min(1, currentOpacity + increment));
+                        brightnessMap.put(entry.getKey() + i, Math.min(1, currentBrightness + increment));
+                        opacityMap.put(entry.getKey() + i, Math.min(1, currentOpacity + increment));
                     }
                 }
 
@@ -141,7 +150,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                             multiBufferSource.getBuffer(renderType);
                 };
 
-                if (!AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.getValue() || isSelected || selected == null || highlightOptions.unselectedOptions.renderUnselected) {
+                if (!AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.getValue() || isSelected || selected == null || highlightOptions.unHoveredOptions.renderUnHovered) {
                     renderer.render(
                             stack,
                             SlotReference.of(entity, container.getSlotName(), i),
@@ -162,7 +171,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                 if (useCustomerBuffer && bufferedGrabbedFlag.getValue()) {
                     if (multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
-                        if (highlightOptions.highlightHovered && isSelected) {
+                        if (highlightOptions.hoveredOptions.brightenHovered && isSelected) {
                             if (calendar.get(Calendar.MONTH) + 1 == 5 && calendar.get(Calendar.DATE) == 16) {
                                 var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
 
@@ -170,11 +179,12 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                                 colorValues = new float[]{color.getRed() / 128f, color.getGreen() / 128f, color.getBlue() / 128f, 1};
                             } else {
-                                colorValues = new float[]{scale, scale, scale, 1};
+                                var mul = highlightOptions.hoveredOptions.cycleBrightness ? scale : 1.5f;
+                                colorValues = new float[]{mul, mul, mul, 1};
                             }
-                        } else if (highlightOptions.unselectedOptions.darkenOptions.darkenUnselected) {
-                            var darkness = brightnessMap.getOrDefault(entry.getKey(), 1f);
-                            colorValues = new float[]{darkness, darkness, darkness, opacityMap.getOrDefault(entry.getKey(), 1f)};
+                        } else if (highlightOptions.unHoveredOptions.darkenUnHovered) {
+                            var darkness = brightnessMap.getOrDefault(entry.getKey() + i, 1f);
+                            colorValues = new float[]{darkness, darkness, darkness, opacityMap.getOrDefault(entry.getKey() + i, 1f)};
                         }
 
                         if (colorValues != null) {

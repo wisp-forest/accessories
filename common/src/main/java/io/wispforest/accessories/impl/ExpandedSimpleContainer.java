@@ -2,6 +2,7 @@ package io.wispforest.accessories.impl;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.api.AccessoriesAPI;
 import it.unimi.dsi.fastutil.ints.Int2BooleanArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
 import net.fabricmc.loader.api.FabricLoader;
@@ -9,6 +10,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.world.ContainerListener;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -30,16 +32,14 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
     private boolean newlyConstructed;
 
-    private ExpandedSimpleContainer(int size) {
-        this(size, "");
+    public ExpandedSimpleContainer(ContainerListener listener, int size, String name) {
+        this(listener, size, name, true);
     }
 
-    public ExpandedSimpleContainer(int size, String name) {
-        this(size, name, true);
-    }
-
-    public ExpandedSimpleContainer(int size, String name, boolean toggleNewlyConstructed) {
+    public ExpandedSimpleContainer(ContainerListener listener, int size, String name, boolean toggleNewlyConstructed) {
         super(size);
+
+        this.addListener(listener);
 
         if(toggleNewlyConstructed) this.newlyConstructed = true;
 
@@ -47,13 +47,8 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         this.previousItems = NonNullList.withSize(size, ItemStack.EMPTY);
     }
 
-    private ExpandedSimpleContainer(ItemStack... items) {
-        super(items);
-
-        this.newlyConstructed = true;
-
-        this.name = "";
-        this.previousItems = NonNullList.withSize(items.length, ItemStack.EMPTY);
+    public String name() {
+        return this.name;
     }
 
     //--
@@ -79,8 +74,6 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         if (!stack.isEmpty() && stack.getCount() > this.getMaxStackSize()) {
             stack.setCount(this.getMaxStackSize());
         }
-
-        this.setChanged();
     }
 
     public ItemStack getPreviousItem(int slot) {
@@ -90,6 +83,13 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     }
 
     //--
+
+    @Override
+    public int getMaxStackSize(ItemStack itemStack) {
+        var accessory = AccessoriesAPI.getOrDefaultAccessory(itemStack);
+
+        return Math.min(super.getMaxStackSize(itemStack), accessory.maxStackSize(itemStack));
+    }
 
     @Override
     public ItemStack getItem(int slot) {

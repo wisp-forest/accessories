@@ -89,8 +89,11 @@ public interface AccessoryRenderer {
      *
      * @param entity The wearer of the trinket
      * @param model  The model to align to the body movement
+     *
+     * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
      */
     @SuppressWarnings("unchecked")
+    @Deprecated
     static void followBodyRotations(final LivingEntity entity, final HumanoidModel<LivingEntity> model) {
         EntityRenderer<? super LivingEntity> render = Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(entity);
 
@@ -101,42 +104,60 @@ public interface AccessoryRenderer {
 
     /**
      * Translates the rendering context to the center of the player's face
+     *
+     * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
      */
+    @Deprecated
     static void translateToFace(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity entity) {
         transformToFace(poseStack, model.head, Side.FRONT);
     }
 
     /**
      * Translates the rendering context to the center of the player's chest/torso segment
+     *
+     * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
      */
+    @Deprecated
     static void translateToChest(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity livingEntity) {
         transformToModelPart(poseStack, model.body);
     }
 
     /**
      * Translates the rendering context to the center of the bottom of the player's right arm
+     *
+     * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
      */
+    @Deprecated
     static void translateToRightArm(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.rightArm, Side.BOTTOM);
     }
 
     /**
      * Translates the rendering context to the center of the bottom of the player's left arm
+     *
+     * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
      */
+    @Deprecated
     static void translateToLeftArm(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.leftArm, Side.BOTTOM);
     }
 
     /**
      * Translates the rendering context to the center of the bottom of the player's right leg
+     *
+     * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
      */
+    @Deprecated
     static void translateToRightLeg(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.rightLeg, Side.BOTTOM);
     }
 
     /**
      * Translates the rendering context to the center of the bottom of the player's left leg
+     *
+     * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
      */
+    @Deprecated
     static void translateToLeftLeg(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.leftLeg, Side.BOTTOM);
     }

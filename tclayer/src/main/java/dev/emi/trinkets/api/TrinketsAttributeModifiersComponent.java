@@ -28,7 +28,7 @@ public record TrinketsAttributeModifiersComponent(List<Entry> modifiers, boolean
     );
 
     public static final DataComponentType<TrinketsAttributeModifiersComponent> TYPE = DataComponentType.<TrinketsAttributeModifiersComponent>builder()
-            .persistent(CodecUtils.ofEndec(ENDEC))
+            .persistent(CodecUtils.toCodec(ENDEC))
             .networkSynchronized(CodecUtils.packetCodec(ENDEC))
             .build();
 
