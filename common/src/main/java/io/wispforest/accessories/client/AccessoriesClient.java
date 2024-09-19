@@ -96,10 +96,6 @@ public class AccessoriesClient {
 
         if(holder == null) return;
 
-        if(holder.showUniqueSlots() && !config.clientData.showUniqueRendering) {
-            AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.UNIQUE_PROP, false));
-        }
-
         if(holder.equipControl() != config.clientData.equipControl) {
             AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.EQUIP_CONTROL, config.clientData.equipControl));
         }

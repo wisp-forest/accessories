@@ -19,8 +19,6 @@ public class AccessoriesConfig implements ConfigData {
     public static class ClientData {
         public boolean showGroupTabs = true;
 
-        public boolean showUniqueRendering = false;
-
         public ScreenType selectedScreenType = ScreenType.NONE;
 
         public int inventoryButtonXOffset = 62;

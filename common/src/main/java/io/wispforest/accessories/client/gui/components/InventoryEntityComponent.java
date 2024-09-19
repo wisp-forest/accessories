@@ -29,8 +29,16 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
 
     private float startingRotation = -45;
 
+    private float lastBbWidth = 0.0f;
+    private float lastBbHeight = 0.0f;
+
+    private ScaleFitType type = ScaleFitType.NONE;
+
     public InventoryEntityComponent(Sizing sizing, E entity) {
         super(sizing, entity);
+
+        this.lastBbWidth = entity.getBbWidth();
+        this.lastBbHeight = entity.getBbHeight();
     }
 
     public InventoryEntityComponent(Sizing sizing, EntityType<E> type, @Nullable CompoundTag nbt) {
@@ -43,6 +51,10 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
         component.horizontalSizing(horizontalSizing);
 
         return component;
+    }
+
+    private float getEntityScale() {
+        return (entity instanceof LivingEntity living) ? living.getScale() : 1.0f;
     }
 
     public float xOffset = 0.0f;
@@ -62,15 +74,19 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
             var componentWidth = (float) this.horizontalSizing().get().value - 40;
 
             var entityHeight = entity.getBbHeight() * (Math.min(componentWidth, componentHeight) / Math.max(componentWidth, componentHeight));
-            var entityWidth = entity.getBbWidth() * (Math.max(componentWidth, componentHeight) / Math.min(componentWidth, componentHeight));
+            var entityWidth = entity.getBbWidth()* (Math.max(componentWidth, componentHeight) / Math.min(componentWidth, componentHeight));
 
             var length = Math.max(entityHeight, entityWidth);
 
             float baseScale = (.35f / length);
 
             this.scale(baseScale);
+
+            type = ScaleFitType.BOTH;
         } else {
             this.scale(1);
+
+            type = ScaleFitType.NONE;
         }
 
         return this;
@@ -85,11 +101,15 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
     public InventoryEntityComponent<E> scaleToFitVertically(boolean scaleToFit) {
         this.scale(scaleToFit ? (.5f / entity.getBbHeight()) : 1);
 
+        type = scaleToFit ? ScaleFitType.VERTICAL : ScaleFitType.NONE;
+
         return this;
     }
 
     public InventoryEntityComponent<E> scaleToFitHorizontally(boolean scaleToFit) {
         this.scale(scaleToFit ? (.5f / entity.getBbWidth()) : 1);
+
+        type = scaleToFit ? ScaleFitType.HORIZONTAL : ScaleFitType.NONE;
 
         return this;
     }
@@ -100,6 +120,18 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
             super.draw(context, mouseX, mouseY, partialTicks, delta);
 
             return;
+        }
+
+        if (this.lastBbWidth != entity.getBbWidth() || this.lastBbHeight != entity.getBbHeight()) {
+            switch (type) {
+                case VERTICAL -> this.scaleToFitVertically(true);
+                case HORIZONTAL -> this.scaleToFitHorizontally(true);
+                case BOTH -> this.scaleToFit(true);
+                case NONE -> {}
+            }
+
+            this.lastBbWidth = entity.getBbWidth();
+            this.lastBbHeight = entity.getBbHeight();
         }
 
         var matrices = context.pose();
@@ -205,5 +237,12 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
         }
 
         return super.onKeyPress(keyCode, scanCode, modifiers);
+    }
+
+    public enum ScaleFitType {
+        VERTICAL,
+        HORIZONTAL,
+        BOTH,
+        NONE;
     }
 }

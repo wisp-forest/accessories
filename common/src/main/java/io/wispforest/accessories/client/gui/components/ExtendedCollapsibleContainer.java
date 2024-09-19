@@ -22,10 +22,19 @@ public class ExtendedCollapsibleContainer extends CollapsibleContainer {
 
             var spinyThing = titleLayout.children().get(1);
 
-            spinyThing.margins(Insets.of(0, 2, 2, 0))
-                    .sizing(Sizing.fixed(9));
+            spinyThing.sizing(Sizing.fixed(9));
 
             var contentLayout = component.children().get(1);
+
+            if (expanded) {
+                contentLayout.margins(Insets.top(-2));
+
+                spinyThing.margins(Insets.of(0,1,2,0));
+            } else {
+                contentLayout.margins(Insets.top(0));
+
+                spinyThing.margins(Insets.of(0,2,2,0));
+            }
 
             if(contentLayout instanceof FlowLayout contentFlow) {
                 contentFlow.surface(Surface.BLANK)
@@ -44,7 +53,7 @@ public class ExtendedCollapsibleContainer extends CollapsibleContainer {
                 if (nowExpanded) {
                     contentFlow.margins(Insets.top(-2));
 
-                    spinyThing.margins(Insets.of(0,2,2,0));
+                    spinyThing.margins(Insets.of(0,1,2,0));
                 } else {
                     contentFlow.margins(Insets.top(0));
 

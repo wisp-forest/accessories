@@ -46,10 +46,9 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     private boolean showAdvancedOptions = false;
 
     private boolean showUnusedSlots = false;
-    private boolean showUniqueSlots = false;
 
-    private boolean cosmeticsShown = false;
-    private boolean linesShown = false;
+    private boolean showCosmetics = false;
+    private boolean showLines = false;
 
     private int columnAmount = 1;
     private int widgetType = 2;
@@ -109,37 +108,25 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     }
 
     @Override
-    public boolean showUniqueSlots() {
-        return this.showUniqueSlots;
-    }
-
-    @Override
-    public AccessoriesHolder showUniqueSlots(boolean value) {
-        this.showUniqueSlots = value;
-
-        return this;
-    }
-
-    @Override
     public boolean cosmeticsShown() {
-        return this.cosmeticsShown;
+        return this.showCosmetics;
     }
 
     @Override
     public AccessoriesHolder cosmeticsShown(boolean value) {
-        this.cosmeticsShown = value;
+        this.showCosmetics = value;
 
         return this;
     }
 
     @Override
     public boolean linesShown() {
-        return this.linesShown;
+        return this.showLines;
     }
 
     @Override
     public AccessoriesHolder linesShown(boolean value) {
-        this.linesShown = value;
+        this.showLines = value;
 
         return this;
     }
@@ -202,6 +189,20 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         return this;
     }
 
+    private boolean isGroupFiltersOpen = true;
+
+    @Override
+    public boolean isGroupFiltersOpen() {
+        return isGroupFiltersOpen;
+    }
+
+    @Override
+    public AccessoriesHolder isGroupFiltersOpen(boolean value) {
+        this.isGroupFiltersOpen = value;
+
+        return this;
+    }
+
     public boolean sideWidgetPosition() {
         return this.sideWidgetPosition;
     }
@@ -225,7 +226,6 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     }
 
     //--
-
 
     public void init(AccessoriesCapability capability) {
         var livingEntity = capability.entity();
@@ -314,19 +314,41 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
                 return containerMap;
             }).keyed("accessories_containers", HashMap::new);
 
-    private static final KeyedEndec<Boolean> COSMETICS_SHOWN_KEY = Endec.BOOLEAN.keyed("cosmetics_shown", false);
-    private static final KeyedEndec<Boolean> LINES_SHOWN_KEY = Endec.BOOLEAN.keyed("lines_shown", false);
     private static final KeyedEndec<PlayerEquipControl> EQUIP_CONTROL_KEY = Endec.forEnum(PlayerEquipControl.class).keyed("equip_control", PlayerEquipControl.MUST_CROUCH);
+
+    private static final KeyedEndec<Boolean> SHOW_COSMETICS_KEY = Endec.BOOLEAN.keyed("show_cosmetics", false);
+    private static final KeyedEndec<Boolean> SHOW_LINES_KEY = Endec.BOOLEAN.keyed("show_lines", false);
+
+    private static final KeyedEndec<Integer> COLUMN_AMOUNT_KEY = Endec.INT.keyed("column_amount", 1);
+    private static final KeyedEndec<Integer> WIDGET_TYPE_KEY = Endec.INT.keyed("widget_type", 2);
+    private static final KeyedEndec<Boolean> MAIN_WIDGET_POSITION = Endec.BOOLEAN.keyed("main_widget_position", true);
+    private static final KeyedEndec<Boolean> SIDE_WIDGET_POSITION = Endec.BOOLEAN.keyed("side_widget_position", false);
+
+    private static final KeyedEndec<Boolean> SHOW_GROUP_FILTER = Endec.BOOLEAN.keyed("show_group_filter", false);
+    private static final KeyedEndec<Boolean> IS_GROUP_FILTERS_OPEN_KEY = Endec.BOOLEAN.keyed("is_group_filter_open", false);
+
+    private static final KeyedEndec<Boolean> SHOW_CRAFTING_GRID = Endec.BOOLEAN.keyed("cosmetics_shown", false);
 
     @Override
     public void write(MapCarrier carrier, SerializationContext ctx) {
         if(slotContainers.isEmpty()) return;
 
-        carrier.put(COSMETICS_SHOWN_KEY, this.cosmeticsShown);
-        carrier.put(LINES_SHOWN_KEY, this.linesShown);
-        carrier.put(EQUIP_CONTROL_KEY, this.equipControl);
-
         carrier.put(ctx, CONTAINERS_KEY, this.slotContainers);
+
+        carrier.put(ctx, EQUIP_CONTROL_KEY, this.equipControl);
+
+        carrier.put(ctx, COLUMN_AMOUNT_KEY, this.columnAmount);
+        carrier.put(ctx, WIDGET_TYPE_KEY, this.widgetType);
+        carrier.put(ctx, MAIN_WIDGET_POSITION, this.mainWidgetPosition);
+        carrier.put(ctx, SIDE_WIDGET_POSITION, this.sideWidgetPosition);
+
+        carrier.put(ctx, SHOW_COSMETICS_KEY, this.showCosmetics);
+        carrier.put(ctx, SHOW_LINES_KEY, this.showLines);
+
+        carrier.put(ctx, SHOW_GROUP_FILTER, this.showGroupFilter);
+        carrier.put(ctx, IS_GROUP_FILTERS_OPEN_KEY, this.isGroupFiltersOpen);
+
+        carrier.put(ctx, SHOW_CRAFTING_GRID, this.showCraftingGrid);
     }
 
     public void read(LivingEntity entity, MapCarrier carrier, SerializationContext ctx) {
@@ -345,11 +367,22 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
                         "EquipControl", "equip_control"
                 ));
 
-        this.cosmeticsShown = carrier.get(COSMETICS_SHOWN_KEY);
-        this.linesShown = carrier.get(LINES_SHOWN_KEY);
-        this.equipControl = carrier.get(EQUIP_CONTROL_KEY);
-
         carrier.getWithErrors(ctx.withAttributes(new ContainersAttribute(this.slotContainers), new InvalidStacksAttribute(this.invalidStacks)), CONTAINERS_KEY);
+
+        this.equipControl = carrier.get(ctx, EQUIP_CONTROL_KEY);
+
+        this.columnAmount = carrier.get(ctx, COLUMN_AMOUNT_KEY);
+        this.widgetType = carrier.get(ctx, WIDGET_TYPE_KEY);
+        this.mainWidgetPosition = carrier.get(ctx, MAIN_WIDGET_POSITION);
+        this.sideWidgetPosition = carrier.get(ctx, SIDE_WIDGET_POSITION);
+
+        this.showCosmetics = carrier.get(ctx, SHOW_COSMETICS_KEY);
+        this.showLines = carrier.get(ctx, SHOW_LINES_KEY);
+
+        this.showGroupFilter = carrier.get(ctx, SHOW_GROUP_FILTER);
+        this.isGroupFiltersOpen = carrier.get(ctx, IS_GROUP_FILTERS_OPEN_KEY);
+
+        this.showCraftingGrid = carrier.get(ctx, SHOW_CRAFTING_GRID);
 
         capability.clearCachedSlotModifiers();
 

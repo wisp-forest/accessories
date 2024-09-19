@@ -113,7 +113,7 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
         var accessoriesSlots = new ArrayList<AccessoriesInternalSlot>();
         var cosmeticSlots = new ArrayList<AccessoriesInternalSlot>();
 
-        var groups = SlotGroupLoader.getGroups(inventory.player.level(), !this.areUniqueSlotsShown());
+        var groups = SlotGroupLoader.getGroups(inventory.player.level(), true);
 
         var containers = capability.getContainers();
 
@@ -265,10 +265,6 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
 
     public boolean areUnusedSlotsShown() {
         return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::showUnusedSlots).orElse(false);
-    }
-
-    public boolean areUniqueSlotsShown() {
-        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::showUniqueSlots).orElse(false);
     }
 
     //--

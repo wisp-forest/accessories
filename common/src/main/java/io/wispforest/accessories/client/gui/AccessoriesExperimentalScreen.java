@@ -184,20 +184,18 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         //--
 
-        for (Slot slot : this.menu.slots) {
-            if (!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) continue;
+        if (getHoveredSlot() != null && getHoveredSlot() instanceof AccessoriesInternalSlot slot && slot.isActive() && !slot.getItem().isEmpty()) {
+            if (NOT_VERY_NICE_POSITIONS.containsKey(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot())) {
+                ACCESSORY_POSITIONS.add(NOT_VERY_NICE_POSITIONS.get(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot()));
 
-            if (slot instanceof AccessoriesInternalSlot accessoriesSlot && !accessoriesSlot.getItem().isEmpty()) {
-                var positionKey = accessoriesSlot.accessoriesContainer.getSlotName() + accessoriesSlot.getContainerSlot();
-
+                var positionKey = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
                 var vec = NOT_VERY_NICE_POSITIONS.getOrDefault(positionKey, null);
 
-                if (!accessoriesSlot.isCosmetic && vec != null && (this.showLines())) {
+                if (!slot.isCosmetic && vec != null && (this.showLines())) {
                     var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
                     var vec3 = vec.add(0, 0, 5000);
 
-                    ACCESSORY_LINES.add(Pair.of(start, vec3));
-                }
+                    ACCESSORY_LINES.add(Pair.of(start, vec3));}
             }
         }
     }
@@ -207,6 +205,11 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         this.renderBg(guiGraphics, partialTick, mouseX, mouseY);
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+
+        if (Accessories.getConfig().clientData.hoverOptions.hoveredOptions.clickbait) {
+            ACCESSORY_POSITIONS.forEach(pos -> guiGraphics.blitSprite(Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 450, 256, 256));
+            ACCESSORY_POSITIONS.clear();
+        }
 
         if (!ACCESSORY_LINES.isEmpty() || Accessories.getConfig().clientData.hoverOptions.hoveredOptions.line) {
             var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
@@ -724,7 +727,15 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                     .fixedScrollbarLength(16);
         }
 
-        return new ExtendedCollapsibleContainer(Sizing.content(), Sizing.content(), false)
+        return new ExtendedCollapsibleContainer(Sizing.content(), Sizing.content(), this.isGroupFiltersOpen())
+                .configure((ExtendedCollapsibleContainer component) -> {
+                    component.onToggled().subscribe(b -> {
+                        AccessoriesInternals.getNetworkHandler()
+                                .sendToServer(SyncHolderChange.of(HolderProperty.GROUP_FILTER_OPEN_PROP, b));
+
+                        this.isGroupFiltersOpen(b);
+                    });
+                })
                 .child(
                         Components.button(Component.empty(), btn -> {
                                     this.getMenu().selectedGroups().clear();
@@ -745,7 +756,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                     RenderSystem.depthMask(true);
                                     RenderSystem.disableBlend();
                                 }).sizing(Sizing.fixed(14))
-                                .horizontalSizing(Sizing.fixed(19))
+                                .horizontalSizing(Sizing.fixed(20))
                                 .margins(Insets.bottom(1))
                                 .tooltip(Component.translatable(Accessories.translationKey("reset.group_filter")))
                 )
@@ -945,20 +956,24 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                         ).margins(Insets.bottom(3)),
                 2, 1);
 
+        var isDarkMode = Accessories.getConfig().clientData.experimentalScreenData.isDarkMode;
+
         baseOptionPanel.child(
                 Containers.verticalFlow(Sizing.content(), Sizing.content())
                         .child(Components.label(Accessories.translation("dark_mode_toggle.label")))
                         .child(
                                 Components.button(
-                                        createToggleTooltip("dark_mode_toggle", false, Accessories.getConfig().clientData.experimentalScreenData.isDarkMode),
+                                        createToggleTooltip("dark_mode_toggle", false, isDarkMode),
                                         btn -> {
-                                            Accessories.getConfig().clientData.experimentalScreenData.isDarkMode = !Accessories.getConfig().clientData.experimentalScreenData.isDarkMode;
+                                            var newIsDarkMode = !Accessories.getConfig().clientData.experimentalScreenData.isDarkMode;
 
-                                            btn.setMessage(createToggleTooltip("dark_mode_toggle", false, Accessories.getConfig().clientData.experimentalScreenData.isDarkMode));
-                                            btn.tooltip(createToggleTooltip("dark_mode_toggle", true, Accessories.getConfig().clientData.experimentalScreenData.isDarkMode));
+                                            Accessories.getConfig().clientData.experimentalScreenData.isDarkMode = newIsDarkMode;
+
+                                            btn.setMessage(createToggleTooltip("dark_mode_toggle", false, newIsDarkMode));
+                                            btn.tooltip(createToggleTooltip("dark_mode_toggle", true, newIsDarkMode));
                                         })
                                         .renderer(ComponentUtils.getButtonRenderer())
-                                        .tooltip(createToggleTooltip("dark_mode_toggle", true, Accessories.getConfig().clientData.experimentalScreenData.isDarkMode))
+                                        .tooltip(createToggleTooltip("dark_mode_toggle", true, isDarkMode))
                                         .id("dark_mode_toggle")
                                         .horizontalSizing(Sizing.fixed(74))
                         ),
@@ -1386,6 +1401,14 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
     private void showGroupFilters(boolean value) {
         this.setHolderValue(AccessoriesHolder::showGroupFilter, value, "showGroupFilter");
+    }
+
+    public boolean isGroupFiltersOpen() {
+        return this.getHolderValue(AccessoriesHolder::isGroupFiltersOpen, false, "isGroupFiltersOpen");
+    }
+
+    private void isGroupFiltersOpen(boolean value) {
+        this.setHolderValue(AccessoriesHolder::isGroupFiltersOpen, value, "isGroupFiltersOpen");
     }
 
     private boolean showUnusedSlots() {

@@ -514,30 +514,6 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         btnOffset += 15;
 
-        if (Accessories.getConfig().clientData.showUniqueRendering) {
-            var anyUniqueSlots = EntitySlotLoader.getEntitySlots(this.targetEntityDefaulted()).values()
-                    .stream()
-                    .anyMatch(slotType -> UniqueSlotHandling.isUniqueSlot(slotType.name()));
-
-            if (anyUniqueSlots) {
-                this.uniqueSlotsToggleButton = this.addRenderableWidget(
-                        Button.builder(Component.empty(), (btn) -> {
-                                    AccessoriesInternals.getNetworkHandler()
-                                            .sendToServer(SyncHolderChange.of(HolderProperty.UNIQUE_PROP, this.getMenu().owner(), bl -> !bl));
-                                })
-                                .tooltip(uniqueSlotsToggleButton(this.menu.areUniqueSlotsShown()))
-                                .bounds(this.leftPos + 154, btnOffset, 12, 12)
-                                .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-                    guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
-                    guiGraphics.blitSprite((this.menu.areUniqueSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
-
-                    return true;
-                });
-
-                btnOffset += 15;
-            }
-        }
-
 //        if (Accessories.getConfig().clientData.showLineRendering) {
 //            this.linesToggleButton = this.addRenderableWidget(
 //                    Button.builder(Component.empty(), (btn) -> {
@@ -631,7 +607,6 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             case "lines" -> updateLinesButton();
             case "cosmetic" -> updateCosmeticToggleButton();
             case "unused_slots" -> updateUnusedSlotToggleButton();
-            case "unique_slots" -> updateUniqueSlotToggleButton();
         }
     }
 
@@ -650,11 +625,6 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
     public void updateUnusedSlotToggleButton() {
         this.unusedSlotsToggleButton.setTooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()));
-        this.menu.reopenMenu();
-    }
-
-    public void updateUniqueSlotToggleButton() {
-        this.uniqueSlotsToggleButton.setTooltip(uniqueSlotsToggleButton(this.menu.areUniqueSlotsShown()));
         this.menu.reopenMenu();
     }
 

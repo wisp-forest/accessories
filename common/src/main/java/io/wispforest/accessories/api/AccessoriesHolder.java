@@ -36,12 +36,15 @@ public interface AccessoriesHolder {
 
     AccessoriesHolder showUnusedSlots(boolean value);
 
-    /**
-     * @return If unique accessory slots should be present within the {@link AccessoriesScreen}
-     */
-    boolean showUniqueSlots();
+    @Deprecated(forRemoval = true)
+    default boolean showUniqueSlots() {
+        return false;
+    }
 
-    AccessoriesHolder showUniqueSlots(boolean value);
+    @Deprecated(forRemoval = true)
+    default AccessoriesHolder showUniqueSlots(boolean value) {
+        return this;
+    }
 
     /**
      * @return If the cosmetic slots should be shown within the {@link AccessoriesScreen}
@@ -72,6 +75,10 @@ public interface AccessoriesHolder {
     boolean showGroupFilter();
 
     AccessoriesHolder showGroupFilter(boolean value);
+
+    boolean isGroupFiltersOpen();
+
+    AccessoriesHolder isGroupFiltersOpen(boolean value);
 
     boolean mainWidgetPosition();
 
