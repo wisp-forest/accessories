@@ -37,9 +37,9 @@
   "accessories.unused_slots.toggle.hide": "Ocultar Ranuras Vacías",
   "accessories.unique_slots.toggle.show": "Mostrar Ranuras Únicas",
   "accessories.unique_slots.toggle.hide": "Ocultar Ranuras Únicas",
-  "accessories.back.screen": "A la Pantalla Anterior",
-  "accessories.open.screen": "Abrir accessories",
-  
+  "accessories.back.screen": "Volver a la ventana anterior",
+  "accessories.open.screen": "Abrir accesorios",
+
   "text.autoconfig.accessories.title": "Configuración de accessories",
   "text.autoconfig.accessories.option.clientData": "Opciones de Cliente",
   "text.autoconfig.accessories.option.clientData.showGroupTabs": "Mostrar Pestañas de Grupo",
