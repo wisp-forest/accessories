@@ -266,9 +266,7 @@ public class GriddedAccessoriesComponent extends FlowLayout implements Accessori
 
     @Override
     public void onCosmeticToggle(boolean showCosmeticState) {
-        var titleBarComponent = this.childById(FlowLayout.class, "page_title_bar");
-
-        var gridContainer = titleBarComponent.parent().childById(FlowLayout.class, "accessories_container_holder");
+        var gridContainer = this.childById(FlowLayout.class, "accessories_container_holder");
 
         gridContainer.clearChildren();
 
