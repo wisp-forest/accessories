@@ -9,10 +9,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(value = ScissorStack.class, remap = false)
+@Mixin(value = ScissorStack.class)
 public abstract class ScissorStackMixin {
 
-    @Inject(method = "isVisible(Lio/wispforest/owo/ui/core/Component;Lcom/mojang/blaze3d/vertex/PoseStack;)Z", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "isVisible(Lio/wispforest/owo/ui/core/Component;Lcom/mojang/blaze3d/vertex/PoseStack;)Z", at = @At("HEAD"), cancellable = true)
     private static void accessories$allowIndividualOverdraw(Component component, PoseStack matrices, CallbackInfoReturnable<Boolean> cir) {
         if(component instanceof ComponentExtension<?> extension && extension.allowIndividualOverdraw()) {
             cir.setReturnValue(true);
