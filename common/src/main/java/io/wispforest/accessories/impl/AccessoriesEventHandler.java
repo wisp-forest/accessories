@@ -682,17 +682,17 @@ public class AccessoriesEventHandler {
         }
 
         if (accessory instanceof AccessoryNest holdable) {
-            var dropRules = holdable.getDropRules(stack, reference, source);
+            var dropRuleToStacks = holdable.getDropRules(stack, reference, source);
 
-            for (int i = 0; i < dropRules.size(); i++) {
-                var rulePair = dropRules.get(i);
+            for (int i = 0; i < dropRuleToStacks.size(); i++) {
+                var rulePair = dropRuleToStacks.get(i);
 
                 var innerStack = rulePair.right();
 
-                var rule = OnDropCallback.EVENT.invoker().onDrop(rulePair.left(), innerStack, reference, source);
+                var result = OnDropCallback.getAlternativeRule(rulePair.left(), innerStack, reference, source);
 
-                var breakInnerStack = (rule == DropRule.DEFAULT && EnchantmentHelper.hasVanishingCurse(innerStack))
-                        || (rule == DropRule.DESTROY);
+                var breakInnerStack = (result == DropRule.DEFAULT && EnchantmentHelper.hasVanishingCurse(innerStack))
+                        || (result == DropRule.DESTROY);
 
                 if (breakInnerStack) {
                     holdable.setInnerStack(stack, i, ItemStack.EMPTY);
@@ -703,17 +703,17 @@ public class AccessoriesEventHandler {
             }
         }
 
-        dropRule = OnDropCallback.EVENT.invoker().onDrop(dropRule, stack, reference, source);
+        var result = OnDropCallback.getAlternativeRule(dropRule, stack, reference, source);
 
         boolean dropStack = true;
 
-        if (dropRule == DropRule.DESTROY) {
+        if (result == DropRule.DESTROY) {
             container.setItem(reference.slot(), ItemStack.EMPTY);
             dropStack = false;
             // TODO: Do we call break here for the accessory?
-        } else if (dropRule == DropRule.KEEP) {
+        } else if (result == DropRule.KEEP) {
             dropStack = false;
-        } else if (dropRule == DropRule.DEFAULT) {
+        } else if (result == DropRule.DEFAULT) {
             if (entity.level().getGameRules().getRule(GameRules.RULE_KEEPINVENTORY).get()) {
                 dropStack = false;
             } else if (EnchantmentHelper.hasVanishingCurse(stack)) {
