@@ -19,7 +19,9 @@
 
 package top.theillusivec4.curios.client.gui;
 
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ImageButton;
@@ -72,7 +74,7 @@ public class CuriosScreenV2 extends EffectRenderingInventoryScreen<CuriosContain
 
     @Override
     public void init() {
-        AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(null));
+        AccessoriesClient.attemptToOpenScreen();
         this.onClose();
         // NO-OP
     }
