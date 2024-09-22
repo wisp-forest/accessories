@@ -613,13 +613,17 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         } else {
             var sideBarOptionsComponent = armorAndEntityComp.childById(io.wispforest.owo.ui.core.Component.class, "accessories_toggle_panel");
 
-            var parent = sideBarOptionsComponent.parent();
+            if (sideBarOptionsComponent != null) {
+                var parent = sideBarOptionsComponent.parent();
 
-            if (parent != null) parent.removeChild(sideBarOptionsComponent);
+                if (parent != null) parent.removeChild(sideBarOptionsComponent);
+            }
         }
     }
 
     public void swapOrCreateSideBarComponent() {
+        if (this.topComponent == null) return;
+
         var armorAndEntityComp = this.uiAdapter.rootComponent.childById(FlowLayout.class, "armor_entity_layout");
 
         var sideBarOptionsComponent = armorAndEntityComp.childById(io.wispforest.owo.ui.core.Component.class, "accessories_toggle_panel");
