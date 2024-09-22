@@ -217,7 +217,6 @@ public class ComponentUtils {
                     var color = Color.WHITE;
 
                     RenderSystem.depthMask(false);
-
                     RenderSystem.setShaderColor(color.red(), color.green(), color.blue(), 1f);
                     RenderSystem.enableBlend();
                     RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
@@ -225,6 +224,9 @@ public class ComponentUtils {
                     context.blit(button.x() + 3, button.y() + 3, 2, 8, 8, textureAtlasSprite, color.red(), color.green(), color.blue(), 1f);
 
                     RenderSystem.depthMask(true);
+                    RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+                    RenderSystem.disableBlend();
+                    RenderSystem.defaultBlendFunc();
                 });
 
         var tooltipData = new ArrayList<Component>();
