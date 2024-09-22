@@ -31,18 +31,19 @@ repositories {
 dependencies {
     neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
 
-    developmentNeoForge implementation(project(path: ":common", configuration: "namedElements"))
-    localRuntime compileOnly(project(path: ":neoforge", configuration: "namedElements"))
+    developmentNeoForge(implementation(project(path: ":common", configuration: "namedElements")))
+    localRuntime(compileOnly(project(path: ":neoforge", configuration: "namedElements")))
 
-    modRuntimeOnly ("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
+    modRuntimeOnly("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
+    modImplementation("io.wispforest:owo-lib-neoforge:0.12.12-beta.3+1.21")
 
     forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")
     forgeRuntimeLibrary("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
     forgeRuntimeLibrary("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
 
-    modCompileOnly ("maven.modrinth:aether:1.20.4-1.4.1-neoforge")
+    modCompileOnly("maven.modrinth:aether:1.20.4-1.4.1-neoforge")
 
-    modImplementation ("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+e0539096d1"){ exclude group: "fabric-api" }
+    modImplementation("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+e0539096d1"){ exclude group: "fabric-api" }
 
     //modRuntimeOnly ("dev.architectury:architectury-forge:9.2.14")
     //modRuntimeOnly ("maven.modrinth:artifacts:9.5.4")

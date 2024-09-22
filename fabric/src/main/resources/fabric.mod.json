@@ -69,7 +69,8 @@
   "depends": {
     "fabric": ">=0.92.0",
     "minecraft": ">=1.21",
-    "cloth-config": ">=15.0.127"
+    "cloth-config": ">=15.0.127",
+    "owo": ">=0.12.11+1.21"
   },
   "custom": {
     "loom:injected_interfaces": {
