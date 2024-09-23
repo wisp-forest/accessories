@@ -6,6 +6,7 @@
   "accessories.slot.any": "Any",
   "accessories.tooltip.attributes.any": "When Equipped:",
   "accessories.tooltip.attributes.slot": "When Equipped in %s:",
+  "accessories.tooltip.currently_equipped_in": "Equipped in: ",
   "accessories.slot.hat": "Hat",
   "accessories.slot.face": "Face",
   "accessories.slot.cape": "Cape",
@@ -148,6 +149,23 @@
   ],
   "accessories.dark_mode_toggle.toggle.enabled.tooltip": "Change theme to Light Mode",
   "accessories.dark_mode_toggle.toggle.disabled.tooltip": "Change theme to Dark Mode",
+  "accessories.show_equipped_stack_slot_type.label": "Equipped Type:",
+  "accessories.show_equipped_stack_slot_type.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Shown"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Hidden"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.enabled.tooltip": "Hide equipped stack Slot type",
+  "accessories.show_equipped_stack_slot_type.toggle.disabled.tooltip": "Show equipped stack Slot type",
   "accessories.lines.label": "Line Rendering:",
   "accessories.lines.toggle.enabled": [
     "",

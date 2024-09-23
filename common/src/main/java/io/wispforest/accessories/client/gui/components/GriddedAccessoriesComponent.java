@@ -244,7 +244,7 @@ public class GriddedAccessoriesComponent extends FlowLayout implements Accessori
             var lastGrid = slotPages.get(prevPageIndex).getLayout(showCosmeticState);
             var activeGrid = slotPages.get(nextPageIndex).getLayout(showCosmeticState);
 
-            ComponentUtils.recursiveSearch(lastGrid, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> screen.hideSlot(slotComponent.index()));
+            ComponentUtils.recursiveSearch(lastGrid, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> screen.hideSlot(slotComponent.slot()));
 
             var titleBarComponent = this.childById(FlowLayout.class, "page_title_bar");
 
@@ -293,8 +293,8 @@ public class GriddedAccessoriesComponent extends FlowLayout implements Accessori
     }
 
     private void updateDisabledStateSlots(ParentComponent prevComp, ParentComponent newComp) {
-        ComponentUtils.recursiveSearch(prevComp, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> screen.disableSlot(slotComponent.index()));
-        ComponentUtils.recursiveSearch(newComp, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> screen.enableSlot(slotComponent.index()));
+        ComponentUtils.recursiveSearch(prevComp, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> screen.disableSlot(slotComponent.slot()));
+        ComponentUtils.recursiveSearch(newComp, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> screen.enableSlot(slotComponent.slot()));
     }
 
     public record PageLayouts(FlowLayout accessoriesLayout, FlowLayout cosmeticLayout, List<PositionedRectangle> alternativeAccessoriesChecks, List<PositionedRectangle> alternativeCosmeticChecks) {

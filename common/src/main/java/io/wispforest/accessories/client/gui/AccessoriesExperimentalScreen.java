@@ -7,6 +7,8 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
+import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
+import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.client.gui.components.*;
 import io.wispforest.accessories.data.SlotGroupLoader;
@@ -28,11 +30,14 @@ import io.wispforest.owo.ui.core.*;
 import io.wispforest.owo.util.pond.OwoSlotExtension;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -64,6 +69,8 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         this.inventoryLabelX = 42069;
     }
 
+    //--
+
     @Override
     protected @NotNull OwoUIAdapter<FlowLayout> createAdapter() {
         return OwoUIAdapter.create(this, Containers::verticalFlow);
@@ -78,9 +85,24 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         return super.component(expectedClass, id);
     }
 
-    //--
-
     private final Map<Integer, Boolean> changedSlots = new HashMap<>();
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+
+        if (this.changedSlots.isEmpty()) return;
+
+        var slots = this.getMenu().slots;
+
+        var changes = this.changedSlots.entrySet().stream()
+                .filter(entry -> entry.getKey() < slots.size())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        this.getMenu().sendMessage(new AccessoriesExperimentalMenu.ToggledSlots(changes));
+
+        this.changedSlots.clear();
+    }
 
     public void hideSlot(int index) {
         hideSlot(this.menu.slots.get(index));
@@ -109,6 +131,10 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         this.changedSlots.put(index, true);
     }
 
+    public void disableSlots(int ...index) {
+        for (int i : index) disableSlot(i);
+    }
+
     @Override
     public void enableSlot(Slot slot) {
         enableSlot(slot.index);
@@ -135,22 +161,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         return !((OwoSlotExtension) slot).owo$getDisabledOverride();
     }
 
-    @Override
-    protected void containerTick() {
-        super.containerTick();
-
-        if (this.changedSlots.isEmpty()) return;
-
-        var slots = this.getMenu().slots;
-
-        var changes = this.changedSlots.entrySet().stream()
-                .filter(entry -> entry.getKey() < slots.size())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        this.getMenu().sendMessage(new AccessoriesExperimentalMenu.ToggledSlots(changes));
-
-        this.changedSlots.clear();
-    }
+    //--
 
     @Override
     public final LivingEntity targetEntityDefaulted() {
@@ -165,16 +176,78 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
-        boolean hasRendererTooltip = false;
+    @Nullable
+    public Boolean isHovering_Logical(Slot slot, double mouseX, double mouseY) {
+        var accessories = this.topComponent;
 
+        return (accessories != null) ? accessories.isHovering_Logical(slot, mouseX, mouseY) : null;
+    }
+
+    @Override
+    @Nullable
+    public Boolean isHovering_Rendering(Slot slot, double mouseX, double mouseY) {
+        return (slot instanceof SlotTypeAccessible) ? Boolean.FALSE : null;
+    }
+
+    @Override
+    public @Nullable Boolean shouldRenderSlot(Slot slot) {
+        return (slot instanceof SlotTypeAccessible) ? Boolean.FALSE : null;
+    }
+
+    @Override
+    public void onClose() {
+        var selectedGroups = this.getMenu().selectedGroups().stream()
+                .map(SlotGroup::name)
+                .collect(Collectors.toSet());
+
+        AccessoriesInternals.getNetworkHandler()
+                .sendToServer(SyncHolderChange.of(HolderProperty.FILTERED_GROUPS, selectedGroups));
+
+        super.onClose();
+    }
+
+    //--
+
+    @Override
+    protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
         if (this.hoveredSlot instanceof AccessoriesInternalSlot) {
             AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(this.mainWidgetPosition());
         }
 
-        if (!hasRendererTooltip) super.renderTooltip(guiGraphics, x, y);
+        guiGraphics.push()
+                .translate(0,0,100);
+
+        super.renderTooltip(guiGraphics, x, y);
+
+        guiGraphics.pop();
 
         AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(false);
+    }
+
+    protected List<Component> getTooltipFromContainerItem(ItemStack itemStack) {
+        var tooltipData = getTooltipFromItem(this.minecraft, itemStack);
+
+        if (Accessories.getConfig().clientData.experimentalScreenSettings.showEquippedStackSlotType
+                && this.menu.getCarried().isEmpty()
+                && this.hoveredSlot != null
+                && this.hoveredSlot.hasItem()
+                && this.hoveredSlot instanceof AccessoriesBasedSlot slot && ExtraSlotTypeProperties.getProperty(slot.slotName(), true).allowTooltipInfo()) {
+            var hoveredStack = this.hoveredSlot.getItem();
+
+            if (itemStack == hoveredStack) {
+                tooltipData.add(Component.empty());
+                tooltipData.add(
+                        Component.translatable(Accessories.translationKey("tooltip.currently_equipped_in"))
+                                .withStyle(ChatFormatting.GRAY)
+                                .append(
+                                        Component.translatable(slot.slotType().translation())
+                                                .withStyle(ChatFormatting.BLUE)
+                                )
+                );
+            }
+        }
+
+        return tooltipData;
     }
 
     @Override
@@ -314,6 +387,10 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         this.getMenu().slots.forEach(this::disableSlot);
 
         var menu = this.getMenu();
+
+        SlotGroupLoader.getValidGroups(this.getMenu().targetEntityDefaulted()).keySet().stream()
+                .filter(group -> this.getHolderValue(AccessoriesHolder::filteredGroups, Set.of(), "filteredGroups").contains(group.name()))
+                .forEach(menu::addSelectedGroup);
 
         //--
 
@@ -484,11 +561,13 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                             Components.button(Component.literal(""), (btn) -> {
                                 this.minecraft.setScreen(new InventoryScreen(minecraft.player));
                             }).renderer((context, btn, delta) -> {
-                                        ButtonComponent.Renderer.VANILLA.draw(context, btn, delta);
+                                        ComponentUtils.getButtonRenderer().draw(context, btn, delta);
 
                                         context.push();
 
-                                        var BACK_ICON = Accessories.of("widget/back");
+                                        var BACK_ICON = Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode
+                                                ? Accessories.of("widget/back_dark")
+                                                : Accessories.of("widget/back");
 
                                         context.blitSprite(BACK_ICON, btn.x() + 1, btn.y() + 1, 8, 8);
 
@@ -626,15 +705,28 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         var armorAndEntityComp = this.uiAdapter.rootComponent.childById(FlowLayout.class, "armor_entity_layout");
 
-        var sideBarOptionsComponent = armorAndEntityComp.childById(io.wispforest.owo.ui.core.Component.class, "accessories_toggle_panel");
+        var sideBarOptionsComponent = armorAndEntityComp.childById(FlowLayout.class, "accessories_toggle_panel");
 
-        if(sideBarOptionsComponent != null) {
-            var parent = sideBarOptionsComponent.parent();
+        armorAndEntityComp.removeChild(sideBarOptionsComponent);
 
-            if (parent != null) parent.removeChild(sideBarOptionsComponent);
-        } else {
+//        if(sideBarOptionsComponent != null) {
+//            var parent = sideBarOptionsComponent.parent();
+//
+//            if (parent != null) parent.removeChild(sideBarOptionsComponent);
+//
+//            if(this.showGroupFilters()) {
+//                var existingFilter = sideBarOptionsComponent.childById(io.wispforest.owo.ui.core.Component.class, "group_filter_component");
+//
+//                if (existingFilter != null) {
+//                    sideBarOptionsComponent.removeChild(existingFilter);
+//
+//                    var groupFilter = createGroupFilters();
+//                    if (groupFilter != null) sideBarOptionsComponent.child(groupFilter);
+//                }
+//            }
+//        } else {
             sideBarOptionsComponent = createSideBarOptions();
-        }
+        //}
 
         if (this.sideWidgetPosition() == this.mainWidgetPosition()) {
             armorAndEntityComp.child(0, sideBarOptionsComponent);
@@ -656,7 +748,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         return this.topComponent;
     }
 
-    private io.wispforest.owo.ui.core.Component createSideBarOptions() {
+    private FlowLayout createSideBarOptions() {
         var cosmeticToggleButton = Components.button(Component.literal(""), btn -> {
                     showCosmeticState(!showCosmeticState());
 
@@ -722,8 +814,8 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                     ScrollContainer.ScrollDirection.VERTICAL,
                     Sizing.fixed(18 + 6),
                     Sizing.fixed((5 * 14) + (5) + (2 * 2) - 1),
-                    baseButtonLayout.padding(!this.mainWidgetPosition() ? Insets.of(2, 2, 0, 2) : Insets.of(2, 2, 2, 0))
-            ).oppositeScrollbar(!this.mainWidgetPosition())
+                    baseButtonLayout.padding(!this.mainWidgetPosition() ? Insets.of(2, 2, 1, 1) : Insets.of(2, 2, 2, 0))
+            ).oppositeScrollbar(this.sideWidgetPosition() == this.mainWidgetPosition())
                     .customClippingInsets(Insets.of(1))
                     .scrollbarThiccness(7)
                     .scrollbar(ComponentUtils.getScrollbarRenderer())
@@ -744,7 +836,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                     this.getMenu().selectedGroups().clear();
                                     this.rebuildAccessoriesComponent();
                                 }).renderer((context, button, delta) -> {
-                                    ButtonComponent.Renderer.VANILLA.draw(context, button, delta);
+                                    ComponentUtils.getButtonRenderer().draw(context, button, delta);
 
                                     RenderSystem.depthMask(false);
 
@@ -788,15 +880,12 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         if(this.showCraftingGrid()) {
             holder.margins(Insets.left(3));
+
             holder.child(ComponentUtils.createCraftingComponent(0, 4, this::slotAsComponent, this::enableSlot, true));
         } else {
             holder.margins(Insets.of(0));
 
-            this.disableSlot(0);
-            this.disableSlot(1);
-            this.disableSlot(2);
-            this.disableSlot(3);
-            this.disableSlot(4);
+            this.disableSlots(0, 1, 2, 3, 4);
         }
     }
 
@@ -812,50 +901,35 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         //--
 
         baseOptionPanel.child(
-                Containers.verticalFlow(Sizing.content(), Sizing.content())
-                        .child(Components.label(Accessories.translation("unused_slots.label")))
-                        .child(
-                                Components.button(
-                                        createToggleTooltip("unused_slots", false, this.showUnusedSlots()),
-                                        btn -> {
-                                            AccessoriesInternals.getNetworkHandler()
-                                                    .sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, this.getMenu().owner(), bl -> !bl));
-                                        })
-                                        .renderer(ComponentUtils.getButtonRenderer())
-                                        .tooltip(createToggleTooltip("unused_slots", true, this.showUnusedSlots()))
-                                        .horizontalSizing(Sizing.fixed(74))
-                                        .id("unused_slots_toggle")
-                        ).margins(Insets.bottom(3)),
+                createConfigComponent("unused_slots",
+                        this::showUnusedSlots,
+                        bl -> AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, bl))
+                ).margins(Insets.bottom(3)),
                 0, 0);
 
-        {
-            var min = getMinimumColumnAmount();
-            var max = 18;
+        baseOptionPanel.child(
+                Containers.verticalFlow(Sizing.content(), Sizing.content())
+                        .child(Components.label(Accessories.translation("column_amount_slider.label")))
+                        .child(Components.discreteSlider(Sizing.fixed(45), getMinimumColumnAmount(), 18)
+                                .configure((DiscreteSliderComponent slider) -> {
+                                    slider.onChanged().subscribe(value -> {
+                                        AccessoriesInternals.getNetworkHandler()
+                                                .sendToServer(SyncHolderChange.of(HolderProperty.COLUMN_AMOUNT_PROP, (int) value));
 
-            var columnAmountSlider = Components.discreteSlider(Sizing.fixed(45), min, max)
-                    .configure((DiscreteSliderComponent slider) -> {
-                        slider.onChanged().subscribe(value -> {
-                            AccessoriesInternals.getNetworkHandler()
-                                    .sendToServer(SyncHolderChange.of(HolderProperty.COLUMN_AMOUNT_PROP, (int) value));
+                                        this.columnAmount((int) value);
 
-                            this.columnAmount((int) value);
-
-                            rebuildAccessoriesComponent();
-                        });
-                    })
-                    .snap(true)
-                    .setFromDiscreteValue(this.columnAmount())
-                    .scrollStep(1f / (max - min))
-                    .tooltip(Accessories.translation("column_amount_slider.tooltip"))
-                    .id("column_amount_slider");
-
-            baseOptionPanel.child(
-                    Containers.verticalFlow(Sizing.content(), Sizing.content())
-                            .child(Components.label(Accessories.translation("column_amount_slider.label")))
-                            .child(columnAmountSlider.horizontalSizing(Sizing.fixed(74)))
-                            .margins(Insets.bottom(3)),
-                    0, 1);
-        }
+                                        rebuildAccessoriesComponent();
+                                    });
+                                })
+                                .snap(true)
+                                .setFromDiscreteValue(this.columnAmount())
+                                .scrollStep(1f / (18 - getMinimumColumnAmount()))
+                                .tooltip(Accessories.translation("column_amount_slider.tooltip"))
+                                .id("column_amount_slider")
+                                .horizontalSizing(Sizing.fixed(74))
+                        )
+                        .margins(Insets.bottom(3)),
+                0, 1);
 
         baseOptionPanel.child(
                 Containers.verticalFlow(Sizing.content(), Sizing.content())
@@ -883,125 +957,95 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 1, 0);
 
         baseOptionPanel.child(
-                Containers.verticalFlow(Sizing.content(), Sizing.content())
-                        .child(Components.label(Accessories.translation("main_widget_position.label")))
-                        .child(
-                                Components.button(
-                                        createToggleTooltip("main_widget_position", false, this.mainWidgetPosition()),
-                                        btn -> {
-                                            AccessoriesInternals.getNetworkHandler()
-                                                    .sendToServer(SyncHolderChange.of(HolderProperty.MAIN_WIDGET_POSITION_PROP, this.menu.owner(), bl -> !bl));
+                createConfigComponent("main_widget_position",
+                        this::mainWidgetPosition,
+                        bl -> {
+                            AccessoriesInternals.getNetworkHandler()
+                                    .sendToServer(SyncHolderChange.of(HolderProperty.MAIN_WIDGET_POSITION_PROP, bl));
 
-                                            this.mainWidgetPosition(!this.mainWidgetPosition());
+                            this.mainWidgetPosition(bl);
 
-                                            this.uiAdapter.rootComponent.childById(InventoryEntityComponent.class, "entity_rendering_component")
-                                                    .startingRotation(this.mainWidgetPosition() ? -45 : 45);
-                                        })
-                                        .renderer(ComponentUtils.getButtonRenderer())
-                                        .tooltip(createToggleTooltip("main_widget_position", true, this.mainWidgetPosition()))
-                                        .horizontalSizing(Sizing.fixed(74))
-                                        .id("main_widget_position_toggle")
-                        ).margins(Insets.bottom(3)),
+                            this.uiAdapter.rootComponent.childById(InventoryEntityComponent.class, "entity_rendering_component")
+                                    .startingRotation(this.mainWidgetPosition() ? -45 : 45);
+                        }
+                ).margins(Insets.bottom(3)),
                 1, 1);
 
         baseOptionPanel.child(
-                Containers.verticalFlow(Sizing.content(), Sizing.content())
-                        .child(Components.label(Accessories.translation("group_filter.label")))
-                        .child(
-                                Components.button(
-                                        createToggleTooltip("group_filter", false, this.showGroupFilters()),
-                                        btn -> {
-                                            AccessoriesInternals.getNetworkHandler()
-                                                    .sendToServer(SyncHolderChange.of(HolderProperty.GROUP_FILTER_PROP, this.menu.owner(), bl -> !bl));
+                createConfigComponent("group_filter",
+                        this::showGroupFilters,
+                        bl -> {
+                            AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.GROUP_FILTER_PROP, bl));
 
-                                            this.showGroupFilters(!this.showGroupFilters());
+                            this.showGroupFilters(bl);
 
-                                            if(this.showGroupFilters()) {
-                                                var panel = this.uiAdapter.rootComponent.childById(FlowLayout.class, "accessories_toggle_panel");
+                            if(this.showGroupFilters()) {
+                                var panel = this.uiAdapter.rootComponent.childById(FlowLayout.class, "accessories_toggle_panel");
 
-                                                if(panel != null) {
-                                                    var groupFilter = createGroupFilters();
+                                if(panel != null) {
+                                    var groupFilter = createGroupFilters();
 
-                                                    if (groupFilter != null) panel.child(groupFilter);
-                                                }
-                                            } else {
-                                                var component = this.uiAdapter.rootComponent.childById(io.wispforest.owo.ui.core.Component.class, "group_filter_component");
+                                    if (groupFilter != null) panel.child(groupFilter);
+                                }
+                            } else {
+                                var component = this.uiAdapter.rootComponent.childById(io.wispforest.owo.ui.core.Component.class, "group_filter_component");
 
-                                                if (component != null) component.remove();
-                                            }
-
-                                        })
-                                        .renderer(ComponentUtils.getButtonRenderer())
-                                        .tooltip(createToggleTooltip("group_filter", true, this.showGroupFilters()))
-                                        .id("group_filter_toggle")
-                                        .horizontalSizing(Sizing.fixed(74))
-                        ).margins(Insets.bottom(3)),
+                                if (component != null) component.remove();
+                            }
+                        }
+                ).margins(Insets.bottom(3)),
                 2, 0);
 
         baseOptionPanel.child(
-                Containers.verticalFlow(Sizing.content(), Sizing.content())
-                        .child(Components.label(Accessories.translation("side_widget_position.label")))
-                        .child(
-                                Components.button(
-                                        createToggleTooltip("side_widget_position", false, this.sideWidgetPosition()),
-                                        btn -> {
-                                            AccessoriesInternals.getNetworkHandler()
-                                                    .sendToServer(SyncHolderChange.of(HolderProperty.SIDE_WIDGET_POSITION_PROP, this.menu.owner(), bl -> !bl));
+                createConfigComponent("side_widget_position",
+                        this::sideWidgetPosition,
+                        bl -> {
+                            AccessoriesInternals.getNetworkHandler()
+                                    .sendToServer(SyncHolderChange.of(HolderProperty.SIDE_WIDGET_POSITION_PROP, bl));
 
-                                            this.sideWidgetPosition(!this.sideWidgetPosition());
+                            this.sideWidgetPosition(bl);
 
-                                            this.swapOrCreateSideBarComponent();
-                                        })
-                                        .renderer(ComponentUtils.getButtonRenderer())
-                                        .tooltip(createToggleTooltip("side_widget_position", true, this.sideWidgetPosition()))
-                                        .id("side_widget_position_toggle")
-                                        .horizontalSizing(Sizing.fixed(74))
-                        ).margins(Insets.bottom(3)),
+                            this.swapOrCreateSideBarComponent();
+                        }
+                ).margins(Insets.bottom(3)),
                 2, 1);
 
-        var isDarkMode = Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode;
+        baseOptionPanel.child(
+                createConfigComponent("dark_mode_toggle",
+                        () -> Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode,
+                        bl -> Accessories.setAndSaveConfig(config -> config.clientData.experimentalScreenSettings.isDarkMode = bl)
+                ),
+                3, 0);
 
         baseOptionPanel.child(
-                Containers.verticalFlow(Sizing.content(), Sizing.content())
-                        .child(Components.label(Accessories.translation("dark_mode_toggle.label")))
-                        .child(
-                                Components.button(
-                                        createToggleTooltip("dark_mode_toggle", false, isDarkMode),
-                                        btn -> {
-                                            var newIsDarkMode = !Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode;
-
-                                            Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode = newIsDarkMode;
-
-                                            btn.setMessage(createToggleTooltip("dark_mode_toggle", false, newIsDarkMode));
-                                            btn.tooltip(createToggleTooltip("dark_mode_toggle", true, newIsDarkMode));
-                                        })
-                                        .renderer(ComponentUtils.getButtonRenderer())
-                                        .tooltip(createToggleTooltip("dark_mode_toggle", true, isDarkMode))
-                                        .id("dark_mode_toggle")
-                                        .horizontalSizing(Sizing.fixed(74))
-                        ),
-                3, 0);
+                createConfigComponent("show_equipped_stack_slot_type",
+                        () -> Accessories.getConfig().clientData.experimentalScreenSettings.showEquippedStackSlotType,
+                        bl -> Accessories.setAndSaveConfig(config -> config.clientData.experimentalScreenSettings.showEquippedStackSlotType = bl)
+                ),
+                3, 1);
 
         return Containers.verticalScroll(Sizing.expand(), Sizing.expand(), baseOptionPanel);
     }
 
-    @Override
-    @Nullable
-    public Boolean isHovering_Logical(Slot slot, double mouseX, double mouseY) {
-        var accessories = this.topComponent;
+    private io.wispforest.owo.ui.core.Component createConfigComponent(String type, Supplier<Boolean> getter, Consumer<Boolean> setter) {
+        return Containers.verticalFlow(Sizing.content(), Sizing.content())
+                .child(Components.label(Accessories.translation(type + ".label")))
+                .child(
+                        Components.button(
+                                        createToggleTooltip(type, false, getter.get()),
+                                        btn -> {
+                                            var newValue = !getter.get();
 
-        return (accessories != null) ? accessories.isHovering_Logical(slot, mouseX, mouseY) : null;
-    }
+                                            setter.accept(newValue);
 
-    @Override
-    @Nullable
-    public Boolean isHovering_Rendering(Slot slot, double mouseX, double mouseY) {
-        return (slot instanceof SlotTypeAccessible) ? Boolean.FALSE : null;
-    }
-
-    @Override
-    public @Nullable Boolean shouldRenderSlot(Slot slot) {
-        return (slot instanceof SlotTypeAccessible) ? Boolean.FALSE : null;
+                                            btn.setMessage(createToggleTooltip(type, false, newValue));
+                                            btn.tooltip(createToggleTooltip(type, true, newValue));
+                                        })
+                                .renderer(ComponentUtils.getButtonRenderer())
+                                .tooltip(createToggleTooltip(type, true, getter.get()))
+                                .id(type)
+                                .horizontalSizing(Sizing.fixed(74))
+                );
     }
 
     @Override
@@ -1009,6 +1053,9 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         switch (key) {
             case "unused_slots" -> updateToggleButton("unused_slots", this::showUnusedSlots, () -> {
                 this.getMenu().updateUsedSlots();
+
+                Accessories.setAndSaveConfig(config -> config.clientData.showUnusedSlots = this.showUnusedSlots());
+
                 this.rebuildAccessoriesComponent();
             });
             case "group_filter" -> updateToggleButton("group_filter", this::showGroupFilters, this::rebuildAccessoriesComponent);
@@ -1021,7 +1068,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     }
 
     private void updateToggleButton(String baseId, Supplier<Boolean> getter, Runnable runnable) {
-        var btn = this.uiAdapter.rootComponent.childById(ButtonComponent.class, baseId + "_toggle");
+        var btn = this.uiAdapter.rootComponent.childById(ButtonComponent.class, baseId);
 
         var value = getter.get();
 
@@ -1080,10 +1127,6 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         public final Slot slot() {
             return this.slot;
-        }
-
-        public final int index() {
-            return index;
         }
 
         public final boolean isBatched() {
@@ -1177,100 +1220,82 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
             validComponents.add(slotComponent);
         });
 
+        RenderSystem.enableDepthTest();
+        RenderSystem.enableBlend();
+
         context.push();
+        context.translate(0, 0, 100.0F);
 
-        {
-            context.push();
-            context.translate(0, 0, 100.0F);
+        //--
 
-            //--
+        Map<Slot, Triplet<ItemStack, Boolean, @Nullable String>> slotStateData = new HashMap<>();
+        Map<Slot, Boolean> allBl2s = new HashMap<>();
 
-            Map<Slot, Triplet<ItemStack, Boolean, @Nullable String>> slotStateData = new HashMap<>();
-            Map<Slot, Boolean> allBl2s = new HashMap<>();
+        //--
 
-            //--
+        var accessor = (AbstractContainerScreenAccessor) this;
 
-            var accessor = (AbstractContainerScreenAccessor) this;
+        //--
 
-            //--
+        int i = this.leftPos;
+        int j = this.topPos;
 
-            int i = this.leftPos;
-            int j = this.topPos;
+        context.push();
+        context.translate(i, j, 0);
 
-            context.push();
-            context.translate(i, j, 0);
+        safeBatching(context, hasDrawCallOccur -> {
+            for (var slotComponent : validComponents) {
+                var slot = slotComponent.slot();
 
-            safeBatching(context, hasDrawCallOccur -> {
-                for (var slotComponent : validComponents) {
-                    var slot = slotComponent.slot();
+                var data = slotStateData.computeIfAbsent(slot, this::getRenderStack);
 
-                    var data = slotStateData.computeIfAbsent(slot, this::getRenderStack);
+                if (data == null) continue;
 
-                    if (data == null) return;
+                allBl2s.put(slot, renderSlotTexture(context, slot, data.getA()));
 
-                    var itemStack = data.getA();
+                hasDrawCallOccur.setValue(true);
+            }
+        });
 
-                    if (itemStack.isEmpty() /*&& slot.isActive()*/) {
-                        var pair = slot.getNoItemIcon();
+        //--
 
-                        if (pair != null) {
-                            var textureAtlasSprite = this.minecraft.getTextureAtlas(pair.getFirst()).apply(pair.getSecond());
+        safeBatching(context, hasDrawCallOccur -> {
+            for (var slotComponent : validComponents) {
+                var slot = slotComponent.slot();
 
-                            context.blit(slot.x, slot.y, 0, 16, 16, textureAtlasSprite);
+                var data = slotStateData.computeIfAbsent(slot, this::getRenderStack);
 
-                            allBl2s.put(slot, true);
-                        }
+                if (data == null) return;
+
+                var itemStack = data.getA();
+
+                var bl2 = allBl2s.getOrDefault(slot, false)
+                        || (slot == accessor.accessories$getClickedSlot() && !accessor.accessories$getDraggingItem().isEmpty() && !accessor.accessories$isSplittingStack());
+
+                if (!bl2) {
+                    int slotX = slot.x;
+                    int slotY = slot.y;
+
+                    if (data.getB()) {
+                        context.fill(slotX, slotY, slotX + 16, slotY + 16, -2130706433);
                     }
 
-                    hasDrawCallOccur.setValue(true);
-                }
-            });
+                    int k = slot.x + slot.y * this.imageWidth;
 
-            //--
-
-            safeBatching(context, hasDrawCallOccur -> {
-                for (var slotComponent : validComponents) {
-                    var slot = slotComponent.slot();
-
-                    var data = slotStateData.computeIfAbsent(slot, this::getRenderStack);
-
-                    if (data == null) return;
-
-                    var itemStack = data.getA();
-
-                    var bl2 = allBl2s.getOrDefault(slot, false)
-                            || (slot == accessor.accessories$getClickedSlot() && !accessor.accessories$getDraggingItem().isEmpty() && !accessor.accessories$isSplittingStack());
-
-                    if (!bl2) {
-                        int slotX = slot.x;
-                        int slotY = slot.y;
-
-                        if (data.getB()) {
-                            context.fill(slotX, slotY, slotX + 16, slotY + 16, -2130706433);
-                        }
-
-                        int k = slot.x + slot.y * this.imageWidth;
-
-                        if (slot.isFake()) {
-                            context.renderFakeItem(itemStack, slotX, slotY, k);
-                        } else {
-                            context.renderItem(itemStack, slotX, slotY, k);
-                        }
-
-                        context.renderItemDecorations(this.font, itemStack, slotX, slotY, data.getC());
+                    if (slot.isFake()) {
+                        context.renderFakeItem(itemStack, slotX, slotY, k);
+                    } else {
+                        context.renderItem(itemStack, slotX, slotY, k);
                     }
 
-                    hasDrawCallOccur.setValue(true);
+                    context.renderItemDecorations(this.font, itemStack, slotX, slotY, data.getC());
                 }
-            });
 
-            context.pop();
+                hasDrawCallOccur.setValue(true);
+            }
+        });
 
-            //--
-
-            context.pop();
-
-        }
+        context.pop();
 
         safeBatching(context, hasDrawCallOccur -> {
             for (var slotComponent : validComponents) {
@@ -1280,12 +1305,26 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
             }
         });
 
-        for (var slotComponent : validComponents) {
-            slotComponent.renderHover(context, () -> this.hoveredSlot);
+        context.pop();
+
+        validComponents.forEach(slotComponent -> slotComponent.renderHover(context, () -> this.hoveredSlot));
+    };
+
+    private static boolean renderSlotTexture(GuiGraphics context, Slot slot, ItemStack itemStack) {
+        if (itemStack.isEmpty() /*&& slot.isActive()*/) {
+            com.mojang.datafixers.util.Pair<ResourceLocation, ResourceLocation> pair = slot.getNoItemIcon();
+
+            if (pair != null) {
+                TextureAtlasSprite textureAtlasSprite = Minecraft.getInstance().getTextureAtlas(pair.getFirst()).apply(pair.getSecond());
+
+                context.blit(slot.x, slot.y, 0, 16, 16, textureAtlasSprite);
+
+                return true;
+            }
         }
 
-        context.pop();
-    };
+        return false;
+    }
 
     public final Surface FULL_SLOT_RENDERING = BACKGROUND_SLOT_RENDERING_SURFACE.and(SLOT_RENDERING_SURFACE);
 
@@ -1295,11 +1334,11 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     private Triplet<ItemStack, Boolean, @Nullable String> getRenderStack(Slot slot) {
         var accessor = (AbstractContainerScreenAccessor) this;
 
-        ItemStack itemStack = slot.getItem();
+        var itemStack = slot.getItem();
 
-        boolean bl = false;
+        var bl = false;
 
-        ItemStack itemStack2 = this.menu.getCarried();
+        var itemStack2 = this.menu.getCarried();
 
         String string = null;
 

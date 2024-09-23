@@ -190,6 +190,20 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         return this;
     }
 
+    private Set<String> filteredGroups = Set.of();
+
+    @Override
+    public Set<String> filteredGroups() {
+        return filteredGroups;
+    }
+
+    @Override
+    public AccessoriesHolder filteredGroups(Set<String> value) {
+        this.filteredGroups = value;
+
+        return this;
+    }
+
     public boolean sideWidgetPosition() {
         return this.sideWidgetPosition;
     }
@@ -303,6 +317,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
     private static final KeyedEndec<PlayerEquipControl> EQUIP_CONTROL_KEY = Endec.forEnum(PlayerEquipControl.class).keyed("equip_control", PlayerEquipControl.MUST_CROUCH);
 
+    private static final KeyedEndec<Boolean> SHOW_UNUSED_SLOTS_KEY = Endec.BOOLEAN.keyed("show_unused_slots", false);
     private static final KeyedEndec<Boolean> SHOW_COSMETICS_KEY = Endec.BOOLEAN.keyed("show_cosmetics", false);
 
     private static final KeyedEndec<Integer> COLUMN_AMOUNT_KEY = Endec.INT.keyed("column_amount", 1);
@@ -312,6 +327,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
     private static final KeyedEndec<Boolean> SHOW_GROUP_FILTER = Endec.BOOLEAN.keyed("show_group_filter", false);
     private static final KeyedEndec<Boolean> IS_GROUP_FILTERS_OPEN_KEY = Endec.BOOLEAN.keyed("is_group_filter_open", false);
+    private static final KeyedEndec<Set<String>> FILTERED_GROUPS_KEY = Endec.STRING.setOf().keyed("filtered_groups", HashSet::new);
 
     private static final KeyedEndec<Boolean> SHOW_CRAFTING_GRID = Endec.BOOLEAN.keyed("cosmetics_shown", false);
 
@@ -329,9 +345,11 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         carrier.put(ctx, SIDE_WIDGET_POSITION, this.sideWidgetPosition);
 
         carrier.put(ctx, SHOW_COSMETICS_KEY, this.showCosmetics);
+        carrier.put(ctx, SHOW_UNUSED_SLOTS_KEY, this.showUnusedSlots);
 
         carrier.put(ctx, SHOW_GROUP_FILTER, this.showGroupFilter);
         carrier.put(ctx, IS_GROUP_FILTERS_OPEN_KEY, this.isGroupFiltersOpen);
+        carrier.put(ctx, FILTERED_GROUPS_KEY, this.filteredGroups);
 
         carrier.put(ctx, SHOW_CRAFTING_GRID, this.showCraftingGrid);
     }
@@ -362,9 +380,11 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         this.sideWidgetPosition = carrier.get(ctx, SIDE_WIDGET_POSITION);
 
         this.showCosmetics = carrier.get(ctx, SHOW_COSMETICS_KEY);
+        this.showUnusedSlots = carrier.get(ctx, SHOW_UNUSED_SLOTS_KEY);
 
         this.showGroupFilter = carrier.get(ctx, SHOW_GROUP_FILTER);
         this.isGroupFiltersOpen = carrier.get(ctx, IS_GROUP_FILTERS_OPEN_KEY);
+        this.filteredGroups = carrier.get(ctx, FILTERED_GROUPS_KEY);
 
         this.showCraftingGrid = carrier.get(ctx, SHOW_CRAFTING_GRID);
 

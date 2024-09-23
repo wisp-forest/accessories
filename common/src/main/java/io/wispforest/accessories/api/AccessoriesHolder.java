@@ -7,6 +7,7 @@ import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Internal Holder object that has all the container data attached to the given player
@@ -64,6 +65,10 @@ public interface AccessoriesHolder {
     boolean isGroupFiltersOpen();
 
     AccessoriesHolder isGroupFiltersOpen(boolean value);
+
+    Set<String> filteredGroups();
+
+    AccessoriesHolder filteredGroups(Set<String> value);
 
     boolean mainWidgetPosition();
 

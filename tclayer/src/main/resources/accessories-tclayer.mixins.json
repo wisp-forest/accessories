@@ -8,7 +8,8 @@
     "client.AbstractContainerScreenMixin",
     "client.LivingEntityMixin",
     "client.LivingEntityRendererMixin",
-    "client.AccessoriesRendererRegistryMixin"
+    "client.AccessoriesRendererRegistryMixin",
+    "client.AccessoriesExperimentalScreenMixin"
   ],
   "mixins": [
     "AccessoriesAPIMixin",

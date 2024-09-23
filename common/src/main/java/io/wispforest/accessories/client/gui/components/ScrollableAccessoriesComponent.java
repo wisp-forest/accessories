@@ -253,7 +253,7 @@ public class ScrollableAccessoriesComponent extends FlowLayout implements Access
             var oldRow = prevLayout.childById(ParentComponent.class, "row_" + i);
 
             ComponentUtils.recursiveSearch(oldRow, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, (slotComponent) -> {
-                this.screen.disableSlot(slotComponent.index());
+                this.screen.disableSlot(slotComponent.slot());
             });
         }
 
@@ -283,7 +283,7 @@ public class ScrollableAccessoriesComponent extends FlowLayout implements Access
             }
 
             ComponentUtils.recursiveSearch(newRow, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, (slotComponent) -> {
-                this.screen.enableSlot(slotComponent.index());
+                this.screen.enableSlot(slotComponent.slot());
             });
         }
     }

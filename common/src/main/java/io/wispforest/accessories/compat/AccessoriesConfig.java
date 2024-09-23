@@ -18,13 +18,15 @@ public class AccessoriesConfig implements ConfigData {
 
     public static class ClientData {
 
+        public PlayerEquipControl equipControl = PlayerEquipControl.MUST_NOT_CROUCH;
+
         public boolean forceNullRenderReplacement = false;
 
         public boolean disableEmptySlotScreenError = false;
 
-        public boolean allowSlotScrolling = true;
+        public boolean showUnusedSlots = false;
 
-        public PlayerEquipControl equipControl = PlayerEquipControl.MUST_NOT_CROUCH;
+        public boolean allowSlotScrolling = true;
 
         public ScreenType selectedScreenType = ScreenType.NONE;
 
@@ -33,6 +35,7 @@ public class AccessoriesConfig implements ConfigData {
 
         public static class ExperimentalScreenSettings {
             public boolean isDarkMode = false;
+            public boolean showEquippedStackSlotType = true;
         }
 
         @ConfigEntry.Gui.CollapsibleObject()
@@ -83,8 +86,6 @@ public class AccessoriesConfig implements ConfigData {
 
         public List<RenderSlotTarget> disabledDefaultRenders = new ArrayList<>();
     }
-
-
 
     public List<SlotAmountModifier> modifiers = new ArrayList<>();
 

@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -26,8 +27,10 @@ public record HolderProperty<T>(String name, Endec<T> endec, BiConsumer<Accessor
 
     public static HolderProperty<Integer> COLUMN_AMOUNT_PROP;
     public static HolderProperty<Integer> WIDGET_TYPE_PROP;
+
     public static HolderProperty<Boolean> GROUP_FILTER_PROP;
     public static HolderProperty<Boolean> GROUP_FILTER_OPEN_PROP;
+    public static HolderProperty<Set<String>> FILTERED_GROUPS;
 
     public static HolderProperty<Boolean> MAIN_WIDGET_POSITION_PROP;
     public static HolderProperty<Boolean> SIDE_WIDGET_POSITION_PROP;
@@ -82,6 +85,7 @@ public record HolderProperty<T>(String name, Endec<T> endec, BiConsumer<Accessor
 
         GROUP_FILTER_PROP = new HolderProperty<>("group_filter", Endec.BOOLEAN, AccessoriesHolder::showGroupFilter, AccessoriesHolder::showGroupFilter);
         GROUP_FILTER_OPEN_PROP = new HolderProperty<>("group_filter_open", Endec.BOOLEAN, AccessoriesHolder::isGroupFiltersOpen, AccessoriesHolder::isGroupFiltersOpen);
+        FILTERED_GROUPS = new HolderProperty<>("filtered_groups", Endec.STRING.setOf(), AccessoriesHolder::filteredGroups, AccessoriesHolder::filteredGroups);
 
         CRAFTING_GRID_PROP = new HolderProperty<>("crafting_grid", Endec.BOOLEAN, AccessoriesHolder::showCraftingGrid, AccessoriesHolder::showCraftingGrid);
     }
