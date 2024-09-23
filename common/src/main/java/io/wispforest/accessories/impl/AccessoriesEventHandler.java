@@ -477,10 +477,12 @@ public class AccessoriesEventHandler {
                     while(invalidSlotsItr.hasNext()) {
                         var type = invalidSlotsItr.next();
 
-                        slotsComponent.append(Component.translatable(type.translation()).withStyle(ChatFormatting.RED));
+                        if (ExtraSlotTypeProperties.getProperty(type.name(), entity.level().isClientSide()).allowTooltipInfo()) {
+                            slotsComponent.append(Component.translatable(type.translation()).withStyle(ChatFormatting.RED));
 
-                        if(invalidSlotsItr.hasNext()) {
-                            slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                            if (invalidSlotsItr.hasNext()) {
+                                slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                            }
                         }
                     }
                 } else {
@@ -489,10 +491,12 @@ public class AccessoriesEventHandler {
                     while(validSlotsItr.hasNext()) {
                         var type = validSlotsItr.next();
 
-                        slotsComponent.append(Component.translatable(type.translation()));
+                        if (ExtraSlotTypeProperties.getProperty(type.name(), entity.level().isClientSide()).allowTooltipInfo()) {
+                            slotsComponent.append(Component.translatable(type.translation()));
 
-                        if(validSlotsItr.hasNext()) {
-                            slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                            if (validSlotsItr.hasNext()) {
+                                slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                            }
                         }
                     }
                 }
