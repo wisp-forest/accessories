@@ -31,6 +31,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import org.lwjgl.glfw.GLFW;
 
+import javax.sql.ConnectionEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -46,6 +47,11 @@ public class AccessoriesClientForge {
         eventBus.addListener(this::initKeybindings);
         eventBus.addListener(this::addRenderLayer);
         eventBus.addListener(this::registerShader);
+        eventBus.addListener(this::onJoin);
+    }
+
+    public void onJoin(ClientPlayerNetworkEvent.LoggingIn loggingInEvent) {
+        AccessoriesClient.handleConfigChangesSync(Accessories.getConfig());
     }
 
     public void onInitializeClient(FMLClientSetupEvent event) {

@@ -7,31 +7,22 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
-import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.slot.SlotEntryReference;
-import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.client.gui.ScreenVariantSelectionScreen;
 import io.wispforest.accessories.client.gui.components.ComponentUtils;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.data.EntitySlotLoader;
-import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
-import io.wispforest.accessories.mixin.client.AbstractContainerScreenAccessor;
 import io.wispforest.accessories.networking.holder.HolderProperty;
 import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
-import io.wispforest.owo.mixin.itemgroup.CreativeInventoryScreenMixin;
 import io.wispforest.owo.shader.GlProgram;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.core.Color;
 import io.wispforest.owo.ui.core.Insets;
-import io.wispforest.owo.ui.core.Positioning;
 import io.wispforest.owo.ui.core.Sizing;
-import io.wispforest.owo.ui.layers.Layer;
 import io.wispforest.owo.ui.layers.Layers;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
@@ -45,11 +36,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
-
-import java.util.Optional;
-import java.util.function.Consumer;
 
 public class AccessoriesClient {
 
@@ -67,13 +54,13 @@ public class AccessoriesClient {
         AccessoriesMenuTypes.registerClientMenuConstructors();
 
         Accessories.CONFIG_HOLDER.registerSaveListener((manager, data) -> {
-            handleConfigLoad(data);
+            handleConfigChangesSync(data);
 
             return InteractionResult.SUCCESS;
         });
 
         Accessories.CONFIG_HOLDER.registerLoadListener((manager, data) -> {
-            handleConfigLoad(data);
+            handleConfigChangesSync(data);
 
             return InteractionResult.SUCCESS;
         });
@@ -87,7 +74,7 @@ public class AccessoriesClient {
         initLayer();
     }
 
-    private static void handleConfigLoad(AccessoriesConfig config) {
+    public static void handleConfigChangesSync(AccessoriesConfig config) {
         var currentPlayer = Minecraft.getInstance().player;
 
         if(currentPlayer == null || Minecraft.getInstance().level == null) return;
@@ -98,6 +85,10 @@ public class AccessoriesClient {
 
         if(holder.equipControl() != config.clientData.equipControl) {
             AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.EQUIP_CONTROL, config.clientData.equipControl));
+        }
+
+        if(holder.showUnusedSlots() != config.clientData.showUnusedSlots) {
+            AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, config.clientData.showUnusedSlots));
         }
     }
 

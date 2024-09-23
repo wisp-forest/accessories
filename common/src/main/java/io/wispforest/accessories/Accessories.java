@@ -23,6 +23,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Consumer;
+
 public class Accessories {
 
     public static final String MODID = "accessories";
@@ -43,6 +45,12 @@ public class Accessories {
         if(CONFIG_HOLDER == null) return null;
 
         return CONFIG_HOLDER.getConfig();
+    }
+
+    public static void setAndSaveConfig(Consumer<AccessoriesConfig> consumer) {
+        consumer.accept(getConfig());
+
+        CONFIG_HOLDER.save();
     }
 
     public static void askPlayerForVariant(ServerPlayer player) {
@@ -107,5 +115,4 @@ public class Accessories {
         ACCESSORY_EQUIPPED = CriteriaTriggersAccessor.accessories$callRegister("accessories:equip_accessory", new AccessoryChangedCriterion());
         ACCESSORY_UNEQUIPPED = CriteriaTriggersAccessor.accessories$callRegister("accessories:unequip_accessory", new AccessoryChangedCriterion());
     }
-
 }
