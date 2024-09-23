@@ -34,8 +34,10 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import org.lwjgl.glfw.GLFW;
 
+import javax.sql.ConnectionEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -52,10 +54,16 @@ public class AccessoriesClientForge {
 
         MinecraftForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
         MinecraftForge.EVENT_BUS.addListener(AccessoriesClientForge::itemTooltipCallback);
+        MinecraftForge.EVENT_BUS.addListener(AccessoriesClientForge::onJoin);
+
 
         ModLoadingContext.get().registerExtensionPoint(
                 ConfigScreenHandler.ConfigScreenFactory.class,
                 () -> new ConfigScreenHandler.ConfigScreenFactory((minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get()));
+    }
+
+    public static void onJoin(ClientPlayerNetworkEvent.LoggingIn loggingInEvent) {
+        AccessoriesClient.handleConfigChangesSync(Accessories.getConfig());
     }
 
     @SubscribeEvent

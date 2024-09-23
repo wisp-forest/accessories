@@ -21,6 +21,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Consumer;
+
 public class Accessories {
 
     public static final String MODID = "accessories";
@@ -37,6 +39,12 @@ public class Accessories {
         if(CONFIG_HOLDER == null) return null;
 
         return CONFIG_HOLDER.getConfig();
+    }
+
+    public static void setAndSaveConfig(Consumer<AccessoriesConfig> consumer) {
+        consumer.accept(getConfig());
+
+        CONFIG_HOLDER.save();
     }
 
     public static boolean attemptOpenScreenPlayer(ServerPlayer player) {
@@ -97,5 +105,4 @@ public class Accessories {
     public static void registerMenuType() {
         ACCESSORIES_MENU_TYPE = AccessoriesInternals.registerMenuType(of("accessories_menu"), AccessoriesMenu::of);
     }
-
 }

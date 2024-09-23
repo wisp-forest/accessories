@@ -37,13 +37,13 @@ public class AccessoriesClient {
         AccessoriesInternalsClient.registerToMenuTypes();
 
         Accessories.CONFIG_HOLDER.registerSaveListener((manager, data) -> {
-            handleConfigLoad(data);
+            handleConfigChangesSync(data);
 
             return InteractionResult.SUCCESS;
         });
 
         Accessories.CONFIG_HOLDER.registerLoadListener((manager, data) -> {
-            handleConfigLoad(data);
+            handleConfigChangesSync(data);
 
             return InteractionResult.SUCCESS;
         });
@@ -53,7 +53,7 @@ public class AccessoriesClient {
         });
     }
 
-    private static void handleConfigLoad(AccessoriesConfig config) {
+    public static void handleConfigChangesSync(AccessoriesConfig config) {
         var currentPlayer = Minecraft.getInstance().player;
 
         if(currentPlayer == null || Minecraft.getInstance().level == null) return;
@@ -68,6 +68,10 @@ public class AccessoriesClient {
 
         if(holder.equipControl() != config.clientData.equipControl) {
             AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.EQUIP_CONTROL, config.clientData.equipControl));
+        }
+
+        if(holder.showUnusedSlots() != config.clientData.showUnusedSlots) {
+            AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, config.clientData.showUnusedSlots));
         }
     }
 

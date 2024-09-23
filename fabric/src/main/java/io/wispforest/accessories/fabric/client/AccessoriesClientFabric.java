@@ -105,6 +105,8 @@ public class AccessoriesClientFabric implements ClientModInitializer {
                     return new AccessoriesCapabilityImpl(livingEntity);
                 }, entityType);
             }
+
+            AccessoriesClient.handleConfigChangesSync(Accessories.getConfig());
         });
 
         CoreShaderRegistrationCallback.EVENT.register(context -> context.register(Accessories.of("fish"), DefaultVertexFormat.BLIT_SCREEN, shaderInstance -> AccessoriesClient.BLIT_SHADER = shaderInstance));
