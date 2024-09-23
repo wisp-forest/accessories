@@ -344,14 +344,8 @@ public class AccessoriesAPI {
             slots.addAll(AccessoriesAPI.getValidSlotTypes(entity, ref.stack()));
         }
 
-        for (var slot : SlotTypeLoader.getSlotTypes(entity.level()).values()) {
-            var bl = BuiltInRegistries.ITEM.getTag(AccessoriesAPI.getSlotTag(slot))
-                    .map(holders -> holders.size() > 0)
-                    .orElse(false);
-
-            if (bl) slots.add(slot);
-        }
-
+        slots.addAll(SlotTypeLoader.getUsedSlotsByRegistryItem(entity));
+        
         return slots;
     }
 
