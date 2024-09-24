@@ -47,7 +47,7 @@ public class AccessoriesClientForge {
         eventBus.addListener(this::initKeybindings);
         eventBus.addListener(this::addRenderLayer);
         eventBus.addListener(this::registerShader);
-        eventBus.addListener(this::onJoin);
+        NeoForge.EVENT_BUS.addListener(this::onJoin);
     }
 
     public void onJoin(ClientPlayerNetworkEvent.LoggingIn loggingInEvent) {
