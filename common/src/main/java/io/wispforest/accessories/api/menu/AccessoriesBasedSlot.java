@@ -11,7 +11,7 @@ import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
-import io.wispforest.accessories.pond.owo.AccessoriesLivingEntityExtension;
+import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;

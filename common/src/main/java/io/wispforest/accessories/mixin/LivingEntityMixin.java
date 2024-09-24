@@ -1,17 +1,14 @@
 package io.wispforest.accessories.mixin;
 
-import com.google.common.collect.Iterables;
-import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
-import io.wispforest.accessories.pond.owo.AccessoriesLivingEntityExtension;
+import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;

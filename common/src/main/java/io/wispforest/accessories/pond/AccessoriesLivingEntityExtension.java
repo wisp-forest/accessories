@@ -1,4 +1,4 @@
-package io.wispforest.accessories.pond.owo;
+package io.wispforest.accessories.pond;
 
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.world.item.ItemStack;
