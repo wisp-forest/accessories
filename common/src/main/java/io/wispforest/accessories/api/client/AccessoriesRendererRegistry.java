@@ -5,6 +5,7 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryRenderOverrideComponent;
 import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +38,20 @@ public class AccessoriesRendererRegistry {
      */
     public static void registerNoRenderer(Item item){
         RENDERERS.put(item, () -> null);
+    }
+
+    /**
+     * Registers the given item as if it should render like armor piece equipped within the targeted slot
+     * as dictated by {@link Equipable#getEquipmentSlot()}
+     */
+    public static void registerArmorRendering(Item item) {
+        if (item instanceof Equipable && !AccessoriesRendererRegistry.hasRenderer(item)) {
+            AccessoriesRendererRegistry.registerRenderer(item, () -> ArmorRenderingExtension.RENDERER);
+        }
+    }
+
+    public static boolean hasRenderer(Item item) {
+        return RENDERERS.containsKey(item);
     }
 
     //--

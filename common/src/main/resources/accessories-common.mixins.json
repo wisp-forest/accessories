@@ -32,7 +32,9 @@
     "client.cosmetic.ArmorStandMixin",
     "client.cosmetic.LivingEntityMixin",
     "client.cosmetic.LivingEntityRendererMixin",
-    "client.ArmorSlotMixin"
+    "client.ArmorSlotMixin",
+    "client.HumanoidArmorLayerMixin",
+    "client.LivingEntityRendererAccessor"
   ],
   "mixins": [
     "ApplyBonusCountMixin",
