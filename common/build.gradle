@@ -24,7 +24,7 @@ dependencies {
 
     modCompileOnly("me.shedaniel.cloth:cloth-config:${rootProject.cloth_version}")
 
-    modCompileOnly "io.wispforest:owo-lib:${project.owo_version}"
+    modImplementation "io.wispforest:owo-lib:${project.owo_version}"
 
     modCompileOnly(fabricApi.module("fabric-api-base", rootProject.fabric_api_version)){
         exclude group: "fabric-api"

@@ -28,7 +28,6 @@ repositories {
     maven { url "https://maven.wispforest.io/releases" }
     mavenCentral()
 //    maven { url 'https://jitpack.io' }
-    mavenLocal()
 }
 
 sourceSets {
@@ -46,7 +45,7 @@ dependencies {
 
     modImplementation("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
 
-    modImplementation "io.wispforest:owo-lib-neoforge:0.12.12-beta.3+1.21"
+    modImplementation "io.wispforest:owo-lib-neoforge:${rootProject.owo_neo_version}"
 
     forgeRuntimeLibrary(implementation("blue.endless:jankson:1.2.2"))
 
