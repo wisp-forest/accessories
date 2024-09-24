@@ -9,6 +9,8 @@ import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
+import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.client.gui.components.ComponentUtils;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.menu.*;
@@ -28,11 +30,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
     private final Set<SlotType> usedSlots = new HashSet<>();
-    private final Set<SlotGroup> usedGroups = new HashSet<>();
 
     private final Set<SlotGroup> selectedGroups = new HashSet<>();
 
@@ -133,8 +135,6 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
         var validGroupData = SlotGroupLoader.getValidGroups(accessoryTarget);
 
-        usedGroups.addAll(validGroupData.keySet());
-
         var slotTypes = validGroupData.values()
                 .stream()
                 .flatMap(Collection::stream)
@@ -217,6 +217,16 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
     public List<Slot> getVisibleAccessoriesSlots() {
         var filteredList = new ArrayList<Slot>();
 
+        var groups = SlotGroupLoader.getValidGroups(this.targetEntityDefaulted());
+
+        var usedSlots = this.getUsedSlots();
+
+        if (usedSlots != null) {
+            groups.forEach((group, groupSlots) -> {
+                if (groupSlots.stream().noneMatch(usedSlots::contains)) this.removeSelectedGroup(group);
+            });
+        }
+
         var selectedGroupedSlots = SlotGroupLoader.getValidGroups(this.targetEntityDefaulted()).entrySet()
                 .stream()
                 .filter(entry -> this.selectedGroups.isEmpty() || this.selectedGroups.contains(entry.getKey()))
@@ -244,6 +254,11 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         return filteredList;
     }
 
+    @Nullable
+    public Set<SlotType> getUsedSlots() {
+        return this.areUnusedSlotsShown() ? null : this.usedSlots;
+    }
+
     public void updateUsedSlots() {
         this.usedSlots.clear();
 
@@ -258,6 +273,36 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         }
     }
 
+    public Set<SlotGroup> usedGroups() {
+        var groups = SlotGroupLoader.getValidGroups(this.targetEntityDefaulted()).entrySet().stream();
+
+        var usedSlots = this.getUsedSlots();
+
+        groups = groups
+                .filter(entry -> {
+                    var groupSlots = entry.getValue()
+                            .stream()
+                            .filter(slotType -> {
+                                if (UniqueSlotHandling.isUniqueSlot(slotType.name())) return false;
+
+                                var capability = this.targetEntityDefaulted().accessoriesCapability();
+
+                                if (capability == null) return false;
+
+                                var container = capability.getContainer(slotType);
+
+                                if (container == null) return false;
+
+                                return container.getSize() > 0;
+                            })
+                            .collect(Collectors.toSet());
+
+                    return !groupSlots.isEmpty() && (usedSlots == null || groupSlots.stream().anyMatch(usedSlots::contains));
+                });
+
+        return groups.map(Map.Entry::getKey).collect(Collectors.toSet());
+    }
+
     public Set<SlotGroup> selectedGroups() {
         return this.selectedGroups;
     }
@@ -269,7 +314,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
     public void addSelectedGroup(SlotGroup slotGroup) {
         this.selectedGroups.add(slotGroup);
 
-        if (this.selectedGroups.containsAll(usedGroups)) {
+        if (this.selectedGroups.containsAll(usedGroups())) {
             this.selectedGroups.clear();
         }
     }

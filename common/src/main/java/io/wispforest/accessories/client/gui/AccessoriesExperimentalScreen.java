@@ -9,9 +9,11 @@ import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotGroup;
+import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.client.gui.components.*;
 import io.wispforest.accessories.data.SlotGroupLoader;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.menu.variants.AccessoriesExperimentalMenu;
@@ -612,10 +614,12 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         if(accessoriesComponent != null) {
             armorAndEntityLayout.child((this.mainWidgetPosition() ? 0 : 1), accessoriesComponent); //1,
+        }
 
+        if(accessoriesComponent != null || !this.getMenu().selectedGroups().isEmpty()) {
             var sideBarOptionsComponent = createSideBarOptions();
 
-            if(sideBarOptionsComponent != null) {
+            if (sideBarOptionsComponent != null) {
                 if (this.sideWidgetPosition() == this.mainWidgetPosition()) {
                     armorAndEntityLayout.child(0, sideBarOptionsComponent);
                 } else {
@@ -690,18 +694,22 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
             swapOrCreateSideBarComponent();
         } else {
-            var sideBarOptionsComponent = armorAndEntityComp.childById(io.wispforest.owo.ui.core.Component.class, "accessories_toggle_panel");
+            if(this.getMenu().selectedGroups().isEmpty()) {
+                var sideBarOptionsComponent = armorAndEntityComp.childById(io.wispforest.owo.ui.core.Component.class, "accessories_toggle_panel");
 
-            if (sideBarOptionsComponent != null) {
-                var parent = sideBarOptionsComponent.parent();
+                if (sideBarOptionsComponent != null) {
+                    var parent = sideBarOptionsComponent.parent();
 
-                if (parent != null) parent.removeChild(sideBarOptionsComponent);
+                    if (parent != null) parent.removeChild(sideBarOptionsComponent);
+                }
+            } else {
+                swapOrCreateSideBarComponent();
             }
         }
     }
 
     public void swapOrCreateSideBarComponent() {
-        if (this.topComponent == null) return;
+        if (this.topComponent == null && this.getMenu().selectedGroups().isEmpty()) return;
 
         var armorAndEntityComp = this.uiAdapter.rootComponent.childById(FlowLayout.class, "armor_entity_layout");
 
@@ -709,24 +717,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         armorAndEntityComp.removeChild(sideBarOptionsComponent);
 
-//        if(sideBarOptionsComponent != null) {
-//            var parent = sideBarOptionsComponent.parent();
-//
-//            if (parent != null) parent.removeChild(sideBarOptionsComponent);
-//
-//            if(this.showGroupFilters()) {
-//                var existingFilter = sideBarOptionsComponent.childById(io.wispforest.owo.ui.core.Component.class, "group_filter_component");
-//
-//                if (existingFilter != null) {
-//                    sideBarOptionsComponent.removeChild(existingFilter);
-//
-//                    var groupFilter = createGroupFilters();
-//                    if (groupFilter != null) sideBarOptionsComponent.child(groupFilter);
-//                }
-//            }
-//        } else {
-            sideBarOptionsComponent = createSideBarOptions();
-        //}
+        sideBarOptionsComponent = createSideBarOptions();
 
         if (this.sideWidgetPosition() == this.mainWidgetPosition()) {
             armorAndEntityComp.child(0, sideBarOptionsComponent);
@@ -794,16 +785,46 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     }
 
     @Nullable
+    private io.wispforest.owo.ui.core.Component baseFilterLayout = null;
+
+    @Nullable
     private io.wispforest.owo.ui.core.Component createGroupFilters() {
         if (!this.showGroupFilters()) return null;
 
         var groups = new ArrayList<>(SlotGroupLoader.getValidGroups(this.getMenu().targetEntityDefaulted()).keySet());
 
+        var usedSlots = this.getMenu().getUsedSlots();
+
         if (groups.isEmpty()) return null;
 
         var groupButtons = groups.stream()
-                .map(group -> ComponentUtils.groupToggleBtn(this, group))
+                .map(group -> {
+                    var groupSlots = group.slots()
+                            .stream()
+                            .filter(slotName -> !UniqueSlotHandling.isUniqueSlot(slotName))
+                            .map(slotName -> SlotTypeLoader.getSlotType(this.targetEntityDefaulted(), slotName))
+                            .filter(Objects::nonNull)
+                            .filter(slotType -> {
+                                var capability = this.targetEntityDefaulted().accessoriesCapability();
+
+                                if (capability == null) return false;
+
+                                var container = capability.getContainer(slotType);
+
+                                if (container == null) return false;
+
+                                return container.getSize() > 0;
+                            })
+                            .collect(Collectors.toSet());
+
+                    if (groupSlots.isEmpty() || (usedSlots != null && groupSlots.stream().noneMatch(usedSlots::contains))) return null;
+
+                    return ComponentUtils.groupToggleBtn(this, group);
+                })
+                .filter(Objects::nonNull)
                 .toList();
+
+        if (groupButtons.isEmpty()) return null;
 
         var baseButtonLayout = (ParentComponent) Containers.verticalFlow(Sizing.content(), Sizing.content())
                 .children(groupButtons)
@@ -817,10 +838,15 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                     baseButtonLayout.padding(!this.mainWidgetPosition() ? Insets.of(2, 2, 1, 1) : Insets.of(2, 2, 2, 0))
             ).oppositeScrollbar(this.sideWidgetPosition() == this.mainWidgetPosition())
                     .customClippingInsets(Insets.of(1))
+                    .scrollToAfterLayout((this.baseFilterLayout instanceof ExtendedScrollContainer<?> prevContainer) ? prevContainer.getProgress() : 0.0f)
                     .scrollbarThiccness(7)
                     .scrollbar(ComponentUtils.getScrollbarRenderer())
                     .fixedScrollbarLength(16);
+        } else {
+            baseButtonLayout.margins(Insets.bottom(2));
         }
+
+        this.baseFilterLayout = baseButtonLayout;
 
         return new ExtendedCollapsibleContainer(Sizing.content(), Sizing.content(), this.isGroupFiltersOpen())
                 .configure((ExtendedCollapsibleContainer component) -> {

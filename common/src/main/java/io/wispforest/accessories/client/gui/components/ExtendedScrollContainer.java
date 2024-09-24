@@ -5,6 +5,7 @@ import io.wispforest.owo.ui.core.*;
 import io.wispforest.owo.ui.util.ScissorStack;
 import net.minecraft.util.Mth;
 import org.apache.logging.log4j.util.TriConsumer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -19,6 +20,29 @@ public class ExtendedScrollContainer<C extends Component> extends ScrollContaine
 
     public ExtendedScrollContainer(ScrollDirection direction, Sizing horizontalSizing, Sizing verticalSizing, C child) {
         super(direction, horizontalSizing, verticalSizing, child);
+    }
+
+    @Nullable
+    public Runnable scrollToAfterLayout = null;
+
+    public double getProgress() {
+        return this.scrollOffset / this.maxScroll;
+    }
+
+    public ExtendedScrollContainer<C> scrollToAfterLayout(double progress) {
+        this.scrollToAfterLayout = () -> this.scrollOffset = (double)this.maxScroll * Math.clamp(progress, 0, 1);
+
+        return this;
+    }
+
+    @Override
+    public void layout(Size space) {
+        super.layout(space);
+
+        if (this.scrollToAfterLayout != null) {
+            this.scrollToAfterLayout.run();
+            this.scrollToAfterLayout = null;
+        }
     }
 
     public ExtendedScrollContainer<C> customClippingInsets(Insets insets) {
