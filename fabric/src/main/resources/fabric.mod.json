@@ -48,9 +48,6 @@
     "client":[
       "io.wispforest.accessories.fabric.client.AccessoriesClientFabric"
     ],
-    "modmenu": [
-      "io.wispforest.accessories.fabric.compat.ModMenuEntry"
-    ],
     "rei_client": [
       "io.wispforest.accessories.compat.rei.AccessoriesClientREIPlugin"
     ],

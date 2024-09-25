@@ -31,6 +31,10 @@
   "accessories.slot_group.feet": "Feet",
   "accessories.slot_group.unsorted": "Unsorted",
   "accessories.key.category.accessories": "Accessories",
+  "argument.livingEntities.nonLiving": "Only living entities may be affected by this command, but the provided selector includes non living entities",
+
+  "#comment": "GUI Related Below",
+
   "accessories.key.open_accessories_screen": "Open Accessories Screen",
   "accessories.slot.cosmetics.toggle.show": "Show Cosmetic Slots",
   "accessories.slot.cosmetics.toggle.hide": "Hide Cosmetic Slots",
@@ -201,59 +205,141 @@
   "accessories.back.screen": "To Previous Screen",
   "accessories.open.screen": "Open Accessories Screen",
   "accessories.reset.group_filter": "Reset Group Filters",
-  "text.autoconfig.accessories.title": "Accessories Config",
-  "text.autoconfig.accessories.option.clientData": "Client Options",
-  "text.autoconfig.accessories.option.clientData.showGroupTabs": "Show Group Tabs",
-  "text.autoconfig.accessories.option.clientData.showUniqueRendering": "Show Unique Rendering",
-  "text.autoconfig.accessories.option.clientData.selectedScreenType": "Selected Screen Type",
-  "text.autoconfig.accessories.option.clientData.showLineRendering": "Show Line Rendering",
-  "text.autoconfig.accessories.option.clientData.forceNullRenderReplacement": "Force Empty Render Replacement",
-  "text.autoconfig.accessories.option.clientData.disableEmptySlotScreenError": "Disable Empty Accessory Screen Error",
 
-  "text.autoconfig.accessories.option.clientData.screenButtonPositions": "Injected Button Positions",
+  "#comment": "Config Related Below",
 
-  "text.autoconfig.accessories.option.clientData.screenButtonPositions.inventoryButtonXOffset": "Inventory Button X Offset",
-  "text.autoconfig.accessories.option.clientData.screenButtonPositions.inventoryButtonYOffset": "Inventory Button Y Offset",
+  "text.config.accessories.title": "Accessories Config",
 
-  "text.autoconfig.accessories.option.clientData.screenButtonPositions.creativeInventoryButtonXOffset": "Creative Inventory Button X Offset",
-  "text.autoconfig.accessories.option.clientData.screenButtonPositions.creativeInventoryButtonYOffset": "Creative Inventory Button Y Offset",
+  "text.config.accessories.category.clientOptions": "Client Options",
+  "text.config.accessories.category.clientOptions.tooltip": [
+    "Contains more generic client side options for rendering or player input"
+  ],
 
-  "text.autoconfig.accessories.option.clientData.experimentalScreenSettings": "Experimental Screen Settings",
-  "text.autoconfig.accessories.option.clientData.experimentalScreenSettings.isDarkMode": "Use Dark mode theme",
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement": "Force Empty Render Replacement",
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement.tooltip": [
+    "Forces any registered render found to be no\n",
+    "rendering to instead use default rendering."
+  ],
 
-  "text.autoconfig.accessories.option.clientData.legacyScreenSettings": "Original Screen Settings",
-  "text.autoconfig.accessories.option.clientData.legacyScreenSettings.showGroupTabs": "Show quick seeking group tabs",
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError": "Disable Empty Accessory Error",
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError.tooltip": [
+    "Disables the error message displayed if the accessories\n",
+    "screen is opened and no used slots were found."
+  ],
 
-  "text.autoconfig.accessories.option.clientData.hoverOptions": "Hover Options",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders": "Disabled Default Rendering",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.tooltip": [
+    "Disables the included default renderer rendering of items if being used."
+  ],
 
-  "text.autoconfig.accessories.option.clientData.hoverOptions.hoveredOptions": "Hovered Options",
+  "text.config.accessories.option.clientOptions.equipControl": "Quick Hand Equip Mode",
+  "text.config.accessories.option.clientOptions.equipControl.tooltip": [
+    "Changes the mode used to quickly equip a stack from your hand."
+  ],
 
-  "text.autoconfig.accessories.option.clientData.hoverOptions.hoveredOptions.brightenHovered": "Brighten Hovered",
-  "text.autoconfig.accessories.option.clientData.hoverOptions.hoveredOptions.cycleBrightness": "Cycle Brightness",
+  "text.config.accessories.enum.playerEquipControl.must_crouch": "Requires Crouch",
+  "text.config.accessories.enum.playerEquipControl.must_not_crouch": "Without Crouch",
+  "text.config.accessories.enum.playerEquipControl.disabled": "Disabled",
 
-  "text.autoconfig.accessories.option.clientData.hoverOptions.hoveredOptions.line": "Draw Line",
+  "text.config.accessories.category.screenOptions": "Screen Options",
+  "text.config.accessories.category.screenOptions.tooltip": [
+    "Contains all screen configuration options for all variants and injected button offset"
+  ],
 
-  "text.autoconfig.accessories.option.clientData.hoverOptions.hoveredOptions.clickbait": "Clickbait",
+  "text.config.accessories.option.screenOptions.selectedScreenType": "Selected Screen Type",
+  "text.config.accessories.option.screenOptions.selectedScreenType.tooltip": [
+    "Used to adjust what screen will be used, none will\n",
+    "bring a prompt for user selection."
+  ],
 
-  "text.autoconfig.accessories.option.clientData.hoverOptions.unHoveredOptions": "UnHovered Options",
-  "text.autoconfig.accessories.option.clientData.hoverOptions.unHoveredOptions.renderUnHovered": "Render UnHovered",
-  "text.autoconfig.accessories.option.clientData.hoverOptions.unHoveredOptions.darkenUnHovered": "Darken UnHovered",
-  "text.autoconfig.accessories.option.clientData.hoverOptions.unHoveredOptions.darkenedBrightness": "Darkened Brightness",
-  "text.autoconfig.accessories.option.clientData.hoverOptions.unHoveredOptions.darkenedOpacity": "Darkened Opacity",
+  "text.config.accessories.enum.screenType.none": "Undecided",
+  "text.config.accessories.enum.screenType.original": "Original",
+  "text.config.accessories.enum.screenType.experimental_v1": "Experimental",
 
-  "text.autoconfig.accessories.option.clientData.disabledDefaultRenders": "Disabled Default Rendering",
+  "text.config.accessories.option.screenOptions.showUnusedSlots": "Show Unused Slots",
+  "text.config.accessories.option.screenOptions.showUnusedSlots.tooltip": "Toggles filtering of unused slots",
 
-  "text.autoconfig.accessories.option.RenderSlotTarget": "Modifier Entry",
-  "text.autoconfig.accessories.option.RenderSlotTarget.slotType": "Slot Name",
-  "text.autoconfig.accessories.option.RenderSlotTarget.targetType": "Render Type",
+  "text.config.accessories.option.screenOptions.allowSlotScrolling": "Allow Screen Slot Scrolling",
+  "text.config.accessories.option.screenOptions.allowSlotScrolling.tooltip": [
+    "Useful if the given mod allows for scrolling stacks\n",
+    "leading to issues when going though accessories."
+  ],
 
-  "text.autoconfig.accessories.option.modifiers": "Slot Amount Modifiers",
-  "text.autoconfig.accessories.option.SlotAmountModifier": "Modifier Entry",
-  "text.autoconfig.accessories.option.SlotAmountModifier.slotType": "Slot Name",
-  "text.autoconfig.accessories.option.SlotAmountModifier.amount": "Offset Amount",
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType": "Show Equipped Stacks Slot Type",
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType.tooltip": [
+    "Shows the given slot type that the given stack is equipped in within its tooltip."
+  ],
 
-  "text.autoconfig.accessories.option.clientData.allowSlotScrolling": "Allow Screen Slot Scrolling",
-  "text.autoconfig.accessories.option.clientData.equipControl": "Accessory from Hand Equip Mode",
+  "text.config.accessories.section.button_offsets": "Injected Button Offsets",
 
-  "argument.livingEntities.nonLiving": "Only living entities may be affected by this command, but the provided selector includes non living entities"
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset": "Inventory Button Offset",
+
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.x": "X Offset",
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.y": "Y Offset",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset": "Creative Inventory Button Offset",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.x": "X Offset",
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.y": "Y Offset",
+
+  "text.config.accessories.section.experimental": "Experimental Screen",
+
+  "text.config.accessories.option.screenOptions.isDarkMode": "Use Dark mode theme",
+  "text.config.accessories.option.screenOptions.isDarkMode.tooltip": [
+    "Changes the theming for the experimental screen to be dark mode."
+  ],
+
+  "text.config.accessories.section.legacy": "Original Screen",
+
+  "text.config.accessories.option.screenOptions.showGroupTabs": "Show quick seeking group tabs",
+  "text.config.accessories.option.screenOptions.showGroupTabs.tooltip": [
+    "Toggles the group tabs within the original screen to be shown or hidden."
+  ],
+
+  "text.config.accessories.section.hover": "Hovered Effects",
+
+  "text.config.accessories.category.screenOptions.hoveredOptions": "Hovered Options",
+  "text.config.accessories.category.screenOptions.hoveredOptions.tooltip": [
+    "Options to control the hovered entry rendering effects."
+  ],
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.brightenHovered": "Brighten Hovered",
+  "text.config.accessories.option.screenOptions.hoveredOptions.cycleBrightness": "Cycle Brightness",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.line": "Draw Line",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.clickbait": "Clickbait",
+
+  "text.config.accessories.category.screenOptions.unHoveredOptions": "UnHovered Options",
+  "text.config.accessories.category.screenOptions.unHoveredOptions.tooltip": [
+    "Options to control the non hovered entries rendering effects."
+  ],
+
+  "text.config.accessories.option.screenOptions.unHoveredOptions.renderUnHovered": "Render UnHovered",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenUnHovered": "Darken UnHovered",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedBrightness": "Darkened Brightness",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedOpacity": "Darkened Opacity",
+
+  "text.config.accessories.option.disabledDefaultRenders": "Disabled Default Renderers",
+  "text.config.accessories.option.disabledDefaultRenders.tooltip": [
+    "Useful to disable default rendering for a given slot either\n",
+    "for specifically block or/and item renderings"
+  ],
+
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.slotType": "Slot",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.targetType": "Type",
+
+  "text.config.accessories.enum.targetType.item": "Item",
+  "text.config.accessories.enum.targetType.block": "Block",
+  "text.config.accessories.enum.targetType.all": "All",
+
+  "text.config.accessories.option.modifiers": "Slot Amount Modifiers",
+  "text.config.accessories.option.modifiers.tooltip": [
+    "Useful to add offset values to a given slot type without\n",
+    "needing a datapack as it allows for both positive or\n",
+    "negative offset value."
+  ],
+
+  "text.config.accessories.option.modifiers.slotType": "Slot",
+  "text.config.accessories.option.modifiers.amount": "Offset"
 }

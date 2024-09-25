@@ -26,6 +26,7 @@
     "client.owo.ScrollContainerMixin",
     "client.owo.OwoReiPluginMixin",
     "client.owo.OwoEmiPluginMixin",
+    "client.owo.ConfigWrapperAccessor",
     "client.AbstractContainerScreenAccessor",
     "client.cosmetic.PlayerMixin",
     "client.cosmetic.MobMixin",

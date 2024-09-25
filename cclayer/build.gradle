@@ -33,7 +33,6 @@ dependencies {
     developmentNeoForge(implementation(project(path: ":common", configuration: "namedElements")))
     localRuntime(compileOnly(project(path: ":neoforge", configuration: "namedElements")))
 
-    modRuntimeOnly("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
     modImplementation("io.wispforest:owo-lib-neoforge:${rootProject.owo_neo_version}")
 
     forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")

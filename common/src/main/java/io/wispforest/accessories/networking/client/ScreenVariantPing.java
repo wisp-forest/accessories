@@ -34,7 +34,7 @@ public record ScreenVariantPing(int entityId, boolean targetLookEntity) implemen
 
     @Override
     public void handle(Player player) {
-        var selectedVariant = AccessoriesMenuVariant.getVariant(Accessories.getConfig().clientData.selectedScreenType);
+        var selectedVariant = AccessoriesMenuVariant.getVariant(Accessories.config().screenOptions.selectedScreenType());
 
         Function<AccessoriesMenuVariant, ScreenOpen> packetBuilder = (menuVariant) -> {
             return new ScreenOpen(targetLookEntity ? -1 : entityId, targetLookEntity, menuVariant);

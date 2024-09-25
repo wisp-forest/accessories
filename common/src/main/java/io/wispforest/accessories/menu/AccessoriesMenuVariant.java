@@ -1,6 +1,7 @@
 package io.wispforest.accessories.menu;
 
 import io.wispforest.accessories.compat.AccessoriesConfig;
+import io.wispforest.accessories.compat.config.ScreenType;
 import io.wispforest.accessories.menu.variants.AccessoriesExperimentalMenu;
 import io.wispforest.accessories.menu.variants.AccessoriesMenu;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
@@ -25,7 +26,7 @@ public enum AccessoriesMenuVariant {
     }
 
     @Nullable
-    public static AccessoriesMenuVariant getVariant(AccessoriesConfig.ScreenType screenType) {
+    public static AccessoriesMenuVariant getVariant(ScreenType screenType) {
         return switch (screenType) {
             case ORIGINAL -> ORIGINAL;
             case EXPERIMENTAL_V1 -> EXPERIMENTAL_V1;

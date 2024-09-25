@@ -42,11 +42,8 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
 
-    modImplementation("me.shedaniel.cloth:cloth-config-fabric:${rootProject.cloth_version}") {
-        exclude(group: "net.fabricmc.fabric-api")
-    }
-
     modImplementation("io.wispforest:owo-lib:${project.owo_version}")
+    include "io.wispforest:owo-sentinel:${project.owo_version}"
 
     modCompileOnly(modLocalRuntime("com.terraformersmc:modmenu:${rootProject.modmenu_version}"))
 

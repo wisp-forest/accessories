@@ -22,9 +22,7 @@ dependencies {
 
     compileOnly annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5")
 
-    modCompileOnly("me.shedaniel.cloth:cloth-config:${rootProject.cloth_version}")
-
-    modImplementation "io.wispforest:owo-lib:${project.owo_version}"
+    modImplementation annotationProcessor("io.wispforest:owo-lib:${project.owo_version}")
 
     modCompileOnly(fabricApi.module("fabric-api-base", rootProject.fabric_api_version)){
         exclude group: "fabric-api"
@@ -36,4 +34,10 @@ dependencies {
     modCompileOnly ("dev.emi:emi-xplat-intermediary:${rootProject.emi_version}:api")
 
     modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-common-api:${rootProject.jei_version}")
+}
+
+sourceSets {
+    main {
+        resources.srcDirs += ["src/generated"]
+    }
 }

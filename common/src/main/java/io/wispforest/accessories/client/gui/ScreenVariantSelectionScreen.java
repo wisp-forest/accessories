@@ -3,6 +3,7 @@ package io.wispforest.accessories.client.gui;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.gui.components.PixelPerfectTextureComponent;
 import io.wispforest.accessories.compat.AccessoriesConfig;
+import io.wispforest.accessories.compat.config.ScreenType;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.owo.ui.base.BaseOwoScreen;
 import io.wispforest.owo.ui.component.Components;
@@ -16,7 +17,7 @@ import java.util.function.Consumer;
 
 public class ScreenVariantSelectionScreen extends BaseOwoScreen<FlowLayout> {
 
-    private AccessoriesConfig.ScreenType screenType = AccessoriesConfig.ScreenType.NONE;
+    private ScreenType screenType = ScreenType.NONE;
 
     private final Consumer<AccessoriesMenuVariant> variantConsumer;
 
@@ -55,7 +56,7 @@ public class ScreenVariantSelectionScreen extends BaseOwoScreen<FlowLayout> {
                                                                         Containers.verticalFlow(Sizing.fixed(120), Sizing.fixed(110))
                                                                                 .child(
                                                                                         Components.button(Component.literal("Original"), btn -> {
-                                                                                                    this.screenType = AccessoriesConfig.ScreenType.ORIGINAL;
+                                                                                                    this.screenType = ScreenType.ORIGINAL;
                                                                                                     setConfigAndOpenScreen();
                                                                                                 })
                                                                                                 .horizontalSizing(Sizing.fixed(80))
@@ -79,7 +80,7 @@ public class ScreenVariantSelectionScreen extends BaseOwoScreen<FlowLayout> {
                                                                         Containers.verticalFlow(Sizing.fixed(120), Sizing.fixed(110))
                                                                                 .child(
                                                                                         Components.button(Component.literal("Experimental"), btn -> {
-                                                                                                    this.screenType = AccessoriesConfig.ScreenType.EXPERIMENTAL_V1;
+                                                                                                    this.screenType = ScreenType.EXPERIMENTAL_V1;
                                                                                                     setConfigAndOpenScreen();
                                                                                                 })
                                                                                                 .horizontalSizing(Sizing.fixed(80))
@@ -116,12 +117,9 @@ public class ScreenVariantSelectionScreen extends BaseOwoScreen<FlowLayout> {
     }
 
     private void setConfigAndOpenScreen() {
-        Accessories.getConfig().clientData.selectedScreenType = this.screenType;
-        Accessories.CONFIG_HOLDER.save();
+        Accessories.config().screenOptions.selectedScreenType(this.screenType);
 
-        if(screenType != AccessoriesConfig.ScreenType.NONE) {
-            this.variantConsumer.accept(AccessoriesMenuVariant.getVariant(this.screenType));
-        }
+        if(screenType != ScreenType.NONE) this.variantConsumer.accept(AccessoriesMenuVariant.getVariant(this.screenType));
 
         this.onClose();
     }

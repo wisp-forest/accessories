@@ -23,9 +23,9 @@ public interface AccessoriesScreenBase {
     MutableBoolean COLLECT_ACCESSORY_POSITIONS = new MutableBoolean(false);
 
     static void togglePositionCollection() {
-        var hoverOptions = Accessories.getConfig().clientData.hoverOptions.hoveredOptions;
+        var hoverOptions = Accessories.config().screenOptions.hoveredOptions;
 
-        COLLECT_ACCESSORY_POSITIONS.setValue(hoverOptions.line || hoverOptions.clickbait);
+        COLLECT_ACCESSORY_POSITIONS.setValue(hoverOptions.line() || hoverOptions.clickbait());
     }
 
     MutableBoolean FORCE_TOOLTIP_LEFT = new MutableBoolean(false);

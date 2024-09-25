@@ -229,7 +229,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     protected List<Component> getTooltipFromContainerItem(ItemStack itemStack) {
         var tooltipData = getTooltipFromItem(this.minecraft, itemStack);
 
-        if (Accessories.getConfig().clientData.experimentalScreenSettings.showEquippedStackSlotType
+        if (Accessories.config().screenOptions.showEquippedStackSlotType()
                 && this.menu.getCarried().isEmpty()
                 && this.hoveredSlot != null
                 && this.hoveredSlot.hasItem()
@@ -265,7 +265,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 var positionKey = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
                 var vec = NOT_VERY_NICE_POSITIONS.getOrDefault(positionKey, null);
 
-                if (!slot.isCosmetic && vec != null && (Accessories.getConfig().clientData.hoverOptions.hoveredOptions.line)) {
+                if (!slot.isCosmetic && vec != null && (Accessories.config().screenOptions.hoveredOptions.line())) {
                     var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
                     var vec3 = vec.add(0, 0, 5000);
 
@@ -280,12 +280,12 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-        if (Accessories.getConfig().clientData.hoverOptions.hoveredOptions.clickbait) {
+        if (Accessories.config().screenOptions.hoveredOptions.clickbait()) {
             ACCESSORY_POSITIONS.forEach(pos -> guiGraphics.blitSprite(Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 450, 256, 256));
             ACCESSORY_POSITIONS.clear();
         }
 
-        if (!ACCESSORY_LINES.isEmpty() || Accessories.getConfig().clientData.hoverOptions.hoveredOptions.line) {
+        if (!ACCESSORY_LINES.isEmpty() || Accessories.config().screenOptions.hoveredOptions.line()) {
             var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
             var lastPose = guiGraphics.pose().last();
 
@@ -567,7 +567,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
                                         context.push();
 
-                                        var BACK_ICON = Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode
+                                        var BACK_ICON = Accessories.config().screenOptions.isDarkMode()
                                                 ? Accessories.of("widget/back_dark")
                                                 : Accessories.of("widget/back");
 
@@ -1038,15 +1038,15 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         baseOptionPanel.child(
                 createConfigComponent("dark_mode_toggle",
-                        () -> Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode,
-                        bl -> Accessories.setAndSaveConfig(config -> config.clientData.experimentalScreenSettings.isDarkMode = bl)
+                        () -> Accessories.config().screenOptions.isDarkMode(),
+                        bl -> Accessories.config().screenOptions.isDarkMode(bl)
                 ),
                 3, 0);
 
         baseOptionPanel.child(
                 createConfigComponent("show_equipped_stack_slot_type",
-                        () -> Accessories.getConfig().clientData.experimentalScreenSettings.showEquippedStackSlotType,
-                        bl -> Accessories.setAndSaveConfig(config -> config.clientData.experimentalScreenSettings.showEquippedStackSlotType = bl)
+                        () -> Accessories.config().screenOptions.showEquippedStackSlotType(),
+                        bl -> Accessories.config().screenOptions.showEquippedStackSlotType(bl)
                 ),
                 3, 1);
 
@@ -1080,7 +1080,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
             case "unused_slots" -> updateToggleButton("unused_slots", this::showUnusedSlots, () -> {
                 this.getMenu().updateUsedSlots();
 
-                Accessories.setAndSaveConfig(config -> config.clientData.showUnusedSlots = this.showUnusedSlots());
+                Accessories.config().screenOptions.showUnusedSlots(this.showUnusedSlots());
 
                 this.rebuildAccessoriesComponent();
             });

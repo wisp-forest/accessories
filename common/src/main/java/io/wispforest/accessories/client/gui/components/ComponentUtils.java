@@ -95,26 +95,26 @@ public class ComponentUtils {
     };
 
     public static ResourceLocation getSlotTexture() {
-        return (Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode) ? DARK_SLOT : SLOT;
+        return Accessories.config().screenOptions.isDarkMode() ? DARK_SLOT : SLOT;
     }
 
     public static Surface getPanelSurface() {
         return (context, component) -> {
-            ((Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode) ? Surface.DARK_PANEL : Surface.PANEL)
+            (Accessories.config().screenOptions.isDarkMode() ? Surface.DARK_PANEL : Surface.PANEL)
                     .draw(context, component);
         };
     }
 
     public static Surface getInsetPanelSurface() {
         return (context, component) -> {
-            ((Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode) ? DARK_PANEL_INSET : Surface.PANEL_INSET)
+            (Accessories.config().screenOptions.isDarkMode() ? DARK_PANEL_INSET : Surface.PANEL_INSET)
                     .draw(context, component);
         };
     }
 
     public static Surface getPanelWithInset(int insetWidth) {
         return (context, component) -> {
-            var location = ((Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode)
+            var location = (Accessories.config().screenOptions.isDarkMode()
                     ? DARK_PANEL_INSET_NINE_PATCH_TEXTURE
                     : OwoUIDrawContext.PANEL_INSET_NINE_PATCH_TEXTURE);
 
@@ -124,14 +124,14 @@ public class ComponentUtils {
 
     public static ButtonComponent.Renderer getButtonRenderer() {
         return (context, button, delta) -> {
-            ((Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode) ? DARK_BUTTON_RENDERER : ButtonComponent.Renderer.VANILLA)
+            (Accessories.config().screenOptions.isDarkMode() ? DARK_BUTTON_RENDERER : ButtonComponent.Renderer.VANILLA)
                     .draw(context, button, delta);
         };
     }
 
     public static ScrollContainer.Scrollbar getScrollbarRenderer() {
         return (context, x, y, width, height, trackX, trackY, trackWidth, trackHeight, lastInteractTime, direction, active) -> {
-            ((Accessories.getConfig().clientData.experimentalScreenSettings.isDarkMode) ? DARK_VANILLA : ScrollContainer.Scrollbar.vanilla())
+            (Accessories.config().screenOptions.isDarkMode() ? DARK_VANILLA : ScrollContainer.Scrollbar.vanilla())
                     .draw(context, x, y, width, height, trackX, trackY, trackWidth, trackHeight, lastInteractTime, direction, active);
         };
     }

@@ -2,21 +2,16 @@ package io.wispforest.accessories.neoforge.client;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
-import me.shedaniel.autoconfig.AutoConfig;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
-import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -31,7 +26,6 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import org.lwjgl.glfw.GLFW;
 
-import javax.sql.ConnectionEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -48,21 +42,21 @@ public class AccessoriesClientForge {
         eventBus.addListener(this::addRenderLayer);
         eventBus.addListener(this::registerShader);
         NeoForge.EVENT_BUS.addListener(this::onJoin);
+
+        AccessoriesClient.initConfigStuff();
     }
 
     public void onJoin(ClientPlayerNetworkEvent.LoggingIn loggingInEvent) {
-        AccessoriesClient.handleConfigChangesSync(Accessories.getConfig());
+        AccessoriesClient.initalConfigDataSync();
     }
 
     public void onInitializeClient(FMLClientSetupEvent event) {
-        AccessoriesClient.init();
-
         NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
         NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::itemTooltipCallback);
 
-        ModLoadingContext.get().registerExtensionPoint(IConfigScreenFactory.class, () -> {
-            return (minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get();
-        });
+//        ModLoadingContext.get().registerExtensionPoint(IConfigScreenFactory.class, () -> {
+//            return (minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get();
+//        });
     }
 
     public void initKeybindings(RegisterKeyMappingsEvent event) {

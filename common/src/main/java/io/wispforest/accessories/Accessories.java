@@ -1,5 +1,7 @@
 package io.wispforest.accessories;
 
+import blue.endless.jankson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
 import io.wispforest.accessories.compat.AccessoriesConfig;
@@ -7,7 +9,11 @@ import io.wispforest.accessories.criteria.AccessoryChangedCriterion;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.menu.ArmorSlotTypes;
 import io.wispforest.accessories.mixin.CriteriaTriggersAccessor;
+import io.wispforest.accessories.mixin.client.owo.ConfigWrapperAccessor;
 import io.wispforest.accessories.networking.client.ScreenVariantPing;
+import io.wispforest.accessories.utils.EndecUtils;
+import io.wispforest.endec.format.jankson.JanksonDeserializer;
+import io.wispforest.endec.format.jankson.JanksonSerializer;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.ConfigHolder;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
@@ -22,6 +28,8 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector2i;
+import org.joml.Vector2ic;
 
 import java.util.function.Consumer;
 
@@ -41,17 +49,24 @@ public class Accessories {
         return Component.translatable(translationKey(path));
     }
 
-    public static AccessoriesConfig getConfig(){
-        if(CONFIG_HOLDER == null) return null;
+    //--
 
-        return CONFIG_HOLDER.getConfig();
+    private static final io.wispforest.accessories.compat.config.AccessoriesConfig CONFIG = io.wispforest.accessories.compat.config.AccessoriesConfig.createAndLoad(builder -> {
+        builder.registerDeserializer(JsonElement.class, Vector2i.class, (jsonElement, m) -> EndecUtils.VECTOR_2_I_ENDEC.decodeFully(JanksonDeserializer::of, jsonElement))
+                .registerSerializer(Vector2i.class, (vector2i, m) -> EndecUtils.VECTOR_2_I_ENDEC.encodeFully(JanksonSerializer::of, vector2i));
+    });
+
+    static {
+        var builder = ((ConfigWrapperAccessor) CONFIG).builder();
+
+        builder.register(EndecUtils.VECTOR_2_I_ENDEC, Vector2i.class);
     }
 
-    public static void setAndSaveConfig(Consumer<AccessoriesConfig> consumer) {
-        consumer.accept(getConfig());
-
-        CONFIG_HOLDER.save();
+    public static io.wispforest.accessories.compat.config.AccessoriesConfig config(){
+        return CONFIG;
     }
+
+    //--
 
     public static void askPlayerForVariant(ServerPlayer player) {
         askPlayerForVariant(player, null);
@@ -87,15 +102,10 @@ public class Accessories {
 
     //--
 
-    @Nullable
-    public static ConfigHolder<AccessoriesConfig> CONFIG_HOLDER = null;
-
     public static AccessoryChangedCriterion ACCESSORY_EQUIPPED;
     public static AccessoryChangedCriterion ACCESSORY_UNEQUIPPED;
 
     public static void init() {
-        CONFIG_HOLDER = AutoConfig.register(AccessoriesConfig.class, JanksonConfigSerializer::new);
-
         AllowEntityModificationCallback.EVENT.register((target, player, reference) -> {
             var type = target.getType();
 

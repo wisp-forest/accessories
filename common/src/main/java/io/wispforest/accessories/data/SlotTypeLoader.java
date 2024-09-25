@@ -12,6 +12,7 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.compat.AccessoriesConfig;
+import io.wispforest.accessories.compat.config.SlotAmountModifier;
 import io.wispforest.accessories.impl.SlotTypeImpl;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -190,7 +191,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
         var tempMap = new HashMap<String, SlotType>();
 
-        for (AccessoriesConfig.SlotAmountModifier modifier : Accessories.getConfig().modifiers) {
+        for (SlotAmountModifier modifier : Accessories.config().modifiers()) {
             var builder = builders.getOrDefault(modifier.slotType, null);
 
             if(builder == null) continue;

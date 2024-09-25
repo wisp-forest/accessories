@@ -7,11 +7,9 @@ import io.wispforest.endec.util.MapCarrier;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.nbt.CompoundTag;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
-import org.joml.AxisAngle4f;
-import org.joml.Matrix4f;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
+import org.joml.*;
 
+import java.lang.Math;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -20,6 +18,8 @@ import java.util.function.Supplier;
 public class EndecUtils {
 
     public static final Endec<TriState> TRI_STATE_ENDEC = Endec.BOOLEAN.nullableOf().xmap(TriState::of, TriState::getBoxed);
+
+    public static final Endec<Vector2i> VECTOR_2_I_ENDEC = StructEndecBuilder.of(Endec.INT.fieldOf("x", Vector2i::x), Endec.INT.fieldOf("yy", Vector2i::y), Vector2i::new);
 
     public static final Endec<Vector3f> VECTOR_3_F_ENDEC = EndecUtils.vectorEndec("Vector3f", Endec.FLOAT, Vector3f::new, Vector3f::x, Vector3f::y, Vector3f::z);
 

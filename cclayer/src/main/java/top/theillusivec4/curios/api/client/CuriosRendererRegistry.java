@@ -83,7 +83,7 @@ public class CuriosRendererRegistry {
   public static Optional<ICurioRenderer> getRenderer(Item item) {
     return Optional.ofNullable(RENDERERS.get(item)).or(() -> {
       return Optional.ofNullable(AccessoriesRendererRegistry.getRender(item)).flatMap(accessoryRenderer -> {
-        if(accessoryRenderer == DefaultAccessoryRenderer.INSTANCE && !Accessories.getConfig().clientData.forceNullRenderReplacement) {
+        if(accessoryRenderer == DefaultAccessoryRenderer.INSTANCE && !Accessories.config().clientOptions.forceNullRenderReplacement()) {
           return Optional.empty();
         }
 

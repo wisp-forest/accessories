@@ -34,10 +34,7 @@ dependencies {
     developmentFabric implementation(project(path: ":common", configuration: "namedElements"))
     localRuntime(project(path: ":fabric", configuration: "namedElements"))
 
-    modImplementation("me.shedaniel.cloth:cloth-config:${rootProject.cloth_version}")
-
     modImplementation("io.wispforest:owo-lib:${project.owo_version}")
-
 
     modLocalRuntime("com.terraformersmc:modmenu:${rootProject.modmenu_version}")
 

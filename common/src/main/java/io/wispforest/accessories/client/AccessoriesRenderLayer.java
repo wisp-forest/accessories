@@ -61,8 +61,6 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
             float netHeadYaw,
             float headPitch
     ) {
-        var highlightOptions = Accessories.getConfig().clientData.hoverOptions;
-
         var capability = AccessoriesCapability.get(entity);
 
         if (capability == null) return;
@@ -96,6 +94,9 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
             selected = slot;
         }
 
+        var unHoveredOptions = Accessories.config().screenOptions.unHoveredOptions;
+        var hoveredOptions = Accessories.config().screenOptions.hoveredOptions;
+
         for (var entry : capability.getContainers().entrySet()) {
 
             var container = entry.getValue();
@@ -114,8 +115,8 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                     var currentOpacity = opacityMap.getOrDefault(entry.getKey() + i, 1f);
 
                     if (selected != null && !isSelected) {
-                        brightnessMap.put(entry.getKey() + i, Math.max(highlightOptions.unHoveredOptions.darkenedBrightness, currentBrightness - increment));
-                        opacityMap.put(entry.getKey() + i, Math.max(highlightOptions.unHoveredOptions.darkenedOpacity, currentOpacity - increment));
+                        brightnessMap.put(entry.getKey() + i, Math.max(unHoveredOptions.darkenedBrightness(), currentBrightness - increment));
+                        opacityMap.put(entry.getKey() + i, Math.max(unHoveredOptions.darkenedOpacity(), currentOpacity - increment));
                     } else {
                         brightnessMap.put(entry.getKey() + i, Math.min(1, currentBrightness + increment));
                         opacityMap.put(entry.getKey() + i, Math.min(1, currentOpacity + increment));
@@ -147,7 +148,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                             multiBufferSource.getBuffer(renderType);
                 };
 
-                if (!AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.getValue() || isSelected || selected == null || highlightOptions.unHoveredOptions.renderUnHovered) {
+                if (!AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.getValue() || isSelected || selected == null || unHoveredOptions.renderUnHovered()) {
                     renderer.render(
                             stack,
                             SlotReference.of(entity, container.getSlotName(), i),
@@ -168,7 +169,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                 if (useCustomerBuffer && bufferedGrabbedFlag.getValue()) {
                     if (multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
-                        if (highlightOptions.hoveredOptions.brightenHovered && isSelected) {
+                        if (hoveredOptions.brightenHovered() && isSelected) {
                             if (calendar.get(Calendar.MONTH) + 1 == 5 && calendar.get(Calendar.DATE) == 16) {
                                 var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
 
@@ -176,10 +177,10 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
                                 colorValues = new float[]{color.getRed() / 128f, color.getGreen() / 128f, color.getBlue() / 128f, 1};
                             } else {
-                                var mul = highlightOptions.hoveredOptions.cycleBrightness ? scale : 1.5f;
+                                var mul = hoveredOptions.cycleBrightness() ? scale : 1.5f;
                                 colorValues = new float[]{mul, mul, mul, 1};
                             }
-                        } else if (highlightOptions.unHoveredOptions.darkenUnHovered) {
+                        } else if (unHoveredOptions.darkenUnHovered()) {
                             var darkness = brightnessMap.getOrDefault(entry.getKey() + i, 1f);
                             colorValues = new float[]{darkness, darkness, darkness, opacityMap.getOrDefault(entry.getKey() + i, 1f)};
                         }

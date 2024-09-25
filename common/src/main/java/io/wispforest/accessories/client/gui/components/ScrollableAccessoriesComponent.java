@@ -152,7 +152,7 @@ public class ScrollableAccessoriesComponent extends FlowLayout implements Access
             if(overMaxSlots) break;
         }
 
-        return new Data(fullAccessoriesLayout, fullCosmeticsLayout, totalRowCount, maxRowCount, alternativeButtonChecks, new Vector2i(minimumWidth, minimumHeight), totalRowCount > 8);
+        return new Data(fullAccessoriesLayout, fullCosmeticsLayout, totalRowCount, maxRowCount, alternativeButtonChecks, new Vector2i(minimumWidth, minimumHeight), totalRowCount > gridSize);
     }
 
     public void build(int minimumWidth, int minimumHeight, boolean showScrollBar) {
@@ -168,7 +168,7 @@ public class ScrollableAccessoriesComponent extends FlowLayout implements Access
 
         if(showScrollBar) {
             innerAccessoriesLayout = new ExtendedScrollContainer<>(ScrollContainer.ScrollDirection.VERTICAL, Sizing.fixed(minimumWidth + 8 + 3), Sizing.fixed(minimumHeight), fullLayout)
-                    .strictMouseScrolling(!Accessories.getConfig().clientData.allowSlotScrolling)
+                    .strictMouseScrolling(!Accessories.config().screenOptions.allowSlotScrolling())
                     .oppositeScrollbar(this.screen.mainWidgetPosition())
                     .scrolledToCallback((container, prevOffset, scrollOffset) -> {
                         if(Objects.equals(prevOffset, scrollOffset)) return;

@@ -145,7 +145,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             return true;
         }
 
-        if (Accessories.getConfig().clientData.legacyScreenSettings.showGroupTabs && this.menu.maxScrollableIndex() > 0) {
+        if (Accessories.config().screenOptions.showGroupTabs() && this.menu.maxScrollableIndex() > 0) {
             int x = getStartingPanelX();
             int y = this.topPos;
 
@@ -270,7 +270,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
                 var positionKey = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
                 var vec = NOT_VERY_NICE_POSITIONS.getOrDefault(positionKey, null);
 
-                if (!slot.isCosmetic && vec != null && (Accessories.getConfig().clientData.hoverOptions.hoveredOptions.line)) {
+                if (!slot.isCosmetic && vec != null && (Accessories.config().screenOptions.hoveredOptions.line())) {
                     var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
                     var vec3 = vec.add(0, 0, 5000);
 
@@ -284,7 +284,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (insideScrollbar(mouseX, mouseY) || (Accessories.getConfig().clientData.allowSlotScrolling && this.hoveredSlot instanceof AccessoriesInternalSlot)) {
+        if (insideScrollbar(mouseX, mouseY) || (Accessories.config().screenOptions.allowSlotScrolling() && this.hoveredSlot instanceof AccessoriesInternalSlot)) {
             int index = (int) Math.max(Math.min(-scrollY + this.menu.scrolledIndex, this.menu.maxScrollableIndex()), 0);
 
             if (index != menu.scrolledIndex) {
@@ -342,7 +342,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         var pose = guiGraphics.pose();
 
-        if (Accessories.getConfig().clientData.legacyScreenSettings.showGroupTabs) {
+        if (Accessories.config().screenOptions.showGroupTabs()) {
             for (var entry : getGroups(x, y).entrySet()) {
                 var group = entry.getKey();
                 var pair = entry.getValue();
@@ -369,14 +369,14 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         //--
 
-        if (Accessories.getConfig().clientData.hoverOptions.hoveredOptions.clickbait) {
+        if (Accessories.config().screenOptions.hoveredOptions.clickbait()) {
             ACCESSORY_POSITIONS.forEach(pos -> guiGraphics.blitSprite(Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 100, 256, 256));
             ACCESSORY_POSITIONS.clear();
         }
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
 
-        if (!ACCESSORY_LINES.isEmpty() && Accessories.getConfig().clientData.hoverOptions.hoveredOptions.line) {
+        if (!ACCESSORY_LINES.isEmpty() && Accessories.config().screenOptions.hoveredOptions.line()) {
             var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
             var lastPose = guiGraphics.pose().last();
 
@@ -698,7 +698,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             }
         }
 
-        if (Accessories.getConfig().clientData.legacyScreenSettings.showGroupTabs) {
+        if (Accessories.config().screenOptions.showGroupTabs()) {
             int panelX = getStartingPanelX();
             int panelY = this.topPos;
 
@@ -738,7 +738,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         boolean insideGroupPanel = false;
 
-        if (Accessories.getConfig().clientData.legacyScreenSettings.showGroupTabs && this.menu.maxScrollableIndex() > 0) {
+        if (Accessories.config().screenOptions.showGroupTabs() && this.menu.maxScrollableIndex() > 0) {
             for (var value : this.getGroups(sidePanelX, sidePanelY).values()) {
                 if (value.isInBounds((int) Math.round(mouseX), (int) Math.round(mouseY))) {
                     insideGroupPanel = true;

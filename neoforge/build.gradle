@@ -43,8 +43,6 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive false }
 
-    modImplementation("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
-
     modImplementation "io.wispforest:owo-lib-neoforge:${rootProject.owo_neo_version}"
 
     forgeRuntimeLibrary(implementation("blue.endless:jankson:1.2.2"))

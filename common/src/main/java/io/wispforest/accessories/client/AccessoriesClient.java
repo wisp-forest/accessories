@@ -6,16 +6,26 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.gui.ScreenVariantSelectionScreen;
 import io.wispforest.accessories.client.gui.components.ComponentUtils;
-import io.wispforest.accessories.compat.AccessoriesConfig;
+import io.wispforest.accessories.compat.config.ScreenType;
+import io.wispforest.accessories.compat.config.client.ExtendedConfigScreen;
+import io.wispforest.accessories.compat.config.client.Structured;
+import io.wispforest.accessories.compat.config.client.components.StructListOptionContainer;
+import io.wispforest.accessories.compat.config.client.components.StructOptionContainer;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
+import io.wispforest.accessories.mixin.client.owo.ConfigWrapperAccessor;
 import io.wispforest.accessories.networking.holder.HolderProperty;
 import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
+import io.wispforest.owo.config.ui.ConfigScreenProviders;
+import io.wispforest.owo.config.ui.OptionComponentFactory;
+import io.wispforest.owo.config.ui.component.OptionValueProvider;
+import io.wispforest.owo.config.ui.component.SearchAnchorComponent;
 import io.wispforest.owo.shader.GlProgram;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.Components;
@@ -24,19 +34,25 @@ import io.wispforest.owo.ui.core.Color;
 import io.wispforest.owo.ui.core.Insets;
 import io.wispforest.owo.ui.core.Sizing;
 import io.wispforest.owo.ui.layers.Layers;
+import io.wispforest.owo.util.NumberReflection;
+import io.wispforest.owo.util.ReflectionUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.phys.EntityHitResult;
+
+import java.util.List;
+import java.util.function.Consumer;
 
 public class AccessoriesClient {
 
@@ -50,20 +66,78 @@ public class AccessoriesClient {
 
     public static boolean IS_PLAYER_INVISIBLE = false;
 
+    public static void initConfigStuff() {
+        ConfigScreenProviders.register(
+                Accessories.MODID,
+                ExtendedConfigScreen.buildFunc(
+                        Accessories.config(),
+                        (config, factoryRegister) -> {
+                            factoryRegister.registerFactory(
+                                    option -> {
+                                        var field = option.backingField().field();
+                                        if (field.getType() != List.class) return false;
+
+                                        var listType = ReflectionUtils.getTypeArgument(field.getGenericType(), 0);
+                                        if (listType == null) return false;
+
+                                        return String.class != listType && !NumberReflection.isNumberType(listType);
+                                    },
+                                    (uiModel, option) -> {
+                                        var layout = new StructListOptionContainer<>(uiModel, option);
+                                        return new OptionComponentFactory.Result<>(layout, layout);
+                                    });
+
+                            var builder = ((ConfigWrapperAccessor) config).builder();
+
+                            factoryRegister.registerFactory(
+                                    option -> option.backingField().field().isAnnotationPresent(Structured.class),
+                                    (model, option) -> {
+                                        var annotationData = option.backingField().field().getAnnotation(Structured.class);
+
+                                        var title = net.minecraft.network.chat.Component.translatable("text.config." + option.configName() + ".option." + option.key().asString());
+                                        var titleLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content());
+                                        titleLayout.padding(Insets.of(5, 5, 5, 0));
+
+                                        title = title.copy().withStyle(ChatFormatting.UNDERLINE);
+                                        titleLayout.child(Components.label(title));
+
+                                        var component = StructOptionContainer.of(model, option, builder, annotationData.sideBySide());
+
+                                        titleLayout.child(new SearchAnchorComponent(
+                                                titleLayout,
+                                                option.key(),
+                                                () -> I18n.get("text.config." + option.configName() + ".option." + option.key().asString()),
+                                                () -> component.parsedValue().toString()
+                                        ));
+
+                                        var mainLayout = Containers.verticalFlow(Sizing.content(), Sizing.content());
+
+                                        mainLayout.child(titleLayout)
+                                                .child(component);
+
+                                        return new OptionComponentFactory.Result<io.wispforest.owo.ui.core.Component, OptionValueProvider>(mainLayout, component);
+                                    });
+                        }));
+
+        Accessories.config().clientOptions.subscribeToEquipControl(value -> {
+            attemptAction(holder -> {
+                if(holder.equipControl() == value) return;
+
+                AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.EQUIP_CONTROL, value));
+            });
+        });
+
+        Accessories.config().screenOptions.subscribeToShowUnusedSlots(value -> {
+            attemptAction(holder -> {
+                if(holder.showUnusedSlots() == value) return;
+
+                AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, value));
+            });
+        });
+    }
+
     public static void init(){
         AccessoriesMenuTypes.registerClientMenuConstructors();
-
-        Accessories.CONFIG_HOLDER.registerSaveListener((manager, data) -> {
-            handleConfigChangesSync(data);
-
-            return InteractionResult.SUCCESS;
-        });
-
-        Accessories.CONFIG_HOLDER.registerLoadListener((manager, data) -> {
-            handleConfigChangesSync(data);
-
-            return InteractionResult.SUCCESS;
-        });
 
         ClientLifecycleEvents.END_DATA_PACK_RELOAD.register((client, success) -> {
             AccessoriesRendererRegistry.onReload();
@@ -74,7 +148,17 @@ public class AccessoriesClient {
         initLayer();
     }
 
-    public static void handleConfigChangesSync(AccessoriesConfig config) {
+    private static void attemptAction(Consumer<AccessoriesHolder> consumer) {
+        var currentPlayer = Minecraft.getInstance().player;
+
+        if (currentPlayer == null || Minecraft.getInstance().level == null) return;
+
+        var holder = currentPlayer.accessoriesHolder();
+
+        if (holder != null) consumer.accept(holder);
+    }
+
+    public static void initalConfigDataSync() {
         var currentPlayer = Minecraft.getInstance().player;
 
         if(currentPlayer == null || Minecraft.getInstance().level == null) return;
@@ -83,12 +167,16 @@ public class AccessoriesClient {
 
         if(holder == null) return;
 
-        if(holder.equipControl() != config.clientData.equipControl) {
-            AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.EQUIP_CONTROL, config.clientData.equipControl));
+        var equipControl = Accessories.config().clientOptions.equipControl();
+
+        if(holder.equipControl() != equipControl) {
+            AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.EQUIP_CONTROL, equipControl));
         }
 
-        if(holder.showUnusedSlots() != config.clientData.showUnusedSlots) {
-            AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, config.clientData.showUnusedSlots));
+        var showUnusedSlots = Accessories.config().screenOptions.showUnusedSlots();
+
+        if(holder.showUnusedSlots() != showUnusedSlots) {
+            AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, showUnusedSlots));
         }
     }
 
@@ -103,10 +191,10 @@ public class AccessoriesClient {
     }
 
     public static boolean attemptToOpenScreen(boolean targetingLookingEntity) {
-        return attemptToOpenScreen(targetingLookingEntity, Accessories.getConfig().clientData.selectedScreenType);
+        return attemptToOpenScreen(targetingLookingEntity, Accessories.config().screenOptions.selectedScreenType());
     }
 
-    private static boolean attemptToOpenScreen(boolean targetingLookingEntity, AccessoriesConfig.ScreenType screenType) {
+    private static boolean attemptToOpenScreen(boolean targetingLookingEntity, ScreenType screenType) {
         var player = Minecraft.getInstance().player;
 
         var selectedVariant = AccessoriesMenuVariant.getVariant(screenType);
@@ -126,7 +214,7 @@ public class AccessoriesClient {
 
             if(holder == null) return false;
 
-            if(slots.isEmpty() && !holder.showUnusedSlots() && !displayUnusedSlotWarning && !Accessories.getConfig().clientData.disableEmptySlotScreenError) {
+            if(slots.isEmpty() && !holder.showUnusedSlots() && !displayUnusedSlotWarning && !Accessories.config().clientOptions.disableEmptySlotScreenError()) {
                 player.displayClientMessage(Component.literal("[Accessories]: No Used Slots found by any mod directly, the screen will show empty unless a item is found to implement slots!"), false);
 
                 displayUnusedSlotWarning = true;
@@ -144,18 +232,15 @@ public class AccessoriesClient {
         return true;
     }
 
-
-
     public static void initLayer() {
         Layers.add(Containers::verticalFlow, instance -> {
             var creativeScreen = instance.screen instanceof CreativeModeInventoryScreen;
 
             instance.adapter.rootComponent.allowOverflow(true);
 
-            var data = Accessories.getConfig().clientData.screenButtonPositions;
-
-            var xOffset = creativeScreen ? data.creativeInventoryButtonXOffset : data.inventoryButtonXOffset;
-            var yOffset = creativeScreen ? data.creativeInventoryButtonYOffset : data.inventoryButtonYOffset;
+            var offset = creativeScreen
+                    ? Accessories.config().screenOptions.creativeInventoryButtonOffset()
+                    : Accessories.config().screenOptions.inventoryButtonOffset();
 
             var button = (ButtonComponent) Components.button(Component.literal(""), (btn) -> AccessoriesClient.attemptToOpenScreen())
                     .renderer((context, btn, delta) -> {
@@ -193,7 +278,7 @@ public class AccessoriesClient {
 
             instance.adapter.rootComponent.child(button);
 
-            instance.alignComponentToHandledScreenCoordinates(button, xOffset, yOffset);
+            instance.alignComponentToHandledScreenCoordinates(button, offset.x, offset.y);
 
         }, InventoryScreen.class, CreativeModeInventoryScreen.class);
     }

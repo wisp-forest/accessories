@@ -40,6 +40,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        AccessoriesClient.initConfigStuff();
         AccessoriesClient.init();
 
         {
@@ -94,7 +95,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
                 }, entityType);
             }
 
-            AccessoriesClient.handleConfigChangesSync(Accessories.getConfig());
+            AccessoriesClient.initalConfigDataSync();
         });
 
         CoreShaderRegistrationCallback.EVENT.register(context -> context.register(Accessories.of("fish"), DefaultVertexFormat.BLIT_SCREEN, shaderInstance -> AccessoriesClient.BLIT_SHADER = shaderInstance));
