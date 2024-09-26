@@ -1,5 +1,6 @@
 package top.theillusivec4.curios.common.capability;
 
+import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -42,7 +43,7 @@ public class CurioInventoryCapability {
 
         Provider(final LivingEntity livingEntity) {
             this.wearer = livingEntity;
-            this.handler = new WrappedCurioItemHandler(() -> (AccessoriesCapabilityImpl) this.wearer.accessoriesCapability());
+            this.handler = new CurioInventoryWrapper(this.wearer);
             this.optional = LazyOptional.of(() -> this.handler);
         }
 
@@ -53,9 +54,7 @@ public class CurioInventoryCapability {
                 deserializeNBT(this.cachedCompoundTag);
             }
 
-            if (CuriosApi.getEntitySlots(this.wearer).isEmpty()) {
-                return LazyOptional.empty();
-            }
+            if (EntitySlotLoader.getEntitySlots(this.wearer).isEmpty()) return LazyOptional.empty();
 
             return CuriosCapability.INVENTORY.orEmpty(capability, this.optional);
         }

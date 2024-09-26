@@ -1,5 +1,6 @@
 package top.theillusivec4.curios.compat;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.*;
@@ -43,12 +44,12 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
         this.capabilitySup = capabilitySup;
     }
 
-    public AccessoriesCapabilityImpl capability() {
+    public Optional<AccessoriesCapabilityImpl> capability() {
         var capability = this.capabilitySup.get();
 
         var cap = capability.entity().getCapability(CuriosCapability.INVENTORY);
 
-        return capability;
+        return Optional.ofNullable(capability);
     }
 
     public static void attemptConversion(Supplier<AccessoriesCapabilityImpl> capability) {
@@ -63,8 +64,16 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
     public Map<String, ICurioStacksHandler> getCurios() {
         var handlers = new HashMap<String, ICurioStacksHandler>();
 
-        this.capability().getContainers()
-                .forEach((s, container) -> handlers.put(CuriosWrappingUtils.accessoriesToCurios(s), new WrappedCurioStackHandler((AccessoriesContainerImpl) container)));
+        var capability = this.capability();
+
+        capability.ifPresentOrElse(cap -> {
+            cap.getContainers()
+                    .forEach((s, container) -> handlers.put(CuriosWrappingUtils.accessoriesToCurios(s), new WrappedCurioStackHandler((AccessoriesContainerImpl) container)));
+        }, () -> {
+            LOGGER.warn("Unable to get the curios handlers from the given entity due to issues with getting the needed capability, expect errors!");
+        });
+
+        if (capability.isEmpty()) return Map.of();
 
         handlers.put("curio", new EmptyCuriosStackHandler("curio"));
 
@@ -86,13 +95,13 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
 
     @Override
     public void reset() {
-        this.capability().reset(false);
+        this.capability().ifPresent(capability -> capability.reset(false));
     }
 
     @Override
     public Optional<ICurioStacksHandler> getStacksHandler(String identifier) {
-        return Optional.ofNullable(this.capability().getContainers().get(identifier))
-                .map(container -> new WrappedCurioStackHandler((AccessoriesContainerImpl) container));
+        return this.capability()
+                .map(capability -> new WrappedCurioStackHandler((AccessoriesContainerImpl) capability.getContainers().get(identifier)));
     }
 
     @Override
@@ -112,8 +121,11 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
 
     @Override
     public void setEquippedCurio(String identifier, int index, ItemStack stack) {
-        Optional.ofNullable(this.capability().getContainers().get(identifier))
-                .ifPresent(container -> container.getAccessories().setItem(index, stack));
+        this.capability().ifPresent(capability -> {
+            var container = capability.getContainers().get(identifier);
+
+            if (container != null) container.getAccessories().setItem(index, stack);
+        });
     }
 
     @Override
@@ -123,7 +135,8 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
 
     @Override
     public Optional<SlotResult> findFirstCurio(Predicate<ItemStack> filter) {
-        return Optional.ofNullable(this.capability().getFirstEquipped(filter))
+        return this.capability()
+                .map(capability -> capability.getFirstEquipped(filter))
                 .map(entry -> new SlotResult(CuriosWrappingUtils.create(entry.reference()), entry.stack()));
     }
 
@@ -134,8 +147,9 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
 
     @Override
     public List<SlotResult> findCurios(Predicate<ItemStack> filter) {
-        return this.capability().getEquipped(filter)
+        return this.capability()
                 .stream()
+                .flatMap(capability -> capability.getEquipped(filter).stream())
                 .map(entry -> new SlotResult(CuriosWrappingUtils.create(entry.reference()), entry.stack()))
                 .toList();
     }
@@ -144,7 +158,11 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
     public List<SlotResult> findCurios(String... identifiers) {
         var containerIds = Set.of(identifiers);
 
-        return this.capability().getContainers().entrySet().stream()
+        var capability = this.capability();
+
+        if (capability.isEmpty()) return List.of();
+
+        return capability.get().getContainers().entrySet().stream()
                 .filter(entry -> containerIds.contains(entry.getKey()))
                 .map(entry -> {
                     var container = entry.getValue();
@@ -175,19 +193,21 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
 
     @Override
     public Optional<SlotResult> findCurio(String identifier, int index) {
-        return Optional.ofNullable(this.capability().getContainers().get(identifier))
+        var capability = this.capability();
+
+        return capability.map(cap -> cap.getContainers().get(identifier))
                 .flatMap(container -> {
                     var stack = container.getAccessories().getItem(index);
 
                     if (stack.isEmpty()) return Optional.empty();
 
-                    return Optional.of(new SlotResult(new SlotContext(identifier, this.capability().entity(), 0, false, true), stack));
+                    return Optional.of(new SlotResult(new SlotContext(identifier, capability.get().entity(), 0, false, true), stack));
                 });
     }
 
     @Override
     public LivingEntity getWearer() {
-        return this.capability().entity();
+        return this.capability().get().entity();
     }
 
     @Override
@@ -215,40 +235,56 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
 
     @Override
     public void addTransientSlotModifiers(Multimap<String, AttributeModifier> modifiers) {
-        this.capability().addTransientSlotModifiers(modifiers);
+        this.capability().ifPresentOrElse(
+                capability -> capability.addTransientSlotModifiers(modifiers),
+                () -> LOGGER.warn("Unable to get the curios handlers from the given entity due to issues with getting the needed capability, expect errors!"));
     }
 
     @Override
     public void addPermanentSlotModifiers(Multimap<String, AttributeModifier> modifiers) {
-        this.capability().addPersistentSlotModifiers(modifiers);
+        this.capability().ifPresentOrElse(
+                capability -> capability.addPersistentSlotModifiers(modifiers),
+                () -> LOGGER.warn("Unable to get the curios handlers from the given entity due to issues with getting the needed capability, expect errors!"));
     }
 
     @Override
     public void removeSlotModifiers(Multimap<String, AttributeModifier> modifiers) {
-        this.capability().removeSlotModifiers(modifiers);
+        this.capability().ifPresentOrElse(
+                capability -> capability.removeSlotModifiers(modifiers),
+                () -> LOGGER.warn("Unable to get the curios handlers from the given entity due to issues with getting the needed capability, expect errors!"));
     }
 
     @Override
     public void clearSlotModifiers() {
-        this.capability().clearSlotModifiers();
+        this.capability().ifPresentOrElse(
+                capability -> capability.clearSlotModifiers(),
+                () -> LOGGER.warn("Unable to get the curios handlers from the given entity due to issues with getting the needed capability, expect errors!"));
     }
 
     @Override
     public Multimap<String, AttributeModifier> getModifiers() {
-        return this.capability().getSlotModifiers();
+        return this.capability().map(capability -> capability.getSlotModifiers()).orElseGet(() -> {
+            LOGGER.warn("Unable to get the curios handlers from the given entity due to issues with getting the needed capability, expect errors!");
+
+            return HashMultimap.create();
+        });
     }
 
     @Override
     public ListTag saveInventory(boolean clear) {
-        var compound = new CompoundTag();
-
-        ((AccessoriesHolderImpl) this.capability().getHolder())
-                .write(new NbtMapCarrier(compound), SerializationContext.empty());
-
         var outerCompound = new CompoundTag();
 
-        outerCompound.put("main_data", compound);
-        outerCompound.putBoolean("is_accessories_data", true);
+        var capability = this.capability();
+
+        if (capability.isPresent()) {
+            var compound = new CompoundTag();
+
+            ((AccessoriesHolderImpl) capability.get().getHolder())
+                    .write(new NbtMapCarrier(compound), SerializationContext.empty());
+
+            outerCompound.put("main_data", compound);
+            outerCompound.putBoolean("is_accessories_data", true);
+        }
 
         var list = new ListTag();
 
@@ -262,11 +298,15 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
         var compound = data.getCompound(0);
 
         try {
-            if (compound.contains("is_accessories_data")) {
-                ((AccessoriesHolderImpl) this.capability().getHolder())
-                        .read(new NbtMapCarrier(compound), SerializationContext.empty());
-            } else {
-                CurioInventory.readData(this.getWearer(), this.capability(), data);
+            var capability = this.capability();
+
+            if (capability.isPresent()) {
+                if (compound.contains("is_accessories_data")) {
+                    ((AccessoriesHolderImpl) capability.get().getHolder())
+                            .read(new NbtMapCarrier(compound), SerializationContext.empty());
+                } else {
+                    CurioInventory.readData(this.getWearer(), capability.get(), data);
+                }
             }
         } catch (Exception e) {
             LOGGER.error("Unable to load a wrapped curio inventory as a error occurred, it will not be loaded!", e);
@@ -284,7 +324,7 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
 
     @Override
     public void clearCachedSlotModifiers() {
-        this.capability().clearCachedSlotModifiers();
+        this.capability().ifPresent(AccessoriesCapabilityImpl::clearCachedSlotModifiers);
     }
 
     @Override
