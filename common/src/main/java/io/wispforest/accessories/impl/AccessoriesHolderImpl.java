@@ -37,7 +37,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
     //-- Logical Stuff
 
-    private PlayerEquipControl equipControl = PlayerEquipControl.MUST_CROUCH;
+    private PlayerEquipControl equipControl = PlayerEquipControl.MUST_NOT_CROUCH;
 
     //--
 
