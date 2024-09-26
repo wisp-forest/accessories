@@ -33,6 +33,8 @@ public class AccessoriesConfig implements ConfigData {
 
         public boolean allowSlotScrolling = true;
 
+        public boolean showUnusedSlots = false;
+
         public PlayerEquipControl equipControl = PlayerEquipControl.MUST_NOT_CROUCH;
 
         @ConfigEntry.Gui.CollapsibleObject()

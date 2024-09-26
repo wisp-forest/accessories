@@ -89,7 +89,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         BuiltInRegistries.ITEM.forEach(item -> {
             var stack = item.getDefaultInstance();
 
-            var validSlots = AccessoriesAPI.getStackSlotTypes(living, stack);
+            var validSlots = AccessoriesAPI.getStackSlotTypes(living.level(), stack);
 
             validSlotTypes.addAll(validSlots);
         });

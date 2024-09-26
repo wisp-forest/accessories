@@ -2,7 +2,6 @@ package io.wispforest.accessories.neoforge.client;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.accessories.compat.AccessoriesConfig;
@@ -12,20 +11,12 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
-import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ConfigScreenHandler;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.event.RegisterShadersEvent;
+import net.minecraftforge.client.event.*;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -34,10 +25,8 @@ import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import org.lwjgl.glfw.GLFW;
 
-import javax.sql.ConnectionEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -55,7 +44,6 @@ public class AccessoriesClientForge {
         MinecraftForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
         MinecraftForge.EVENT_BUS.addListener(AccessoriesClientForge::itemTooltipCallback);
         MinecraftForge.EVENT_BUS.addListener(AccessoriesClientForge::onJoin);
-
 
         ModLoadingContext.get().registerExtensionPoint(
                 ConfigScreenHandler.ConfigScreenFactory.class,
