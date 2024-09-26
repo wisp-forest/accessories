@@ -101,7 +101,10 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
     @Override
     public Optional<ICurioStacksHandler> getStacksHandler(String identifier) {
         return this.capability()
-                .map(capability -> new WrappedCurioStackHandler((AccessoriesContainerImpl) capability.getContainers().get(identifier)));
+                .flatMap(capability -> {
+                    return Optional.ofNullable((AccessoriesContainerImpl) capability.getContainers().get(identifier))
+                            .map(WrappedCurioStackHandler::new);
+                });
     }
 
     @Override
@@ -136,7 +139,7 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
     @Override
     public Optional<SlotResult> findFirstCurio(Predicate<ItemStack> filter) {
         return this.capability()
-                .map(capability -> capability.getFirstEquipped(filter))
+                .flatMap(capability -> Optional.ofNullable(capability.getFirstEquipped(filter)))
                 .map(entry -> new SlotResult(CuriosWrappingUtils.create(entry.reference()), entry.stack()));
     }
 
@@ -195,7 +198,8 @@ public class WrappedCurioItemHandler implements ICuriosItemHandler {
     public Optional<SlotResult> findCurio(String identifier, int index) {
         var capability = this.capability();
 
-        return capability.map(cap -> cap.getContainers().get(identifier))
+        return capability
+                .flatMap(cap -> Optional.ofNullable(cap.getContainers().get(identifier)))
                 .flatMap(container -> {
                     var stack = container.getAccessories().getItem(index);
 
