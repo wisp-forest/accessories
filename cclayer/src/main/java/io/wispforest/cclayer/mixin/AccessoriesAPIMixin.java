@@ -36,38 +36,6 @@ import java.util.*;
 
 @Mixin(value = AccessoriesAPI.class, remap = false)
 public abstract class AccessoriesAPIMixin {
-
-    @Inject(method = "getUsedSlotsFor(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/Container;)Ljava/util/Collection;",
-            at = @At(value = "INVOKE", target = "Lio/wispforest/accessories/data/SlotTypeLoader;getSlotTypes(Lnet/minecraft/world/level/Level;)Ljava/util/Map;"))
-    private static void cacheTrinketTags(LivingEntity entity, Container container, CallbackInfoReturnable<Collection<SlotType>> cir, @Share("curiosTags") LocalRef<Set<TagKey<Item>>> curiosTagsRef) {
-        var curiosTags = new HashSet<TagKey<Item>>();
-
-        BuiltInRegistries.ITEM.getTagNames().forEach(itemTagKey -> {
-            if(!itemTagKey.location().getNamespace().equals(CuriosConstants.MOD_ID)) return;
-
-            curiosTags.add(itemTagKey);
-        });
-
-        curiosTagsRef.set(curiosTags);
-    }
-
-    @ModifyReceiver(method = "getUsedSlotsFor(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/Container;)Ljava/util/Collection;",
-            at = @At(value = "INVOKE", target = "Ljava/util/Optional;orElse(Ljava/lang/Object;)Ljava/lang/Object;"))
-    private static Optional<Boolean> checkTrinketTags(Optional<Boolean> optional, Object object, @Local SlotType slotType, @Share("curiosTags") LocalRef<Set<TagKey<Item>>> curiosTagsRef) {
-        for (var itemTagKey : curiosTagsRef.get()) {
-            var accessoryVersion = CuriosWrappingUtils.curiosToAccessories(itemTagKey.location().getPath());
-
-            if((accessoryVersion.equals(slotType.name())) && !BuiltInRegistries.ITEM.getTag(itemTagKey).isEmpty()) {
-                //System.out.println("Match: " + slotType.name() + " - Tag: " + itemTagKey + " / " + "Path: " + filterPath + " / " + accessoryVersion);
-                return Optional.of(true);
-            } /*else {
-                System.out.println("Mismatch: " + slotType.name() + " - Tag: " + itemTagKey + " / " + "Path: " + filterPath + " / " + accessoryVersion);
-            }*/
-        }
-
-        return optional;
-    }
-
     @Inject(method = "getAttributeModifiers(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/LivingEntity;Ljava/lang/String;IZ)Lio/wispforest/accessories/api/attributes/AccessoryAttributeBuilder;", at = @At("RETURN"))
     private static void trinkets$getDataAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot, boolean hideTooltipIfDisabled, CallbackInfoReturnable<AccessoryAttributeBuilder> cir) {
         Multimap<Attribute, AttributeModifier> multimap = LinkedHashMultimap.create();
@@ -119,5 +87,4 @@ public abstract class AccessoriesAPIMixin {
 
         multimap.forEach(builder::addExclusive);
     }
-
 }
