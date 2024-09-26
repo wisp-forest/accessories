@@ -42,7 +42,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
     private boolean linesShown = false;
 
-    private PlayerEquipControl equipControl = PlayerEquipControl.MUST_CROUCH;
+    private PlayerEquipControl equipControl = PlayerEquipControl.MUST_NOT_CROUCH;
 
     private MapCarrier carrier;
     protected boolean loadedFromTag = false;
