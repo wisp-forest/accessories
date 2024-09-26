@@ -87,9 +87,13 @@ public class AttributeUtils {
     );
 
     public static ResourceLocation getLocation(String name) {
-        var location = ResourceLocation.tryParse(name);
+        var safeName = name.toLowerCase()
+                .replace(" ", "_")
+                .replaceAll("(?![a-z0-9/._-]).|\n", "");
 
-        if(location == null) location = Accessories.of(name);
+        var location = ResourceLocation.tryParse(safeName);
+
+        if (location == null) location = Accessories.of(safeName);
 
         return location;
     }
