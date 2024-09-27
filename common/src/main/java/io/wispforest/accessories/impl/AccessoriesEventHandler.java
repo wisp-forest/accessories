@@ -60,6 +60,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static io.wispforest.accessories.Accessories.ACCESSORY_EQUIPPED;
@@ -561,7 +562,7 @@ public class AccessoriesEventHandler {
             if (!defaultModifiers.isEmpty()) {
                 var attributeTooltip = new ArrayList<Component>();
 
-                addAttributeTooltip(entity, defaultModifiers.getAttributeModifiers(false), attributeTooltip);
+                addAttributeTooltip(entity, stack, defaultModifiers.getAttributeModifiers(false), attributeTooltip, tooltipContext, tooltipType);
 
                 slotTypeToTooltipInfo.put(null, attributeTooltip);
             }
@@ -574,7 +575,7 @@ public class AccessoriesEventHandler {
 
                 var attributeTooltip = new ArrayList<Component>();
 
-                addAttributeTooltip(entity, modifiers.getAttributeModifiers(false), attributeTooltip);
+                addAttributeTooltip(entity, stack, modifiers.getAttributeModifiers(false), attributeTooltip, tooltipContext, tooltipType);
 
                 slotTypeToTooltipInfo.put(slotType, attributeTooltip);
             }
@@ -645,16 +646,10 @@ public class AccessoriesEventHandler {
         }
     }
 
-    private static void addAttributeTooltip(LivingEntity entity, Multimap<Holder<Attribute>, AttributeModifier> multimap, List<Component> tooltip) {
+    private static void addAttributeTooltip(LivingEntity entity, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, List<Component> tooltip, Item.TooltipContext context, TooltipFlag flag) {
         if (multimap.isEmpty()) return;
 
-        for (Map.Entry<Holder<Attribute>, AttributeModifier> entry : multimap.entries()) {
-            ((ItemStackAccessor) (Object) ItemStack.EMPTY).accessories$addModifierTooltip(
-                    tooltip::add,
-                    (entity instanceof Player player ? player : null),
-                    entry.getKey(),
-                    entry.getValue());
-        }
+        AccessoriesInternals.addAttributeTooltips((entity instanceof Player player ? player : null), stack, multimap, tooltip::add, context, flag);
     }
 
     public static void onDeath(LivingEntity entity, DamageSource source) {

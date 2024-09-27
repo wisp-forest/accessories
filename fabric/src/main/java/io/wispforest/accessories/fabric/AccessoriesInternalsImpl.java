@@ -1,5 +1,6 @@
 package io.wispforest.accessories.fabric;
 
+import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.ArgumentType;
 import io.wispforest.accessories.api.AccessoriesHolder;
@@ -7,6 +8,7 @@ import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
+import io.wispforest.accessories.mixin.ItemStackAccessor;
 import io.wispforest.accessories.networking.base.BaseNetworkHandler;
 import io.wispforest.endec.Endec;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
@@ -29,15 +31,20 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.tags.TagManager;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -138,5 +145,11 @@ public class AccessoriesInternalsImpl {
                 return AccessoriesMenuVariant.openMenu(i, inventory, variant, targetEntity, carriedStack);
             }
         });
+    }
+
+    public static void addAttributeTooltips(@Nullable Player player, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, Consumer<Component> tooltipAddCallback, Item.TooltipContext context, TooltipFlag flag) {
+        for (Map.Entry<Holder<Attribute>, AttributeModifier> entry : multimap.entries()) {
+            ((ItemStackAccessor) (Object) ItemStack.EMPTY).accessories$addModifierTooltip(tooltipAddCallback, player, entry.getKey(), entry.getValue());
+        }
     }
 }
