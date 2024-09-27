@@ -652,10 +652,11 @@ public class AccessoriesEventHandler {
         AccessoriesInternals.addAttributeTooltips((entity instanceof Player player ? player : null), stack, multimap, tooltip::add, context, flag);
     }
 
-    public static void onDeath(LivingEntity entity, DamageSource source) {
+    @Nullable
+    public static Collection<ItemStack> onDeath(LivingEntity entity, DamageSource source) {
         var capability = AccessoriesCapability.get(entity);
 
-        if (capability == null) return;
+        if (capability == null) return List.of();
 
         var droppedStacks = new ArrayList<ItemStack>();
 
@@ -682,15 +683,9 @@ public class AccessoriesEventHandler {
 
         var result = OnDeathCallback.EVENT.invoker().shouldDrop(TriState.DEFAULT, entity, capability, source, droppedStacks);
 
-        if (!result.orElse(true)) return;
+        if (!result.orElse(true)) return null;
 
-        for (var droppedStack : droppedStacks) {
-            if (entity instanceof Player player) {
-                player.drop(droppedStack, true);
-            } else {
-                entity.spawnAtLocation(droppedStack);
-            }
-        }
+        return droppedStacks;
     }
 
     @Nullable
