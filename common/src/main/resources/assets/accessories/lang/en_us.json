@@ -4,6 +4,7 @@
   "accessories.cosmetic_slot.tooltip.singular": "Cosmetic Slot: ",
   "accessories.cosmetic_slot.tooltip.plural": "Cosmetic Slots: ",
   "accessories.slot.any": "Any",
+  "accessories.slot.except": " except ",
   "accessories.tooltip.attributes.any": "When Equipped:",
   "accessories.tooltip.attributes.slot": "When Equipped in %s:",
   "accessories.tooltip.currently_equipped_in": "Equipped in: ",

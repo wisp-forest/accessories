@@ -471,7 +471,7 @@ public class AccessoriesEventHandler {
 
                 if (invalidSlotsTypes.size() < validSlotTypes.size()) {
                     slotsComponent.append(Component.translatable(Accessories.translationKey("slot.any")));
-                    slotsComponent.append(Component.literal(" except ").withStyle(ChatFormatting.GRAY));
+                    slotsComponent.append(Component.translatable(Accessories.translationKey("slot.except")).withStyle(ChatFormatting.GRAY));
 
                     var invalidSlotsItr = invalidSlotsTypes.iterator();
 
