@@ -51,6 +51,7 @@ dependencies {
 
     forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")
     forgeRuntimeLibrary("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
+    forgeRuntimeLibrary("io.wispforest.endec:jankson:${rootProject.endec_jankson_version}")
     forgeRuntimeLibrary("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
 
     testmodImplementation sourceSets.main.output

@@ -26,7 +26,7 @@ subprojects {
     dependencies {
         minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
         // The following line declares the mojmap mappings, you may use other mappings as well
-        if(!name.equals("common-mojmap")) {
+        if (!name.equals("common-mojmap")) {
             mappings loom.layered() {
                 officialMojangMappings()
                 parchment("org.parchmentmc.data:parchment-1.21:2024.07.28@zip")
@@ -35,14 +35,16 @@ subprojects {
             mappings loom.officialMojangMappings()
         }
 
-        if(!(project.name.contains("common") || project.name.contains("cclayer") || project.name.contains("tclayer"))) {
+        if (!(project.name.contains("common") || project.name.contains("cclayer") || project.name.contains("tclayer"))) {
             include("io.wispforest:endec:${rootProject.endec_version}")
             include("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
+            include("io.wispforest.endec:jankson:${rootProject.endec_jankson_version}")
             include("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
         }
 
         implementation("io.wispforest:endec:${rootProject.endec_version}")
         implementation("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
+        implementation("io.wispforest.endec:jankson:${rootProject.endec_jankson_version}")
         implementation("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
     }
 }
