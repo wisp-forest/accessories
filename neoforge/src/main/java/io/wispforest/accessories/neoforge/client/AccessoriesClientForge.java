@@ -6,8 +6,10 @@ import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
+import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
@@ -37,6 +39,7 @@ public class AccessoriesClientForge {
     public static KeyMapping OPEN_SCREEN;
 
     public AccessoriesClientForge(final IEventBus eventBus) {
+        eventBus.addListener(this::registerMenuType);
         eventBus.addListener(this::onInitializeClient);
         eventBus.addListener(this::initKeybindings);
         eventBus.addListener(this::addRenderLayer);
@@ -44,6 +47,10 @@ public class AccessoriesClientForge {
         NeoForge.EVENT_BUS.addListener(this::onJoin);
 
         AccessoriesClient.initConfigStuff();
+    }
+
+    public void registerMenuType(RegisterMenuScreensEvent event) {
+        AccessoriesMenuTypes.registerClientMenuConstructors(event::register);
     }
 
     public void onJoin(ClientPlayerNetworkEvent.LoggingIn loggingInEvent) {
@@ -57,6 +64,8 @@ public class AccessoriesClientForge {
 //        ModLoadingContext.get().registerExtensionPoint(IConfigScreenFactory.class, () -> {
 //            return (minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get();
 //        });
+
+        AccessoriesClient.init();
     }
 
     public void initKeybindings(RegisterKeyMappingsEvent event) {

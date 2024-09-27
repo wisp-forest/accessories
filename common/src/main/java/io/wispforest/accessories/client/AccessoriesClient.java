@@ -137,8 +137,6 @@ public class AccessoriesClient {
     }
 
     public static void init(){
-        AccessoriesMenuTypes.registerClientMenuConstructors();
-
         ClientLifecycleEvents.END_DATA_PACK_RELOAD.register((client, success) -> {
             AccessoriesRendererRegistry.onReload();
         });

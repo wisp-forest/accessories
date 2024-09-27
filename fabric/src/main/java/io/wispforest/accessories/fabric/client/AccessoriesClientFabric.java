@@ -9,6 +9,7 @@ import io.wispforest.accessories.fabric.AccessoriesFabric;
 import io.wispforest.accessories.fabric.AccessoriesFabricNetworkHandler;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
+import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.base.HandledPacketPayload;
 import io.wispforest.accessories.networking.base.PacketBuilderConsumer;
 import io.wispforest.endec.Endec;
@@ -23,11 +24,13 @@ import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRe
 import net.fabricmc.fabric.api.event.Event;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.inventory.MenuType;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -42,6 +45,8 @@ public class AccessoriesClientFabric implements ClientModInitializer {
     public void onInitializeClient() {
         AccessoriesClient.initConfigStuff();
         AccessoriesClient.init();
+
+        AccessoriesMenuTypes.registerClientMenuConstructors(MenuScreens::register);
 
         {
             var afterOthers = Accessories.of("accessories_after_others");

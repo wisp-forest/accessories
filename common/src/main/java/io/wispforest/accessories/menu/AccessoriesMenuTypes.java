@@ -2,13 +2,15 @@ package io.wispforest.accessories.menu;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.AccessoriesInternalsClient;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.menu.variants.AccessoriesExperimentalMenu;
 import io.wispforest.accessories.menu.variants.AccessoriesMenu;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
@@ -29,8 +31,12 @@ public class AccessoriesMenuTypes {
     }
 
     @Environment(EnvType.CLIENT)
-    public static void registerClientMenuConstructors() {
-        AccessoriesInternalsClient.registerMenuConstructor(AccessoriesMenuTypes.ORIGINAL_MENU, AccessoriesScreen::new);
-        AccessoriesInternalsClient.registerMenuConstructor(AccessoriesMenuTypes.EXPERIMENTAL_MENU, AccessoriesExperimentalScreen::new);
+    public static <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void registerClientMenuConstructors(MenuRegisterCallback callback) {
+        callback.register(AccessoriesMenuTypes.ORIGINAL_MENU, AccessoriesScreen::new);
+        callback.register(AccessoriesMenuTypes.EXPERIMENTAL_MENU, AccessoriesExperimentalScreen::new);
+    }
+
+    public interface MenuRegisterCallback {
+        <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void register(MenuType<? extends M> type, MenuScreens.ScreenConstructor<M, U> factory);
     }
 }
