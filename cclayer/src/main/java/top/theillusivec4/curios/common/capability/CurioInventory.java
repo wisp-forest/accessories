@@ -3,6 +3,7 @@ package top.theillusivec4.curios.common.capability;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
@@ -62,6 +63,16 @@ public class CurioInventory implements INBTSerializable<CompoundTag> {
             ((AccessoriesHolderImpl) capability.getHolder()).invalidStacks
                     .addAll(deserializeNBT_StackHandler(livingEntity, container, tag.getCompound("StacksHandler")));
         }
+
+        var invalidStacks = ((AccessoriesHolderImpl) capability.getHolder()).invalidStacks;
+
+        for (var entryRef : capability.getAllEquipped()) {
+            if (AccessoriesAPI.canInsertIntoSlot(entryRef.stack(), entryRef.reference())) continue;
+
+            invalidStacks.add(entryRef.stack().copy());
+
+            entryRef.reference().setStack(ItemStack.EMPTY);
+        }
     }
 
     private static List<ItemStack> deserializeNBT_StackHandler(LivingEntity livingEntity, @Nullable AccessoriesContainer container, CompoundTag nbt){
@@ -96,10 +107,6 @@ public class CurioInventory implements INBTSerializable<CompoundTag> {
                     var currentStack = accessories.getItem(i);
 
                     if (!currentStack.isEmpty()) continue;
-
-                    var ref = container.createReference(i);
-
-                    if (!AccessoriesAPI.canInsertIntoSlot(stack, ref)) continue;
 
                     accessories.setItem(i, stack.copy());
 

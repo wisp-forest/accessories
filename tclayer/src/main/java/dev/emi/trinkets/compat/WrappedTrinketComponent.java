@@ -146,70 +146,79 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
 
     @Override
     public void readFromNbt(CompoundTag tag) {
+        var holder = this.capability().getHolder();
         if(tag.getBoolean("is_accessories_data")) {
-            ((AccessoriesHolderImpl)this.capability().getHolder())
+            ((AccessoriesHolderImpl)holder)
                     .read(new NbtMapCarrier(tag.getCompound("main_data")), SerializationContext.empty());
-        } else {
-            var dropped = new ArrayList<ItemStack>();
 
-            for (var groupKey : tag.getAllKeys()) {
-                var groupTag = tag.getCompound(groupKey);
+            return;
+        }
 
-                for (var slotKey : groupTag.getAllKeys()) {
-                    var slotTag = groupTag.getCompound(slotKey);
+        var dropped = new ArrayList<ItemStack>();
 
-                    var slotName = WrappingTrinketsUtils.trinketsToAccessories_Slot(Optional.of(groupKey), slotKey);
+        for (var groupKey : tag.getAllKeys()) {
+            var groupTag = tag.getCompound(groupKey);
 
-                    var slotType = SlotTypeLoader.getSlotType(this.getEntity().level(), slotName);
+            for (var slotKey : groupTag.getAllKeys()) {
+                var slotTag = groupTag.getCompound(slotKey);
 
-                    var list = slotTag.getList("Items", NbtType.COMPOUND)
-                            .stream()
-                            .map(tagEntry -> ItemStack.of((tagEntry instanceof CompoundTag compoundTag) ? compoundTag : new CompoundTag()))
-                            .toList();
+                var slotName = WrappingTrinketsUtils.trinketsToAccessories_Slot(Optional.of(groupKey), slotKey);
 
-                    if (slotType == null) {
-                        dropped.addAll(list);
+                var slotType = SlotTypeLoader.getSlotType(this.getEntity().level(), slotName);
 
-                        continue;
+                var list = slotTag.getList("Items", NbtType.COMPOUND)
+                        .stream()
+                        .map(tagEntry -> ItemStack.of((tagEntry instanceof CompoundTag compoundTag) ? compoundTag : new CompoundTag()))
+                        .toList();
+
+                if (slotType == null) {
+                    dropped.addAll(list);
+
+                    continue;
+                }
+
+                var container = this.capability().getContainer(slotType);
+
+                if (container == null) {
+                    dropped.addAll(list);
+
+                    System.out.println("Unable to handle the given slotType as a container did not exist");
+
+                    continue;
+                }
+
+                var accessories = container.getAccessories();
+
+                for (var stack : list) {
+                    boolean consumedStack = false;
+
+                    for (int i = 0; i < accessories.getContainerSize() && !consumedStack; i++) {
+                        var currentStack = accessories.getItem(i);
+
+                        if (!currentStack.isEmpty()) continue;
+
+                        accessories.setItem(i, stack.copy());
+
+                        consumedStack = true;
                     }
 
-                    var container = this.capability().getContainer(slotType);
-
-                    if (container == null) {
-                        dropped.addAll(list);
-
-                        System.out.println("Unable to handle the given slotType as a container did not exist");
-
-                        continue;
-                    }
-
-                    var accessories = container.getAccessories();
-
-                    for (var stack : list) {
-                        boolean consumedStack = false;
-
-                        for (int i = 0; i < accessories.getContainerSize() && !consumedStack; i++) {
-                            var currentStack = accessories.getItem(i);
-
-                            if (!currentStack.isEmpty()) continue;
-
-                            var ref = io.wispforest.accessories.api.slot.SlotReference.of(this.getEntity(), slotName, i);
-
-                            if (!AccessoriesAPI.canInsertIntoSlot(stack, ref)) continue;
-
-                            accessories.setItem(i, stack.copy());
-
-                            consumedStack = true;
-                        }
-
-                        if (!consumedStack) {
-                            dropped.add(stack.copy());
-                        }
+                    if (!consumedStack) {
+                        dropped.add(stack.copy());
                     }
                 }
             }
+        }
 
-            ((AccessoriesHolderImpl) this.capability().getHolder()).invalidStacks.addAll(dropped);
+        ((AccessoriesHolderImpl) holder).invalidStacks.addAll(dropped);
+
+        var invalidStacks = ((AccessoriesHolderImpl) holder).invalidStacks;
+
+        for (var entryRef : this.capability().getAllEquipped()) {
+            if (AccessoriesAPI.canInsertIntoSlot(entryRef.stack(), entryRef.reference())) continue;
+
+            invalidStacks.add(entryRef.stack().copy());
+
+            entryRef.reference().setStack(ItemStack.EMPTY);
         }
     }
 
