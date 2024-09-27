@@ -34,7 +34,6 @@
     "client.cosmetic.LivingEntityMixin",
     "client.cosmetic.LivingEntityRendererMixin",
     "client.ArmorSlotMixin",
-    "client.HumanoidArmorLayerMixin",
     "client.LivingEntityRendererAccessor"
   ],
   "mixins": [

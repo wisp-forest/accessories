@@ -1,4 +1,4 @@
-package io.wispforest.accessories.mixin.client;
+package io.wispforest.accessories.neoforge.mixin.client;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -20,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.At;
 public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, A extends HumanoidModel<T>> implements ArmorRenderingExtension<T> {
 
     @Shadow
-    protected abstract void renderArmorPiece(PoseStack poseStack, MultiBufferSource multiBufferSource, T livingEntity, EquipmentSlot equipmentSlot, int i, A humanoidModel);
+    protected abstract void renderArmorPiece(PoseStack poseStack, MultiBufferSource multiBufferSource, T livingEntity, EquipmentSlot equipmentSlot, int i, A humanoidModel, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch);
 
     @Shadow
     private A getArmorModel(EquipmentSlot slot) { return null; }
@@ -30,15 +30,15 @@ public abstract class HumanoidArmorLayerMixin<T extends LivingEntity, A extends 
     private ItemStack tempStack = null;
 
     @Override
-    public void renderEquipmentStack(ItemStack stack, PoseStack poseStack, MultiBufferSource multiBufferSource, T livingEntity, EquipmentSlot equipmentSlot, int i) {
+    public void renderEquipmentStack(ItemStack stack, PoseStack poseStack, MultiBufferSource multiBufferSource, T livingEntity, EquipmentSlot equipmentSlot, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
         this.tempStack = stack;
 
-        this.renderArmorPiece(poseStack, multiBufferSource, livingEntity, equipmentSlot, i, this.getArmorModel(equipmentSlot));
+        this.renderArmorPiece(poseStack, multiBufferSource, livingEntity, equipmentSlot, light, this.getArmorModel(equipmentSlot), limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
 
         this.tempStack = null;
     }
 
-    @WrapOperation(method = "renderArmorPiece", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getItemBySlot(Lnet/minecraft/world/entity/EquipmentSlot;)Lnet/minecraft/world/item/ItemStack;"))
+    @WrapOperation(method = "renderArmorPiece(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/EquipmentSlot;ILnet/minecraft/client/model/HumanoidModel;FFFFFF)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getItemBySlot(Lnet/minecraft/world/entity/EquipmentSlot;)Lnet/minecraft/world/item/ItemStack;"))
     private ItemStack getAlternativeStack(LivingEntity instance, EquipmentSlot equipmentSlot, Operation<ItemStack> original) {
         if (tempStack != null) return tempStack;
 

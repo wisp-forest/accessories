@@ -6,6 +6,7 @@
   "client": [
     "client.LivingEntityRendererMixin",
     "client.AbstractContainerScreenMixin",
+    "client.HumanoidArmorLayerMixin",
     "NeoForgeLoadingOverlayMixin"
   ],
   "mixins": [

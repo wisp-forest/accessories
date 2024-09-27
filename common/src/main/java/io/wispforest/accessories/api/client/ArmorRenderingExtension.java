@@ -28,11 +28,11 @@ public interface ArmorRenderingExtension<T extends LivingEntity> {
                     .filter(renderLayer -> renderLayer instanceof ArmorRenderingExtension)
                     .findFirst();
 
-            possibleLayer.ifPresent(layer -> ((ArmorRenderingExtension) layer).renderEquipmentStack(stack, matrices, multiBufferSource, reference.entity(), equipmentSlot, light));
+            possibleLayer.ifPresent(layer -> ((ArmorRenderingExtension) layer).renderEquipmentStack(stack, matrices, multiBufferSource, reference.entity(), equipmentSlot, light, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch));
         }
     };
 
-    default void renderEquipmentStack(ItemStack stack, PoseStack poseStack, MultiBufferSource multiBufferSource, T livingEntity, EquipmentSlot equipmentSlot, int i) {
+    default void renderEquipmentStack(ItemStack stack, PoseStack poseStack, MultiBufferSource multiBufferSource, T livingEntity, EquipmentSlot equipmentSlot, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
         throw new IllegalStateException("Injected interface method is unimplemented!");
     }
 }
