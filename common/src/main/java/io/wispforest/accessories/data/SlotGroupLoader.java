@@ -134,36 +134,39 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
             if(!AccessoriesInternals.isValidOnConditions(jsonObject, this.directory, location, null)) continue;
 
-            boolean isShared = location.getNamespace().contains(Accessories.MODID);
-
             var pathParts = location.getPath().split("/");
 
-            String name = pathParts[pathParts.length - 1];
+            String groupName = pathParts[pathParts.length - 1];
+            String namespace = pathParts.length > 1 ? pathParts[0] + ":" : "";
 
-            if(!isShared) name = location.getNamespace() + ":" + name;
+            var isShared = namespace.isBlank();
 
-            var group = slotGroups.computeIfAbsent(name, SlotGroupBuilder::new) ;
+            if(!isShared) groupName = namespace + ":" + groupName;
 
-            var slotElements = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "slots", new JsonArray(), location);
+            var group = slotGroups.computeIfAbsent(groupName, SlotGroupBuilder::new);
 
-            decodeJsonArray(slotElements, "slot", location, JsonElement::getAsString, s -> {
-                for (var builderEntry : slotGroups.entrySet()) {
-                    if (builderEntry.getValue().slots.contains(s)) {
-                        LOGGER.error("Unable to assign a give slot [{}] to the group [{}] as it already exists within the group [{}]", s, group, builderEntry.getKey());
-                        return;
+            if(isShared) {
+                var slotElements = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "slots", new JsonArray(), location);
+
+                decodeJsonArray(slotElements, "slot", location, JsonElement::getAsString, s -> {
+                    for (var builderEntry : slotGroups.entrySet()) {
+                        if (builderEntry.getValue().slots.contains(s)) {
+                            LOGGER.error("Unable to assign a give slot [{}] to the group [{}] as it already exists within the group [{}]", s, group, builderEntry.getKey());
+                            return;
+                        }
                     }
-                }
 
-                var slotType = allSlots.remove(s);
+                    var slotType = allSlots.remove(s);
 
-                if (slotType == null) {
-                    LOGGER.warn("SlotType added to a given group without being in the main map for slots! [Name: {}]", slotType.name());
-                } else {
-                    group.addSlot(s);
-                }
-            });
+                    if (slotType == null) {
+                        LOGGER.warn("SlotType added to a given group without being in the main map for slots! [Name: {}]", slotType.name());
+                    } else {
+                        group.addSlot(s);
+                    }
+                });
 
-            if(isShared) group.order(safeHelper(GsonHelper::getAsInt, jsonObject, "order", 100, location));
+                group.order(safeHelper(GsonHelper::getAsInt, jsonObject, "order", 100, location));
+            }
 
             var icon = safeHelper(GsonHelper::getAsString, jsonObject, "icon", location);
 
@@ -176,8 +179,6 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
                     LOGGER.warn("A given SlotGroup was found to have a invalid Icon Location. [Location: {}]", location);
                 }
             }
-
-            slotGroups.put(group.name, group);
         }
 
         var remainSlots = new HashSet<String>();
