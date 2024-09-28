@@ -2,7 +2,6 @@ package io.wispforest.accessories.client.gui;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.gui.components.PixelPerfectTextureComponent;
-import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.compat.config.ScreenType;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.owo.ui.base.BaseOwoScreen;

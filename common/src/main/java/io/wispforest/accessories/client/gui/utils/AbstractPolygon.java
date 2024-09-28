@@ -1,7 +1,6 @@
 package io.wispforest.accessories.client.gui.utils;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
 import java.util.List;

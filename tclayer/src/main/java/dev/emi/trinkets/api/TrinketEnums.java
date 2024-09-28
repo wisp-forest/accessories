@@ -1,7 +1,5 @@
 package dev.emi.trinkets.api;
 
-import io.wispforest.accessories.api.DropRule;
-
 public class TrinketEnums {
 
     public enum DropRule {

@@ -9,7 +9,6 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.arguments.AngleArgument;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;

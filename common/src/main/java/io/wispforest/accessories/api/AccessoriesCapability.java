@@ -1,7 +1,10 @@
 package io.wispforest.accessories.api;
 
 import com.google.common.collect.Multimap;
-import io.wispforest.accessories.api.slot.*;
+import io.wispforest.accessories.api.slot.SlotEntryReference;
+import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.world.entity.LivingEntity;

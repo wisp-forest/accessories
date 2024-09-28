@@ -1,12 +1,9 @@
 package io.wispforest.accessories.compat.config;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.client.TargetType;
-import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.compat.config.client.Structured;
 import io.wispforest.accessories.impl.PlayerEquipControl;
 import io.wispforest.owo.config.annotation.*;
-import me.shedaniel.autoconfig.annotation.ConfigEntry;
 import org.joml.Vector2i;
 
 import java.util.ArrayList;

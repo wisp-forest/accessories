@@ -1,18 +1,12 @@
 package io.wispforest.accessories.api.events;
 
-import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
-import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.fabricmc.fabric.api.util.TriState;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import oshi.annotation.concurrent.Immutable;
 
 /**
  * Event callback used to allow or denied the ability to equip a given accessory for the given referenced slot

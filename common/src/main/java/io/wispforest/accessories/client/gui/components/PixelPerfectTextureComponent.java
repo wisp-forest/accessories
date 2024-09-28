@@ -5,13 +5,9 @@ import com.mojang.blaze3d.vertex.*;
 import io.wispforest.owo.ui.base.BaseComponent;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
 import io.wispforest.owo.ui.core.Sizing;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
-import org.intellij.lang.annotations.Identifier;
 import org.joml.Matrix4f;
-import org.joml.Vector2f;
-import org.joml.Vector2i;
 
 public class PixelPerfectTextureComponent extends BaseComponent {
 

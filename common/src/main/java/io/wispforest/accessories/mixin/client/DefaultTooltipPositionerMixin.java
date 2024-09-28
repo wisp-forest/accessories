@@ -1,6 +1,5 @@
 package io.wispforest.accessories.mixin.client;
 
-import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import org.joml.Vector2i;

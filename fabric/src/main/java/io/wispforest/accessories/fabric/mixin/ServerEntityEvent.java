@@ -1,7 +1,6 @@
 package io.wispforest.accessories.fabric.mixin;
 
 import io.wispforest.accessories.fabric.ExtraEntityTrackingEvents;
-import net.fabricmc.fabric.api.networking.v1.EntityTrackingEvents;
 import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;

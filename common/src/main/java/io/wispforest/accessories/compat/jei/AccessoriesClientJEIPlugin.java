@@ -3,7 +3,6 @@ package io.wispforest.accessories.compat.jei;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
-import me.shedaniel.math.Rectangle;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;

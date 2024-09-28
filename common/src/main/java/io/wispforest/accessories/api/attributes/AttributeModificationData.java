@@ -5,8 +5,6 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-
 public record AttributeModificationData(@Nullable String slotPath, Holder<Attribute> attribute, AttributeModifier modifier) {
 
     public AttributeModificationData(Holder<Attribute> attribute, AttributeModifier modifier) {

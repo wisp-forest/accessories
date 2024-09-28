@@ -2,7 +2,6 @@ package io.wispforest.accessories.pond;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 public interface ContainerScreenExtension {

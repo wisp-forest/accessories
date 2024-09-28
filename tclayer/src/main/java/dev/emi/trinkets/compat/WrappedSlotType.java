@@ -2,8 +2,6 @@ package dev.emi.trinkets.compat;
 
 import dev.emi.trinkets.api.SlotType;
 import dev.emi.trinkets.api.TrinketEnums;
-import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;

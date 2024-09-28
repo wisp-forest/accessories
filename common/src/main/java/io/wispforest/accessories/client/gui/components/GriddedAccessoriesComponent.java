@@ -2,8 +2,6 @@ package io.wispforest.accessories.client.gui.components;
 
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
-import io.wispforest.accessories.pond.owo.ComponentExtension;
-import io.wispforest.accessories.pond.owo.MutableBoundingArea;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.container.Containers;

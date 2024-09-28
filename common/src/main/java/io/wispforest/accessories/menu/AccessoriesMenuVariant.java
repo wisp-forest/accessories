@@ -1,6 +1,5 @@
 package io.wispforest.accessories.menu;
 
-import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.compat.config.ScreenType;
 import io.wispforest.accessories.menu.variants.AccessoriesExperimentalMenu;
 import io.wispforest.accessories.menu.variants.AccessoriesMenu;

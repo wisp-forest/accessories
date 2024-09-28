@@ -6,7 +6,6 @@ import dev.emi.trinkets.api.TrinketConstants;
 import dev.emi.trinkets.api.TrinketEnums;
 import dev.emi.trinkets.compat.WrappingTrinketsUtils;
 import dev.emi.trinkets.data.SlotLoader;
-import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;

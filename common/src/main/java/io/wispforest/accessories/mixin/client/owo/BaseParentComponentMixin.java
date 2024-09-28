@@ -3,8 +3,6 @@ package io.wispforest.accessories.mixin.client.owo;
 import io.wispforest.accessories.client.gui.utils.AbstractPolygon;
 import io.wispforest.accessories.pond.owo.MutableBoundingArea;
 import io.wispforest.owo.ui.base.BaseParentComponent;
-import io.wispforest.owo.ui.container.FlowLayout;
-import io.wispforest.owo.ui.core.ParentComponent;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 

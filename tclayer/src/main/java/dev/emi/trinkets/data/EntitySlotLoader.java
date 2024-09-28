@@ -21,7 +21,6 @@ import net.minecraft.world.entity.EntityType;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class EntitySlotLoader extends SimplePreparableReloadListener<Map<String, Map<String, Set<String>>>> implements IdentifiableResourceReloadListener {
 

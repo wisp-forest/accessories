@@ -4,8 +4,6 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Optional;
-
 public interface AccessoriesAPIAccess {
 
     @Nullable

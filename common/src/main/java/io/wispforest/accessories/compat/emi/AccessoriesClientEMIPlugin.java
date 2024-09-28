@@ -6,7 +6,6 @@ import dev.emi.emi.api.EmiRegistry;
 import dev.emi.emi.api.widget.Bounds;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
-import me.shedaniel.math.Rectangle;
 
 @EmiEntrypoint
 public class AccessoriesClientEMIPlugin implements EmiPlugin {

@@ -1,8 +1,8 @@
 package io.wispforest.accessories.compat;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.impl.PlayerEquipControl;
 import io.wispforest.accessories.api.client.TargetType;
+import io.wispforest.accessories.impl.PlayerEquipControl;
 import me.shedaniel.autoconfig.ConfigData;
 import me.shedaniel.autoconfig.annotation.Config;
 import me.shedaniel.autoconfig.annotation.ConfigEntry;
