@@ -1,15 +1,12 @@
 package io.wispforest.accessories.mixin.client;
 
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.client.gui.components.ComponentUtils;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.server.NukeAccessories;
-import io.wispforest.owo.ui.layers.Layer;
-import io.wispforest.owo.ui.layers.Layers;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.ClickType;
@@ -46,7 +43,7 @@ public abstract class CreativeInventoryScreenMixin extends EffectRenderingInvent
     @Inject(method = "slotClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/core/NonNullList;size()I", ordinal = 0, shift = At.Shift.BEFORE))
     private void clearAccessoriesWithClearSlot(Slot slot, int slotId, int mouseButton, ClickType type, CallbackInfo ci) {
         if(this.nukeCoolDown <= 0) {
-            AccessoriesInternals.getNetworkHandler().sendToServer(new NukeAccessories());
+            AccessoriesNetworking.sendToServer(new NukeAccessories());
 
             this.nukeCoolDown = 10;
         }

@@ -1,12 +1,11 @@
 package io.wispforest.accessories.menu.variants;
 
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.mixin.CraftingMenuAccessor;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.world.Container;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -63,7 +62,7 @@ public abstract class AccessoriesMenuBase extends RecipeBookMenu<CraftingInput, 
     }
 
     public final void reopenMenu() {
-        AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(this.targetEntity(), this.menuVariant()));
+        AccessoriesNetworking.sendToServer(ScreenOpen.of(this.targetEntity(), this.menuVariant()));
     }
 
     //--

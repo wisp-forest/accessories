@@ -1,21 +1,27 @@
 package io.wispforest.accessories.utils;
 
 import io.wispforest.accessories.endec.NbtMapCarrier;
+import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import io.wispforest.endec.*;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.endec.util.MapCarrier;
+import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.nbt.CompoundTag;
-import it.unimi.dsi.fastutil.floats.FloatArrayList;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.util.StringRepresentable;
 import org.joml.*;
 
 import java.lang.Math;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class EndecUtils {
+
+    public static final Endec<ListTag> NBT_LIST = NbtEndec.ELEMENT.xmap(ListTag.class::cast, listTag -> listTag);
 
     public static final Endec<TriState> TRI_STATE_ENDEC = Endec.BOOLEAN.nullableOf().xmap(TriState::of, TriState::getBoxed);
 
@@ -108,5 +114,14 @@ public class EndecUtils {
                 if (compoundTag.contains(prevKey)) compoundTag.put(newKey, compoundTag.get(prevKey));
             });
         }
+    }
+
+    public static <E extends Enum<E> & StringRepresentable> Endec<E> forEnumStringRepresentable(Class<E> enumClass) {
+        return Endec.ifAttr(
+                SerializationAttributes.HUMAN_READABLE,
+                Endec.STRING.xmap(name -> Arrays.stream(enumClass.getEnumConstants()).filter(e -> e.getSerializedName().equals(name)).findFirst().get(), StringRepresentable::getSerializedName)
+        ).orElse(
+                Endec.VAR_INT.xmap(ordinal -> enumClass.getEnumConstants()[ordinal], Enum::ordinal)
+        );
     }
 }

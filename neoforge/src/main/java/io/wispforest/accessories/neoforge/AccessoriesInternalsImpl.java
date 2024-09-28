@@ -7,17 +7,14 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.menu.AccessoriesMenuData;
-import io.wispforest.accessories.endec.RegistriesAttribute;
+import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
-import io.wispforest.accessories.networking.base.BaseNetworkHandler;
-import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.format.bytebuf.ByteBufDeserializer;
 import io.wispforest.endec.format.bytebuf.ByteBufSerializer;
-import net.minecraft.ChatFormatting;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
 import net.minecraft.core.Holder;
@@ -29,7 +26,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -41,8 +37,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.neoforged.fml.loading.FMLLoader;
-import net.neoforged.neoforge.client.event.GatherSkippedAttributeTooltipsEvent;
-import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.common.util.AttributeTooltipContext;
@@ -52,7 +46,6 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -73,10 +66,6 @@ public class AccessoriesInternalsImpl {
         holder = modifier.apply(holder);
 
         livingEntity.setData(AccessoriesForge.HOLDER_ATTACHMENT_TYPE, holder);
-    }
-
-    public static BaseNetworkHandler getNetworkHandler(){
-        return AccessoriesForgeNetworkHandler.INSTANCE;
     }
 
     public static <T> Optional<Collection<Holder<T>>> getHolder(TagKey<T> tagKey){

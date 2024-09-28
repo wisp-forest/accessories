@@ -4,13 +4,13 @@ import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.ArgumentType;
 import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.menu.AccessoriesMenuData;
-import io.wispforest.accessories.endec.CodecUtils;
+
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.mixin.ItemStackAccessor;
-import io.wispforest.accessories.networking.base.BaseNetworkHandler;
 import io.wispforest.endec.Endec;
+import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
@@ -66,10 +66,6 @@ public class AccessoriesInternalsImpl {
         livingEntity.setAttached(AccessoriesFabric.HOLDER_ATTACHMENT_TYPE, holder);
     }
 
-    public static BaseNetworkHandler getNetworkHandler(){
-        return AccessoriesFabricNetworkHandler.INSTANCE;
-    }
-
     public static final ThreadLocal<Map<ResourceKey<?>, Map<ResourceLocation, Collection<Holder<?>>>>> LOADED_TAGS = new ThreadLocal<>();
 
     public static void setTags(List<TagManager.LoadResult<?>> tags) {
@@ -115,7 +111,7 @@ public class AccessoriesInternalsImpl {
     }
 
     public static <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(ResourceLocation location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func){
-        return Registry.register(BuiltInRegistries.MENU, location, new ExtendedScreenHandlerType<>(func::apply, CodecUtils.packetCodec(endec)));
+        return Registry.register(BuiltInRegistries.MENU, location, new ExtendedScreenHandlerType<>(func::apply, CodecUtils.toPacketCodec(endec)));
     }
 
     public static <A extends ArgumentType<?>, T extends ArgumentTypeInfo.Template<A>, I extends ArgumentTypeInfo<A, T>> I registerCommandArgumentType(ResourceLocation location, Class<A> clazz, I info) {

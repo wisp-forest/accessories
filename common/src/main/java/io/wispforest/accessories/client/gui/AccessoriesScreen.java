@@ -1,16 +1,16 @@
 package io.wispforest.accessories.client.gui;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
-import io.wispforest.accessories.menu.AccessoriesInternalSlot;
-import io.wispforest.accessories.menu.variants.AccessoriesMenu;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.impl.SlotGroupImpl;
+import io.wispforest.accessories.menu.AccessoriesInternalSlot;
+import io.wispforest.accessories.menu.variants.AccessoriesMenu;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.holder.HolderProperty;
 import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.MenuScroll;
@@ -157,7 +157,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
                 if (index > this.menu.maxScrollableIndex()) index = this.menu.maxScrollableIndex();
 
                 if (index != this.menu.scrolledIndex) {
-                    AccessoriesInternals.getNetworkHandler().sendToServer(new MenuScroll(index, false));
+                    AccessoriesNetworking.sendToServer(new MenuScroll(index, false));
 
                     Minecraft.getInstance().getSoundManager()
                             .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
@@ -288,7 +288,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             int index = (int) Math.max(Math.min(-scrollY + this.menu.scrolledIndex, this.menu.maxScrollableIndex()), 0);
 
             if (index != menu.scrolledIndex) {
-                AccessoriesInternals.getNetworkHandler().sendToServer(new MenuScroll(index, false));
+                AccessoriesNetworking.sendToServer(new MenuScroll(index, false));
 
                 return true;
             }
@@ -308,7 +308,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             int index = Math.round(this.menu.smoothScroll * this.menu.maxScrollableIndex());
 
             if (index != menu.scrolledIndex) {
-                AccessoriesInternals.getNetworkHandler().sendToServer(new MenuScroll(index, true));
+                AccessoriesNetworking.sendToServer(new MenuScroll(index, true));
 
                 return true;
             }
@@ -490,7 +490,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         this.cosmeticToggleButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), (btn) -> {
-                            AccessoriesInternals.getNetworkHandler()
+                            AccessoriesNetworking
                                     .sendToServer(SyncHolderChange.of(HolderProperty.COSMETIC_PROP, this.getMenu().owner(), bl -> !bl));
                         })
                         .tooltip(cosmeticsToggleTooltip(cosmeticsOpen))
@@ -501,7 +501,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         this.unusedSlotsToggleButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), (btn) -> {
-                            AccessoriesInternals.getNetworkHandler()
+                            AccessoriesNetworking
                                     .sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, this.getMenu().owner(), bl -> !bl));
                         })
                         .tooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()))
@@ -518,7 +518,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 //        if (Accessories.getConfig().clientData.showLineRendering) {
 //            this.linesToggleButton = this.addRenderableWidget(
 //                    Button.builder(Component.empty(), (btn) -> {
-//                                AccessoriesInternals.getNetworkHandler()
+//                                AccessoriesNetworking
 //                                        .sendToServer(SyncHolderChange.of(HolderProperty.LINES_PROP, this.getMenu().owner(), bl -> !bl));
 //                            })
 //                            .bounds(this.leftPos + 154, btnOffset, 12, 12)

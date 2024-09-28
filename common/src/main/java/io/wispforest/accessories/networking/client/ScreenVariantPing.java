@@ -1,11 +1,9 @@
 package io.wispforest.accessories.networking.client;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.client.gui.ScreenVariantSelectionScreen;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
-import io.wispforest.accessories.networking.BaseAccessoriesPacket;
-import io.wispforest.accessories.networking.base.HandledPacketPayload;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
@@ -16,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
-public record ScreenVariantPing(int entityId, boolean targetLookEntity) implements BaseAccessoriesPacket {
+public record ScreenVariantPing(int entityId, boolean targetLookEntity) {
 
     public static final Endec<ScreenVariantPing> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", ScreenVariantPing::entityId),
@@ -32,19 +30,18 @@ public record ScreenVariantPing(int entityId, boolean targetLookEntity) implemen
         return new ScreenVariantPing(-1, targetLookEntity);
     }
 
-    @Override
-    public void handle(Player player) {
+    public static void handlePacket(ScreenVariantPing packet, Player player) {
         var selectedVariant = AccessoriesMenuVariant.getVariant(Accessories.config().screenOptions.selectedScreenType());
 
         Function<AccessoriesMenuVariant, ScreenOpen> packetBuilder = (menuVariant) -> {
-            return new ScreenOpen(targetLookEntity ? -1 : entityId, targetLookEntity, menuVariant);
+            return new ScreenOpen(packet.targetLookEntity() ? -1 : packet.entityId(), packet.targetLookEntity(), menuVariant);
         };
 
         if(selectedVariant != null) {
-            AccessoriesInternals.getNetworkHandler().sendToServer(packetBuilder.apply(selectedVariant));
+            AccessoriesNetworking.sendToServer(packetBuilder.apply(selectedVariant));
         } else {
             Minecraft.getInstance().setScreen(new ScreenVariantSelectionScreen(variant -> {
-                AccessoriesInternals.getNetworkHandler().sendToServer(packetBuilder.apply(variant));
+                AccessoriesNetworking.sendToServer(packetBuilder.apply(variant));
             }));
         }
     }

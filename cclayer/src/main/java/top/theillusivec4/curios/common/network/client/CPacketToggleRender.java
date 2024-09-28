@@ -1,12 +1,25 @@
 package top.theillusivec4.curios.common.network.client;
 
-import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.networking.server.SyncCosmeticToggle;
-import io.wispforest.cclayer.WrappedAccessoriesPacket;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import top.theillusivec4.curios.CuriosConstants;
 
-public class CPacketToggleRender extends WrappedAccessoriesPacket {
+public record CPacketToggleRender(String identifier, int index) implements CustomPacketPayload {
 
-    public CPacketToggleRender(String id, int index) {
-        super(new SyncCosmeticToggle(null, SlotTypeLoader.INSTANCE.getSlotTypes(true).get(id).name(), index));
+    public static final Type<CPacketToggleRender> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, "destroy"));
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, CPacketToggleRender> STREAM_CODEC =
+            StreamCodec.composite(ByteBufCodecs.STRING_UTF8, CPacketToggleRender::identifier,
+                    ByteBufCodecs.INT, CPacketToggleRender::index, CPacketToggleRender::new);
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
     }
+
+    //
+
 }

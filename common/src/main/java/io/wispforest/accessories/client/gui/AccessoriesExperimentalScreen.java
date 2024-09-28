@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
@@ -19,6 +18,7 @@ import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.menu.variants.AccessoriesExperimentalMenu;
 import io.wispforest.accessories.mixin.client.AbstractContainerScreenAccessor;
 import io.wispforest.accessories.mixin.client.owo.DiscreteSliderComponentAccessor;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.holder.HolderProperty;
 import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
@@ -56,7 +56,10 @@ import org.slf4j.Logger;
 import oshi.util.tuples.Triplet;
 
 import java.util.*;
-import java.util.function.*;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static io.wispforest.accessories.client.gui.components.ComponentUtils.BACKGROUND_SLOT_RENDERING_SURFACE;
@@ -202,7 +205,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 .map(SlotGroup::name)
                 .collect(Collectors.toSet());
 
-        AccessoriesInternals.getNetworkHandler()
+        AccessoriesNetworking
                 .sendToServer(SyncHolderChange.of(HolderProperty.FILTERED_GROUPS, selectedGroups));
 
         super.onClose();
@@ -429,7 +432,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                         )
                                         .child(
                                                 Components.button(createToggleTooltip("crafting_grid", false, this.showCraftingGrid()), btn -> {
-                                                            AccessoriesInternals.getNetworkHandler()
+                                                            AccessoriesNetworking
                                                                     .sendToServer(SyncHolderChange.of(HolderProperty.CRAFTING_GRID_PROP, this.menu.owner(), bl -> !bl));
 
                                                             this.showCraftingGrid(!this.showCraftingGrid());
@@ -851,7 +854,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         return new ExtendedCollapsibleContainer(Sizing.content(), Sizing.content(), this.isGroupFiltersOpen())
                 .configure((ExtendedCollapsibleContainer component) -> {
                     component.onToggled().subscribe(b -> {
-                        AccessoriesInternals.getNetworkHandler()
+                        AccessoriesNetworking
                                 .sendToServer(SyncHolderChange.of(HolderProperty.GROUP_FILTER_OPEN_PROP, b));
 
                         this.isGroupFiltersOpen(b);
@@ -929,7 +932,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         baseOptionPanel.child(
                 createConfigComponent("unused_slots",
                         this::showUnusedSlots,
-                        bl -> AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, bl))
+                        bl -> AccessoriesNetworking.sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, bl))
                 ).margins(Insets.bottom(3)),
                 0, 0);
 
@@ -939,7 +942,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                         .child(Components.discreteSlider(Sizing.fixed(45), getMinimumColumnAmount(), 18)
                                 .configure((DiscreteSliderComponent slider) -> {
                                     slider.onChanged().subscribe(value -> {
-                                        AccessoriesInternals.getNetworkHandler()
+                                        AccessoriesNetworking
                                                 .sendToServer(SyncHolderChange.of(HolderProperty.COLUMN_AMOUNT_PROP, (int) value));
 
                                         this.columnAmount((int) value);
@@ -968,7 +971,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
                                             if(newWidget > 2) newWidget = 1;
 
-                                            AccessoriesInternals.getNetworkHandler()
+                                            AccessoriesNetworking
                                                     .sendToServer(SyncHolderChange.of(HolderProperty.WIDGET_TYPE_PROP, newWidget));
 
                                             this.widgetType(newWidget);
@@ -986,7 +989,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 createConfigComponent("main_widget_position",
                         this::mainWidgetPosition,
                         bl -> {
-                            AccessoriesInternals.getNetworkHandler()
+                            AccessoriesNetworking
                                     .sendToServer(SyncHolderChange.of(HolderProperty.MAIN_WIDGET_POSITION_PROP, bl));
 
                             this.mainWidgetPosition(bl);
@@ -1001,7 +1004,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 createConfigComponent("group_filter",
                         this::showGroupFilters,
                         bl -> {
-                            AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.GROUP_FILTER_PROP, bl));
+                            AccessoriesNetworking.sendToServer(SyncHolderChange.of(HolderProperty.GROUP_FILTER_PROP, bl));
 
                             this.showGroupFilters(bl);
 
@@ -1026,7 +1029,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 createConfigComponent("side_widget_position",
                         this::sideWidgetPosition,
                         bl -> {
-                            AccessoriesInternals.getNetworkHandler()
+                            AccessoriesNetworking
                                     .sendToServer(SyncHolderChange.of(HolderProperty.SIDE_WIDGET_POSITION_PROP, bl));
 
                             this.sideWidgetPosition(bl);

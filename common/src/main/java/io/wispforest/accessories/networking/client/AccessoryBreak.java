@@ -2,15 +2,15 @@ package io.wispforest.accessories.networking.client;
 
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.networking.BaseAccessoriesPacket;
 import io.wispforest.endec.Endec;
+import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
-public record AccessoryBreak(int entityId, String slotName, int slotIndex) implements BaseAccessoriesPacket {
+public record AccessoryBreak(int entityId, String slotName, int slotIndex) {
 
-    public static Endec<AccessoryBreak> ENDEC = StructEndecBuilder.of(
+    public static StructEndec<AccessoryBreak> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", AccessoryBreak::entityId),
             Endec.STRING.fieldOf("slotName", AccessoryBreak::slotName),
             Endec.VAR_INT.fieldOf("slotIndex", AccessoryBreak::slotIndex),
@@ -21,15 +21,14 @@ public record AccessoryBreak(int entityId, String slotName, int slotIndex) imple
         return new AccessoryBreak(slotReference.entity().getId(), slotReference.slotName(), slotReference.slot());
     }
 
-    @Override
-    public void handle(Player player) {
-        var entity = player.level().getEntity(this.entityId);
+    public static void handlePacket(AccessoryBreak packet, Player player) {
+        var entity = player.level().getEntity(packet.entityId());
 
         if(!(entity instanceof LivingEntity livingEntity)) {
             throw new IllegalStateException("Unable to handle a Break call due to the passed entity id not corresponding to a LivingEntity!");
         }
 
-        var slotReference = SlotReference.of(livingEntity, this.slotName, this.slotIndex);
+        var slotReference = SlotReference.of(livingEntity, packet.slotName(), packet.slotIndex());
 
         var capability = livingEntity.accessoriesCapability();
 

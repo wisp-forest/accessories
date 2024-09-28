@@ -4,6 +4,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.InterModProcessEvent;
 import top.theillusivec4.curios.api.SlotTypeMessage;
+import top.theillusivec4.curios.common.network.CuriosPacketRegistry;
 import top.theillusivec4.curios.common.slottype.LegacySlotManager;
 
 @Mod(Curios.MODID)
@@ -12,6 +13,7 @@ public class Curios {
 
     public Curios(IEventBus eventBus) {
         eventBus.addListener(this::process);
+        eventBus.addListener(CuriosPacketRegistry.INSTANCE::initializeNetworking);
     }
 
     private void process(InterModProcessEvent evt) {

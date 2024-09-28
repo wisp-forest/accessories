@@ -3,15 +3,15 @@ package io.wispforest.accessories.networking.client;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.endec.NbtMapCarrier;
-import io.wispforest.accessories.endec.RegistriesAttribute;
+import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesContainerImpl;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
-import io.wispforest.accessories.networking.BaseAccessoriesPacket;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
+import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.world.entity.LivingEntity;
@@ -25,9 +25,9 @@ import java.util.*;
  * Catch all packet for handling syncing of containers and accessories within the main container
  * and cosmetic variant with the ability for it to be sync separately
  */
-public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks) implements BaseAccessoriesPacket {
+public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks) {
 
-    public static Endec<SyncContainerData> ENDEC = StructEndecBuilder.of(
+    public static StructEndec<SyncContainerData> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", SyncContainerData::entityId),
             NbtMapCarrier.ENDEC.mapOf().fieldOf("updatedContainers", SyncContainerData::updatedContainers),
             CodecUtils.toEndec(ItemStack.OPTIONAL_CODEC).mapOf().fieldOf("dirtyStacks", SyncContainerData::dirtyStacks),
@@ -52,14 +52,13 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
     private static final Logger LOGGER = LogUtils.getLogger();
 
     @Environment(EnvType.CLIENT)
-    @Override
-    public void handle(Player player) {
+    public static void handlePacket(SyncContainerData packet, Player player) {
         var level = player.level();
 
-        var entity = level.getEntity(entityId);
+        var entity = level.getEntity(packet.entityId());
 
         if(entity == null) {
-            LOGGER.error("Unable to Sync Container Data for a given Entity as it is null on the Client! [EntityId: {}]", entityId);
+            LOGGER.error("Unable to Sync Container Data for a given Entity as it is null on the Client! [EntityId: {}]", packet.entityId());
 
             return;
         }
@@ -69,7 +68,7 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
         var capability = AccessoriesCapability.get(livingEntity);
 
         if(capability == null) {
-            LOGGER.error("Unable to Sync Container Data for a given Entity as its Capability is null on the Client! [EntityId: {}]", entityId);
+            LOGGER.error("Unable to Sync Container Data for a given Entity as its Capability is null on the Client! [EntityId: {}]", packet.entityId());
 
             return;
         }
@@ -82,7 +81,7 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
 
         Set<String> invalidSyncedContainers = new HashSet<>();
 
-        for (var entry : this.updatedContainers.entrySet()) {
+        for (var entry : packet.updatedContainers().entrySet()) {
             if (!containers.containsKey(entry.getKey())) {
                 invalidSyncedContainers.add(entry.getKey());
 
@@ -104,7 +103,7 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
 
         Set<String> invalidDirtyStackContainers = new HashSet<>();
 
-        for (var entry : dirtyStacks.entrySet()) {
+        for (var entry : packet.dirtyStacks().entrySet()) {
             var parts = entry.getKey().split("/");
 
             var slot = parts[0];
@@ -130,7 +129,7 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
 
         Set<String> invalidDirtyCosmeticContainers = new HashSet<>();
 
-        for (var entry : dirtyCosmeticStacks.entrySet()) {
+        for (var entry : packet.dirtyCosmeticStacks().entrySet()) {
             var parts = entry.getKey().split("/");
 
             var slot = parts[0];

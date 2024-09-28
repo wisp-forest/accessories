@@ -2,7 +2,6 @@ package io.wispforest.accessories.api;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
@@ -15,10 +14,10 @@ import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -353,7 +352,7 @@ public class AccessoriesAPI {
      * Helper method to trigger effects of a given accessory being broken on any tracking clients for the given entity
      */
     public static void breakStack(SlotReference reference){
-        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(reference.entity(), AccessoryBreak.of(reference));
+        AccessoriesNetworking.sendToTrackingAndSelf(reference.entity(), AccessoryBreak.of(reference));
     }
 
     //--

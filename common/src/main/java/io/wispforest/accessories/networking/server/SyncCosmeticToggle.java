@@ -3,16 +3,16 @@ package io.wispforest.accessories.networking.server;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.networking.BaseAccessoriesPacket;
 import io.wispforest.endec.Endec;
+import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
-public record SyncCosmeticToggle(@Nullable Integer entityId, String slotName, int slotIndex) implements BaseAccessoriesPacket {
+public record SyncCosmeticToggle(@Nullable Integer entityId, String slotName, int slotIndex)  {
 
-    public static final Endec<SyncCosmeticToggle> ENDEC = StructEndecBuilder.of(
+    public static final StructEndec<SyncCosmeticToggle> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.nullableOf().fieldOf("entityId", SyncCosmeticToggle::entityId),
             Endec.STRING.fieldOf("slotName", SyncCosmeticToggle::slotName),
             Endec.VAR_INT.fieldOf("slotIndex", SyncCosmeticToggle::slotIndex),
@@ -23,14 +23,13 @@ public record SyncCosmeticToggle(@Nullable Integer entityId, String slotName, in
         return new SyncCosmeticToggle(livingEntity != null ? livingEntity.getId() : null, slotType.name(), slotIndex);
     }
 
-    @Override
-    public void handle(Player player) {
+    public static void handlePacket(SyncCosmeticToggle packet, Player player) {
         if(player.level().isClientSide()) return;
 
         LivingEntity targetEntity = player;
 
-        if(this.entityId != null) {
-            if(!(player.level().getEntity(this.entityId) instanceof LivingEntity livingEntity)) {
+        if(packet.entityId() != null) {
+            if(!(player.level().getEntity(packet.entityId()) instanceof LivingEntity livingEntity)) {
                 return;
             }
 
@@ -45,7 +44,7 @@ public record SyncCosmeticToggle(@Nullable Integer entityId, String slotName, in
 
         if(capability == null) return;
 
-        var slotType = SlotTypeLoader.getSlotType(player.level(), this.slotName);
+        var slotType = SlotTypeLoader.getSlotType(player.level(), packet.slotName());
 
         if(slotType == null) return;
 
@@ -53,7 +52,7 @@ public record SyncCosmeticToggle(@Nullable Integer entityId, String slotName, in
 
         var renderOptions = container.renderOptions();
 
-        renderOptions.set(this.slotIndex, !container.shouldRender(this.slotIndex));
+        renderOptions.set(packet.slotIndex(), !container.shouldRender(packet.slotIndex()));
 
         container.markChanged(false);
     }

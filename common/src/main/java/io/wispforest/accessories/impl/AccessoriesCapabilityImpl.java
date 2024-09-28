@@ -5,13 +5,13 @@ import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
-import io.wispforest.accessories.api.EquipAction;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
-import io.wispforest.accessories.endec.RegistriesAttribute;
+import io.wispforest.owo.serialization.RegistriesAttribute;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.util.MapCarrier;
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
-import java.util.function.*;
+import java.util.function.Predicate;
 
 @ApiStatus.Internal
 public class AccessoriesCapabilityImpl implements AccessoriesCapability, InstanceEndec {
@@ -108,7 +108,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
         holder.write(carrier, SerializationContext.attributes(RegistriesAttribute.of(this.entity.level().registryAccess())));
 
-        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(serverPlayer.getId(), carrier));
+        AccessoriesNetworking.sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(serverPlayer.getId(), carrier));
     }
 
     private boolean updateContainersLock = false;

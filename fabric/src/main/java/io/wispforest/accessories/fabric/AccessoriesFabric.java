@@ -3,22 +3,21 @@ package io.wispforest.accessories.fabric;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.DataLoaderBase;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.components.*;
+import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.commands.AccessoriesCommands;
 import io.wispforest.accessories.data.EntitySlotLoader;
-import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.InstanceEndec;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.menu.ArmorSlotTypes;
-import io.wispforest.accessories.pond.DroppedStacksExtension;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
+import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -51,15 +50,17 @@ public class AccessoriesFabric implements ModInitializer {
     public void onInitialize() {
         Accessories.init();
 
-        ArmorSlotTypes.INSTANCE.registerAccessories((consumer) -> {
-            RegistryEntryAddedCallback.event(BuiltInRegistries.ITEM).register(consumer::accept);
-        });
+        AccessoriesNetworking.init();
 
         AccessoriesDataComponents.init();
 
         AccessoriesMenuTypes.registerMenuType();
         Accessories.registerCriteria();
         AccessoriesCommands.registerCommandArgTypes();
+
+        ArmorSlotTypes.INSTANCE.registerAccessories((consumer) -> {
+            RegistryEntryAddedCallback.event(BuiltInRegistries.ITEM).register(consumer::accept);
+        });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             AccessoriesCommands.registerCommands(dispatcher, registryAccess);
@@ -72,9 +73,8 @@ public class AccessoriesFabric implements ModInitializer {
 
             return holder;
         });
-        UseEntityCallback.EVENT.register((player, level, hand, entity, hitResult) -> AccessoriesEventHandler.attemptEquipOnEntity(player, hand, entity));
 
-        AccessoriesFabricNetworkHandler.INSTANCE.init();
+        UseEntityCallback.EVENT.register((player, level, hand, entity, hitResult) -> AccessoriesEventHandler.attemptEquipOnEntity(player, hand, entity));
 
         ServerTickEvents.START_WORLD_TICK.register(AccessoriesEventHandler::onWorldTick);
 

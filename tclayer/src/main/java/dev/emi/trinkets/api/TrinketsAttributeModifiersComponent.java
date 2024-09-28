@@ -3,12 +3,12 @@ package dev.emi.trinkets.api;
 import com.google.common.collect.ImmutableList;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.attributes.SlotAttribute;
-import io.wispforest.accessories.endec.CodecUtils;
-import io.wispforest.accessories.endec.MinecraftEndecs;
-import io.wispforest.accessories.endec.RegistriesAttribute;
+import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.owo.serialization.CodecUtils;
+import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -29,7 +29,7 @@ public record TrinketsAttributeModifiersComponent(List<Entry> modifiers, boolean
 
     public static final DataComponentType<TrinketsAttributeModifiersComponent> TYPE = DataComponentType.<TrinketsAttributeModifiersComponent>builder()
             .persistent(CodecUtils.toCodec(ENDEC))
-            .networkSynchronized(CodecUtils.packetCodec(ENDEC))
+            .networkSynchronized(CodecUtils.toPacketCodec(ENDEC))
             .build();
 
     public TrinketsAttributeModifiersComponent(List<Entry> modifiers, boolean showInTooltip) {

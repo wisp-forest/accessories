@@ -5,10 +5,10 @@ import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.events.SlotStateChange;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.owo.serialization.CodecUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.world.item.ItemStack;
 

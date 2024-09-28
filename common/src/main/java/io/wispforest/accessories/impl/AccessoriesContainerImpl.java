@@ -9,15 +9,17 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.endec.RegistriesAttribute;
-import io.wispforest.accessories.endec.format.nbt.NbtEndec;
+import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
-import net.minecraft.nbt.*;
+import io.wispforest.owo.serialization.format.nbt.NbtEndec;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -340,8 +342,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     public static final KeyedEndec<List<CompoundTag>> PERSISTENT_MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("persistent_modifiers", ArrayList::new);
     public static final KeyedEndec<List<CompoundTag>> CACHED_MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("cached_modifiers", ArrayList::new);
 
-    public static final KeyedEndec<ListTag> ITEMS_KEY = NbtEndec.LIST.keyed("items", ListTag::new);
-    public static final KeyedEndec<ListTag> COSMETICS_KEY = NbtEndec.LIST.keyed("cosmetics", ListTag::new);
+    public static final KeyedEndec<ListTag> ITEMS_KEY = EndecUtils.NBT_LIST.keyed("items", ListTag::new);
+    public static final KeyedEndec<ListTag> COSMETICS_KEY = EndecUtils.NBT_LIST.keyed("cosmetics", ListTag::new);
 
     @Override
     public void write(MapCarrier carrier, SerializationContext ctx) {

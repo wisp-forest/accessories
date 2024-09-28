@@ -1,22 +1,18 @@
 package io.wispforest.accessories;
 
 import blue.endless.jankson.JsonElement;
-import com.google.gson.JsonPrimitive;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
-import io.wispforest.accessories.compat.AccessoriesConfig;
 import io.wispforest.accessories.criteria.AccessoryChangedCriterion;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.menu.ArmorSlotTypes;
 import io.wispforest.accessories.mixin.CriteriaTriggersAccessor;
 import io.wispforest.accessories.mixin.client.owo.ConfigWrapperAccessor;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.ScreenVariantPing;
 import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.format.jankson.JanksonDeserializer;
 import io.wispforest.endec.format.jankson.JanksonSerializer;
-import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.ConfigHolder;
-import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -29,9 +25,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
-import org.joml.Vector2ic;
-
-import java.util.function.Consumer;
 
 public class Accessories {
 
@@ -73,7 +66,7 @@ public class Accessories {
     }
 
     public static void askPlayerForVariant(ServerPlayer player, @Nullable LivingEntity targetEntity) {
-        AccessoriesInternals.getNetworkHandler().sendToPlayer(player, ScreenVariantPing.of(targetEntity));
+        AccessoriesNetworking.sendToPlayer(player, ScreenVariantPing.of(targetEntity));
     }
 
     public static boolean attemptOpenScreenPlayer(ServerPlayer player, AccessoriesMenuVariant variant) {

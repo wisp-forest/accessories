@@ -1,14 +1,13 @@
 package io.wispforest.accessories.endec;
 
-import io.wispforest.accessories.endec.format.nbt.NbtDeserializer;
-import io.wispforest.accessories.endec.format.nbt.NbtEndec;
-import io.wispforest.accessories.endec.format.nbt.NbtSerializer;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationAttributes;
 import io.wispforest.endec.SerializationContext;
-import io.wispforest.endec.format.edm.EdmEndec;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
+import io.wispforest.owo.serialization.format.nbt.NbtDeserializer;
+import io.wispforest.owo.serialization.format.nbt.NbtEndec;
+import io.wispforest.owo.serialization.format.nbt.NbtSerializer;
 import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 

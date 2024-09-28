@@ -2,11 +2,13 @@ package io.wispforest.accessories.impl;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.*;
+import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
-import io.wispforest.accessories.endec.RegistriesAttribute;
-import io.wispforest.accessories.endec.format.nbt.NbtEndec;
+import io.wispforest.owo.serialization.RegistriesAttribute;
+import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationAttribute;

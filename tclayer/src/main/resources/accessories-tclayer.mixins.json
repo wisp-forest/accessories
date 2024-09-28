@@ -6,10 +6,10 @@
   "minVersion": "0.8",
   "client": [
     "client.AbstractContainerScreenMixin",
-    "client.LivingEntityMixin",
-    "client.LivingEntityRendererMixin",
+    "client.AccessoriesExperimentalScreenMixin",
     "client.AccessoriesRendererRegistryMixin",
-    "client.AccessoriesExperimentalScreenMixin"
+    "client.LivingEntityMixin",
+    "client.LivingEntityRendererMixin"
   ],
   "mixins": [
     "AccessoriesAPIMixin",
@@ -17,8 +17,8 @@
     "DataLoaderBaseMixin",
     "EntitySlotLoaderMixin",
     "ItemStackMixin",
-    "SlotTypeLoaderMixin",
-    "SlotGroupLoaderMixin"
+    "SlotGroupLoaderMixin",
+    "SlotTypeLoaderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

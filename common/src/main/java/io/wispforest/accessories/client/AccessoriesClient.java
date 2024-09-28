@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
@@ -18,10 +17,10 @@ import io.wispforest.accessories.compat.config.client.components.StructOptionCon
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.mixin.client.owo.ConfigWrapperAccessor;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.holder.HolderProperty;
 import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
-import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.owo.config.ui.ConfigScreenProviders;
 import io.wispforest.owo.config.ui.OptionComponentFactory;
 import io.wispforest.owo.config.ui.component.OptionValueProvider;
@@ -123,7 +122,7 @@ public class AccessoriesClient {
             attemptAction(holder -> {
                 if(holder.equipControl() == value) return;
 
-                AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.EQUIP_CONTROL, value));
+                AccessoriesNetworking.sendToServer(SyncHolderChange.of(HolderProperty.EQUIP_CONTROL, value));
             });
         });
 
@@ -131,7 +130,7 @@ public class AccessoriesClient {
             attemptAction(holder -> {
                 if(holder.showUnusedSlots() == value) return;
 
-                AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, value));
+                AccessoriesNetworking.sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, value));
             });
         });
     }
@@ -168,13 +167,13 @@ public class AccessoriesClient {
         var equipControl = Accessories.config().clientOptions.equipControl();
 
         if(holder.equipControl() != equipControl) {
-            AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.EQUIP_CONTROL, equipControl));
+            AccessoriesNetworking.sendToServer(SyncHolderChange.of(HolderProperty.EQUIP_CONTROL, equipControl));
         }
 
         var showUnusedSlots = Accessories.config().screenOptions.showUnusedSlots();
 
         if(holder.showUnusedSlots() != showUnusedSlots) {
-            AccessoriesInternals.getNetworkHandler().sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, showUnusedSlots));
+            AccessoriesNetworking.sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, showUnusedSlots));
         }
     }
 
@@ -220,10 +219,10 @@ public class AccessoriesClient {
         }
 
         if(selectedVariant != null) {
-            AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(targetingLookingEntity, selectedVariant));
+            AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingLookingEntity, selectedVariant));
         } else {
             Minecraft.getInstance().setScreen(new ScreenVariantSelectionScreen(variant -> {
-                AccessoriesInternals.getNetworkHandler().sendToServer(ScreenOpen.of(targetingLookingEntity, variant));
+                AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingLookingEntity, variant));
             }));
         }
 

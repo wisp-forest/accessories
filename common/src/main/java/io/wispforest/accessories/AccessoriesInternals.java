@@ -5,9 +5,7 @@ import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.ArgumentType;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
-import io.wispforest.accessories.networking.base.BaseNetworkHandler;
 import io.wispforest.endec.Endec;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.core.Holder;
@@ -64,14 +62,6 @@ public class AccessoriesInternals {
 
     @ExpectPlatform
     public static void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolder> modifier) {
-        throw new AssertionError();
-    }
-
-    /**
-     * @return {@link BaseNetworkHandler} based on the Platforms method for getting it
-     */
-    @ExpectPlatform
-    public static BaseNetworkHandler getNetworkHandler() {
         throw new AssertionError();
     }
 

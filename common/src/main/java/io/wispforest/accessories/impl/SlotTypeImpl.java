@@ -3,10 +3,10 @@ package io.wispforest.accessories.impl;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.endec.MinecraftEndecs;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;

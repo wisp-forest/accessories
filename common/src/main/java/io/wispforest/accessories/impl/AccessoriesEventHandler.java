@@ -12,46 +12,40 @@ import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.*;
-import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
-import io.wispforest.accessories.api.slot.SlotEntryReference;
-import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.api.slot.UniqueSlotHandling;
-import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
+import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
-import io.wispforest.accessories.endec.RegistriesAttribute;
-import io.wispforest.accessories.mixin.ItemStackAccessor;
-import io.wispforest.accessories.networking.client.SyncEntireContainer;
+import io.wispforest.owo.serialization.RegistriesAttribute;
+import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncData;
+import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.SerializationContext;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.*;
+import net.minecraft.world.Container;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
@@ -60,7 +54,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static io.wispforest.accessories.Accessories.ACCESSORY_EQUIPPED;
@@ -152,7 +145,7 @@ public class AccessoriesEventHandler {
 
         ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(level.registryAccess())));
 
-        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
+        AccessoriesNetworking.sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
     }
 
     public static void onTracking(LivingEntity entity, ServerPlayer serverPlayer) {
@@ -164,11 +157,10 @@ public class AccessoriesEventHandler {
 
         ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(entity.level().registryAccess())));
 
-        AccessoriesInternals.getNetworkHandler().sendToPlayer(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
+        AccessoriesNetworking.sendToPlayer(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
     }
 
     public static void dataSync(@Nullable PlayerList list, @Nullable ServerPlayer player) {
-        var networkHandler = AccessoriesInternals.getNetworkHandler();
         var syncPacket = SyncData.create();
 
         if (list != null && !list.getPlayers().isEmpty()) {
@@ -176,7 +168,7 @@ public class AccessoriesEventHandler {
 
             // TODO: OPTIMIZE THIS?
             for (var playerEntry : list.getPlayers()) {
-                networkHandler.sendToPlayer(playerEntry, syncPacket);
+                AccessoriesNetworking.sendToPlayer(playerEntry, syncPacket);
 
                 var capability = AccessoriesCapability.get(playerEntry);
 
@@ -186,14 +178,14 @@ public class AccessoriesEventHandler {
 
                 ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(playerEntry.level().registryAccess())));
 
-                networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(capability.entity().getId(), carrier));
+                AccessoriesNetworking.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(capability.entity().getId(), carrier));
 
                 if (playerEntry.containerMenu instanceof AccessoriesMenuBase base) {
                     Accessories.openAccessoriesMenu(playerEntry, base.menuVariant(), base.targetEntity());
                 }
             }
         } else if (player != null) {
-            networkHandler.sendToPlayer(player, syncPacket);
+            AccessoriesNetworking.sendToPlayer(player, syncPacket);
 
             revalidatePlayer(player);
 
@@ -205,7 +197,7 @@ public class AccessoriesEventHandler {
 
             ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(player.level().registryAccess())));
 
-            networkHandler.sendToPlayer(player, new SyncEntireContainer(capability.entity().getId(), carrier));
+            AccessoriesNetworking.sendToPlayer(player, new SyncEntireContainer(capability.entity().getId(), carrier));
 
             if (player.containerMenu instanceof AccessoriesMenuBase base) {
                 Accessories.openAccessoriesMenu(player, base.menuVariant(), base.targetEntity());
@@ -327,9 +319,7 @@ public class AccessoriesEventHandler {
             if (!dirtyStacks.isEmpty() || !dirtyCosmeticStacks.isEmpty() || !updatedContainers.isEmpty()) {
                 var packet = SyncContainerData.of(entity, updatedContainers.keySet(), dirtyStacks, dirtyCosmeticStacks);
 
-                var networkHandler = AccessoriesInternals.getNetworkHandler();
-
-                networkHandler.sendToTrackingAndSelf(entity, packet);
+                AccessoriesNetworking.sendToTrackingAndSelf(entity, packet);
             }
 
             updatedContainers.clear();

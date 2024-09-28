@@ -3,12 +3,12 @@ package io.wispforest.accessories.client.gui.components;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.server.SyncCosmeticToggle;
 import io.wispforest.accessories.pond.owo.ComponentExtension;
 import io.wispforest.accessories.pond.owo.MutableBoundingArea;
@@ -185,7 +185,7 @@ public class ComponentUtils {
                 (btn) -> {
                     var entity = slot.getContainer().capability().entity();
 
-                    AccessoriesInternals.getNetworkHandler()
+                    AccessoriesNetworking
                             .sendToServer(SyncCosmeticToggle.of(entity.equals(Minecraft.getInstance().player) ? null : entity, slot.slotType(), slot.getContainerSlot()));
                 });
     }

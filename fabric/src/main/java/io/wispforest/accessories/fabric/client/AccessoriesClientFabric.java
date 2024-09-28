@@ -6,19 +6,15 @@ import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.fabric.AccessoriesFabric;
-import io.wispforest.accessories.fabric.AccessoriesFabricNetworkHandler;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
-import io.wispforest.accessories.networking.base.HandledPacketPayload;
-import io.wispforest.accessories.networking.base.PacketBuilderConsumer;
-import io.wispforest.endec.Endec;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
 import net.fabricmc.fabric.api.event.Event;
@@ -30,7 +26,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.inventory.MenuType;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -45,6 +40,8 @@ public class AccessoriesClientFabric implements ClientModInitializer {
     public void onInitializeClient() {
         AccessoriesClient.initConfigStuff();
         AccessoriesClient.init();
+
+        AccessoriesNetworking.initClient();
 
         AccessoriesMenuTypes.registerClientMenuConstructors(MenuScreens::register);
 
@@ -61,13 +58,6 @@ public class AccessoriesClientFabric implements ClientModInitializer {
                 if(!tooltipData.isEmpty()) lines.addAll(1, tooltipData);
             });
         }
-
-        AccessoriesFabricNetworkHandler.INSTANCE.initClient(new PacketBuilderConsumer() {
-            @Override
-            public <M extends HandledPacketPayload> void accept(Class<M> messageType, Endec<M> endec) {
-                ClientPlayNetworking.registerGlobalReceiver(AccessoriesFabricNetworkHandler.INSTANCE.getId(messageType), (packet, context) -> packet.handle(context.player()));
-            }
-        });
 
         OPEN_SCREEN = KeyBindingHelper.registerKeyBinding(new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories"));
 

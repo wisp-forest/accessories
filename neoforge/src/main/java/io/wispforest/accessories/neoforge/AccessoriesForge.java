@@ -8,16 +8,17 @@ import io.wispforest.accessories.commands.AccessoriesCommands;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.endec.RegistriesAttribute;
-import io.wispforest.accessories.endec.format.nbt.NbtDeserializer;
-import io.wispforest.accessories.endec.format.nbt.NbtSerializer;
+import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.InstanceEndec;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
+import io.wispforest.owo.serialization.format.nbt.NbtDeserializer;
+import io.wispforest.owo.serialization.format.nbt.NbtSerializer;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -30,7 +31,6 @@ import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.world.Containers;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -39,6 +39,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import net.neoforged.neoforge.attachment.IAttachmentSerializer;
@@ -49,11 +50,8 @@ import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.event.entity.EntityEvent;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
-import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
-import net.neoforged.neoforge.event.entity.living.LivingEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.tick.EntityTickEvent;
@@ -64,7 +62,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -113,6 +110,12 @@ public class AccessoriesForge {
 
         Accessories.init();
 
+        eventBus.addListener(this::registerStuff);
+
+        eventBus.addListener(this::registerCapabilities);
+
+        eventBus.addListener(this::commonInit);
+
         NeoForge.EVENT_BUS.addListener(this::attemptEquipFromUse);
         NeoForge.EVENT_BUS.addListener(this::attemptEquipOnEntity);
         NeoForge.EVENT_BUS.addListener(this::onEntityDeath);
@@ -124,12 +127,7 @@ public class AccessoriesForge {
 
         NeoForge.EVENT_BUS.addListener(this::registerCommands);
 
-        eventBus.addListener(AccessoriesForgeNetworkHandler.INSTANCE::initializeNetworking);
-        eventBus.addListener(this::registerStuff);
-
         NeoForge.EVENT_BUS.addListener(this::registerReloadListeners);
-
-        eventBus.addListener(this::registerCapabilities);
 
         NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerChangedDimensionEvent event) -> {
             // A hack to deal with player data not being transferred when a ClientboundRespawnPacket occurs for teleporting between two dimensions
@@ -149,6 +147,10 @@ public class AccessoriesForge {
     }
 
     //--
+
+    public void commonInit(FMLCommonSetupEvent event) {
+        AccessoriesNetworking.init();
+    }
 
     public void registerCommands(RegisterCommandsEvent event) {
         AccessoriesCommands.registerCommands(event.getDispatcher(), event.getBuildContext());
