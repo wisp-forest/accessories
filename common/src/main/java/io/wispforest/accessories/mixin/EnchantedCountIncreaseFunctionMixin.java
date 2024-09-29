@@ -24,10 +24,8 @@ public abstract class EnchantedCountIncreaseFunctionMixin {
 
         var enchantments = livingEntity.registryAccess().registry(Registries.ENCHANTMENT).orElseThrow();
 
-        var damageSource = context.getParamOrNull(LootContextParams.DAMAGE_SOURCE);
-
-        if(enchantments.getResourceKey(holder.value()).orElseThrow().equals(Enchantments.LOOTING) && damageSource != null){
-            amount = ExtraEventHandler.lootingAdjustments(livingEntity, damageSource, amount);
+        if(enchantments.getResourceKey(holder.value()).orElseThrow().equals(Enchantments.LOOTING)){
+            amount = ExtraEventHandler.lootingAdjustments(livingEntity, context, amount);
         }
 
         return amount;

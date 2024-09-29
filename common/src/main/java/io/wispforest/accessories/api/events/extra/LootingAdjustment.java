@@ -1,38 +1,44 @@
 package io.wispforest.accessories.api.events.extra;
 
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.impl.event.WrappedEvent;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+
+import java.util.Optional;
 
 /**
- * Event callback used to adjust the given {@link LivingEntity}s looting amount from the {@link LivingEntity#dropAllDeathLoot} method
- * <p/>
- * This is called within {@link ExtraEventHandler#lootingAdjustments(LivingEntity, DamageSource, int)}
- * if any given Accessory was found to implement this interface and/or any registered callback
- * to the {@link LootingAdjustment#EVENT} returns an adjustment
+ * @deprecated Use {@link io.wispforest.accessories.api.events.extra.v2.LootingAdjustment} instead!
  */
+@Deprecated(forRemoval = true)
 public interface LootingAdjustment {
 
-    Event<LootingAdjustment> EVENT = EventFactory.createArrayBacked(LootingAdjustment.class, invokers -> (stack, reference, target, damageSource, currentLevel) -> {
-        var additionalLevels = 0;
+    @Deprecated(forRemoval = true)
+    Event<LootingAdjustment> EVENT = new WrappedEvent<>(
+            io.wispforest.accessories.api.events.extra.v2.LootingAdjustment.EVENT,
+            (adjustment) -> (stack, reference, target, context, damageSource, currentLevel) -> adjustment.getLootingAdjustment(stack, reference, target, damageSource, currentLevel),
+            lootingAdjustmentEvent -> {
+                return (stack, reference, target, damageSource, currentLevel) -> {
+                    var contextBuilder = new LootContext.Builder(
+                            new LootParams.Builder((ServerLevel) reference.entity().level())
+                                    .withParameter(LootContextParams.ATTACKING_ENTITY, target)
+                                    .withParameter(LootContextParams.DAMAGE_SOURCE, damageSource)
+                                    .create(LootContextParamSets.EMPTY)
+                    );
 
-        for (var invoker : invokers) {
-            additionalLevels += invoker.getLootingAdjustment(stack, reference, target, damageSource, additionalLevels + currentLevel);
-        }
+                    return lootingAdjustmentEvent.invoker().getLootingAdjustment(stack, reference, target, contextBuilder.create(Optional.empty()), damageSource, currentLevel);
+                };
+            }
+    );
 
-        return additionalLevels;
-    });
-
-    /**
-     * @param stack        The stack being evaluated
-     * @param reference    The reference to the specific location within the Accessories Inventory
-     * @param target       The given target entity for which the attack occurred on
-     * @param damageSource The specific source of damage used against the target
-     * @param currentLevel The current level that has been calculated so far
-     * @return The given looting adjustment for the given stack
-     */
     int getLootingAdjustment(ItemStack stack, SlotReference reference, LivingEntity target, DamageSource damageSource, int currentLevel);
 }
