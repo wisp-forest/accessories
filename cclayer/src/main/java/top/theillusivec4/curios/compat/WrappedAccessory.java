@@ -18,7 +18,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurio;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
@@ -100,10 +102,10 @@ public class WrappedAccessory implements ICurioItem {
     }
 
     @Override
-    public List<Component> getAttributesTooltip(List<Component> tooltips, ItemStack stack) {
+    public List<Component> getAttributesTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
         // This is a hack as curios dose not given any flag value or type to say the least\
         try {
-            accessory.getAttributesTooltip(stack, null, tooltips, Item.TooltipContext.EMPTY, TooltipFlag.NORMAL);
+            accessory.getAttributesTooltip(stack, null, tooltips, context, TooltipFlag.NORMAL);
         } catch (NullPointerException e) {}
 
         return tooltips;
@@ -119,9 +121,17 @@ public class WrappedAccessory implements ICurioItem {
     }
 
     @Override
-    public int getLootingLevel(SlotContext slotContext, DamageSource source, LivingEntity target, int baseLooting, ItemStack stack) {
-        if(accessory instanceof LootingAdjustment lootingAdjustment){
-            return lootingAdjustment.getLootingAdjustment(stack, CuriosWrappingUtils.fromContext(slotContext), target, source, baseLooting);
+    public int getLootingLevel(SlotContext slotContext, @Nullable LootContext lootContext, ItemStack stack) {
+        if(lootContext != null && lootContext.getParam(LootContextParams.ATTACKING_ENTITY) instanceof LivingEntity target){
+            var damageSource = lootContext.getParamOrNull(LootContextParams.DAMAGE_SOURCE);
+
+            if(damageSource != null) {
+                if(accessory instanceof io.wispforest.accessories.api.events.extra.LootingAdjustment lootingAdjustment){
+                    return lootingAdjustment.getLootingAdjustment(stack, CuriosWrappingUtils.fromContext(slotContext), target, damageSource, 0);
+                } else if(accessory instanceof io.wispforest.accessories.api.events.extra.v2.LootingAdjustment lootingAdjustment){
+                    return lootingAdjustment.getLootingAdjustment(stack, CuriosWrappingUtils.fromContext(slotContext), target, lootContext, damageSource, 0);
+                }
+            }
         }
 
         return 0;

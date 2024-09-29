@@ -36,6 +36,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -114,6 +115,10 @@ public interface ICurio {
    * @param tooltips A list of {@link Component} with every slot valid for this curio
    * @return A list of ITextComponent to display as curio slot information
    */
+  default List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context) {
+    return getSlotsTooltip(tooltips);
+  }
+
   default List<Component> getSlotsTooltip(List<Component> tooltips) {
     return tooltips;
   }
@@ -251,6 +256,10 @@ public interface ICurio {
    * @param tooltips A list of {@link Component} with the attribute modifier information
    * @return A list of ITextComponent to display as curio attribute modifier information
    */
+  default List<Component> getAttributesTooltip(List<Component> tooltips, Item.TooltipContext context) {
+    return getAttributesTooltip(tooltips);
+  }
+
   default List<Component> getAttributesTooltip(List<Component> tooltips) {
     return tooltips;
   }
@@ -267,28 +276,14 @@ public interface ICurio {
     return EnchantmentHelper.getItemEnchantmentLevel(slotContext.entity().level().registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.FORTUNE), getStack());
   }
 
-  default int getLootingLevel(SlotContext slotContext, @Nullable LootContext lootContext) {
-    if(lootContext != null && lootContext.getParam(LootContextParams.ATTACKING_ENTITY) instanceof LivingEntity living){
-      var damageSource = lootContext.getParamOrNull(LootContextParams.DAMAGE_SOURCE);
-
-      if(damageSource != null) return getLootingLevel(slotContext, damageSource, living, 0);
-    }
-
-    return EnchantmentHelper.getItemEnchantmentLevel(slotContext.entity().level().registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.LOOTING), getStack());
-  }
-
-
   /**
    * Get the amount of bonus Looting levels that are provided by curio.
    * Default implementation returns level of Looting enchantment on ItemStack.
    *
    * @param slotContext Context about the slot that the ItemStack is in
-   * @param source      Damage source that triggers the looting
-   * @param target      The target that drops the loot
-   * @param baseLooting The original looting level before bonuses
    * @return Amount of additional Looting levels that will be applied in LootingLevelEvent
    */
-  default int getLootingLevel(SlotContext slotContext, DamageSource source, LivingEntity target, int baseLooting) {
+  default int getLootingLevel(SlotContext slotContext, @Nullable LootContext lootContext) {
     return EnchantmentHelper.getItemEnchantmentLevel(slotContext.entity().level().registryAccess().registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.LOOTING), getStack());
   }
 

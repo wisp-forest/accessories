@@ -1,23 +1,19 @@
 package top.theillusivec4.curios.compat;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.SoundEventData;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.events.extra.*;
+import io.wispforest.accessories.api.events.extra.v2.LootingAdjustment;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.utils.AttributeUtils;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -29,7 +25,6 @@ import top.theillusivec4.curios.api.type.capability.ICurio;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class WrappedICurioProvider implements Accessory, LootingAdjustment, FortuneAdjustment, AllowWalkingOnSnow, EndermanMasked, PiglinNeutralInducer {
 
@@ -151,10 +146,10 @@ public class WrappedICurioProvider implements Accessory, LootingAdjustment, Fort
     //--
 
     @Override
-    public int getLootingAdjustment(ItemStack stack, SlotReference reference, LivingEntity target, DamageSource damageSource, int currentLevel) {
-        var context = CuriosWrappingUtils.create(reference);
+    public int getLootingAdjustment(ItemStack stack, SlotReference reference, LivingEntity target, LootContext context, DamageSource damageSource, int currentLevel) {
+        var slotContext = CuriosWrappingUtils.create(reference);
 
-        return this.iCurio(stack).getLootingLevel(context, damageSource, target, currentLevel);
+        return this.iCurio(stack).getLootingLevel(slotContext, context);
     }
 
     @Override
