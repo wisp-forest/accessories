@@ -26,12 +26,12 @@ public class CuriosPacketRegistry {
         this.registrar = event.registrar(Accessories.MODID);
 
         registrar.playToServer(CPacketDestroy.TYPE, StreamCodec.unit(new CPacketDestroy()), (arg, iPayloadContext) -> {
-            new NukeAccessories().handle(iPayloadContext.player());
+            NukeAccessories.handlePacket(new NukeAccessories(), iPayloadContext.player());
         });
 
         registrar.playToServer(CPacketToggleRender.TYPE, CPacketToggleRender.STREAM_CODEC, (arg, iPayloadContext) -> {
-            new SyncCosmeticToggle(null, SlotTypeLoader.INSTANCE.getSlotTypes(true).get(arg.identifier()).name(), arg.index())
-                    .handle(iPayloadContext.player());
+            var packet = new SyncCosmeticToggle(null, SlotTypeLoader.INSTANCE.getSlotTypes(true).get(arg.identifier()).name(), arg.index());
+            SyncCosmeticToggle.handlePacket(packet, iPayloadContext.player());
         });
     }
 
