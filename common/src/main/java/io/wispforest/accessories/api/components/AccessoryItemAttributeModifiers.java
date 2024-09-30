@@ -152,7 +152,7 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
                             path = path.replace("/", ":");
                         }
 
-                        return Holder.direct(SlotAttribute.getSlotAttribute(path));
+                        return SlotAttribute.getAttributeHolder(path);
                     }
 
                     return context.requireAttributeValue(RegistriesAttribute.REGISTRIES)

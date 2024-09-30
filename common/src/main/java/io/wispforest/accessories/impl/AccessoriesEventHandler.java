@@ -757,7 +757,7 @@ public class AccessoriesEventHandler {
 
                 var equipReference = capability.canEquipAccessory(stack, true);
 
-                if (equipReference != null) {
+                if (equipReference != null && accessory.canEquipFromUse(stack)) {
                     accessory.onEquipFromUse(stack, equipReference.left());
 
                     var newHandStack = stack.copy();

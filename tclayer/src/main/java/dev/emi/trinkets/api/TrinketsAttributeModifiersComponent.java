@@ -79,7 +79,7 @@ public record TrinketsAttributeModifiersComponent(List<Entry> modifiers, boolean
     public record Entry(Holder<Attribute> attribute, AttributeModifier modifier, Optional<String> slot) {
         private static final Endec<Holder<net.minecraft.world.entity.ai.attributes.Attribute>> ATTRIBUTE_ENDEC = MinecraftEndecs.IDENTIFIER.xmapWithContext(
                 (context, attributeType) -> {
-                    if(attributeType.getNamespace().equals(Accessories.MODID)) return Holder.direct(SlotAttribute.getSlotAttribute(attributeType.getPath()));
+                    if(attributeType.getNamespace().equals(Accessories.MODID)) return SlotAttribute.getAttributeHolder(attributeType.getPath());
 
                     return context.requireAttributeValue(RegistriesAttribute.REGISTRIES)
                             .registryManager()

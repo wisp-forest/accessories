@@ -51,10 +51,10 @@ public class ResourceExtendedArgument<T> implements ArgumentType<Holder<T>> {
     final ResourceKey<? extends Registry<T>> registryKey;
     private final HolderLookup<T> registryLookup;
 
-    private final Function<ResourceLocation, @Nullable T> additionalLookup;
+    private final Function<ResourceLocation, @Nullable Holder<T>> additionalLookup;
     private final Supplier<Stream<ResourceLocation>> additionalSuggestions;
 
-    public ResourceExtendedArgument(CommandBuildContext context, ResourceKey<? extends Registry<T>> registryKey, Function<ResourceLocation, @Nullable T> additionalLookup, Supplier<Stream<ResourceLocation>> additionalSuggestions) {
+    public ResourceExtendedArgument(CommandBuildContext context, ResourceKey<? extends Registry<T>> registryKey, Function<ResourceLocation, @Nullable Holder<T>> additionalLookup, Supplier<Stream<ResourceLocation>> additionalSuggestions) {
         this.registryKey = registryKey;
         this.registryLookup = context.lookupOrThrow(registryKey);
 
@@ -62,15 +62,15 @@ public class ResourceExtendedArgument<T> implements ArgumentType<Holder<T>> {
         this.additionalSuggestions = additionalSuggestions;
     }
 
-    public static <T> ResourceExtendedArgument<T> resource(CommandBuildContext context, ResourceKey<? extends Registry<T>> registryKey, Function<ResourceLocation, @Nullable T> additionalLookup, Supplier<Stream<ResourceLocation>> additionalSuggestions) {
+    public static <T> ResourceExtendedArgument<T> resource(CommandBuildContext context, ResourceKey<? extends Registry<T>> registryKey, Function<ResourceLocation, @Nullable Holder<T>> additionalLookup, Supplier<Stream<ResourceLocation>> additionalSuggestions) {
         return new ResourceExtendedArgument<>(context, registryKey, additionalLookup, additionalSuggestions);
     }
 
     public static ResourceExtendedArgument<Attribute> attributes(CommandBuildContext context) {
-        return new ResourceExtendedArgument<Attribute>(context, Registries.ATTRIBUTE, location -> {
+        return new ResourceExtendedArgument<>(context, Registries.ATTRIBUTE, location -> {
             String possibleSlotName;
 
-            if(location.getNamespace().equals(Accessories.MODID)) {
+            if (location.getNamespace().equals(Accessories.MODID)) {
                 possibleSlotName = location.getPath();
             } else {
                 possibleSlotName = location.toString();
@@ -78,7 +78,7 @@ public class ResourceExtendedArgument<T> implements ArgumentType<Holder<T>> {
 
             var slotType = SlotTypeLoader.INSTANCE.getSlotTypes(false).get(possibleSlotName);
 
-            return (slotType != null) ? SlotAttribute.getSlotAttribute(possibleSlotName) : null;
+            return (slotType != null) ? SlotAttribute.getAttributeHolder(possibleSlotName) : null;
         }, () -> {
             return SlotTypeLoader.INSTANCE.getSlotTypes(false).values()
                     .stream()
@@ -101,7 +101,7 @@ public class ResourceExtendedArgument<T> implements ArgumentType<Holder<T>> {
 
         var entry = this.registryLookup.get(resourceKey)
                 .map(tReference -> (Holder<T>) tReference)
-                .or(() -> Optional.ofNullable(this.additionalLookup.apply(resourceLocation)).map(Holder::direct));
+                .or(() -> Optional.ofNullable(this.additionalLookup.apply(resourceLocation)));
 
         return entry.orElseThrow(() -> ERROR_UNKNOWN_RESOURCE.createWithContext(builder, resourceLocation, this.registryKey.location()));
     }

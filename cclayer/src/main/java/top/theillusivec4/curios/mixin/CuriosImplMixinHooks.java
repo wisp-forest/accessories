@@ -347,7 +347,7 @@ public class CuriosImplMixinHooks {
   }
 
   public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String identifier, ResourceLocation id, double amount, AttributeModifier.Operation operation) {
-    map.put(Holder.direct(io.wispforest.accessories.api.attributes.SlotAttribute.getSlotAttribute(CuriosWrappingUtils.curiosToAccessories(identifier))), new AttributeModifier(id, amount, operation));
+    map.put(io.wispforest.accessories.api.attributes.SlotAttribute.getAttributeHolder(CuriosWrappingUtils.curiosToAccessories(identifier)), new AttributeModifier(id, amount, operation));
   }
 
   public static void addSlotModifier(ItemStack stack, String identifier, ResourceLocation id, double amount, AttributeModifier.Operation operation, String slot) {
