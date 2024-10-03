@@ -81,20 +81,22 @@ public class WrappedTrinket implements Accessory {
     public void getDynamicModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
         var ref = WrappingTrinketsUtils.createTrinketsReference(reference);
 
-        if(ref.isEmpty()) Accessory.super.getDynamicModifiers(stack, reference, builder);
+        if(ref.isEmpty()) {
+            Accessory.super.getDynamicModifiers(stack, reference, builder);
+        } else {
+            var id = SlotAttributes.getIdentifier(ref.get());
 
-        var id = SlotAttributes.getIdentifier(ref.get());
-
-        this.trinket.getModifiers(stack, ref.get(), reference.entity(), SlotAttributes.getIdentifier(ref.get())).asMap()
-                .forEach((attribute, modifiers) -> {
-                    for (var modifier : modifiers) {
+            this.trinket.getModifiers(stack, ref.get(), reference.entity(), SlotAttributes.getIdentifier(ref.get())).asMap()
+                    .forEach((attribute, modifiers) -> {
+                        for (var modifier : modifiers) {
                         if(modifier.id().equals(id)) {
                             builder.addStackable(attribute, Accessories.of("trinket_converted_attribute"), modifier.amount(), modifier.operation());
                         } else {
                             builder.addExclusive(attribute, modifier);
                         }
-                    }
-                });
+                        }
+                    });
+        }
     }
 
     @Override
