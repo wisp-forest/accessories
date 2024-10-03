@@ -147,9 +147,9 @@ public class AccessoriesAPI {
      * to the {@link ItemStack}'s item
      */
     public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot, boolean hideTooltipIfDisabled){
-        var builder = new AccessoryAttributeBuilder();
-
         var slotReference = SlotReference.of(entity, slotName, slot);
+
+        var builder = new AccessoryAttributeBuilder(slotReference);
 
         AccessoryNestUtils.recursiveStackConsumption(stack, slotReference, (innerStack, innerRef) -> {
             var component = AccessoriesDataComponents.readOrDefault(AccessoriesDataComponents.ATTRIBUTES, innerStack);
