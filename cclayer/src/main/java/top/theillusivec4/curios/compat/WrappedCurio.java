@@ -86,6 +86,10 @@ public class WrappedCurio implements Accessory, LootingAdjustment, FortuneAdjust
         Multimap<Attribute, AttributeModifier> attributes = HashMultimap.create();
 
         attributes.putAll(this.iCurioItem.getAttributeModifiers(context, data.right(), stack));
+
+        attributes.forEach((attribute, modifier) -> {
+            builder.addModifier(attribute, modifier, reference, s -> new ResourceLocation(CuriosConstants.MOD_ID, s));
+        });
     }
 
     @Override
