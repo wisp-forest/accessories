@@ -6,6 +6,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.AccessoriesLoaderInternals;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
@@ -74,7 +75,7 @@ public final class AccessoryAttributeBuilder {
 
         var innerMap = this.exclusiveAttributes.computeIfAbsent(attribute, attributeHolder -> new HashMap<>());
 
-        if(AccessoriesInternals.isDevelopmentEnv() && innerMap.containsKey(id) && !this.previouslyWarnedLocations.contains(id)) {
+        if(AccessoriesLoaderInternals.isDevelopmentEnv() && innerMap.containsKey(id) && !this.previouslyWarnedLocations.contains(id)) {
             LOGGER.warn("A given Modifier was found to have a duplicate location but was added as exclusive, was such on purpose as such will not stack with the other: {}", id);
 
             this.previouslyWarnedLocations.add(id);

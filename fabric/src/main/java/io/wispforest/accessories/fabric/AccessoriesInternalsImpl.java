@@ -50,10 +50,6 @@ import java.util.stream.Collectors;
 
 public class AccessoriesInternalsImpl {
 
-    public static boolean isDevelopmentEnv() {
-        return FabricLoader.getInstance().isDevelopmentEnvironment();
-    }
-
     public static AccessoriesHolder getHolder(LivingEntity livingEntity){
         return livingEntity.getAttachedOrCreate(AccessoriesFabric.HOLDER_ATTACHMENT_TYPE);
     }
