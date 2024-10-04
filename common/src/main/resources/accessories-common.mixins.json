@@ -7,7 +7,6 @@
     "client.AbstractButtonMixin",
     "client.AbstractContainerScreenAccessor",
     "client.AbstractContainerScreenMixin",
-    "client.ArmorSlotMixin",
     "client.CreativeInventoryScreenMixin",
     "client.DefaultTooltipPositionerMixin",
     "client.GuiGraphicsAccessor",
@@ -27,7 +26,6 @@
     "client.owo.BaseParentComponentMixin",
     "client.owo.ComponentMixin",
     "client.owo.ComponentStubMixin",
-    "client.owo.ConfigWrapperAccessor",
     "client.owo.DiscreteSliderComponentAccessor",
     "client.owo.OwoEmiPluginMixin",
     "client.owo.OwoReiPluginMixin",
@@ -59,7 +57,9 @@
     "PowderSnowBlockMixin",
     "RegistryOpsAccessor",
     "SlotAccessor",
-    "StriderMixin"
+    "StriderMixin",
+    "client.owo.ConfigWrapperAccessor",
+    "ArmorSlotMixin"
   ],
   "injectors": {
     "defaultRequire": 1

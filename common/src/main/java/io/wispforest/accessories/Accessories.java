@@ -50,7 +50,7 @@ public class Accessories {
     });
 
     static {
-        var builder = ((ConfigWrapperAccessor) CONFIG).builder();
+        var builder = ((ConfigWrapperAccessor) CONFIG).accessories$builder();
 
         builder.register(EndecUtils.VECTOR_2_I_ENDEC, Vector2i.class);
     }

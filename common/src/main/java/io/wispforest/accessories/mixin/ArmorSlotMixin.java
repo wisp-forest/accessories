@@ -1,4 +1,4 @@
-package io.wispforest.accessories.mixin.client;
+package io.wispforest.accessories.mixin;
 
 import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.pond.ArmorSlotExtension;

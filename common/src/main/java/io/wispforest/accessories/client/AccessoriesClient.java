@@ -86,7 +86,7 @@ public class AccessoriesClient {
                                         return new OptionComponentFactory.Result<>(layout, layout);
                                     });
 
-                            var builder = ((ConfigWrapperAccessor) config).builder();
+                            var builder = ((ConfigWrapperAccessor) config).accessories$builder();
 
                             factoryRegister.registerFactory(
                                     option -> option.backingField().field().isAnnotationPresent(Structured.class),

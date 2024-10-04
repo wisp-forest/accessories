@@ -7,5 +7,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(value = ConfigWrapper.class, remap = false)
 public interface ConfigWrapperAccessor {
-    @Accessor(remap = false, value = "builder") ReflectiveEndecBuilder builder();
+    @Accessor(value = "builder", remap = false) ReflectiveEndecBuilder accessories$builder();
 }
