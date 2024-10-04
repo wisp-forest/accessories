@@ -23,7 +23,7 @@ public class CuriosPacketRegistry {
     private PayloadRegistrar registrar = null;
 
     public void initializeNetworking(final RegisterPayloadHandlersEvent event) {
-        this.registrar = event.registrar(Accessories.MODID);
+        this.registrar = event.registrar("cclayer");
 
         registrar.playToServer(CPacketDestroy.TYPE, StreamCodec.unit(new CPacketDestroy()), (arg, iPayloadContext) -> {
             NukeAccessories.handlePacket(new NukeAccessories(), iPayloadContext.player());

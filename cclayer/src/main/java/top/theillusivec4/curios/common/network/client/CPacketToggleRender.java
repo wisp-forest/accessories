@@ -9,7 +9,7 @@ import top.theillusivec4.curios.CuriosConstants;
 
 public record CPacketToggleRender(String identifier, int index) implements CustomPacketPayload {
 
-    public static final Type<CPacketToggleRender> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, "destroy"));
+    public static final Type<CPacketToggleRender> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, "toggle_render"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, CPacketToggleRender> STREAM_CODEC =
             StreamCodec.composite(ByteBufCodecs.STRING_UTF8, CPacketToggleRender::identifier,
