@@ -27,6 +27,7 @@ repositories {
     maven { url "https://modmaven.dev" } // location of a maven mirror for JEI files, as a fallback
     maven { url "https://maven.wispforest.io/releases" }
     mavenCentral()
+    maven { url "https://api.modrinth.com/maven" }
 //    maven { url 'https://jitpack.io' }
 }
 
@@ -55,6 +56,8 @@ dependencies {
     forgeRuntimeLibrary("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
 
     testmodImplementation sourceSets.main.output
+
+    //modLocalRuntime "maven.modrinth:sodium:mc1.21-0.6.0-beta.2-neoforge"
 
     var type = rootProject.properties.get("item_viewer_type");
 

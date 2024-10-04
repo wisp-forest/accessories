@@ -1,6 +1,7 @@
 {
   "required": true,
   "package": "io.wispforest.accessories.mixin",
+  "plugin": "io.wispforest.accessories.mixin.AccessoriesMixinPlugin",
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [
@@ -30,7 +31,8 @@
     "client.owo.OwoEmiPluginMixin",
     "client.owo.OwoReiPluginMixin",
     "client.owo.ScissorStackMixin",
-    "client.owo.ScrollContainerMixin"
+    "client.owo.ScrollContainerMixin",
+    "sodium.MPOATVConstructingVertexConsumerMixin_SodiumImpl"
   ],
   "mixins": [
     "ApplyBonusCountMixin",

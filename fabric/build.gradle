@@ -26,6 +26,7 @@ repositories {
     maven { url = "https://maven.terraformersmc.com/" }
     maven { url = "https://maven.blamejared.com/" } // location of the maven that hosts JEI files since January 2023
     maven { url = "https://modmaven.dev" } // location of a maven mirror for JEI files, as a fallback
+    maven { url "https://api.modrinth.com/maven" }
 }
 
 sourceSets {
@@ -52,6 +53,8 @@ dependencies {
 //    modLocalRuntime("io.wispforest:gadget:0.2.3+1.20.3")
 
     testmodImplementation sourceSets.main.output
+
+    modLocalRuntime "maven.modrinth:sodium:mc1.21-0.6.0-beta.2-fabric"
 
     var type = rootProject.properties.get("item_viewer_type");
 
