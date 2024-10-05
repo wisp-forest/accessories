@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import top.theillusivec4.curios.compat.WrappedCurioItemHandler;
 
 @Mixin(AccessoriesCapabilityImpl.class)
-public class AccessoriesCapabilityImplMixin {
+public abstract class AccessoriesCapabilityImplMixin {
 
     @Inject(method = "<init>", at = @At("TAIL"))
     private void attemptCurioConversion(LivingEntity entity, CallbackInfo ci) {

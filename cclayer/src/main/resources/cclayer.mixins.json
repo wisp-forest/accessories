@@ -16,7 +16,8 @@
     "RegisterCapabilitiesEventMixin",
     "SlotTypeLoaderMixin",
     "compat.AetherAccessoriesMenuMixin",
-    "NetworkInstanceAccessor"
+    "NetworkInstanceAccessor",
+    "AccessoriesEventHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1
