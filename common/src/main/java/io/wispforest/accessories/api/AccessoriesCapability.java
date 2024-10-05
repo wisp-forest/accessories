@@ -188,6 +188,28 @@ public interface AccessoriesCapability {
         return getFirstEquipped(predicate, check) != null;
     }
 
+    default boolean isAnotherEquipped(SlotReference slotReference, Item item) {
+        return isAnotherEquipped(slotReference, stack -> stack.getItem().equals(item));
+    }
+
+    /**
+     * @return If any {@link ItemStack} is equipped based on the passed predicate while deduplicating
+     * using the current {@link SlotReference}
+     */
+    default boolean isAnotherEquipped(SlotReference slotReference, Predicate<ItemStack> predicate) {
+        var equippedStacks = getEquipped(predicate);
+
+        if (equippedStacks.size() > 2) {
+            for (var equippedStack : equippedStacks) {
+                if (!equippedStack.reference().equals(slotReference)) return true;
+            }
+        } else if(equippedStacks.size() == 1) {
+            return !equippedStacks.get(0).reference().equals(slotReference);
+        }
+
+        return false;
+    }
+
     /**
      * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given {@link Item}
      */
