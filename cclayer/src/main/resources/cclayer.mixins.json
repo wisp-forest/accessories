@@ -15,6 +15,7 @@
     "ItemStackMixin",
     "RegisterCapabilitiesEventMixin",
     "SlotTypeLoaderMixin",
+    "AccessoriesEventHandlerMixin",
     "compat.AetherAccessoriesMenuMixin"
   ],
   "injectors": {
