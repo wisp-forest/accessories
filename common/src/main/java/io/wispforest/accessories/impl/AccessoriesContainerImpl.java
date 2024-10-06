@@ -22,6 +22,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
+import net.minecraft.world.ContainerListener;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
@@ -31,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 @ApiStatus.Internal
-public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceEndec {
+public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceEndec, ContainerListener {
 
     protected AccessoriesCapability capability;
     private String slotName;
@@ -59,16 +60,17 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         this.slotName = slotType.name();
         this.baseSize = slotType.amount();
 
-        this.accessories = new ExpandedSimpleContainer(this::onContainerUpdate, this.baseSize, "accessories", false);
-        this.cosmeticAccessories = new ExpandedSimpleContainer(this::onContainerUpdate, this.baseSize, "cosmetic_accessories", false);
+        this.accessories = new ExpandedSimpleContainer(this, this.baseSize, "accessories", false);
+        this.cosmeticAccessories = new ExpandedSimpleContainer(this, this.baseSize, "cosmetic_accessories", false);
 
         this.renderOptions = getWithSize(baseSize, new ArrayList<>(), true);
     }
 
-    private boolean isWithinUpdateCall = false;
+    protected boolean containerListenerLock = false;
 
-    private void onContainerUpdate(Container container) {
-        if(isWithinUpdateCall) return;
+    @Override
+    public void containerChanged(Container container) {
+        if(containerListenerLock) return;
 
         if(((ExpandedSimpleContainer) container).name().contains("cosmetic")) return;
 
@@ -151,10 +153,10 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
             var invalidStacks = new ArrayList<ItemStack>();
 
-            isWithinUpdateCall = true;
+            this.containerListenerLock = true;
 
-            var newAccessories = new ExpandedSimpleContainer(this::onContainerUpdate, currentSize, "accessories");
-            var newCosmetics = new ExpandedSimpleContainer(this::onContainerUpdate, currentSize, "cosmetic_accessories");
+            var newAccessories = new ExpandedSimpleContainer(this, currentSize, "accessories");
+            var newCosmetics = new ExpandedSimpleContainer(this, currentSize, "cosmetic_accessories");
 
             for (int i = 0; i < this.accessories.getContainerSize(); i++) {
                 if (i < newAccessories.getContainerSize()) {
@@ -166,7 +168,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                 }
             }
 
-            isWithinUpdateCall = false;
+            this.containerListenerLock = false;
 
             newAccessories.copyPrev(this.accessories);
             newCosmetics.copyPrev(this.cosmeticAccessories);
@@ -423,24 +425,6 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
         this.baseSize = carrier.get(BASE_SIZE_KEY);
 
-        if(carrier.has(CURRENT_SIZE_KEY)) {
-            var currentSize = carrier.get(CURRENT_SIZE_KEY);
-
-            var sentOptions = carrier.get(RENDER_OPTIONS_KEY);
-
-            this.renderOptions = getWithSize(currentSize, sentOptions, true);
-
-            if(this.accessories.getContainerSize() != currentSize) {
-                this.accessories = new ExpandedSimpleContainer(this::onContainerUpdate, currentSize, "accessories");
-                this.cosmeticAccessories = new ExpandedSimpleContainer(this::onContainerUpdate, currentSize, "cosmetic_accessories");
-            }
-
-            this.accessories.fromTag(carrier.get(ITEMS_KEY), registryAccess);
-            this.cosmeticAccessories.fromTag(carrier.get(COSMETICS_KEY), registryAccess);
-        } else {
-            this.renderOptions = carrier.get(RENDER_OPTIONS_KEY);
-        }
-
         if(sync) {
             this.modifiers.clear();
             this.persistentModifiers.clear();
@@ -467,7 +451,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
             }
 
             if (carrier.has(CACHED_MODIFIERS_KEY)) {
-                var cachedTag = carrier.get(PERSISTENT_MODIFIERS_KEY);
+                var cachedTag = carrier.get(CACHED_MODIFIERS_KEY);
 
                 for (CompoundTag compoundTag : cachedTag) {
                     var modifier = AttributeModifier.load(compoundTag);
@@ -480,6 +464,24 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                     this.update();
                 }
             }
+        }
+
+        if(carrier.has(CURRENT_SIZE_KEY)) {
+            var currentSize = carrier.get(CURRENT_SIZE_KEY);
+
+            var sentOptions = carrier.get(RENDER_OPTIONS_KEY);
+
+            this.renderOptions = getWithSize(currentSize, sentOptions, true);
+
+            if(this.accessories.getContainerSize() != currentSize) {
+                this.accessories = new ExpandedSimpleContainer(this, currentSize, "accessories");
+                this.cosmeticAccessories = new ExpandedSimpleContainer(this, currentSize, "cosmetic_accessories");
+            }
+
+            this.accessories.fromTag(carrier.get(ITEMS_KEY), registryAccess);
+            this.cosmeticAccessories.fromTag(carrier.get(COSMETICS_KEY), registryAccess);
+        } else {
+            this.renderOptions = carrier.get(RENDER_OPTIONS_KEY);
         }
     }
 
