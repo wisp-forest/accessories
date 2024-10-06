@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -26,20 +27,24 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
+    private final AccessoriesContainerImpl container;
+
     private final String name;
     private final NonNullList<ItemStack> previousItems;
     private final Int2BooleanMap setFlags = new Int2BooleanArrayMap();
 
     private boolean newlyConstructed;
 
-    public ExpandedSimpleContainer(ContainerListener listener, int size, String name) {
-        this(listener, size, name, true);
+    public ExpandedSimpleContainer(AccessoriesContainerImpl container, int size, String name) {
+        this(container, size, name, true);
     }
 
-    public ExpandedSimpleContainer(ContainerListener listener, int size, String name, boolean toggleNewlyConstructed) {
+    public ExpandedSimpleContainer(AccessoriesContainerImpl container, int size, String name, boolean toggleNewlyConstructed) {
         super(size);
 
-        this.addListener(listener);
+        this.container = container;
+
+        this.addListener(container);
 
         if(toggleNewlyConstructed) this.newlyConstructed = true;
 
@@ -143,18 +148,47 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
     @Override
     public void fromTag(ListTag containerNbt) {
+        this.container.containerListenerLock = true;
+
+        var capability = this.container.capability;
+
+        var prevStacks = new ArrayList<ItemStack>();
+
         for(int i = 0; i < this.getContainerSize(); ++i) {
+            var currentStack = this.getItem(i);
+
+            prevStacks.add(currentStack);
+
             this.setItem(i, ItemStack.EMPTY);
         }
+
+        var invalidStacks = new ArrayList<ItemStack>();
+        var decodedStacks = new ArrayList<ItemStack>();
 
         for(int i = 0; i < containerNbt.size(); ++i) {
             var compoundTag = containerNbt.getCompound(i);
 
             int j = compoundTag.getInt("Slot");
 
+            var stack = ItemStack.of(compoundTag);
+
+            decodedStacks.add(stack);
+
             if (j >= 0 && j < this.getContainerSize()) {
-                this.setItem(j, ItemStack.of(compoundTag));
+                this.setItem(j, stack);
+            } else {
+                invalidStacks.add(stack);
             }
+        }
+
+        this.container.containerListenerLock = false;
+
+        if (!capability.entity().level().isClientSide()) {
+            if (!prevStacks.equals(decodedStacks)) {
+                this.setChanged();
+            }
+
+            ((AccessoriesHolderImpl) capability.getHolder()).invalidStacks.addAll(invalidStacks);
         }
     }
 
