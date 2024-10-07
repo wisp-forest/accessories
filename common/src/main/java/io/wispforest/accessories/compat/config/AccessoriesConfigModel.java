@@ -25,6 +25,8 @@ public class AccessoriesConfigModel {
 
         public boolean disableEmptySlotScreenError = false;
 
+        public boolean showCosmeticAccessories = true;
+
         public List<RenderSlotTarget> disabledDefaultRenders = new ArrayList<>();
     }
 

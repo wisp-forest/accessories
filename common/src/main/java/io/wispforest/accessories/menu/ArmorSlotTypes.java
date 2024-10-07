@@ -223,18 +223,18 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
     public static ItemStack getAlternativeStack(LivingEntity instance, EquipmentSlot equipmentSlot) {
         var capability = instance.accessoriesCapability();
 
-        if(capability != null) {
+        if (capability != null) {
             var reference = ArmorSlotTypes.getReferenceFromSlot(equipmentSlot);
 
-            if(reference != null) {
+            if (reference != null) {
                 var container = capability.getContainer(reference);
 
-                if(container != null) {
+                if (container != null) {
                     if(!container.shouldRender(0)) return ItemStack.EMPTY;
 
                     var stack = container.getCosmeticAccessories().getItem(0);
 
-                    if(!stack.isEmpty()) return stack;
+                    if (!stack.isEmpty() && Accessories.config().clientOptions.showCosmeticAccessories()) return stack;
                 }
             }
         }

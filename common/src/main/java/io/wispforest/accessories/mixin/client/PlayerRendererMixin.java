@@ -1,6 +1,7 @@
 package io.wispforest.accessories.mixin.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
@@ -51,7 +52,7 @@ public abstract class PlayerRendererMixin {
                     var stack = accessories.getItem(i);
                     var cosmeticStack = cosmetics.getItem(i);
 
-                    if (!cosmeticStack.isEmpty()) stack = cosmeticStack;
+                    if (!cosmeticStack.isEmpty() && Accessories.config().clientOptions.showCosmeticAccessories()) stack = cosmeticStack;
 
                     if (stack.isEmpty()) continue;
 

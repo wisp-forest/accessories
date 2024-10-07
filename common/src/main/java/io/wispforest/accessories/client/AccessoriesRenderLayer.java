@@ -126,7 +126,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                 var stack = accessories.getItem(i);
                 var cosmeticStack = cosmetics.getItem(i);
 
-                if (!cosmeticStack.isEmpty()) stack = cosmeticStack;
+                if (!cosmeticStack.isEmpty() && Accessories.config().clientOptions.showCosmeticAccessories()) stack = cosmeticStack;
 
                 if (stack.isEmpty()) continue;
 

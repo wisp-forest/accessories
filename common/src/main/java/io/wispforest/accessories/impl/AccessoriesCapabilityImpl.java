@@ -3,6 +3,7 @@ package io.wispforest.accessories.impl;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
@@ -328,7 +329,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
                 if(check == EquipmentChecking.COSMETICALLY_OVERRIDABLE) {
                     var cosmetic = container.getCosmeticAccessories().getItem(reference.slot());
 
-                    if(!cosmetic.isEmpty()) stack = cosmetic;
+                    if(!cosmetic.isEmpty() && Accessories.config().clientOptions.showCosmeticAccessories()) stack = cosmetic;
                 }
 
                 var entryReference = AccessoryNestUtils.recursiveStackHandling(stack, reference, (innerStack, ref) -> {
