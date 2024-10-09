@@ -21,6 +21,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.stream.Stream;
+
 /**
  * Main Render Interface used to render Accessories
  * <p>
@@ -93,7 +96,7 @@ public interface AccessoryRenderer {
      * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
      */
     @SuppressWarnings("unchecked")
-    @Deprecated
+    @Deprecated(forRemoval = true)
     static void followBodyRotations(final LivingEntity entity, final HumanoidModel<LivingEntity> model) {
         EntityRenderer<? super LivingEntity> render = Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(entity);
 
@@ -117,7 +120,7 @@ public interface AccessoryRenderer {
      *
      * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     static void translateToChest(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity livingEntity) {
         transformToModelPart(poseStack, model.body);
     }
@@ -127,7 +130,7 @@ public interface AccessoryRenderer {
      *
      * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     static void translateToRightArm(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.rightArm, Side.BOTTOM);
     }
@@ -137,7 +140,7 @@ public interface AccessoryRenderer {
      *
      * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     static void translateToLeftArm(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.leftArm, Side.BOTTOM);
     }
@@ -147,7 +150,7 @@ public interface AccessoryRenderer {
      *
      * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     static void translateToRightLeg(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.rightLeg, Side.BOTTOM);
     }
@@ -157,7 +160,7 @@ public interface AccessoryRenderer {
      *
      * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     static void translateToLeftLeg(PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, LivingEntity player) {
         transformToFace(poseStack, model.leftLeg, Side.BOTTOM);
     }
@@ -171,6 +174,16 @@ public interface AccessoryRenderer {
      */
     static void transformToFace(PoseStack poseStack, ModelPart part, Side side) {
         transformToModelPart(poseStack, part, side.direction.getNormal().getX(), side.direction.getNormal().getY(), side.direction.getNormal().getZ());
+    }
+
+    /**
+     * Transforms the rendering context to the center of a ModelPart
+     *
+     * @param poseStack the pose stack to apply the transformation(s) to
+     * @param part      The ModelPart to transform to
+     */
+    static void transformToModelPart(PoseStack poseStack, ModelPart part) {
+        transformToModelPart(poseStack, part, 0, 0, 0);
     }
 
     /**
@@ -207,31 +220,45 @@ public interface AccessoryRenderer {
         poseStack.mulPose(Axis.XP.rotationDegrees(180));
     }
 
-    /**
-     * Transforms the rendering context to the center of a ModelPart
-     *
-     * @param poseStack the pose stack to apply the transformation(s) to
-     * @param part      The ModelPart to transform to
-     */
-    static void transformToModelPart(PoseStack poseStack, ModelPart part) {
-        transformToModelPart(poseStack, part, 0, 0, 0);
-    }
-
     private static Pair<Vec3, Vec3> getAABB(ModelPart part) {
         Vec3 min = new Vec3(0, 0, 0);
         Vec3 max = new Vec3(0, 0, 0);
-        for (ModelPart.Cube cube : ((ModelPartAccessor) (Object) part).getCubes()) {
-            min = new Vec3(
-                    Math.min(min.x, Math.min(cube.minX, cube.maxX)),
-                    Math.min(min.y, Math.min(cube.minY, cube.maxY)),
-                    Math.min(min.z, Math.min(cube.minZ, cube.maxZ))
-            );
-            max = new Vec3(
-                    Math.max(max.x, Math.max(cube.minX, cube.maxX)),
-                    Math.max(max.y, Math.max(cube.minY, cube.maxY)),
-                    Math.max(max.z, Math.max(cube.minZ, cube.maxZ))
-            );
+
+        if (part.getClass().getSimpleName().contains("EMFModelPart")) {
+            var parts = new ArrayList<ModelPart>();
+
+            parts.add(part);
+            parts.addAll(((ModelPartAccessor) (Object) part).getChildren().values());
+
+            for (var modelPart : parts) {
+                for (ModelPart.Cube cube : ((ModelPartAccessor) (Object) modelPart).getCubes()) {
+                    min = new Vec3(
+                            Math.min(min.x, Math.min(cube.minX + modelPart.x, cube.maxX + modelPart.x)),
+                            Math.min(min.y, Math.min(cube.minY + modelPart.y, cube.maxY + modelPart.y)),
+                            Math.min(min.z, Math.min(cube.minZ + modelPart.z, cube.maxZ + modelPart.z))
+                    );
+                    max = new Vec3(
+                            Math.max(max.x, Math.max(cube.minX + modelPart.x, cube.maxX + modelPart.x)),
+                            Math.max(max.y, Math.max(cube.minY + modelPart.y, cube.maxY + modelPart.y)),
+                            Math.max(max.z, Math.max(cube.minZ + modelPart.z, cube.maxZ + modelPart.z))
+                    );
+                }
+            }
+        } else {
+            for (ModelPart.Cube cube : ((ModelPartAccessor) (Object) part).getCubes()) {
+                min = new Vec3(
+                        Math.min(min.x, Math.min(cube.minX, cube.maxX)),
+                        Math.min(min.y, Math.min(cube.minY, cube.maxY)),
+                        Math.min(min.z, Math.min(cube.minZ, cube.maxZ))
+                );
+                max = new Vec3(
+                        Math.max(max.x, Math.max(cube.minX, cube.maxX)),
+                        Math.max(max.y, Math.max(cube.minY, cube.maxY)),
+                        Math.max(max.z, Math.max(cube.minZ, cube.maxZ))
+                );
+            }
         }
+
         return Pair.of(min, max);
     }
 }
