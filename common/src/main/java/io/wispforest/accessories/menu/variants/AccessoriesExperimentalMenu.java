@@ -12,6 +12,7 @@ import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.menu.*;
+import io.wispforest.accessories.menu.networking.ToggledSlots;
 import io.wispforest.owo.client.screens.SlotGenerator;
 import io.wispforest.owo.util.pond.OwoSlotExtension;
 import net.minecraft.resources.ResourceLocation;
@@ -156,15 +157,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
             }
         }
 
-        this.addServerboundMessage(ToggledSlots.class, (message) -> {
-            message.changedSlotStates().forEach((index, state) -> {
-                var slot = ((OwoSlotExtension) this.getSlot(index));
-
-                if(state != slot.owo$getDisabledOverride()) {
-                    slot.owo$setDisabledOverride(state);
-                }
-            });
-        });
+        ToggledSlots.initMenu(this);
     }
 
     private boolean addArmorSlot(EquipmentSlot equipmentSlot, LivingEntity targetEntity, SlotTypeReference armorReference, Map<String, AccessoriesContainer> containers) {
@@ -490,5 +483,4 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         return bl;
     }
 
-    public record ToggledSlots(Map<Integer, Boolean> changedSlotStates) {}
 }

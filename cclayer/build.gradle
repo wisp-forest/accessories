@@ -33,6 +33,8 @@ dependencies {
     developmentNeoForge(implementation(project(path: ":common", configuration: "namedElements")))
     localRuntime(compileOnly(project(path: ":neoforge", configuration: "namedElements")))
 
+    forgeRuntimeLibrary(implementation("blue.endless:jankson:1.2.2"))
+
     modImplementation("io.wispforest:owo-lib-neoforge:${rootProject.owo_neo_version}")
 
     forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")

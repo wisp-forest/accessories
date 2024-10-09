@@ -15,6 +15,10 @@ repositories {
     maven { url "https://maven.blamejared.com/" } // location of the maven that hosts JEI files since January 2023
     maven { url "https://modmaven.dev" } // location of a maven mirror for JEI files, as a fallback
     maven { url "https://api.modrinth.com/maven" }
+    maven {
+        url "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+        content { includeGroup("software.bernie.geckolib") }
+    }
 }
 
 dependencies {
@@ -32,8 +36,10 @@ dependencies {
         exclude group: "fabric-api"
     }
 
-    modCompileOnly "maven.modrinth:sodium:mc1.21-0.6.0-beta.2-fabric"
-    
+    modCompileOnly "software.bernie.geckolib:geckolib-fabric-1.21.1:${rootProject.geckolib_version}"
+
+    modCompileOnly "maven.modrinth:sodium:${rootProject.sodium_version}"
+
     modCompileOnly ("me.shedaniel:RoughlyEnoughItems-api:${rootProject.rei_version}")
     modCompileOnly ("me.shedaniel:RoughlyEnoughItems-default-plugin:${rootProject.rei_version}")
 

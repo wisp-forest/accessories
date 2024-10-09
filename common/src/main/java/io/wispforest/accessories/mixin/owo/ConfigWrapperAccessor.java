@@ -1,4 +1,4 @@
-package io.wispforest.accessories.mixin.client.owo;
+package io.wispforest.accessories.mixin.owo;
 
 import io.wispforest.endec.impl.ReflectiveEndecBuilder;
 import io.wispforest.owo.config.ConfigWrapper;

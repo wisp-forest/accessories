@@ -60,15 +60,21 @@ public class AccessoriesRendererRegistry {
      */
     @Nullable
     public static AccessoryRenderer getRender(ItemStack stack){
-        var shouldOverride = stack.getOrDefault(AccessoriesDataComponents.RENDER_OVERRIDE, AccessoryRenderOverrideComponent.DEFAULT).defaultRenderOverride();
+        var renderOverrides = stack.getOrDefault(AccessoriesDataComponents.RENDER_OVERRIDE, AccessoryRenderOverrideComponent.DEFAULT);
 
-        if(shouldOverride != null) {
-            if(shouldOverride) {
+        var defaultRenderOverride = renderOverrides.defaultRenderOverride();
+
+        if(defaultRenderOverride != null) {
+            if(defaultRenderOverride) {
                 return DefaultAccessoryRenderer.INSTANCE;
             } else if(AccessoriesAPI.isDefaultAccessory(AccessoriesAPI.getOrDefaultAccessory(stack))) {
                 return null;
             }
         }
+
+        var armorRenderOverride = renderOverrides.useArmorRenderer();
+
+        if(armorRenderOverride) return ArmorRenderingExtension.RENDERER;
 
         return getRender(stack.getItem());
     }

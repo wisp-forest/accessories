@@ -16,7 +16,7 @@ import io.wispforest.accessories.compat.config.client.components.StructListOptio
 import io.wispforest.accessories.compat.config.client.components.StructOptionContainer;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
-import io.wispforest.accessories.mixin.client.owo.ConfigWrapperAccessor;
+import io.wispforest.accessories.mixin.owo.ConfigWrapperAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.holder.HolderProperty;
 import io.wispforest.accessories.networking.holder.SyncHolderChange;

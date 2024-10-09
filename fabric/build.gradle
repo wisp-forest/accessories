@@ -27,6 +27,10 @@ repositories {
     maven { url = "https://maven.blamejared.com/" } // location of the maven that hosts JEI files since January 2023
     maven { url = "https://modmaven.dev" } // location of a maven mirror for JEI files, as a fallback
     maven { url "https://api.modrinth.com/maven" }
+    maven {
+        url "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+        content { includeGroup("software.bernie.geckolib") }
+    }
 }
 
 sourceSets {
@@ -48,9 +52,9 @@ dependencies {
 
     modCompileOnly(modLocalRuntime("com.terraformersmc:modmenu:${rootProject.modmenu_version}"))
 
+    modCompileOnly "software.bernie.geckolib:geckolib-fabric-1.21.1:${rootProject.geckolib_version}"
+
     modLocalRuntime("maven.modrinth:ok-boomer:0.1.3+1.21")
-//    modLocalRuntime("io.wispforest:owo-lib:0.12.4-pre.2+1.20.3")
-//    modLocalRuntime("io.wispforest:gadget:0.2.3+1.20.3")
 
     testmodImplementation sourceSets.main.output
 

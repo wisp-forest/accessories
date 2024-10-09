@@ -15,6 +15,7 @@ import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
+import io.wispforest.accessories.menu.networking.ToggledSlots;
 import io.wispforest.accessories.menu.variants.AccessoriesExperimentalMenu;
 import io.wispforest.accessories.mixin.client.AbstractContainerScreenAccessor;
 import io.wispforest.accessories.mixin.client.owo.DiscreteSliderComponentAccessor;
@@ -104,7 +105,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 .filter(entry -> entry.getKey() < slots.size())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        this.getMenu().sendMessage(new AccessoriesExperimentalMenu.ToggledSlots(changes));
+        this.getMenu().sendMessage(new ToggledSlots(changes));
 
         this.changedSlots.clear();
     }

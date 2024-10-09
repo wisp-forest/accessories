@@ -29,6 +29,10 @@ repositories {
     mavenCentral()
     maven { url "https://api.modrinth.com/maven" }
 //    maven { url 'https://jitpack.io' }
+    maven {
+        url "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+        content { includeGroup("software.bernie.geckolib") }
+    }
 }
 
 sourceSets {
@@ -44,11 +48,16 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive false }
 
-    modImplementation "io.wispforest:owo-lib-neoforge:${rootProject.owo_neo_version}"
+    include modImplementation("io.wispforest:owo-lib-neoforge:${rootProject.owo_neo_version}")
+
+    include ("org.sinytra:forgified-fabric-loader:${project.ffloader_version}")
+    include modRuntimeOnly("org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.ffapi_version}")
+
+    modCompileOnly "software.bernie.geckolib:geckolib-neoforge-1.21.1:${rootProject.geckolib_version}"
 
     forgeRuntimeLibrary(implementation("blue.endless:jankson:1.2.2"))
 
-    include modApi("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+e0539096d1"){ exclude group: "fabric-api" }
+    /*include*/ modCompileOnly("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+e0539096d1"){ exclude group: "fabric-api" }
 
     forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")
     forgeRuntimeLibrary("io.wispforest.endec:gson:${rootProject.endec_gson_version}")

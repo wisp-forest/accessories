@@ -60,7 +60,7 @@
     "RegistryOpsAccessor",
     "SlotAccessor",
     "StriderMixin",
-    "client.owo.ConfigWrapperAccessor",
+    "owo.ConfigWrapperAccessor",
     "ArmorSlotMixin"
   ],
   "injectors": {

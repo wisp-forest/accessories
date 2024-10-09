@@ -34,8 +34,8 @@ ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.accessories]]
-modId = "cloth_config"
+modId = "owo"
 required = true
-versionRange = "[15,)"
+versionRange = "[0.12.11+1.21,)"
 ordering = "NONE"
 side = "BOTH"

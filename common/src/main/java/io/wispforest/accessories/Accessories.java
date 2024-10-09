@@ -7,7 +7,7 @@ import io.wispforest.accessories.criteria.AccessoryChangedCriterion;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.menu.ArmorSlotTypes;
 import io.wispforest.accessories.mixin.CriteriaTriggersAccessor;
-import io.wispforest.accessories.mixin.client.owo.ConfigWrapperAccessor;
+import io.wispforest.accessories.mixin.owo.ConfigWrapperAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.ScreenVariantPing;
 import io.wispforest.accessories.utils.EndecUtils;
