@@ -34,10 +34,10 @@ subprojects {
         }
 
         if (!(project.name.contains("common") || project.name.contains("cclayer") || project.name.contains("tclayer"))) {
-            include("io.wispforest:endec:${rootProject.endec_version}")
-            include("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
-            include("io.wispforest.endec:jankson:${rootProject.endec_jankson_version}")
-            include("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
+//            include("io.wispforest:endec:${rootProject.endec_version}")
+//            include("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
+//            include("io.wispforest.endec:jankson:${rootProject.endec_jankson_version}")
+//            include("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
         }
 
         implementation("io.wispforest:endec:${rootProject.endec_version}")
