@@ -3,12 +3,14 @@ package io.wispforest.accessories.client.gui;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.logging.LogUtils;
+import com.mojang.math.Axis;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.client.gui.components.*;
 import io.wispforest.accessories.data.SlotGroupLoader;
@@ -97,6 +99,14 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     protected void containerTick() {
         super.containerTick();
 
+        if (!this.getMenu().getCarried().isEmpty()) {
+            AccessoriesClient.HOVERED_SLASH_CURSOR_STACK = this.getMenu().getCarried();
+        } else if (this.hoveredSlot != null && !this.hoveredSlot.getItem().isEmpty()) {
+            AccessoriesClient.HOVERED_SLASH_CURSOR_STACK = this.hoveredSlot.getItem();
+        } else {
+            AccessoriesClient.HOVERED_SLASH_CURSOR_STACK = null;
+        }
+
         if (this.changedSlots.isEmpty()) return;
 
         var slots = this.getMenu().slots;
@@ -137,7 +147,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         this.changedSlots.put(index, true);
     }
 
-    public void disableSlots(int ...index) {
+    public void disableSlots(int... index) {
         for (int i : index) disableSlot(i);
     }
 
@@ -221,7 +231,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         }
 
         guiGraphics.push()
-                .translate(0,0,100);
+                .translate(0, 0, 100);
 
         super.renderTooltip(guiGraphics, x, y);
 
@@ -273,7 +283,8 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                     var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
                     var vec3 = vec.add(0, 0, 5000);
 
-                    ACCESSORY_LINES.add(Pair.of(start, vec3));}
+                    ACCESSORY_LINES.add(Pair.of(start, vec3));
+                }
             }
         }
     }
@@ -452,12 +463,12 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                         .child(Components.spacer().sizing(Sizing.fixed(18)))
                                         .child(Components.spacer().sizing(Sizing.fixed(4)))
                                         .child(Containers.verticalFlow(Sizing.content(), Sizing.content())
-                                                        .child(
-                                                                Containers.verticalFlow(Sizing.content(), Sizing.content())
-                                                                        .child(this.slotAsComponent(offHandIndex).margins(Insets.of(1)))
-                                                                        .surface(BACKGROUND_SLOT_RENDERING_SURFACE)
-                                                        ).surface(ComponentUtils.getPanelSurface())
-                                                        .zIndex(10)
+                                                .child(
+                                                        Containers.verticalFlow(Sizing.content(), Sizing.content())
+                                                                .child(this.slotAsComponent(offHandIndex).margins(Insets.of(1)))
+                                                                .surface(BACKGROUND_SLOT_RENDERING_SURFACE)
+                                                ).surface(ComponentUtils.getPanelSurface())
+                                                .zIndex(10)
                                         )
                         )
                         .child(
@@ -493,10 +504,10 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                     .child(armorSlotsLayout);
 
             var cosmeticArmorSlotsLayout = Containers.verticalFlow(Sizing.content(), Sizing.content())
-                            .configure((FlowLayout layout) -> {
-                                layout.surface(BACKGROUND_SLOT_RENDERING_SURFACE)
-                                        .allowOverflow(true);
-                            });
+                    .configure((FlowLayout layout) -> {
+                        layout.surface(BACKGROUND_SLOT_RENDERING_SURFACE)
+                                .allowOverflow(true);
+                    });
 
             var outerRightArmorLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content())
                     .child(cosmeticArmorSlotsLayout);
@@ -565,8 +576,8 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                     )
                     .child(
                             Components.button(Component.literal(""), (btn) -> {
-                                this.minecraft.setScreen(new InventoryScreen(minecraft.player));
-                            }).renderer((context, btn, delta) -> {
+                                        this.minecraft.setScreen(new InventoryScreen(minecraft.player));
+                                    }).renderer((context, btn, delta) -> {
                                         ComponentUtils.getButtonRenderer().draw(context, btn, delta);
 
                                         context.push();
@@ -587,7 +598,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                     .padding(Insets.of(6))
                     .surface(ComponentUtils.getPanelSurface());
 
-            if(this.getMenu().includeSaddle()) {
+            if (this.getMenu().includeSaddle()) {
                 var saddleIndex = this.getMenu().startingAccessoriesSlot() - 1;
 
                 this.enableSlot(saddleIndex);
@@ -606,7 +617,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                 .positioning(Positioning.relative(0, 100))
                                 .margins(Insets.of(0, -6, -6, 0))
                                 .zIndex(10)
-                        );
+                );
             }
 
             armorAndEntityLayout.child(entityContainer);
@@ -616,11 +627,11 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         var accessoriesComponent = createAccessoriesComponent();
 
-        if(accessoriesComponent != null) {
+        if (accessoriesComponent != null) {
             armorAndEntityLayout.child((this.mainWidgetPosition() ? 0 : 1), accessoriesComponent); //1,
         }
 
-        if(accessoriesComponent != null || !this.getMenu().selectedGroups().isEmpty()) {
+        if (accessoriesComponent != null || !this.getMenu().selectedGroups().isEmpty()) {
             var sideBarOptionsComponent = createSideBarOptions();
 
             if (sideBarOptionsComponent != null) {
@@ -653,7 +664,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     public void rebuildAccessoriesComponent() {
         var columnAmountSlider = this.uiAdapter.rootComponent.childById(DiscreteSliderComponent.class, "column_amount_slider");
 
-        if(columnAmountSlider != null) {
+        if (columnAmountSlider != null) {
             var previousValue = columnAmountSlider.discreteValue();
 
             var newMinimum = getMinimumColumnAmount();
@@ -690,7 +701,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         var accessoriesComp = createAccessoriesComponent();
 
         if (accessoriesComp != null) {
-            if(this.mainWidgetPosition()) {
+            if (this.mainWidgetPosition()) {
                 armorAndEntityComp.child(0, accessoriesComp);
             } else {
                 armorAndEntityComp.child(accessoriesComp);
@@ -698,7 +709,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
             swapOrCreateSideBarComponent();
         } else {
-            if(this.getMenu().selectedGroups().isEmpty()) {
+            if (this.getMenu().selectedGroups().isEmpty()) {
                 var sideBarOptionsComponent = armorAndEntityComp.childById(io.wispforest.owo.ui.core.Component.class, "accessories_toggle_panel");
 
                 if (sideBarOptionsComponent != null) {
@@ -751,7 +762,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
                     var component = this.uiAdapter.rootComponent.childById(AccessoriesContainingComponent.class, AccessoriesContainingComponent.defaultID());
 
-                    if(component != null) component.onCosmeticToggle(showCosmeticState());
+                    if (component != null) component.onCosmeticToggle(showCosmeticState());
                 }).renderer((context, button, delta) -> {
                     ComponentUtils.getButtonRenderer().draw(context, button, delta);
 
@@ -764,7 +775,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                     var green = color.green();
                     var blue = color.blue();
 
-                    if(!showCosmeticState()) {
+                    if (!showCosmeticState()) {
                         GuiGraphicsUtils.drawWithSpectrum(context, button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, 1f);
                         context.blit(button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, red, green, blue, 0.4f);
                     } else {
@@ -783,7 +794,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         var groupFilterComponent = createGroupFilters();
 
-        if(groupFilterComponent != null) accessoriesTogglePanel.child(groupFilterComponent);
+        if (groupFilterComponent != null) accessoriesTogglePanel.child(groupFilterComponent);
 
         return accessoriesTogglePanel;
     }
@@ -834,7 +845,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 .children(groupButtons)
                 .gap(1);
 
-        if(groupButtons.size() > 5) {
+        if (groupButtons.size() > 5) {
             baseButtonLayout = new ExtendedScrollContainer<>(
                     ScrollContainer.ScrollDirection.VERTICAL,
                     Sizing.fixed(18 + 6),
@@ -894,7 +905,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         holder.clearChildren();
 
-        if(this.showAdvancedOptions()) {
+        if (this.showAdvancedOptions()) {
             for (int i = 0; i < menu.startingAccessoriesSlot() - (this.getMenu().includeSaddle() ? 2 : 1); i++) this.disableSlot(i);
 
             holder.child(createOptionsComponent());
@@ -908,7 +919,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         holder.clearChildren();
 
-        if(this.showCraftingGrid()) {
+        if (this.showCraftingGrid()) {
             holder.margins(Insets.left(3));
 
             holder.child(ComponentUtils.createCraftingComponent(0, 4, this::slotAsComponent, this::enableSlot, true));
@@ -931,11 +942,13 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         //--
 
         baseOptionPanel.child(
-                createConfigComponent("unused_slots",
+                createConfigComponent(
+                        "unused_slots",
                         this::showUnusedSlots,
                         bl -> AccessoriesNetworking.sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, bl))
                 ).margins(Insets.bottom(3)),
-                0, 0);
+                0, 0
+        );
 
         baseOptionPanel.child(
                 Containers.verticalFlow(Sizing.content(), Sizing.content())
@@ -959,35 +972,39 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                 .horizontalSizing(Sizing.fixed(74))
                         )
                         .margins(Insets.bottom(3)),
-                0, 1);
+                0, 1
+        );
 
         baseOptionPanel.child(
                 Containers.verticalFlow(Sizing.content(), Sizing.content())
                         .child(Components.label(Accessories.translation("widget_type.label")))
                         .child(
                                 Components.button(
-                                        widgetTypeToggleMessage(this.widgetType(), false),
-                                        btn -> {
-                                            var newWidget = this.widgetType() + 1;
+                                                widgetTypeToggleMessage(this.widgetType(), false),
+                                                btn -> {
+                                                    var newWidget = this.widgetType() + 1;
 
-                                            if(newWidget > 2) newWidget = 1;
+                                                    if (newWidget > 2) newWidget = 1;
 
-                                            AccessoriesNetworking
-                                                    .sendToServer(SyncHolderChange.of(HolderProperty.WIDGET_TYPE_PROP, newWidget));
+                                                    AccessoriesNetworking
+                                                            .sendToServer(SyncHolderChange.of(HolderProperty.WIDGET_TYPE_PROP, newWidget));
 
-                                            this.widgetType(newWidget);
+                                                    this.widgetType(newWidget);
 
-                                            updateWidgetTypeToggleButton();
-                                        })
+                                                    updateWidgetTypeToggleButton();
+                                                }
+                                        )
                                         .renderer(ComponentUtils.getButtonRenderer())
                                         .tooltip(widgetTypeToggleMessage(this.widgetType(), true))
                                         .id("widget_type_toggle")
                                         .horizontalSizing(Sizing.fixed(74))
                         ).margins(Insets.bottom(3)),
-                1, 0);
+                1, 0
+        );
 
         baseOptionPanel.child(
-                createConfigComponent("main_widget_position",
+                createConfigComponent(
+                        "main_widget_position",
                         this::mainWidgetPosition,
                         bl -> {
                             AccessoriesNetworking
@@ -999,20 +1016,22 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                     .startingRotation(this.mainWidgetPosition() ? -45 : 45);
                         }
                 ).margins(Insets.bottom(3)),
-                1, 1);
+                1, 1
+        );
 
         baseOptionPanel.child(
-                createConfigComponent("group_filter",
+                createConfigComponent(
+                        "group_filter",
                         this::showGroupFilters,
                         bl -> {
                             AccessoriesNetworking.sendToServer(SyncHolderChange.of(HolderProperty.GROUP_FILTER_PROP, bl));
 
                             this.showGroupFilters(bl);
 
-                            if(this.showGroupFilters()) {
+                            if (this.showGroupFilters()) {
                                 var panel = this.uiAdapter.rootComponent.childById(FlowLayout.class, "accessories_toggle_panel");
 
-                                if(panel != null) {
+                                if (panel != null) {
                                     var groupFilter = createGroupFilters();
 
                                     if (groupFilter != null) panel.child(groupFilter);
@@ -1024,10 +1043,12 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                             }
                         }
                 ).margins(Insets.bottom(3)),
-                2, 0);
+                2, 0
+        );
 
         baseOptionPanel.child(
-                createConfigComponent("side_widget_position",
+                createConfigComponent(
+                        "side_widget_position",
                         this::sideWidgetPosition,
                         bl -> {
                             AccessoriesNetworking
@@ -1038,21 +1059,26 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                             this.swapOrCreateSideBarComponent();
                         }
                 ).margins(Insets.bottom(3)),
-                2, 1);
+                2, 1
+        );
 
         baseOptionPanel.child(
-                createConfigComponent("dark_mode_toggle",
+                createConfigComponent(
+                        "dark_mode_toggle",
                         () -> Accessories.config().screenOptions.isDarkMode(),
                         bl -> Accessories.config().screenOptions.isDarkMode(bl)
                 ),
-                3, 0);
+                3, 0
+        );
 
         baseOptionPanel.child(
-                createConfigComponent("show_equipped_stack_slot_type",
+                createConfigComponent(
+                        "show_equipped_stack_slot_type",
                         () -> Accessories.config().screenOptions.showEquippedStackSlotType(),
                         bl -> Accessories.config().screenOptions.showEquippedStackSlotType(bl)
                 ),
-                3, 1);
+                3, 1
+        );
 
         return Containers.verticalScroll(Sizing.expand(), Sizing.expand(), baseOptionPanel);
     }
@@ -1070,7 +1096,8 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
                                             btn.setMessage(createToggleTooltip(type, false, newValue));
                                             btn.tooltip(createToggleTooltip(type, true, newValue));
-                                        })
+                                        }
+                                )
                                 .renderer(ComponentUtils.getButtonRenderer())
                                 .tooltip(createToggleTooltip(type, true, getter.get()))
                                 .id(type)
@@ -1173,12 +1200,12 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         public void dismount(DismountReason reason) {
             super.dismount(reason);
 
-            if(reason == DismountReason.REMOVED) screen.hideSlot(slot);
+            if (reason == DismountReason.REMOVED) screen.hideSlot(slot);
         }
 
         @Override
         public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
-            if(!(slot() instanceof SlotTypeAccessible)) {
+            if (!(slot() instanceof SlotTypeAccessible)) {
                 super.draw(context, mouseX, mouseY, partialTicks, delta);
 
                 return;
@@ -1216,7 +1243,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
             context.push();
             context.translate(0.0F, 0.0F, 101.0F);
 
-            if(externalBatching) {
+            if (externalBatching) {
                 GuiGraphicsUtils.drawRectOutlineWithSpectrumWithoutRecord(context, this.x(), this.y(), 0, 16, 16, 0.35f, true);
             } else {
                 GuiGraphicsUtils.drawRectOutlineWithSpectrum(context, this.x(), this.y(), 0, 16, 16, 0.35f, true);
@@ -1245,7 +1272,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         var validComponents = new ArrayList<ExtendedSlotComponent>();
 
         ComponentUtils.recursiveSearch(component, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> {
-            if(!slotComponent.isBatched() || !(slotComponent.slot() instanceof SlotTypeAccessible)) return;
+            if (!slotComponent.isBatched() || !(slotComponent.slot() instanceof SlotTypeAccessible)) return;
 
             validComponents.add(slotComponent);
         });
@@ -1347,8 +1374,13 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
             if (pair != null) {
                 TextureAtlasSprite textureAtlasSprite = Minecraft.getInstance().getTextureAtlas(pair.getFirst()).apply(pair.getSecond());
 
+                var matrices = context.getMatrixStack();
+                matrices.pushPose();
+                if (AccessoriesClient.HOVERED_SLASH_CURSOR_STACK != null && slot.mayPlace(AccessoriesClient.HOVERED_SLASH_CURSOR_STACK)) {
+                    matrices.mulPose(Axis.ZP.rotationDegrees(Minecraft.getInstance().player.level().getGameTime() * 10 % 360));
+                }
                 context.blit(slot.x, slot.y, 0, 16, 16, textureAtlasSprite);
-
+                matrices.popPose();
                 return true;
             }
         }
@@ -1415,7 +1447,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     private <T> void setHolderValue(BiFunction<AccessoriesHolder, T, AccessoriesHolder> setter, T value, String valueType) {
         var holder = AccessoriesHolder.get(this.menu.owner());
 
-        if(holder == null) {
+        if (holder == null) {
             LOGGER.warn("[AccessoriesScreen] Unable to set the given holder value '{}' for the given owner: {}", valueType, this.menu.owner().getName());
 
             return;
@@ -1506,9 +1538,15 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         drawCallback.accept(hasDrawCallOccur);
 
         try {
-            if(hasDrawCallOccur.booleanValue()) context.submitQuads();
+            if (hasDrawCallOccur.booleanValue()) context.submitQuads();
         } catch (Exception e) {
             var test = "this is for debugging only really!";
         }
+    }
+
+
+    @Override
+    public void afterMouseMove() {
+        super.afterMouseMove();
     }
 }

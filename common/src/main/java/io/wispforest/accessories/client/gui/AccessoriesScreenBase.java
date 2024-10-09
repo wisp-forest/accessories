@@ -2,9 +2,13 @@ package io.wispforest.accessories.client.gui;
 
 import io.wispforest.accessories.Accessories;
 import it.unimi.dsi.fastutil.Pair;
+import net.minecraft.world.entity.ItemSteerable;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector4i;
 

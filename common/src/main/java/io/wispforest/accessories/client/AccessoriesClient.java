@@ -48,7 +48,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
+import org.apache.commons.lang3.mutable.Mutable;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -64,6 +67,9 @@ public class AccessoriesClient {
     });
 
     public static boolean IS_PLAYER_INVISIBLE = false;
+
+    @Nullable
+    public static ItemStack HOVERED_SLASH_CURSOR_STACK = null;
 
     public static void initConfigStuff() {
         ConfigScreenProviders.register(
@@ -84,7 +90,8 @@ public class AccessoriesClient {
                                     (uiModel, option) -> {
                                         var layout = new StructListOptionContainer<>(uiModel, option);
                                         return new OptionComponentFactory.Result<>(layout, layout);
-                                    });
+                                    }
+                            );
 
                             var builder = ((ConfigWrapperAccessor) config).accessories$builder();
 
@@ -115,12 +122,15 @@ public class AccessoriesClient {
                                                 .child(component);
 
                                         return new OptionComponentFactory.Result<io.wispforest.owo.ui.core.Component, OptionValueProvider>(mainLayout, component);
-                                    });
-                        }));
+                                    }
+                            );
+                        }
+                )
+        );
 
         Accessories.config().clientOptions.subscribeToEquipControl(value -> {
             attemptAction(holder -> {
-                if(holder.equipControl() == value) return;
+                if (holder.equipControl() == value) return;
 
                 AccessoriesNetworking.sendToServer(SyncHolderChange.of(HolderProperty.EQUIP_CONTROL, value));
             });
@@ -128,14 +138,14 @@ public class AccessoriesClient {
 
         Accessories.config().screenOptions.subscribeToShowUnusedSlots(value -> {
             attemptAction(holder -> {
-                if(holder.showUnusedSlots() == value) return;
+                if (holder.showUnusedSlots() == value) return;
 
                 AccessoriesNetworking.sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, value));
             });
         });
     }
 
-    public static void init(){
+    public static void init() {
         ClientLifecycleEvents.END_DATA_PACK_RELOAD.register((client, success) -> {
             AccessoriesRendererRegistry.onReload();
         });
@@ -158,21 +168,21 @@ public class AccessoriesClient {
     public static void initalConfigDataSync() {
         var currentPlayer = Minecraft.getInstance().player;
 
-        if(currentPlayer == null || Minecraft.getInstance().level == null) return;
+        if (currentPlayer == null || Minecraft.getInstance().level == null) return;
 
         var holder = currentPlayer.accessoriesHolder();
 
-        if(holder == null) return;
+        if (holder == null) return;
 
         var equipControl = Accessories.config().clientOptions.equipControl();
 
-        if(holder.equipControl() != equipControl) {
+        if (holder.equipControl() != equipControl) {
             AccessoriesNetworking.sendToServer(SyncHolderChange.of(HolderProperty.EQUIP_CONTROL, equipControl));
         }
 
         var showUnusedSlots = Accessories.config().screenOptions.showUnusedSlots();
 
-        if(holder.showUnusedSlots() != showUnusedSlots) {
+        if (holder.showUnusedSlots() != showUnusedSlots) {
             AccessoriesNetworking.sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, showUnusedSlots));
         }
     }
@@ -196,29 +206,29 @@ public class AccessoriesClient {
 
         var selectedVariant = AccessoriesMenuVariant.getVariant(screenType);
 
-        if(targetingLookingEntity) {
+        if (targetingLookingEntity) {
             var result = ProjectileUtil.getHitResultOnViewVector(player, e -> e instanceof LivingEntity, player.entityInteractionRange());
 
             var bl = !(result instanceof EntityHitResult entityHitResult) ||
                     !(entityHitResult.getEntity() instanceof LivingEntity living)
                     || EntitySlotLoader.getEntitySlots(living).isEmpty();
 
-            if(bl) return false;
+            if (bl) return false;
         } else {
             var slots = AccessoriesAPI.getUsedSlotsFor(player);
 
             var holder = player.accessoriesHolder();
 
-            if(holder == null) return false;
+            if (holder == null) return false;
 
-            if(slots.isEmpty() && !holder.showUnusedSlots() && !displayUnusedSlotWarning && !Accessories.config().clientOptions.disableEmptySlotScreenError()) {
+            if (slots.isEmpty() && !holder.showUnusedSlots() && !displayUnusedSlotWarning && !Accessories.config().clientOptions.disableEmptySlotScreenError()) {
                 player.displayClientMessage(Component.literal("[Accessories]: No Used Slots found by any mod directly, the screen will show empty unless a item is found to implement slots!"), false);
 
                 displayUnusedSlotWarning = true;
             }
         }
 
-        if(selectedVariant != null) {
+        if (selectedVariant != null) {
             AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingLookingEntity, selectedVariant));
         } else {
             Minecraft.getInstance().setScreen(new ScreenVariantSelectionScreen(variant -> {
@@ -265,7 +275,7 @@ public class AccessoriesClient {
                     .margins(Insets.of(1, 0, 0, 1))
                     .sizing(Sizing.fixed(creativeScreen ? 8 : 12));
 
-            if(creativeScreen){
+            if (creativeScreen) {
                 var extension = ((ComponentUtils.CreativeScreenExtension) instance.screen);
 
                 button.visible = extension.getTab().getType().equals(CreativeModeTab.Type.INVENTORY);
