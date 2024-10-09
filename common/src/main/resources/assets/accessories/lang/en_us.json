@@ -228,6 +228,11 @@
     "screen is opened and no used slots were found."
   ],
 
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories": "Show Item Cosmetic Rendering",
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories.tooltip": [
+    "Enables/Disables the rendering of cosmetic item variants if equipped."
+  ],
+
   "text.config.accessories.option.clientOptions.disabledDefaultRenders": "Disabled Default Rendering",
   "text.config.accessories.option.clientOptions.disabledDefaultRenders.tooltip": [
     "Disables the included default renderer rendering of items if being used."
