@@ -186,7 +186,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
                 decodeJsonArray(validators, "validator", location, element -> ResourceLocation.tryParse(element.getAsString()), slotBuilder::validator);
             }
 
-            slotBuilder.dropRule(this.safeHelper((object, s) -> DropRule.valueOf(GsonHelper.getAsString(object, s)), jsonObject, "drop_rule", location));
+            slotBuilder.dropRule(this.safeHelper((object, s) -> DropRule.valueOf(GsonHelper.getAsString(object, s).toUpperCase()), jsonObject, "drop_rule", location));
 
             builders.put(slotBuilder.name, slotBuilder);
         }
