@@ -7,6 +7,7 @@ import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.components.AccessoryStackSizeComponent;
 import io.wispforest.accessories.api.data.AccessoriesBaseData;
+import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.AdjustAttributeModifierCallback;
 import io.wispforest.accessories.api.events.CanEquipCallback;
 import io.wispforest.accessories.api.events.CanUnequipCallback;
@@ -400,15 +401,16 @@ public class AccessoriesAPI {
     }
 
     /**
-     * @deprecated Use {@link #ANY_ACCESSORIES} instead!
+     * @deprecated Use {@link AccessoriesTags#ANY_TAG} instead!
      */
     @Deprecated(forRemoval = true)
-    public static final TagKey<Item> ALL_ACCESSORIES = TagKey.create(Registries.ITEM, Accessories.of("all"));
+    public static final TagKey<Item> ALL_ACCESSORIES = AccessoriesTags.ALL_TAG;
 
     /**
-     * TagKey representing a group of items that can be equipped in any slot if allowed to by the given slots predicates
+     * @deprecated Use {@link AccessoriesTags#ANY_TAG} instead!
      */
-    public static final TagKey<Item> ANY_ACCESSORIES = TagKey.create(Registries.ITEM, Accessories.of("any"));
+    @Deprecated(forRemoval = true)
+    public static final TagKey<Item> ANY_ACCESSORIES = AccessoriesTags.ANY_TAG;
 
     public static TagKey<Item> getSlotTag(SlotType slotType) {
         var location = UniqueSlotHandling.isUniqueSlot(slotType.name()) ? ResourceLocation.parse(slotType.name()) : Accessories.of(slotType.name());
@@ -420,7 +422,7 @@ public class AccessoriesAPI {
         registerPredicate(AccessoriesBaseData.ALL_PREDICATE_ID, (level, slotType, i, stack) -> TriState.TRUE);
         registerPredicate(AccessoriesBaseData.NONE_PREDICATE_ID, (level, slotType, i, stack) -> TriState.FALSE);
         registerPredicate(AccessoriesBaseData.TAG_PREDICATE_ID, (level, slotType, i, stack) -> {
-            return (stack.is(getSlotTag(slotType)) || stack.is(ANY_ACCESSORIES)) ? TriState.TRUE : TriState.DEFAULT;
+            return (stack.is(getSlotTag(slotType)) || stack.is(AccessoriesTags.ANY_TAG)) ? TriState.TRUE : TriState.DEFAULT;
         });
         registerPredicate(AccessoriesBaseData.RELEVANT_PREDICATE_ID, (level, slotType, i, stack) -> {
             var bl = !getAttributeModifiers(stack, null, slotType.name(), i).getAttributeModifiers(false).isEmpty();
