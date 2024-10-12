@@ -30,9 +30,11 @@ public interface LootingAdjustment {
                 return (stack, reference, target, damageSource, currentLevel) -> {
                     var contextBuilder = new LootContext.Builder(
                             new LootParams.Builder((ServerLevel) reference.entity().level())
-                                    .withParameter(LootContextParams.ATTACKING_ENTITY, target)
+                                    .withParameter(LootContextParams.THIS_ENTITY, reference.entity())
+                                    .withParameter(LootContextParams.ORIGIN, reference.entity().position())
                                     .withParameter(LootContextParams.DAMAGE_SOURCE, damageSource)
-                                    .create(LootContextParamSets.EMPTY)
+                                    .withParameter(LootContextParams.ATTACKING_ENTITY, target)
+                                    .create(LootContextParamSets.ENTITY)
                     );
 
                     return lootingAdjustmentEvent.invoker().getLootingAdjustment(stack, reference, target, contextBuilder.create(Optional.empty()), damageSource, currentLevel);
