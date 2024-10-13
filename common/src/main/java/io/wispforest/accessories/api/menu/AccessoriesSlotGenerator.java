@@ -6,6 +6,7 @@ import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.Slot;
 import org.jetbrains.annotations.Nullable;
@@ -29,42 +30,27 @@ public class AccessoriesSlotGenerator {
 
     private final Consumer<Slot> slotConsumer;
 
-    private final List<SlotType> slotTypes;
+    private List<SlotType> slotTypes = List.of();
 
     private int horizontalPadding = 0, verticalPadding = 0;
     private int startX, startY;
 
-    private AccessoriesSlotGenerator(Consumer<Slot> slotConsumer, int startX, int startY, List<SlotType> slotTypes, AccessoriesCapability capability) {
+    private AccessoriesSlotGenerator(Consumer<Slot> slotConsumer, int startX, int startY, AccessoriesCapability capability) {
         this.slotConsumer = slotConsumer;
 
         this.startX = startX;
         this.startY = startY;
 
-        this.slotTypes = slotTypes;
-
         this.capability = capability;
     }
 
-    /**
-     * Attempts to create a given {@link AccessoriesSlotGenerator} using the given start position and the given {@link SlotTypeReference}'s passed.
-     * The passed consumer will most likely be the {@code addSlot} within the given Menu. The returned {@link AccessoriesSlotGenerator} will only be null
-     * if the entity was found not to have an {@link AccessoriesCapability} bound to it.
-     */
     @Nullable
     public static AccessoriesSlotGenerator of(Consumer<Slot> slotConsumer, int startX, int startY, LivingEntity livingEntity, SlotTypeReference... references) {
-        var level = livingEntity.level();
+        var capability = livingEntity.accessoriesCapability();
 
-        var slotTypes = Arrays.stream(references).map(ref -> {
-            var slotType = ref.get(level);
+        if(capability == null) return null;
 
-            if(slotType == null) {
-                LOGGER.error("Unable to find the SlotType based on the passed reference! [SlotName: {}]", ref.slotName());
-            }
-
-            return slotType;
-        }).filter(Objects::nonNull).toArray(SlotType[]::new);
-
-        return of(slotConsumer, startX, startY, livingEntity, slotTypes);
+        return new AccessoriesSlotGenerator(slotConsumer, startX, startY, capability).adjustTypes(references);
     }
 
     @Nullable
@@ -73,21 +59,21 @@ public class AccessoriesSlotGenerator {
 
         if(capability == null) return null;
 
-        var validEntitySlotTypes = EntitySlotLoader.getEntitySlots(livingEntity).values();
+        return new AccessoriesSlotGenerator(slotConsumer, startX, startY, capability).adjustTypes(slotTypes);
+    }
 
-        var validSlotTypes = new ArrayList<SlotType>();
+    /**
+     * Attempts to create a given {@link AccessoriesSlotGenerator} using the given start position and the given {@link SlotTypeReference}'s passed.
+     * The passed consumer will most likely be the {@code addSlot} within the given Menu. The returned {@link AccessoriesSlotGenerator} will only be null
+     * if the entity was found not to have an {@link AccessoriesCapability} bound to it.
+     */
+    @Nullable
+    public static AccessoriesSlotGenerator of(Consumer<Slot> slotConsumer, int startX, int startY, LivingEntity livingEntity) {
+        var capability = livingEntity.accessoriesCapability();
 
-        for (var slotType : slotTypes) {
-            if(!validEntitySlotTypes.contains(slotType)){
-                LOGGER.error("Unable to create Accessory Slot due to the given LivingEntity not having the given SlotType bound to it! [EntityType: {}, SlotType: {}]", livingEntity.getType(), slotType.name());
+        if(capability == null) return null;
 
-                continue;
-            }
-
-            validSlotTypes.add(slotType);
-        }
-
-        return new AccessoriesSlotGenerator(slotConsumer, startX, startY, validSlotTypes, capability);
+        return new AccessoriesSlotGenerator(slotConsumer, startX, startY, capability);
     }
 
     /**
@@ -138,6 +124,48 @@ public class AccessoriesSlotGenerator {
 
     public AccessoriesSlotGenerator moveY(int y) {
         this.startY += y;
+
+        return this;
+    }
+
+    public AccessoriesSlotGenerator adjustTypes(SlotTypeReference... references) {
+        var level = capability.entity().level();
+
+        var slotTypes = Arrays.stream(references).map(ref -> {
+            var slotType = ref.get(level);
+
+            if(slotType == null) {
+                LOGGER.error("Unable to find the SlotType based on the passed reference! [SlotName: {}]", ref.slotName());
+            }
+
+            return slotType;
+        }).filter(Objects::nonNull).toArray(SlotType[]::new);
+
+        return adjustTypes(slotTypes);
+    }
+
+    public AccessoriesSlotGenerator adjustTypes(SlotType... slotTypes) {
+        return adjustTypes(List.of(slotTypes));
+    }
+
+    public AccessoriesSlotGenerator adjustTypes(List<SlotType> slotTypes) {
+        var livingEntity = capability.entity();
+
+        var validEntitySlotTypes = EntitySlotLoader.getEntitySlots(livingEntity).values();
+
+        var validSlotTypes = new ArrayList<SlotType>();
+
+        for (var slotType : slotTypes) {
+            if(!validEntitySlotTypes.contains(slotType)){
+                LOGGER.error("Unable to create Accessory Slot due to the given LivingEntity not having the given SlotType bound to it! [EntityType: {}, SlotType: {}]", livingEntity.getType(), slotType.name());
+
+                continue;
+            }
+
+            validSlotTypes.add(slotType);
+        }
+
+        this.slotTypes = validSlotTypes;
 
         return this;
     }
