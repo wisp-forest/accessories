@@ -18,7 +18,8 @@
     "EntitySlotLoaderMixin",
     "ItemStackMixin",
     "SlotGroupLoaderMixin",
-    "SlotTypeLoaderMixin"
+    "SlotTypeLoaderMixin",
+    "AccessoriesEventHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

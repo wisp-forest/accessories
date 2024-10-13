@@ -214,7 +214,10 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
         var invalidStacks = ((AccessoriesHolderImpl) holder).invalidStacks;
 
         for (var entryRef : this.capability().getAllEquipped()) {
-            if (AccessoriesAPI.canInsertIntoSlot(entryRef.stack(), entryRef.reference())) continue;
+            var reference = entryRef.reference();
+            var slotType = reference.type();
+
+            if (AccessoriesAPI.getPredicateResults(slotType.validators(), reference.entity().level(), slotType, 0, entryRef.stack())) continue;
 
             invalidStacks.add(entryRef.stack().copy());
 
