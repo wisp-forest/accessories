@@ -10,11 +10,11 @@ public record ToggledSlots(Map<Integer, Boolean> changedSlotStates) {
     public static void initMenu(AbstractContainerMenu menu) {
         menu.addServerboundMessage(ToggledSlots.class, (message) -> {
             message.changedSlotStates().forEach((index, state) -> {
+                if (index >= menu.slots.size() || index < 0) return;
+
                 var slot = ((OwoSlotExtension) menu.getSlot(index));
 
-                if(state != slot.owo$getDisabledOverride()) {
-                    slot.owo$setDisabledOverride(state);
-                }
+                if(state != slot.owo$getDisabledOverride()) slot.owo$setDisabledOverride(state);
             });
         });
     }

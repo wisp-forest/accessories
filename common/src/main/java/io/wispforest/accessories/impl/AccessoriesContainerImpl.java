@@ -460,9 +460,9 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                         this.cachedModifiers.add(modifier);
                         this.addTransientModifier(modifier);
                     }
-
-                    this.update();
                 }
+
+                this.update();
             }
         }
 
