@@ -5,6 +5,7 @@ import io.wispforest.accessories.impl.PlayerEquipControl;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.Set;
@@ -14,6 +15,7 @@ import java.util.Set;
  */
 public interface AccessoriesHolder {
 
+    @Nullable
     static AccessoriesHolder get(@NotNull LivingEntity livingEntity){
         return ((AccessoriesAPIAccess) livingEntity).accessoriesHolder();
     }
