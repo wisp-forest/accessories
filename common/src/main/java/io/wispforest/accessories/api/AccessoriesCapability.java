@@ -77,48 +77,6 @@ public interface AccessoriesCapability {
     //--
 
     /**
-     * Used to attempt to equip a given stack within any available {@link AccessoriesContainer} returning a
-     * reference and list within a pair. The given list may contain the overflow that could not fit based
-     * on the containers max stack size.
-     * <p>
-     * <b>WARNING: THE GIVEN STACK PASSED WILL NOT BE MUTATED AT ALL!</b>
-     *
-     * @param stack          The given stack attempting to be equipped
-     */
-    @Deprecated
-    @Nullable
-    default Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack){
-        return equipAccessory(stack, false);
-    }
-
-    /**
-     * Used to attempt to equip a given stack within any available {@link AccessoriesContainer} returning a
-     * reference and list within a pair. The given list may contain the overflow that could not fit based
-     * on the containers max stack size and the old stack found if swapping was allowed.
-     * <p>
-     * <b>WARNING: THE GIVEN STACK PASSED WILL NOT BE MUTATED AT ALL!</b>
-     *
-     * @param stack          The given stack attempting to be equipped
-     * @param allowSwapping  If the given call can attempt to swap accessories
-     */
-    @Deprecated
-    default Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack, boolean allowSwapping) {
-        var stackCopy = stack.copy();
-
-        var result = attemptToEquipAccessory(stackCopy, allowSwapping);
-
-        if(result == null) return null;
-
-        var returnStacks = new ArrayList<ItemStack>();
-
-        if(!stackCopy.isEmpty()) returnStacks.add(stackCopy);
-
-        result.second().ifPresent(returnStacks::add);
-
-        return Pair.of(result.first(), returnStacks);
-    }
-
-    /**
      * Attempts to equip a given stack within any available {@link AccessoriesContainer} returning a
      * reference to where it was equipped. The given passed stack <b>will</b> be adjusted passed on
      * the amount of room that can be found within the found container.
@@ -188,23 +146,28 @@ public interface AccessoriesCapability {
         return getFirstEquipped(predicate, check) != null;
     }
 
-    default boolean isAnotherEquipped(SlotReference slotReference, Item item) {
-        return isAnotherEquipped(slotReference, stack -> stack.getItem().equals(item));
+    default boolean isAnotherEquipped(ItemStack stack, SlotReference slotReference, Item item) {
+        return isAnotherEquipped(stack, slotReference, otherStack -> stack.getItem().equals(item));
     }
 
     /**
      * @return If any {@link ItemStack} is equipped based on the passed predicate while deduplicating
-     * using the current {@link SlotReference}
+     * using the current {@link SlotReference} and the given {@link ItemStack}
      */
-    default boolean isAnotherEquipped(SlotReference slotReference, Predicate<ItemStack> predicate) {
+    default boolean isAnotherEquipped(ItemStack stack, SlotReference slotReference, Predicate<ItemStack> predicate) {
         var equippedStacks = getEquipped(predicate);
 
         if (equippedStacks.size() > 2) {
-            for (var equippedStack : equippedStacks) {
-                if (!equippedStack.reference().equals(slotReference)) return true;
+            for (var otherEntryRef : equippedStacks) {
+                if (!otherEntryRef.reference().equals(slotReference)) return true;
+                if (!otherEntryRef.stack().equals(stack)) return true;
             }
         } else if(equippedStacks.size() == 1) {
-            return !equippedStacks.get(0).reference().equals(slotReference);
+            var otherEntryRef = equippedStacks.getFirst();
+
+            if (!otherEntryRef.reference().equals(slotReference)) return true;
+
+            return !otherEntryRef.stack().equals(stack);
         }
 
         return false;
@@ -294,9 +257,67 @@ public interface AccessoriesCapability {
 
     //--
 
+    /**
+     * Used to attempt to equip a given stack within any available {@link AccessoriesContainer} returning a
+     * reference and list within a pair. The given list may contain the overflow that could not fit based
+     * on the containers max stack size.
+     * <p>
+     * <b>WARNING: THE GIVEN STACK PASSED WILL NOT BE MUTATED AT ALL!</b>
+     *
+     * @param stack          The given stack attempting to be equipped
+     */
+    @Deprecated
+    @Nullable
+    default Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack){
+        return equipAccessory(stack, false);
+    }
+
+    /**
+     * Used to attempt to equip a given stack within any available {@link AccessoriesContainer} returning a
+     * reference and list within a pair. The given list may contain the overflow that could not fit based
+     * on the containers max stack size and the old stack found if swapping was allowed.
+     * <p>
+     * <b>WARNING: THE GIVEN STACK PASSED WILL NOT BE MUTATED AT ALL!</b>
+     *
+     * @param stack          The given stack attempting to be equipped
+     * @param allowSwapping  If the given call can attempt to swap accessories
+     */
+    @Deprecated
+    default Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack, boolean allowSwapping) {
+        var stackCopy = stack.copy();
+
+        var result = attemptToEquipAccessory(stackCopy, allowSwapping);
+
+        if(result == null) return null;
+
+        var returnStacks = new ArrayList<ItemStack>();
+
+        if(!stackCopy.isEmpty()) returnStacks.add(stackCopy);
+
+        result.second().ifPresent(returnStacks::add);
+
+        return Pair.of(result.first(), returnStacks);
+    }
+
     @Nullable
     @Deprecated
     default Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack, boolean allowSwapping, TriFunction<Accessory, ItemStack, SlotReference, Boolean> additionalCheck) {
         return equipAccessory(stack, allowSwapping);
+    }
+
+    /**
+     * @deprecated Use {@link #isAnotherEquipped(ItemStack, SlotReference, Item)}
+     */
+    @Deprecated(forRemoval = true)
+    default boolean isAnotherEquipped(SlotReference slotReference, Item item) {
+        return isAnotherEquipped(slotReference.getStack() /* <- DO NOT DO THIS! */, slotReference, item);
+    }
+
+    /**
+     * @deprecated Use {@link #isAnotherEquipped(ItemStack, SlotReference, Predicate)}
+     */
+    @Deprecated(forRemoval = true)
+    default boolean isAnotherEquipped(SlotReference slotReference, Predicate<ItemStack> predicate) {
+        return isAnotherEquipped(slotReference.getStack() /* <- DO NOT DO THIS! */, slotReference, predicate);
     }
 }
