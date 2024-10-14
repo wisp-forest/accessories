@@ -1,5 +1,6 @@
 package io.wispforest.accessories.neoforge;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -37,6 +38,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.neoforge.client.event.GatherSkippedAttributeTooltipsEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.common.util.AttributeTooltipContext;
@@ -115,6 +118,18 @@ public class AccessoriesInternalsImpl {
     }
 
     public static void addAttributeTooltips(@Nullable Player player, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, Consumer<Component> tooltipAddCallback, Item.TooltipContext context, TooltipFlag flag) {
-        AttributeUtil.applyTextFor(stack, tooltipAddCallback, multimap, AttributeTooltipContext.of(player, context, flag));
+        var neoTooltipCtx = AttributeTooltipContext.of(player, context, flag);
+
+        var event = NeoForge.EVENT_BUS.post(new GatherSkippedAttributeTooltipsEvent(stack, neoTooltipCtx));
+
+        if (event.isSkippingAll()) return;
+
+        var modifiers = HashMultimap.create(multimap);
+
+        modifiers.values().removeIf(m -> event.isSkipped(m.id()));
+
+        if (modifiers.isEmpty()) return;
+
+        AttributeUtil.applyTextFor(stack, tooltipAddCallback, modifiers, neoTooltipCtx);
     }
 }
