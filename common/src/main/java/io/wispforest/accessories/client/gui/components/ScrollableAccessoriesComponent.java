@@ -242,12 +242,16 @@ public class ScrollableAccessoriesComponent extends FlowLayout implements Access
         if(container instanceof ExtendedScrollContainer<?> scrollContainer){
             childSetter = layout -> ((ExtendedScrollContainer<FlowLayout>) scrollContainer).child(layout);
         } else if(container instanceof FlowLayout flowLayout) {
-            childSetter = flowLayout::child;
+            childSetter = component -> {
+                flowLayout.clearChildren();
+
+                flowLayout.child(component);
+            };
         } else {
             return;
         }
 
-        ParentComponent prevLayout = showCosmeticState ? this.fullAccessoriesLayout : this.fullCosmeticsLayout ;
+        ParentComponent prevLayout = showCosmeticState ? this.fullAccessoriesLayout : this.fullCosmeticsLayout;
 
         for (int i = startingRowIndex; i < startingRowIndex + this.totalRowCount; i++) {
             var oldRow = prevLayout.childById(ParentComponent.class, "row_" + i);
@@ -256,12 +260,6 @@ public class ScrollableAccessoriesComponent extends FlowLayout implements Access
                 this.screen.disableSlot(slotComponent.slot());
             });
         }
-
-        prevLayout.parent().queue(() -> {
-            var currentParent = prevLayout.parent();
-
-            if (currentParent != null) currentParent.removeChild(prevLayout);
-        });
 
         var newLayout = showCosmeticState ? this.fullCosmeticsLayout : this.fullAccessoriesLayout;
 
