@@ -169,6 +169,7 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
                 .slotPredicates(HEAD_PREDICATE_LOCATION)
                 .strictMode(true)
                 .allowResizing(false)
+                .allowEquipFromUse(false)
                 .validTypes(EntityType.PLAYER, EntityType.ARMOR_STAND)
                 .build();
 
@@ -177,6 +178,7 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
                 .slotPredicates(CHEST_PREDICATE_LOCATION)
                 .strictMode(true)
                 .allowResizing(false)
+                .allowEquipFromUse(false)
                 .validTypes(EntityType.PLAYER, EntityType.ARMOR_STAND)
                 .build();
 
@@ -185,6 +187,7 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
                 .slotPredicates(LEGS_PREDICATE_LOCATION)
                 .strictMode(true)
                 .allowResizing(false)
+                .allowEquipFromUse(false)
                 .validTypes(EntityType.PLAYER, EntityType.ARMOR_STAND)
                 .build();
 
@@ -193,6 +196,7 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
                 .slotPredicates(FEET_PREDICATE_LOCATION)
                 .strictMode(true)
                 .allowResizing(false)
+                .allowEquipFromUse(false)
                 .validTypes(EntityType.PLAYER, EntityType.ARMOR_STAND)
                 .build();
 
@@ -201,6 +205,7 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
                 .slotPredicates(ANIMAL_BODY_PREDICATE_LOCATION)
                 .strictMode(true)
                 .allowResizing(false)
+                .allowEquipFromUse(false)
                 .validTypes(EntityType.HORSE, EntityType.WOLF)
                 .build();
     }
