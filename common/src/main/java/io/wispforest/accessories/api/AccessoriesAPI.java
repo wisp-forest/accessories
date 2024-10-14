@@ -295,7 +295,11 @@ public class AccessoriesAPI {
                 for (int i = 0; i < size; i++) {
                     var reference = SlotReference.of(entity, container.getSlotName(), i);
 
-                    if (canInsertIntoSlot(stack, reference)) validSlots.add(value);
+                    if (canInsertIntoSlot(stack, reference)) {
+                        validSlots.add(value);
+
+                        break;
+                    }
                 }
             }
         }
