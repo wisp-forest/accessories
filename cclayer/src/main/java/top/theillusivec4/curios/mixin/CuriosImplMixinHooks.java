@@ -432,7 +432,7 @@ public class CuriosImplMixinHooks {
     }
 
     try {
-      return AccessoriesAPI.getPredicateResults(convertedSet, entity != null ? entity.level():  null, slotType, ref.slot(), slotResult.stack());
+      return AccessoriesAPI.getPredicateResults(convertedSet, entity != null ? entity.level() :  null, entity, slotType, ref.slot(), slotResult.stack());
     } catch (Exception e) {
       return false;
     }

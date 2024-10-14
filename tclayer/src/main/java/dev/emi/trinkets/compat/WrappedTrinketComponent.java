@@ -217,7 +217,7 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
             var reference = entryRef.reference();
             var slotType = reference.type();
 
-            if (AccessoriesAPI.getPredicateResults(slotType.validators(), reference.entity().level(), slotType, 0, entryRef.stack())) continue;
+            if (AccessoriesAPI.getPredicateResults(slotType.validators(), reference.entity().level(), reference.entity(), slotType, 0, entryRef.stack())) continue;
 
             invalidStacks.add(entryRef.stack().copy());
 

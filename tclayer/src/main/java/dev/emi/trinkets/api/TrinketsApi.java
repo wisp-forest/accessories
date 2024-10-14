@@ -144,7 +144,7 @@ public class TrinketsApi implements EntityComponentInitializer {
             throw new IllegalStateException("Unable to get a SlotType using the WrappedTrinketInventory from the SlotTypeLoader! [Name: " + slotName +"]");
         }
 
-        return AccessoriesAPI.getPredicateResults(convertedSet, entity.level(), slotType, ref.index(), stack);
+        return AccessoriesAPI.getPredicateResults(convertedSet, entity.level(), entity, slotType, ref.index(), stack);
     }
 
     public static Enchantment.EnchantmentDefinition withTrinketSlots(Enchantment.EnchantmentDefinition definition, Set<String> slots) {

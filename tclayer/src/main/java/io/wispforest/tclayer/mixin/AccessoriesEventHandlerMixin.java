@@ -23,6 +23,6 @@ public abstract class AccessoriesEventHandlerMixin {
 
         var slotType = reference.type();
 
-        return AccessoriesAPI.getPredicateResults(slotType.validators(), reference.entity().level(), slotType, 0, stack);
+        return AccessoriesAPI.getPredicateResults(slotType.validators(), reference.entity().level(), reference.entity(), slotType, 0, stack);
     }
 }

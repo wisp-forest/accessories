@@ -65,7 +65,7 @@ public class CurioInventory implements INBTSerializable<CompoundTag> {
             var reference = entryRef.reference();
             var slotType = reference.type();
 
-            if (AccessoriesAPI.getPredicateResults(slotType.validators(), reference.entity().level(), slotType, 0, entryRef.stack())) continue;
+            if (AccessoriesAPI.getPredicateResults(slotType.validators(), reference.entity().level(), livingEntity, slotType, 0, entryRef.stack())) continue;
 
             invalidStacks.add(entryRef.stack().copy());
 
