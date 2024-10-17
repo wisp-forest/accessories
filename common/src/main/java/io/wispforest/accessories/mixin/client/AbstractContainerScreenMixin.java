@@ -2,6 +2,7 @@ package io.wispforest.accessories.mixin.client;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -49,6 +50,11 @@ public abstract class AbstractContainerScreenMixin implements ContainerScreenExt
         }
 
         original.call(instance, x, y, blitOffset, width, height, sprite);
+    }
+
+    @WrapOperation(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"))
+    private void accessories$adjustZOffset(PoseStack instance, float x, float y, float z, Operation<Void> original) {
+        original.call(instance, x, y, z + this.hoverStackOffset());
     }
 
     @Unique

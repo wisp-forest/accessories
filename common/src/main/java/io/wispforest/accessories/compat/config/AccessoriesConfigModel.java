@@ -55,6 +55,10 @@ public class AccessoriesConfigModel {
         public boolean isDarkMode = false;
         public boolean showEquippedStackSlotType = true;
 
+        public boolean entityLooksAtMouseCursor = false;
+
+        public boolean allowSideBarCraftingGrid = true;
+
         // Legacy Screen
 
         @SectionHeader("legacy")

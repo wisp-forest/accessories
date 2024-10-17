@@ -171,21 +171,23 @@
   ],
   "accessories.show_equipped_stack_slot_type.toggle.enabled.tooltip": "Hide equipped stack Slot type",
   "accessories.show_equipped_stack_slot_type.toggle.disabled.tooltip": "Show equipped stack Slot type",
-  "accessories.lines.label": "Line Rendering:",
-  "accessories.lines.toggle.enabled": [
+  "accessories.entity_look_at_cursor.label": "Look at Mouse:",
+  "accessories.entity_look_at_cursor.toggle.enabled": [
     "",
     {"text": "[", "color": "gray"},
     {"text": "✔", "color": "#28FFBF"},
     {"text": "]", "color": "gray"},
-    " Shown"
+    " Enabled"
   ],
-  "accessories.lines.toggle.disabled": [
+  "accessories.entity_look_at_cursor.toggle.disabled": [
     "",
     {"text": "[", "color": "gray"},
     {"text": "❌", "color": "#EB1D36"},
     {"text": "]", "color": "gray"},
-    " Hidden"
+    " Disabled"
   ],
+  "accessories.entity_look_at_cursor.toggle.enabled.tooltip": "Disable looking at cursor",
+  "accessories.entity_look_at_cursor.toggle.disabled.tooltip": "Enable looking at cursor",
   "accessories.lines.toggle.enabled.tooltip": "Hide all Line Rendering",
   "accessories.lines.toggle.disabled.tooltip": "Show all Line Rendering",
   "accessories.crafting_grid.toggle.enabled": "☒",
@@ -274,6 +276,18 @@
   "text.config.accessories.option.screenOptions.showEquippedStackSlotType": "Show Equipped Stacks Slot Type",
   "text.config.accessories.option.screenOptions.showEquippedStackSlotType.tooltip": [
     "Shows the given slot type that the given stack is equipped in within its tooltip."
+  ],
+
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor": "Make Entity follow the Mouse Cursor",
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor.tooltip": [
+    "If enabled, makes the entity follow the mouse cursor\n",
+    "otherwise it allows for manual rotation of the entity."
+  ],
+
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid": "Allow Crafting Grid within Sidebar",
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid.tooltip": [
+    "If group filters are not present, it will attempt to put\n",
+    "the crafting grid within the sidebar instead down below."
   ],
 
   "text.config.accessories.section.button_offsets": "Injected Button Offsets",

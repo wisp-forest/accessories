@@ -2,6 +2,8 @@ package io.wispforest.accessories.networking.client;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
@@ -14,6 +16,8 @@ import net.fabricmc.api.Environment;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.slf4j.Logger;
+
+import java.util.stream.Collectors;
 
 public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) {
 
@@ -55,5 +59,7 @@ public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) {
 
         holder.read(packet.containerMap(), SerializationContext.attributes(RegistriesAttribute.of(level.registryAccess())));
         holder.init(capability);
+
+        holder.setValidTypes(EntitySlotLoader.getEntitySlots(player).keySet());
     }
 }

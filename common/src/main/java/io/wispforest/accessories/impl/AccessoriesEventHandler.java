@@ -85,7 +85,11 @@ public class AccessoriesEventHandler {
 
         var validSlotTypes = EntitySlotLoader.getEntitySlots(player).values();
 
-        for (var container : capability.getContainers().values()) {
+        var holderImpl = ((AccessoriesHolderImpl) capability.getHolder());
+
+        holderImpl.setValidTypes(validSlotTypes.stream().map(SlotType::name).collect(Collectors.toSet()));
+
+        for (var container : holderImpl.getAllSlotContainers().values()) {
             var slotType = container.slotType();
 
             if (slotType != null && validSlotTypes.contains(slotType)) {
@@ -217,9 +221,8 @@ public class AccessoriesEventHandler {
             var removedAttributesBuilder = new AccessoryAttributeBuilder();
             var addedAttributesBuilder = new AccessoryAttributeBuilder();
 
-            for (var containerEntry : capability.getContainers().entrySet()) {
+            for (var containerEntry : ((AccessoriesHolderImpl)capability.getHolder()).getAllSlotContainers().entrySet()) {
                 var container = containerEntry.getValue();
-                var slotType = container.slotType();
 
                 var accessories = container.getAccessories();
                 var cosmetics = container.getCosmeticAccessories();
@@ -227,7 +230,7 @@ public class AccessoriesEventHandler {
                 for (int i = 0; i < accessories.getContainerSize(); i++) {
                     var slotReference = container.createReference(i);
 
-                    var slotId = slotType.name() + "/" + i;
+                    var slotId = container.getSlotName() + "/" + i;
 
                     var currentStack = accessories.getItem(i);
 
@@ -650,7 +653,7 @@ public class AccessoriesEventHandler {
 
         var droppedStacks = new ArrayList<ItemStack>();
 
-        for (var containerEntry : capability.getContainers().entrySet()) {
+        for (var containerEntry : ((AccessoriesHolderImpl) capability.getHolder()).getAllSlotContainers().entrySet()) {
             var slotType = containerEntry.getValue().slotType();
 
             var slotDropRule = slotType != null ? slotType.dropRule() : DropRule.DEFAULT;

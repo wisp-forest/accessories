@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
+import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.fabric.AccessoriesFabric;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
@@ -34,8 +35,6 @@ import static io.wispforest.accessories.Accessories.MODID;
 
 public class AccessoriesClientFabric implements ClientModInitializer {
 
-    public static KeyMapping OPEN_SCREEN;
-
     @Override
     public void onInitializeClient() {
         AccessoriesClient.initConfigStuff();
@@ -59,11 +58,15 @@ public class AccessoriesClientFabric implements ClientModInitializer {
             });
         }
 
-        OPEN_SCREEN = KeyBindingHelper.registerKeyBinding(new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories"));
+        AccessoriesClient.OPEN_SCREEN = KeyBindingHelper.registerKeyBinding(new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories"));
 
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
-            if (OPEN_SCREEN.consumeClick()){
-                AccessoriesClient.attemptToOpenScreen(client.player.isShiftKeyDown());
+            if (AccessoriesClient.OPEN_SCREEN.consumeClick()){
+                if (client.screen instanceof AccessoriesScreenBase) {
+                    client.setScreen(null);
+                } else {
+                    AccessoriesClient.attemptToOpenScreen(client.player.isShiftKeyDown());
+                }
             }
         });
 

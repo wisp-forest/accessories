@@ -24,4 +24,8 @@ public interface ContainerScreenExtension {
     default void forceRenderSlot(GuiGraphics context, Slot slot) {
         throw new IllegalStateException("Interface injected method not implemented!");
     }
+
+    default int hoverStackOffset() {
+        return 0;
+    }
 }

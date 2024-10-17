@@ -38,6 +38,7 @@ import io.wispforest.owo.util.ReflectionUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
@@ -54,6 +55,8 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class AccessoriesClient {
+
+    public static KeyMapping OPEN_SCREEN = null;
 
     public static final ResourceLocation BLIT_SHADER_ID = Accessories.of("fish");
     public static ShaderInstance BLIT_SHADER;

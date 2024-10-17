@@ -1,20 +1,27 @@
 package io.wispforest.accessories.client.gui.components;
 
+import com.mojang.blaze3d.platform.GlConst;
 import com.mojang.blaze3d.platform.Lighting;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Axis;
 import io.wispforest.owo.ui.component.EntityComponent;
+import io.wispforest.owo.ui.core.Color;
 import io.wispforest.owo.ui.core.Component;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
 import io.wispforest.owo.ui.core.Sizing;
 import io.wispforest.owo.util.pond.OwoEntityRenderDispatcherExtension;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL11;
 
+import java.awt.*;
 import java.util.function.BiConsumer;
 
 public class InventoryEntityComponent<E extends Entity> extends EntityComponent<E> {
@@ -52,9 +59,9 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
     public float xOffset = 0.0f;
     public float yOffset = 0.0f;
 
-    private BiConsumer<Component, Runnable> renderWrapping = (component, runnable) -> runnable.run();
+    private TriConsumer<OwoUIDrawContext, Component, Runnable> renderWrapping = (ctx, component, runnable) -> runnable.run();
 
-    public InventoryEntityComponent<E> renderWrapping(BiConsumer<Component, Runnable> renderWrapping) {
+    public InventoryEntityComponent<E> renderWrapping(TriConsumer<OwoUIDrawContext, Component, Runnable> renderWrapping) {
         this.renderWrapping = renderWrapping;
 
         return this;
@@ -131,10 +138,12 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
 
         var maxLength = Math.max(this.width, this.height);
 
-        matrices.translate(x + this.width / 2f, y + this.height / 2f, 100);
+        matrices.translate(x + this.width / 2f, y + this.height / 2f, 60);
         matrices.scale(75 * this.scale * maxLength / 64f, -75 * this.scale * maxLength / 64f, 75 * this.scale);
 
         matrices.translate(0, entity.getBbHeight() / -2f, 0);
+
+        matrices.translate(this.xOffset, this.yOffset, 0);
 
         this.transform.accept(matrices);
 
@@ -149,7 +158,20 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
 
         var dispatcher = (OwoEntityRenderDispatcherExtension) this.dispatcher;
 
-        {
+        if (this.lookAtCursor) {
+            float xRotation = (float) Math.toDegrees(Math.atan((mouseY - this.y - this.height / 2f) / 40f));
+            float yRotation = (float) Math.toDegrees(Math.atan((mouseX - this.x - this.width / 2f) / 40f));
+
+            living.yHeadRotO = -yRotation;
+
+            this.entity.yRotO = -yRotation;
+            this.entity.xRotO = xRotation * .65f;
+
+            // We make sure the xRotation never becomes 0, as the lighting otherwise becomes very unhappy
+            if (xRotation == 0) xRotation = .1f;
+            matrices.mulPose(Axis.XP.rotationDegrees(xRotation * .35f));
+            matrices.mulPose(Axis.YP.rotationDegrees(yRotation * .555f));
+        } else {
             float xRotation = (float) Math.toDegrees(Math.atan((mouseY - this.y - this.height / 2f) / 40f));
 
             this.entity.xRotO = xRotation * .35f;
@@ -159,29 +181,25 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
 
             matrices.mulPose(Axis.XP.rotationDegrees(15));
             matrices.mulPose(Axis.YP.rotationDegrees(startingRotation + this.mouseRotation));
+        }
 
+        {
             dispatcher.owo$setCounterRotate(true);
             dispatcher.owo$setShowNametag(this.showNametag);
 
             Lighting.setupForEntityInInventory();
-            //RenderSystem.setShaderLights(new Vector3f(.15f, 1, 0), new Vector3f(.15f, -1, 0));
-            this.dispatcher.setRenderShadow(false);
 
-            float h = (float) Math.atan(((x + x + this.width) / 2f - mouseX) / 40.0F);
-            float i = (float) Math.atan(((y + y + this.height) / 2f - mouseY) / 40.0F);
+            this.dispatcher.setRenderShadow(false);
 
             living.yBodyRotO = 0;
             living.yBodyRot = 0;
             living.setYRot(0);
-            //living.setXRot(0);
-            living.yHeadRot = living.yBodyRot; //living.getYRot();
-            living.yHeadRotO = living.yBodyRotO; //living.getYRot();
+            living.yHeadRot = living.yBodyRot;
+            living.yHeadRotO = living.yBodyRotO;
 
-            matrices.translate(this.xOffset, this.yOffset, 0);
+            RenderSystem.disableDepthTest();
 
-            this.dispatcher.setRenderShadow(false);
-
-            this.renderWrapping.accept(this,
+            this.renderWrapping.accept(context,this,
                     () -> this.dispatcher.render(this.entity, 0, 0, 0, 0, 0, matrices, this.entityBuffers, LightTexture.FULL_BRIGHT)
             );
 

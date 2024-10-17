@@ -1,10 +1,12 @@
 package io.wispforest.accessories.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.AccessoriesHolder;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.owo.serialization.RegistriesAttribute;
@@ -21,6 +23,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -76,8 +79,26 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     }
 
     @ApiStatus.Internal
-    protected Map<String, AccessoriesContainer> getSlotContainers() {
+    protected Map<String, AccessoriesContainer> getAllSlotContainers() {
         return this.slotContainers;
+    }
+
+    @Nullable
+    private Map<String, AccessoriesContainer> validSlotContainers = null;
+
+    public void setValidTypes(Set<String> validTypes) {
+        var validSlotContainers = ImmutableMap.<String, AccessoriesContainer>builder();
+
+        this.slotContainers.forEach((string, container) -> {
+            if (validTypes.contains(container.getSlotName())) validSlotContainers.put(string, container);
+        });
+
+        this.validSlotContainers = validSlotContainers.build();
+    }
+
+    @ApiStatus.Internal
+    protected Map<String, AccessoriesContainer> getSlotContainers() {
+        return this.validSlotContainers != null ? this.validSlotContainers : this.getAllSlotContainers();
     }
 
     //--
