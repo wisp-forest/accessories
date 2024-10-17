@@ -65,10 +65,10 @@ public class ScreenVariantSelectionScreen extends BaseOwoScreen<FlowLayout> {
                                                                                 .child(
                                                                                         new PixelPerfectTextureComponent(
                                                                                                 Accessories.of("textures/gui/original_gui_image_crop.png"),
-                                                                                                1185,
-                                                                                                1373,
-                                                                                                Sizing.fixed(1185 / 16),
-                                                                                                Sizing.fixed(1373 / 16)
+                                                                                                992,
+                                                                                                709,
+                                                                                                Sizing.fixed(992 / 9),
+                                                                                                Sizing.fixed(709 / 9)
                                                                                         )
                                                                                 )
                                                                                 .margins(Insets.of(3))
