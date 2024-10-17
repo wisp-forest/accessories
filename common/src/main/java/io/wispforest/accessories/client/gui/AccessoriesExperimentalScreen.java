@@ -777,7 +777,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
                     if (!showCosmeticState()) {
                         GuiGraphicsUtils.drawWithSpectrum(context, button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, 1f);
-                        context.blit(button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, red, green, blue, 0.4f);
+//                        context.blit(button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, red, green, blue, 0.4f);
                     } else {
                         context.blit(button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, red, green, blue, 0.9f);
                     }
@@ -1243,11 +1243,24 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
             context.push();
             context.translate(0.0F, 0.0F, 101.0F);
 
-            if (externalBatching) {
-                GuiGraphicsUtils.drawRectOutlineWithSpectrumWithoutRecord(context, this.x(), this.y(), 0, 16, 16, 0.35f, true);
-            } else {
-                GuiGraphicsUtils.drawRectOutlineWithSpectrum(context, this.x(), this.y(), 0, 16, 16, 0.35f, true);
-            }
+            var sprite =  Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(Accessories.of("gui/slot/overlay"));
+
+            GuiGraphicsUtils.drawWithSpectrum(
+                    context,
+                    this.x(),
+                    this.y(),
+                    0,
+                    16,
+                    16,
+                    sprite,
+                    1f
+            );
+
+//            if (externalBatching) {
+//                GuiGraphicsUtils.drawRectOutlineWithSpectrumWithoutRecord(context, this.x(), this.y(), 0, 16, 16, 0.35f, true);
+//            } else {
+//                GuiGraphicsUtils.drawRectOutlineWithSpectrum(context, this.x(), this.y(), 0, 16, 16, 0.35f, true);
+//            }
 
             context.pop();
         }
@@ -1377,9 +1390,16 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 var matrices = context.getMatrixStack();
                 matrices.pushPose();
                 if (AccessoriesClient.HOVERED_SLASH_CURSOR_STACK != null && slot.mayPlace(AccessoriesClient.HOVERED_SLASH_CURSOR_STACK)) {
-                    matrices.mulPose(Axis.ZP.rotationDegrees(Minecraft.getInstance().player.level().getGameTime() * 10 % 360));
+                    RenderSystem.depthMask(false);
+                    RenderSystem.setShaderColor(100,100,0,1);
+                    RenderSystem.enableBlend();
+                    RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
                 }
                 context.blit(slot.x, slot.y, 0, 16, 16, textureAtlasSprite);
+
+                RenderSystem.setShaderColor(1,1,1,1);
+                RenderSystem.depthMask(true);
+                RenderSystem.disableBlend();
                 matrices.popPose();
                 return true;
             }

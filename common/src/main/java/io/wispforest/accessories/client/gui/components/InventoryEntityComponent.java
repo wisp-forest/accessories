@@ -61,12 +61,12 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
     }
 
     public InventoryEntityComponent<E> scaleToFit(boolean scaleToFit) {
-        if(scaleToFit) {
+        if (scaleToFit) {
             var componentHeight = (float) this.verticalSizing().get().value;
             var componentWidth = (float) this.horizontalSizing().get().value - 40;
 
             var entityHeight = entity.getBbHeight() * (Math.min(componentWidth, componentHeight) / Math.max(componentWidth, componentHeight));
-            var entityWidth = entity.getBbWidth()* (Math.max(componentWidth, componentHeight) / Math.min(componentWidth, componentHeight));
+            var entityWidth = entity.getBbWidth() * (Math.max(componentWidth, componentHeight) / Math.min(componentWidth, componentHeight));
 
             var length = Math.max(entityHeight, entityWidth);
 
@@ -108,7 +108,7 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
 
     @Override
     public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
-        if(!(entity instanceof LivingEntity living)) {
+        if (!(entity instanceof LivingEntity living)) {
             super.draw(context, mouseX, mouseY, partialTicks, delta);
 
             return;
@@ -154,6 +154,8 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
 
             this.entity.xRotO = xRotation * .35f;
 
+            matrices.translate(this.xOffset, this.yOffset, 0);
+
             if (xRotation == 0) xRotation = .1f;
             matrices.mulPose(Axis.XP.rotationDegrees(xRotation * .15f));
 
@@ -177,11 +179,10 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
             living.yHeadRot = living.yBodyRot; //living.getYRot();
             living.yHeadRotO = living.yBodyRotO; //living.getYRot();
 
-            matrices.translate(this.xOffset, this.yOffset, 0);
-
             this.dispatcher.setRenderShadow(false);
 
-            this.renderWrapping.accept(this,
+            this.renderWrapping.accept(
+                    this,
                     () -> this.dispatcher.render(this.entity, 0, 0, 0, 0, 0, matrices, this.entityBuffers, LightTexture.FULL_BRIGHT)
             );
 
@@ -216,15 +217,15 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
 
     @Override
     public boolean onKeyPress(int keyCode, int scanCode, int modifiers) {
-        if(keyCode == GLFW.GLFW_KEY_LEFT) {
+        if (keyCode == GLFW.GLFW_KEY_LEFT) {
             this.xOffset -= 0.05f;
-        } else if(keyCode == GLFW.GLFW_KEY_RIGHT) {
+        } else if (keyCode == GLFW.GLFW_KEY_RIGHT) {
             this.xOffset += 0.05f;
         }
 
-        if(keyCode == GLFW.GLFW_KEY_UP) {
+        if (keyCode == GLFW.GLFW_KEY_UP) {
             this.yOffset += 0.05f;
-        } else if(keyCode == GLFW.GLFW_KEY_DOWN) {
+        } else if (keyCode == GLFW.GLFW_KEY_DOWN) {
             this.yOffset -= 0.05f;
         }
 

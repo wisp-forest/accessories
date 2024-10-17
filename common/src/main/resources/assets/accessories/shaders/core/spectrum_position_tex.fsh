@@ -2,9 +2,11 @@
 
 uniform sampler2D Sampler0;
 uniform vec4 ColorModulator;
+uniform float GameTime;
 
 in vec2 texCoord0;
 in vec4 vertexColor;
+in vec2 screenPos;
 
 out vec4 fragColor;
 
@@ -21,8 +23,14 @@ void main() {
         discard;
     }
 
+    vec3 modifiedHSV = vec3(
+        mod((((screenPos.x + screenPos.y) * 1000) + (GameTime * 24000)) / 2.0, 100.0) / 100.0,
+        1.0,
+        1.0
+    );
+
     fragColor = vec4(
-        hsv2rgb(vertexColor.xyz).xyz,
-        vertexColor.w
+        hsv2rgb(modifiedHSV).xyz,
+        0.75
     ) * ColorModulator;
 }
