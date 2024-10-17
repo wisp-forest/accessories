@@ -19,7 +19,9 @@
     "ItemStackMixin",
     "SlotGroupLoaderMixin",
     "SlotTypeLoaderMixin",
-    "AccessoriesEventHandlerMixin"
+    "AccessoriesEventHandlerMixin",
+    "TagGroupLoaderMixin",
+    "ConfigWrapperMixin"
   ],
   "injectors": {
     "defaultRequire": 1

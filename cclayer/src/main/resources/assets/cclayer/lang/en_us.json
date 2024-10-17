@@ -1,0 +1,8 @@
+{
+  "text.config.cclayer.option.useInjectionMethod": "Use Tag Injection to share Slot Tag Entries",
+  "text.config.cclayer.option.useInjectionMethod.tooltip": [
+    "Useful to allow for curios and accessories tags to\n",
+    "share entries. This option acts as a toggle between\n",
+    "using direct tag injection verses a slower method.\n"
+  ]
+}

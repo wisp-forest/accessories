@@ -1,5 +1,6 @@
 package dev.emi.trinkets.compat;
 
+import com.mojang.datafixers.util.Either;
 import com.mojang.logging.LogUtils;
 import dev.emi.trinkets.api.LivingEntityTrinketComponent;
 import dev.emi.trinkets.api.SlotReference;
@@ -12,14 +13,13 @@ import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.Eula;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class WrappingTrinketsUtils {
 
@@ -91,19 +91,36 @@ public class WrappingTrinketsUtils {
 
     public static final Set<String> defaultSlots = Set.of("anklet", "back", "belt", "cape", "charm", "face", "hand", "hat", "necklace", "ring", "shoes", "wrist");
 
+    public static Collection<String> getGroupFromDefaultSlot(String slot) {
+        if (!defaultSlots.contains(slot)) return Set.of();
+
+        return switch (slot) {
+            case "anklet", "shoes" -> Set.of("feet");
+            case "belt" -> Set.of("legs");
+            case "hand", "ring", "wrist" -> Set.of("offhand", "hand");
+            case "face", "hat" -> Set.of("head");
+            case "back", "cape", "necklace" -> Set.of("chest");
+            default -> Set.of();
+        };
+    }
+
     // Unsafe Operation
     public static String trinketsToAccessories_Slot(Optional<String> group, String trinketType){
+        return trinketsToAccessories_SlotEither(group, trinketType).map(string -> string, string -> string);
+    }
+
+    public static Either<String, String> trinketsToAccessories_SlotEither(Optional<String> group, String trinketType){
         var accessoriesType = switch (trinketType){
             case "glove" -> "hand";
             case "aglet" -> "anklet";
             default -> trinketType;
         };
 
-        if(defaultSlots.contains(accessoriesType)) return accessoriesType;
+        if(defaultSlots.contains(accessoriesType)) return Either.right(accessoriesType);
 
         if(group.isPresent()) accessoriesType = "trinket_group_" + group.get() + "-" + accessoriesType;
 
-        return accessoriesType;
+        return Either.left(accessoriesType);
     }
 
     // Safe Operation
@@ -119,7 +136,7 @@ public class WrappingTrinketsUtils {
 
     public static String trinketsToAccessories_Group(String trinketType){
         return switch (trinketType){
-            case "legs" -> "leg";
+            case "legs", "feet" -> "leg";
             case "offhand", "hand" -> "arm";
             case "charm" -> "misc";
             default -> trinketType;
@@ -147,6 +164,15 @@ public class WrappingTrinketsUtils {
 
     public static String filterGroupInfo(String trinketType) {
         return trinketType.replaceAll("(trinket_group_).*-", "");
+    }
+
+    @Nullable
+    public static String getGroupInfo(String trinketType) {
+        if (!trinketType.contains("trinket_group_")) return null;
+
+        var groupWithPrefix = trinketType.replace(trinketType.replaceAll("(trinket_group_).*-", ""), "");;
+
+        return groupWithPrefix.replace("trinket_group_", "");
     }
 
     public static Pair<Optional<String>, String> splitGroupInfo(String path){

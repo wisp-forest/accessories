@@ -35,7 +35,7 @@ dependencies {
 
     forgeRuntimeLibrary(implementation("blue.endless:jankson:1.2.2"))
 
-    modImplementation("io.wispforest:owo-lib-neoforge:${rootProject.owo_neo_version}")
+    modImplementation annotationProcessor("io.wispforest:owo-lib-neoforge:${rootProject.owo_neo_version}")
 
     forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")
     forgeRuntimeLibrary("io.wispforest.endec:gson:${rootProject.endec_gson_version}")

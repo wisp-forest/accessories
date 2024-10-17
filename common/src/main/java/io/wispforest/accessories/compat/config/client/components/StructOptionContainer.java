@@ -9,6 +9,8 @@ import io.wispforest.owo.config.ui.component.OptionValueProvider;
 import io.wispforest.owo.ui.core.Sizing;
 import io.wispforest.owo.ui.parsing.UIModel;
 
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -35,7 +37,13 @@ public class StructOptionContainer<T> extends ConfigurableStructLayout<T> implem
     }
 
     public StructOptionContainer<T> composeAndBuild() {
-        return (StructOptionContainer<T>) this.composeComponents((Class<T>) backingValue.getClass(), backingValue)
+        var clazz = (Class<T>) backingValue.getClass();
+
+        var validFields = Arrays.stream(clazz.getFields()).filter(field -> {
+            return !Modifier.isStatic(field.getModifiers()) && !Modifier.isTransient(field.getModifiers());
+        }).toList();
+
+        return (StructOptionContainer<T>) this.composeComponents(clazz, validFields, backingValue)
                 .build(backingValue);
     }
 

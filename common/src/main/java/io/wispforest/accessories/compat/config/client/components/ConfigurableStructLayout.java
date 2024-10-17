@@ -22,11 +22,11 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.intellij.lang.annotations.Identifier;
 
+import java.lang.reflect.AccessFlag;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.lang.reflect.Modifier;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -35,7 +35,7 @@ public class ConfigurableStructLayout<T> extends FlowLayout {
 
     public final Map<Field, ComponentFactory<T, ?>> handlers = new LinkedHashMap<>();
 
-    public final boolean sideBySideFormat;
+    public boolean sideBySideFormat;
 
     public final UIModel model;
 
@@ -68,8 +68,8 @@ public class ConfigurableStructLayout<T> extends FlowLayout {
         return this;
     }
 
-    public ConfigurableStructLayout<T> composeComponents(Class<T> clazz, T value) {
-        for (var field : clazz.getFields()) {
+    public ConfigurableStructLayout<T> composeComponents(Class<T> clazz, List<Field> validFields, T value) {
+        for (var field : validFields) {
             var fieldClazz = field.getType();
 
             if (NumberReflection.isNumberType(fieldClazz)) {
@@ -88,9 +88,15 @@ public class ConfigurableStructLayout<T> extends FlowLayout {
         return this;
     }
 
-    public static <T> ConfigurableStructLayout<T> of(Class<T> clazz, T value, UIModel uiModel, Option<?> option, boolean sideBySideFormat) {
+    public static <T> ConfigurableStructLayout<T> of(Class<T> clazz, T value, UIModel uiModel, Option<?> option) {
+        var validFields = Arrays.stream(clazz.getFields()).filter(field -> {
+            return !Modifier.isStatic(field.getModifiers()) && !Modifier.isTransient(field.getModifiers());
+        }).toList();
+
+        var sideBySideFormat = validFields.size() <= 2;
+
         return new ConfigurableStructLayout<T>(Sizing.expand(), Sizing.content(), uiModel, option, sideBySideFormat)
-                .composeComponents(clazz, value)
+                .composeComponents(clazz, validFields, value)
                 .build(value);
     }
 

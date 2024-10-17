@@ -3,6 +3,7 @@ package io.wispforest.tclayer.mixin;
 import dev.emi.trinkets.api.TrinketConstants;
 import dev.emi.trinkets.compat.WrappingTrinketsUtils;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.tclayer.TCLayer;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -25,6 +26,8 @@ public abstract class ItemStackMixin {
 
     @Inject(method = "is(Lnet/minecraft/tags/TagKey;)Z", at = @At(value = "HEAD"), cancellable = true)
     private void redirectTags(TagKey<Item> tag, CallbackInfoReturnable<Boolean> cir){
+        if (TCLayer.CONFIG.useInjectionMethod()) return;
+
         var namespace = tag.location().getNamespace();
 
         if(!namespace.equals(Accessories.MODID) && !namespace.equals(TrinketConstants.MOD_ID)) return;

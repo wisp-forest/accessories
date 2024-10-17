@@ -30,6 +30,9 @@
     "main": [
       "io.wispforest.tclayer.TCLayer"
     ],
+    "client": [
+      "io.wispforest.tclayer.client.TCLayerClient"
+    ],
     "cardinal-components-entity": [
       "dev.emi.trinkets.api.TrinketsApi"
     ]

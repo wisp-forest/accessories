@@ -12,6 +12,7 @@ import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.tclayer.ImmutableDelegatingMap;
+import io.wispforest.tclayer.OuterGroupMap;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
@@ -54,17 +55,16 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
     public Map<String, Map<String, TrinketInventory>> getInventory() {
         var entity = this.getEntity();
 
-        return ImmutableDelegatingMap.trinketComponentView(
-                WrappingTrinketsUtils.getGroupedSlots(entity.level().isClientSide(), entity.getType()),
+        return new OuterGroupMap(WrappingTrinketsUtils.getGroupedSlots(entity.level().isClientSide(), entity.getType()),
                 this,
-                capability().getContainers(),
-                () -> {
+                capability(),
+                (additionalMsg) -> {
                     LOGGER.warn("Unable to get some value leading to an error, here comes the dumping data!");
                     LOGGER.warn("Entity: {}", this.getEntity());
                     LOGGER.warn("Entity Slots: {}", EntitySlotLoader.getEntitySlots(this.getEntity()));
                     LOGGER.warn("Current Containers: {}", this.getEntity().accessoriesCapability().getContainers());
-                }
-        );
+                    LOGGER.warn("More Info: ({})", additionalMsg);
+                });
     }
 
     @Override

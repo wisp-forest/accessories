@@ -16,7 +16,8 @@
     "RegisterCapabilitiesEventMixin",
     "SlotTypeLoaderMixin",
     "AccessoriesEventHandlerMixin",
-    "compat.AetherAccessoriesMenuMixin"
+    "compat.AetherAccessoriesMenuMixin",
+    "TagGroupLoaderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -69,7 +69,7 @@ public class StructListOptionContainer<T> extends ListOptionContainer<T> {
             labelContainer.child(label);
 
             container.child(labelContainer);
-            container.child(ConfigurableStructLayout.of(listType, backingList.get(i), uiModel, this.backingOption, true));
+            container.child(ConfigurableStructLayout.of(listType, backingList.get(i), uiModel, this.backingOption));
 
             this.collapsibleChildren.add(container);
         }
