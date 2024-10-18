@@ -1,10 +1,7 @@
 package io.wispforest.accessories.networking;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.networking.client.AccessoryBreak;
-import io.wispforest.accessories.networking.client.SyncContainerData;
-import io.wispforest.accessories.networking.client.SyncData;
-import io.wispforest.accessories.networking.client.SyncEntireContainer;
+import io.wispforest.accessories.networking.client.*;
 import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.MenuScroll;
 import io.wispforest.accessories.networking.server.NukeAccessories;
@@ -42,6 +39,7 @@ public class AccessoriesNetworking {
         CHANNEL.registerClientboundDeferred(SyncContainerData.class, SyncContainerData.ENDEC);
         CHANNEL.registerClientboundDeferred(SyncData.class, SyncData.ENDEC);
         CHANNEL.registerClientboundDeferred(AccessoryBreak.class, AccessoryBreak.ENDEC);
+        CHANNEL.registerClientboundDeferred(InvalidateEntityCache.class, InvalidateEntityCache.ENDEC);
 
         CHANNEL.registerClientboundDeferred(MenuScroll.class, MenuScroll.ENDEC);
         CHANNEL.registerClientboundDeferred(SyncHolderChange.class, SyncHolderChange.ENDEC);
@@ -53,6 +51,7 @@ public class AccessoriesNetworking {
         CHANNEL.registerClientbound(SyncContainerData.class, SyncContainerData.ENDEC, clientHandler(SyncContainerData::handlePacket));
         CHANNEL.registerClientbound(SyncData.class, SyncData.ENDEC, clientHandler(SyncData::handlePacket));
         CHANNEL.registerClientbound(AccessoryBreak.class, AccessoryBreak.ENDEC, clientHandler(AccessoryBreak::handlePacket));
+        CHANNEL.registerClientbound(InvalidateEntityCache.class, InvalidateEntityCache.ENDEC, clientHandler(InvalidateEntityCache::handlePacket));
 
         CHANNEL.registerClientbound(MenuScroll.class, MenuScroll.ENDEC, clientHandler(MenuScroll::handlePacket));
         CHANNEL.registerClientbound(SyncHolderChange.class, SyncHolderChange.ENDEC, clientHandler(SyncHolderChange::handlePacket));

@@ -9,6 +9,7 @@ import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
+import io.wispforest.accessories.impl.caching.AccessoriesHolderLookupCache;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import io.wispforest.accessories.utils.EndecUtils;
@@ -94,11 +95,25 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         });
 
         this.validSlotContainers = validSlotContainers.build();
+
+        if (this.lookupCache == null) {
+            this.lookupCache = new AccessoriesHolderLookupCache(this);
+        }
+
+        this.lookupCache.clearCache();
     }
 
     @ApiStatus.Internal
-    protected Map<String, AccessoriesContainer> getSlotContainers() {
+    public Map<String, AccessoriesContainer> getSlotContainers() {
         return this.validSlotContainers != null ? this.validSlotContainers : this.getAllSlotContainers();
+    }
+
+    @Nullable
+    public AccessoriesHolderLookupCache lookupCache = null;
+
+    @Nullable
+    public AccessoriesHolderLookupCache getLookupCache() {
+        return Accessories.config().useExperimentalCaching() ? this.lookupCache : null;
     }
 
     //--
@@ -414,6 +429,10 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         capability.clearCachedSlotModifiers();
 
         this.carrier = EMPTY;
+
+        var cache = this.getLookupCache();
+
+        if (cache != null) cache.clearCache();
     }
 
     @Override

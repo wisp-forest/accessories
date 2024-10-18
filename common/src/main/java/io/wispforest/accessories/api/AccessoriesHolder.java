@@ -2,6 +2,7 @@ package io.wispforest.accessories.api;
 
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.impl.PlayerEquipControl;
+import io.wispforest.accessories.impl.caching.AccessoriesHolderLookupCache;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +24,8 @@ public interface AccessoriesHolder {
     static Optional<AccessoriesHolder> getOptionally(@NotNull LivingEntity livingEntity){
         return Optional.ofNullable(get(livingEntity));
     }
+
+    AccessoriesHolderLookupCache getLookupCache();
 
     //--
 

@@ -125,7 +125,11 @@ public class AccessoriesEventHandler {
     }
 
     private static void handleInvalidStacks(Container container, SlotReference reference, ServerPlayer player) {
-        var bl = !AccessoriesAPI.canInsertIntoSlot(container.getItem(reference.slot()), reference);
+        var stack = container.getItem(reference.slot());
+
+        if (stack.isEmpty()) return;
+
+        var bl = !AccessoriesAPI.canInsertIntoSlot(stack, reference);
 
         if (bl) dropAndRemoveStack(container, reference, player);
     }

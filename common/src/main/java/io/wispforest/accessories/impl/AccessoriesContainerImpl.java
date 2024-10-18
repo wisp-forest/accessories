@@ -72,6 +72,12 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     public void containerChanged(Container container) {
         if(containerListenerLock) return;
 
+        if (!this.capability.entity().level().isClientSide()) {
+            var cache = ((AccessoriesHolderImpl)this.capability().getHolder()).getLookupCache();
+
+            if (cache != null) cache.clearContainerCache(this.slotName);
+        }
+
         if(((ExpandedSimpleContainer) container).name().contains("cosmetic")) return;
 
         this.markChanged();
@@ -208,6 +214,10 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
             var inv = ((AccessoriesCapabilityImpl) this.capability).getUpdatingInventories();
 
             inv.remove(this);
+        } else {
+            var cache = ((AccessoriesHolderImpl)this.capability().getHolder()).getLookupCache();
+
+            if (cache != null) cache.clearContainerCache(this.slotName);
         }
     }
 

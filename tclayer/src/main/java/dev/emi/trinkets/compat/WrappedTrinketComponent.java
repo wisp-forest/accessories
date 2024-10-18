@@ -118,19 +118,25 @@ public abstract class WrappedTrinketComponent implements TrinketComponent {
     }
 
     @Override
+    public List<Tuple<SlotReference, ItemStack>> getAllEquipped() {
+        return capability().getAllEquipped().stream()
+                .map(slotResult -> {
+                    var reference = WrappingTrinketsUtils.createTrinketsReference(slotResult.reference());
+
+                    return reference.map(slotReference -> new Tuple<>(
+                            slotReference,
+                            slotResult.stack()
+                    )).orElse(null);
+                })
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    @Override
     public void forEach(BiConsumer<SlotReference, ItemStack> consumer) {
-        var equipped = capability().getEquipped(stack -> true);
-
-        equipped.forEach(slotResult -> {
-            var reference = WrappingTrinketsUtils.createTrinketsReference(slotResult.reference());
-
-            if(reference.isEmpty()) return;
-
-            consumer.accept(
-                    reference.get(),
-                    slotResult.stack()
-            );
-        });
+        for (var tuple : this.getAllEquipped()) {
+            consumer.accept(tuple.getA(), tuple.getB());
+        }
     }
 
     @Override

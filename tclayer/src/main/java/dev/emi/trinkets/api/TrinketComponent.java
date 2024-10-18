@@ -1,6 +1,7 @@
 package dev.emi.trinkets.api;
 
 import com.google.common.collect.Multimap;
+import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -51,7 +52,7 @@ public interface TrinketComponent extends ComponentV3 {
      * @return Whether the item is in any slots available to the entity
      */
     default boolean isEquipped(Item item) {
-        return isEquipped(stack -> stack.getItem() == item);
+        return isEquipped(ItemStackBasedPredicate.ofItem(item));
     }
 
     /**
@@ -63,7 +64,7 @@ public interface TrinketComponent extends ComponentV3 {
      * @return All slots that contain the provided item
      */
     default List<Tuple<SlotReference, ItemStack>> getEquipped(Item item) {
-        return getEquipped(stack -> stack.getItem() == item);
+        return getEquipped(ItemStackBasedPredicate.ofItem(item));
     }
 
     /**

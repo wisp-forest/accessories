@@ -133,6 +133,41 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
             this.lastBbHeight = entity.getBbHeight();
         }
 
+//        var GL_ZERO     = 0x0000;
+//        var GL_KEEP     = 0x1E00;
+//        var GL_REPLACE  = 0x1E01;
+//        var GL_INCR     = 0x1E02;
+//        var GL_DECR     = 0x1E03;
+//        var GL_INVERT   = 0x150A;
+//        var GL_NOTEQUAL = 0x0205;
+//        var GL_ALWAYS   = 0x0207;
+//
+//        var GL_STENCIL_BUFFER_BIT = 0x00000400;
+//
+//        var GL_STENCIL_TEST = 0x0B90;
+//
+//        context.flush();
+//
+//        RenderSystem.enableDepthTest();
+//        GL11.glEnable(GL11.GL_STENCIL_TEST);
+//
+//        RenderSystem.clear(GL11.GL_COLOR_BUFFER_BIT, Minecraft.ON_OSX);
+//        RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
+//        RenderSystem.clear(GL11.GL_STENCIL_BUFFER_BIT, Minecraft.ON_OSX);
+//        RenderSystem.clearStencil(0);
+//
+//        RenderSystem.stencilMask(0xFF);
+//        RenderSystem.stencilFunc(GL11.GL_EQUAL, 1, 0xFF);
+//        RenderSystem.stencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE);
+//
+//        context.fill(0, 0, Minecraft.getInstance().getWindow().getGuiScaledWidth(), Minecraft.getInstance().getWindow().getGuiScaledHeight(), Color.BLUE.argb());
+//        context.fill(this.x, this.y, this.x + 50, this.y + 50, Color.WHITE.argb());
+//
+//        context.flush();
+//
+//        //RenderSystem.stencilMask(0x00);
+//        RenderSystem.stencilFunc(GL11.GL_NOTEQUAL, 1, 0xFF);
+
         var matrices = context.pose();
         matrices.pushPose();
 
@@ -202,6 +237,14 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
             this.renderWrapping.accept(context,this,
                     () -> this.dispatcher.render(this.entity, 0, 0, 0, 0, 0, matrices, this.entityBuffers, LightTexture.FULL_BRIGHT)
             );
+
+//            this.entityBuffers.endBatch();
+//
+//            RenderSystem.stencilMask(0xFF);
+//            RenderSystem.stencilFunc(GL11.GL_ALWAYS, 1, 0xFF);
+//            RenderSystem.enableDepthTest();
+//
+//            GL11.glDisable(GL_STENCIL_TEST);
 
             this.dispatcher.setRenderShadow(true);
         }

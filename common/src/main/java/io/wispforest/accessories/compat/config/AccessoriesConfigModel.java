@@ -12,6 +12,9 @@ import java.util.List;
 @Config(name = Accessories.MODID, wrapperName = "AccessoriesConfig")
 public class AccessoriesConfigModel {
 
+    @RestartRequired
+    public boolean useExperimentalCaching = true;
+
     @Nest
     @Expanded
     public GeneralClientOptions clientOptions = new GeneralClientOptions();

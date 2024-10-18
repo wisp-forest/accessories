@@ -213,6 +213,12 @@
 
   "text.config.accessories.title": "Accessories Config",
 
+  "text.config.accessories.option.useExperimentalCaching": "Use Experimental Caching",
+  "text.config.accessories.option.useExperimentalCaching.tooltip": [
+    "Attempts to cache various ItemStack lookups\n",
+    "to be more performant but may cause issues."
+  ],
+
   "text.config.accessories.category.clientOptions": "Client Options",
   "text.config.accessories.category.clientOptions.tooltip": [
     "Contains more generic client side options for rendering or player input"

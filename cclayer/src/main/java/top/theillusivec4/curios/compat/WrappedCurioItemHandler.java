@@ -3,6 +3,7 @@ package top.theillusivec4.curios.compat;
 import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.*;
+import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
@@ -117,7 +118,7 @@ public record WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) impl
 
     @Override
     public Optional<SlotResult> findFirstCurio(Item item) {
-        return findFirstCurio((stack -> stack.getItem().equals(item)));
+        return findFirstCurio(ItemStackBasedPredicate.ofItem(item));
     }
 
     @Override
@@ -128,7 +129,7 @@ public record WrappedCurioItemHandler(AccessoriesCapabilityImpl capability) impl
 
     @Override
     public List<SlotResult> findCurios(Item item) {
-        return findCurios(stack -> stack.getItem().equals(item));
+        return findCurios(ItemStackBasedPredicate.ofItem(item));
     }
 
     @Override
