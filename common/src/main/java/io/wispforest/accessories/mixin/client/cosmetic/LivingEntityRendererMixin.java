@@ -1,5 +1,7 @@
 package io.wispforest.accessories.mixin.client.cosmetic;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.pond.CosmeticArmorLookupTogglable;
 import net.minecraft.client.model.EntityModel;
@@ -21,17 +23,12 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
         super(context);
     }
 
-    @Inject(
-            method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;isSpectator()Z", shift = At.Shift.BY, by = 2))
-    private void tclayer$toggleOnEntityAccessoriesToCosmeticLookup(T entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight, CallbackInfo ci) {
+    @WrapMethod(method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V")
+    private void accessories$adjustArmorLookup(T entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight, Operation<Void> original) {
         ((CosmeticArmorLookupTogglable)entity).setLookupToggle(true);
-    }
 
-    @Inject(
-            method = "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/EntityRenderer;render(Lnet/minecraft/world/entity/Entity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V"))
-    private void tclayer$toggleOffEntityAccessoriesToCosmeticLookup(T entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight, CallbackInfo ci) {
+        original.call(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
+
         ((CosmeticArmorLookupTogglable)entity).setLookupToggle(false);
     }
 }
