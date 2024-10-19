@@ -93,14 +93,11 @@ public class CCLayer {
         });
 
         AdjustAttributeModifierCallback.EVENT.register((stack, reference, builder) -> {
-            var modifiers = HashMultimap.<Holder<Attribute>, AttributeModifier>create();
-
-            var event = new CurioAttributeModifierEvent(stack, CuriosWrappingUtils.create(reference), ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference)), modifiers);
+            var event = new CurioAttributeModifierEvent(stack, CuriosWrappingUtils.create(reference), ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference)), HashMultimap.create());
 
             NeoForge.EVENT_BUS.post(event);
 
-            modifiers.clear();
-            modifiers.putAll(event.getModifiers());
+            event.getModifiers().forEach(builder::addExclusive);
         });
     }
 
