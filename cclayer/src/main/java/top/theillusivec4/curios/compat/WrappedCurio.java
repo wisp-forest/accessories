@@ -128,21 +128,31 @@ public class WrappedCurio implements Accessory, LootingAdjustment, FortuneAdjust
 
     @Override
     public void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
-        var copyData = new ArrayList<>(tooltips);
+        var copyData1 = new ArrayList<>(tooltips);
+        var data1 = this.iCurioItem.getAttributesTooltip(copyData1, tooltipContext, stack);
 
-        var data = this.iCurioItem.getAttributesTooltip(copyData, tooltipContext, stack);
+        var copyData2 = new ArrayList<>(tooltips);
+        var data2 = this.iCurioItem.getAttributesTooltip(copyData2, tooltipContext, stack);
 
-        tooltips.clear();
-        tooltips.addAll(data);
+        if (data1 != data2) {
+            tooltips.addAll(data1);
+            tooltips.addAll(data2);
+        } else {
+            tooltips.addAll(data1);
+        }
     }
 
     @Override
     public void getExtraTooltip(ItemStack stack, List<Component> tooltips, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
-        var components = new ArrayList<Component>();
+        var data1 = this.iCurioItem.getSlotsTooltip(new ArrayList<>(), tooltipContext, stack);
+        var data2 = this.iCurioItem.getSlotsTooltip(new ArrayList<>(), stack);
 
-        var data = this.iCurioItem.getSlotsTooltip(components, tooltipContext, stack);
-
-        tooltips.addAll(data);
+        if (data1 != data2) {
+            tooltips.addAll(data1);
+            tooltips.addAll(data2);
+        } else {
+            tooltips.addAll(data1);
+        }
     }
 
     //--
