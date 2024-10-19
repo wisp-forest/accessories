@@ -26,17 +26,15 @@ public class AccessoriesHolderLookupCache extends EquipmentLookupCache {
         var value = this.isEquipped.getIfPresent(predicate);
 
         if (value == null) {
-            var isEquipped = false;
-
             for (var lookupCache : this.containerLookupCacheMap.values()) {
-                if (lookupCache.isEquipped(predicate)) {
-                    isEquipped = true;
+                value = lookupCache.isEquipped(predicate);
 
-                    break;
-                }
+                if (value) break;
             }
 
-            this.isEquipped.put(predicate, isEquipped);
+            if (value == null) value = false;
+
+            this.isEquipped.put(predicate, value);
         }
 
         return value;
@@ -47,7 +45,7 @@ public class AccessoriesHolderLookupCache extends EquipmentLookupCache {
     public SlotEntryReference firstEquipped(ItemStackBasedPredicate predicate, EquipmentChecking check) {
         var cache = (check == EquipmentChecking.ACCESSORIES_ONLY ? firstEquipped_ACCESSORIES_ONLY : firstEquipped_COSMETICALLY_OVERRIDABLE);
 
-        var value = cache.getIfPresent(predicate);
+        @Nullable var value = cache.getIfPresent(predicate);
 
         if (value == null) {
             for (var lookupCache : this.containerLookupCacheMap.values()) {
@@ -59,6 +57,8 @@ public class AccessoriesHolderLookupCache extends EquipmentLookupCache {
                     break;
                 }
             }
+
+            if (value == null) value = Optional.empty();
 
             cache.put(predicate, value);
         }

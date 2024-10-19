@@ -36,11 +36,9 @@ public class AccessoriesContainerLookupCache extends EquipmentLookupCache {
     public SlotEntryReference firstEquipped(ItemStackBasedPredicate predicate, EquipmentChecking check) {
         var cache = (check == EquipmentChecking.ACCESSORIES_ONLY ? firstEquipped_ACCESSORIES_ONLY : firstEquipped_COSMETICALLY_OVERRIDABLE);
 
-        var value = cache.getIfPresent(predicate);
+        @Nullable var value = cache.getIfPresent(predicate);
 
         if (value == null) {
-            boolean hasSetValue = false;
-
             for (var stackEntry : this.container.getAccessories()) {
                 var stack = stackEntry.getSecond();
                 var reference = this.container.createReference(stackEntry.getFirst());
@@ -60,13 +58,11 @@ public class AccessoriesContainerLookupCache extends EquipmentLookupCache {
                 if (entryReference != null) {
                     value = Optional.of(entryReference);
 
-                    hasSetValue = true;
-
                     break;
                 }
             }
 
-            if (!hasSetValue) value = Optional.empty();
+            if (value == null) value = Optional.empty();
 
             cache.put(predicate, value);
         }

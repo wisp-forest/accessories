@@ -3,6 +3,7 @@ package io.wispforest.accessories.compat.config;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.compat.config.client.Structured;
 import io.wispforest.accessories.impl.PlayerEquipControl;
+import io.wispforest.owo.config.Option;
 import io.wispforest.owo.config.annotation.*;
 import org.joml.Vector2i;
 
@@ -13,6 +14,7 @@ import java.util.List;
 public class AccessoriesConfigModel {
 
     @RestartRequired
+    @Sync(Option.SyncMode.OVERRIDE_CLIENT)
     public boolean useExperimentalCaching = true;
 
     @Nest
