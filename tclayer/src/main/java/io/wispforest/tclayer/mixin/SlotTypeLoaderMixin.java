@@ -60,6 +60,10 @@ public abstract class SlotTypeLoaderMixin {
                     if(slotsCurrentSize != null && slotData.amount > slotsCurrentSize) {
                         builder.amount(slotData.amount);
                     }
+
+                    if (redirect != null) {
+                        builder.addAmount(redirect.right());
+                    }
                 } else {
                     builder = new SlotTypeLoader.SlotBuilder(accessoryType);
 
@@ -76,10 +80,6 @@ public abstract class SlotTypeLoaderMixin {
                     builder.alternativeTranslation("trinkets.slot." + groupDataEntry.getKey() + "." + entry.getKey());
 
                     builders.put(accessoryType, builder);
-                }
-
-                if (redirect != null) {
-                    builder.addAmount(redirect.right());
                 }
 
                 for (String validatorPredicate : slotData.validatorPredicates) {
