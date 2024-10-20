@@ -22,7 +22,6 @@ repositories {
     maven { url "https://api.modrinth.com/maven" }
     maven { url "https://maven.florens.be/releases" }
     mavenCentral()
-    mavenLocal()
 }
 
 //evaluationDependsOn(':common')
@@ -31,18 +30,21 @@ repositories {
 dependencies {
     neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
 
-    developmentNeoForge implementation(project(path: ":common", configuration: "namedElements"))
-    localRuntime compileOnly(project(path: ":neoforge", configuration: "namedElements"))
+    developmentNeoForge(implementation(project(path: ":common", configuration: "namedElements")))
+    localRuntime(compileOnly(project(path: ":neoforge", configuration: "namedElements")))
 
-    modRuntimeOnly ("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
+    forgeRuntimeLibrary(implementation("blue.endless:jankson:1.2.2"))
+
+    modImplementation annotationProcessor("io.wispforest:owo-lib-neoforge:${rootProject.owo_neo_version}")
 
     forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")
     forgeRuntimeLibrary("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
+    forgeRuntimeLibrary("io.wispforest.endec:jankson:${rootProject.endec_jankson_version}")
     forgeRuntimeLibrary("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
 
-    modCompileOnly ("maven.modrinth:aether:1.20.4-1.4.1-neoforge")
+    modCompileOnly("maven.modrinth:aether:1.20.4-1.4.1-neoforge")
 
-    modImplementation ("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+e0539096d1"){ exclude group: "fabric-api" }
+    modImplementation("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+e0539096d1"){ exclude group: "fabric-api" }
 
     //modRuntimeOnly ("dev.architectury:architectury-forge:9.2.14")
     //modRuntimeOnly ("maven.modrinth:artifacts:9.5.4")

@@ -9,10 +9,16 @@ loom {
 repositories {
     maven { url "https://maven.fabricmc.net/" }
     maven { url "https://maven.shedaniel.me/" }
+    maven { url "https://maven.su5ed.dev/releases" }
     maven { url "https://maven.architectury.dev/" }
     maven { url "https://maven.terraformersmc.com/" }
     maven { url "https://maven.blamejared.com/" } // location of the maven that hosts JEI files since January 2023
     maven { url "https://modmaven.dev" } // location of a maven mirror for JEI files, as a fallback
+    maven { url "https://api.modrinth.com/maven" }
+    maven {
+        url "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+        content { includeGroup("software.bernie.geckolib") }
+    }
 }
 
 dependencies {
@@ -22,16 +28,28 @@ dependencies {
 
     compileOnly annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5")
 
-    modCompileOnly("me.shedaniel.cloth:cloth-config:${rootProject.cloth_version}")
+    modImplementation annotationProcessor("io.wispforest:owo-lib:${project.owo_version}")
+
+    modCompileOnly("org.sinytra.forgified-fabric-api:fabric-networking-api-v1:4.2.2+a92978fd19") { exclude group: "fabric-api" }
 
     modCompileOnly(fabricApi.module("fabric-api-base", rootProject.fabric_api_version)){
         exclude group: "fabric-api"
     }
-    
+
+    modCompileOnly "software.bernie.geckolib:geckolib-fabric-1.21.1:${rootProject.geckolib_version}"
+
+    modCompileOnly "maven.modrinth:sodium:${rootProject.sodium_version}"
+
     modCompileOnly ("me.shedaniel:RoughlyEnoughItems-api:${rootProject.rei_version}")
     modCompileOnly ("me.shedaniel:RoughlyEnoughItems-default-plugin:${rootProject.rei_version}")
 
     modCompileOnly ("dev.emi:emi-xplat-intermediary:${rootProject.emi_version}:api")
 
     modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-common-api:${rootProject.jei_version}")
+}
+
+sourceSets {
+    main {
+        resources.srcDirs += ["src/generated"]
+    }
 }

@@ -8,14 +8,20 @@ import com.google.gson.JsonObject;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.DropRule;
-import io.wispforest.accessories.api.slot.*;
-import io.wispforest.accessories.compat.AccessoriesConfig;
+import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
+import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.SlotTypeReference;
+import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.compat.config.SlotAmountModifier;
 import io.wispforest.accessories.impl.SlotTypeImpl;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.ApiStatus;
@@ -37,6 +43,9 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
     private Map<String, SlotType> server = new HashMap<>();
     private Map<String, SlotType> client = new HashMap<>();
+
+    private final Map<EntityType<?>, Collection<SlotType>> slotUsedByRegistryItemCache_server = new HashMap<>();
+    private final Map<EntityType<?>, Collection<SlotType>> slotUsedByRegistryItemCache_client = new HashMap<>();
 
     //--
 
@@ -69,9 +78,35 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         return isClientSide ? client : server;
     }
 
+    private static Map<EntityType<?>, Collection<SlotType>> getUsedSlots(boolean isClientSide) {
+        return isClientSide ? INSTANCE.slotUsedByRegistryItemCache_client : INSTANCE.slotUsedByRegistryItemCache_server;
+    }
+
+    public static Collection<SlotType> getUsedSlotsByRegistryItem(LivingEntity living){
+        var map = getUsedSlots(living.level().isClientSide());
+
+        if (map.containsKey(living.getType())) return map.get(living.getType());
+
+        var validSlotTypes = new HashSet<SlotType>();
+
+        BuiltInRegistries.ITEM.forEach(item -> {
+            var stack = item.getDefaultInstance();
+
+            var validSlots = AccessoriesAPI.getStackSlotTypes(living, stack);
+
+            validSlotTypes.addAll(validSlots);
+        });
+
+        map.put(living.getType(), validSlotTypes);
+
+        return validSlotTypes;
+    }
+
     @ApiStatus.Internal
     public void setSlotType(Map<String, SlotType> slotTypes){
         this.client = ImmutableMap.copyOf(slotTypes);
+
+        this.slotUsedByRegistryItemCache_client.clear();
     }
 
     @Override
@@ -151,14 +186,14 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
                 decodeJsonArray(validators, "validator", location, element -> ResourceLocation.tryParse(element.getAsString()), slotBuilder::validator);
             }
 
-            slotBuilder.dropRule(this.safeHelper((object, s) -> DropRule.valueOf(GsonHelper.getAsString(object, s)), jsonObject, "drop_rule", location));
+            slotBuilder.dropRule(this.safeHelper((object, s) -> DropRule.valueOf(GsonHelper.getAsString(object, s).toUpperCase()), jsonObject, "drop_rule", location));
 
             builders.put(slotBuilder.name, slotBuilder);
         }
 
         var tempMap = new HashMap<String, SlotType>();
 
-        for (AccessoriesConfig.SlotAmountModifier modifier : Accessories.getConfig().modifiers) {
+        for (SlotAmountModifier modifier : Accessories.config().modifiers()) {
             var builder = builders.getOrDefault(modifier.slotType, null);
 
             if(builder == null) continue;
@@ -174,6 +209,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         });
 
         this.server = ImmutableMap.copyOf(tempMap);
+        this.slotUsedByRegistryItemCache_server.clear();
     }
 
     public static class SlotBuilder {

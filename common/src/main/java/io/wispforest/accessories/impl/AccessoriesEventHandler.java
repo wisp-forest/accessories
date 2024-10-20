@@ -12,45 +12,40 @@ import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.*;
-import io.wispforest.accessories.api.slot.SlotEntryReference;
-import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.api.slot.UniqueSlotHandling;
-import io.wispforest.accessories.client.AccessoriesMenu;
+import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
-import io.wispforest.accessories.endec.RegistriesAttribute;
-import io.wispforest.accessories.mixin.ItemStackAccessor;
-import io.wispforest.accessories.networking.client.SyncEntireContainer;
+import io.wispforest.owo.serialization.RegistriesAttribute;
+import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncData;
+import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.SerializationContext;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.*;
+import net.minecraft.world.Container;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
@@ -90,7 +85,11 @@ public class AccessoriesEventHandler {
 
         var validSlotTypes = EntitySlotLoader.getEntitySlots(player).values();
 
-        for (var container : capability.getContainers().values()) {
+        var holderImpl = ((AccessoriesHolderImpl) capability.getHolder());
+
+        holderImpl.setValidTypes(validSlotTypes.stream().map(SlotType::name).collect(Collectors.toSet()));
+
+        for (var container : holderImpl.getAllSlotContainers().values()) {
             var slotType = container.slotType();
 
             if (slotType != null && validSlotTypes.contains(slotType)) {
@@ -126,7 +125,11 @@ public class AccessoriesEventHandler {
     }
 
     private static void handleInvalidStacks(Container container, SlotReference reference, ServerPlayer player) {
-        var bl = !AccessoriesAPI.canInsertIntoSlot(container.getItem(reference.slot()), reference);
+        var stack = container.getItem(reference.slot());
+
+        if (stack.isEmpty()) return;
+
+        var bl = !AccessoriesAPI.canInsertIntoSlot(stack, reference);
 
         if (bl) dropAndRemoveStack(container, reference, player);
     }
@@ -150,7 +153,7 @@ public class AccessoriesEventHandler {
 
         ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(level.registryAccess())));
 
-        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
+        AccessoriesNetworking.sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
     }
 
     public static void onTracking(LivingEntity entity, ServerPlayer serverPlayer) {
@@ -162,11 +165,10 @@ public class AccessoriesEventHandler {
 
         ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(entity.level().registryAccess())));
 
-        AccessoriesInternals.getNetworkHandler().sendToPlayer(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
+        AccessoriesNetworking.sendToPlayer(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
     }
 
     public static void dataSync(@Nullable PlayerList list, @Nullable ServerPlayer player) {
-        var networkHandler = AccessoriesInternals.getNetworkHandler();
         var syncPacket = SyncData.create();
 
         if (list != null && !list.getPlayers().isEmpty()) {
@@ -174,7 +176,7 @@ public class AccessoriesEventHandler {
 
             // TODO: OPTIMIZE THIS?
             for (var playerEntry : list.getPlayers()) {
-                networkHandler.sendToPlayer(playerEntry, syncPacket);
+                AccessoriesNetworking.sendToPlayer(playerEntry, syncPacket);
 
                 var capability = AccessoriesCapability.get(playerEntry);
 
@@ -184,14 +186,14 @@ public class AccessoriesEventHandler {
 
                 ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(playerEntry.level().registryAccess())));
 
-                networkHandler.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(capability.entity().getId(), carrier));
+                AccessoriesNetworking.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(capability.entity().getId(), carrier));
 
-                if (playerEntry.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
-                    Accessories.openAccessoriesMenu(playerEntry, accessoriesMenu.targetEntity());
+                if (playerEntry.containerMenu instanceof AccessoriesMenuBase base) {
+                    Accessories.openAccessoriesMenu(playerEntry, base.menuVariant(), base.targetEntity());
                 }
             }
         } else if (player != null) {
-            networkHandler.sendToPlayer(player, syncPacket);
+            AccessoriesNetworking.sendToPlayer(player, syncPacket);
 
             revalidatePlayer(player);
 
@@ -203,10 +205,10 @@ public class AccessoriesEventHandler {
 
             ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(player.level().registryAccess())));
 
-            networkHandler.sendToPlayer(player, new SyncEntireContainer(capability.entity().getId(), carrier));
+            AccessoriesNetworking.sendToPlayer(player, new SyncEntireContainer(capability.entity().getId(), carrier));
 
-            if (player.containerMenu instanceof AccessoriesMenu accessoriesMenu) {
-                Accessories.openAccessoriesMenu(player, accessoriesMenu.targetEntity());
+            if (player.containerMenu instanceof AccessoriesMenuBase base) {
+                Accessories.openAccessoriesMenu(player, base.menuVariant(), base.targetEntity());
             }
         }
     }
@@ -223,9 +225,8 @@ public class AccessoriesEventHandler {
             var removedAttributesBuilder = new AccessoryAttributeBuilder();
             var addedAttributesBuilder = new AccessoryAttributeBuilder();
 
-            for (var containerEntry : capability.getContainers().entrySet()) {
+            for (var containerEntry : ((AccessoriesHolderImpl)capability.getHolder()).getAllSlotContainers().entrySet()) {
                 var container = containerEntry.getValue();
-                var slotType = container.slotType();
 
                 var accessories = container.getAccessories();
                 var cosmetics = container.getCosmeticAccessories();
@@ -233,7 +234,7 @@ public class AccessoriesEventHandler {
                 for (int i = 0; i < accessories.getContainerSize(); i++) {
                     var slotReference = container.createReference(i);
 
-                    var slotId = slotType.name() + "/" + i;
+                    var slotId = container.getSlotName() + "/" + i;
 
                     var currentStack = accessories.getItem(i);
 
@@ -325,9 +326,7 @@ public class AccessoriesEventHandler {
             if (!dirtyStacks.isEmpty() || !dirtyCosmeticStacks.isEmpty() || !updatedContainers.isEmpty()) {
                 var packet = SyncContainerData.of(entity, updatedContainers.keySet(), dirtyStacks, dirtyCosmeticStacks);
 
-                var networkHandler = AccessoriesInternals.getNetworkHandler();
-
-                networkHandler.sendToTrackingAndSelf(entity, packet);
+                AccessoriesNetworking.sendToTrackingAndSelf(entity, packet);
             }
 
             updatedContainers.clear();
@@ -436,88 +435,103 @@ public class AccessoriesEventHandler {
         // TODO: ADD BETTER HANDLING FOR POSSIBLE SLOTS THAT ARE EQUIPABLE IN BUT IS AT ZERO SIZE
         var validSlotTypes = new HashSet<>(AccessoriesAPI.getValidSlotTypes(entity, stack));
 
-        var validUniqueSlots = validSlotTypes.stream()
-                .filter(slotType -> UniqueSlotHandling.isUniqueSlot(slotType.name()))
-                .collect(Collectors.toSet());
-
         if (validSlotTypes.isEmpty()) return;
 
-        validSlotTypes.removeAll(validUniqueSlots);
+        {
+            final var validUniqueSlots = new HashSet<SlotType>();
 
-        var sharedSlotTypes = SlotTypeLoader.getSlotTypes(entity.level()).values()
-                .stream()
-                .filter(slotType -> /*slotType.amount() > 0 &&*/ !UniqueSlotHandling.isUniqueSlot(slotType.name()))
-                .collect(Collectors.toSet());
+            validSlotTypes.removeIf(slotType -> {
+                var isUnique = UniqueSlotHandling.isUniqueSlot(slotType.name());
 
-        var slotInfoComponent = Component.literal("");
+                if(isUnique) validUniqueSlots.add(slotType);
 
-        var slotsComponent = Component.literal("");
-        boolean allSlots = false;
+                return isUnique;
+            });
 
+            var sharedSlotTypes = SlotTypeLoader.getSlotTypes(entity.level()).values()
+                    .stream()
+                    .filter(slotType -> !UniqueSlotHandling.isUniqueSlot(slotType.name()))
+                    .collect(Collectors.toSet());
 
-        if (validSlotTypes.containsAll(sharedSlotTypes)) {
-            slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
-            allSlots = true;
-        } else {
-            var entitySlotTypes = Set.copyOf(EntitySlotLoader.getEntitySlots(entity).values());
+            var slotInfoComponent = Component.literal("");
 
-            var differenceSlotTypes = Sets.difference(entitySlotTypes, validSlotTypes);
+            var slotsComponent = Component.literal("");
+            boolean allSlots = false;
 
-            if (differenceSlotTypes.size() < validSlotTypes.size()) {
-                slotsComponent.append(Component.translatable(Accessories.translation("slot.any")));
-                slotsComponent.append(Component.literal(" except ").withStyle(ChatFormatting.GRAY));
+            if (validSlotTypes.containsAll(sharedSlotTypes)) {
+                slotsComponent.append(Component.translatable(Accessories.translationKey("slot.any")));
+                allSlots = true;
+            } else {
+                var entitySlotTypes = Set.copyOf(EntitySlotLoader.getEntitySlots(entity).values());
 
-                var slotTypesList = List.copyOf(differenceSlotTypes);
+                var invalidSlotsTypes = Sets.difference(entitySlotTypes, validSlotTypes);
 
-                for (int i = 0; i < slotTypesList.size(); i++) {
-                    var type = slotTypesList.get(i);
+                if (invalidSlotsTypes.size() < validSlotTypes.size()) {
+                    slotsComponent.append(Component.translatable(Accessories.translationKey("slot.any")));
+                    slotsComponent.append(Component.translatable(Accessories.translationKey("slot.except")).withStyle(ChatFormatting.GRAY));
 
-                    slotsComponent.append(Component.translatable(type.translation()).withStyle(ChatFormatting.RED));
+                    var invalidSlotsItr = invalidSlotsTypes.iterator();
 
-                    if (i + 1 != slotTypesList.size()) {
-                        slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                    while(invalidSlotsItr.hasNext()) {
+                        var type = invalidSlotsItr.next();
+
+                        if (ExtraSlotTypeProperties.getProperty(type.name(), entity.level().isClientSide()).allowTooltipInfo()) {
+                            slotsComponent.append(Component.translatable(type.translation()).withStyle(ChatFormatting.RED));
+
+                            if (invalidSlotsItr.hasNext()) {
+                                slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                            }
+                        }
+                    }
+                } else {
+                    var validSlotsItr = validSlotTypes.iterator();
+
+                    while(validSlotsItr.hasNext()) {
+                        var type = validSlotsItr.next();
+
+                        if (ExtraSlotTypeProperties.getProperty(type.name(), entity.level().isClientSide()).allowTooltipInfo()) {
+                            slotsComponent.append(Component.translatable(type.translation()));
+
+                            if (validSlotsItr.hasNext()) {
+                                slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                            }
+                        }
                     }
                 }
-            } else {
-                var slotTypesList = List.copyOf(validSlotTypes);
+            }
 
-                for (int i = 0; i < slotTypesList.size(); i++) {
-                    var type = slotTypesList.get(i);
+            validSlotTypes.addAll (validUniqueSlots);
+
+            final var filteredValidUniqueSlots = validUniqueSlots.stream()
+                    .filter(slotType -> ExtraSlotTypeProperties.getProperty(slotType.name(), true).allowTooltipInfo())
+                    .toList();
+
+            if (!filteredValidUniqueSlots.isEmpty()) {
+                var uniqueItr = filteredValidUniqueSlots.iterator();
+
+                while(uniqueItr.hasNext()) {
+                    var type = uniqueItr.next();
 
                     slotsComponent.append(Component.translatable(type.translation()));
 
-                    if (i + 1 != slotTypesList.size()) {
+                    if(uniqueItr.hasNext()) {
                         slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
                     }
                 }
             }
-        }
 
-        if (!validUniqueSlots.isEmpty()) {
-            var uniqueSlotTypes = List.copyOf(validUniqueSlots);
+            if(!slotsComponent.getSiblings().isEmpty()) {
+                var slotTranslationKey = "slot.tooltip." + ((validSlotTypes.size() > 1 && !allSlots) ? "plural" : "singular");
 
-            for (int i = 0; i < uniqueSlotTypes.size(); i++) {
-                var type = uniqueSlotTypes.get(i);
+                slotInfoComponent.append(
+                        Component.translatable(Accessories.translationKey(slotTranslationKey))
+                                .withStyle(ChatFormatting.GRAY)
+                                .append(slotsComponent.withStyle(ChatFormatting.BLUE))
+                );
 
-                slotsComponent.append(Component.translatable(type.translation()));
-
-                if (i + 1 != uniqueSlotTypes.size()) {
-                    slotsComponent.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
-                }
+                tooltip.add(slotInfoComponent);
             }
-
-            validSlotTypes.addAll(validUniqueSlots);
         }
-
-        var slotTranslationKey = "slot.tooltip." + ((validSlotTypes.size() > 1 && !allSlots) ? "plural" : "singular");
-
-        slotInfoComponent.append(
-                Component.translatable(Accessories.translation(slotTranslationKey))
-                        .withStyle(ChatFormatting.GRAY)
-                        .append(slotsComponent.withStyle(ChatFormatting.BLUE))
-        );
-
-        tooltip.add(slotInfoComponent);
 
         var slotSpecificModifiers = new HashMap<SlotType, AccessoryAttributeBuilder>();
         AccessoryAttributeBuilder defaultModifiers = null;
@@ -545,7 +559,7 @@ public class AccessoriesEventHandler {
             if (!defaultModifiers.isEmpty()) {
                 var attributeTooltip = new ArrayList<Component>();
 
-                addAttributeTooltip(entity, defaultModifiers.getAttributeModifiers(false), attributeTooltip);
+                addAttributeTooltip(entity, stack, defaultModifiers.getAttributeModifiers(false), attributeTooltip, tooltipContext, tooltipType);
 
                 slotTypeToTooltipInfo.put(null, attributeTooltip);
             }
@@ -558,7 +572,7 @@ public class AccessoriesEventHandler {
 
                 var attributeTooltip = new ArrayList<Component>();
 
-                addAttributeTooltip(entity, modifiers.getAttributeModifiers(false), attributeTooltip);
+                addAttributeTooltip(entity, stack, modifiers.getAttributeModifiers(false), attributeTooltip, tooltipContext, tooltipType);
 
                 slotTypeToTooltipInfo.put(slotType, attributeTooltip);
             }
@@ -599,7 +613,7 @@ public class AccessoriesEventHandler {
                 tooltip.add(CommonComponents.EMPTY);
 
                 tooltip.add(
-                        Component.translatable(Accessories.translation("tooltip.attributes.any"))
+                        Component.translatable(Accessories.translationKey("tooltip.attributes.any"))
                                 .withStyle(ChatFormatting.GRAY)
                 );
 
@@ -619,7 +633,7 @@ public class AccessoriesEventHandler {
 
                 tooltip.add(
                         Component.translatable(
-                                Accessories.translation("tooltip.attributes.slot"),
+                                Accessories.translationKey("tooltip.attributes.slot"),
                                 Component.translatable(entry.getKey().translation()).withStyle(ChatFormatting.BLUE)
                         ).withStyle(ChatFormatting.GRAY)
                 );
@@ -629,26 +643,21 @@ public class AccessoriesEventHandler {
         }
     }
 
-    private static void addAttributeTooltip(LivingEntity entity, Multimap<Holder<Attribute>, AttributeModifier> multimap, List<Component> tooltip) {
+    private static void addAttributeTooltip(LivingEntity entity, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, List<Component> tooltip, Item.TooltipContext context, TooltipFlag flag) {
         if (multimap.isEmpty()) return;
 
-        for (Map.Entry<Holder<Attribute>, AttributeModifier> entry : multimap.entries()) {
-            ((ItemStackAccessor) (Object) ItemStack.EMPTY).accessories$addModifierTooltip(
-                    tooltip::add,
-                    (entity instanceof Player player ? player : null),
-                    entry.getKey(),
-                    entry.getValue());
-        }
+        AccessoriesInternals.addAttributeTooltips((entity instanceof Player player ? player : null), stack, multimap, tooltip::add, context, flag);
     }
 
-    public static void onDeath(LivingEntity entity, DamageSource source) {
+    @Nullable
+    public static Collection<ItemStack> onDeath(LivingEntity entity, DamageSource source) {
         var capability = AccessoriesCapability.get(entity);
 
-        if (capability == null) return;
+        if (capability == null) return List.of();
 
         var droppedStacks = new ArrayList<ItemStack>();
 
-        for (var containerEntry : capability.getContainers().entrySet()) {
+        for (var containerEntry : ((AccessoriesHolderImpl) capability.getHolder()).getAllSlotContainers().entrySet()) {
             var slotType = containerEntry.getValue().slotType();
 
             var slotDropRule = slotType != null ? slotType.dropRule() : DropRule.DEFAULT;
@@ -671,15 +680,9 @@ public class AccessoriesEventHandler {
 
         var result = OnDeathCallback.EVENT.invoker().shouldDrop(TriState.DEFAULT, entity, capability, source, droppedStacks);
 
-        if (!result.orElse(true)) return;
+        if (!result.orElse(true)) return null;
 
-        for (var droppedStack : droppedStacks) {
-            if (entity instanceof Player player) {
-                player.drop(droppedStack, true);
-            } else {
-                entity.spawnAtLocation(droppedStack);
-            }
-        }
+        return droppedStacks;
     }
 
     @Nullable
@@ -692,17 +695,17 @@ public class AccessoriesEventHandler {
         }
 
         if (accessory instanceof AccessoryNest holdable) {
-            var dropRules = holdable.getDropRules(stack, reference, source);
+            var dropRuleToStacks = holdable.getDropRules(stack, reference, source);
 
-            for (int i = 0; i < dropRules.size(); i++) {
-                var rulePair = dropRules.get(i);
+            for (int i = 0; i < dropRuleToStacks.size(); i++) {
+                var rulePair = dropRuleToStacks.get(i);
 
                 var innerStack = rulePair.right();
 
-                var rule = OnDropCallback.EVENT.invoker().onDrop(rulePair.left(), innerStack, reference, source);
+                var result = OnDropCallback.getAlternativeRule(rulePair.left(), innerStack, reference, source);
 
-                var breakInnerStack = (rule == DropRule.DEFAULT && EnchantmentHelper.has(innerStack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP))
-                        || (rule == DropRule.DESTROY);
+                var breakInnerStack = (result == DropRule.DEFAULT && EnchantmentHelper.has(innerStack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP))
+                        || (result == DropRule.DESTROY);
 
                 if (breakInnerStack) {
                     holdable.setInnerStack(stack, i, ItemStack.EMPTY);
@@ -713,17 +716,17 @@ public class AccessoriesEventHandler {
             }
         }
 
-        dropRule = OnDropCallback.EVENT.invoker().onDrop(dropRule, stack, reference, source);
+        var result = OnDropCallback.getAlternativeRule(dropRule, stack, reference, source);
 
         boolean dropStack = true;
 
-        if (dropRule == DropRule.DESTROY) {
+        if (result == DropRule.DESTROY) {
             container.setItem(reference.slot(), ItemStack.EMPTY);
             dropStack = false;
             // TODO: Do we call break here for the accessory?
-        } else if (dropRule == DropRule.KEEP) {
+        } else if (result == DropRule.KEEP) {
             dropStack = false;
-        } else if (dropRule == DropRule.DEFAULT) {
+        } else if (result == DropRule.DEFAULT) {
             if (entity.level().getGameRules().getRule(GameRules.RULE_KEEPINVENTORY).get()) {
                 dropStack = false;
             } else if (EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
@@ -761,7 +764,7 @@ public class AccessoriesEventHandler {
 
                 var equipReference = capability.canEquipAccessory(stack, true);
 
-                if (equipReference != null) {
+                if (equipReference != null && accessory.canEquipFromUse(stack)) {
                     accessory.onEquipFromUse(stack, equipReference.left());
 
                     var newHandStack = stack.copy();

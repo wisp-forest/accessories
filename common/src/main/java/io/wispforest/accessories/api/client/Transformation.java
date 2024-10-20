@@ -4,13 +4,14 @@ import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
-import org.jetbrains.annotations.Nullable;
 import org.joml.AxisAngle4f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-public sealed interface Transformation permits Transformation.Translation, Transformation.RawRotation, Transformation.AxisRotation, Transformation.Scale, Transformation.TransformTo, Transformation.Matrix {
+import static io.wispforest.accessories.api.client.Transformation.*;
+
+public sealed interface Transformation permits Translation, RawRotation, AxisRotation, Scale, TransformTo, Matrix {
 
     Endec<Transformation> ENDEC = Endec.dispatchedStruct(
             key -> switch (key) {

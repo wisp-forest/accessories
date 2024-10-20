@@ -140,8 +140,12 @@ public interface ICurioItem {
    * @param stack    The ItemStack in question
    * @return A list of ITextComponent to display as curio slot information
    */
+  default List<Component> getSlotsTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
+    return defaultInstance.getSlotsTooltip(tooltips, context);
+  }
+
   default List<Component> getSlotsTooltip(List<Component> tooltips, ItemStack stack) {
-    return defaultInstance.getSlotsTooltip(tooltips);
+    return defaultInstance.getSlotsTooltip(tooltips, Item.TooltipContext.EMPTY);
   }
 
   @Deprecated(forRemoval = true)
@@ -285,8 +289,12 @@ public interface ICurioItem {
    * @param stack    The ItemStack in question
    * @return A list of ITextComponent to display as curio attribute modifier information
    */
+  default List<Component> getAttributesTooltip(List<Component> tooltips, Item.TooltipContext context, ItemStack stack) {
+    return defaultInstance.getAttributesTooltip(tooltips, context);
+  }
+
   default List<Component> getAttributesTooltip(List<Component> tooltips, ItemStack stack) {
-    return defaultInstance.getAttributesTooltip(tooltips);
+    return defaultInstance.getAttributesTooltip(tooltips, Item.TooltipContext.EMPTY);
   }
 
   /**
@@ -307,16 +315,9 @@ public interface ICurioItem {
    * Default implementation returns level of Looting enchantment on ItemStack.
    *
    * @param slotContext Context about the slot that the ItemStack is in
-   * @param source      Damage source that triggers the looting
-   * @param target      The target that drops the loot
-   * @param baseLooting The original looting level before bonuses
    * @param stack       The ItemStack in question
    * @return Amount of additional Looting levels that will be applied in LootingLevelEvent
    */
-  default int getLootingLevel(SlotContext slotContext, DamageSource source, LivingEntity target, int baseLooting, ItemStack stack) {
-    return defaultInstance.getLootingLevel(slotContext, source, target, baseLooting);
-  }
-
   default int getLootingLevel(SlotContext slotContext, @Nullable LootContext lootContext, ItemStack stack) {
     return defaultInstance.getLootingLevel(slotContext, lootContext);
   }

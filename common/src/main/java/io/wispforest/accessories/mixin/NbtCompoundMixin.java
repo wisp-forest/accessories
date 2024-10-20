@@ -1,6 +1,5 @@
 package io.wispforest.accessories.mixin;
 
-import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NumericTag;

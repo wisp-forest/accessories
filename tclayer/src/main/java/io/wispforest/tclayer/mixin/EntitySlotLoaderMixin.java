@@ -7,12 +7,13 @@ import dev.emi.trinkets.compat.WrappingTrinketsUtils;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.tclayer.TCLayer;
+import io.wispforest.tclayer.compat.config.SlotIdRedirect;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
 import org.slf4j.Logger;
-import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,7 +23,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 @Mixin(EntitySlotLoader.class)
 public abstract class EntitySlotLoaderMixin {
@@ -36,23 +36,29 @@ public abstract class EntitySlotLoaderMixin {
 
         var slotTypes = SlotTypeLoader.INSTANCE.getSlotTypes(false);
 
+        var redirects = SlotIdRedirect.getMap(TCLayer.CONFIG.slotIdRedirects());
+
         for (var entry : loader.slotInfo.entrySet()) {
             var innerMap = tempMap.computeIfAbsent(entry.getKey(), entityType -> new HashMap<>());
 
             var groupedSlots = entry.getValue();
 
             for (var groupEntry : groupedSlots.entrySet()) {
-                for (String s : groupEntry.getValue()) {
-                    var convertedType = WrappingTrinketsUtils.trinketsToAccessories_Slot(Optional.of(groupEntry.getKey()), s);
+                var groupName = groupEntry.getKey();
 
-                    if (innerMap.containsKey(convertedType)) {
-                        continue;
-                    }
+                for (String slotName : groupEntry.getValue()) {
+                    var redirect = redirects.get(groupName + "/" + slotName);
 
-                    var slotType = slotTypes.get(convertedType);
+                    String accessoryType = redirect != null
+                            ? redirect.key()
+                            : WrappingTrinketsUtils.trinketsToAccessories_Slot(Optional.of(groupName), slotName);
+
+                    if (innerMap.containsKey(accessoryType)) continue;
+
+                    var slotType = slotTypes.get(accessoryType);
 
                     if (slotType == null) {
-                        TRINKET_LOGGER.warn("Unable to locate the given slot for a given entity binding, it will be skipped: [Name: {}]", convertedType);
+                        TRINKET_LOGGER.warn("Unable to locate the given slot for a given entity binding, it will be skipped: [Name: {}]", accessoryType);
 
                         continue;
                     }

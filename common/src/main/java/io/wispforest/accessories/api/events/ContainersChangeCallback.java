@@ -2,7 +2,6 @@ package io.wispforest.accessories.api.events;
 
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;

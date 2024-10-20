@@ -1,7 +1,6 @@
 package io.wispforest.accessories.api.slot;
 
 import io.wispforest.accessories.Accessories;
-import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
@@ -24,7 +23,7 @@ public interface SlotGroup {
      * @return The {@link Component} Translation key for the given group
      */
     default String translation(){
-        return Accessories.translation("slot_group." + name());
+        return Accessories.translationKey("slot_group." + name());
     }
 
     /**

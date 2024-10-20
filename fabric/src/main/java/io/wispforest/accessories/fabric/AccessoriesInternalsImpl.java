@@ -1,13 +1,16 @@
 package io.wispforest.accessories.fabric;
 
+import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.ArgumentType;
 import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.client.AccessoriesMenu;
-import io.wispforest.accessories.client.AccessoriesMenuData;
-import io.wispforest.accessories.endec.CodecUtils;
+
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
-import io.wispforest.accessories.networking.base.BaseNetworkHandler;
+import io.wispforest.accessories.menu.AccessoriesMenuData;
+import io.wispforest.accessories.menu.AccessoriesMenuVariant;
+import io.wispforest.accessories.mixin.ItemStackAccessor;
+import io.wispforest.endec.Endec;
+import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
@@ -28,23 +31,24 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.tags.TagManager;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 public class AccessoriesInternalsImpl {
-
-    public static boolean isDevelopmentEnv() {
-        return FabricLoader.getInstance().isDevelopmentEnvironment();
-    }
 
     public static AccessoriesHolder getHolder(LivingEntity livingEntity){
         return livingEntity.getAttachedOrCreate(AccessoriesFabric.HOLDER_ATTACHMENT_TYPE);
@@ -56,10 +60,6 @@ public class AccessoriesInternalsImpl {
         holder = modifier.apply(holder);
 
         livingEntity.setAttached(AccessoriesFabric.HOLDER_ATTACHMENT_TYPE, holder);
-    }
-
-    public static BaseNetworkHandler getNetworkHandler(){
-        return AccessoriesFabricNetworkHandler.INSTANCE;
     }
 
     public static final ThreadLocal<Map<ResourceKey<?>, Map<ResourceLocation, Collection<Holder<?>>>>> LOADED_TAGS = new ThreadLocal<>();
@@ -106,8 +106,8 @@ public class AccessoriesInternalsImpl {
         return ResourceConditionsImpl.applyResourceConditions(object, dataType, key, registryLookup);
     }
 
-    public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(ResourceLocation location, TriFunction<Integer, Inventory, AccessoriesMenuData, T> func) {
-        return Registry.register(BuiltInRegistries.MENU, location, new ExtendedScreenHandlerType<>(func::apply, CodecUtils.packetCodec(AccessoriesMenuData.ENDEC)));
+    public static <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(ResourceLocation location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func){
+        return Registry.register(BuiltInRegistries.MENU, location, new ExtendedScreenHandlerType<>(func::apply, CodecUtils.toPacketCodec(endec)));
     }
 
     public static <A extends ArgumentType<?>, T extends ArgumentTypeInfo.Template<A>, I extends ArgumentTypeInfo<A, T>> I registerCommandArgumentType(ResourceLocation location, Class<A> clazz, I info) {
@@ -116,7 +116,7 @@ public class AccessoriesInternalsImpl {
         return info;
     }
 
-    public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
+    public static void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         player.openMenu(new ExtendedScreenHandlerFactory<AccessoriesMenuData>() {
             @Override
             public AccessoriesMenuData getScreenOpeningData(ServerPlayer player) {
@@ -134,12 +134,14 @@ public class AccessoriesInternalsImpl {
             @Nullable
             @Override
             public AbstractContainerMenu createMenu(int i, Inventory inventory, Player player) {
-                var menu = new AccessoriesMenu(i, inventory, targetEntity);
-
-                if(carriedStack != null) menu.setCarried(carriedStack);
-
-                return menu;
+                return AccessoriesMenuVariant.openMenu(i, inventory, variant, targetEntity, carriedStack);
             }
         });
+    }
+
+    public static void addAttributeTooltips(@Nullable Player player, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, Consumer<Component> tooltipAddCallback, Item.TooltipContext context, TooltipFlag flag) {
+        for (Map.Entry<Holder<Attribute>, AttributeModifier> entry : multimap.entries()) {
+            ((ItemStackAccessor) (Object) ItemStack.EMPTY).accessories$addModifierTooltip(tooltipAddCallback, player, entry.getKey(), entry.getValue());
+        }
     }
 }

@@ -48,9 +48,6 @@
     "client":[
       "io.wispforest.accessories.fabric.client.AccessoriesClientFabric"
     ],
-    "modmenu": [
-      "io.wispforest.accessories.fabric.compat.ModMenuEntry"
-    ],
     "rei_client": [
       "io.wispforest.accessories.compat.rei.AccessoriesClientREIPlugin"
     ],
@@ -69,7 +66,7 @@
   "depends": {
     "fabric": ">=0.92.0",
     "minecraft": ">=1.21",
-    "cloth-config": ">=15.0.127"
+    "owo": ">=0.12.11+1.21"
   },
   "custom": {
     "loom:injected_interfaces": {

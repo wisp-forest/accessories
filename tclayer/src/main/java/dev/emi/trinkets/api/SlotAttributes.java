@@ -3,14 +3,12 @@ package dev.emi.trinkets.api;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import dev.emi.trinkets.compat.WrappingTrinketsUtils;
-import io.wispforest.accessories.api.attributes.SlotAttribute;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
 import java.util.Map;
-import java.util.UUID;
 
 public class SlotAttributes {
     private static final Map<String, ResourceLocation> CACHED_UUIDS = Maps.newHashMap();

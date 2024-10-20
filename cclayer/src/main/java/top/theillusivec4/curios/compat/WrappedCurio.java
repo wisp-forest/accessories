@@ -6,6 +6,7 @@ import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.events.extra.*;
+import io.wispforest.accessories.api.events.extra.v2.LootingAdjustment;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.SoundEventData;
 import io.wispforest.accessories.api.slot.SlotType;
@@ -127,30 +128,40 @@ public class WrappedCurio implements Accessory, LootingAdjustment, FortuneAdjust
 
     @Override
     public void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
-        var copyData = new ArrayList<>(tooltips);
+        var copyData1 = new ArrayList<>(tooltips);
+        var data1 = this.iCurioItem.getAttributesTooltip(copyData1, tooltipContext, stack);
 
-        var data = this.iCurioItem.getAttributesTooltip(copyData, stack);
+        var copyData2 = new ArrayList<>(tooltips);
+        var data2 = this.iCurioItem.getAttributesTooltip(copyData2, tooltipContext, stack);
 
-        tooltips.clear();
-        tooltips.addAll(data);
+        if (data1 != data2) {
+            tooltips.addAll(data1);
+            tooltips.addAll(data2);
+        } else {
+            tooltips.addAll(data1);
+        }
     }
 
     @Override
     public void getExtraTooltip(ItemStack stack, List<Component> tooltips, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
-        var components = new ArrayList<Component>();
+        var data1 = this.iCurioItem.getSlotsTooltip(new ArrayList<>(), tooltipContext, stack);
+        var data2 = this.iCurioItem.getSlotsTooltip(new ArrayList<>(), stack);
 
-        var data = this.iCurioItem.getSlotsTooltip(components, stack);
-
-        tooltips.addAll(data);
+        if (data1 != data2) {
+            tooltips.addAll(data1);
+            tooltips.addAll(data2);
+        } else {
+            tooltips.addAll(data1);
+        }
     }
 
     //--
 
     @Override
-    public int getLootingAdjustment(ItemStack stack, SlotReference reference, LivingEntity target, DamageSource damageSource, int currentLevel) {
-        var context = CuriosWrappingUtils.create(reference);
+    public int getLootingAdjustment(ItemStack stack, SlotReference reference, LivingEntity target, LootContext context, DamageSource damageSource, int currentLevel) {
+        var slotContext = CuriosWrappingUtils.create(reference);
 
-        return this.iCurioItem.getLootingLevel(context, damageSource, target, currentLevel, stack);
+        return this.iCurioItem.getLootingLevel(slotContext, context, stack);
     }
 
     @Override

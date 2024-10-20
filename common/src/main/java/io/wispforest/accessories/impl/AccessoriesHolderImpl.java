@@ -1,12 +1,18 @@
 package io.wispforest.accessories.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.*;
+import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.AccessoriesHolder;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
-import io.wispforest.accessories.endec.RegistriesAttribute;
-import io.wispforest.accessories.endec.format.nbt.NbtEndec;
+import io.wispforest.accessories.impl.caching.AccessoriesHolderLookupCache;
+import io.wispforest.owo.serialization.RegistriesAttribute;
+import io.wispforest.owo.serialization.format.nbt.NbtEndec;
+import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationAttribute;
 import io.wispforest.endec.SerializationContext;
@@ -18,6 +24,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -34,16 +41,29 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     public final List<ItemStack> invalidStacks = new ArrayList<>();
     protected final Map<AccessoriesContainer, Boolean> containersRequiringUpdates = new HashMap<>();
 
+    //-- Logical Stuff
+
+    private PlayerEquipControl equipControl = PlayerEquipControl.MUST_NOT_CROUCH;
+
+    //--
+
+    //-- Rendering Stuff
+
+    private boolean showAdvancedOptions = false;
+
     private boolean showUnusedSlots = false;
-    private boolean showUniqueSlots = false;
 
-    private boolean cosmeticsShown = false;
+    private boolean showCosmetics = false;
 
-    private int scrolledSlot = 0;
+    private int columnAmount = 1;
+    private int widgetType = 2;
+    private boolean showGroupFilter = false;
+    private boolean mainWidgetPosition = true;
+    private boolean sideWidgetPosition = false;
 
-    private boolean linesShown = false;
+    private boolean showCraftingGrid = false;
 
-    private PlayerEquipControl equipControl = PlayerEquipControl.MUST_CROUCH;
+    // --
 
     private MapCarrier carrier;
     protected boolean loadedFromTag = false;
@@ -60,45 +80,57 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     }
 
     @ApiStatus.Internal
-    protected Map<String, AccessoriesContainer> getSlotContainers() {
+    protected Map<String, AccessoriesContainer> getAllSlotContainers() {
         return this.slotContainers;
     }
 
+    @Nullable
+    private Map<String, AccessoriesContainer> validSlotContainers = null;
+
+    public void setValidTypes(Set<String> validTypes) {
+        var validSlotContainers = ImmutableMap.<String, AccessoriesContainer>builder();
+
+        this.slotContainers.forEach((string, container) -> {
+            if (validTypes.contains(container.getSlotName())) validSlotContainers.put(string, container);
+        });
+
+        this.validSlotContainers = validSlotContainers.build();
+
+        if (this.lookupCache == null) {
+            this.lookupCache = new AccessoriesHolderLookupCache(this);
+        }
+
+        this.lookupCache.clearCache();
+    }
+
+    @ApiStatus.Internal
+    public Map<String, AccessoriesContainer> getSlotContainers() {
+        return this.validSlotContainers != null ? this.validSlotContainers : this.getAllSlotContainers();
+    }
+
+    @Nullable
+    public AccessoriesHolderLookupCache lookupCache = null;
+
+    @Nullable
+    public AccessoriesHolderLookupCache getLookupCache() {
+        return Accessories.config().useExperimentalCaching() ? this.lookupCache : null;
+    }
+
+    //--
+
     @Override
-    public boolean cosmeticsShown() {
-        return this.cosmeticsShown;
+    public PlayerEquipControl equipControl() {
+        return equipControl;
     }
 
     @Override
-    public AccessoriesHolder cosmeticsShown(boolean value) {
-        this.cosmeticsShown = value;
+    public AccessoriesHolder equipControl(PlayerEquipControl value) {
+        this.equipControl = value;
 
         return this;
     }
 
-    @Override
-    public int scrolledSlot() {
-        return this.scrolledSlot;
-    }
-
-    @Override
-    public AccessoriesHolder scrolledSlot(int slot) {
-        this.scrolledSlot = slot;
-
-        return this;
-    }
-
-    @Override
-    public boolean linesShown() {
-        return this.linesShown;
-    }
-
-    @Override
-    public AccessoriesHolder linesShown(boolean value) {
-        this.linesShown = value;
-
-        return this;
-    }
+    //--
 
     @Override
     public boolean showUnusedSlots() {
@@ -113,28 +145,126 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     }
 
     @Override
-    public boolean showUniqueSlots() {
-        return this.showUniqueSlots;
+    public boolean cosmeticsShown() {
+        return this.showCosmetics;
     }
 
     @Override
-    public AccessoriesHolder showUniqueSlots(boolean value) {
-        this.showUniqueSlots = value;
+    public AccessoriesHolder cosmeticsShown(boolean value) {
+        this.showCosmetics = value;
 
         return this;
     }
 
     @Override
-    public PlayerEquipControl equipControl() {
-        return equipControl;
+    public int columnAmount() {
+        return Math.max(columnAmount, 1);
     }
 
     @Override
-    public AccessoriesHolder equipControl(PlayerEquipControl value) {
-        this.equipControl = value;
+    public AccessoriesHolder columnAmount(int value) {
+        this.columnAmount = value;
 
         return this;
     }
+
+    @Override
+    public int widgetType() {
+        return Math.max(widgetType, 1);
+    }
+
+    @Override
+    public AccessoriesHolder widgetType(int value) {
+        this.widgetType = value;
+
+        return this;
+    }
+
+    @Override
+    public boolean mainWidgetPosition() {
+        return this.mainWidgetPosition;
+    }
+
+    @Override
+    public AccessoriesHolder mainWidgetPosition(boolean value) {
+        this.mainWidgetPosition = value;
+
+        return this;
+    }
+
+    @Override
+    public boolean showAdvancedOptions() {
+        return this.showAdvancedOptions;
+    }
+
+    @Override
+    public AccessoriesHolder showAdvancedOptions(boolean value) {
+        this.showAdvancedOptions = value;
+
+        return this;
+    }
+
+    public boolean showGroupFilter() {
+        return this.showGroupFilter;
+    }
+
+    public AccessoriesHolder showGroupFilter(boolean value) {
+        this.showGroupFilter = value;
+
+        return this;
+    }
+
+    private boolean isGroupFiltersOpen = true;
+
+    @Override
+    public boolean isGroupFiltersOpen() {
+        return isGroupFiltersOpen;
+    }
+
+    @Override
+    public AccessoriesHolder isGroupFiltersOpen(boolean value) {
+        this.isGroupFiltersOpen = value;
+
+        return this;
+    }
+
+    private Set<String> filteredGroups = Set.of();
+
+    @Override
+    public Set<String> filteredGroups() {
+        return filteredGroups;
+    }
+
+    @Override
+    public AccessoriesHolder filteredGroups(Set<String> value) {
+        this.filteredGroups = value;
+
+        return this;
+    }
+
+    public boolean sideWidgetPosition() {
+        return this.sideWidgetPosition;
+    }
+
+    public AccessoriesHolder sideWidgetPosition(boolean value) {
+        this.sideWidgetPosition = value;
+
+        return this;
+    }
+
+    @Override
+    public boolean showCraftingGrid() {
+        return this.showCraftingGrid;
+    }
+
+    @Override
+    public AccessoriesHolder showCraftingGrid(boolean value) {
+        this.showCraftingGrid = value;
+
+        return this;
+    }
+
+    //--
 
     public void init(AccessoriesCapability capability) {
         var livingEntity = capability.entity();
@@ -221,21 +351,45 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
                 });
 
                 return containerMap;
-            }).keyed("AccessoriesContainers", HashMap::new);
+            }).keyed("accessories_containers", HashMap::new);
 
-    private static final KeyedEndec<Boolean> COSMETICS_SHOWN_KEY = Endec.BOOLEAN.keyed("CosmeticsShown", false);
-    private static final KeyedEndec<Boolean> LINES_SHOWN_KEY = Endec.BOOLEAN.keyed("LinesShown", false);
-    private static final KeyedEndec<PlayerEquipControl> EQUIP_CONTROL_KEY = Endec.forEnum(PlayerEquipControl.class).keyed("EquipControl", PlayerEquipControl.MUST_CROUCH);
+    private static final KeyedEndec<PlayerEquipControl> EQUIP_CONTROL_KEY = Endec.forEnum(PlayerEquipControl.class).keyed("equip_control", PlayerEquipControl.MUST_CROUCH);
+
+    private static final KeyedEndec<Boolean> SHOW_UNUSED_SLOTS_KEY = Endec.BOOLEAN.keyed("show_unused_slots", false);
+    private static final KeyedEndec<Boolean> SHOW_COSMETICS_KEY = Endec.BOOLEAN.keyed("show_cosmetics", false);
+
+    private static final KeyedEndec<Integer> COLUMN_AMOUNT_KEY = Endec.INT.keyed("column_amount", 1);
+    private static final KeyedEndec<Integer> WIDGET_TYPE_KEY = Endec.INT.keyed("widget_type", 2);
+    private static final KeyedEndec<Boolean> MAIN_WIDGET_POSITION = Endec.BOOLEAN.keyed("main_widget_position", true);
+    private static final KeyedEndec<Boolean> SIDE_WIDGET_POSITION = Endec.BOOLEAN.keyed("side_widget_position", false);
+
+    private static final KeyedEndec<Boolean> SHOW_GROUP_FILTER = Endec.BOOLEAN.keyed("show_group_filter", false);
+    private static final KeyedEndec<Boolean> IS_GROUP_FILTERS_OPEN_KEY = Endec.BOOLEAN.keyed("is_group_filter_open", false);
+    private static final KeyedEndec<Set<String>> FILTERED_GROUPS_KEY = Endec.STRING.setOf().keyed("filtered_groups", HashSet::new);
+
+    private static final KeyedEndec<Boolean> SHOW_CRAFTING_GRID = Endec.BOOLEAN.keyed("cosmetics_shown", false);
 
     @Override
     public void write(MapCarrier carrier, SerializationContext ctx) {
         if(slotContainers.isEmpty()) return;
 
-        carrier.put(COSMETICS_SHOWN_KEY, this.cosmeticsShown);
-        carrier.put(LINES_SHOWN_KEY, this.linesShown);
-        carrier.put(EQUIP_CONTROL_KEY, this.equipControl);
-
         carrier.put(ctx, CONTAINERS_KEY, this.slotContainers);
+
+        carrier.put(ctx, EQUIP_CONTROL_KEY, this.equipControl);
+
+        carrier.put(ctx, COLUMN_AMOUNT_KEY, this.columnAmount);
+        carrier.put(ctx, WIDGET_TYPE_KEY, this.widgetType);
+        carrier.put(ctx, MAIN_WIDGET_POSITION, this.mainWidgetPosition);
+        carrier.put(ctx, SIDE_WIDGET_POSITION, this.sideWidgetPosition);
+
+        carrier.put(ctx, SHOW_COSMETICS_KEY, this.showCosmetics);
+        carrier.put(ctx, SHOW_UNUSED_SLOTS_KEY, this.showUnusedSlots);
+
+        carrier.put(ctx, SHOW_GROUP_FILTER, this.showGroupFilter);
+        carrier.put(ctx, IS_GROUP_FILTERS_OPEN_KEY, this.isGroupFiltersOpen);
+        carrier.put(ctx, FILTERED_GROUPS_KEY, this.filteredGroups);
+
+        carrier.put(ctx, SHOW_CRAFTING_GRID, this.showCraftingGrid);
     }
 
     public void read(LivingEntity entity, MapCarrier carrier, SerializationContext ctx) {
@@ -245,32 +399,58 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
     public void read(AccessoriesCapability capability, LivingEntity entity, MapCarrier carrier, SerializationContext ctx) {
         this.loadedFromTag = false;
 
-        this.cosmeticsShown = carrier.get(COSMETICS_SHOWN_KEY);
-        this.linesShown = carrier.get(LINES_SHOWN_KEY);
-        this.equipControl = carrier.get(EQUIP_CONTROL_KEY);
+        EndecUtils.dfuKeysCarrier(
+                carrier,
+                Map.of(
+                        "AccessoriesContainers", "accessories_containers",
+                        "CosmeticsShown", "cosmetics_shown",
+                        "LinesShown", "lines_shown",
+                        "EquipControl", "equip_control"
+                ));
 
         carrier.getWithErrors(ctx.withAttributes(new ContainersAttribute(this.slotContainers), new InvalidStacksAttribute(this.invalidStacks)), CONTAINERS_KEY);
+
+        this.equipControl = carrier.get(ctx, EQUIP_CONTROL_KEY);
+
+        this.columnAmount = carrier.get(ctx, COLUMN_AMOUNT_KEY);
+        this.widgetType = carrier.get(ctx, WIDGET_TYPE_KEY);
+        this.mainWidgetPosition = carrier.get(ctx, MAIN_WIDGET_POSITION);
+        this.sideWidgetPosition = carrier.get(ctx, SIDE_WIDGET_POSITION);
+
+        this.showCosmetics = carrier.get(ctx, SHOW_COSMETICS_KEY);
+        this.showUnusedSlots = carrier.get(ctx, SHOW_UNUSED_SLOTS_KEY);
+
+        this.showGroupFilter = carrier.get(ctx, SHOW_GROUP_FILTER);
+        this.isGroupFiltersOpen = carrier.get(ctx, IS_GROUP_FILTERS_OPEN_KEY);
+        this.filteredGroups = carrier.get(ctx, FILTERED_GROUPS_KEY);
+
+        this.showCraftingGrid = carrier.get(ctx, SHOW_CRAFTING_GRID);
 
         capability.clearCachedSlotModifiers();
 
         this.carrier = EMPTY;
+
+        var cache = this.getLookupCache();
+
+        if (cache != null) cache.clearCache();
     }
 
     @Override
     public void read(MapCarrier carrier, SerializationContext context) {
         this.loadedFromTag = true;
+
         this.carrier = carrier;
     }
 
     private record ContainersAttribute(Map<String, AccessoriesContainer> slotContainers) implements SerializationAttribute.Instance {
-        public static final SerializationAttribute.WithValue<ContainersAttribute> CONTAINERS = SerializationAttribute.withValue(Accessories.translation("containers"));
+        public static final SerializationAttribute.WithValue<ContainersAttribute> CONTAINERS = SerializationAttribute.withValue(Accessories.translationKey("containers"));
 
         @Override public SerializationAttribute attribute() { return CONTAINERS; }
         @Override public Object value() { return this; }
     }
 
     private record InvalidStacksAttribute(List<ItemStack> invalidStacks) implements SerializationAttribute.Instance {
-        public static final SerializationAttribute.WithValue<InvalidStacksAttribute> INVALID_STACKS = SerializationAttribute.withValue(Accessories.translation("invalidStacks"));
+        public static final SerializationAttribute.WithValue<InvalidStacksAttribute> INVALID_STACKS = SerializationAttribute.withValue(Accessories.translationKey("invalidStacks"));
 
         @Override public SerializationAttribute attribute() { return INVALID_STACKS; }
         @Override public Object value() { return this; }

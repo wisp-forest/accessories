@@ -14,20 +14,16 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.components.*;
-import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.utils.AttributeUtils;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.ResourceArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
@@ -71,17 +67,16 @@ public class AccessoriesCommands {
                                         .then(
                                                 Commands.argument("entity", EntityArgument.entity())
                                                         .executes((ctx) -> {
-                                                            var player = ctx.getSource().getPlayerOrException();
-
-                                                            Accessories.openAccessoriesMenu(player, getOrThrowLivingEntity(ctx));
+                                                            Accessories.askPlayerForVariant(ctx.getSource().getPlayerOrException(), getOrThrowLivingEntity(ctx));
 
                                                             return 1;
                                                         })
                                         )
                                         .executes(ctx -> {
-                                            return Accessories.attemptOpenScreenPlayer(ctx.getSource().getPlayerOrException())
-                                                    ? 1
-                                                    : 0;
+                                            Accessories.askPlayerForVariant(ctx.getSource().getPlayerOrException());
+
+
+                                            return 1;
                                         })
                         )
                         .then(

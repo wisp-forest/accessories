@@ -89,6 +89,8 @@ public class UniqueSlotHandling {
          */
         UniqueSlotBuilder allowEquipFromUse(boolean value);
 
+        UniqueSlotBuilder allowTooltipInfo(boolean value);
+
         /**
          * Builds and registers the unique slot.
          * @return a reference to the unique slot type
@@ -116,6 +118,7 @@ public class UniqueSlotHandling {
             @Override public UniqueSlotBuilder strictMode(boolean value) { return this; }
             @Override public UniqueSlotBuilder allowResizing(boolean value) { return this; }
             @Override public UniqueSlotBuilder allowEquipFromUse(boolean value) { return this; }
+            @Override public UniqueSlotBuilder allowTooltipInfo(boolean value) { return this; }
 
             @Override
             public SlotTypeReference build() {
@@ -143,6 +146,7 @@ public class UniqueSlotHandling {
         private boolean strictMode = true;
         private boolean allowResizing = false;
         private boolean allowEquipFromUse = true;
+        private boolean allowTooltipInfo = true;
 
         private final TriFunction<ResourceLocation, Integer, Collection<ResourceLocation>, SlotTypeReference> slotRegistration;
 
@@ -188,14 +192,23 @@ public class UniqueSlotHandling {
             return this;
         }
 
-        @Override
+        public UniqueSlotBuilder allowTooltipInfo(boolean value) {
+            this.allowTooltipInfo = value;
+
+            return this;
+        }
+
+        /**
+         * Builds and registers the unique slot.
+         * @return a reference to the unique slot type
+         */
         public SlotTypeReference build() {
             var slotTypeRef = this.slotRegistration.apply(location, amount, slotPredicates);
 
             SLOT_TO_ENTITIES.put(slotTypeRef.slotName(), Set.copyOf(this.validTypes));
 
             ExtraSlotTypeProperties.getProperties(false)
-                    .put(slotTypeRef.slotName(), new ExtraSlotTypeProperties(this.allowResizing, this.strictMode, this.allowEquipFromUse));
+                    .put(slotTypeRef.slotName(), new ExtraSlotTypeProperties(this.allowResizing, this.strictMode, this.allowEquipFromUse, this.allowTooltipInfo));
 
             return slotTypeRef;
         }

@@ -20,7 +20,7 @@
 package top.theillusivec4.curios.common.inventory;
 
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.client.gui.AccessoriesInternalSlot;
+import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Player;
@@ -52,8 +52,7 @@ public class CurioSlot extends AccessoriesInternalSlot {
     }
 
     public CurioSlot(Player player, IDynamicStackHandler handler, int index, String identifier, int xPosition, int yPosition, NonNullList<Boolean> renders, boolean canToggleRender) {
-        super(0,
-                getContainer(player, identifier),
+        super(getContainer(player, identifier),
                 (handler instanceof WrappedCurioStackHandler.HandlerImpl wrapped ? wrapped.isCosmetic : throwException("Unable to handle passed IDynamicStackHandler as it is not a type that is valid")),
                 index,
                 xPosition,

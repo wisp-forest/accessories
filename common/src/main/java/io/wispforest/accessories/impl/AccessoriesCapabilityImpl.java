@@ -3,15 +3,17 @@ package io.wispforest.accessories.impl;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
-import io.wispforest.accessories.api.EquipAction;
+import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
-import io.wispforest.accessories.endec.RegistriesAttribute;
+import io.wispforest.owo.serialization.RegistriesAttribute;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.util.MapCarrier;
@@ -25,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
-import java.util.function.*;
+import java.util.function.Predicate;
 
 @ApiStatus.Internal
 public class AccessoriesCapabilityImpl implements AccessoriesCapability, InstanceEndec {
@@ -65,17 +67,15 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     @Override
     public Map<String, AccessoriesContainer> getContainers() {
-        var containers = this.holder().getSlotContainers();
-
         // Dirty patch to handle capability mismatch on containers when transferring it
         // TODO: Wonder if this is the best solution to the problem of desynced when data is copied
-        for (var container : containers.values()) {
+        for (var container : this.holder().getAllSlotContainers().values()) {
             if(this.entity == container.capability().entity()) break;
 
             ((AccessoriesContainerImpl) container).capability = this;
         }
 
-        return containers;
+        return this.holder().getSlotContainers();
     }
 
     @Override
@@ -108,7 +108,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
         holder.write(carrier, SerializationContext.attributes(RegistriesAttribute.of(this.entity.level().registryAccess())));
 
-        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(serverPlayer.getId(), carrier));
+        AccessoriesNetworking.sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(serverPlayer.getId(), carrier));
     }
 
     private boolean updateContainersLock = false;
@@ -319,7 +319,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     //--
 
-    public SlotEntryReference getFirstEquipped(Predicate<ItemStack> predicate, EquipmentChecking check) {
+    public SlotEntryReference getFirstEquipped(ItemStackBasedPredicate predicate, EquipmentChecking check) {
         for (var container : this.getContainers().values()) {
             for (var stackEntry : container.getAccessories()) {
                 var stack = stackEntry.getSecond();
@@ -328,7 +328,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
                 if(check == EquipmentChecking.COSMETICALLY_OVERRIDABLE) {
                     var cosmetic = container.getCosmeticAccessories().getItem(reference.slot());
 
-                    if(!cosmetic.isEmpty()) stack = cosmetic;
+                    if(!cosmetic.isEmpty() && Accessories.config().clientOptions.showCosmeticAccessories()) stack = cosmetic;
                 }
 
                 var entryReference = AccessoryNestUtils.recursiveStackHandling(stack, reference, (innerStack, ref) -> {
@@ -344,13 +344,14 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
         return null;
     }
 
-    @Override
-    public List<SlotEntryReference> getEquipped(Predicate<ItemStack> predicate) {
-        return getAllEquipped().stream().filter(reference -> predicate.test(reference.stack())).toList();
-    }
+
 
     @Override
     public List<SlotEntryReference> getAllEquipped(boolean recursiveStackLookup) {
+        var cache = ((AccessoriesHolderImpl)this.getHolder()).getLookupCache();
+
+        if (cache != null) return cache.getAllEquipped();
+
         var references = new ArrayList<SlotEntryReference>();
 
         for (var container : this.getContainers().values()) {

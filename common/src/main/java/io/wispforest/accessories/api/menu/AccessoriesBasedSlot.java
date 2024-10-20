@@ -10,6 +10,8 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
+import io.wispforest.accessories.menu.SlotTypeAccessible;
+import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -28,7 +30,7 @@ import java.util.List;
  * the passed entity and type can be found. Primarily used with internal screen and
  * with the {@link AccessoriesSlotGenerator} for unique slots API
  */
-public class AccessoriesBasedSlot extends Slot {
+public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -77,6 +79,21 @@ public class AccessoriesBasedSlot extends Slot {
     }
 
     @Override
+    public String slotName() {
+        return accessoriesContainer.getSlotName();
+    }
+
+    @Override
+    public SlotType slotType() {
+        return accessoriesContainer.slotType();
+    }
+
+    @Override
+    public AccessoriesContainer getContainer() {
+        return accessoriesContainer;
+    }
+
+    @Override
     @Deprecated
     public int getMaxStackSize() {
         // TODO: API TO LIMIT IDK
@@ -93,6 +110,12 @@ public class AccessoriesBasedSlot extends Slot {
     @Override
     public void set(ItemStack stack) {
         super.set(stack);
+    }
+
+    @Override
+    public void setByPlayer(ItemStack newStack, ItemStack oldStack) {
+        ((AccessoriesLivingEntityExtension)this.entity).onEquipItem(accessoriesContainer.createReference(this.getContainerSlot()), oldStack, newStack);
+        super.setByPlayer(newStack, oldStack);
     }
 
     @Override
@@ -124,7 +147,7 @@ public class AccessoriesBasedSlot extends Slot {
 
         var slotType = this.accessoriesContainer.slotType();
 
-        tooltipData.add(Component.translatable(Accessories.translation( "slot.tooltip.singular"))
+        tooltipData.add(Component.translatable(Accessories.translationKey( "slot.tooltip.singular"))
                 .withStyle(ChatFormatting.GRAY)
                 .append(Component.translatable(slotType.translation()).withStyle(ChatFormatting.BLUE)));
 

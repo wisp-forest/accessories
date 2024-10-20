@@ -2,7 +2,6 @@ package io.wispforest.testccessories.fabric.client;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
-import io.wispforest.accessories.client.gui.AccessoriesInternalSlot;
 import io.wispforest.testccessories.fabric.TestMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;

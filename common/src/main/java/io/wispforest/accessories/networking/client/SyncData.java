@@ -7,14 +7,15 @@ import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.endec.MinecraftEndecs;
 import io.wispforest.accessories.impl.SlotGroupImpl;
 import io.wispforest.accessories.impl.SlotTypeImpl;
-import io.wispforest.accessories.networking.BaseAccessoriesPacket;
 import io.wispforest.endec.Endec;
+import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
@@ -22,11 +23,11 @@ import net.minecraft.world.entity.player.Player;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>> entitySlots, Set<SlotGroup> slotGroups, Set<String> uniqueGroups, Map<String, ExtraSlotTypeProperties> uniqueExtraProperties) implements BaseAccessoriesPacket {
+public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>> entitySlots, Set<SlotGroup> slotGroups, Set<String> uniqueGroups, Map<String, ExtraSlotTypeProperties> uniqueExtraProperties) {
 
-    public static Endec<SyncData> ENDEC = StructEndecBuilder.of(
+    public static StructEndec<SyncData> ENDEC = StructEndecBuilder.of(
             SlotTypeImpl.ENDEC.listOf().fieldOf("slotTypes", SyncData::slotTypes),
-            Endec.map(MinecraftEndecs.ofRegistry(Registries.ENTITY_TYPE), Endec.STRING.setOf()).fieldOf("entitySlots", SyncData::entitySlots),
+            Endec.map(MinecraftEndecs.ofRegistry(BuiltInRegistries.ENTITY_TYPE), Endec.STRING.setOf()).fieldOf("entitySlots", SyncData::entitySlots),
             SlotGroupImpl.ENDEC.setOf().fieldOf("slotGroups", SyncData::slotGroups),
             Endec.STRING.setOf().fieldOf("uniqueGroups", SyncData::uniqueGroups),
             ExtraSlotTypeProperties.ENDEC.mapOf().fieldOf("uniqueExtraProperties", SyncData::uniqueExtraProperties),
@@ -52,11 +53,10 @@ public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>>
     }
 
     @Environment(EnvType.CLIENT)
-    @Override
-    public void handle(Player player) {
+    public static void handlePacket(SyncData packet, Player player) {
         Map<String, SlotType> slotTypes = new HashMap<>();
 
-        for (SlotType slotType : this.slotTypes()) {
+        for (SlotType slotType : packet.slotTypes()) {
             slotTypes.put(slotType.name(), slotType);
         }
 
@@ -66,7 +66,7 @@ public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>>
 
         Map<EntityType<?>, Map<String, SlotType>> entitySlotTypes = new HashMap<>();
 
-        for (var entry : this.entitySlots().entrySet()) {
+        for (var entry : packet.entitySlots().entrySet()) {
             var map = entry.getValue().stream()
                     .map(slotTypes::get)
                     .collect(Collectors.toUnmodifiableMap(SlotType::name, slotType -> slotType));
@@ -76,12 +76,12 @@ public record SyncData(List<SlotType> slotTypes, Map<EntityType<?>, Set<String>>
 
         EntitySlotLoader.INSTANCE.setEntitySlotData(entitySlotTypes);
 
-        var slotGroups = this.slotGroups().stream()
+        var slotGroups = packet.slotGroups().stream()
                 .collect(Collectors.toUnmodifiableMap(SlotGroup::name, group -> group));
 
         SlotGroupLoader.INSTANCE.setGroups(slotGroups);
 
-        UniqueSlotHandling.setClientGroups(this.uniqueGroups());
-        ExtraSlotTypeProperties.setClientPropertyMap(this.uniqueExtraProperties());
+        UniqueSlotHandling.setClientGroups(packet.uniqueGroups());
+        ExtraSlotTypeProperties.setClientPropertyMap(packet.uniqueExtraProperties());
     }
 }

@@ -22,7 +22,6 @@ repositories {
     maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
     maven { url = "https://maven.shedaniel.me/" }
     maven { url = "https://maven.terraformersmc.com/" }
-    mavenLocal()
 }
 
 //evaluationDependsOn(':common')
@@ -35,7 +34,7 @@ dependencies {
     developmentFabric implementation(project(path: ":common", configuration: "namedElements"))
     localRuntime(project(path: ":fabric", configuration: "namedElements"))
 
-    modImplementation("me.shedaniel.cloth:cloth-config:${rootProject.cloth_version}")
+    modImplementation annotationProcessor("io.wispforest:owo-lib:${project.owo_version}")
 
     modLocalRuntime("com.terraformersmc:modmenu:${rootProject.modmenu_version}")
 

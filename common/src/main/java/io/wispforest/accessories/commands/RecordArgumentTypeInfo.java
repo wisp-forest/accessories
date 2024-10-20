@@ -17,7 +17,7 @@ import java.util.function.Function;
 public record RecordArgumentTypeInfo<A extends ArgumentType<?>, T>(StructEndec<T> endec, Function<A, T> toTemplate, BiFunction<CommandBuildContext, T, A> fromTemplate) implements ArgumentTypeInfo<A, RecordArgumentTypeInfo.RecordInfoTemplate<A, T>> {
 
     public static <A extends ArgumentType<?>> RecordArgumentTypeInfo<A, Void> of(Function<CommandBuildContext, A> argTypeConstructor) {
-        return new RecordArgumentTypeInfo<>(EndecUtils.structUnit(() -> null), a -> null, (commandBuildContext, unused) -> argTypeConstructor.apply(commandBuildContext));
+        return new RecordArgumentTypeInfo<>(StructEndec.unit(() -> null), a -> null, (commandBuildContext, unused) -> argTypeConstructor.apply(commandBuildContext));
     }
 
     @Override

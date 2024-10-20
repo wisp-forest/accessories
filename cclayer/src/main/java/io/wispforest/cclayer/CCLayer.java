@@ -12,6 +12,7 @@ import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
+import io.wispforest.cclayer.compat.config.CCLayerConfig;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -54,6 +55,8 @@ import java.util.Set;
 @Mod(value = CCLayer.MODID)
 public class CCLayer {
 
+    public static final CCLayerConfig CONFIG = CCLayerConfig.createAndLoad();
+
     public static final String MODID = "cclayer";
 
     public CCLayer(IEventBus eventBus){
@@ -90,14 +93,11 @@ public class CCLayer {
         });
 
         AdjustAttributeModifierCallback.EVENT.register((stack, reference, builder) -> {
-            var modifiers = HashMultimap.<Holder<Attribute>, AttributeModifier>create();
-
-            var event = new CurioAttributeModifierEvent(stack, CuriosWrappingUtils.create(reference), ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference)), modifiers);
+            var event = new CurioAttributeModifierEvent(stack, CuriosWrappingUtils.create(reference), ResourceLocation.fromNamespaceAndPath(CuriosConstants.MOD_ID, AccessoryAttributeBuilder.createSlotPath(reference)), HashMultimap.create());
 
             NeoForge.EVENT_BUS.post(event);
 
-            modifiers.clear();
-            modifiers.putAll(event.getModifiers());
+            event.getModifiers().forEach(builder::addExclusive);
         });
     }
 

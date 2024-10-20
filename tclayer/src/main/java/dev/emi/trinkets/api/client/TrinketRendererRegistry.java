@@ -5,9 +5,9 @@ import dev.emi.trinkets.compat.WrappedTrinketInventory;
 import dev.emi.trinkets.compat.WrappingTrinketsUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
+import io.wispforest.accessories.api.client.AccessoryRenderer;
 import io.wispforest.accessories.api.client.DefaultAccessoryRenderer;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.client.AccessoryRenderer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -49,7 +49,7 @@ public class TrinketRendererRegistry {
     public static Optional<TrinketRenderer> getRenderer(Item item) {
         return Optional.ofNullable(RENDERERS.get(item)).or(() -> {
             return Optional.ofNullable(AccessoriesRendererRegistry.getRender(item)).flatMap(accessoryRenderer -> {
-                if(accessoryRenderer == DefaultAccessoryRenderer.INSTANCE && !Accessories.getConfig().clientData.forceNullRenderReplacement) {
+                if(accessoryRenderer == DefaultAccessoryRenderer.INSTANCE && !Accessories.config().clientOptions.forceNullRenderReplacement()) {
                     return Optional.empty();
                 }
 

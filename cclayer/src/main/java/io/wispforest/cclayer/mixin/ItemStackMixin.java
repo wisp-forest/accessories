@@ -1,6 +1,7 @@
 package io.wispforest.cclayer.mixin;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.cclayer.CCLayer;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -25,6 +26,8 @@ public abstract class ItemStackMixin {
 
     @Inject(method = "is(Lnet/minecraft/tags/TagKey;)Z", at = @At(value = "HEAD"), cancellable = true)
     private void redirectTags(TagKey<Item> tag, CallbackInfoReturnable<Boolean> cir){
+        if (CCLayer.CONFIG.useInjectionMethod()) return;
+
         var namespace = tag.location().getNamespace();
 
         if(!namespace.equals(Accessories.MODID) && !namespace.equals(CuriosConstants.MOD_ID)) return;

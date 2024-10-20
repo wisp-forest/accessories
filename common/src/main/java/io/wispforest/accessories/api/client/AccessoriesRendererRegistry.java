@@ -4,7 +4,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryRenderOverrideComponent;
-import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +39,20 @@ public class AccessoriesRendererRegistry {
         RENDERERS.put(item, () -> null);
     }
 
+    /**
+     * Registers the given item as if it should render like armor piece equipped within the targeted slot
+     * as dictated by {@link Equipable#getEquipmentSlot()}
+     */
+    public static void registerArmorRendering(Item item) {
+        if (item instanceof Equipable && !AccessoriesRendererRegistry.hasRenderer(item)) {
+            AccessoriesRendererRegistry.registerRenderer(item, () -> ArmorRenderingExtension.RENDERER);
+        }
+    }
+
+    public static boolean hasRenderer(Item item) {
+        return RENDERERS.containsKey(item);
+    }
+
     //--
 
     /**
@@ -46,15 +60,21 @@ public class AccessoriesRendererRegistry {
      */
     @Nullable
     public static AccessoryRenderer getRender(ItemStack stack){
-        var shouldOverride = stack.getOrDefault(AccessoriesDataComponents.RENDER_OVERRIDE, AccessoryRenderOverrideComponent.DEFAULT).defaultRenderOverride();
+        var renderOverrides = stack.getOrDefault(AccessoriesDataComponents.RENDER_OVERRIDE, AccessoryRenderOverrideComponent.DEFAULT);
 
-        if(shouldOverride != null) {
-            if(shouldOverride) {
+        var defaultRenderOverride = renderOverrides.defaultRenderOverride();
+
+        if(defaultRenderOverride != null) {
+            if(defaultRenderOverride) {
                 return DefaultAccessoryRenderer.INSTANCE;
             } else if(AccessoriesAPI.isDefaultAccessory(AccessoriesAPI.getOrDefaultAccessory(stack))) {
                 return null;
             }
         }
+
+        var armorRenderOverride = renderOverrides.useArmorRenderer();
+
+        if(armorRenderOverride) return ArmorRenderingExtension.RENDERER;
 
         return getRender(stack.getItem());
     }
@@ -66,7 +86,7 @@ public class AccessoriesRendererRegistry {
     public static AccessoryRenderer getRender(Item item){
         var renderer = CACHED_RENDERERS.getOrDefault(item, DefaultAccessoryRenderer.INSTANCE);
 
-        if(renderer == null && Accessories.getConfig().clientData.forceNullRenderReplacement) {
+        if(renderer == null && Accessories.config().clientOptions.forceNullRenderReplacement()) {
             renderer = DefaultAccessoryRenderer.INSTANCE;
         }
 

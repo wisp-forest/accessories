@@ -4,8 +4,10 @@
   "accessories.cosmetic_slot.tooltip.singular": "Cosmetic Slot: ",
   "accessories.cosmetic_slot.tooltip.plural": "Cosmetic Slots: ",
   "accessories.slot.any": "Any",
+  "accessories.slot.except": " except ",
   "accessories.tooltip.attributes.any": "When Equipped:",
   "accessories.tooltip.attributes.slot": "When Equipped in %s:",
+  "accessories.tooltip.currently_equipped_in": "Equipped in: ",
   "accessories.slot.hat": "Hat",
   "accessories.slot.face": "Face",
   "accessories.slot.cape": "Cape",
@@ -18,6 +20,10 @@
   "accessories.slot.anklet": "Anklet",
   "accessories.slot.shoes": "Shoes",
   "accessories.slot.charm": "Charm",
+  "accessories.slot.accessories.head": "Cosmetic Head",
+  "accessories.slot.accessories.chest": "Cosmetic Chest",
+  "accessories.slot.accessories.legs": "Cosmetic Legs",
+  "accessories.slot.accessories.feet": "Cosmetic Feet",
   "accessories.slot_group.misc": "Misc",
   "accessories.slot_group.head": "Head",
   "accessories.slot_group.chest": "Chest",
@@ -26,6 +32,10 @@
   "accessories.slot_group.feet": "Feet",
   "accessories.slot_group.unsorted": "Unsorted",
   "accessories.key.category.accessories": "Accessories",
+  "argument.livingEntities.nonLiving": "Only living entities may be affected by this command, but the provided selector includes non living entities",
+
+  "#comment": "GUI Related Below",
+
   "accessories.key.open_accessories_screen": "Open Accessories Screen",
   "accessories.slot.cosmetics.toggle.show": "Show Cosmetic Slots",
   "accessories.slot.cosmetics.toggle.hide": "Hide Cosmetic Slots",
@@ -35,52 +45,327 @@
   "accessories.lines.toggle.hide": "Hide All Lines",
   "accessories.unused_slots.toggle.show": "Show Unused Slots",
   "accessories.unused_slots.toggle.hide": "Hide Unused Slots",
+  "accessories.slot_cosmetics.toggle.enabled": "Show Accessories Slots",
+  "accessories.slot_cosmetics.toggle.disabled": "Show Cosmetic Slots",
+  "accessories.advanced_options.toggle.enabled": "❤",
+  "accessories.advanced_options.toggle.disabled": "⚗",
+  "accessories.advanced_options.toggle.enabled.tooltip": "Hide Extra Screen configuration options",
+  "accessories.advanced_options.toggle.disabled.tooltip": "Show Extra Screen configuration options",
+  "accessories.unused_slots.label": "Unused Slots:",
+  "accessories.unused_slots.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Shown"
+  ],
+  "accessories.unused_slots.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Hidden"
+  ],
+  "accessories.unused_slots.toggle.enabled.tooltip": "Hide all Unused Slots",
+  "accessories.unused_slots.toggle.disabled.tooltip": "Show all Unused Slots",
+  "accessories.column_amount_slider.label": "Column Amount:",
+  "accessories.column_amount_slider.tooltip": "Slider used to adjust Column amount for Accessories Layout",
+  "accessories.widget_type.label": "Widget Variant:",
+  "accessories.widget_type.paginated": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☰", "color": "#347ecf"},
+    {"text": "]", "color": "gray"},
+    " Paginated"
+  ],
+  "accessories.widget_type.paginated.tooltip": "A Paginated Layout for Accessories Slots",
+  "accessories.widget_type.scrollable": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "⏷", "color": "#953abd"},
+    {"text": "]", "color": "gray"},
+    " Scrollable"
+  ],
+  "accessories.main_widget_position.label": "Widget Position:",
+  "accessories.main_widget_position.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "←", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Left"
+  ],
+  "accessories.main_widget_position.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "→", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Right"
+  ],
+  "accessories.main_widget_position.toggle.enabled.tooltip": "Move Accessories Widget to the Right",
+  "accessories.main_widget_position.toggle.disabled.tooltip": "Move Accessories Widget to the Left",
+  "accessories.group_filter.label": "Group Filters:",
+  "accessories.group_filter.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Shown"
+  ],
+  "accessories.group_filter.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Hidden"
+  ],
+  "accessories.group_filter.toggle.enabled.tooltip": "Hide group filter widget",
+  "accessories.group_filter.toggle.disabled.tooltip": "Show group filter widget",
+  "accessories.side_widget_position.label": "Side Position:",
+  "accessories.side_widget_position.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "()", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Together"
+  ],
+  "accessories.side_widget_position.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "||", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Separate"
+  ],
+  "accessories.side_widget_position.toggle.enabled.tooltip": "Move Side Widget to be with the Accessories Widget",
+  "accessories.side_widget_position.toggle.disabled.tooltip": "Move Side widget to be opposite to Accessories Widget",
+  "accessories.dark_mode_toggle.label": "Theme Mode:",
+  "accessories.dark_mode_toggle.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☽", "color": "#3d29c2"},
+    {"text": "]", "color": "gray"},
+    " Dark"
+  ],
+  "accessories.dark_mode_toggle.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☀", "color": "#bffa9b"},
+    {"text": "]", "color": "gray"},
+    " Light"
+  ],
+  "accessories.dark_mode_toggle.toggle.enabled.tooltip": "Change theme to Light Mode",
+  "accessories.dark_mode_toggle.toggle.disabled.tooltip": "Change theme to Dark Mode",
+  "accessories.show_equipped_stack_slot_type.label": "Equipped Type:",
+  "accessories.show_equipped_stack_slot_type.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Shown"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Hidden"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.enabled.tooltip": "Hide equipped stack Slot type",
+  "accessories.show_equipped_stack_slot_type.toggle.disabled.tooltip": "Show equipped stack Slot type",
+  "accessories.entity_look_at_cursor.label": "Look at Mouse:",
+  "accessories.entity_look_at_cursor.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Enabled"
+  ],
+  "accessories.entity_look_at_cursor.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Disabled"
+  ],
+  "accessories.entity_look_at_cursor.toggle.enabled.tooltip": "Disable looking at cursor",
+  "accessories.entity_look_at_cursor.toggle.disabled.tooltip": "Enable looking at cursor",
+  "accessories.lines.toggle.enabled.tooltip": "Hide all Line Rendering",
+  "accessories.lines.toggle.disabled.tooltip": "Show all Line Rendering",
+  "accessories.crafting_grid.toggle.enabled": "☒",
+  "accessories.crafting_grid.toggle.disabled": "☐",
+  "accessories.crafting_grid.toggle.enabled.tooltip": "Hide the small crafting grid",
+  "accessories.crafting_grid.toggle.disabled.tooltip": "Show the small crafting grid",
+  "accessories.widget_type.scrollable.tooltip": "A Scrollable Layout for Accessories Slots",
+  "accessories.selection_screen.message": [
+    "Below is a set of screen options that you \n",
+    "can choose from depending on the style of \n",
+    "Modpack or your play style. \n\n",
+    "Do note that you can change such within the \n",
+    "Accessories Config if the given option is not \n",
+    "to your liking."
+  ],
   "accessories.unique_slots.toggle.show": "Show Unique Slots",
   "accessories.unique_slots.toggle.hide": "Hide Unique Slots",
   "accessories.back.screen": "To Previous Screen",
-  "accessories.open.screen": "Open Accessories",
-  "text.autoconfig.accessories.title": "Accessories Config",
-  "text.autoconfig.accessories.option.clientData": "Client Options",
-  "text.autoconfig.accessories.option.clientData.showGroupTabs": "Show Group Tabs",
-  "text.autoconfig.accessories.option.clientData.showUniqueRendering": "Show Unique Rendering",
-  "text.autoconfig.accessories.option.clientData.showLineRendering": "Show Line Rendering",
-  "text.autoconfig.accessories.option.clientData.inventoryButtonXOffset": "Inventory Button X Offset",
-  "text.autoconfig.accessories.option.clientData.inventoryButtonYOffset": "Inventory Button Y Offset",
-  "text.autoconfig.accessories.option.clientData.creativeInventoryButtonXOffset": "Creative Inventory Button X Offset",
-  "text.autoconfig.accessories.option.clientData.creativeInventoryButtonYOffset": "Creative Inventory Button Y Offset",
-  "text.autoconfig.accessories.option.clientData.forceNullRenderReplacement": "Force Empty Render Replacement",
-  "text.autoconfig.accessories.option.clientData.disableEmptySlotScreenError": "Disable Empty Accessory Screen Error",
+  "accessories.open.screen": "Open Accessories Screen",
+  "accessories.reset.group_filter": "Reset Group Filters",
 
-  "text.autoconfig.accessories.option.clientData.hoverOptions": "Hover Options",
+  "#comment": "Config Related Below",
 
-  "text.autoconfig.accessories.option.clientData.hoverOptions.hoveredOptions": "Hovered Options",
+  "text.config.accessories.title": "Accessories Config",
 
-  "text.autoconfig.accessories.option.clientData.hoverOptions.hoveredOptions.brightenHovered": "Brighten Hovered",
-  "text.autoconfig.accessories.option.clientData.hoverOptions.hoveredOptions.cycleBrightness": "Cycle Brightness",
+  "text.config.accessories.option.useExperimentalCaching": "Use Experimental Caching",
+  "text.config.accessories.option.useExperimentalCaching.tooltip": [
+    "Attempts to cache various ItemStack lookups\n",
+    "to be more performant but may cause issues."
+  ],
 
-  "text.autoconfig.accessories.option.clientData.hoverOptions.hoveredOptions.line": "Draw Line",
+  "text.config.accessories.category.clientOptions": "Client Options",
+  "text.config.accessories.category.clientOptions.tooltip": [
+    "Contains more generic client side options for rendering or player input"
+  ],
 
-  "text.autoconfig.accessories.option.clientData.hoverOptions.hoveredOptions.clickbait": "Clickbait",
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement": "Force Empty Render Replacement",
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement.tooltip": [
+    "Forces any registered render found to be no\n",
+    "rendering to instead use default rendering."
+  ],
 
-  "text.autoconfig.accessories.option.clientData.hoverOptions.unHoveredOptions": "UnHovered Options",
-  "text.autoconfig.accessories.option.clientData.hoverOptions.unHoveredOptions.renderUnHovered": "Render UnHovered",
-  "text.autoconfig.accessories.option.clientData.hoverOptions.unHoveredOptions.darkenUnHovered": "Darken UnHovered",
-  "text.autoconfig.accessories.option.clientData.hoverOptions.unHoveredOptions.darkenedBrightness": "Darkened Brightness",
-  "text.autoconfig.accessories.option.clientData.hoverOptions.unHoveredOptions.darkenedOpacity": "Darkened Opacity",
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError": "Disable Empty Accessory Error",
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError.tooltip": [
+    "Disables the error message displayed if the accessories\n",
+    "screen is opened and no used slots were found."
+  ],
 
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories": "Show Item Cosmetic Rendering",
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories.tooltip": [
+    "Enables/Disables the rendering of cosmetic item variants if equipped."
+  ],
 
-  "text.autoconfig.accessories.option.clientData.disabledDefaultRenders": "Disabled Default Rendering",
-  "text.autoconfig.accessories.option.RenderSlotTarget": "Modifier Entry",
-  "text.autoconfig.accessories.option.RenderSlotTarget.slotType": "Slot Name",
-  "text.autoconfig.accessories.option.RenderSlotTarget.targetType": "Render Type",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders": "Disabled Default Rendering",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.tooltip": [
+    "Disables the included default renderer rendering of items if being used."
+  ],
 
-  "text.autoconfig.accessories.option.modifiers": "Slot Amount Modifiers",
-  "text.autoconfig.accessories.option.SlotAmountModifier": "Modifier Entry",
-  "text.autoconfig.accessories.option.SlotAmountModifier.slotType": "Slot Name",
-  "text.autoconfig.accessories.option.SlotAmountModifier.amount": "Offset Amount",
+  "text.config.accessories.option.clientOptions.equipControl": "Quick Hand Equip Mode",
+  "text.config.accessories.option.clientOptions.equipControl.tooltip": [
+    "Changes the mode used to quickly equip a stack from your hand."
+  ],
 
-  "text.autoconfig.accessories.option.clientData.allowSlotScrolling": "Allow Screen Slot Scrolling",
-  "text.autoconfig.accessories.option.clientData.equipControl": "Accessory from Hand Equip Mode",
+  "text.config.accessories.enum.playerEquipControl.must_crouch": "Requires Crouch",
+  "text.config.accessories.enum.playerEquipControl.must_not_crouch": "Without Crouch",
+  "text.config.accessories.enum.playerEquipControl.disabled": "Disabled",
 
-  "argument.livingEntities.nonLiving": "Only living entities may be affected by this command, but the provided selector includes non living entities"
+  "text.config.accessories.category.screenOptions": "Screen Options",
+  "text.config.accessories.category.screenOptions.tooltip": [
+    "Contains all screen configuration options for all variants and injected button offset"
+  ],
+
+  "text.config.accessories.option.screenOptions.selectedScreenType": "Selected Screen Type",
+  "text.config.accessories.option.screenOptions.selectedScreenType.tooltip": [
+    "Used to adjust what screen will be used, none will\n",
+    "bring a prompt for user selection."
+  ],
+
+  "text.config.accessories.enum.screenType.none": "Undecided",
+  "text.config.accessories.enum.screenType.original": "Original",
+  "text.config.accessories.enum.screenType.experimental_v1": "Experimental",
+
+  "text.config.accessories.option.screenOptions.showUnusedSlots": "Show Unused Slots",
+  "text.config.accessories.option.screenOptions.showUnusedSlots.tooltip": "Toggles filtering of unused slots",
+
+  "text.config.accessories.option.screenOptions.allowSlotScrolling": "Allow Screen Slot Scrolling",
+  "text.config.accessories.option.screenOptions.allowSlotScrolling.tooltip": [
+    "Useful if the given mod allows for scrolling stacks\n",
+    "leading to issues when going though accessories."
+  ],
+
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType": "Show Equipped Stacks Slot Type",
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType.tooltip": [
+    "Shows the given slot type that the given stack is equipped in within its tooltip."
+  ],
+
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor": "Make Entity follow the Mouse Cursor",
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor.tooltip": [
+    "If enabled, makes the entity follow the mouse cursor\n",
+    "otherwise it allows for manual rotation of the entity."
+  ],
+
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid": "Allow Crafting Grid within Sidebar",
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid.tooltip": [
+    "If group filters are not present, it will attempt to put\n",
+    "the crafting grid within the sidebar instead down below."
+  ],
+
+  "text.config.accessories.section.button_offsets": "Injected Button Offsets",
+
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset": "Inventory Button Offset",
+
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.x": "X Offset",
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.y": "Y Offset",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset": "Creative Inventory Button Offset",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.x": "X Offset",
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.y": "Y Offset",
+
+  "text.config.accessories.section.experimental": "Experimental Screen",
+
+  "text.config.accessories.option.screenOptions.isDarkMode": "Use Dark mode theme",
+  "text.config.accessories.option.screenOptions.isDarkMode.tooltip": [
+    "Changes the theming for the experimental screen to be dark mode."
+  ],
+
+  "text.config.accessories.section.legacy": "Original Screen",
+
+  "text.config.accessories.option.screenOptions.showGroupTabs": "Show quick seeking group tabs",
+  "text.config.accessories.option.screenOptions.showGroupTabs.tooltip": [
+    "Toggles the group tabs within the original screen to be shown or hidden."
+  ],
+
+  "text.config.accessories.section.hover": "Hovered Effects",
+
+  "text.config.accessories.category.screenOptions.hoveredOptions": "Hovered Options",
+  "text.config.accessories.category.screenOptions.hoveredOptions.tooltip": [
+    "Options to control the hovered entry rendering effects."
+  ],
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.brightenHovered": "Brighten Hovered",
+  "text.config.accessories.option.screenOptions.hoveredOptions.cycleBrightness": "Cycle Brightness",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.line": "Draw Line",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.clickbait": "Clickbait",
+
+  "text.config.accessories.category.screenOptions.unHoveredOptions": "UnHovered Options",
+  "text.config.accessories.category.screenOptions.unHoveredOptions.tooltip": [
+    "Options to control the non hovered entries rendering effects."
+  ],
+
+  "text.config.accessories.option.screenOptions.unHoveredOptions.renderUnHovered": "Render UnHovered",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenUnHovered": "Darken UnHovered",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedBrightness": "Darkened Brightness",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedOpacity": "Darkened Opacity",
+
+  "text.config.accessories.option.disabledDefaultRenders": "Disabled Default Renderers",
+  "text.config.accessories.option.disabledDefaultRenders.tooltip": [
+    "Useful to disable default rendering for a given slot either\n",
+    "for specifically block or/and item renderings"
+  ],
+
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.slotType": "Slot",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.targetType": "Type",
+
+  "text.config.accessories.enum.targetType.item": "Item",
+  "text.config.accessories.enum.targetType.block": "Block",
+  "text.config.accessories.enum.targetType.all": "All",
+
+  "text.config.accessories.option.modifiers": "Slot Amount Modifiers",
+  "text.config.accessories.option.modifiers.tooltip": [
+    "Useful to add offset values to a given slot type without\n",
+    "needing a datapack as it allows for both positive or\n",
+    "negative offset value."
+  ],
+
+  "text.config.accessories.option.modifiers.slotType": "Slot",
+  "text.config.accessories.option.modifiers.amount": "Offset"
 }

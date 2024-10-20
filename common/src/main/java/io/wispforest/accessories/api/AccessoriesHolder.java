@@ -2,17 +2,21 @@ package io.wispforest.accessories.api;
 
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.impl.PlayerEquipControl;
+import io.wispforest.accessories.impl.caching.AccessoriesHolderLookupCache;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Internal Holder object that has all the container data attached to the given player
  */
 public interface AccessoriesHolder {
 
+    @Nullable
     static AccessoriesHolder get(@NotNull LivingEntity livingEntity){
         return ((AccessoriesAPIAccess) livingEntity).accessoriesHolder();
     }
@@ -21,25 +25,15 @@ public interface AccessoriesHolder {
         return Optional.ofNullable(get(livingEntity));
     }
 
+    AccessoriesHolderLookupCache getLookupCache();
+
     //--
 
-    /**
-     * @return If the cosmetic slots should be shown within the {@link AccessoriesScreen}
-     */
-    boolean cosmeticsShown();
+    PlayerEquipControl equipControl();
 
-    AccessoriesHolder cosmeticsShown(boolean value);
+    AccessoriesHolder equipControl(PlayerEquipControl value);
 
-    /**
-     * @return If the fancy line rendering utility should be shown within the {@link AccessoriesScreen}
-     */
-    boolean linesShown();
-
-    AccessoriesHolder linesShown(boolean value);
-
-    int scrolledSlot();
-
-    AccessoriesHolder scrolledSlot(int slot);
+    //--
 
     /**
      * @return If unused accessory slots should be present within the {@link AccessoriesScreen}
@@ -48,15 +42,70 @@ public interface AccessoriesHolder {
 
     AccessoriesHolder showUnusedSlots(boolean value);
 
+
+
     /**
-     * @return If unique accessory slots should be present within the {@link AccessoriesScreen}
+     * @return If the cosmetic slots should be shown within the {@link AccessoriesScreen}
      */
-    boolean showUniqueSlots();
+    boolean cosmeticsShown();
 
-    AccessoriesHolder showUniqueSlots(boolean value);
+    AccessoriesHolder cosmeticsShown(boolean value);
 
-    PlayerEquipControl equipControl();
+    boolean showAdvancedOptions();
 
-    AccessoriesHolder equipControl(PlayerEquipControl value);
+    AccessoriesHolder showAdvancedOptions(boolean value);
 
+    int columnAmount();
+
+    AccessoriesHolder columnAmount(int value);
+
+    int widgetType();
+
+    AccessoriesHolder widgetType(int value);
+
+    boolean showGroupFilter();
+
+    AccessoriesHolder showGroupFilter(boolean value);
+
+    boolean isGroupFiltersOpen();
+
+    AccessoriesHolder isGroupFiltersOpen(boolean value);
+
+    Set<String> filteredGroups();
+
+    AccessoriesHolder filteredGroups(Set<String> value);
+
+    boolean mainWidgetPosition();
+
+    AccessoriesHolder mainWidgetPosition(boolean value);
+
+    boolean sideWidgetPosition();
+
+    AccessoriesHolder sideWidgetPosition(boolean value);
+
+    boolean showCraftingGrid();
+
+    AccessoriesHolder showCraftingGrid(boolean value);
+
+    //--
+
+    @Deprecated(forRemoval = true)
+    default boolean showUniqueSlots() {
+        return false;
+    }
+
+    @Deprecated(forRemoval = true)
+    default AccessoriesHolder showUniqueSlots(boolean value) {
+        return this;
+    }
+
+    @Deprecated(forRemoval = true)
+    default boolean linesShown() {
+        return false;
+    }
+
+    @Deprecated(forRemoval = true)
+    default AccessoriesHolder linesShown(boolean value) {
+        return this;
+    }
 }

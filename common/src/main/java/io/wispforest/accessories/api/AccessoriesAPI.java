@@ -2,12 +2,12 @@ package io.wispforest.accessories.api;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.components.AccessoryStackSizeComponent;
 import io.wispforest.accessories.api.data.AccessoriesBaseData;
+import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.AdjustAttributeModifierCallback;
 import io.wispforest.accessories.api.events.CanEquipCallback;
 import io.wispforest.accessories.api.events.CanUnequipCallback;
@@ -15,10 +15,10 @@ import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -140,8 +140,12 @@ public class AccessoriesAPI {
      * default or if the given stack has valid slots which it can be equipped
      */
     public static boolean isValidAccessory(ItemStack stack, Level level){
+        return isValidAccessory(stack, level, null);
+    }
+
+    public static boolean isValidAccessory(ItemStack stack, Level level, @Nullable LivingEntity entity){
         return !isDefaultAccessory(getOrDefaultAccessory(stack))
-                || !getStackSlotTypes(level, stack).isEmpty();
+                || !getStackSlotTypes(level, entity, stack).isEmpty();
     }
 
     //--
@@ -169,9 +173,9 @@ public class AccessoriesAPI {
      * to the {@link ItemStack}'s item
      */
     public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, @Nullable LivingEntity entity, String slotName, int slot, boolean hideTooltipIfDisabled){
-        var builder = new AccessoryAttributeBuilder();
-
         var slotReference = SlotReference.of(entity, slotName, slot);
+
+        var builder = new AccessoryAttributeBuilder(slotReference);
 
         AccessoryNestUtils.recursiveStackConsumption(stack, slotReference, (innerStack, innerRef) -> {
             var component = innerStack.getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
@@ -232,7 +236,7 @@ public class AccessoriesAPI {
             throw new IllegalStateException("Unable to get the needed SlotType from the SlotReference passed within `canInsertIntoSlot`! [Name: " + reference.slotName() + "]");
         }
 
-        return getPredicateResults(slotType.validators(), reference.entity().level(), slotType, 0, stack) && canEquip(stack, reference);
+        return getPredicateResults(slotType.validators(), reference.entity().level(), reference.entity(), slotType, 0, stack) && canEquip(stack, reference);
     }
 
     /**
@@ -291,7 +295,11 @@ public class AccessoriesAPI {
                 for (int i = 0; i < size; i++) {
                     var reference = SlotReference.of(entity, container.getSlotName(), i);
 
-                    if (canInsertIntoSlot(stack, reference)) validSlots.add(value);
+                    if (canInsertIntoSlot(stack, reference)) {
+                        validSlots.add(value);
+
+                        break;
+                    }
                 }
             }
         }
@@ -300,10 +308,18 @@ public class AccessoriesAPI {
     }
 
     public static Collection<SlotType> getStackSlotTypes(Level level, ItemStack stack){
+        return getStackSlotTypes(level, null, stack);
+    }
+
+    public static Collection<SlotType> getStackSlotTypes(LivingEntity entity, ItemStack stack) {
+        return getStackSlotTypes(entity.level(), entity, stack);
+    }
+
+    public static Collection<SlotType> getStackSlotTypes(Level level, @Nullable LivingEntity entity, ItemStack stack) {
         var validSlots = new ArrayList<SlotType>();
 
         for (SlotType value : SlotTypeLoader.getSlotTypes(level).values()) {
-            if(getPredicateResults(value.validators(), level, value, 0, stack)) validSlots.add(value);
+            if(getPredicateResults(value.validators(), level, entity, value, 0, stack)) validSlots.add(value);
         }
 
         return validSlots;
@@ -332,14 +348,8 @@ public class AccessoriesAPI {
             slots.addAll(AccessoriesAPI.getValidSlotTypes(entity, ref.stack()));
         }
 
-        for (var slot : SlotTypeLoader.getSlotTypes(entity.level()).values()) {
-            var bl = BuiltInRegistries.ITEM.getTag(AccessoriesAPI.getSlotTag(slot))
-                    .map(holders -> holders.size() > 0)
-                    .orElse(false);
-
-            if (bl) slots.add(slot);
-        }
-
+        slots.addAll(SlotTypeLoader.getUsedSlotsByRegistryItem(entity));
+        
         return slots;
     }
 
@@ -347,7 +357,7 @@ public class AccessoriesAPI {
      * Helper method to trigger effects of a given accessory being broken on any tracking clients for the given entity
      */
     public static void breakStack(SlotReference reference){
-        AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(reference.entity(), AccessoryBreak.of(reference));
+        AccessoriesNetworking.sendToTrackingAndSelf(reference.entity(), AccessoryBreak.of(reference));
     }
 
     //--
@@ -371,6 +381,10 @@ public class AccessoriesAPI {
     }
 
     public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, Level level, SlotType slotType, int index, ItemStack stack){
+        return getPredicateResults(predicateIds, level, null, slotType, index, stack);
+    }
+
+    public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, Level level, @Nullable LivingEntity entity, SlotType slotType, int index, ItemStack stack){
         var result = TriState.DEFAULT;
 
         for (var predicateId : predicateIds) {
@@ -378,7 +392,11 @@ public class AccessoriesAPI {
 
             if(predicate == null) continue;
 
-            result = predicate.isValid(level, slotType, index, stack);
+            if(predicate instanceof EntityBasedPredicate entityBasedPredicate) {
+                result = entityBasedPredicate.isValid(level, entity, slotType, index, stack);
+            } else {
+                result = predicate.isValid(level, slotType, index, stack);
+            }
 
             if(result != TriState.DEFAULT) break;
         }
@@ -387,15 +405,16 @@ public class AccessoriesAPI {
     }
 
     /**
-     * @deprecated Use {@link #ANY_ACCESSORIES} instead!
+     * @deprecated Use {@link AccessoriesTags#ANY_TAG} instead!
      */
     @Deprecated(forRemoval = true)
-    public static final TagKey<Item> ALL_ACCESSORIES = TagKey.create(Registries.ITEM, Accessories.of("all"));
+    public static final TagKey<Item> ALL_ACCESSORIES = AccessoriesTags.ALL_TAG;
 
     /**
-     * TagKey representing a group of items that can be equipped in any slot if allowed to by the given slots predicates
+     * @deprecated Use {@link AccessoriesTags#ANY_TAG} instead!
      */
-    public static final TagKey<Item> ANY_ACCESSORIES = TagKey.create(Registries.ITEM, Accessories.of("any"));
+    @Deprecated(forRemoval = true)
+    public static final TagKey<Item> ANY_ACCESSORIES = AccessoriesTags.ANY_TAG;
 
     public static TagKey<Item> getSlotTag(SlotType slotType) {
         var location = UniqueSlotHandling.isUniqueSlot(slotType.name()) ? ResourceLocation.parse(slotType.name()) : Accessories.of(slotType.name());
@@ -407,7 +426,7 @@ public class AccessoriesAPI {
         registerPredicate(AccessoriesBaseData.ALL_PREDICATE_ID, (level, slotType, i, stack) -> TriState.TRUE);
         registerPredicate(AccessoriesBaseData.NONE_PREDICATE_ID, (level, slotType, i, stack) -> TriState.FALSE);
         registerPredicate(AccessoriesBaseData.TAG_PREDICATE_ID, (level, slotType, i, stack) -> {
-            return (stack.is(getSlotTag(slotType)) || stack.is(ANY_ACCESSORIES)) ? TriState.TRUE : TriState.DEFAULT;
+            return (stack.is(getSlotTag(slotType)) || stack.is(AccessoriesTags.ANY_TAG)) ? TriState.TRUE : TriState.DEFAULT;
         });
         registerPredicate(AccessoriesBaseData.RELEVANT_PREDICATE_ID, (level, slotType, i, stack) -> {
             var bl = !getAttributeModifiers(stack, null, slotType.name(), i).getAttributeModifiers(false).isEmpty();

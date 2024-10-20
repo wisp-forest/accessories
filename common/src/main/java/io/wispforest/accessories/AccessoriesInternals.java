@@ -1,30 +1,37 @@
 package io.wispforest.accessories;
 
+import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.ArgumentType;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.client.AccessoriesMenuData;
-import io.wispforest.accessories.networking.base.BaseNetworkHandler;
+import io.wispforest.accessories.menu.AccessoriesMenuVariant;
+import io.wispforest.endec.Endec;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 /**
@@ -40,51 +47,38 @@ public class AccessoriesInternals {
     @Nullable
     public static EquipmentSlot.Type ACCESSORIES_TYPE = null;
 
-    @ExpectPlatform
-    public static boolean isDevelopmentEnv() {
-        throw new AssertionError();
-    }
-
     /**
      * @return {@link AccessoriesHolder} attached to a given {@link LivingEntity} based on the Platforms method for getting it
      */
     @ExpectPlatform
-    public static AccessoriesHolder getHolder(LivingEntity livingEntity){
+    public static AccessoriesHolder getHolder(LivingEntity livingEntity) {
         throw new AssertionError();
     }
 
     @ExpectPlatform
-    public static void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolder> modifier){
-        throw new AssertionError();
-    }
-
-    /**
-     * @return {@link BaseNetworkHandler} based on the Platforms method for getting it
-     */
-    @ExpectPlatform
-    public static BaseNetworkHandler getNetworkHandler(){
+    public static void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolder> modifier) {
         throw new AssertionError();
     }
 
     //--
 
     @ExpectPlatform
-    public static <T> Optional<Collection<Holder<T>>> getHolder(TagKey<T> tagKey){
+    public static <T> Optional<Collection<Holder<T>>> getHolder(TagKey<T> tagKey) {
         throw new AssertionError();
     }
 
     @ExpectPlatform
-    public static void giveItemToPlayer(ServerPlayer player, ItemStack stack){
+    public static void giveItemToPlayer(ServerPlayer player, ItemStack stack) {
         throw new AssertionError();
     }
 
     @ExpectPlatform
-    public static boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, @Nullable HolderLookup.Provider registryLookup){
+    public static boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, @Nullable HolderLookup.Provider registryLookup) {
         throw new AssertionError();
     }
 
     @ExpectPlatform
-    public static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(ResourceLocation location, TriFunction<Integer, Inventory, AccessoriesMenuData, T> func){
+    public static <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(ResourceLocation location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func) {
         throw new AssertionError();
     }
 
@@ -94,7 +88,12 @@ public class AccessoriesInternals {
     }
 
     @ExpectPlatform
-    public static void openAccessoriesMenu(Player player, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
+    public static void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    public static void addAttributeTooltips(@Nullable Player player, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, Consumer<Component> tooltipAddCallback, Item.TooltipContext context, TooltipFlag flag) {
         throw new AssertionError();
     }
 }

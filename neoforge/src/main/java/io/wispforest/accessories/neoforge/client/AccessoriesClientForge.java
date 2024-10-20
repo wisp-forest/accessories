@@ -2,31 +2,26 @@ package io.wispforest.accessories.neoforge.client;
 
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
-import io.wispforest.accessories.compat.AccessoriesConfig;
+import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
-import me.shedaniel.autoconfig.AutoConfig;
+import io.wispforest.accessories.menu.AccessoriesMenuTypes;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
-import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.*;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import org.lwjgl.glfw.GLFW;
@@ -39,35 +34,52 @@ import static io.wispforest.accessories.Accessories.MODID;
 @Mod(value = Accessories.MODID, dist = Dist.CLIENT)
 public class AccessoriesClientForge {
 
-    public static KeyMapping OPEN_SCREEN;
-
     public AccessoriesClientForge(final IEventBus eventBus) {
+        eventBus.addListener(this::registerMenuType);
         eventBus.addListener(this::onInitializeClient);
         eventBus.addListener(this::initKeybindings);
         eventBus.addListener(this::addRenderLayer);
         eventBus.addListener(this::registerShader);
+        NeoForge.EVENT_BUS.addListener(this::onJoin);
+
+        AccessoriesClient.initConfigStuff();
+    }
+
+    public void registerMenuType(RegisterMenuScreensEvent event) {
+        AccessoriesMenuTypes.registerClientMenuConstructors(event::register);
+    }
+
+    public void onJoin(ClientPlayerNetworkEvent.LoggingIn loggingInEvent) {
+        AccessoriesClient.initalConfigDataSync();
     }
 
     public void onInitializeClient(FMLClientSetupEvent event) {
-        AccessoriesClient.init();
-
         NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::clientTick);
         NeoForge.EVENT_BUS.addListener(AccessoriesClientForge::itemTooltipCallback);
 
-        ModLoadingContext.get().registerExtensionPoint(IConfigScreenFactory.class, () -> {
-            return (minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get();
-        });
+//        ModLoadingContext.get().registerExtensionPoint(IConfigScreenFactory.class, () -> {
+//            return (minecraft, parent) -> AutoConfig.getConfigScreen(AccessoriesConfig.class, parent).get();
+//        });
+
+        AccessoriesClient.init();
+
+        AccessoriesNetworking.initClient();
     }
 
     public void initKeybindings(RegisterKeyMappingsEvent event) {
-        OPEN_SCREEN = new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories");
+        AccessoriesClient.OPEN_SCREEN = new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories");
 
-        event.register(OPEN_SCREEN);
+        event.register(AccessoriesClient.OPEN_SCREEN);
     }
 
     public static void clientTick(ClientTickEvent.Pre event) {
-        if (OPEN_SCREEN.consumeClick()) {
-            AccessoriesClient.attemptToOpenScreen(Minecraft.getInstance().player.isShiftKeyDown());
+        if (AccessoriesClient.OPEN_SCREEN.consumeClick()) {
+            var client = Minecraft.getInstance();
+            if (client.screen instanceof AccessoriesScreenBase) {
+                client.setScreen(null);
+            } else {
+                AccessoriesClient.attemptToOpenScreen(client.player.isShiftKeyDown());
+            }
         }
     }
 

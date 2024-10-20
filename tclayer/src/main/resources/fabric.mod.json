@@ -30,6 +30,9 @@
     "main": [
       "io.wispforest.tclayer.TCLayer"
     ],
+    "client": [
+      "io.wispforest.tclayer.client.TCLayerClient"
+    ],
     "cardinal-components-entity": [
       "dev.emi.trinkets.api.TrinketsApi"
     ]
@@ -42,7 +45,7 @@
     "minecraft": ">=1.20.1",
     "cardinal-components-base": ">=3.0.0-0",
     "cardinal-components-entity": ">=3.0.0-0",
-    "accessories": ">=1.0.0-beta.35"
+    "accessories": ">=1.1.0-beta.3"
   },
   "custom": {
     "cardinal-components": [

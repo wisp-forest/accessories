@@ -1,15 +1,16 @@
 package io.wispforest.accessories.client.gui;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
-import io.wispforest.accessories.client.AccessoriesMenu;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.impl.ExpandedSimpleContainer;
 import io.wispforest.accessories.impl.SlotGroupImpl;
+import io.wispforest.accessories.menu.AccessoriesInternalSlot;
+import io.wispforest.accessories.menu.variants.AccessoriesMenu;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.holder.HolderProperty;
 import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.MenuScroll;
@@ -22,7 +23,6 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -42,7 +42,7 @@ import org.lwjgl.glfw.GLFW;
 import java.lang.Math;
 import java.util.*;
 
-public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> implements ContainerScreenExtension {
+public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> implements ContainerScreenExtension, AccessoriesScreenBase {
 
     private static final ResourceLocation SLOT = Accessories.of("textures/gui/slot.png");
 
@@ -65,22 +65,6 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
     private static final ResourceLocation UNUSED_SLOTS_HIDDEN = Accessories.of("widget/unused_slots_hidden");
     private static final ResourceLocation UNUSED_SLOTS_SHOWN = Accessories.of("widget/unused_slots_shown");
-
-    public static Vector4i SCISSOR_BOX = new Vector4i();
-    // are we currently rendering an entity in a screen
-    public static boolean IS_RENDERING_UI_ENTITY = false;
-    // are we currently rendering the entity that lines should be drawn to
-    public static boolean IS_RENDERING_LINE_TARGET = false;
-
-    public static boolean COLLECT_ACCESSORY_POSITIONS = false;
-
-    public static final Map<String, Vector3d> NOT_VERY_NICE_POSITIONS = new HashMap<>();
-
-    public static boolean FORCE_TOOLTIP_LEFT = false;
-
-    private final List<Pair<Vector3d, Vector3d>> accessoryLines = new ArrayList<>();
-
-    private final List<Vector3d> accessoryPositions = new ArrayList<>();
 
     private final Map<AccessoriesInternalSlot, ToggleButton> cosmeticButtons = new LinkedHashMap<>();
 
@@ -161,7 +145,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             return true;
         }
 
-        if (Accessories.getConfig().clientData.showGroupTabs && this.menu.maxScrollableIndex() > 0) {
+        if (Accessories.config().screenOptions.showGroupTabs() && this.menu.maxScrollableIndex() > 0) {
             int x = getStartingPanelX();
             int y = this.topPos;
 
@@ -173,7 +157,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
                 if (index > this.menu.maxScrollableIndex()) index = this.menu.maxScrollableIndex();
 
                 if (index != this.menu.scrolledIndex) {
-                    AccessoriesInternals.getNetworkHandler().sendToServer(new MenuScroll(index, false));
+                    AccessoriesNetworking.sendToServer(new MenuScroll(index, false));
 
                     Minecraft.getInstance().getSoundManager()
                             .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
@@ -210,21 +194,21 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         // --
 
-        COLLECT_ACCESSORY_POSITIONS = Accessories.getConfig().clientData.hoverOptions.hoveredOptions.line || Accessories.getConfig().clientData.hoverOptions.hoveredOptions.clickbait;
+        AccessoriesScreenBase.togglePositionCollection();
 
-        IS_RENDERING_UI_ENTITY = true;
+        AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.setValue(true);
 
-        IS_RENDERING_LINE_TARGET = true;
+        IS_RENDERING_LINE_TARGET.setValue(true);
 
         renderEntityInInventoryFollowingMouseRotated(guiGraphics, scissorStart, size, scissorStart, scissorEnd, mouseX, mouseY, 0);
 
-        IS_RENDERING_LINE_TARGET = false;
+        IS_RENDERING_LINE_TARGET.setValue(false);
 
         renderEntityInInventoryFollowingMouseRotated(guiGraphics, new Vector2i(scissorStart).add(size.x, 0), size, scissorStart, scissorEnd, mouseX, mouseY, 180);
 
-        IS_RENDERING_UI_ENTITY = false;
+        AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.setValue(false);
 
-        COLLECT_ACCESSORY_POSITIONS = false;
+        COLLECT_ACCESSORY_POSITIONS.setValue(false);
 
 
 //        HOVERED_SLOT_TYPE = null;
@@ -281,16 +265,17 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         if (getHoveredSlot() != null && getHoveredSlot() instanceof AccessoriesInternalSlot slot && slot.isActive() && !slot.getItem().isEmpty()) {
             if (NOT_VERY_NICE_POSITIONS.containsKey(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot())) {
-                this.accessoryPositions.add(NOT_VERY_NICE_POSITIONS.get(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot()));
+                ACCESSORY_POSITIONS.add(NOT_VERY_NICE_POSITIONS.get(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot()));
 
                 var positionKey = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
                 var vec = NOT_VERY_NICE_POSITIONS.getOrDefault(positionKey, null);
 
-                if (!slot.isCosmetic && vec != null && (menu.areLinesShown())) {
+                if (!slot.isCosmetic && vec != null && (Accessories.config().screenOptions.hoveredOptions.line())) {
                     var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
                     var vec3 = vec.add(0, 0, 5000);
 
-                    this.accessoryLines.add(Pair.of(start, vec3));}
+                    ACCESSORY_LINES.add(Pair.of(start, vec3));
+                }
             }
         }
 
@@ -299,11 +284,11 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (insideScrollbar(mouseX, mouseY) || (Accessories.getConfig().clientData.allowSlotScrolling && this.hoveredSlot instanceof AccessoriesInternalSlot)) {
+        if (insideScrollbar(mouseX, mouseY) || (Accessories.config().screenOptions.allowSlotScrolling() && this.hoveredSlot instanceof AccessoriesInternalSlot)) {
             int index = (int) Math.max(Math.min(-scrollY + this.menu.scrolledIndex, this.menu.maxScrollableIndex()), 0);
 
             if (index != menu.scrolledIndex) {
-                AccessoriesInternals.getNetworkHandler().sendToServer(new MenuScroll(index, false));
+                AccessoriesNetworking.sendToServer(new MenuScroll(index, false));
 
                 return true;
             }
@@ -323,7 +308,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             int index = Math.round(this.menu.smoothScroll * this.menu.maxScrollableIndex());
 
             if (index != menu.scrolledIndex) {
-                AccessoriesInternals.getNetworkHandler().sendToServer(new MenuScroll(index, true));
+                AccessoriesNetworking.sendToServer(new MenuScroll(index, true));
 
                 return true;
             }
@@ -357,7 +342,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         var pose = guiGraphics.pose();
 
-        if (Accessories.getConfig().clientData.showGroupTabs) {
+        if (Accessories.config().screenOptions.showGroupTabs()) {
             for (var entry : getGroups(x, y).entrySet()) {
                 var group = entry.getKey();
                 var pair = entry.getValue();
@@ -384,19 +369,18 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         //--
 
-        if (Accessories.getConfig().clientData.hoverOptions.hoveredOptions.clickbait) {
-            accessoryPositions.forEach(pos -> guiGraphics.blitSprite(Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 100, 256, 256));
-            this.accessoryPositions.clear();
+        if (Accessories.config().screenOptions.hoveredOptions.clickbait()) {
+            ACCESSORY_POSITIONS.forEach(pos -> guiGraphics.blitSprite(Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 100, 256, 256));
+            ACCESSORY_POSITIONS.clear();
         }
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
 
-        if (!this.accessoryLines.isEmpty() && Accessories.getConfig().clientData.hoverOptions.hoveredOptions.line) {
+        if (!ACCESSORY_LINES.isEmpty() && Accessories.config().screenOptions.hoveredOptions.line()) {
             var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
             var lastPose = guiGraphics.pose().last();
 
-            for (Pair<Vector3d, Vector3d> line : this.accessoryLines) {
-
+            for (Pair<Vector3d, Vector3d> line : ACCESSORY_LINES) {
                 var normalVec = line.second().sub(line.first(), new Vector3d()).normalize().get(new Vector3f());
 
                 double segments = Math.max(10, ((int) (line.first().distance(line.second()) * 10)) / 100);
@@ -460,7 +444,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
             minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
 
-            this.accessoryLines.clear();
+            ACCESSORY_LINES.clear();
         }
     }
 
@@ -486,7 +470,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         this.backButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), (btn) -> this.minecraft.setScreen(new InventoryScreen(minecraft.player)))
                         .bounds(this.leftPos + 141, this.topPos + 9, 8, 8)
-                        .tooltip(Tooltip.create(Component.translatable(Accessories.translation("back.screen"))))
+                        .tooltip(Tooltip.create(Component.translatable(Accessories.translationKey("back.screen"))))
                         .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
             guiGraphics.blitSprite(SPRITES_8X8.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
 
@@ -506,7 +490,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         this.cosmeticToggleButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), (btn) -> {
-                            AccessoriesInternals.getNetworkHandler()
+                            AccessoriesNetworking
                                     .sendToServer(SyncHolderChange.of(HolderProperty.COSMETIC_PROP, this.getMenu().owner(), bl -> !bl));
                         })
                         .tooltip(cosmeticsToggleTooltip(cosmeticsOpen))
@@ -517,7 +501,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         this.unusedSlotsToggleButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), (btn) -> {
-                            AccessoriesInternals.getNetworkHandler()
+                            AccessoriesNetworking
                                     .sendToServer(SyncHolderChange.of(HolderProperty.UNUSED_PROP, this.getMenu().owner(), bl -> !bl));
                         })
                         .tooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()))
@@ -531,34 +515,10 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         btnOffset += 15;
 
-        if (Accessories.getConfig().clientData.showUniqueRendering) {
-            var anyUniqueSlots = EntitySlotLoader.getEntitySlots(this.targetEntityDefaulted()).values()
-                    .stream()
-                    .anyMatch(slotType -> UniqueSlotHandling.isUniqueSlot(slotType.name()));
-
-            if (anyUniqueSlots) {
-                this.uniqueSlotsToggleButton = this.addRenderableWidget(
-                        Button.builder(Component.empty(), (btn) -> {
-                                    AccessoriesInternals.getNetworkHandler()
-                                            .sendToServer(SyncHolderChange.of(HolderProperty.UNIQUE_PROP, this.getMenu().owner(), bl -> !bl));
-                                })
-                                .tooltip(uniqueSlotsToggleButton(this.menu.areUniqueSlotsShown()))
-                                .bounds(this.leftPos + 154, btnOffset, 12, 12)
-                                .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-                    guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
-                    guiGraphics.blitSprite((this.menu.areUniqueSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
-
-                    return true;
-                });
-
-                btnOffset += 15;
-            }
-        }
-
 //        if (Accessories.getConfig().clientData.showLineRendering) {
 //            this.linesToggleButton = this.addRenderableWidget(
 //                    Button.builder(Component.empty(), (btn) -> {
-//                                AccessoriesInternals.getNetworkHandler()
+//                                AccessoriesNetworking
 //                                        .sendToServer(SyncHolderChange.of(HolderProperty.LINES_PROP, this.getMenu().owner(), bl -> !bl));
 //                            })
 //                            .bounds(this.leftPos + 154, btnOffset, 12, 12)
@@ -642,12 +602,12 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         }
     }
 
-    public void updateButtons(String name) {
-        switch (name) {
+    @Override
+    public void onHolderChange(String key) {
+        switch (key) {
             case "lines" -> updateLinesButton();
             case "cosmetic" -> updateCosmeticToggleButton();
             case "unused_slots" -> updateUnusedSlotToggleButton();
-            case "unique_slots" -> updateUniqueSlotToggleButton();
         }
     }
 
@@ -666,11 +626,6 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
     public void updateUnusedSlotToggleButton() {
         this.unusedSlotsToggleButton.setTooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()));
-        this.menu.reopenMenu();
-    }
-
-    public void updateUniqueSlotToggleButton() {
-        this.uniqueSlotsToggleButton.setTooltip(uniqueSlotsToggleButton(this.menu.areUniqueSlotsShown()));
         this.menu.reopenMenu();
     }
 
@@ -719,22 +674,22 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
     private static Tooltip createToggleTooltip(String type, boolean value) {
         var key = type + ".toggle." + (!value ? "show" : "hide");
 
-        return Tooltip.create(Component.translatable(Accessories.translation(key)));
+        return Tooltip.create(Component.translatable(Accessories.translationKey(key)));
     }
 
     @Override
-    public @Nullable Boolean isHovering(Slot slot, double mouseX, double mouseY) {
+    public @Nullable Boolean isHovering_Logical(Slot slot, double mouseX, double mouseY) {
         for (var child : this.children()) {
             if (child instanceof ToggleButton btn && btn.isMouseOver(mouseX, mouseY)) return false;
         }
 
-        return ContainerScreenExtension.super.isHovering(slot, mouseX, mouseY);
+        return ContainerScreenExtension.super.isHovering_Logical(slot, mouseX, mouseY);
     }
 
     @Override
     protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
         if (this.hoveredSlot instanceof AccessoriesInternalSlot slot) {
-            FORCE_TOOLTIP_LEFT = true;
+            AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(true);
 
             if (slot.getItem().isEmpty() && slot.accessoriesContainer.slotType() != null) {
                 guiGraphics.renderTooltip(Minecraft.getInstance().font, slot.getTooltipData(), Optional.empty(), x, y);
@@ -743,7 +698,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             }
         }
 
-        if (Accessories.getConfig().clientData.showGroupTabs) {
+        if (Accessories.config().screenOptions.showGroupTabs()) {
             int panelX = getStartingPanelX();
             int panelY = this.topPos;
 
@@ -764,7 +719,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         super.renderTooltip(guiGraphics, x, y);
 
-        FORCE_TOOLTIP_LEFT = false;
+        AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(false);
     }
 
     @Override
@@ -783,7 +738,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         boolean insideGroupPanel = false;
 
-        if (Accessories.getConfig().clientData.showGroupTabs && this.menu.maxScrollableIndex() > 0) {
+        if (Accessories.config().screenOptions.showGroupTabs() && this.menu.maxScrollableIndex() > 0) {
             for (var value : this.getGroups(sidePanelX, sidePanelY).values()) {
                 if (value.isInBounds((int) Math.round(mouseX), (int) Math.round(mouseY))) {
                     insideGroupPanel = true;

@@ -1,8 +1,8 @@
 package io.wispforest.accessories.compat.jei;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
-import me.shedaniel.math.Rectangle;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
@@ -36,6 +36,15 @@ public class AccessoriesClientJEIPlugin implements IModPlugin {
                 var height = screen.getPanelHeight();
 
                 return List.of(new Rect2i(x, y, width, height));
+            }
+        });
+
+        registration.addGuiContainerHandler(AccessoriesExperimentalScreen.class, new IGuiContainerHandler<AccessoriesExperimentalScreen>() {
+            @Override
+            public List<Rect2i> getGuiExtraAreas(AccessoriesExperimentalScreen screen) {
+                return screen.getComponentRectangles().stream()
+                        .map(rectangle -> new Rect2i(rectangle.x(), rectangle.y(), rectangle.width(), rectangle.height()))
+                        .toList();
             }
         });
     }

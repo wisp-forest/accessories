@@ -27,8 +27,12 @@ repositories {
     maven { url "https://modmaven.dev" } // location of a maven mirror for JEI files, as a fallback
     maven { url "https://maven.wispforest.io/releases" }
     mavenCentral()
+    maven { url "https://api.modrinth.com/maven" }
 //    maven { url 'https://jitpack.io' }
-    mavenLocal()
+    maven {
+        url "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+        content { includeGroup("software.bernie.geckolib") }
+    }
 }
 
 sourceSets {
@@ -44,15 +48,29 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive false }
 
-    modImplementation("me.shedaniel.cloth:cloth-config-neoforge:${rootProject.cloth_version}")
+    include modImplementation("io.wispforest:owo-lib-neoforge:${rootProject.owo_neo_version}")
 
-    include modApi("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+d1308dedd1"){ exclude group: "fabric-api" }
+    /*include*/ implementation("org.sinytra:forgified-fabric-loader:${project.ffloader_version}")
+    //include modRuntimeOnly("org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.ffapi_version}")
+
+    /*include*/ modRuntimeOnly("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+d1308dedd1") { exclude group: "fabric-api" }
+    /*include*/ modRuntimeOnly("org.sinytra.forgified-fabric-api:fabric-networking-api-v1:4.2.2+a92978fd19") { exclude group: "fabric-api" }
+    /*include*/ modRuntimeOnly("org.sinytra.forgified-fabric-api:fabric-screen-api-v1:2.0.24+79a4c2b0d1") { exclude group: "fabric-api" }
+
+    modCompileOnly "software.bernie.geckolib:geckolib-neoforge-1.21.1:${rootProject.geckolib_version}"
+
+    forgeRuntimeLibrary(implementation("blue.endless:jankson:1.2.2"))
+
+    /*include*/ modCompileOnly("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+e0539096d1"){ exclude group: "fabric-api" }
 
     forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")
     forgeRuntimeLibrary("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
+    forgeRuntimeLibrary("io.wispforest.endec:jankson:${rootProject.endec_jankson_version}")
     forgeRuntimeLibrary("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
 
     testmodImplementation sourceSets.main.output
+
+    //modLocalRuntime "maven.modrinth:sodium:mc1.21-0.6.0-beta.2-neoforge"
 
     var type = rootProject.properties.get("item_viewer_type");
 

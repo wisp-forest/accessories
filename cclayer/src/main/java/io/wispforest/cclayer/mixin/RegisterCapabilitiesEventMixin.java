@@ -1,7 +1,6 @@
 package io.wispforest.cclayer.mixin;
 
 import io.wispforest.accessories.api.AccessoriesAPI;
-import io.wispforest.accessories.api.Accessory;
 import io.wispforest.cclayer.CCLayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;

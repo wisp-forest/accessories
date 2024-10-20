@@ -7,16 +7,15 @@ import io.wispforest.accessories.api.attributes.SlotAttribute;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.endec.MinecraftEndecs;
-import io.wispforest.accessories.endec.RegistriesAttribute;
+import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.ApiStatus;
@@ -153,7 +152,7 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
                             path = path.replace("/", ":");
                         }
 
-                        return Holder.direct(SlotAttribute.getSlotAttribute(path));
+                        return SlotAttribute.getAttributeHolder(path);
                     }
 
                     return context.requireAttributeValue(RegistriesAttribute.REGISTRIES)

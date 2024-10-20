@@ -3,7 +3,11 @@
   "package": "io.wispforest.accessories.fabric.mixin",
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
-  "client": [],
+  "client": [
+    "client.AbstractContainerScreenMixin",
+    "client.HumanoidArmorLayerMixin",
+    "client.LivingEntityRendererMixin"
+  ],
   "mixins": [
     "LivingEntityMixin",
     "PlayerListMixin",

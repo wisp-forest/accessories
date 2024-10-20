@@ -1,7 +1,12 @@
 package io.wispforest.accessories.api;
 
 import com.google.common.collect.Multimap;
-import io.wispforest.accessories.api.slot.*;
+import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
+import io.wispforest.accessories.api.slot.SlotEntryReference;
+import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.SlotTypeReference;
+import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.world.entity.LivingEntity;
@@ -74,48 +79,6 @@ public interface AccessoriesCapability {
     //--
 
     /**
-     * Used to attempt to equip a given stack within any available {@link AccessoriesContainer} returning a
-     * reference and list within a pair. The given list may contain the overflow that could not fit based
-     * on the containers max stack size.
-     * <p>
-     * <b>WARNING: THE GIVEN STACK PASSED WILL NOT BE MUTATED AT ALL!</b>
-     *
-     * @param stack          The given stack attempting to be equipped
-     */
-    @Deprecated
-    @Nullable
-    default Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack){
-        return equipAccessory(stack, false);
-    }
-
-    /**
-     * Used to attempt to equip a given stack within any available {@link AccessoriesContainer} returning a
-     * reference and list within a pair. The given list may contain the overflow that could not fit based
-     * on the containers max stack size and the old stack found if swapping was allowed.
-     * <p>
-     * <b>WARNING: THE GIVEN STACK PASSED WILL NOT BE MUTATED AT ALL!</b>
-     *
-     * @param stack          The given stack attempting to be equipped
-     * @param allowSwapping  If the given call can attempt to swap accessories
-     */
-    @Deprecated
-    default Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack, boolean allowSwapping) {
-        var stackCopy = stack.copy();
-
-        var result = attemptToEquipAccessory(stackCopy, allowSwapping);
-
-        if(result == null) return null;
-
-        var returnStacks = new ArrayList<ItemStack>();
-
-        if(!stackCopy.isEmpty()) returnStacks.add(stackCopy);
-
-        result.second().ifPresent(returnStacks::add);
-
-        return Pair.of(result.first(), returnStacks);
-    }
-
-    /**
      * Attempts to equip a given stack within any available {@link AccessoriesContainer} returning a
      * reference to where it was equipped. The given passed stack <b>will</b> be adjusted passed on
      * the amount of room that can be found within the found container.
@@ -171,7 +134,7 @@ public interface AccessoriesCapability {
     }
 
     default boolean isEquipped(Item item, EquipmentChecking check){
-        return isEquipped(stack -> stack.getItem() == item, check);
+        return isEquipped(ItemStackBasedPredicate.ofItem(item), check);
     }
 
     /**
@@ -182,7 +145,48 @@ public interface AccessoriesCapability {
     }
 
     default boolean isEquipped(Predicate<ItemStack> predicate, EquipmentChecking check) {
+        return isEquipped(ItemStackBasedPredicate.ofPredicate(predicate), check);
+    }
+
+    default boolean isEquipped(ItemStackBasedPredicate predicate, EquipmentChecking check) {
+        var cache = ((AccessoriesHolderImpl)this.getHolder()).getLookupCache();
+
+        if (cache != null) return cache.firstEquipped(predicate, check) != null;
+
         return getFirstEquipped(predicate, check) != null;
+    }
+
+    default boolean isAnotherEquipped(ItemStack stack, SlotReference slotReference, Item item) {
+        return isAnotherEquipped(stack, slotReference, ItemStackBasedPredicate.ofItem(item));
+    }
+
+    default boolean isAnotherEquipped(ItemStack stack, SlotReference slotReference, Predicate<ItemStack> predicate) {
+        return isAnotherEquipped(stack, slotReference, ItemStackBasedPredicate.ofPredicate(predicate));
+    }
+
+    /**
+     * @return If any {@link ItemStack} is equipped based on the passed predicate while deduplicating
+     * using the current {@link SlotReference} and the given {@link ItemStack}
+     */
+    default boolean isAnotherEquipped(ItemStack stack, SlotReference slotReference, ItemStackBasedPredicate predicate) {
+        var cache = ((AccessoriesHolderImpl)this.getHolder()).getLookupCache();
+
+        List<SlotEntryReference> equippedStacks = (cache != null) ? cache.getEquipped(predicate) : getEquipped(predicate);
+
+        if (equippedStacks.size() > 2) {
+            for (var otherEntryRef : equippedStacks) {
+                if (!otherEntryRef.reference().equals(slotReference)) return true;
+                if (!otherEntryRef.stack().equals(stack)) return true;
+            }
+        } else if(equippedStacks.size() == 1) {
+            var otherEntryRef = equippedStacks.getFirst();
+
+            if (!otherEntryRef.reference().equals(slotReference)) return true;
+
+            return !otherEntryRef.stack().equals(stack);
+        }
+
+        return false;
     }
 
     /**
@@ -195,32 +199,46 @@ public interface AccessoriesCapability {
 
     @Nullable
     default SlotEntryReference getFirstEquipped(Item item, EquipmentChecking check){
-        return getFirstEquipped(stack -> stack.getItem() == item, check);
+        return getFirstEquipped(ItemStackBasedPredicate.ofItem(item), check);
     }
 
-    /**
-     * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given predicate
-     */
     @Nullable
     default SlotEntryReference getFirstEquipped(Predicate<ItemStack> predicate) {
         return getFirstEquipped(predicate, EquipmentChecking.ACCESSORIES_ONLY);
     }
 
     @Nullable
-    SlotEntryReference getFirstEquipped(Predicate<ItemStack> predicate, EquipmentChecking check);
+    default SlotEntryReference getFirstEquipped(Predicate<ItemStack> predicate, EquipmentChecking check) {
+        return getFirstEquipped(ItemStackBasedPredicate.ofPredicate(predicate), check);
+    }
+
+    /**
+     * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given predicate
+     */
+    @Nullable
+    SlotEntryReference getFirstEquipped(ItemStackBasedPredicate predicate, EquipmentChecking check);
 
     /**
      * @return A list of all {@link ItemStack}'s formatted within {@link SlotEntryReference} matching the given {@link Item}
      */
     default List<SlotEntryReference> getEquipped(Item item){
-        return getEquipped(stack -> stack.getItem() == item);
+        return getEquipped(ItemStackBasedPredicate.ofItem(item));
     }
 
     /**
      * @return A list of all {@link SlotEntryReference}'s formatted within {@link SlotEntryReference} matching the passed predicate
      */
-    List<SlotEntryReference> getEquipped(Predicate<ItemStack> predicate);
+    default List<SlotEntryReference> getEquipped(Predicate<ItemStack> predicate){
+        return getEquipped(ItemStackBasedPredicate.ofPredicate(predicate));
+    }
 
+    default List<SlotEntryReference> getEquipped(ItemStackBasedPredicate predicate) {
+        var cache = ((AccessoriesHolderImpl)this.getHolder()).getLookupCache();
+
+        if (cache != null) return cache.getEquipped(predicate);
+
+        return getAllEquipped().stream().filter(reference -> predicate.test(reference.stack())).toList();
+    }
     /**
      * @return A list of all {@link ItemStack}'s formatted within {@link SlotEntryReference}
      */
@@ -269,9 +287,67 @@ public interface AccessoriesCapability {
 
     //--
 
+    /**
+     * Used to attempt to equip a given stack within any available {@link AccessoriesContainer} returning a
+     * reference and list within a pair. The given list may contain the overflow that could not fit based
+     * on the containers max stack size.
+     * <p>
+     * <b>WARNING: THE GIVEN STACK PASSED WILL NOT BE MUTATED AT ALL!</b>
+     *
+     * @param stack          The given stack attempting to be equipped
+     */
+    @Deprecated
+    @Nullable
+    default Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack){
+        return equipAccessory(stack, false);
+    }
+
+    /**
+     * Used to attempt to equip a given stack within any available {@link AccessoriesContainer} returning a
+     * reference and list within a pair. The given list may contain the overflow that could not fit based
+     * on the containers max stack size and the old stack found if swapping was allowed.
+     * <p>
+     * <b>WARNING: THE GIVEN STACK PASSED WILL NOT BE MUTATED AT ALL!</b>
+     *
+     * @param stack          The given stack attempting to be equipped
+     * @param allowSwapping  If the given call can attempt to swap accessories
+     */
+    @Deprecated
+    default Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack, boolean allowSwapping) {
+        var stackCopy = stack.copy();
+
+        var result = attemptToEquipAccessory(stackCopy, allowSwapping);
+
+        if(result == null) return null;
+
+        var returnStacks = new ArrayList<ItemStack>();
+
+        if(!stackCopy.isEmpty()) returnStacks.add(stackCopy);
+
+        result.second().ifPresent(returnStacks::add);
+
+        return Pair.of(result.first(), returnStacks);
+    }
+
     @Nullable
     @Deprecated
     default Pair<SlotReference, List<ItemStack>> equipAccessory(ItemStack stack, boolean allowSwapping, TriFunction<Accessory, ItemStack, SlotReference, Boolean> additionalCheck) {
         return equipAccessory(stack, allowSwapping);
+    }
+
+    /**
+     * @deprecated Use {@link #isAnotherEquipped(ItemStack, SlotReference, Item)}
+     */
+    @Deprecated(forRemoval = true)
+    default boolean isAnotherEquipped(SlotReference slotReference, Item item) {
+        return isAnotherEquipped(slotReference.getStack() /* <- DO NOT DO THIS! */, slotReference, item);
+    }
+
+    /**
+     * @deprecated Use {@link #isAnotherEquipped(ItemStack, SlotReference, Predicate)}
+     */
+    @Deprecated(forRemoval = true)
+    default boolean isAnotherEquipped(SlotReference slotReference, Predicate<ItemStack> predicate) {
+        return isAnotherEquipped(slotReference.getStack() /* <- DO NOT DO THIS! */, slotReference, predicate);
     }
 }

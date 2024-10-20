@@ -1,7 +1,6 @@
 package io.wispforest.accessories.mixin;
 
 import com.google.common.collect.HashMultimap;
-import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.EquipmentSlot;

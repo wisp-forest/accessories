@@ -1,22 +1,34 @@
 package io.wispforest.accessories.utils;
 
+import io.wispforest.accessories.endec.NbtMapCarrier;
+import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import io.wispforest.endec.*;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.endec.util.MapCarrier;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
-import it.unimi.dsi.fastutil.floats.FloatList;
 import net.fabricmc.fabric.api.util.TriState;
-import org.joml.AxisAngle4f;
-import org.joml.Matrix4f;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.util.StringRepresentable;
+import org.joml.*;
 
+import java.lang.Math;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class EndecUtils {
 
+    public static final Endec<ListTag> NBT_LIST = NbtEndec.ELEMENT.xmap(ListTag.class::cast, listTag -> listTag);
+
     public static final Endec<TriState> TRI_STATE_ENDEC = Endec.BOOLEAN.nullableOf().xmap(TriState::of, TriState::getBoxed);
+
+    public static final Endec<Vector2i> VECTOR_2_I_ENDEC = StructEndecBuilder.of(
+            Endec.LONG.fieldOf("x", vec2i -> (long) vec2i.x),
+            Endec.LONG.fieldOf("y", vec2i -> (long) vec2i.y),
+            (x, y) -> new Vector2i((int) (long) x, (int) (long) y)
+    );
 
     public static final Endec<Vector3f> VECTOR_3_F_ENDEC = EndecUtils.vectorEndec("Vector3f", Endec.FLOAT, Vector3f::new, Vector3f::x, Vector3f::y, Vector3f::z);
 
@@ -49,28 +61,6 @@ public class EndecUtils {
                 return floats;
             });
 
-    public static <T> Endec<T> unit(T t) {
-        return unit(() -> t);
-    }
-
-    public static <T> Endec<T> unit(Supplier<T> supplier) {
-        return new Endec<>() {
-            @Override public void encode(SerializationContext ctx, Serializer<?> serializer, T value) {}
-            @Override public T decode(SerializationContext ctx, Deserializer<?> deserializer) { return supplier.get(); }
-        };
-    }
-
-    public static <T> StructEndec<T> structUnit(T t) {
-        return structUnit(() -> t);
-    }
-
-    public static <T> StructEndec<T> structUnit(Supplier<T> supplier) {
-        return new StructEndec<>() {
-            @Override public void encodeStruct(SerializationContext ctx, Serializer<?> serializer, Serializer.Struct struct, T value) {}
-            @Override public T decodeStruct(SerializationContext ctx, Deserializer<?> deserializer, Deserializer.Struct struct) { return supplier.get(); }
-        };
-    }
-
     public static <C, V> Endec<V> vectorEndec(String name, Endec<C> componentEndec, StructEndecBuilder.Function3<C, C, C, V> constructor, Function<V, C> xGetter, Function<V, C> yGetter, Function<V, C> zGetter) {
         return componentEndec.listOf().validate(ints -> {
             if (ints.size() != 3) throw new IllegalStateException(name + " array must have three elements");
@@ -86,6 +76,33 @@ public class EndecUtils {
         }).xmap(
                 components -> constructor.apply(components.get(0), components.get(1), components.get(2), components.get(3)),
                 vector -> List.of(xGetter.apply(vector), yGetter.apply(vector), zGetter.apply(vector), wGetter.apply(vector))
+        );
+    }
+
+    public static void dfuKeysCarrier(MapCarrier carrier, Map<String, String> changedKeys) {
+        CompoundTag compoundTag;
+
+        if (carrier instanceof NbtMapCarrier nbtMapCarrier) {
+            compoundTag = nbtMapCarrier.compoundTag();
+        } else if (carrier instanceof CompoundTag carrierTag) {
+            compoundTag = carrierTag;
+        } else {
+            compoundTag = null;
+        }
+
+        if(compoundTag != null) {
+            changedKeys.forEach((prevKey, newKey) -> {
+                if (compoundTag.contains(prevKey)) compoundTag.put(newKey, compoundTag.get(prevKey));
+            });
+        }
+    }
+
+    public static <E extends Enum<E> & StringRepresentable> Endec<E> forEnumStringRepresentable(Class<E> enumClass) {
+        return Endec.ifAttr(
+                SerializationAttributes.HUMAN_READABLE,
+                Endec.STRING.xmap(name -> Arrays.stream(enumClass.getEnumConstants()).filter(e -> e.getSerializedName().equals(name)).findFirst().get(), StringRepresentable::getSerializedName)
+        ).orElse(
+                Endec.VAR_INT.xmap(ordinal -> enumClass.getEnumConstants()[ordinal], Enum::ordinal)
         );
     }
 }

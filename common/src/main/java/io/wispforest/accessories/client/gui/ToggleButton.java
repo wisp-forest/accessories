@@ -2,9 +2,8 @@ package io.wispforest.accessories.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
-import io.wispforest.accessories.client.GuiGraphicsUtils;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.server.SyncCosmeticToggle;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -42,7 +41,7 @@ public class ToggleButton extends Button {
 
     public static ToggleButton ofSlot(int x, int y, int z, AccessoriesBasedSlot slot) {
         return ToggleButton.toggleBuilder(Component.empty(), btn -> {
-                    AccessoriesInternals.getNetworkHandler().sendToServer(SyncCosmeticToggle.of(slot.entity.equals(Minecraft.getInstance().player) ? null : slot.entity, slot.accessoriesContainer.slotType(), slot.getContainerSlot()));
+                    AccessoriesNetworking.sendToServer(SyncCosmeticToggle.of(slot.entity.equals(Minecraft.getInstance().player) ? null : slot.entity, slot.accessoriesContainer.slotType(), slot.getContainerSlot()));
                 }).onRender(btn -> {
                     var bl = slot.accessoriesContainer.shouldRender(slot.getContainerSlot());
 
@@ -60,7 +59,7 @@ public class ToggleButton extends Button {
     private static Tooltip accessoriesToggleTooltip(boolean value) {
         var key = "display.toggle." + (!value ? "show" : "hide");
 
-        return Tooltip.create(Component.translatable(Accessories.translation(key)));
+        return Tooltip.create(Component.translatable(Accessories.translationKey(key)));
     }
 
     public ToggleButton toggled(boolean value){

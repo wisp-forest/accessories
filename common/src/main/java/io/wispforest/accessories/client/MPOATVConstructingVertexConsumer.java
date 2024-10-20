@@ -2,11 +2,7 @@ package io.wispforest.accessories.client;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3d;
-import org.joml.Vector3f;
 
 /**
  * Mean Position of all the Vertices™ (MPOATV)
