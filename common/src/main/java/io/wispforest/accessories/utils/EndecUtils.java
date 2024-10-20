@@ -24,7 +24,11 @@ public class EndecUtils {
 
     public static final Endec<TriState> TRI_STATE_ENDEC = Endec.BOOLEAN.nullableOf().xmap(TriState::of, TriState::getBoxed);
 
-    public static final Endec<Vector2i> VECTOR_2_I_ENDEC = StructEndecBuilder.of(Endec.INT.fieldOf("x", Vector2i::x), Endec.INT.fieldOf("y", Vector2i::y), Vector2i::new);
+    public static final Endec<Vector2i> VECTOR_2_I_ENDEC = StructEndecBuilder.of(
+            Endec.LONG.fieldOf("x", vec2i -> (long) vec2i.x),
+            Endec.LONG.fieldOf("y", vec2i -> (long) vec2i.y),
+            (x, y) -> new Vector2i((int) (long) x, (int) (long) y)
+    );
 
     public static final Endec<Vector3f> VECTOR_3_F_ENDEC = EndecUtils.vectorEndec("Vector3f", Endec.FLOAT, Vector3f::new, Vector3f::x, Vector3f::y, Vector3f::z);
 
