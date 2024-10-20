@@ -5,7 +5,8 @@
   "minVersion": "0.8",
   "client": [
     "client.AbstractContainerScreenMixin",
-    "client.HumanoidArmorLayerMixin"
+    "client.HumanoidArmorLayerMixin",
+    "client.LivingEntityRendererMixin"
   ],
   "mixins": [
     "LivingEntityMixin",

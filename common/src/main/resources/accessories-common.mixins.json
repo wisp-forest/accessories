@@ -20,7 +20,6 @@
     "client.RenderTargetMixin",
     "client.cosmetic.ArmorStandMixin",
     "client.cosmetic.LivingEntityMixin",
-    "client.cosmetic.LivingEntityRendererMixin",
     "client.cosmetic.MobMixin",
     "client.cosmetic.PlayerMixin",
     "client.owo.BaseComponentMixin",

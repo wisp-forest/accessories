@@ -1,4 +1,4 @@
-package io.wispforest.accessories.mixin.client.cosmetic;
+package io.wispforest.accessories.fabric.mixin.client;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -12,9 +12,6 @@ import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(value = LivingEntityRenderer.class, remap = false)
 public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extends EntityModel<T>> extends EntityRenderer<T> implements RenderLayerParent<T, M> {
@@ -25,8 +22,8 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
     @WrapMethod(method = {
             "render(Lnet/minecraft/world/entity/LivingEntity;FFLcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;I)V",
-            "Lnet/minecraft/class_922;method_4054(Lnet/minecraft/class_1309;FFLnet/minecraft/class_4587;Lnet/minecraft/class_4597;I)V" //TODO: WHY DO I NEEDED THIS!
-    }, remap = false, expect = 1, require = 1)
+            "method_4054(Lnet/minecraft/class_1309;FFLnet/minecraft/class_4587;Lnet/minecraft/class_4597;I)V" //TODO: WHY DO I NEEDED THIS!
+    }, remap = false, expect = 1, require = 1, allow = 1)
     private void accessories$adjustArmorLookup(LivingEntity entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight, Operation<Void> original) {
         ((CosmeticArmorLookupTogglable)entity).setLookupToggle(true);
 
