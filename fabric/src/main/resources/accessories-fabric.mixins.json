@@ -4,15 +4,13 @@
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [
-    "client.AbstractContainerScreenMixin",
-    "client.HumanoidArmorLayerMixin",
-    "client.LivingEntityRendererMixin"
+    "client.AbstractContainerScreenMixin"
   ],
   "mixins": [
     "LivingEntityMixin",
     "PlayerListMixin",
     "ServerEntityEvent",
-    "TagManagerMixin"
+    "DataPackContentsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

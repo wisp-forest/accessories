@@ -3,6 +3,7 @@ package io.wispforest.accessories.client.gui.components;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
+import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.owo.ui.base.BaseParentComponent;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.container.Containers;
@@ -73,7 +74,7 @@ public class ScrollableAccessoriesComponent extends FlowLayout implements Access
 
         var gridSize = 7;
 
-        var maxColumnCount = menu.owner().accessoriesHolder().columnAmount();
+        var maxColumnCount = AccessoriesHolderImpl.getHolder(menu.owner()).columnAmount();
         var maxRowCount = gridSize;
 
         var totalRowCount = (int) Math.ceil(((slots.size()) / 2f) / maxColumnCount);

@@ -5,11 +5,14 @@ import io.wispforest.accessories.mixin.CraftingMenuAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import it.unimi.dsi.fastutil.Pair;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.StackedContents;
+import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -17,39 +20,41 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AccessoriesMenuBase extends RecipeBookMenu<CraftingInput, CraftingRecipe> {
+import java.util.List;
 
-    @Nullable protected final CraftingContainer craftSlots;
-    @Nullable protected final ResultContainer resultSlots = new ResultContainer();
+public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
 
     protected final Player owner;
 
     @Nullable
     protected final LivingEntity targetEntity;
 
-    protected AccessoriesMenuBase(MenuType<? extends AccessoriesMenuBase> menuType, int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
-        super(menuType, containerId);
+    protected AccessoriesMenuBase(MenuType<? extends AccessoriesMenuBase> menuType, int containerId, Inventory inventory, int width, int height, @Nullable LivingEntity targetEntity) {
+        super(menuType, containerId, width, height);
 
         this.owner = inventory.player;
         this.targetEntity = targetEntity;
 
         if (this instanceof AccessoriesExperimentalMenu) {
-            this.craftSlots = new TransientCraftingContainer(this, 2, 2);
-
-            this.addSlot(new ResultSlot(inventory.player, this.craftSlots, this.resultSlots, 0, 154, 28));
-
-            for (int y = 0; y < 2; ++y) {
-                for (int x = 0; x < 2; ++x) {
-                    this.addSlot(new Slot(this.craftSlots, x + y * 2, 98 + x * 18, 18 + y * 18));
-                }
-            }
-        } else {
-            this.craftSlots = new TransientCraftingContainer(this, 0, 0);
+            this.addResultSlot(inventory.player, 154, 28);
+            this.addCraftingGridSlots(98, 18);
         }
     }
 
     public final AccessoriesMenuVariant menuVariant() {
         return AccessoriesMenuVariant.getVariant((MenuType<? extends AccessoriesMenuBase>) this.getType());
+    }
+
+    private static final Slot EMPTY_SLOT = new Slot(new SimpleContainer(1), 0, 0, 0);
+
+    @Override
+    public Slot getResultSlot() {
+        return (this instanceof AccessoriesExperimentalMenu) ? this.slots.get(0) : EMPTY_SLOT;
+    }
+
+    @Override
+    public List<Slot> getInputGridSlots() {
+        return (this instanceof AccessoriesExperimentalMenu) ? this.slots.subList(1, 5) : List.of();
     }
 
     @Nullable
@@ -93,8 +98,8 @@ public abstract class AccessoriesMenuBase extends RecipeBookMenu<CraftingInput, 
         return null;
     }
 
-    public void fillCraftSlotsStackedContents(StackedContents itemHelper) {
-        this.craftSlots.fillStackedContents(itemHelper);
+    public void fillCraftSlotsStackedContents(StackedItemContents stackedItemContents) {
+        this.craftSlots.fillStackedContents(stackedItemContents);
     }
 
     public void clearCraftingContent() {
@@ -107,7 +112,9 @@ public abstract class AccessoriesMenuBase extends RecipeBookMenu<CraftingInput, 
     }
 
     public void slotsChanged(Container container) {
-        CraftingMenuAccessor.accessories$slotChangedCraftingGrid(this, this.owner.level(), this.owner, this.craftSlots, this.resultSlots, (RecipeHolder) null);
+        if (!(this.owner.level() instanceof ServerLevel serverLevel)) return;
+        
+        CraftingMenuAccessor.accessories$slotChangedCraftingGrid(this, serverLevel, this.owner, this.craftSlots, this.resultSlots, (RecipeHolder) null);
     }
 
     public void removed(Player player) {

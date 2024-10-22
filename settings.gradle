@@ -13,9 +13,9 @@ include("common-mojmap")
 
 include("common")
 include("fabric")
-include("neoforge")
+//include("neoforge")
 
-include("cclayer")
-include("tclayer")
+//include("cclayer")
+//include("tclayer")
 
 rootProject.name = "accessories"

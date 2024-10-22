@@ -10,6 +10,7 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
+import io.wispforest.accessories.pond.LivingEntityRenderStateExtension;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -17,6 +18,8 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import org.apache.commons.lang3.mutable.MutableBoolean;
@@ -33,7 +36,7 @@ import java.util.Map;
  * This is only applied to {@link LivingEntityRenderer} that have a model that
  * extends {@link HumanoidModel}
  */
-public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M> {
+public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<S>> extends RenderLayer<S, M> {
 
     private static final PostEffectBuffer BUFFER = new PostEffectBuffer();
 
@@ -44,23 +47,16 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
     private static long lastUpdated20th = 0;
 
-    public AccessoriesRenderLayer(RenderLayerParent<T, M> renderLayerParent) {
+    public AccessoriesRenderLayer(RenderLayerParent<S, M> renderLayerParent) {
         super(renderLayerParent);
     }
 
     @Override
-    public void render(
-            PoseStack poseStack,
-            MultiBufferSource multiBufferSource,
-            int light,
-            T entity,
-            float limbSwing,
-            float limbSwingAmount,
-            float partialTicks,
-            float ageInTicks,
-            float netHeadYaw,
-            float headPitch
-    ) {
+    public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, S entityRenderState, float f, float g) {
+        T entity = (T) ((LivingEntityRenderStateExtension) entityRenderState).getEntity();
+
+        var partialTicks = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(!entity.level().tickRateManager().isEntityFrozen(entity));
+
         var capability = AccessoriesCapability.get(entity);
 
         if (capability == null) return;
@@ -154,14 +150,10 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                             SlotReference.of(entity, container.getSlotName(), i),
                             poseStack,
                             getParentModel(),
+                            entityRenderState,
                             innerBufferSource,
                             light,
-                            limbSwing,
-                            limbSwingAmount,
-                            partialTicks,
-                            ageInTicks,
-                            netHeadYaw,
-                            headPitch
+                            partialTicks
                     );
                 }
 
@@ -185,7 +177,8 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                             colorValues = new float[]{darkness, darkness, darkness, opacityMap.getOrDefault(entry.getKey() + i, 1f)};
                         }
 
-                        if (colorValues != null) {
+                        // TODO: [1.21.2 - Porting] Fix issues with atlas being drawn!
+                        if (colorValues != null && false) {
                             BUFFER.beginWrite(true, GL30.GL_DEPTH_BUFFER_BIT);
                             bufferSource.endBatch();
                             BUFFER.endWrite();

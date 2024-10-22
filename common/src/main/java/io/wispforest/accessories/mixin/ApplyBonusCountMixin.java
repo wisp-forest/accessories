@@ -21,7 +21,7 @@ public abstract class ApplyBonusCountMixin {
 
     @ModifyArg(method = "run", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/storage/loot/functions/ApplyBonusCount$Formula;calculateNewCount(Lnet/minecraft/util/RandomSource;II)I"), index = 2)
     private int test(int value, @Local(argsOnly = true) LootContext context){
-        return (this.enchantment.value() == context.getLevel().registryAccess().registry(Registries.ENCHANTMENT).orElseThrow().getHolderOrThrow(Enchantments.FORTUNE).value())
+        return (this.enchantment.value() == context.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getValueOrThrow(Enchantments.FORTUNE))
                 ? ExtraEventHandler.fortuneAdjustment(context, value)
                 : value;
     }

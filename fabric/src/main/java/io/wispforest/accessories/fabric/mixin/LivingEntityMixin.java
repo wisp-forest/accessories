@@ -18,7 +18,7 @@ public abstract class LivingEntityMixin {
         AccessoriesEventHandler.onLivingEntityTick((LivingEntity)(Object)this);
     }
 
-    @Inject(method = "dropAllDeathLoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;dropEquipment()V"))
+    @Inject(method = "dropAllDeathLoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;dropEquipment(Lnet/minecraft/server/level/ServerLevel;)V"))
     private void handleAccessoriesDrop(ServerLevel level, DamageSource damageSource, CallbackInfo ci) {
         var entity = (LivingEntity) (Object) this;
         var droppedStacks = AccessoriesEventHandler.onDeath(entity, damageSource);
@@ -29,7 +29,7 @@ public abstract class LivingEntityMixin {
             playerExtension.addToBeDroppedStacks(droppedStacks);
         } else {
             for (var droppedStack : droppedStacks) {
-                entity.spawnAtLocation(droppedStack);
+                entity.spawnAtLocation(level, droppedStack);
             }
         }
     }

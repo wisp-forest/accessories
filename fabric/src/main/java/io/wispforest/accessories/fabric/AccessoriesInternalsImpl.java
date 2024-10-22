@@ -62,16 +62,18 @@ public class AccessoriesInternalsImpl {
         livingEntity.setAttached(AccessoriesFabric.HOLDER_ATTACHMENT_TYPE, holder);
     }
 
-    public static final ThreadLocal<Map<ResourceKey<?>, Map<ResourceLocation, Collection<Holder<?>>>>> LOADED_TAGS = new ThreadLocal<>();
+    public static final AtomicReference<Map<ResourceKey<?>, Map<ResourceLocation, Supplier<List<Holder<?>>>>>> LOADED_TAGS = new AtomicReference<>();
 
-    public static void setTags(List<TagManager.LoadResult<?>> tags) {
-        Map<ResourceKey<?>, Map<ResourceLocation, Collection<Holder<?>>>> tagMap = new IdentityHashMap<>();
+    public static void setTags(List<Registry.PendingTags<?>> tags) {
+        Map<ResourceKey<?>, Map<ResourceLocation, Supplier<List<Holder<?>>>>> tagMap = new IdentityHashMap<>();
 
-        for (TagManager.LoadResult<?> registryTags : tags) {
-            tagMap.put(registryTags.key(), (Map) registryTags.tags());
+        for (Registry.PendingTags<?> registryTags : tags) {
+            tagMap.put(registryTags.key(), registryTags.lookup().listTags().collect(Collectors.toMap(holder -> holder.key().location(), holder -> () -> (List<Holder<?>>) (Object) holder.stream().toList())));
         }
 
-        LOADED_TAGS.set(tagMap);
+        if (LOADED_TAGS.getAndSet(tagMap) != null) {
+            throw new IllegalStateException("Tags already captured, this should not happen");
+        }
     }
 
     public static <T> Optional<Collection<Holder<T>>> getHolder(TagKey<T> tagKey){
@@ -83,7 +85,7 @@ public class AccessoriesInternalsImpl {
 
         if(holders == null) return Optional.empty();
 
-        var converted = holders
+        var converted = holders.get()
                 .stream()
                 .map(holder -> (Holder<T>) holder)
                 .collect(Collectors.toUnmodifiableSet());
@@ -102,8 +104,8 @@ public class AccessoriesInternalsImpl {
         }
     }
 
-    public static boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, @Nullable HolderLookup.Provider registryLookup) {
-        return ResourceConditionsImpl.applyResourceConditions(object, dataType, key, registryLookup);
+    public static boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, @Nullable RegistryOps.RegistryInfoLookup registryInfo) {
+        return ResourceConditionsImpl.applyResourceConditions(object, dataType, key, registryInfo);
     }
 
     public static <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(ResourceLocation location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func){

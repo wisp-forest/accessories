@@ -743,7 +743,7 @@ public class AccessoriesEventHandler {
         return stack;
     }
 
-    public static InteractionResultHolder<ItemStack> attemptEquipFromUse(Player player, InteractionHand hand) {
+    public static InteractionResult attemptEquipFromUse(Player player, InteractionHand hand) {
         var stack = player.getItemInHand(hand);
 
         var capability = AccessoriesCapability.get(player);
@@ -783,12 +783,12 @@ public class AccessoriesEventHandler {
                         }
                     }
 
-                    return InteractionResultHolder.success(newHandStack);
+                    return InteractionResult.SUCCESS.heldItemTransformedTo(newHandStack);
                 }
             }
         }
 
-        return InteractionResultHolder.pass(stack);
+        return InteractionResult.PASS;
     }
 
     public static InteractionResult attemptEquipOnEntity(Player player, InteractionHand hand, Entity entity) {

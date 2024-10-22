@@ -1,11 +1,12 @@
 package io.wispforest.accessories.client;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
-import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.gui.ScreenVariantSelectionScreen;
 import io.wispforest.accessories.client.gui.components.ComponentUtils;
@@ -15,6 +16,7 @@ import io.wispforest.accessories.compat.config.client.Structured;
 import io.wispforest.accessories.compat.config.client.components.StructListOptionContainer;
 import io.wispforest.accessories.compat.config.client.components.StructOptionContainer;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.mixin.owo.ConfigWrapperAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
@@ -38,28 +40,34 @@ import io.wispforest.owo.util.ReflectionUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.ShaderDefines;
+import net.minecraft.client.renderer.ShaderProgram;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.TriState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.phys.EntityHitResult;
 
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 public class AccessoriesClient {
 
     public static KeyMapping OPEN_SCREEN = null;
 
-    public static final ResourceLocation BLIT_SHADER_ID = Accessories.of("fish");
-    public static ShaderInstance BLIT_SHADER;
+    public static final ShaderProgram BLIT_SHADER_KEY = new ShaderProgram(Accessories.of("core/fish"), DefaultVertexFormat.BLIT_SCREEN, ShaderDefines.EMPTY);
+
     public static GlProgram SPECTRUM_PROGRAM;
 
     public static final Event<WindowResizeCallback> WINDOW_RESIZE_CALLBACK_EVENT = EventFactory.createArrayBacked(WindowResizeCallback.class, callbacks -> (client, window) -> {
@@ -148,12 +156,12 @@ public class AccessoriesClient {
         initLayer();
     }
 
-    private static void attemptAction(Consumer<AccessoriesHolder> consumer) {
+    private static void attemptAction(Consumer<AccessoriesHolderImpl> consumer) {
         var currentPlayer = Minecraft.getInstance().player;
 
         if (currentPlayer == null || Minecraft.getInstance().level == null) return;
 
-        var holder = currentPlayer.accessoriesHolder();
+        var holder = AccessoriesHolderImpl.getHolder(currentPlayer);
 
         if (holder != null) consumer.accept(holder);
     }
@@ -163,7 +171,7 @@ public class AccessoriesClient {
 
         if(currentPlayer == null || Minecraft.getInstance().level == null) return;
 
-        var holder = currentPlayer.accessoriesHolder();
+        var holder = AccessoriesHolderImpl.getHolder(currentPlayer);
 
         if(holder == null) return;
 
@@ -210,7 +218,7 @@ public class AccessoriesClient {
         } else {
             var slots = AccessoriesAPI.getUsedSlotsFor(player);
 
-            var holder = player.accessoriesHolder();
+            var holder = AccessoriesHolderImpl.getHolder(player);
 
             if(holder == null) return false;
 
@@ -232,6 +240,32 @@ public class AccessoriesClient {
         return true;
     }
 
+    private static final BiFunction<Color, ResourceLocation, RenderType> GUI_TEXTURED = Util.memoize(
+            (color, resourceLocation) -> {
+                return RenderType.create(
+                        "gui_textured",
+                        DefaultVertexFormat.POSITION_TEX_COLOR,
+                        VertexFormat.Mode.QUADS,
+                        786432,
+                        RenderType.CompositeState.builder()
+                                .setTextureState(new RenderStateShard.TextureStateShard(resourceLocation, TriState.FALSE, false))
+                                .setShaderState(RenderType.POSITION_TEXTURE_COLOR_SHADER)
+                                .setWriteMaskState(RenderStateShard.COLOR_WRITE)
+                                .setTransparencyState(new RenderStateShard.TransparencyStateShard("custom_blend",
+                                        () -> {
+                                            RenderSystem.setShaderColor(color.red(), color.green(), color.blue(), 1f);
+                                            RenderSystem.enableBlend();
+                                            RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
+                                        }, () -> {
+                                    RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+                                    RenderSystem.disableBlend();
+                                    RenderSystem.defaultBlendFunc();
+                                }))
+                                .setDepthTestState(RenderType.LEQUAL_DEPTH_TEST)
+                                .createCompositeState(false));
+            }
+    );
+
     public static void initLayer() {
         Layers.add(Containers::verticalFlow, instance -> {
             var creativeScreen = instance.screen instanceof CreativeModeInventoryScreen;
@@ -246,8 +280,6 @@ public class AccessoriesClient {
                     .renderer((context, btn, delta) -> {
                         ButtonComponent.Renderer.VANILLA.draw(context, btn, delta);
 
-                        context.push();
-
                         var groupIcon = Accessories.of("gui/group/misc");
 
                         var textureAtlasSprite = Minecraft.getInstance()
@@ -256,11 +288,9 @@ public class AccessoriesClient {
 
                         var color = Color.BLACK.interpolate(Color.WHITE, 0.4f);
 
-                        RenderSystem.depthMask(false);
+                        context.push().translate(0, 0, 2);
 
-                        context.blit(btn.x() + 2, btn.y() + 2, 2, btn.horizontalSizing().get().value - 4, btn.verticalSizing().get().value - 4, textureAtlasSprite, color.red(), color.green(), color.blue(), 1f);
-
-                        RenderSystem.depthMask(true);
+                        context.blitSprite(RenderType::guiTexturedOverlay, textureAtlasSprite, btn.x() + 2, btn.y() + 2, btn.horizontalSizing().get().value - 4, btn.verticalSizing().get().value - 4, color.argb());
 
                         context.pop();
                     })

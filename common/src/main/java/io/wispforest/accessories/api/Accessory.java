@@ -8,6 +8,7 @@ import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.mixin.LivingEntityAccessor;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
@@ -131,7 +132,9 @@ public interface Accessory {
      */
     @Nullable
     default SoundEventData getEquipSound(ItemStack stack, SlotReference reference){
-        return new SoundEventData(SoundEvents.ARMOR_EQUIP_GENERIC, 1.0f, 1.0f);
+        var equipSound = stack.has(DataComponents.EQUIPPABLE) ? stack.get(DataComponents.EQUIPPABLE).equipSound() : SoundEvents.ARMOR_EQUIP_GENERIC;
+
+        return new SoundEventData(equipSound, 1.0f, 1.0f);
     }
 
     /**

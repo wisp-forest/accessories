@@ -1,4 +1,4 @@
-package io.wispforest.accessories.impl;
+package io.wispforest.accessories.utils;
 
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;

@@ -38,7 +38,7 @@ public record RawEntityBinding(Optional<Boolean> replace, List<TagKey<EntityType
 
                         tags.add(tag);
                     } else {
-                        var entityType = BuiltInRegistries.ENTITY_TYPE.getOrThrow(ResourceKey.create(Registries.ENTITY_TYPE, ResourceLocation.parse(entity)));
+                        var entityType = BuiltInRegistries.ENTITY_TYPE.getValueOrThrow(ResourceKey.create(Registries.ENTITY_TYPE, ResourceLocation.parse(entity)));
 
                         entityTypes.add(entityType);
                     }

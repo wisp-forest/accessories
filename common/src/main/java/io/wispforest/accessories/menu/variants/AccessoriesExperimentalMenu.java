@@ -14,7 +14,6 @@ import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.menu.*;
 import io.wispforest.accessories.menu.networking.ToggledSlots;
 import io.wispforest.owo.client.screens.SlotGenerator;
-import io.wispforest.owo.util.pond.OwoSlotExtension;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -55,7 +54,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
     }
 
     public AccessoriesExperimentalMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
-        super(AccessoriesMenuTypes.EXPERIMENTAL_MENU, containerId, inventory, targetEntity);
+        super(AccessoriesMenuTypes.EXPERIMENTAL_MENU, containerId, inventory, 2, 2, targetEntity);
 
         var accessoryTarget = targetEntity != null ? targetEntity : owner;
 

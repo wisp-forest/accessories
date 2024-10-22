@@ -77,28 +77,12 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
         }
     }
 
-//    @WrapOperation(method = "getDamageAfterMagicAbsorb", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getArmorAndBodyArmorSlots()Ljava/lang/Iterable;"))
-//    private Iterable<ItemStack> addAccessories(LivingEntity instance, Operation<Iterable<ItemStack>> original){
-//        var iterable = original.call(instance);
-//
-//        if((Object) this instanceof LivingEntity livingEntity) {
-//            var capability = livingEntity.accessoriesCapability();
-//
-//            if(capability != null) iterable = Iterables.concat(iterable, capability.getAllEquipped().stream().map(SlotEntryReference::stack).toList());
-//        }
-//
-//        return iterable;
-//    }
+    //--
 
-    // TODO: SEEM IF THIS IS STILL SOMETHING TO HAVE WITHIN THE FUTURE! BUGS OCCUR THOUGH WITH INV HUD+
-//    @ModifyReturnValue(method = "getAllSlots", at = @At("RETURN"))
-//    private Iterable<ItemStack> addAccessories(Iterable<ItemStack> original){
-//        if((Object) this instanceof LivingEntity livingEntity && !livingEntity.isRemoved()) {
-//            var capability = livingEntity.accessoriesCapability();
-//
-//            if(capability != null) return Iterables.concat(original, capability.getAllEquipped().stream().map(SlotEntryReference::stack).toList());
-//        }
-//
-//        return original;
-//    }
+    @Inject(method = "isLookingAtMe", at = @At("HEAD"))
+    private void accessories$isGazeDisguised(LivingEntity livingEntity, double d, boolean bl, boolean bl2, Predicate<LivingEntity> predicate, DoubleSupplier[] doubleSuppliers, CallbackInfoReturnable<Boolean> cir) {
+        var state = ExtraEventHandler.isGazedBlocked(predicate == LivingEntity.PLAYER_NOT_WEARING_DISGUISE_ITEM, (LivingEntity) (Object) this, livingEntity);
+
+        if (state != TriState.DEFAULT) cir.setReturnValue(!state.get());
+    }
 }

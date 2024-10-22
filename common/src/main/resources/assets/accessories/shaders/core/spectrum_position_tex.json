@@ -1,11 +1,6 @@
 {
-    "blend": {
-        "func": "add",
-        "srcrgb": "srcalpha",
-        "dstrgb": "1-srcalpha"
-    },
-    "vertex": "accessories:spectrum_position_tex",
-    "fragment": "accessories:spectrum_position_tex",
+    "vertex": "accessories:core/spectrum_position_tex",
+    "fragment": "accessories:core/spectrum_position_tex",
     "attributes": [],
     "samplers": [
         { "name": "Sampler0" }

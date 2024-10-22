@@ -40,6 +40,9 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
     public static final EntitySlotLoader INSTANCE = new EntitySlotLoader();
 
+    private Map<TagKey<EntityType<?>>, Map<String, SlotType>> tagToBoundSlots = new HashMap<>();
+    private Map<EntityType<?>, Map<String, SlotType>> entityToBoundSlots = new HashMap<>();
+
     private Map<EntityType<?>, Map<String, SlotType>> server = new HashMap<>();
     private Map<EntityType<?>, Map<String, SlotType>> client = new HashMap<>();
 
@@ -82,13 +85,46 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
         this.client = ImmutableMap.copyOf(data);
     }
 
+    public void buildEntryMap() {
+        var tempMap = new HashMap<EntityType<?>, ImmutableMap.Builder<String, SlotType>>();
+
+        this.tagToBoundSlots.forEach((entityTag, slots) -> {
+            var entityTypes = BuiltInRegistries.ENTITY_TYPE.get(entityTag)
+                    .map(holders -> holders.stream().map(Holder::value).collect(Collectors.toSet()))
+                    .orElseGet(() -> {
+                        LOGGER.warn("[EntitySlotLoader]: Unable to locate the given EntityType Tag used within a slot entry: [Location: {}]", entityTag.location());
+                        return Set.of();
+                    });
+
+            entityTypes.forEach(entityType -> {
+                tempMap.computeIfAbsent(entityType, entityType1 -> ImmutableMap.builder())
+                        .putAll(slots);
+            });
+        });
+
+        this.entityToBoundSlots.forEach((entityType, slots) -> {
+            tempMap.computeIfAbsent(entityType, entityType1 -> ImmutableMap.builder())
+                    .putAll(slots);
+        });
+
+        var finishMap = new ImmutableMap.Builder<EntityType<?>, Map<String, SlotType>>();
+
+        tempMap.forEach((entityType, slotsBuilder) -> finishMap.put(entityType, slotsBuilder.build()));
+
+        this.server = finishMap.build();
+
+        this.tagToBoundSlots.clear();
+        this.entityToBoundSlots.clear();
+    }
+
     //--
 
     @Override
     protected void apply(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler) {
         var allSlotTypes = SlotTypeLoader.INSTANCE.getSlotTypes(false);
 
-        var tempMap = new HashMap<EntityType<?>, Map<String, SlotType>>();
+        this.tagToBoundSlots.clear();
+        this.entityToBoundSlots.clear();
 
         for (var resourceEntry : data.entrySet()) {
             var location = resourceEntry.getKey();
@@ -120,11 +156,9 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
             //--
 
-            var entities = new ArrayList<EntityType<?>>();
-
             var entityElements = this.safeHelper(GsonHelper::getAsJsonArray, jsonObject, "entities", new JsonArray(), location);
 
-            this.decodeJsonArray(entityElements, "entity", location, element -> {
+            this.<Void>decodeJsonArray(entityElements, "entity", location, element -> {
                 var string = element.getAsString();
 
                 if(string.contains("#")){
@@ -132,37 +166,30 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
                     var entityTypeTag = TagKey.create(Registries.ENTITY_TYPE, entityTypeTagLocation);
 
-                    return AccessoriesInternals.getHolder(entityTypeTag)
-                            .map(holders -> holders.stream().map(Holder::value).collect(Collectors.toSet()))
-                            .orElseGet(() -> {
-                                LOGGER.warn("[EntitySlotLoader]: Unable to locate the given EntityType Tag used within a slot entry: [Location: {}]", string);
-                                return Set.of();
-                            });
+                    tagToBoundSlots.computeIfAbsent(entityTypeTag, entityTag -> new HashMap<>())
+                            .putAll(slots);
                 } else {
-                    return Optional.ofNullable(ResourceLocation.tryParse(string))
-                            .map(location1 -> BuiltInRegistries.ENTITY_TYPE.getOptional(location1).map(Set::of).orElse(Set.of()))
-                            .orElseGet(() -> {
+                    Optional.ofNullable(ResourceLocation.tryParse(string))
+                            .flatMap(BuiltInRegistries.ENTITY_TYPE::getOptional)
+                            .ifPresentOrElse(entityType -> {
+                                entityToBoundSlots.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
+                                        .putAll(slots);
+                            }, () -> {
                                 LOGGER.warn("[EntitySlotLoader]: Unable to locate the given EntityType within the registries for a slot entry: [Location: {}]", string);
-                                return Set.of();
                             });
                 }
-            }, entities::addAll);
 
-            for (EntityType<?> entityType : entities) {
-                tempMap.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
-                        .putAll(slots);
-            }
+                return null;
+            }, unused -> {});
         }
 
         for (var entry : UniqueSlotHandling.getSlotToEntities().entrySet()) {
             var slotType = SlotTypeLoader.INSTANCE.getSlotTypes(false).get(entry.getKey());
 
             for (var entityType : entry.getValue()) {
-                tempMap.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
+                entityToBoundSlots.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
                         .put(slotType.name(), slotType);
             }
         }
-        
-        this.server = ImmutableMap.copyOf(tempMap);
     }
 }

@@ -12,9 +12,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
@@ -54,8 +55,8 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
     }
 
     @Override
-    public <M extends LivingEntity> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-        if (!(model instanceof HumanoidModel<? extends LivingEntity> humanoidModel)) return;
+    public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
+        if (!(model instanceof HumanoidModel<? extends HumanoidRenderState> humanoidModel)) return;
 
         var disabledTargetType = Accessories.config().clientOptions.disabledDefaultRenders();
 
@@ -68,7 +69,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
         var translationData = stack.getOrDefault(AccessoriesDataComponents.RENDER_TRANSFORMATIONS, AccessoryRenderTransformations.EMPTY);
 
         Consumer<PoseStack> translationAndRender = poseStack -> {
-            ClientTransformationUtils.transformStack(translationData.transformations(), poseStack, humanoidModel, () -> {
+            TransformOps.transformStack(translationData.transformations(), poseStack, humanoidModel, () -> {
                 render.accept(poseStack);
             });
         };
@@ -77,7 +78,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
             var helper = slotToHelpers.get(reference.slotName());
 
             if (helper != null) {
-                helper.render(translationAndRender, matrices, humanoidModel, reference);
+                helper.render(translationAndRender, matrices, humanoidModel, renderState, reference);
             }
         } else {
             translationAndRender.accept(matrices);
@@ -92,7 +93,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
     }
 
     public interface RenderHelper {
-        <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference);
+        <S extends LivingEntityRenderState> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<? extends HumanoidRenderState> humanoidModel, S renderState, SlotReference reference);
     }
 
     //--
@@ -103,14 +104,14 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
         DEFAULT_HELPERS = Map.ofEntries(
                 Map.entry("face", new RenderHelper() {
                     @Override
-                    public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
+                    public <S extends LivingEntityRenderState> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<? extends HumanoidRenderState> humanoidModel, S renderState, SlotReference reference) {
                         AccessoryRenderer.transformToFace(matrices, humanoidModel.head, Side.FRONT);
                         renderCall.accept(matrices);
                     }
                 }),
                 Map.entry("hat", new RenderHelper() {
                     @Override
-                    public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
+                    public <S extends LivingEntityRenderState> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<? extends HumanoidRenderState> humanoidModel, S renderState, SlotReference reference) {
                         AccessoryRenderer.transformToFace(matrices, humanoidModel.head, Side.TOP);
                         matrices.translate(0, 0.25, 0);
                         for (int i = 0; i < reference.getStack().getCount(); i++) {
@@ -121,7 +122,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 }),
                 Map.entry("back", new RenderHelper() {
                     @Override
-                    public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
+                    public <S extends LivingEntityRenderState> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<? extends HumanoidRenderState> humanoidModel, S renderState, SlotReference reference) {
                         AccessoryRenderer.transformToFace(matrices, humanoidModel.body, Side.BACK);
                         matrices.scale(1.5f, 1.5f, 1.5f);
                         renderCall.accept(matrices);
@@ -129,7 +130,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 }),
                 Map.entry("necklace", new RenderHelper() {
                     @Override
-                    public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
+                    public <S extends LivingEntityRenderState> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<? extends HumanoidRenderState> humanoidModel, S renderState, SlotReference reference) {
                         AccessoryRenderer.transformToModelPart(matrices, humanoidModel.body, 0, 1, 1);
                         matrices.translate(0, -0.25, 0);
                         renderCall.accept(matrices);
@@ -137,7 +138,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 }),
                 Map.entry("cape", new RenderHelper() {
                     @Override
-                    public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
+                    public <S extends LivingEntityRenderState> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<? extends HumanoidRenderState> humanoidModel, S renderState, SlotReference reference) {
                         AccessoryRenderer.transformToModelPart(matrices, humanoidModel.body, 0, 1, -1);
                         matrices.translate(0, -0.25, 0);
                         renderCall.accept(matrices);
@@ -145,7 +146,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 }),
                 Map.entry("ring", new RenderHelper() {
                     @Override
-                    public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
+                    public <S extends LivingEntityRenderState> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<? extends HumanoidRenderState> humanoidModel, S renderState, SlotReference reference) {
                         AccessoryRenderer.transformToModelPart(
                                 matrices,
                                 reference.slot() % 2 == 0 ? humanoidModel.rightArm : humanoidModel.leftArm,
@@ -173,7 +174,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 }),
                 Map.entry("wrist", new RenderHelper() {
                     @Override
-                    public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
+                    public <S extends LivingEntityRenderState> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<? extends HumanoidRenderState> humanoidModel, S renderState, SlotReference reference) {
                         AccessoryRenderer.transformToModelPart(matrices, reference.slot() % 2 == 0 ? humanoidModel.rightArm : humanoidModel.leftArm, 0, -0.5, 0);
                         matrices.scale(1.01f, 1.01f, 1.01f);
                         matrices.mulPose(Axis.YP.rotationDegrees(90));
@@ -182,7 +183,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 }),
                 Map.entry("hand", new RenderHelper() {
                     @Override
-                    public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
+                    public <S extends LivingEntityRenderState> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<? extends HumanoidRenderState> humanoidModel, S renderState, SlotReference reference) {
                         AccessoryRenderer.transformToFace(matrices, reference.slot() % 2 == 0 ? humanoidModel.rightArm : humanoidModel.leftArm, Side.BOTTOM);
                         matrices.translate(0, 0.25, 0);
                         matrices.scale(1.02f, 1.02f, 1.02f);
@@ -192,7 +193,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 }),
                 Map.entry("belt", new RenderHelper() {
                     @Override
-                    public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
+                    public <S extends LivingEntityRenderState> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<? extends HumanoidRenderState> humanoidModel, S renderState, SlotReference reference) {
                         AccessoryRenderer.transformToFace(matrices, humanoidModel.body, Side.BOTTOM);
                         matrices.scale(1.01f, 1.01f, 1.01f);
                         renderCall.accept(matrices);
@@ -200,7 +201,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 }),
                 Map.entry("anklet", new RenderHelper() {
                     @Override
-                    public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
+                    public <S extends LivingEntityRenderState> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<? extends HumanoidRenderState> humanoidModel, S renderState, SlotReference reference) {
                         AccessoryRenderer.transformToModelPart(matrices, reference.slot() % 2 == 0 ? humanoidModel.rightLeg : humanoidModel.leftLeg, 0, -0.5, 0);
                         matrices.scale(1.01f, 1.01f, 1.01f);
                         renderCall.accept(matrices);
@@ -208,7 +209,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 }),
                 Map.entry("shoes", new RenderHelper() {
                     @Override
-                    public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
+                    public <S extends LivingEntityRenderState> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<? extends HumanoidRenderState> humanoidModel, S renderState, SlotReference reference) {
                         matrices.pushPose();
                         AccessoryRenderer.transformToFace(matrices, humanoidModel.rightLeg, Side.BOTTOM);
                         matrices.translate(0, 0.25, 0);

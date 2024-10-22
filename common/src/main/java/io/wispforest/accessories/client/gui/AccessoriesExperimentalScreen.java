@@ -1,11 +1,8 @@
 package io.wispforest.accessories.client.gui;
 
-import com.mojang.blaze3d.platform.GlConst;
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotGroup;
@@ -15,6 +12,7 @@ import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.client.gui.components.*;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import io.wispforest.accessories.menu.ArmorSlotTypes;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
@@ -49,12 +47,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
-import org.lwjgl.opengl.GL;
 import org.slf4j.Logger;
 import oshi.util.tuples.Triplet;
 
@@ -66,6 +62,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static io.wispforest.accessories.client.gui.components.ComponentUtils.BACKGROUND_SLOT_RENDERING_SURFACE;
+import static io.wispforest.accessories.client.gui.components.ComponentUtils.COLORED_GUI_TEXTURED;
 
 public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayout, AccessoriesExperimentalMenu> implements AccessoriesScreenBase, ContainerScreenExtension {
 
@@ -313,73 +310,76 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         if (Accessories.config().screenOptions.hoveredOptions.clickbait()) {
-            ACCESSORY_POSITIONS.forEach(pos -> guiGraphics.blitSprite(Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 450, 256, 256));
+            ACCESSORY_POSITIONS.forEach(pos -> guiGraphics.blitSprite(RenderType::guiTextured, Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 450, 256, 256));
             ACCESSORY_POSITIONS.clear();
         }
 
         if (!ACCESSORY_LINES.isEmpty() || Accessories.config().screenOptions.hoveredOptions.line()) {
-            var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
-            var lastPose = guiGraphics.pose().last();
+            guiGraphics.drawSpecial(multiBufferSource -> {
+                var vertexConsumer = multiBufferSource.getBuffer(RenderType.LINES);
 
-            for (Pair<Vector3d, Vector3d> line : ACCESSORY_LINES) {
-                var endPoint = line.second();
+                var lastPose = guiGraphics.pose().last();
 
-                if (endPoint.x == 0 || endPoint.y == 0) continue;
+                for (Pair<Vector3d, Vector3d> line : ACCESSORY_LINES) {
+                    var endPoint = line.second();
 
-                var normalVec = endPoint.sub(line.first(), new Vector3d()).normalize().get(new Vector3f());
+                    if (endPoint.x == 0 || endPoint.y == 0) continue;
 
-                double segments = Math.max(10, ((int) (line.first().distance(line.second()) * 10)) / 100);
-                segments *= 2;
+                    var normalVec = endPoint.sub(line.first(), new Vector3d()).normalize().get(new Vector3f());
 
-                var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
-                var delta = movement % (2 / (segments)) % segments;
+                    double segments = Math.max(10, ((int) (line.first().distance(line.second()) * 10)) / 100);
+                    segments *= 2;
 
-                var firstVec = line.first().get(new Vector3f());
+                    var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
+                    var delta = movement % (2 / (segments)) % segments;
 
-                if (delta > 0.05) {
-                    buf.addVertex(firstVec)
-                            .setColor(255, 255, 255, 255)
-                            .setOverlay(OverlayTexture.NO_OVERLAY)
-                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
+                    var firstVec = line.first().get(new Vector3f());
 
-                    var pos = new Vector3d(
-                            Mth.lerp(delta - 0.05, line.first().x, line.second().x),
-                            Mth.lerp(delta - 0.05, line.first().y, line.second().y),
-                            Mth.lerp(delta - 0.05, line.first().z, line.second().z)
-                    ).get(new Vector3f());
+                    if (delta > 0.05) {
+                        vertexConsumer.addVertex(firstVec)
+                                .setColor(255, 255, 255, 255)
+                                .setOverlay(OverlayTexture.NO_OVERLAY)
+                                .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
 
-                    buf.addVertex(pos)
-                            .setColor(255, 255, 255, 255)
-                            .setOverlay(OverlayTexture.NO_OVERLAY)
-                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
+                        var pos = new Vector3d(
+                                Mth.lerp(delta - 0.05, line.first().x, line.second().x),
+                                Mth.lerp(delta - 0.05, line.first().y, line.second().y),
+                                Mth.lerp(delta - 0.05, line.first().z, line.second().z)
+                        ).get(new Vector3f());
+
+                        vertexConsumer.addVertex(pos)
+                                .setColor(255, 255, 255, 255)
+                                .setOverlay(OverlayTexture.NO_OVERLAY)
+                                .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
+                    }
+
+                    for (int i = 0; i < segments / 2; i++) {
+                        var delta1 = ((i * 2) / segments + movement) % 1;
+                        var delta2 = ((i * 2 + 1) / segments + movement) % 1;
+
+                        var pos1 = new Vector3d(
+                                Mth.lerp(delta1, line.first().x, line.second().x),
+                                Mth.lerp(delta1, line.first().y, line.second().y),
+                                Mth.lerp(delta1, line.first().z, line.second().z)
+                        ).get(new Vector3f());
+                        var pos2 = (delta2 > delta1 ? new Vector3d(
+                                Mth.lerp(delta2, line.first().x, line.second().x),
+                                Mth.lerp(delta2, line.first().y, line.second().y),
+                                Mth.lerp(delta2, line.first().z, line.second().z)
+                        ) : line.second()).get(new Vector3f());
+
+                        vertexConsumer.addVertex(pos1)
+                                .setColor(255, 255, 255, 255)
+                                .setOverlay(OverlayTexture.NO_OVERLAY)
+                                .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
+
+                        vertexConsumer.addVertex(pos2)
+                                .setColor(255, 255, 255, 255)
+                                .setOverlay(OverlayTexture.NO_OVERLAY)
+                                .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
+                    }
                 }
-
-                for (int i = 0; i < segments / 2; i++) {
-                    var delta1 = ((i * 2) / segments + movement) % 1;
-                    var delta2 = ((i * 2 + 1) / segments + movement) % 1;
-
-                    var pos1 = new Vector3d(
-                            Mth.lerp(delta1, line.first().x, line.second().x),
-                            Mth.lerp(delta1, line.first().y, line.second().y),
-                            Mth.lerp(delta1, line.first().z, line.second().z)
-                    ).get(new Vector3f());
-                    var pos2 = (delta2 > delta1 ? new Vector3d(
-                            Mth.lerp(delta2, line.first().x, line.second().x),
-                            Mth.lerp(delta2, line.first().y, line.second().y),
-                            Mth.lerp(delta2, line.first().z, line.second().z)
-                    ) : line.second()).get(new Vector3f());
-
-                    buf.addVertex(pos1)
-                            .setColor(255, 255, 255, 255)
-                            .setOverlay(OverlayTexture.NO_OVERLAY)
-                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-
-                    buf.addVertex(pos2)
-                            .setColor(255, 255, 255, 255)
-                            .setOverlay(OverlayTexture.NO_OVERLAY)
-                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                }
-            }
+            });
 
             minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
 
@@ -417,7 +417,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         var menu = this.getMenu();
 
         SlotGroupLoader.getValidGroups(this.getMenu().targetEntityDefaulted()).keySet().stream()
-                .filter(group -> this.getHolderValue(AccessoriesHolder::filteredGroups, Set.of(), "filteredGroups").contains(group.name()))
+                .filter(group -> this.getHolderValue(AccessoriesHolderImpl::filteredGroups, Set.of(), "filteredGroups").contains(group.name()))
                 .forEach(menu::addSelectedGroup);
 
         //--
@@ -599,7 +599,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                                 ? Accessories.of("widget/back_dark")
                                                 : Accessories.of("widget/back");
 
-                                        context.blitSprite(BACK_ICON, btn.x() + 1, btn.y() + 1, 8, 8);
+                                        context.blitSprite(RenderType::guiTextured, BACK_ICON, btn.x() + 1, btn.y() + 1, 8, 8);
 
                                         context.pop();
                                     })
@@ -788,9 +788,9 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
                     if(!showCosmeticState()) {
                         GuiGraphicsUtils.drawWithSpectrum(context, button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, 1f);
-                        context.blit(button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, red, green, blue, 0.4f);
+                        context.blitSprite(RenderType::guiTextured, textureAtlasSprite, button.x() + 2, button.y() + 2, 16, 16, new Color(red, green, blue, 0.4f).argb());
                     } else {
-                        context.blit(button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, red, green, blue, 0.9f);
+                        context.blitSprite(RenderType::guiTextured, textureAtlasSprite, button.x() + 2, button.y() + 2, 16, 16, new Color(red, green, blue, 0.9f).argb());
                     }
                 }).sizing(Sizing.fixed(20))
                 .tooltip(createToggleTooltip("slot_cosmetics", false, showCosmeticState()));
@@ -898,18 +898,9 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                 }).renderer((context, button, delta) -> {
                                     ComponentUtils.getButtonRenderer().draw(context, button, delta);
 
-                                    RenderSystem.depthMask(false);
-
                                     var color = Color.WHITE;
 
-                                    RenderSystem.setShaderColor(color.red(), color.green(), color.blue(), 1f);
-                                    RenderSystem.enableBlend();
-                                    RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
-
-                                    context.blit(Accessories.of("textures/gui/reset_icon.png"), button.x() + 3 + 3, button.y() + 3, 0, 0, 0, 8, 8, 8, 8);
-
-                                    RenderSystem.depthMask(true);
-                                    RenderSystem.disableBlend();
+                                    context.blit(location -> COLORED_GUI_TEXTURED.apply(color, location), Accessories.of("textures/gui/reset_icon.png"), button.x() + 3 + 3, button.y() + 3, 0, 0, 0, 8, 8, 8, 8);
                                 }).sizing(Sizing.fixed(14))
                                 .horizontalSizing(Sizing.fixed(20))
                                 .margins(Insets.bottom(1))
@@ -1373,67 +1364,55 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         context.push();
         context.translate(i, j, 0);
 
-        safeBatching(context, hasDrawCallOccur -> {
-            for (var slotComponent : validComponents) {
-                var slot = slotComponent.slot();
+        for (var slotComponent : validComponents) {
+            var slot = slotComponent.slot();
 
-                var data = slotStateData.computeIfAbsent(slot, this::getRenderStack);
+            var data = slotStateData.computeIfAbsent(slot, this::getRenderStack);
 
-                if (data == null) continue;
+            if (data == null) continue;
 
-                allBl2s.put(slot, renderSlotTexture(context, slot, data.getA()));
-
-                hasDrawCallOccur.setValue(true);
-            }
-        });
+            allBl2s.put(slot, renderSlotTexture(context, slot, data.getA()));
+        }
 
         //--
 
-        safeBatching(context, hasDrawCallOccur -> {
-            for (var slotComponent : validComponents) {
-                var slot = slotComponent.slot();
+        for (var slotComponent : validComponents) {
+            var slot = slotComponent.slot();
 
-                var data = slotStateData.computeIfAbsent(slot, this::getRenderStack);
+            var data = slotStateData.computeIfAbsent(slot, this::getRenderStack);
 
-                if (data == null) return;
+            if (data == null) return;
 
-                var itemStack = data.getA();
+            var itemStack = data.getA();
 
-                var bl2 = allBl2s.getOrDefault(slot, false)
-                        || (slot == accessor.accessories$getClickedSlot() && !accessor.accessories$getDraggingItem().isEmpty() && !accessor.accessories$isSplittingStack());
+            var bl2 = allBl2s.getOrDefault(slot, false)
+                    || (slot == accessor.accessories$getClickedSlot() && !accessor.accessories$getDraggingItem().isEmpty() && !accessor.accessories$isSplittingStack());
 
-                if (!bl2) {
-                    int slotX = slot.x;
-                    int slotY = slot.y;
+            if (!bl2) {
+                int slotX = slot.x;
+                int slotY = slot.y;
 
-                    if (data.getB()) {
-                        context.fill(slotX, slotY, slotX + 16, slotY + 16, -2130706433);
-                    }
-
-                    int k = slot.x + slot.y * this.imageWidth;
-
-                    if (slot.isFake()) {
-                        context.renderFakeItem(itemStack, slotX, slotY, k);
-                    } else {
-                        context.renderItem(itemStack, slotX, slotY, k);
-                    }
-
-                    context.renderItemDecorations(this.font, itemStack, slotX, slotY, data.getC());
+                if (data.getB()) {
+                    context.fill(slotX, slotY, slotX + 16, slotY + 16, -2130706433);
                 }
 
-                hasDrawCallOccur.setValue(true);
+                int k = slot.x + slot.y * this.imageWidth;
+
+                if (slot.isFake()) {
+                    context.renderFakeItem(itemStack, slotX, slotY, k);
+                } else {
+                    context.renderItem(itemStack, slotX, slotY, k);
+                }
+
+                context.renderItemDecorations(this.font, itemStack, slotX, slotY, data.getC());
             }
-        });
+        }
 
         context.pop();
 
-        safeBatching(context, hasDrawCallOccur -> {
-            for (var slotComponent : validComponents) {
-                slotComponent.renderCosmeticOverlay(context, true);
-
-                hasDrawCallOccur.setValue(true);
-            }
-        });
+        for (var slotComponent : validComponents) {
+            slotComponent.renderCosmeticOverlay(context, true);
+        }
 
         context.pop();
 
@@ -1447,7 +1426,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
             if (pair != null) {
                 TextureAtlasSprite textureAtlasSprite = Minecraft.getInstance().getTextureAtlas(pair.getFirst()).apply(pair.getSecond());
 
-                context.blit(slot.x, slot.y, 0, 16, 16, textureAtlasSprite);
+                context.blitSprite(RenderType::guiTextured, textureAtlasSprite, slot.x, slot.y, 16, 16);
 
                 return true;
             }
@@ -1502,8 +1481,8 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
     //--
 
-    private <T> T getHolderValue(Function<AccessoriesHolder, T> getter, T defaultValue, String valueType) {
-        return Optional.ofNullable(AccessoriesHolder.get(this.menu.owner()))
+    private <T> T getHolderValue(Function<AccessoriesHolderImpl, T> getter, T defaultValue, String valueType) {
+        return Optional.ofNullable(AccessoriesHolderImpl.getHolder(this.menu.owner()))
                 .map(getter)
                 .orElseGet(() -> {
                     LOGGER.warn("[AccessoriesScreen] Unable to get the given holder value '{}' for the given owner: {}", valueType, this.menu.owner().getName());
@@ -1512,8 +1491,8 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 });
     }
 
-    private <T> void setHolderValue(BiFunction<AccessoriesHolder, T, AccessoriesHolder> setter, T value, String valueType) {
-        var holder = AccessoriesHolder.get(this.menu.owner());
+    private <T> void setHolderValue(BiFunction<AccessoriesHolderImpl, T, AccessoriesHolderImpl> setter, T value, String valueType) {
+        var holder = AccessoriesHolderImpl.getHolder(this.menu.owner());
 
         if(holder == null) {
             LOGGER.warn("[AccessoriesScreen] Unable to set the given holder value '{}' for the given owner: {}", valueType, this.menu.owner().getName());
@@ -1525,90 +1504,74 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     }
 
     private int widgetType() {
-        return this.getHolderValue(AccessoriesHolder::widgetType, 1, "widgetType");
+        return this.getHolderValue(AccessoriesHolderImpl::widgetType, 1, "widgetType");
     }
 
     private void widgetType(int type) {
-        this.setHolderValue(AccessoriesHolder::widgetType, type, "widgetType");
+        this.setHolderValue(AccessoriesHolderImpl::widgetType, type, "widgetType");
     }
 
     private int columnAmount() {
-        return this.getHolderValue(AccessoriesHolder::columnAmount, 1, "columnAmount");
+        return this.getHolderValue(AccessoriesHolderImpl::columnAmount, 1, "columnAmount");
     }
 
     private void columnAmount(int type) {
-        this.setHolderValue(AccessoriesHolder::columnAmount, type, "columnAmount");
+        this.setHolderValue(AccessoriesHolderImpl::columnAmount, type, "columnAmount");
     }
 
     public boolean mainWidgetPosition() {
-        return this.getHolderValue(AccessoriesHolder::mainWidgetPosition, false, "mainWidgetPosition");
+        return this.getHolderValue(AccessoriesHolderImpl::mainWidgetPosition, false, "mainWidgetPosition");
     }
 
     private void mainWidgetPosition(boolean value) {
-        this.setHolderValue(AccessoriesHolder::mainWidgetPosition, value, "mainWidgetPosition");
+        this.setHolderValue(AccessoriesHolderImpl::mainWidgetPosition, value, "mainWidgetPosition");
     }
 
     public boolean showGroupFilters() {
-        return this.getHolderValue(AccessoriesHolder::showGroupFilter, false, "showGroupFilter");
+        return this.getHolderValue(AccessoriesHolderImpl::showGroupFilter, false, "showGroupFilter");
     }
 
     private void showGroupFilters(boolean value) {
-        this.setHolderValue(AccessoriesHolder::showGroupFilter, value, "showGroupFilter");
+        this.setHolderValue(AccessoriesHolderImpl::showGroupFilter, value, "showGroupFilter");
     }
 
     public boolean isGroupFiltersOpen() {
-        return this.getHolderValue(AccessoriesHolder::isGroupFiltersOpen, false, "isGroupFiltersOpen");
+        return this.getHolderValue(AccessoriesHolderImpl::isGroupFiltersOpen, false, "isGroupFiltersOpen");
     }
 
     private void isGroupFiltersOpen(boolean value) {
-        this.setHolderValue(AccessoriesHolder::isGroupFiltersOpen, value, "isGroupFiltersOpen");
+        this.setHolderValue(AccessoriesHolderImpl::isGroupFiltersOpen, value, "isGroupFiltersOpen");
     }
 
     private boolean showUnusedSlots() {
-        return this.getHolderValue(AccessoriesHolder::showUnusedSlots, false, "showUnusedSlots");
+        return this.getHolderValue(AccessoriesHolderImpl::showUnusedSlots, false, "showUnusedSlots");
     }
 
     private void showUnusedSlots(boolean value) {
-        this.setHolderValue(AccessoriesHolder::showUnusedSlots, value, "showUnusedSlots");
+        this.setHolderValue(AccessoriesHolderImpl::showUnusedSlots, value, "showUnusedSlots");
     }
 
     private boolean showAdvancedOptions() {
-        return this.getHolderValue(AccessoriesHolder::showAdvancedOptions, false, "showAdvancedOptions");
+        return this.getHolderValue(AccessoriesHolderImpl::showAdvancedOptions, false, "showAdvancedOptions");
     }
 
     private void showAdvancedOptions(boolean value) {
-        this.setHolderValue(AccessoriesHolder::showAdvancedOptions, value, "showAdvancedOptions");
+        this.setHolderValue(AccessoriesHolderImpl::showAdvancedOptions, value, "showAdvancedOptions");
     }
 
     private boolean sideWidgetPosition() {
-        return this.getHolderValue(AccessoriesHolder::sideWidgetPosition, false, "sideWidgetPosition");
+        return this.getHolderValue(AccessoriesHolderImpl::sideWidgetPosition, false, "sideWidgetPosition");
     }
 
     private void sideWidgetPosition(boolean value) {
-        this.setHolderValue(AccessoriesHolder::sideWidgetPosition, value, "sideWidgetPosition");
+        this.setHolderValue(AccessoriesHolderImpl::sideWidgetPosition, value, "sideWidgetPosition");
     }
 
     public boolean showCraftingGrid() {
-        return this.getHolderValue(AccessoriesHolder::showCraftingGrid, false, "showCraftingGrid");
+        return this.getHolderValue(AccessoriesHolderImpl::showCraftingGrid, false, "showCraftingGrid");
     }
 
     public void showCraftingGrid(boolean value) {
-        this.setHolderValue(AccessoriesHolder::showCraftingGrid, value, "showCraftingGrid");
-    }
-
-    //--
-
-    public static void safeBatching(OwoUIDrawContext context, Consumer<MutableBoolean> drawCallback) {
-        context.recordQuads();
-
-        var hasDrawCallOccur = new MutableBoolean(false);
-
-        drawCallback.accept(hasDrawCallOccur);
-
-        try {
-            if(hasDrawCallOccur.booleanValue()) context.submitQuads();
-        } catch (Exception e) {
-            var test = "this is for debugging only really!";
-        }
+        this.setHolderValue(AccessoriesHolderImpl::showCraftingGrid, value, "showCraftingGrid");
     }
 }

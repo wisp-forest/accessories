@@ -31,6 +31,7 @@ repositories {
         url "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
         content { includeGroup("software.bernie.geckolib") }
     }
+    mavenLocal()
 }
 
 sourceSets {
@@ -54,24 +55,24 @@ dependencies {
 
     modCompileOnly "software.bernie.geckolib:geckolib-fabric-1.21.1:${rootProject.geckolib_version}"
 
-    modLocalRuntime("maven.modrinth:ok-boomer:0.1.3+1.21")
+    //modLocalRuntime("maven.modrinth:ok-boomer:0.1.3+1.21")
 
     testmodImplementation sourceSets.main.output
 
-    modLocalRuntime "maven.modrinth:sodium:mc1.21-0.6.0-beta.2-fabric"
+    //modLocalRuntime "maven.modrinth:sodium:mc1.21-0.6.0-beta.2-fabric"
 
     var type = rootProject.properties.get("item_viewer_type");
 
     modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-fabric:${rootProject.rei_version}")
     modCompileOnly("dev.emi:emi-fabric:${rootProject.emi_version}:api")
-    modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-fabric-api:${rootProject.jei_version}")
+    modCompileOnly("mezz.jei:jei-${rootProject.jei_minecraft_version}-fabric-api:${rootProject.jei_version}")
 
     if(type == "rei") {
         modLocalRuntime("me.shedaniel:RoughlyEnoughItems-fabric:${rootProject.rei_version}")
     } else if(type == "emi") {
         modLocalRuntime("dev.emi:emi-fabric:${rootProject.emi_version}")
     } else if(type == "jei") {
-        modLocalRuntime("mezz.jei:jei-${rootProject.minecraft_version}-fabric:${rootProject.jei_version}")
+        modLocalRuntime("mezz.jei:jei-${rootProject.jei_minecraft_version}-fabric:${rootProject.jei_version}")
     } else if(type != "none") {
         throw new IllegalStateException("Unable to locate the given item viewer!")
     }

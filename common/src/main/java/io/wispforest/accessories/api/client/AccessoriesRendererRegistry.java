@@ -1,16 +1,32 @@
 package io.wispforest.accessories.api.client;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.AccessoriesLoaderInternals;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryRenderOverrideComponent;
-import net.minecraft.world.item.Equipable;
+import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.compat.GeckoLibCompat;
+import io.wispforest.accessories.mixin.client.HumanoidArmorLayerAccessor;
+import io.wispforest.accessories.mixin.client.LivingEntityRendererAccessor;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.equipment.Equippable;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 /**
@@ -41,11 +57,11 @@ public class AccessoriesRendererRegistry {
 
     /**
      * Registers the given item as if it should render like armor piece equipped within the targeted slot
-     * as dictated by {@link Equipable#getEquipmentSlot()}
+     * as dictated by {@link Equippable#slot()}
      */
     public static void registerArmorRendering(Item item) {
-        if (item instanceof Equipable && !AccessoriesRendererRegistry.hasRenderer(item)) {
-            AccessoriesRendererRegistry.registerRenderer(item, () -> ArmorRenderingExtension.RENDERER);
+        if (!AccessoriesRendererRegistry.hasRenderer(item)) {
+            AccessoriesRendererRegistry.registerRenderer(item, () -> ARMOR_RENDERER);
         }
     }
 
@@ -74,7 +90,7 @@ public class AccessoriesRendererRegistry {
 
         var armorRenderOverride = renderOverrides.useArmorRenderer();
 
-        if(armorRenderOverride) return ArmorRenderingExtension.RENDERER;
+        if(armorRenderOverride) return ARMOR_RENDERER;
 
         return getRender(stack.getItem());
     }
@@ -98,4 +114,42 @@ public class AccessoriesRendererRegistry {
 
         RENDERERS.forEach((item, supplier) -> CACHED_RENDERERS.put(item, supplier.get()));
     }
+
+    private static final AccessoryRenderer ARMOR_RENDERER = new AccessoryRenderer() {
+        @Override
+        public <STATE extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<STATE> model, STATE renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
+            var entityRender = Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(reference.entity());
+
+            if (!(entityRender instanceof LivingEntityRendererAccessor<?, ?, ?> accessor)) return;
+            if (!(stack.has(DataComponents.EQUIPPABLE))) return;
+            if (!(renderState instanceof HumanoidRenderState humanoidRenderState)) return;
+
+            var equipmentSlot = stack.get(DataComponents.EQUIPPABLE).slot();
+
+            var possibleLayer = accessor.getLayers().stream()
+                    .filter(renderLayer -> renderLayer instanceof HumanoidArmorLayer<?,?,?>)
+                    .findFirst();
+
+            possibleLayer.ifPresent(layer -> {
+                rendererArmor((HumanoidArmorLayer<HumanoidRenderState,?,?>) layer, stack, matrices, multiBufferSource, humanoidRenderState, equipmentSlot, light, partialTicks);
+            });
+        }
+    };
+
+    private static <S extends HumanoidRenderState, M extends HumanoidModel<S>, A extends HumanoidModel<S>> void rendererArmor(HumanoidArmorLayer<S, M, A> armorLayer, ItemStack stack, PoseStack poseStack, MultiBufferSource multiBufferSource, S renderState, EquipmentSlot equipmentSlot, int light, float partialTicks) {
+        var armorLayerAccessor = (HumanoidArmorLayerAccessor<S, A>) armorLayer;
+
+        var armorModel = armorLayerAccessor.accessories$getArmorModel(renderState, equipmentSlot);
+
+        if (!attemptGeckoRender(stack, poseStack, multiBufferSource, renderState, equipmentSlot, light, partialTicks, armorLayer.getParentModel(), armorModel, armorLayerAccessor::accessories$setPartVisibility)) {
+            armorLayerAccessor.accessories$renderArmorPiece(poseStack, multiBufferSource, stack, equipmentSlot, light, armorModel);
+        }
+    }
+
+    private static <S extends HumanoidRenderState, M extends HumanoidModel<S>, A extends HumanoidModel<S>> boolean attemptGeckoRender(ItemStack stack, PoseStack poseStack, MultiBufferSource multiBufferSource, S renderState, EquipmentSlot equipmentSlot, int light, float partialTicks, M parentModel, A armorModel, BiConsumer<A, EquipmentSlot> partVisibilitySetter) {
+        if (!AccessoriesLoaderInternals.isModLoaded("geckolib")) return false;
+
+        return GeckoLibCompat.renderGeckoArmor(poseStack, multiBufferSource, renderState, stack, equipmentSlot, parentModel, armorModel, partialTicks, light, partVisibilitySetter);
+    }
+
 }

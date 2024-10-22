@@ -8,6 +8,7 @@ import io.wispforest.owo.ui.core.AnimatableProperty;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
 import io.wispforest.owo.ui.core.PositionedRectangle;
 import io.wispforest.owo.ui.core.Sizing;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 
 public class ArrowComponent extends BaseComponent {
@@ -70,10 +71,10 @@ public class ArrowComponent extends BaseComponent {
         if(this.centered) matrices.translate(this.direction.getXOffset(), this.direction.getYOffset(), 0.0f);
 
         matrices.scale((float) this.width / (float) this.regionWidth(), (float) this.height / (float) this.regionHeight(), 0.0F);
-        PositionedRectangle visibleArea = (PositionedRectangle) this.visibleArea.get();
+        PositionedRectangle visibleArea = this.visibleArea.get();
         int bottomEdge = Math.min(visibleArea.y() + visibleArea.height(), this.regionHeight());
         int rightEdge = Math.min(visibleArea.x() + visibleArea.width(), this.regionWidth());
-        context.blit(this.texture, visibleArea.x(), visibleArea.y(), rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(), (float) (this.u() + visibleArea.x()), (float) (this.v() + visibleArea.y()), rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(), this.textureWidth, this.textureHeight);
+        context.blit(RenderType::guiTextured, this.texture, visibleArea.x(), visibleArea.y(), (float) (this.u() + visibleArea.x()), (float) (this.v() + visibleArea.y()),rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(), rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(), this.textureWidth, this.textureHeight);
         if (this.blend) {
             RenderSystem.disableBlend();
         }

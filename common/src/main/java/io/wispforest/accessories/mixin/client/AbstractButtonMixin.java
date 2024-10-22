@@ -8,10 +8,13 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
+
+import java.util.function.Function;
 
 @Mixin(AbstractButton.class)
 public abstract class AbstractButtonMixin implements AbstractButtonExtension {
@@ -25,12 +28,12 @@ public abstract class AbstractButtonMixin implements AbstractButtonExtension {
         return shouldCancel;
     });
 
-    @WrapOperation(method = "renderWidget", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lnet/minecraft/resources/ResourceLocation;IIII)V"))
-    private void adjustButtonRendering(GuiGraphics instance, ResourceLocation sprite, int x, int y, int width, int height, Operation<Void> original) {
-        boolean value = ADJUST_RENDERING_EVENT.invoker().render((AbstractButton) (Object) this, instance, sprite, x, y, width, height);
+    @WrapOperation(method = "renderWidget", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Ljava/util/function/Function;Lnet/minecraft/resources/ResourceLocation;IIIII)V"))
+    private void adjustButtonRendering(GuiGraphics instance, Function<ResourceLocation, RenderType> function, ResourceLocation resourceLocation, int x, int y, int width, int height, int m, Operation<Void> original) {
+        boolean value = ADJUST_RENDERING_EVENT.invoker().render((AbstractButton) (Object) this, instance, resourceLocation, x, y, width, height);
 
         if(!value){
-            original.call(instance, sprite, x, y, width, height);
+            original.call(instance, function, resourceLocation, x, y, width, height, m);
         }
     }
 

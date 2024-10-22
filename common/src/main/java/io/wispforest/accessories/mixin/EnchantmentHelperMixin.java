@@ -124,9 +124,9 @@ public abstract class EnchantmentHelperMixin {
 
     @Unique
     private static boolean enchantmentValidForRedirect(RegistryAccess access, Enchantment enchantment) {
-        var enchantments = access.registry(Registries.ENCHANTMENT).orElseThrow();
+        var enchantments = access.lookupOrThrow(Registries.ENCHANTMENT);
 
-        return enchantments.getHolder(enchantments.getResourceKey(enchantment).orElseThrow())
+        return enchantments.get(enchantments.getResourceKey(enchantment).orElseThrow())
                 .orElseThrow()
                 .is(AccessoriesTags.VALID_FOR_REDIRECTION);
     }

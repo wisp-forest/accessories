@@ -235,7 +235,7 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
             RenderSystem.disableDepthTest();
 
             this.renderWrapping.accept(context,this,
-                    () -> this.dispatcher.render(this.entity, 0, 0, 0, 0, 0, matrices, this.entityBuffers, LightTexture.FULL_BRIGHT)
+                    () -> this.dispatcher.render(this.entity, 0, 0, 0, 0, matrices, this.entityBuffers, LightTexture.FULL_BRIGHT)
             );
 
 //            this.entityBuffers.endBatch();

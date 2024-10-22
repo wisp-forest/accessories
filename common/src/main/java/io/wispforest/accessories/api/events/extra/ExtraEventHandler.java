@@ -6,8 +6,8 @@ import com.google.common.cache.LoadingCache;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
@@ -21,7 +21,7 @@ import java.util.Map;
 public class ExtraEventHandler {
 
     public static int lootingAdjustments(LivingEntity entity, LootContext context, int currentLevel){
-        var damageSource = context.getParamOrNull(LootContextParams.DAMAGE_SOURCE);
+        var damageSource = context.getOptionalParameter(LootContextParams.DAMAGE_SOURCE);
 
         if(damageSource != null && damageSource.getEntity() instanceof LivingEntity targetEntity){
             var capability = AccessoriesCapability.get(entity);
@@ -50,7 +50,7 @@ public class ExtraEventHandler {
     }
 
     public static int fortuneAdjustment(LootContext context, int currentLevel){
-        if(context.getParamOrNull(LootContextParams.THIS_ENTITY) instanceof LivingEntity livingEntity) {
+        if(context.getOptionalParameter(LootContextParams.THIS_ENTITY) instanceof LivingEntity livingEntity) {
             var capability = AccessoriesCapability.get(livingEntity);
 
             if (capability != null) {
@@ -93,6 +93,8 @@ public class ExtraEventHandler {
                 state = PiglinNeutralInducer.EVENT.invoker().makePiglinsNeutral(stack, reference);
 
                 if(state != TriState.DEFAULT) return state;
+
+                if (stack.is(ItemTags.PIGLIN_SAFE_ARMOR)) return TriState.TRUE;
             }
         }
 
@@ -126,20 +128,22 @@ public class ExtraEventHandler {
         return state;
     }
 
-    private static final LoadingCache<Integer, Map<Integer, TriState>> endermanAngyCacheResults = CacheBuilder.newBuilder()
+    //--
+
+    private static final LoadingCache<Integer, Map<Integer, TriState>> gazeDisguiseCache = CacheBuilder.newBuilder()
             .concurrencyLevel(1)
             .expireAfterAccess(Duration.ofSeconds(1))
             //.maximumSize(1000)
             .weakKeys()
             .build(CacheLoader.from(() -> new HashMap<>()));
 
-    public static TriState isEndermanMask(LivingEntity entity, EnderMan enderMan){
-        var cache = endermanAngyCacheResults.getIfPresent(entity.getId());
+    public static TriState isGazedBlocked(boolean vanillaPredicate, LivingEntity lookingEntity, LivingEntity targetEntity){
+        var cache = gazeDisguiseCache.getIfPresent(targetEntity.getId());
 
-        if(cache != null && cache.containsKey(enderMan.getId())) return cache.get(enderMan.getId());
+        if(cache != null && cache.containsKey(lookingEntity.getId())) return cache.get(lookingEntity.getId());
 
         var state = TriState.DEFAULT;
-        var capability = AccessoriesCapability.get(entity);
+        var capability = AccessoriesCapability.get(targetEntity);
 
         if(capability != null) {
             for (var entryRef : capability.getAllEquipped()) {
@@ -148,20 +152,22 @@ public class ExtraEventHandler {
 
                 var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
-                if(accessory instanceof EndermanMasked masked){
-                    state = masked.isEndermanMasked(enderMan, stack, reference);
+                if(accessory instanceof IsGazeDisguised masked){
+                    state = masked.isWearDisguise(lookingEntity, vanillaPredicate, stack, reference);
 
                     if(state != TriState.DEFAULT) return state;
                 }
 
-                state = EndermanMasked.EVENT.invoker().isEndermanMasked(enderMan, stack, reference);
+                state = IsGazeDisguised.EVENT.invoker().isWearDisguise(lookingEntity, vanillaPredicate, stack, reference);
 
                 if(state != TriState.DEFAULT) return state;
+
+                if (vanillaPredicate && stack.is(ItemTags.GAZE_DISGUISE_EQUIPMENT)) return TriState.TRUE;
             }
         }
 
-        endermanAngyCacheResults.getUnchecked(entity.getId())
-                .put(enderMan.getId(), state);
+        gazeDisguiseCache.getUnchecked(targetEntity.getId())
+                .put(lookingEntity.getId(), state);
 
         return state;
     }

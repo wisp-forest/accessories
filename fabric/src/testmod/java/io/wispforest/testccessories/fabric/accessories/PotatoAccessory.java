@@ -11,6 +11,8 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -30,8 +32,8 @@ public class PotatoAccessory implements Accessory {
     public static class Renderer implements SimpleAccessoryRenderer {
 
         @Override
-        public <M extends LivingEntity> void align(ItemStack stack, SlotReference reference, EntityModel<M> model, PoseStack matrices) {
-            if(!(model instanceof HumanoidModel<? extends LivingEntity> humanoidModel)) return;
+        public <S extends LivingEntityRenderState> void align(ItemStack stack, SlotReference reference, EntityModel<S> model, S renderState, PoseStack matrices) {
+            if(!(model instanceof HumanoidModel<? extends HumanoidRenderState> humanoidModel)) return;
 
             AccessoryRenderer.transformToModelPart(matrices, humanoidModel.body, 0, 0, -1);
         }

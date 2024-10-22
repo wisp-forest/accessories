@@ -1,5 +1,6 @@
 package io.wispforest.accessories.mixin;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -15,5 +16,10 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @Mixin(CraftingMenu.class)
 public interface CraftingMenuAccessor {
     @Invoker("slotChangedCraftingGrid")
-    static void accessories$slotChangedCraftingGrid(AbstractContainerMenu abstractContainerMenu, Level level, Player player, CraftingContainer craftingContainer, ResultContainer resultContainer, @Nullable RecipeHolder<CraftingRecipe> recipeHolder) {}
+    static void accessories$slotChangedCraftingGrid(AbstractContainerMenu abstractContainerMenu,
+                                                    ServerLevel serverLevel,
+                                                    Player player,
+                                                    CraftingContainer craftingContainer,
+                                                    ResultContainer resultContainer,
+                                                    @Nullable RecipeHolder<CraftingRecipe> recipeHolder) {}
 }

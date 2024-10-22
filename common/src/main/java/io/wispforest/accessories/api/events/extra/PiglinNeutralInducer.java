@@ -9,12 +9,12 @@ import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Event callback used to adjust the given {@link PiglinAi#isWearingGold(LivingEntity)}s method calls return
+ * Event callback used to adjust the given {@link PiglinAi#isWearingSafeArmor(LivingEntity)}s method calls return
  * either making the given piglin neutral or not
  * <p/>
  * This is called within {@link ExtraEventHandler#isPiglinsNeutral(LivingEntity)}
  * if any given Accessory was found to implement this interface and/or any registered callback
- * to the {@link LootingAdjustment#EVENT} returns an adjustment
+ * to the {@link PiglinNeutralInducer#EVENT} returns an adjustment
  */
 public interface PiglinNeutralInducer {
 

@@ -1,15 +1,20 @@
 package io.wispforest.accessories.mixin.client;
 
+import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
+import net.minecraft.client.renderer.entity.state.PlayerRenderState;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.HumanoidArm;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,9 +26,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(PlayerRenderer.class)
-public abstract class PlayerRendererMixin {
+public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractClientPlayer, PlayerRenderState, PlayerModel> {
 
-    @Shadow public abstract void render(AbstractClientPlayer entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight);
+    public PlayerRendererMixin(EntityRendererProvider.Context context, PlayerModel model, float shadowRadius) {
+        super(context, model, shadowRadius);
+    }
 
     @Unique
     private static HumanoidArm currentArm = null;
@@ -35,8 +42,15 @@ public abstract class PlayerRendererMixin {
 //        return returned;
 //    }
 
-    @Inject(method = "renderHand", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/geom/ModelPart;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;II)V", ordinal = 1, shift = At.Shift.AFTER), locals = LocalCapture.CAPTURE_FAILHARD)
-    private void accessories$firstPersonAccessories(PoseStack poseStack, MultiBufferSource buffer, int combinedLight, AbstractClientPlayer player, ModelPart rendererArm, ModelPart rendererArmwear, CallbackInfo ci, PlayerModel playerModel, ResourceLocation resourceLocation) {
+    @Inject(method = "renderHand", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/geom/ModelPart;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;II)V", ordinal = 0, shift = At.Shift.AFTER))
+    private void accessories$firstPersonAccessories(PoseStack poseStack, MultiBufferSource buffer, int combinedLight, ResourceLocation resourceLocation, ModelPart rendererArm, boolean bl, CallbackInfo ci, @Local PlayerModel playerModel) {
+        var player = Minecraft.getInstance().player;
+        var level = Minecraft.getInstance().player.level();
+
+        var partialTicks = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(!level.tickRateManager().isEntityFrozen(player));
+
+        var state = this.createRenderState(player, partialTicks);
+
         if (currentArm != null) {
             var capability = AccessoriesCapability.get(player);
 
@@ -68,8 +82,10 @@ public abstract class PlayerRendererMixin {
                         SlotReference.of(player, container.getSlotName(), i),
                         poseStack,
                         playerModel,
+                        state,
                         buffer,
-                        combinedLight
+                        combinedLight,
+                        partialTicks
                     );
 
                     poseStack.popPose();
@@ -80,12 +96,12 @@ public abstract class PlayerRendererMixin {
     }
 
     @Inject(method = "renderRightHand", at = @At("HEAD"))
-    private void accessories$firstPersonRightAccessories(PoseStack poseStack, MultiBufferSource buffer, int combinedLight, AbstractClientPlayer player, CallbackInfo ci) {
+    private void accessories$firstPersonRightAccessories(PoseStack poseStack, MultiBufferSource buffer, int combinedLight, ResourceLocation resourceLocation, boolean bl, CallbackInfo ci) {
         currentArm = HumanoidArm.RIGHT;
     }
 
     @Inject(method = "renderLeftHand", at = @At("HEAD"))
-    private void accessories$firstPersonLeftAccessories(PoseStack poseStack, MultiBufferSource buffer, int combinedLight, AbstractClientPlayer player, CallbackInfo ci) {
+    private void accessories$firstPersonLeftAccessories(PoseStack poseStack, MultiBufferSource buffer, int combinedLight, ResourceLocation resourceLocation, boolean bl, CallbackInfo ci) {
         currentArm = HumanoidArm.LEFT;
     }
 }

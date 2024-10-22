@@ -18,7 +18,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.CoreShaderRegistrationCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
 import net.fabricmc.fabric.api.event.Event;
@@ -26,7 +25,11 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.EntityType;
@@ -77,7 +80,10 @@ public class AccessoriesClientFabric implements ClientModInitializer {
         LivingEntityFeatureRendererRegistrationCallback.EVENT.register((entityType, entityRenderer, registrationHelper, context) -> {
             if(!(entityRenderer.getModel() instanceof HumanoidModel)) return;
 
-            registrationHelper.register(new AccessoriesRenderLayer<>(entityRenderer));
+            // TODO: CONFIRM THIS IS CORRECT!
+            var rendererCasted = (RenderLayerParent<LivingEntityRenderState, EntityModel<LivingEntityRenderState>>) entityRenderer;
+
+            registrationHelper.register(new AccessoriesRenderLayer<>(rendererCasted));
         });
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
@@ -99,7 +105,5 @@ public class AccessoriesClientFabric implements ClientModInitializer {
 
             AccessoriesClient.initalConfigDataSync();
         });
-
-        CoreShaderRegistrationCallback.EVENT.register(context -> context.register(Accessories.of("fish"), DefaultVertexFormat.BLIT_SCREEN, shaderInstance -> AccessoriesClient.BLIT_SHADER = shaderInstance));
     }
 }

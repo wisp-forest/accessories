@@ -6,7 +6,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.Slot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -15,6 +17,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.function.Function;
 
 @Mixin(AbstractContainerScreen.class)
 public abstract class AbstractContainerScreenMixin implements ContainerScreenExtension {
@@ -37,9 +41,9 @@ public abstract class AbstractContainerScreenMixin implements ContainerScreenExt
         if(result != null && !result) ci.cancel();
     }
 
-    @WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blit(IIIIILnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V"))
-    private void accessories$adjustFor18x18(GuiGraphics instance, int x, int y, int blitOffset, int width, int height, TextureAtlasSprite sprite, Operation<Void> original) {
-        var is18x18 = sprite.contents().width() == 18 && sprite.contents().height() == 18;
+    @WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Ljava/util/function/Function;Lnet/minecraft/client/renderer/texture/TextureAtlasSprite;IIII)V"))
+    private void accessories$adjustFor18x18(GuiGraphics instance, Function<ResourceLocation, RenderType> function, TextureAtlasSprite textureAtlasSprite, int x, int y, int width, int height, Operation<Void> original) {
+        var is18x18 = textureAtlasSprite.contents().width() == 18 && textureAtlasSprite.contents().height() == 18;
 
         if(is18x18) {
             width = 18;
@@ -49,7 +53,7 @@ public abstract class AbstractContainerScreenMixin implements ContainerScreenExt
             y = y - 1;
         }
 
-        original.call(instance, x, y, blitOffset, width, height, sprite);
+        original.call(instance, function, textureAtlasSprite, x, y, width, height);
     }
 
     @WrapOperation(method = "renderFloatingItem", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;translate(FFF)V"))

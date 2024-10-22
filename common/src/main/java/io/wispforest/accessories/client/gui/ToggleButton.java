@@ -12,8 +12,10 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
 
@@ -85,20 +87,18 @@ public class ToggleButton extends Button {
     protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         this.onRender.accept(this);
 
-        var pose = guiGraphics.pose();
-
-        pose.pushPose();
-        pose.translate(0, 0, zIndex);
-
-        guiGraphics.setColor(1.0F, 1.0F, 1.0F, this.alpha);
-        RenderSystem.enableBlend();
-        RenderSystem.enableDepthTest();
-        guiGraphics.blitSprite(SPRITES.get(this.toggled(), this.isHoveredOrFocused()), this.getX(), this.getY(), this.getWidth(), this.getHeight());
-        guiGraphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+        var minecraft = Minecraft.getInstance();
+        guiGraphics.blitSprite(
+                RenderType::guiTextured,
+                SPRITES.get(this.toggled(), this.isHoveredOrFocused()),
+                this.getX(),
+                this.getY(),
+                this.getWidth(),
+                this.getHeight(),
+                ARGB.white(this.alpha)
+        );
         int i = this.active ? 16777215 : 10526880;
-        this.renderString(guiGraphics, Minecraft.getInstance().font, i | Mth.ceil(this.alpha * 255.0F) << 24);
-
-        pose.popPose();
+        this.renderString(guiGraphics, minecraft.font, i | Mth.ceil(this.alpha * 255.0F) << 24);
     }
 
     @Environment(EnvType.CLIENT)

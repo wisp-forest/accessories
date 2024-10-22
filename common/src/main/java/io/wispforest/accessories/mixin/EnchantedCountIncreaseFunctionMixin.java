@@ -22,7 +22,7 @@ public abstract class EnchantedCountIncreaseFunctionMixin {
     private int attemptAdjustCountWithAccessoriesLooting(Holder<Enchantment> holder, LivingEntity livingEntity, Operation<Integer> original, @Local(argsOnly = true) LootContext context) {
         var amount = original.call(holder, livingEntity);
 
-        var enchantments = livingEntity.registryAccess().registry(Registries.ENCHANTMENT).orElseThrow();
+        var enchantments = livingEntity.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
 
         if(enchantments.getResourceKey(holder.value()).orElseThrow().equals(Enchantments.LOOTING)){
             amount = ExtraEventHandler.lootingAdjustments(livingEntity, context, amount);

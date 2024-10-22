@@ -30,6 +30,7 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -182,7 +183,13 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         int leftPos = this.leftPos;
         int topPos = this.topPos;
 
-        guiGraphics.blit(ACCESSORIES_INVENTORY_LOCATION, leftPos, topPos, 0, 0, this.imageWidth, this.imageHeight);
+        guiGraphics.blit(
+                RenderType::guiTextured, ACCESSORIES_INVENTORY_LOCATION,
+                leftPos, topPos,
+                0f, 0f,
+                this.imageWidth, this.imageHeight,
+                256, 256
+        );
 
         //--
 
@@ -226,12 +233,11 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         int height = getPanelHeight();
         int width = getPanelWidth();
 
-        //guiGraphics.blitSprite(AccessoriesScreen.BACKGROUND_PATCH, x + 6, y, width, height); //147
-        GuiGraphicsUtils.blitSpriteBatched(guiGraphics, AccessoriesScreen.BACKGROUND_PATCH, x + 6, y, width, height); //147
+        guiGraphics.blitSprite(RenderType::guiTextured, AccessoriesScreen.BACKGROUND_PATCH, x + 6, y, width, height); //147
 
         if (menu.overMaxVisibleSlots) {
             //guiGraphics.blitSprite(AccessoriesScreen.SCROLL_BAR_PATCH, x + 13, y + 7 + upperPadding, 8, height - 22);
-            GuiGraphicsUtils.blitSpriteBatched(guiGraphics, AccessoriesScreen.SCROLL_BAR_PATCH, x + 13, y + 7 + upperPadding, 8, height - 22);
+            guiGraphics.blitSprite(RenderType::guiTextured, AccessoriesScreen.SCROLL_BAR_PATCH, x + 13, y + 7 + upperPadding, 8, height - 22);
         }
 
         pose.popPose();
@@ -257,10 +263,10 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 //            }
 //        }
 
-        GuiGraphicsUtils.batched(guiGraphics, SLOT, this.menu.slots, (bufferBuilder, poseStack, slot) -> {
+        this.menu.slots.forEach(slot -> {
             if (!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) return;
 
-            GuiGraphicsUtils.blit(bufferBuilder, poseStack, slot.x + this.leftPos, slot.y + this.topPos, 18);
+            guiGraphics.blit(RenderType::guiTextured, SLOT, slot.x + this.leftPos, slot.y + this.topPos, 0f, 0f,18, 18, 18, 18);
         });
 
         if (getHoveredSlot() != null && getHoveredSlot() instanceof AccessoriesInternalSlot slot && slot.isActive() && !slot.getItem().isEmpty()) {
@@ -335,7 +341,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
             startingY += this.menu.smoothScroll * (panelHeight - 24 - this.scrollBarHeight);
 
-            GuiGraphicsUtils.blitSpriteBatched(guiGraphics, AccessoriesScreen.SCROLL_BAR, x + 14, startingY, 6, this.scrollBarHeight);
+            guiGraphics.blitSprite(RenderType::guiTextured, AccessoriesScreen.SCROLL_BAR, x + 14, startingY, 6, this.scrollBarHeight);
         }
 
         //--
@@ -351,7 +357,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
                 int v = (pair.isSelected()) ? vector.w : vector.w * 3;
 
-                guiGraphics.blit(HORIZONTAL_TABS, vector.x, vector.y, 0, v, vector.z, vector.w, 19, vector.w * 4); //32,128
+                guiGraphics.blit(RenderType::guiTextured, HORIZONTAL_TABS, vector.x, vector.y, 0, v, vector.z, vector.w, 19, vector.w * 4); //32,128
 
                 pose.pushPose();
 
@@ -360,8 +366,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
                 if (pair.isSelected) pose.translate(2, 0, 0);
 
-                // MultiDraw?
-                guiGraphics.blitSprite(group.icon(), 0, 0, 0, 8, 8);
+                guiGraphics.blitSprite(RenderType::guiTextured, group.icon(), 0, 0, 8, 8);
 
                 pose.popPose();
             }
@@ -370,81 +375,85 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         //--
 
         if (Accessories.config().screenOptions.hoveredOptions.clickbait()) {
-            ACCESSORY_POSITIONS.forEach(pos -> guiGraphics.blitSprite(Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 100, 256, 256));
+            ACCESSORY_POSITIONS.forEach(pos -> guiGraphics.blitSprite(RenderType::guiTextured, Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 100, 256, 256));
             ACCESSORY_POSITIONS.clear();
         }
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
 
+
+
         if (!ACCESSORY_LINES.isEmpty() && Accessories.config().screenOptions.hoveredOptions.line()) {
-            var buf = guiGraphics.bufferSource().getBuffer(RenderType.LINES);
-            var lastPose = guiGraphics.pose().last();
+            guiGraphics.drawSpecial(multiBufferSource -> {
+                var buf = multiBufferSource.getBuffer(RenderType.LINES);
+                var lastPose = guiGraphics.pose().last();
 
-            for (Pair<Vector3d, Vector3d> line : ACCESSORY_LINES) {
-                var normalVec = line.second().sub(line.first(), new Vector3d()).normalize().get(new Vector3f());
+                for (Pair<Vector3d, Vector3d> line : ACCESSORY_LINES) {
+                    var normalVec = line.second().sub(line.first(), new Vector3d()).normalize().get(new Vector3f());
 
-                double segments = Math.max(10, ((int) (line.first().distance(line.second()) * 10)) / 100);
-                segments *= 2;
+                    double segments = Math.max(10, ((int) (line.first().distance(line.second()) * 10)) / 100);
+                    segments *= 2;
 
-                var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
-                var delta = movement % (2 / (segments)) % segments;
+                    var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
+                    var delta = movement % (2 / (segments)) % segments;
 
-                var firstVec = line.first().get(new Vector3f());
+                    var firstVec = line.first().get(new Vector3f());
 
-                if (delta > 0.05) {
-                    buf.addVertex(firstVec)
-                            .setColor(255, 255, 255, 255)
-                            .setOverlay(OverlayTexture.NO_OVERLAY)
-                            //.uv2(LightTexture.FULL_BLOCK)
-                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                    //.endVertex();
+                    if (delta > 0.05) {
+                        buf.addVertex(firstVec)
+                                .setColor(255, 255, 255, 255)
+                                .setOverlay(OverlayTexture.NO_OVERLAY)
+                                //.uv2(LightTexture.FULL_BLOCK)
+                                .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
+                        //.endVertex();
 
-                    var pos = new Vector3d(
-                            Mth.lerp(delta - 0.05, line.first().x, line.second().x),
-                            Mth.lerp(delta - 0.05, line.first().y, line.second().y),
-                            Mth.lerp(delta - 0.05, line.first().z, line.second().z)
-                    ).get(new Vector3f());
+                        var pos = new Vector3d(
+                                Mth.lerp(delta - 0.05, line.first().x, line.second().x),
+                                Mth.lerp(delta - 0.05, line.first().y, line.second().y),
+                                Mth.lerp(delta - 0.05, line.first().z, line.second().z)
+                        ).get(new Vector3f());
 
-                    buf.addVertex(pos)
-                            .setColor(255, 255, 255, 255)
-                            .setOverlay(OverlayTexture.NO_OVERLAY)
-                            //.uv2(LightTexture.FULL_BLOCK)
-                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                    //.endVertex();
+                        buf.addVertex(pos)
+                                .setColor(255, 255, 255, 255)
+                                .setOverlay(OverlayTexture.NO_OVERLAY)
+                                //.uv2(LightTexture.FULL_BLOCK)
+                                .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
+                        //.endVertex();
+                    }
+                    for (int i = 0; i < segments / 2; i++) {
+                        var delta1 = ((i * 2) / segments + movement) % 1;
+                        var delta2 = ((i * 2 + 1) / segments + movement) % 1;
+
+                        var pos1 = new Vector3d(
+                                Mth.lerp(delta1, line.first().x, line.second().x),
+                                Mth.lerp(delta1, line.first().y, line.second().y),
+                                Mth.lerp(delta1, line.first().z, line.second().z)
+                        ).get(new Vector3f());
+                        var pos2 = (delta2 > delta1 ? new Vector3d(
+                                Mth.lerp(delta2, line.first().x, line.second().x),
+                                Mth.lerp(delta2, line.first().y, line.second().y),
+                                Mth.lerp(delta2, line.first().z, line.second().z)
+                        ) : line.second()).get(new Vector3f());
+
+                        buf.addVertex(pos1)
+                                .setColor(255, 255, 255, 255)
+                                .setOverlay(OverlayTexture.NO_OVERLAY)
+                                //.setUv2(LightTexture.FULL_BLOCK)
+                                .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
+                        //.endVertex();
+                        buf.addVertex(pos2)
+                                .setColor(255, 255, 255, 255)
+                                .setOverlay(OverlayTexture.NO_OVERLAY)
+                                //.setUv2(LightTexture.FULL_BLOCK)
+                                .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
+                        //.endVertex();
+                    }
                 }
-                for (int i = 0; i < segments / 2; i++) {
-                    var delta1 = ((i * 2) / segments + movement) % 1;
-                    var delta2 = ((i * 2 + 1) / segments + movement) % 1;
 
-                    var pos1 = new Vector3d(
-                            Mth.lerp(delta1, line.first().x, line.second().x),
-                            Mth.lerp(delta1, line.first().y, line.second().y),
-                            Mth.lerp(delta1, line.first().z, line.second().z)
-                    ).get(new Vector3f());
-                    var pos2 = (delta2 > delta1 ? new Vector3d(
-                            Mth.lerp(delta2, line.first().x, line.second().x),
-                            Mth.lerp(delta2, line.first().y, line.second().y),
-                            Mth.lerp(delta2, line.first().z, line.second().z)
-                    ) : line.second()).get(new Vector3f());
+                minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
 
-                    buf.addVertex(pos1)
-                            .setColor(255, 255, 255, 255)
-                            .setOverlay(OverlayTexture.NO_OVERLAY)
-                            //.setUv2(LightTexture.FULL_BLOCK)
-                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                    //.endVertex();
-                    buf.addVertex(pos2)
-                            .setColor(255, 255, 255, 255)
-                            .setOverlay(OverlayTexture.NO_OVERLAY)
-                            //.setUv2(LightTexture.FULL_BLOCK)
-                            .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                    //.endVertex();
-                }
-            }
-
-            minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
-
-            ACCESSORY_LINES.clear();
+                ACCESSORY_LINES.clear();
+            });
         }
     }
 
@@ -472,14 +481,14 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
                         .bounds(this.leftPos + 141, this.topPos + 9, 8, 8)
                         .tooltip(Tooltip.create(Component.translatable(Accessories.translationKey("back.screen"))))
                         .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-            guiGraphics.blitSprite(SPRITES_8X8.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
+            guiGraphics.blitSprite(RenderType::guiTextured, SPRITES_8X8.get(button.active, button.isHoveredOrFocused()), x, y, width, height, ARGB.white(/*button.alpha*/1.0f));
 
             var pose = guiGraphics.pose();
 
             pose.pushPose();
             pose.translate(0.5, 0.5, 0.0);
 
-            guiGraphics.blitSprite(BACk_ICON, x, y, width - 1, height - 1);
+            guiGraphics.blitSprite(RenderType::guiTextured, BACk_ICON, x, y, width - 1, height - 1);
 
             pose.popPose();
 
@@ -507,8 +516,8 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
                         .tooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()))
                         .bounds(this.leftPos + 154, btnOffset, 12, 12)
                         .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-            guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
-            guiGraphics.blitSprite((this.menu.areUnusedSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
+            guiGraphics.blitSprite(RenderType::guiTextured, SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height, ARGB.white(/*button.alpha*/1.0f));
+            guiGraphics.blitSprite(RenderType::guiTextured, (this.menu.areUnusedSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
 
             return true;
         });

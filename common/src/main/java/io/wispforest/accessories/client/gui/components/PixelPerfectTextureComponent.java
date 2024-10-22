@@ -6,6 +6,7 @@ import io.wispforest.owo.ui.base.BaseComponent;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
 import io.wispforest.owo.ui.core.Sizing;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix4f;
 
@@ -40,25 +41,19 @@ public class PixelPerfectTextureComponent extends BaseComponent {
         int x2 = x1 + width;
         int y2 = y1 + height;
 
-        RenderSystem.setShaderTexture(0, texture);
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        var vertexConsumer = context.vertexConsumers().getBuffer(RenderType.guiTextured(texture));
+        var matrix4f = context.pose().last().pose();
 
-        Matrix4f matrix4f = context.pose().last().pose();
-
-        BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
-
-        bufferBuilder.addVertex(matrix4f, x1, y1, z)
+        vertexConsumer.addVertex(matrix4f, x1, y1, z)
                 .setUv(0, 0);
 
-        bufferBuilder.addVertex(matrix4f, x1, y2, z)
+        vertexConsumer.addVertex(matrix4f, x1, y2, z)
                 .setUv(0, 1);
 
-        bufferBuilder.addVertex(matrix4f, x2, y2, z)
+        vertexConsumer.addVertex(matrix4f, x2, y2, z)
                 .setUv(1, 1);
 
-        bufferBuilder.addVertex(matrix4f, x2, y1, z)
+        vertexConsumer.addVertex(matrix4f, x2, y1, z)
                 .setUv(1, 0);
-
-        BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
     }
 }

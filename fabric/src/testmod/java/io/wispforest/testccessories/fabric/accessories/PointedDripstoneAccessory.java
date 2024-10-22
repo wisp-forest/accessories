@@ -16,6 +16,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.HumanoidArm;
@@ -40,7 +42,7 @@ public class PointedDripstoneAccessory implements Accessory {
     }
 
     @Override
-    public void getModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
+    public void getDynamicModifiers(ItemStack stack, SlotReference reference, AccessoryAttributeBuilder builder) {
         if(reference.slotName().equals("hand") || reference.slotName().equals("hat")) {
             builder.addStackable(Attributes.ATTACK_DAMAGE, new AttributeModifier(ATTACK_DAMAGE_LOCATION, 3 * (stack.getCount() / 64f), AttributeModifier.Operation.ADD_VALUE));
         }
@@ -49,8 +51,9 @@ public class PointedDripstoneAccessory implements Accessory {
     @Environment(EnvType.CLIENT)
     public static class Renderer implements SimpleAccessoryRenderer {
 
-        public <M extends LivingEntity> void align(ItemStack stack, SlotReference reference, EntityModel<M> model, PoseStack matrices) {
-            if (!(model instanceof HumanoidModel<? extends LivingEntity> humanoidModel)) return;
+        @Override
+        public <S extends LivingEntityRenderState> void align(ItemStack stack, SlotReference reference, EntityModel<S> model, S renderState, PoseStack matrices) {
+            if (!(model instanceof HumanoidModel<? extends HumanoidRenderState> humanoidModel)) return;
 
             var armModelPart = (reference.slot() % 2 == 0) ? humanoidModel.rightArm : humanoidModel.leftArm;
 
@@ -60,8 +63,8 @@ public class PointedDripstoneAccessory implements Accessory {
         }
 
         @Override
-        public <M extends LivingEntity> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-            align(stack, reference, model, matrices);
+        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
+            align(stack, reference, model, renderState, matrices);
 
             for (int i = 0; i < stack.getCount(); i++) {
                 if (i > 0) matrices.mulPose(Axis.YP.rotationDegrees(Math.min(90, 360f / stack.getCount())));

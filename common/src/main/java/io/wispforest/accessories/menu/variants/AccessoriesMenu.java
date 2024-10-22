@@ -62,7 +62,7 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
     private Map<AccessoriesInternalSlot, Integer> slotToPageIndex = new HashMap<>();
 
     public AccessoriesMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
-        super(AccessoriesMenuTypes.ORIGINAL_MENU, containerId, inventory, targetEntity);
+        super(AccessoriesMenuTypes.ORIGINAL_MENU, containerId, inventory, 0, 0, targetEntity);
 
         var accessoryTarget = targetEntity != null ? targetEntity : owner;
 

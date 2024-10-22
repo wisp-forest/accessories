@@ -10,6 +10,7 @@ import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import it.unimi.dsi.fastutil.Pair;
 import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
@@ -18,7 +19,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.entity.animal.horse.Llama;
-import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.apache.logging.log4j.util.TriConsumer;
@@ -30,15 +30,7 @@ import java.util.function.Consumer;
 
 public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
 
-    private static final Accessory armorAccessory = new Accessory() {
-        @Override
-        @Nullable
-        public SoundEventData getEquipSound(ItemStack stack, SlotReference reference) {
-            var sound = (stack.getItem() instanceof Equipable equipable) ? equipable.getEquipSound() : SoundEvents.ARMOR_EQUIP_GENERIC;
-
-            return new SoundEventData(sound, 1.0f, 1.0f);
-        }
-    };
+    private static final Accessory armorAccessory = new Accessory() {};
 
     public static final Map<EquipmentSlot, ResourceLocation> TEXTURE_EMPTY_SLOTS = Map.of(
             EquipmentSlot.FEET, ResourceLocation.withDefaultNamespace("item/empty_armor_slot_boots"),
@@ -148,20 +140,6 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
         AccessoriesAPI.registerPredicate(ANIMAL_BODY_PREDICATE_LOCATION,  (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.BODY)));
     }
 
-    public void registerAccessories(Consumer<TriConsumer<Integer, ResourceLocation, Item>> eventRegister) {
-        BuiltInRegistries.ITEM.forEach(this::tryToRegisterItem);
-
-        eventRegister.accept((integer, resourceLocation, item) -> tryToRegisterItem(item));
-    }
-
-    private void tryToRegisterItem(Item item) {
-        if(item instanceof Equipable equipable && isValidEquipable(equipable.getEquipmentSlot())) {
-            var accessory = AccessoriesAPI.getAccessory(item);
-
-            if(accessory == null) AccessoriesAPI.registerAccessory(item, armorAccessory);
-        }
-    }
-
     @Override
     public void registerSlots(UniqueSlotHandling.UniqueSlotBuilderFactory factory) {
         headSlotReference = factory.create(Accessories.of("head"), 1)
@@ -214,9 +192,9 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
         EquipmentSlot stackEquipmentSlot = null;
 
         if(livingEntity == null) {
-            var equipable = Equipable.get(stack);
+            var equipable = stack.get(DataComponents.EQUIPPABLE);
 
-            if(equipable != null) stackEquipmentSlot = equipable.getEquipmentSlot();
+            if(equipable != null) stackEquipmentSlot = equipable.slot();
         } else {
             stackEquipmentSlot = livingEntity.getEquipmentSlotForItem(stack);
         }
