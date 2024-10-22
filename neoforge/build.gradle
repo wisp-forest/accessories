@@ -53,7 +53,7 @@ dependencies {
     /*include*/ implementation("org.sinytra:forgified-fabric-loader:${project.ffloader_version}")
     //include modRuntimeOnly("org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.ffapi_version}")
 
-    /*include*/ modRuntimeOnly("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+d1308dedd1") { exclude group: "fabric-api" }
+    /*include*/ modApi("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+d1308dedd1") { exclude group: "fabric-api" }
     /*include*/ modRuntimeOnly("org.sinytra.forgified-fabric-api:fabric-networking-api-v1:4.2.2+a92978fd19") { exclude group: "fabric-api" }
     /*include*/ modRuntimeOnly("org.sinytra.forgified-fabric-api:fabric-screen-api-v1:2.0.24+79a4c2b0d1") { exclude group: "fabric-api" }
 
@@ -61,7 +61,7 @@ dependencies {
 
     forgeRuntimeLibrary(implementation("blue.endless:jankson:1.2.2"))
 
-    /*include*/ modCompileOnly("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+e0539096d1"){ exclude group: "fabric-api" }
+    ///*include*/ modCompileOnly("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+e0539096d1"){ exclude group: "fabric-api" }
 
     forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")
     forgeRuntimeLibrary("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
