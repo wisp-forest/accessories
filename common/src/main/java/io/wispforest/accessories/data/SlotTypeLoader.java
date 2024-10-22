@@ -235,12 +235,12 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         }
 
         public SlotBuilder icon(ResourceLocation value){
-            this.icon = value;
+            if (value != null) this.icon = value;
             return this;
         }
 
         public SlotBuilder order(Integer value){
-            this.order = value;
+            if (value != null) this.order = value;
             return this;
         }
 
@@ -265,7 +265,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         }
 
         public SlotBuilder dropRule(DropRule value){
-            this.dropRule = value;
+            if (value != null) this.dropRule = value;
             return this;
         }
 

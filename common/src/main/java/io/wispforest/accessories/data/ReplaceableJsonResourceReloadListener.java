@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -37,7 +38,7 @@ public abstract class ReplaceableJsonResourceReloadListener extends SimplePrepar
     protected Map<ResourceLocation, JsonObject> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
         var fileToIdConverter = FileToIdConverter.json(directory);
 
-        var output = new HashMap<ResourceLocation, JsonObject>();
+        var output = new LinkedHashMap<ResourceLocation, JsonObject>();
 
         for(var entry : fileToIdConverter.listMatchingResourceStacks(resourceManager).entrySet()) {
             var filePath = entry.getKey();
