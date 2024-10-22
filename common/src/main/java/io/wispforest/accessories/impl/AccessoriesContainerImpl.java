@@ -19,7 +19,7 @@ import io.wispforest.endec.util.MapCarrier;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerListener;
 import net.minecraft.world.SimpleContainer;
