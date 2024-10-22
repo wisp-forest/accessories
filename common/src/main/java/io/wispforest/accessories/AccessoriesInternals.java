@@ -4,13 +4,13 @@ import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.ArgumentType;
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import io.wispforest.accessories.api.AccessoriesHolder;
+import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.endec.Endec;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
@@ -48,15 +48,15 @@ public class AccessoriesInternals {
     public static EquipmentSlot.Type ACCESSORIES_TYPE = null;
 
     /**
-     * @return {@link AccessoriesHolder} attached to a given {@link LivingEntity} based on the Platforms method for getting it
+     * @return {@link AccessoriesHolderImpl} attached to a given {@link LivingEntity} based on the Platforms method for getting it
      */
     @ExpectPlatform
-    public static AccessoriesHolder getHolder(LivingEntity livingEntity) {
+    public static AccessoriesHolderImpl getHolder(LivingEntity livingEntity) {
         throw new AssertionError();
     }
 
     @ExpectPlatform
-    public static void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolder> modifier) {
+    public static void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolderImpl> modifier) {
         throw new AssertionError();
     }
 
@@ -73,7 +73,7 @@ public class AccessoriesInternals {
     }
 
     @ExpectPlatform
-    public static boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, @Nullable HolderLookup.Provider registryLookup) {
+    public static boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, @Nullable RegistryOps.RegistryInfoLookup registryInfo) {
         throw new AssertionError();
     }
 

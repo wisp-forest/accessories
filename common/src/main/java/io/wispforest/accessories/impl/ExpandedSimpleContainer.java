@@ -196,7 +196,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
                 this.setChanged();
             }
 
-            ((AccessoriesHolderImpl) capability.getHolder()).invalidStacks.addAll(invalidStacks);
+            AccessoriesHolderImpl.getHolder(capability).invalidStacks.addAll(invalidStacks);
         }
     }
 

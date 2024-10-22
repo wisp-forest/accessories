@@ -50,7 +50,7 @@ public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) {
             return;
         }
 
-        var holder = ((AccessoriesHolderImpl) capability.getHolder());
+        var holder = AccessoriesHolderImpl.getHolder(capability);
 
 //        if(entity instanceof Player) {
 //            LOGGER.info("[SyncEntireContainer] Container data has been received on the client!");

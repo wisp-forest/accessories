@@ -3,12 +3,13 @@ package io.wispforest.accessories.mixin;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.AccessoriesHolder;
+import io.wispforest.accessories.api.events.extra.ExtraEventHandler;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
+import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -23,6 +24,9 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.function.DoubleSupplier;
+import java.util.function.Predicate;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity implements AccessoriesAPIAccess, AccessoriesLivingEntityExtension {
@@ -39,14 +43,6 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
         if(slots.isEmpty()) return null;
 
         return new AccessoriesCapabilityImpl((LivingEntity) (Object) this);
-    }
-
-    @Override
-    @Nullable
-    public AccessoriesHolder accessoriesHolder() {
-        var capability = accessoriesCapability();
-
-        return capability != null ? capability.getHolder() : null;
     }
 
     //--

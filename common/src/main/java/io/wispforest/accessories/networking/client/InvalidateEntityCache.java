@@ -41,7 +41,7 @@ public record InvalidateEntityCache(int entityId) {
             return;
         }
 
-        var cache = ((AccessoriesHolderImpl) capability.getHolder()).getLookupCache();
+        var cache = AccessoriesHolderImpl.getHolder(capability).getLookupCache();
 
         if(cache != null) cache.clearCache();
     }

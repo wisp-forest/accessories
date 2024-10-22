@@ -9,6 +9,7 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.accessories.utils.EndecUtils;
@@ -19,7 +20,7 @@ import io.wispforest.endec.util.MapCarrier;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerListener;
 import net.minecraft.world.SimpleContainer;
@@ -72,7 +73,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         if(containerListenerLock) return;
 
         if (!this.capability.entity().level().isClientSide()) {
-            var cache = ((AccessoriesHolderImpl)this.capability().getHolder()).getLookupCache();
+            var cache = AccessoriesHolderImpl.getHolder(this.capability()).getLookupCache();
 
             if (cache != null) cache.clearContainerCache(this.slotName);
         }
@@ -95,7 +96,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
         if(this.capability.entity().level().isClientSide) return;
 
-        var inv = ((AccessoriesCapabilityImpl) this.capability).getUpdatingInventories();
+        var inv = AccessoriesHolderImpl.getHolder(this.capability).containersRequiringUpdates;
 
         inv.remove(this);
         inv.put(this, resizingUpdate);
@@ -148,6 +149,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         }
 
         //--
+
+        var holder = AccessoriesHolderImpl.getHolder(this.capability());
 
         var currentSize = (int) Math.round(size);
 
@@ -204,17 +207,17 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                 invalidStacks.add(invalidStack);
             }
 
-            ((AccessoriesHolderImpl) this.capability.getHolder()).invalidStacks.addAll(invalidStacks);
+            holder.invalidStacks.addAll(invalidStacks);
 
             if (this.update) this.capability.updateContainers();
         }
 
         if(!hasChangeOccurred) {
-            var inv = ((AccessoriesCapabilityImpl) this.capability).getUpdatingInventories();
+            var inv = holder.containersRequiringUpdates;
 
             inv.remove(this);
         } else {
-            var cache = ((AccessoriesHolderImpl)this.capability().getHolder()).getLookupCache();
+            var cache = holder.getLookupCache();
 
             if (cache != null) cache.clearContainerCache(this.slotName);
         }

@@ -3,13 +3,13 @@ package io.wispforest.accessories.impl;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.impl.caching.AccessoriesHolderLookupCache;
+import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import io.wispforest.accessories.utils.EndecUtils;
@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 import java.util.*;
 
 @ApiStatus.Internal
-public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
+public class AccessoriesHolderImpl implements InstanceEndec {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -79,6 +79,29 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         return holder;
     }
 
+    @Nullable
+    public static AccessoriesHolderImpl getHolder(LivingEntity livingEntity) {
+        var capability = livingEntity.accessoriesCapability();
+
+        if (capability == null) return null;
+
+        return getHolder(capability);
+    }
+
+    public static AccessoriesHolderImpl getHolder(AccessoriesCapability capability) {
+        var entity = capability.entity();
+
+        var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
+
+        // Attempts to reset the container when loaded from tag on the server
+        if (holder.loadedFromTag) capability.reset(true);
+
+        // Prevents containers from not existing even if a given entity will have such slots but have yet to be synced to the client
+        if (holder.getSlotContainers().size() != EntitySlotLoader.getEntitySlots(entity).size()) holder.init(capability);
+
+        return holder;
+    }
+
     @ApiStatus.Internal
     protected Map<String, AccessoriesContainer> getAllSlotContainers() {
         return this.slotContainers;
@@ -118,13 +141,11 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
     //--
 
-    @Override
     public PlayerEquipControl equipControl() {
         return equipControl;
     }
 
-    @Override
-    public AccessoriesHolder equipControl(PlayerEquipControl value) {
+    public AccessoriesHolderImpl equipControl(PlayerEquipControl value) {
         this.equipControl = value;
 
         return this;
@@ -132,73 +153,61 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
     //--
 
-    @Override
     public boolean showUnusedSlots() {
         return this.showUnusedSlots;
     }
 
-    @Override
-    public AccessoriesHolder showUnusedSlots(boolean value) {
+    public AccessoriesHolderImpl showUnusedSlots(boolean value) {
         this.showUnusedSlots = value;
 
         return this;
     }
 
-    @Override
     public boolean cosmeticsShown() {
         return this.showCosmetics;
     }
 
-    @Override
-    public AccessoriesHolder cosmeticsShown(boolean value) {
+    public AccessoriesHolderImpl cosmeticsShown(boolean value) {
         this.showCosmetics = value;
 
         return this;
     }
 
-    @Override
     public int columnAmount() {
         return Math.max(columnAmount, 1);
     }
 
-    @Override
-    public AccessoriesHolder columnAmount(int value) {
+    public AccessoriesHolderImpl columnAmount(int value) {
         this.columnAmount = value;
 
         return this;
     }
 
-    @Override
     public int widgetType() {
         return Math.max(widgetType, 1);
     }
 
-    @Override
-    public AccessoriesHolder widgetType(int value) {
+    public AccessoriesHolderImpl widgetType(int value) {
         this.widgetType = value;
 
         return this;
     }
 
-    @Override
     public boolean mainWidgetPosition() {
         return this.mainWidgetPosition;
     }
 
-    @Override
-    public AccessoriesHolder mainWidgetPosition(boolean value) {
+    public AccessoriesHolderImpl mainWidgetPosition(boolean value) {
         this.mainWidgetPosition = value;
 
         return this;
     }
 
-    @Override
     public boolean showAdvancedOptions() {
         return this.showAdvancedOptions;
     }
 
-    @Override
-    public AccessoriesHolder showAdvancedOptions(boolean value) {
+    public AccessoriesHolderImpl showAdvancedOptions(boolean value) {
         this.showAdvancedOptions = value;
 
         return this;
@@ -208,7 +217,7 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         return this.showGroupFilter;
     }
 
-    public AccessoriesHolder showGroupFilter(boolean value) {
+    public AccessoriesHolderImpl showGroupFilter(boolean value) {
         this.showGroupFilter = value;
 
         return this;
@@ -216,13 +225,11 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
     private boolean isGroupFiltersOpen = true;
 
-    @Override
     public boolean isGroupFiltersOpen() {
         return isGroupFiltersOpen;
     }
 
-    @Override
-    public AccessoriesHolder isGroupFiltersOpen(boolean value) {
+    public AccessoriesHolderImpl isGroupFiltersOpen(boolean value) {
         this.isGroupFiltersOpen = value;
 
         return this;
@@ -230,13 +237,11 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
 
     private Set<String> filteredGroups = Set.of();
 
-    @Override
     public Set<String> filteredGroups() {
         return filteredGroups;
     }
 
-    @Override
-    public AccessoriesHolder filteredGroups(Set<String> value) {
+    public AccessoriesHolderImpl filteredGroups(Set<String> value) {
         this.filteredGroups = value;
 
         return this;
@@ -246,19 +251,17 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         return this.sideWidgetPosition;
     }
 
-    public AccessoriesHolder sideWidgetPosition(boolean value) {
+    public AccessoriesHolderImpl sideWidgetPosition(boolean value) {
         this.sideWidgetPosition = value;
 
         return this;
     }
 
-    @Override
     public boolean showCraftingGrid() {
         return this.showCraftingGrid;
     }
 
-    @Override
-    public AccessoriesHolder showCraftingGrid(boolean value) {
+    public AccessoriesHolderImpl showCraftingGrid(boolean value) {
         this.showCraftingGrid = value;
 
         return this;
@@ -440,6 +443,26 @@ public class AccessoriesHolderImpl implements AccessoriesHolder, InstanceEndec {
         this.loadedFromTag = true;
 
         this.carrier = carrier;
+    }
+
+    @Deprecated(forRemoval = true)
+    public boolean showUniqueSlots() {
+        return false;
+    }
+
+    @Deprecated(forRemoval = true)
+    public AccessoriesHolderImpl showUniqueSlots(boolean value) {
+        return this;
+    }
+
+    @Deprecated(forRemoval = true)
+    public boolean linesShown() {
+        return false;
+    }
+
+    @Deprecated(forRemoval = true)
+    public AccessoriesHolderImpl linesShown(boolean value) {
+        return this;
     }
 
     private record ContainersAttribute(Map<String, AccessoriesContainer> slotContainers) implements SerializationAttribute.Instance {

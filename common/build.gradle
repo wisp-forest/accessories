@@ -19,6 +19,7 @@ repositories {
         url "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
         content { includeGroup("software.bernie.geckolib") }
     }
+    mavenLocal()
 }
 
 dependencies {
@@ -45,7 +46,7 @@ dependencies {
 
     modCompileOnly ("dev.emi:emi-xplat-intermediary:${rootProject.emi_version}:api")
 
-    modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-common-api:${rootProject.jei_version}")
+    modCompileOnly("mezz.jei:jei-${rootProject.jei_minecraft_version}-common-api:${rootProject.jei_version}")
 }
 
 sourceSets {

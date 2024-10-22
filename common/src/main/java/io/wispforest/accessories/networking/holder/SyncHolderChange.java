@@ -1,6 +1,7 @@
 package io.wispforest.accessories.networking.holder;
 
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
+import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.endec.*;
 import net.fabricmc.api.EnvType;
@@ -33,7 +34,7 @@ public record SyncHolderChange(HolderProperty<?> property, Object data) {
     }
 
     public static <T> SyncHolderChange of(HolderProperty<T> property, Player player, Function<T, T> operation) {
-        return new SyncHolderChange(property, operation.apply(property.getter().apply(player.accessoriesHolder())));
+        return new SyncHolderChange(property, operation.apply(property.getter().apply(AccessoriesHolderImpl.getHolder(player))));
     }
 
     public static void handlePacket(SyncHolderChange packet, Player player) {
@@ -42,7 +43,7 @@ public record SyncHolderChange(HolderProperty<?> property, Object data) {
         if(player.level().isClientSide()) {
             handleClient(packet, player);
         } else {
-            AccessoriesNetworking.sendToPlayer((ServerPlayer) player, SyncHolderChange.of((HolderProperty<Object>) packet.property(), (Object) packet.property().getter().apply(player.accessoriesHolder())));
+            AccessoriesNetworking.sendToPlayer((ServerPlayer) player, SyncHolderChange.of((HolderProperty<Object>) packet.property(), (Object) packet.property().getter().apply(AccessoriesHolderImpl.getHolder(player))));
         }
     }
 

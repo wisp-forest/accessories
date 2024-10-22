@@ -4,13 +4,13 @@ import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.SlotGroupLoader;
+import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.menu.*;
 import io.wispforest.accessories.menu.networking.ToggledSlots;
 import io.wispforest.owo.client.screens.SlotGenerator;
@@ -321,7 +321,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
     }
 
     public boolean areUnusedSlotsShown() {
-        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::showUnusedSlots).orElse(false);
+        return Optional.ofNullable(AccessoriesHolderImpl.getHolder(owner)).map(AccessoriesHolderImpl::showUnusedSlots).orElse(false);
     }
 
     @Override
@@ -481,5 +481,4 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
         return bl;
     }
-
 }

@@ -6,11 +6,11 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
@@ -261,11 +261,11 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
     }
 
     public boolean isCosmeticsOpen() {
-        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::cosmeticsShown).orElse(false);
+        return Optional.ofNullable(AccessoriesHolderImpl.getHolder(owner)).map(AccessoriesHolderImpl::cosmeticsShown).orElse(false);
     }
 
     public boolean areUnusedSlotsShown() {
-        return Optional.ofNullable(AccessoriesHolder.get(owner)).map(AccessoriesHolder::showUnusedSlots).orElse(false);
+        return Optional.ofNullable(AccessoriesHolderImpl.getHolder(owner)).map(AccessoriesHolderImpl::showUnusedSlots).orElse(false);
     }
 
     //--

@@ -44,11 +44,6 @@ public interface AccessoriesCapability {
      */
     LivingEntity entity();
 
-    /**
-     * @return The {@link AccessoriesHolder} bound to the given {@link LivingEntity}
-     */
-    AccessoriesHolder getHolder();
-
     //--
 
     /**
@@ -149,7 +144,7 @@ public interface AccessoriesCapability {
     }
 
     default boolean isEquipped(ItemStackBasedPredicate predicate, EquipmentChecking check) {
-        var cache = ((AccessoriesHolderImpl)this.getHolder()).getLookupCache();
+        var cache = AccessoriesHolderImpl.getHolder(this).getLookupCache();
 
         if (cache != null) return cache.firstEquipped(predicate, check) != null;
 
@@ -169,7 +164,7 @@ public interface AccessoriesCapability {
      * using the current {@link SlotReference} and the given {@link ItemStack}
      */
     default boolean isAnotherEquipped(ItemStack stack, SlotReference slotReference, ItemStackBasedPredicate predicate) {
-        var cache = ((AccessoriesHolderImpl)this.getHolder()).getLookupCache();
+        var cache = AccessoriesHolderImpl.getHolder(this).getLookupCache();
 
         List<SlotEntryReference> equippedStacks = (cache != null) ? cache.getEquipped(predicate) : getEquipped(predicate);
 
@@ -233,7 +228,7 @@ public interface AccessoriesCapability {
     }
 
     default List<SlotEntryReference> getEquipped(ItemStackBasedPredicate predicate) {
-        var cache = ((AccessoriesHolderImpl)this.getHolder()).getLookupCache();
+        var cache = AccessoriesHolderImpl.getHolder(this).getLookupCache();
 
         if (cache != null) return cache.getEquipped(predicate);
 

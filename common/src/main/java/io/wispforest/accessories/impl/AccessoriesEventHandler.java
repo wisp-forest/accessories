@@ -36,7 +36,6 @@ import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -85,7 +84,7 @@ public class AccessoriesEventHandler {
 
         var validSlotTypes = EntitySlotLoader.getEntitySlots(player).values();
 
-        var holderImpl = ((AccessoriesHolderImpl) capability.getHolder());
+        var holderImpl = AccessoriesHolderImpl.getHolder(capability);
 
         holderImpl.setValidTypes(validSlotTypes.stream().map(SlotType::name).collect(Collectors.toSet()));
 
@@ -151,7 +150,7 @@ public class AccessoriesEventHandler {
 
         var carrier = NbtMapCarrier.of();
 
-        ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(level.registryAccess())));
+        AccessoriesHolderImpl.getHolder(capability).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(level.registryAccess())));
 
         AccessoriesNetworking.sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
     }
@@ -163,7 +162,7 @@ public class AccessoriesEventHandler {
 
         var carrier = NbtMapCarrier.of();
 
-        ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(entity.level().registryAccess())));
+        AccessoriesHolderImpl.getHolder(capability).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(entity.level().registryAccess())));
 
         AccessoriesNetworking.sendToPlayer(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
     }
@@ -184,7 +183,7 @@ public class AccessoriesEventHandler {
 
                 var carrier = NbtMapCarrier.of();
 
-                ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(playerEntry.level().registryAccess())));
+                AccessoriesHolderImpl.getHolder(capability).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(playerEntry.level().registryAccess())));
 
                 AccessoriesNetworking.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(capability.entity().getId(), carrier));
 
@@ -203,7 +202,7 @@ public class AccessoriesEventHandler {
 
             var carrier = NbtMapCarrier.of();
 
-            ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(player.level().registryAccess())));
+            AccessoriesHolderImpl.getHolder(capability).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(player.level().registryAccess())));
 
             AccessoriesNetworking.sendToPlayer(player, new SyncEntireContainer(capability.entity().getId(), carrier));
 
@@ -225,7 +224,7 @@ public class AccessoriesEventHandler {
             var removedAttributesBuilder = new AccessoryAttributeBuilder();
             var addedAttributesBuilder = new AccessoryAttributeBuilder();
 
-            for (var containerEntry : ((AccessoriesHolderImpl)capability.getHolder()).getAllSlotContainers().entrySet()) {
+            for (var containerEntry : AccessoriesHolderImpl.getHolder(capability).getAllSlotContainers().entrySet()) {
                 var container = containerEntry.getValue();
 
                 var accessories = container.getAccessories();
@@ -316,8 +315,7 @@ public class AccessoriesEventHandler {
             AttributeUtils.addTransientAttributeModifiers(entity, addedAttributesBuilder);
 
             //--
-
-            var updatedContainers = ((AccessoriesCapabilityImpl) capability).getUpdatingInventories();
+            var updatedContainers = AccessoriesHolderImpl.getHolder(capability).containersRequiringUpdates;
 
             capability.updateContainers();
 
@@ -343,12 +341,12 @@ public class AccessoriesEventHandler {
 
         var invalidStacks = (holder).invalidStacks;
 
-        if (!invalidStacks.isEmpty()) {
+        if (!invalidStacks.isEmpty() && entity.level() instanceof ServerLevel serverLevel) {
             for (ItemStack invalidStack : invalidStacks) {
                 if (entity instanceof ServerPlayer serverPlayer) {
                     AccessoriesInternals.giveItemToPlayer(serverPlayer, invalidStack);
                 } else {
-                    entity.spawnAtLocation(invalidStack);
+                    entity.spawnAtLocation(serverLevel, invalidStack);
                 }
             }
 
@@ -657,7 +655,7 @@ public class AccessoriesEventHandler {
 
         var droppedStacks = new ArrayList<ItemStack>();
 
-        for (var containerEntry : ((AccessoriesHolderImpl) capability.getHolder()).getAllSlotContainers().entrySet()) {
+        for (var containerEntry : AccessoriesHolderImpl.getHolder(capability).getAllSlotContainers().entrySet()) {
             var slotType = containerEntry.getValue().slotType();
 
             var slotDropRule = slotType != null ? slotType.dropRule() : DropRule.DEFAULT;
@@ -727,7 +725,7 @@ public class AccessoriesEventHandler {
         } else if (result == DropRule.KEEP) {
             dropStack = false;
         } else if (result == DropRule.DEFAULT) {
-            if (entity.level().getGameRules().getRule(GameRules.RULE_KEEPINVENTORY).get()) {
+            if (((ServerLevel) entity.level()).getGameRules().getRule(GameRules.RULE_KEEPINVENTORY).get()) {
                 dropStack = false;
             } else if (EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
                 container.setItem(reference.slot(), ItemStack.EMPTY);
@@ -749,7 +747,7 @@ public class AccessoriesEventHandler {
         var capability = AccessoriesCapability.get(player);
 
         if (capability != null && !player.isSpectator() && !stack.isEmpty()) {
-            var equipControl = capability.getHolder().equipControl();
+            var equipControl = AccessoriesHolderImpl.getHolder(capability).equipControl();
 
             var shouldAttemptEquip = false;
 

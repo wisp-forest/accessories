@@ -12,6 +12,7 @@ import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
+import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
@@ -27,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
-import java.util.function.Predicate;
 
 @ApiStatus.Internal
 public class AccessoriesCapabilityImpl implements AccessoriesCapability, InstanceEndec {
@@ -40,7 +40,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
         this.entity = entity;
 
         // Runs various Init calls to properly setup holder
-        getHolder();
+        AccessoriesHolderImpl.getHolder(this);
     }
 
     @Override
@@ -49,33 +49,18 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     }
 
     @Override
-    public AccessoriesHolder getHolder() {
-        var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
-
-        // Attempts to reset the container when loaded from tag on the server
-        if (holder.loadedFromTag) this.reset(true);
-
-        // Prevents containers from not existing even if a given entity will have such slots but have yet to be synced to the client
-        if (holder.getSlotContainers().size() != EntitySlotLoader.getEntitySlots(entity).size()) holder.init(this);
-
-        return holder;
-    }
-
-    private AccessoriesHolderImpl holder() {
-        return (AccessoriesHolderImpl) this.getHolder();
-    }
-
-    @Override
     public Map<String, AccessoriesContainer> getContainers() {
+        var holder = AccessoriesHolderImpl.getHolder(this);
+
         // Dirty patch to handle capability mismatch on containers when transferring it
         // TODO: Wonder if this is the best solution to the problem of desynced when data is copied
-        for (var container : this.holder().getAllSlotContainers().values()) {
+        for (var container : holder.getAllSlotContainers().values()) {
             if(this.entity == container.capability().entity()) break;
 
             ((AccessoriesContainerImpl) container).capability = this;
         }
 
-        return this.holder().getSlotContainers();
+        return holder.getSlotContainers();
     }
 
     @Override
@@ -228,10 +213,6 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
         });
     }
 
-    public Map<AccessoriesContainer, Boolean> getUpdatingInventories() {
-        return this.holder().containersRequiringUpdates;
-    }
-
     //--
 
     @Nullable
@@ -348,7 +329,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     @Override
     public List<SlotEntryReference> getAllEquipped(boolean recursiveStackLookup) {
-        var cache = ((AccessoriesHolderImpl)this.getHolder()).getLookupCache();
+        var cache = AccessoriesHolderImpl.getHolder(this).getLookupCache();
 
         if (cache != null) return cache.getAllEquipped();
 
@@ -375,11 +356,11 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     @Override
     public void write(MapCarrier carrier, SerializationContext ctx) {
-        this.holder().write(carrier, ctx);
+        AccessoriesHolderImpl.getHolder(this).write(carrier, ctx);
     }
 
     @Override
     public void read(MapCarrier carrier, SerializationContext ctx) {
-        this.holder().read(carrier, ctx);
+        AccessoriesHolderImpl.getHolder(this).read(carrier, ctx);
     }
 }

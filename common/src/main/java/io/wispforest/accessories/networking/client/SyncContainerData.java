@@ -163,7 +163,7 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
 
         //--
 
-        var cache = ((AccessoriesHolderImpl) capability.getHolder()).getLookupCache();
+        var cache = AccessoriesHolderImpl.getHolder(capability).getLookupCache();
 
         if (cache != null) {
             changedContainers.forEach(cache::clearContainerCache);
