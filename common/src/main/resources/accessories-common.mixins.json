@@ -60,7 +60,8 @@
     "SlotAccessor",
     "StriderMixin",
     "owo.ConfigWrapperAccessor",
-    "ArmorSlotMixin"
+    "ArmorSlotMixin",
+    "PatchedDataComponentMapMixin"
   ],
   "injectors": {
     "defaultRequire": 1

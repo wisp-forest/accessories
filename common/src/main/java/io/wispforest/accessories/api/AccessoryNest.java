@@ -8,6 +8,7 @@ import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
+import io.wispforest.accessories.utils.PatchedDataComponentMapExtension;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
@@ -97,6 +98,8 @@ public interface AccessoryNest extends Accessory {
 
         if(data == null) return defaultValue;
 
+        setupMutationChecking(holderStack, data);
+
         var t = func.apply(data.getMap(slotReference));
 
         checkIfChangesOccurred(holderStack, null, data);
@@ -117,6 +120,8 @@ public interface AccessoryNest extends Accessory {
 
         if(data == null) return defaultValue;
 
+        setupMutationChecking(holderStack, data);
+
         var t = func.apply(data.getMap());
 
         checkIfChangesOccurred(holderStack, livingEntity, data);
@@ -136,6 +141,8 @@ public interface AccessoryNest extends Accessory {
 
         if(data == null) return;
 
+        setupMutationChecking(holderStack, data);
+
         consumer.accept(data.getMap(slotReference));
 
         checkIfChangesOccurred(holderStack, slotReference.entity(), data);
@@ -153,9 +160,33 @@ public interface AccessoryNest extends Accessory {
 
         if (data == null) return;
 
+        setupMutationChecking(holderStack, data);
+
         consumer.accept(data.getMap());
 
         checkIfChangesOccurred(holderStack, livingEntity, data);
+    }
+
+
+    //TODO: MAY REQUIRE SUCH TO BE USED IN OTHER PLACES POSSIBLY
+    private static void setupMutationChecking(ItemStack holderStack, AccessoryNestContainerContents data) {
+        var accessories = data.accessories();
+
+        for (int i = 0; i < accessories.size(); i++) {
+            var stack = accessories.get(i);
+
+            if(AccessoriesAPI.getOrDefaultAccessory(stack) instanceof AccessoryNest) {
+                var innerData = AccessoryNestUtils.getData(stack);
+
+                if(innerData != null) {
+                    setupMutationChecking(stack, innerData);
+                }
+            }
+
+            if (stack.getComponents() instanceof PatchedDataComponentMapExtension extension) {
+                extension.startCheckingForChanges();
+            }
+        }
     }
 
     private static boolean checkIfChangesOccurred(ItemStack holderStack, @Nullable LivingEntity livingEntity, AccessoryNestContainerContents data) {
@@ -166,7 +197,9 @@ public interface AccessoryNest extends Accessory {
         for (int i = 0; i < accessories.size(); i++) {
             var stack = accessories.get(i);
 
-            if(!stack.getComponentsPatch().isEmpty()){
+            if(stack.getComponents() instanceof PatchedDataComponentMapExtension extension && extension.hasChangedAndEndChecking()){
+                hasChangeOccurred = true;
+            } else if(data.slotChanges().containsKey(i)) {
                 hasChangeOccurred = true;
             } else if(AccessoriesAPI.getOrDefaultAccessory(stack) instanceof AccessoryNest) {
                 var innerData = AccessoryNestUtils.getData(stack);
