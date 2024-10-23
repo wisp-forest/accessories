@@ -4,6 +4,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
+import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -97,7 +98,7 @@ public class AccessoriesInternalSlot extends AccessoriesBasedSlot {
 
         var slotType = this.accessoriesContainer.slotType();
 
-        return AccessoriesAPI.getPredicateResults(slotType.validators(), this.entity.level(), this.entity, slotType, 0, stack);
+        return SlotPredicateRegistry.getPredicateResults(slotType.validators(), this.entity.level(), this.entity, slotType, 0, stack);
     }
 
     @Override

@@ -1,7 +1,6 @@
 package io.wispforest.accessories.impl.caching;
 
-import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.EquipmentChecking;
+import io.wispforest.accessories.api.equip.EquipmentChecking;
 import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;

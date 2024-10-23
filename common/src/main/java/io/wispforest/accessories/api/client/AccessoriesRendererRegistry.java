@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesLoaderInternals;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryRenderOverrideComponent;
 import io.wispforest.accessories.api.slot.SlotReference;
@@ -83,7 +84,7 @@ public class AccessoriesRendererRegistry {
         if(defaultRenderOverride != null) {
             if(defaultRenderOverride) {
                 return DefaultAccessoryRenderer.INSTANCE;
-            } else if(AccessoriesAPI.isDefaultAccessory(AccessoriesAPI.getOrDefaultAccessory(stack))) {
+            } else if(AccessoryRegistry.isDefaultAccessory(stack)) {
                 return null;
             }
         }

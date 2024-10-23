@@ -2,6 +2,7 @@ package io.wispforest.testccessories.fabric;
 
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.slot.SlotBasedPredicate;
+import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import net.fabricmc.fabric.api.util.TriState;
@@ -17,13 +18,12 @@ public class UniqueSlotTest implements UniqueSlotHandling.RegistrationCallback {
     private final ResourceLocation slotPredicate2 = Testccessories.of("test_slot_2_equipment");
     private final ResourceLocation slotPredicate3 = Testccessories.of("test_slot_3_equipment");
 
-
     public static final UniqueSlotTest INSTANCE = new UniqueSlotTest();
 
     private UniqueSlotTest(){
-        AccessoriesAPI.registerPredicate(slotPredicate1, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem1)));
-        AccessoriesAPI.registerPredicate(slotPredicate2, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem2)));
-        AccessoriesAPI.registerPredicate(slotPredicate3, (level, slotType, slot, stack) -> {
+        SlotPredicateRegistry.registerPredicate(slotPredicate1, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem1)));
+        SlotPredicateRegistry.registerPredicate(slotPredicate2, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem2)));
+        SlotPredicateRegistry.registerPredicate(slotPredicate3, (level, slotType, slot, stack) -> {
             return (stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock().builtInRegistryHolder().is(BlockTags.BEDS)) ? TriState.TRUE : TriState.DEFAULT;
         });
     }

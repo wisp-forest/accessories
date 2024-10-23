@@ -10,12 +10,13 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.DropRule;
-import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
+import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
+import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.compat.config.SlotAmountModifier;
-import io.wispforest.accessories.impl.SlotTypeImpl;
+import io.wispforest.accessories.impl.slot.SlotTypeImpl;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -92,7 +93,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         BuiltInRegistries.ITEM.forEach(item -> {
             var stack = item.getDefaultInstance();
 
-            var validSlots = AccessoriesAPI.getStackSlotTypes(living, stack);
+            var validSlots = SlotPredicateRegistry.getStackSlotTypes(living, stack);
 
             validSlotTypes.addAll(validSlots);
         });

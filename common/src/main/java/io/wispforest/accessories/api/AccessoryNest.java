@@ -74,7 +74,7 @@ public interface AccessoryNest extends Accessory {
         for (int i = 0; i < innerStacks.size(); i++) {
             var innerStack = innerStacks.get(i);
 
-            var rule = AccessoriesAPI.getOrDefaultAccessory(innerStack).getDropRule(innerStack, reference, source);
+            var rule = AccessoryRegistry.getAccessoryOrDefault(innerStack).getDropRule(innerStack, reference, source);
 
             innerRules.add(Pair.of(rule, innerStack));
         }
@@ -168,7 +168,7 @@ public interface AccessoryNest extends Accessory {
 
             if(!stack.getComponentsPatch().isEmpty()){
                 hasChangeOccurred = true;
-            } else if(AccessoriesAPI.getOrDefaultAccessory(stack) instanceof AccessoryNest) {
+            } else if(AccessoryRegistry.getAccessoryOrDefault(stack) instanceof AccessoryNest) {
                 var innerData = AccessoryNestUtils.getData(stack);
 
                 if(innerData != null) {
@@ -184,7 +184,7 @@ public interface AccessoryNest extends Accessory {
         }
 
         if(hasChangeOccurred) {
-            var nest = (AccessoryNest) AccessoriesAPI.getOrDefaultAccessory(holderStack);
+            var nest = (AccessoryNest) AccessoryRegistry.getAccessoryOrDefault(holderStack);
 
             holderStack.set(AccessoriesDataComponents.NESTED_ACCESSORIES, data);
 
@@ -197,7 +197,7 @@ public interface AccessoryNest extends Accessory {
     //--
 
     static boolean isAccessoryNest(ItemStack holderStack) {
-        return AccessoriesAPI.getOrDefaultAccessory(holderStack) instanceof AccessoryNest;
+        return AccessoryRegistry.getAccessoryOrDefault(holderStack) instanceof AccessoryNest;
     }
 
     /**

@@ -3,9 +3,10 @@ package io.wispforest.accessories.api.menu;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
+import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -102,7 +103,7 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
 
     @Override
     public int getMaxStackSize(ItemStack stack) {
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+        var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
         return accessory.maxStackSize(stack);
     }
@@ -120,7 +121,7 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
 
     @Override
     public boolean mayPlace(ItemStack stack) {
-        return AccessoriesAPI.canInsertIntoSlot(stack, SlotReference.of(this.entity, this.accessoriesContainer.getSlotName(), this.getContainerSlot()));
+        return SlotPredicateRegistry.canInsertIntoSlot(stack, SlotReference.of(this.entity, this.accessoriesContainer.getSlotName(), this.getContainerSlot()));
     }
 
     @Override
@@ -133,7 +134,7 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
             if(!result.orElse(false)) return false;
         }
 
-        return AccessoriesAPI.canUnequip(this.getItem(), SlotReference.of(this.entity, this.accessoriesContainer.getSlotName(), this.getContainerSlot()));
+        return AccessoryRegistry.canUnequip(this.getItem(), SlotReference.of(this.entity, this.accessoriesContainer.getSlotName(), this.getContainerSlot()));
     }
 
     protected ResourceLocation icon(){

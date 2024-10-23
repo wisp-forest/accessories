@@ -6,7 +6,8 @@ import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
+import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.utils.InstanceEndec;
@@ -198,9 +199,9 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
                 var slotReference = SlotReference.of(livingEntity, this.slotName, index);
 
-                AttributeUtils.removeTransientAttributeModifiers(livingEntity, AccessoriesAPI.getAttributeModifiers(invalidStack, slotReference));
+                AttributeUtils.removeTransientAttributeModifiers(livingEntity, AccessoryAttributeLogic.getAttributeModifiers(invalidStack, slotReference));
 
-                var accessory = AccessoriesAPI.getOrDefaultAccessory(invalidStack);
+                var accessory = AccessoryRegistry.getAccessoryOrDefault(invalidStack);
 
                 if (accessory != null) accessory.onUnequip(invalidStack, slotReference);
 

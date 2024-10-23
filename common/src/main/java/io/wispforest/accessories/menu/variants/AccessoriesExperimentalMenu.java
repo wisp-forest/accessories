@@ -5,10 +5,7 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
-import io.wispforest.accessories.api.slot.SlotGroup;
-import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.api.slot.SlotTypeReference;
-import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.menu.*;
@@ -252,7 +249,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         this.usedSlots.clear();
 
         if(!this.areUnusedSlotsShown()) {
-            var currentlyUsedSlots = AccessoriesAPI.getUsedSlotsFor(this.targetEntity != null ? this.targetEntity : this.owner, this.owner.getInventory());
+            var currentlyUsedSlots = AccessoriesCapability.getUsedSlotsFor(this.targetEntity != null ? this.targetEntity : this.owner, this.owner.getInventory());
 
             if(!currentlyUsedSlots.isEmpty()) {
                 this.usedSlots.addAll(currentlyUsedSlots);
@@ -413,7 +410,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
         if (capability == null) return false;
 
-        var validSlotTypes = AccessoriesAPI.getStackSlotTypes(living, stack);
+        var validSlotTypes = SlotPredicateRegistry.getStackSlotTypes(living, stack);
 
         for (var slot : this.slots.subList(this.startingAccessoriesSlot, this.slots.size())) {
             if (slot instanceof SlotTypeAccessible accessible && validSlotTypes.contains(accessible.slotType())) return true;

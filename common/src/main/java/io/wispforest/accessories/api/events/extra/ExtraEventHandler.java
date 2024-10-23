@@ -3,8 +3,8 @@ package io.wispforest.accessories.api.events.extra;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.AccessoryRegistry;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.LivingEntity;
@@ -31,7 +31,7 @@ public class ExtraEventHandler {
                     var reference = entryRef.reference();
                     var stack = entryRef.stack();
 
-                    var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+                    var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
                     currentLevel += io.wispforest.accessories.api.events.extra.LootingAdjustment.EVENT.invoker().getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
 
@@ -58,7 +58,7 @@ public class ExtraEventHandler {
                     var reference = entryRef.reference();
                     var stack = entryRef.stack();
 
-                    var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+                    var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
                     if (accessory instanceof FortuneAdjustment fortuneAdjustment) {
                         currentLevel += fortuneAdjustment.getFortuneAdjustment(stack, reference, context, currentLevel);
@@ -82,7 +82,7 @@ public class ExtraEventHandler {
                 var reference = entryRef.reference();
                 var stack = entryRef.stack();
 
-                var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+                var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
                 if(accessory instanceof PiglinNeutralInducer inducer){
                     state = inducer.makePiglinsNeutral(stack, reference);
@@ -111,7 +111,7 @@ public class ExtraEventHandler {
                 var reference = entryRef.reference();
                 var stack = entryRef.stack();
 
-                var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+                var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
                 if(accessory instanceof AllowWalkingOnSnow event){
                     state = event.allowWalkingOnSnow(stack, reference);
@@ -150,7 +150,7 @@ public class ExtraEventHandler {
                 var reference = entryRef.reference();
                 var stack = entryRef.stack();
 
-                var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+                var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
                 if(accessory instanceof IsGazeDisguised masked){
                     state = masked.isWearDisguise(lookingEntity, vanillaPredicate, stack, reference);

@@ -53,7 +53,7 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
         return null;
     }
 
-    public AccessoryItemAttributeModifiers withModifierAddedForAny(Holder<Attribute> holder, AttributeModifier attributeModifier, String slotName, boolean isStackable) {
+    public AccessoryItemAttributeModifiers withModifierAddedForAny(Holder<Attribute> holder, AttributeModifier attributeModifier, boolean isStackable) {
         return withModifierAdded(holder, attributeModifier, "any", isStackable);
     }
 

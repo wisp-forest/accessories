@@ -3,6 +3,7 @@ package io.wispforest.testccessories.fabric.accessories;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
 import io.wispforest.accessories.api.client.SimpleAccessoryRenderer;
@@ -25,7 +26,7 @@ public class PotatoAccessory implements Accessory {
     }
 
     public static void init(){
-        AccessoriesAPI.registerAccessory(Items.POTATO, new PotatoAccessory());
+        AccessoryRegistry.registerAccessory(Items.POTATO, new PotatoAccessory());
     }
 
     @Environment(EnvType.CLIENT)

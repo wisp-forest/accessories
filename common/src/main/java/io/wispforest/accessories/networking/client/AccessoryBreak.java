@@ -1,6 +1,6 @@
 package io.wispforest.accessories.networking.client;
 
-import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
@@ -36,7 +36,7 @@ public record AccessoryBreak(int entityId, String slotName, int slotIndex) {
 
         var stack = container.getAccessories().getItem(slotReference.slot());
 
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+        var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
         if(accessory != null) accessory.onBreak(stack, slotReference);
     }

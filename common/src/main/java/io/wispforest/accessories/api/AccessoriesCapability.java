@@ -2,25 +2,25 @@ package io.wispforest.accessories.api;
 
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
-import io.wispforest.accessories.api.slot.SlotEntryReference;
-import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.api.slot.SlotTypeReference;
+import io.wispforest.accessories.api.equip.EquipAction;
+import io.wispforest.accessories.api.equip.EquipCheck;
+import io.wispforest.accessories.api.equip.EquipmentChecking;
+import io.wispforest.accessories.api.slot.*;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import it.unimi.dsi.fastutil.Pair;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 public interface AccessoriesCapability {
@@ -35,6 +35,34 @@ public interface AccessoriesCapability {
 
     static Optional<AccessoriesCapability> getOptionally(@NotNull LivingEntity livingEntity){
         return Optional.ofNullable(get(livingEntity));
+    }
+
+    static Collection<SlotType> getUsedSlotsFor(Player player) {
+        return getUsedSlotsFor(player, player.getInventory());
+    }
+
+    static Collection<SlotType> getUsedSlotsFor(LivingEntity entity, Container container) {
+        var capability = entity.accessoriesCapability();
+
+        if(capability == null) return Set.of();
+
+        var slots = new HashSet<SlotType>();
+
+        for (int i = 0; i < container.getContainerSize(); i++) {
+            var stack = container.getItem(i);
+
+            if (stack.isEmpty()) continue;
+
+            slots.addAll(SlotPredicateRegistry.getValidSlotTypes(entity, stack));
+        }
+
+        for (var ref : capability.getAllEquipped()) {
+            slots.addAll(SlotPredicateRegistry.getValidSlotTypes(entity, ref.stack()));
+        }
+
+        slots.addAll(SlotTypeLoader.getUsedSlotsByRegistryItem(entity));
+
+        return slots;
     }
 
     //--

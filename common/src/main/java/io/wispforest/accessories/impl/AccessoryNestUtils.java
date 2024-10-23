@@ -1,10 +1,10 @@
 package io.wispforest.accessories.impl;
 
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoryNest;
+import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
-import io.wispforest.accessories.api.slot.NestedSlotReferenceImpl;
+import io.wispforest.accessories.impl.slot.NestedSlotReferenceImpl;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -17,7 +17,7 @@ public class AccessoryNestUtils {
 
     @Nullable
     public static AccessoryNestContainerContents getData(ItemStack stack){
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+        var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
         if(!(accessory instanceof AccessoryNest)) return null;
 
@@ -25,7 +25,7 @@ public class AccessoryNestUtils {
     }
 
     public static <T> @Nullable T recursiveStackHandling(ItemStack stack, SlotReference reference, BiFunction<ItemStack, SlotReference, @Nullable T> function) {
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+        var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
         var value = function.apply(stack, reference);
 
@@ -47,7 +47,7 @@ public class AccessoryNestUtils {
     }
 
     public static void recursiveStackConsumption(ItemStack stack, SlotReference reference, BiConsumer<ItemStack, SlotReference> consumer) {
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+        var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
         consumer.accept(stack, reference);
 

@@ -4,6 +4,10 @@ import com.google.common.collect.ImmutableList;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.impl.slot.NestedSlotReferenceImpl;
+import io.wispforest.accessories.impl.slot.SlotReferenceImpl;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
+import io.wispforest.accessories.networking.client.AccessoryBreak;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -13,7 +17,7 @@ import java.util.List;
 /**
  * A reference to a specific accessory slot of a {@link LivingEntity}.
  */
-public sealed interface SlotReference permits NestedSlotReferenceImpl, SlotReferenceImpl {
+public interface SlotReference {
 
     static SlotReference of(LivingEntity livingEntity, String slotName, int slot) {
         return new SlotReferenceImpl(livingEntity, slotName, slot);
@@ -39,6 +43,13 @@ public sealed interface SlotReference permits NestedSlotReferenceImpl, SlotRefer
     int slot();
 
     //--
+
+    /**
+     * Helper method to trigger effects of a given accessory being broken on any tracking clients for the given entity
+     */
+    default void breakStack() {
+        AccessoriesNetworking.sendToTrackingAndSelf(this.entity(), AccessoryBreak.of(this));
+    }
 
     default boolean isValid() {
         var capability = this.capability();

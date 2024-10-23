@@ -1,8 +1,10 @@
-package io.wispforest.accessories.api.slot;
+package io.wispforest.accessories.impl.slot;
 
 import com.google.common.collect.Lists;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoryNest;
+import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.slot.SlotReference;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -82,7 +84,7 @@ public record NestedSlotReferenceImpl(LivingEntity entity, String slotName, int 
 
     @Nullable
     private static Pair<NestLayer, ItemStack> tryAndGet(ItemStack holderStack, int innerIndex) {
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(holderStack);
+        var accessory = AccessoryRegistry.getAccessoryOrDefault(holderStack);
 
         if(!(accessory instanceof AccessoryNest accessoryNest)) return null;
 

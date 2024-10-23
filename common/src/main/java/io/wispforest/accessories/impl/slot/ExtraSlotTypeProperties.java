@@ -1,4 +1,4 @@
-package io.wispforest.accessories.api.slot;
+package io.wispforest.accessories.impl.slot;
 
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;

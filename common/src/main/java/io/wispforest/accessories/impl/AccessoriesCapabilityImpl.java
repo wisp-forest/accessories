@@ -7,7 +7,11 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.*;
 import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
-import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
+import io.wispforest.accessories.api.equip.EquipAction;
+import io.wispforest.accessories.api.equip.EquipCheck;
+import io.wispforest.accessories.api.equip.EquipmentChecking;
+import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
+import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -198,7 +202,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
                 var slotReference = container.createReference(i);
 
-                slotModifiers.putAll(AccessoriesAPI.getAttributeModifiers(stack, slotReference).getSlotModifiers());
+                slotModifiers.putAll(AccessoryAttributeLogic.getAttributeModifiers(stack, slotReference).getSlotModifiers());
             }
         });
 
@@ -217,7 +221,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     @Nullable
     public Pair<SlotReference, EquipAction> canEquipAccessory(ItemStack stack, boolean allowSwapping, EquipCheck extraCheck) {
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+        var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
         if (accessory == null) return null;
 
@@ -233,7 +237,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
             for (var container : this.getContainers().values()) {
                 if (container.getSize() <= 0) continue;
 
-                boolean isValid = AccessoriesAPI.canInsertIntoSlot(stack, container.createReference(0));
+                boolean isValid = SlotPredicateRegistry.canInsertIntoSlot(stack, container.createReference(0));
 
                 // Prevents checking containers that will never allow for the given stack to be equipped within it
                 if (!isValid || !ExtraSlotTypeProperties.getProperty(container.getSlotName(), entity.level().isClientSide).allowEquipFromUse()) continue;
@@ -247,8 +251,8 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
                     var slotReference = container.createReference(i);
 
                     if (slotStack.isEmpty()
-                            && AccessoriesAPI.canUnequip(slotStack, slotReference)
-                            && AccessoriesAPI.canInsertIntoSlot(stack, slotReference)
+                            && AccessoryRegistry.canUnequip(slotStack, slotReference)
+                            && SlotPredicateRegistry.canInsertIntoSlot(stack, slotReference)
                             && extraCheck.isValid(slotStack, false)) {
                         return Pair.of(container.createReference(i), (newStack) -> setStack(slotReference, newStack, false));
                     }
@@ -264,9 +268,9 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
                 var slotStack = accessories.getItem(i).copy();
                 var slotReference = validContainer.createReference(i);
 
-                if (slotStack.isEmpty() || !AccessoriesAPI.canUnequip(slotStack, slotReference)) continue;
+                if (slotStack.isEmpty() || !AccessoryRegistry.canUnequip(slotStack, slotReference)) continue;
 
-                if (stack.isEmpty() || (AccessoriesAPI.canInsertIntoSlot(stack, slotReference) && extraCheck.isValid(slotStack, true))) {
+                if (stack.isEmpty() || (SlotPredicateRegistry.canInsertIntoSlot(stack, slotReference) && extraCheck.isValid(slotStack, true))) {
                     return Pair.of(slotReference, (newStack) -> setStack(slotReference, newStack, true));
                 }
             }
@@ -277,7 +281,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     private Optional<ItemStack> setStack(SlotReference reference, ItemStack newStack, boolean shouldSwapStacks) {
         var oldStack = reference.getStack().copy();
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(oldStack);
+        var accessory = AccessoryRegistry.getAccessoryOrDefault(oldStack);
 
         if(shouldSwapStacks) {
             var splitStack = newStack.isEmpty() ? ItemStack.EMPTY : newStack.split(accessory.maxStackSize(newStack));

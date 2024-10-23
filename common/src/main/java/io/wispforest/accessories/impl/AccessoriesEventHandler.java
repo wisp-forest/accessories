@@ -16,6 +16,7 @@ import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
+import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
@@ -128,7 +129,7 @@ public class AccessoriesEventHandler {
 
         if (stack.isEmpty()) return;
 
-        var bl = !AccessoriesAPI.canInsertIntoSlot(stack, reference);
+        var bl = !SlotPredicateRegistry.canInsertIntoSlot(stack, reference);
 
         if (bl) dropAndRemoveStack(container, reference, player);
     }
@@ -242,7 +243,7 @@ public class AccessoriesEventHandler {
                         // TODO: Document this behavior to prevent double ticking maybe!!!
                         currentStack.inventoryTick(entity.level(), entity, -1, false);
 
-                        var accessory = AccessoriesAPI.getOrDefaultAccessory(currentStack);
+                        var accessory = AccessoryRegistry.getAccessoryOrDefault(currentStack);
 
                         if (accessory != null) accessory.tick(currentStack, slotReference);
                     }
@@ -256,11 +257,11 @@ public class AccessoriesEventHandler {
                         dirtyStacks.put(slotId, currentStack.copy());
 
                         if (!lastStack.isEmpty()) {
-                            removedAttributesBuilder.addFrom(AccessoriesAPI.getAttributeModifiers(lastStack, slotReference));
+                            removedAttributesBuilder.addFrom(AccessoryAttributeLogic.getAttributeModifiers(lastStack, slotReference));
                         }
 
                         if (!currentStack.isEmpty()) {
-                            addedAttributesBuilder.addFrom(AccessoriesAPI.getAttributeModifiers(currentStack, slotReference));
+                            addedAttributesBuilder.addFrom(AccessoryAttributeLogic.getAttributeModifiers(currentStack, slotReference));
                         }
 
                         boolean equipmentChange = false;
@@ -269,8 +270,8 @@ public class AccessoriesEventHandler {
                          * TODO: Does item check need to exist anymore?
                          */
                         if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlagged(i)) {
-                            AccessoriesAPI.getOrDefaultAccessory(lastStack).onUnequip(lastStack, slotReference);
-                            AccessoriesAPI.getOrDefaultAccessory(currentStack).onEquip(currentStack, slotReference);
+                            AccessoryRegistry.getAccessoryOrDefault(lastStack).onUnequip(lastStack, slotReference);
+                            AccessoryRegistry.getAccessoryOrDefault(currentStack).onEquip(currentStack, slotReference);
 
                             if (entity instanceof ServerPlayer serverPlayer) {
                                 if (!currentStack.isEmpty()) {
@@ -417,7 +418,7 @@ public class AccessoriesEventHandler {
     }
 
     public static void getTooltipData(@Nullable LivingEntity entity, ItemStack stack, List<Component> tooltip, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+        var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
         if (accessory != null) {
             if (entity != null && AccessoriesCapability.get(entity) != null)
@@ -431,7 +432,7 @@ public class AccessoriesEventHandler {
     private static void addEntityBasedTooltipData(LivingEntity entity, Accessory accessory, ItemStack stack, List<Component> tooltip, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
         // TODO: MAYBE DEPENDING ON ENTITY OR SOMETHING SHOW ALL VALID SLOTS BUT COLOR CODE THEM IF NOT VALID FOR ENTITY?
         // TODO: ADD BETTER HANDLING FOR POSSIBLE SLOTS THAT ARE EQUIPABLE IN BUT IS AT ZERO SIZE
-        var validSlotTypes = new HashSet<>(AccessoriesAPI.getValidSlotTypes(entity, stack));
+        var validSlotTypes = new HashSet<>(SlotPredicateRegistry.getValidSlotTypes(entity, stack));
 
         if (validSlotTypes.isEmpty()) return;
 
@@ -539,7 +540,7 @@ public class AccessoriesEventHandler {
         for (var slotType : validSlotTypes) {
             var reference = SlotReference.of(entity, slotType.name(), 0);
 
-            var builder = AccessoriesAPI.getAttributeModifiers(stack, reference, true);
+            var builder = AccessoryAttributeLogic.getAttributeModifiers(stack, reference, true);
 
             slotSpecificModifiers.put(slotType, builder);
 
@@ -686,7 +687,7 @@ public class AccessoriesEventHandler {
     @Nullable
     private static ItemStack dropStack(DropRule dropRule, LivingEntity entity, Container container, SlotReference reference, DamageSource source) {
         var stack = container.getItem(reference.slot());
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+        var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
         if (accessory != null && dropRule == DropRule.DEFAULT) {
             dropRule = accessory.getDropRule(stack, reference, source);
@@ -758,7 +759,7 @@ public class AccessoriesEventHandler {
             }
 
             if (shouldAttemptEquip) {
-                var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+                var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
                 var equipReference = capability.canEquipAccessory(stack, true);
 
@@ -801,7 +802,7 @@ public class AccessoriesEventHandler {
 
         if (canModify && targetCapability != null && !player.isSpectator()) {
             if (player.isShiftKeyDown()) {
-                var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+                var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
                 var equipReference = targetCapability.canEquipAccessory(stack, true);
 
@@ -835,7 +836,7 @@ public class AccessoriesEventHandler {
     }
 
     public static void setupItems(AddDataComponentCallback callback) {
-        AccessoriesAPI.getAllAccessories().forEach((item, accessory) -> {
+        AccessoryRegistry.getAllAccessories().forEach((item, accessory) -> {
             var builder = AccessoryItemAttributeModifiers.builder();
 
             accessory.getStaticModifiers(item, builder);

@@ -1,5 +1,7 @@
-package io.wispforest.accessories.api;
+package io.wispforest.accessories.api.equip;
 
+import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.AccessoriesContainer;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Optional;

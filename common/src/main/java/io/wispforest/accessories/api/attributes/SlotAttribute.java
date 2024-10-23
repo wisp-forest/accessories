@@ -75,6 +75,6 @@ public class SlotAttribute extends Attribute {
     }
 
     public static void addSlotAttribute(ItemStack stack, String targetSlot, String boundSlot, ResourceLocation location, double amount, AttributeModifier.Operation operation, boolean isStackable) {
-        AccessoriesAPI.addAttribute(stack, boundSlot, SlotAttribute.getAttributeHolder(targetSlot), location, amount, operation, isStackable);
+        AccessoryAttributeUtils.addAttribute(stack, boundSlot, SlotAttribute.getAttributeHolder(targetSlot), location, amount, operation, isStackable);
     }
 }

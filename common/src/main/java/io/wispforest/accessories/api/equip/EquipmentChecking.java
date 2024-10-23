@@ -1,5 +1,6 @@
-package io.wispforest.accessories.api;
+package io.wispforest.accessories.api.equip;
 
+import io.wispforest.accessories.api.AccessoriesCapability;
 import net.minecraft.world.item.Item;
 
 import java.util.function.Predicate;

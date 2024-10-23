@@ -104,7 +104,7 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
         //--
 
         if(!this.areUnusedSlotsShown()) {
-            this.usedSlots = ImmutableSet.copyOf(AccessoriesAPI.getUsedSlotsFor(targetEntity != null ? targetEntity : owner, owner.getInventory()));
+            this.usedSlots = ImmutableSet.copyOf(AccessoriesCapability.getUsedSlotsFor(targetEntity != null ? targetEntity : owner, owner.getInventory()));
         }
 
         int minX = -46, maxX = 60, minY = 8, maxY = 152;

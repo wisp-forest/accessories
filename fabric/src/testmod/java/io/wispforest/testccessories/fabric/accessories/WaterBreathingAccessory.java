@@ -2,6 +2,7 @@ package io.wispforest.testccessories.fabric.accessories;
 
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.testccessories.fabric.TestItems;
@@ -19,7 +20,7 @@ public class WaterBreathingAccessory implements Accessory {
     private static final ResourceLocation GRAVITY_LOCATION = Testccessories.of("gravity_accessory_adjustment");
 
     public static void init() {
-        AccessoriesAPI.registerAccessory(TestItems.testItem1, new WaterBreathingAccessory());
+        AccessoryRegistry.registerAccessory(TestItems.testItem1, new WaterBreathingAccessory());
     }
 
     public static final String REFILL_TIME_OUT_KEY = "RefillTimeout";

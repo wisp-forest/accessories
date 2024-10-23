@@ -1,6 +1,8 @@
 package io.wispforest.accessories.api.slot;
 
 import io.netty.buffer.ByteBuf;
+import io.wispforest.accessories.impl.slot.NestedSlotReferenceImpl;
+import io.wispforest.accessories.impl.slot.SlotReferenceImpl;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationAttribute;
 import io.wispforest.endec.SerializationContext;
@@ -81,6 +83,7 @@ public class SlotReferenceEncoding {
             }, slotReference -> switch (slotReference) {
                 case NestedSlotReferenceImpl ignored -> "nested";
                 case SlotReferenceImpl ignored -> "base";
+                default -> throw new IllegalStateException("Unable to handle the given SlotReference type: " + slotReference.getClass().getSimpleName());
             }, Endec.STRING);
 
     @ApiStatus.Experimental

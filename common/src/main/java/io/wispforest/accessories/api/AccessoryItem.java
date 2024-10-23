@@ -9,6 +9,6 @@ public class AccessoryItem extends Item implements Accessory {
     public AccessoryItem(Properties properties) {
         super(properties);
 
-        AccessoriesAPI.registerAccessory(this, this);
+        AccessoryRegistry.registerAccessory(this, this);
     }
 }

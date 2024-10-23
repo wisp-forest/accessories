@@ -3,6 +3,7 @@ package io.wispforest.accessories.api.events;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.impl.AccessoryAttributeLogic;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
@@ -10,7 +11,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Event callback used to adjust the given attributes being evaluated within {@link AccessoriesAPI#getAttributeModifiers(ItemStack, LivingEntity, String, int)}
+ * Event callback used to adjust the given attributes being evaluated within {@link AccessoryAttributeLogic#getAttributeModifiers(ItemStack, LivingEntity, String, int)}
  * call to which is fired after evaluation of NBT and Accessories own attributes
  */
 public interface AdjustAttributeModifierCallback {

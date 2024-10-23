@@ -4,10 +4,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.SoundEventData;
-import io.wispforest.accessories.api.slot.EntityBasedPredicate;
-import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.slot.SlotTypeReference;
-import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.api.slot.*;
 import it.unimi.dsi.fastutil.Pair;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.component.DataComponents;
@@ -133,11 +130,11 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
     public void init() {
         UniqueSlotHandling.EVENT.register(this);
 
-        AccessoriesAPI.registerPredicate(HEAD_PREDICATE_LOCATION, (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.HEAD)));
-        AccessoriesAPI.registerPredicate(CHEST_PREDICATE_LOCATION, (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.CHEST)));
-        AccessoriesAPI.registerPredicate(LEGS_PREDICATE_LOCATION,  (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.LEGS)));
-        AccessoriesAPI.registerPredicate(FEET_PREDICATE_LOCATION,  (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.FEET)));
-        AccessoriesAPI.registerPredicate(ANIMAL_BODY_PREDICATE_LOCATION,  (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.BODY)));
+        SlotPredicateRegistry.registerPredicate(HEAD_PREDICATE_LOCATION, (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.HEAD)));
+        SlotPredicateRegistry.registerPredicate(CHEST_PREDICATE_LOCATION, (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.CHEST)));
+        SlotPredicateRegistry.registerPredicate(LEGS_PREDICATE_LOCATION,  (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.LEGS)));
+        SlotPredicateRegistry.registerPredicate(FEET_PREDICATE_LOCATION,  (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.FEET)));
+        SlotPredicateRegistry.registerPredicate(ANIMAL_BODY_PREDICATE_LOCATION,  (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.BODY)));
     }
 
     @Override

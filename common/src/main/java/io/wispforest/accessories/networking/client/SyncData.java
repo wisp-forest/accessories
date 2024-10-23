@@ -1,14 +1,14 @@
 package io.wispforest.accessories.networking.client;
 
-import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
+import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.impl.SlotGroupImpl;
-import io.wispforest.accessories.impl.SlotTypeImpl;
+import io.wispforest.accessories.impl.slot.SlotGroupImpl;
+import io.wispforest.accessories.impl.slot.SlotTypeImpl;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
@@ -16,7 +16,6 @@ import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
 

@@ -1,9 +1,10 @@
 package io.wispforest.accessories.mixin;
 
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.events.extra.ExtraEventHandler;
+import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
@@ -61,10 +62,10 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
         var level = this.level();
 
         if (!ItemStack.isSameItemSameComponents(oldItem, newItem) && !this.firstTick && !level.isClientSide() && !this.isSpectator()) {
-            var isEquitableFor = newItem.isEmpty() || AccessoriesAPI.canInsertIntoSlot(newItem, slotReference);
+            var isEquitableFor = newItem.isEmpty() || SlotPredicateRegistry.canInsertIntoSlot(newItem, slotReference);
 
             if (!this.isSilent() && !newItem.isEmpty()) {
-                var sound = AccessoriesAPI.getOrDefaultAccessory(newItem).getEquipSound(newItem, slotReference);
+                var sound = AccessoryRegistry.getAccessoryOrDefault(newItem).getEquipSound(newItem, slotReference);
 
                 if(sound != null) level.playSeededSound(null, this.getX(), this.getY(), this.getZ(), sound.event().value(), this.getSoundSource(), sound.volume(), sound.pitch(), this.random.nextLong());
             }

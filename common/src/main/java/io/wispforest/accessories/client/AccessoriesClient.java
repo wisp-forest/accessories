@@ -7,6 +7,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.gui.ScreenVariantSelectionScreen;
 import io.wispforest.accessories.client.gui.components.ComponentUtils;
@@ -216,7 +217,7 @@ public class AccessoriesClient {
 
             if(bl) return false;
         } else {
-            var slots = AccessoriesAPI.getUsedSlotsFor(player);
+            var slots = AccessoriesCapability.getUsedSlotsFor(player);
 
             var holder = AccessoriesHolderImpl.getHolder(player);
 

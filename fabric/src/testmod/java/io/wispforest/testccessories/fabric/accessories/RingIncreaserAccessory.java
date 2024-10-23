@@ -3,6 +3,7 @@ package io.wispforest.testccessories.fabric.accessories;
 import com.google.common.collect.HashMultimap;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.testccessories.fabric.Testccessories;
 import net.minecraft.resources.ResourceLocation;
@@ -13,7 +14,7 @@ import net.minecraft.world.item.Items;
 public class RingIncreaserAccessory implements Accessory {
 
     public static void init(){
-        AccessoriesAPI.registerAccessory(Items.BEACON, new RingIncreaserAccessory());
+        AccessoryRegistry.registerAccessory(Items.BEACON, new RingIncreaserAccessory());
     }
 
     private static final ResourceLocation ringAdditionLocation = Testccessories.of("additional_rings");

@@ -3,6 +3,7 @@ package io.wispforest.accessories.impl;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoryRegistry;
 import it.unimi.dsi.fastutil.ints.Int2BooleanArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
 import net.fabricmc.loader.api.FabricLoader;
@@ -93,7 +94,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
     @Override
     public int getMaxStackSize(ItemStack itemStack) {
-        var accessory = AccessoriesAPI.getOrDefaultAccessory(itemStack);
+        var accessory = AccessoryRegistry.getAccessoryOrDefault(itemStack);
 
         return Math.min(super.getMaxStackSize(itemStack), accessory.maxStackSize(itemStack));
     }

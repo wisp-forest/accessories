@@ -6,7 +6,9 @@ import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
+import io.wispforest.accessories.impl.AccessoryAttributeLogic;
 import io.wispforest.accessories.mixin.LivingEntityAccessor;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -77,7 +79,7 @@ public interface Accessory {
 
     /**
      * Helper method used to fill the passed {@link AccessoryAttributeBuilder} for every call from
-     * {@link AccessoriesAPI#getAttributeModifiers}
+     * {@link AccessoryAttributeLogic#getAttributeModifiers}
      *
      * @param stack     The Stack attempting to be unequipped
      * @param reference The reference to the targeted {@link LivingEntity}, slot and index
@@ -156,7 +158,7 @@ public interface Accessory {
     }
 
     /**
-     * Method used to render client based particles when {@link AccessoriesAPI#breakStack(SlotReference)} is
+     * Method used to render client based particles when {@link SlotReference#breakStack()} is
      * called on the server and the {@link AccessoryBreak} packet is received
      *
      * @param stack The Stack that broke

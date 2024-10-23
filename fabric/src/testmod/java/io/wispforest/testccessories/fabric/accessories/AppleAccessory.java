@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
 import io.wispforest.accessories.api.client.Side;
@@ -35,7 +36,7 @@ public class AppleAccessory implements Accessory {
     }
 
     public static void init(){
-        AccessoriesAPI.registerAccessory(Items.APPLE, new AppleAccessory());
+        AccessoryRegistry.registerAccessory(Items.APPLE, new AppleAccessory());
     }
 
     @Override

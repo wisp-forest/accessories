@@ -1,6 +1,7 @@
 package io.wispforest.accessories.api.events;
 
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
 import net.fabricmc.fabric.api.event.Event;
@@ -12,7 +13,7 @@ import net.minecraft.world.item.ItemStack;
  * Event callback used to allow or denied the ability to equip a given accessory for the given referenced slot
  * type and entity.
  * <p>
- * Fired in {@link AccessoriesAPI#canEquip(ItemStack, SlotReference)}
+ * Fired in {@link AccessoryRegistry#canEquip(ItemStack, SlotReference)}
  */
 public interface CanUnequipCallback {
 

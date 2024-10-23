@@ -88,7 +88,7 @@ public abstract class EnchantmentHelperMixin {
 
                         return false;
                     }).map(entryReference -> {
-                        return new EnchantedItemInUse(entryReference.stack(), AccessoriesInternals.INTERNAL_SLOT, livingEntity, item -> AccessoriesAPI.breakStack(entryReference.reference()));
+                        return new EnchantedItemInUse(entryReference.stack(), AccessoriesInternals.INTERNAL_SLOT, livingEntity, item -> entryReference.reference().breakStack());
                     })
                     .toList();
 

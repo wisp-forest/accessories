@@ -1,7 +1,7 @@
 package io.wispforest.accessories.api.components;
 
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.events.SlotStateChange;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
@@ -66,7 +66,7 @@ public final class AccessoryNestContainerContents {
     public Map<ItemStack, Accessory> getMap() {
         var map = new LinkedHashMap<ItemStack, Accessory>();
 
-        this.accessories().forEach(stack1 -> map.put(stack1, AccessoriesAPI.getOrDefaultAccessory(stack1)));
+        this.accessories().forEach(stack1 -> map.put(stack1, AccessoryRegistry.getAccessoryOrDefault(stack1)));
 
         return map;
     }
@@ -81,7 +81,7 @@ public final class AccessoryNestContainerContents {
 
             if (innerStack.isEmpty()) continue;
 
-            map.put(new SlotEntryReference(AccessoryNestUtils.create(slotReference, i), innerStack), AccessoriesAPI.getOrDefaultAccessory(innerStack));
+            map.put(new SlotEntryReference(AccessoryNestUtils.create(slotReference, i), innerStack), AccessoryRegistry.getAccessoryOrDefault(innerStack));
         }
 
         return map;

@@ -2,8 +2,7 @@ package io.wispforest.accessories.api.data.providers.slot;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.DropRule;
-import io.wispforest.accessories.api.data.providers.BaseDataProvider;
-import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
+import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
