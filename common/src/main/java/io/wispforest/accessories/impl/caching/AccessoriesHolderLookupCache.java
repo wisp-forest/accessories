@@ -91,7 +91,9 @@ public class AccessoriesHolderLookupCache extends EquipmentLookupCache {
             this.getAllEquipped = new ArrayList<>();
 
             for (var value : this.containerLookupCacheMap.values()) {
-                this.getAllEquipped.addAll(value.getAllEquipped());
+                var x = value.getAllEquipped();
+                if (x == null) x = List.of();
+                this.getAllEquipped.addAll(x);
             }
         }
 
