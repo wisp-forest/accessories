@@ -60,6 +60,6 @@ public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) {
         holder.read(packet.containerMap(), SerializationContext.attributes(RegistriesAttribute.of(level.registryAccess())));
         holder.init(capability);
 
-        holder.setValidTypes(EntitySlotLoader.getEntitySlots(player).keySet());
+        holder.setValidTypes(EntitySlotLoader.getEntitySlots(livingEntity).keySet());
     }
 }
