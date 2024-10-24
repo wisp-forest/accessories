@@ -28,11 +28,11 @@ dependencies {
 
     compileOnly annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5")
 
-    modImplementation annotationProcessor("io.wispforest:owo-lib:${project.owo_version}")
+    modApi annotationProcessor("io.wispforest:owo-lib:${project.owo_version}")
 
     modCompileOnly("org.sinytra.forgified-fabric-api:fabric-networking-api-v1:4.2.2+a92978fd19") { exclude group: "fabric-api" }
 
-    modCompileOnly(fabricApi.module("fabric-api-base", rootProject.fabric_api_version)){
+    modCompileOnlyApi(fabricApi.module("fabric-api-base", rootProject.fabric_api_version)){
         exclude group: "fabric-api"
     }
 
