@@ -132,6 +132,8 @@ public class AccessoriesHolderLookupCache extends EquipmentLookupCache {
 
         this.getAllEquipped = null;
 
+        super.clearCache();
+
         LOGGER.warn("Single Container was cleared! [Container: {}]", key);
     }
 
