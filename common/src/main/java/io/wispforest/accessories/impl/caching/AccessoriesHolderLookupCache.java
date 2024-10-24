@@ -122,7 +122,7 @@ public class AccessoriesHolderLookupCache extends EquipmentLookupCache {
             this.containerLookupCacheMap.computeIfAbsent(entry.getKey(), string -> new AccessoriesContainerLookupCache(entry.getValue())).clearCache();
         }
 
-        LOGGER.warn("ALL Containers was cleared!");
+        //LOGGER.warn("ALL Containers was cleared!");
     }
 
     public void clearContainerCache(String key) {
@@ -134,7 +134,7 @@ public class AccessoriesHolderLookupCache extends EquipmentLookupCache {
 
         super.clearCache();
 
-        LOGGER.warn("Single Container was cleared! [Container: {}]", key);
+        //LOGGER.warn("Single Container was cleared! [Container: {}]", key);
     }
 
     public void invalidateLookupData(String key, ItemStack stack, List<DataComponentType<?>> types) {
