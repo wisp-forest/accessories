@@ -61,7 +61,8 @@
     "StriderMixin",
     "owo.ConfigWrapperAccessor",
     "ArmorSlotMixin",
-    "DataPackContentsMixin"
+    "DataPackContentsMixin",
+    "PatchedDataComponentMapMixin"
   ],
   "injectors": {
     "defaultRequire": 1

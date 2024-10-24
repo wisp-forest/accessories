@@ -8,6 +8,7 @@ import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
+import io.wispforest.accessories.pond.stack.PatchedDataComponentMapExtension;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
@@ -166,7 +167,9 @@ public interface AccessoryNest extends Accessory {
         for (int i = 0; i < accessories.size(); i++) {
             var stack = accessories.get(i);
 
-            if(!stack.getComponentsPatch().isEmpty()){
+            if(stack.getComponents() instanceof PatchedDataComponentMapExtension extension && extension.accessories$hasChanged()){
+                hasChangeOccurred = true;
+            } else if(data.slotChanges().containsKey(i)) {
                 hasChangeOccurred = true;
             } else if(AccessoryRegistry.getAccessoryOrDefault(stack) instanceof AccessoryNest) {
                 var innerData = AccessoryNestUtils.getData(stack);

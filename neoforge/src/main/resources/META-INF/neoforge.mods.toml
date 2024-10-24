@@ -36,6 +36,6 @@ side = "BOTH"
 [[dependencies.accessories]]
 modId = "owo"
 required = true
-versionRange = "[0.12.11+1.21,)"
+versionRange = "[0.12.15+1.21,)"
 ordering = "NONE"
 side = "BOTH"
