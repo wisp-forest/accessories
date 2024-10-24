@@ -1,15 +1,21 @@
 package io.wispforest.accessories.impl.caching;
 
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.EquipmentChecking;
 import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.util.*;
 
 public class AccessoriesHolderLookupCache extends EquipmentLookupCache {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     private final AccessoriesHolderImpl holder;
 
@@ -115,13 +121,21 @@ public class AccessoriesHolderLookupCache extends EquipmentLookupCache {
         for (var entry : this.holder.getSlotContainers().entrySet()) {
             this.containerLookupCacheMap.computeIfAbsent(entry.getKey(), string -> new AccessoriesContainerLookupCache(entry.getValue())).clearCache();
         }
+
+        LOGGER.warn("ALL Containers was cleared!");
     }
 
     public void clearContainerCache(String key) {
         if (!this.containerLookupCacheMap.containsKey(key)) throw new IllegalStateException("Unable to clear the cache! [Key: " + key + "]");
 
-        containerLookupCacheMap.get(key).clearCache();
+        this.containerLookupCacheMap.get(key).clearCache();
 
         this.getAllEquipped = null;
+
+        LOGGER.warn("Single Container was cleared! [Container: {}]", key);
+    }
+
+    public void invalidateLookupData(String key, ItemStack stack, List<DataComponentType<?>> types) {
+        this.clearContainerCache(key);
     }
 }

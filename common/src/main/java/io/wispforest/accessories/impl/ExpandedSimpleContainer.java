@@ -3,14 +3,18 @@ package io.wispforest.accessories.impl;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesAPI;
+import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.utils.ItemStackMutation;
+import io.wispforest.owo.util.EventSource;
 import it.unimi.dsi.fastutil.ints.Int2BooleanArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.world.ContainerListener;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -34,6 +38,8 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     private final Int2BooleanMap setFlags = new Int2BooleanArrayMap();
 
     private boolean newlyConstructed;
+
+    private final Int2ObjectMap<EventSource<ItemStackMutation>.Subscription> currentSubscriptions = new Int2ObjectOpenHashMap<>();
 
     public ExpandedSimpleContainer(AccessoriesContainerImpl container, int size, String name) {
         this(container, size, name, true);
@@ -112,7 +118,15 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         var stack = super.removeItem(slot, amount);
 
         if (!stack.isEmpty()) {
-            setFlags.put(slot, true);
+            this.setFlags.put(slot, true);
+
+            var prevStack = this.getItem(slot);
+
+            if (prevStack.isEmpty()) {
+                var subscription = this.currentSubscriptions.remove(slot);
+
+                if (subscription != null) subscription.cancel();
+            }
         }
 
         return stack;
@@ -124,6 +138,10 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
         // TODO: Concerning the flagging system, should this work for it?
 
+        var subscription = this.currentSubscriptions.remove(slot);
+
+        if (subscription != null) subscription.cancel();
+
         return super.removeItemNoUpdate(slot);
     }
 
@@ -131,7 +149,27 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     public void setItem(int slot, ItemStack stack) {
         if(!validIndex(slot)) return;
 
+        var subscription = this.currentSubscriptions.remove(slot);
+
+        if (subscription != null) subscription.cancel();
+
         super.setItem(slot, stack);
+
+        if (!stack.isEmpty()) {
+            this.currentSubscriptions.put(slot,
+                    ItemStackMutation.getEvent(stack).source().subscribe((stack1, types) -> {
+                        if (types.contains(AccessoriesDataComponents.ATTRIBUTES) || types.contains(AccessoriesDataComponents.NESTED_ACCESSORIES)) {
+                            this.setChanged();
+                        }
+
+                        if (!this.container.capability.entity().level().isClientSide()) {
+                            var cache = ((AccessoriesHolderImpl) this.container.capability.getHolder()).getLookupCache();
+
+                            if (cache != null) cache.invalidateLookupData(this.container.getSlotName(), stack1, types);
+                        }
+                    })
+            );
+        }
 
         setFlags.put(slot, true);
     }
