@@ -27,21 +27,25 @@ public abstract class EquipmentLookupCache {
         isEquipped = CacheBuilder.newBuilder()
                 .concurrencyLevel(1)
                 .expireAfterAccess(Duration.ofSeconds(60))
+                .maximumSize(10000)
                 .build();
 
         firstEquipped_ACCESSORIES_ONLY = CacheBuilder.newBuilder()
                 .concurrencyLevel(1)
                 .expireAfterAccess(Duration.ofSeconds(60))
+                .maximumSize(10000)
                 .build();
 
         firstEquipped_COSMETICALLY_OVERRIDABLE = CacheBuilder.newBuilder()
                 .concurrencyLevel(1)
                 .expireAfterAccess(Duration.ofSeconds(60))
+                .maximumSize(10000)
                 .build();
 
         equipped = CacheBuilder.newBuilder()
                 .concurrencyLevel(1)
                 .expireAfterAccess(Duration.ofSeconds(60))
+                .maximumSize(10000)
                 .build();
     }
 

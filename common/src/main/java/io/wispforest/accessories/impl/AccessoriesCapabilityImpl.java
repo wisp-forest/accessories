@@ -9,6 +9,7 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
+import io.wispforest.accessories.api.caching.ItemStackPredicate;
 import io.wispforest.accessories.api.equip.EquipAction;
 import io.wispforest.accessories.api.equip.EquipCheck;
 import io.wispforest.accessories.api.equip.EquipmentChecking;
@@ -306,7 +307,12 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     //--
 
+    @Nullable
     public SlotEntryReference getFirstEquipped(ItemStackBasedPredicate predicate, EquipmentChecking check) {
+        var cache = ((AccessoriesHolderImpl)this.getHolder()).getLookupCache();
+
+        if (cache != null && !(predicate instanceof ItemStackPredicate)) return cache.firstEquipped(predicate, check);
+
         for (var container : this.getContainers().values()) {
             for (var stackEntry : container.getAccessories()) {
                 var stack = stackEntry.getSecond();
@@ -330,8 +336,6 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
         return null;
     }
-
-
 
     @Override
     public List<SlotEntryReference> getAllEquipped(boolean recursiveStackLookup) {
