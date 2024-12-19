@@ -44,25 +44,7 @@ public interface AccessoriesCapability {
     static Collection<SlotType> getUsedSlotsFor(LivingEntity entity, Container container) {
         var capability = entity.accessoriesCapability();
 
-        if(capability == null) return Set.of();
-
-        var slots = new HashSet<SlotType>();
-
-        for (int i = 0; i < container.getContainerSize(); i++) {
-            var stack = container.getItem(i);
-
-            if (stack.isEmpty()) continue;
-
-            slots.addAll(SlotPredicateRegistry.getValidSlotTypes(entity, stack));
-        }
-
-        for (var ref : capability.getAllEquipped()) {
-            slots.addAll(SlotPredicateRegistry.getValidSlotTypes(entity, ref.stack()));
-        }
-
-        slots.addAll(SlotTypeLoader.getUsedSlotsByRegistryItem(entity));
-
-        return slots;
+        return (capability != null) ? capability.getUsedSlotsFor(container) : Set.of();
     }
 
     //--
@@ -95,6 +77,27 @@ public interface AccessoriesCapability {
     @Nullable
     default AccessoriesContainer getContainer(SlotTypeReference reference){
         return getContainers().get(reference.slotName());
+    }
+
+    default Collection<SlotType> getUsedSlotsFor(Container container) {
+        var entity = this.entity();
+        var slots = new HashSet<SlotType>();
+
+        for (int i = 0; i < container.getContainerSize(); i++) {
+            var stack = container.getItem(i);
+
+            if (stack.isEmpty()) continue;
+
+            slots.addAll(SlotPredicateRegistry.getValidSlotTypes(entity, stack));
+        }
+
+        for (var ref : this.getAllEquipped()) {
+            slots.addAll(SlotPredicateRegistry.getValidSlotTypes(entity, ref.stack()));
+        }
+
+        slots.addAll(SlotTypeLoader.getUsedSlotsByRegistryItem(entity));
+
+        return slots;
     }
 
     void updateContainers();
@@ -308,7 +311,7 @@ public interface AccessoriesCapability {
      */
     void clearCachedSlotModifiers();
 
-    //--
+    //-- Deprecated meaning to be removed within the future
 
     /**
      * Used to attempt to equip a given stack within any available {@link AccessoriesContainer} returning a
