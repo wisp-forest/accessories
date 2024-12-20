@@ -13,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -121,11 +122,11 @@ public class OuterGroupMap implements Map<String, Map<String, TrinketInventory>>
 
         @Override
         public boolean containsKey(Object key) {
-            if (!(key instanceof String str)) return false;
+            if (!(key instanceof String trinketKey)) return false;
 
             var redirects = SlotIdRedirect.getBiMap(TCLayer.CONFIG.slotIdRedirects());
 
-            var redirect = redirects.get(this.currentTrinketsGroup + "/" + str);
+            var redirect = redirects.get(this.currentTrinketsGroup + "/" + trinketKey);
 
             if (redirect != null && SlotTypeLoader.getSlotType(OuterGroupMap.this.capability.entity(), redirect) != null) {
                 return true;
@@ -133,7 +134,9 @@ public class OuterGroupMap implements Map<String, Map<String, TrinketInventory>>
 
             var groupMap = groupMap();
 
-            return groupMap != null && groupMap.containsKey(key);
+            var accessoryKey = WrappingTrinketsUtils.trinketsToAccessories_Slot(Optional.of(this.currentTrinketsGroup), trinketKey);
+
+            return groupMap != null && groupMap.containsKey(accessoryKey);
         }
 
         @Override
@@ -143,11 +146,11 @@ public class OuterGroupMap implements Map<String, Map<String, TrinketInventory>>
 
         @Override
         public TrinketInventory get(Object key) {
-            if (!(key instanceof String str)) return null;
+            if (!(key instanceof String trinketKey)) return null;
 
             var redirects = SlotIdRedirect.getBiMap(TCLayer.CONFIG.slotIdRedirects());
 
-            var redirect = redirects.get(this.currentTrinketsGroup + "/" + str);
+            var redirect = redirects.get(this.currentTrinketsGroup + "/" + trinketKey);
 
             if (redirect != null) {
                 var redirectSlot = SlotTypeLoader.getSlotType(OuterGroupMap.this.capability.entity(), redirect);
@@ -163,10 +166,12 @@ public class OuterGroupMap implements Map<String, Map<String, TrinketInventory>>
                 return null;
             }
 
-            var slotType = groupMap.get(key);
+            var accessoryKey = WrappingTrinketsUtils.trinketsToAccessories_Slot(Optional.of(this.currentTrinketsGroup), trinketKey);
+
+            var slotType = groupMap.get(accessoryKey);
 
             if (slotType == null) {
-                errorMessage.accept("Unable to locate the given slot type: [" + key + "]");
+                errorMessage.accept("Unable to locate the given slot type: [Trinket Group: " + this.currentTrinketsGroup + ", Trinket Slot: " + trinketKey + "] : [Accessory Group: " + WrappingTrinketsUtils.trinketsToAccessories_Group(this.currentTrinketsGroup) + ", Accessory Slot: " + accessoryKey +"]");
 
                 return null;
             }
