@@ -36,7 +36,7 @@ public abstract class CreativeInventoryScreenMixin extends AbstractContainerScre
     }
 
     @Inject(method = "selectTab", at = @At(value = "TAIL"))
-    private void adjustAccessoryButton(CreativeModeTab tab, CallbackInfo ci){
+    private void onCreativeTagChange(CreativeModeTab tab, CallbackInfo ci){
         getEvent().invoker().onTabChange(tab);
     }
 
