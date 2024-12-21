@@ -1,5 +1,6 @@
 package io.wispforest.accessories.mixin;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -39,6 +40,7 @@ import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
@@ -97,6 +99,15 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
         var state = ExtraEventHandler.isGazedBlocked((LivingEntity) (Object) this, livingEntity);
 
         if (state != TriState.DEFAULT) cir.setReturnValue(!state.get());
+    }
+
+    //--
+
+    @ModifyReturnValue(method = "canFreeze", at = @At(value = "RETURN", ordinal = 1))
+    private boolean canFreezeAccessoriesCheck(boolean bl) {
+        var state = ExtraEventHandler.canFreezeEntity((LivingEntity) (Object) this);
+
+        return state.orElse(bl);
     }
 
     //--

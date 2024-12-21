@@ -129,6 +129,35 @@ public class ExtraEventHandler {
         return state;
     }
 
+    public static TriState canFreezeEntity(LivingEntity entity){
+        var state = TriState.DEFAULT;
+
+        var capability = AccessoriesCapability.get(entity);
+
+        if(capability != null){
+            for (var entryRef : capability.getAllEquipped()) {
+                var reference = entryRef.reference();
+                var stack = entryRef.stack();
+
+                var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
+
+                if(accessory instanceof ShouldFreezeEntity check){
+                    state = check.shouldFreeze(stack, reference);
+
+                    if(state != TriState.DEFAULT) return state;
+                }
+
+                state = ShouldFreezeEntity.EVENT.invoker().shouldFreeze(stack, reference);
+
+                if(state != TriState.DEFAULT) return state;
+
+                if (stack.is(ItemTags.FREEZE_IMMUNE_WEARABLES)) return TriState.FALSE;
+            }
+        }
+
+        return state;
+    }
+
     //--
 
     private static final LoadingCache<Integer, Map<Integer, TriState>> gazeDisguiseCache = CacheBuilder.newBuilder()
