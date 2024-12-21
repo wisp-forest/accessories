@@ -309,7 +309,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     @Nullable
     public SlotEntryReference getFirstEquipped(ItemStackBasedPredicate predicate, EquipmentChecking check) {
-        var cache = ((AccessoriesHolderImpl)this.getHolder()).getLookupCache();
+        var cache = AccessoriesHolderImpl.getHolder(this).getLookupCache();
 
         if (cache != null && !(predicate instanceof ItemStackPredicate)) return cache.firstEquipped(predicate, check);
 
