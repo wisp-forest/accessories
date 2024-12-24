@@ -6,6 +6,7 @@ import io.wispforest.accessories.pond.CosmeticArmorLookupTogglable;
 import io.wispforest.accessories.pond.LivingEntityRenderStateExtension;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,17 +20,15 @@ public abstract class EntityRendererMixin<T extends Entity, S extends EntityRend
             "getAndUpdateRenderState(Lnet/minecraft/entity/Entity;F)Lnet/minecraft/client/render/entity/state/EntityRenderState;"    // Yarn
     }, expect = 1, require = 1, allow = 1)
     private S accessories$adjustArmorLookup(T entity, float f, Operation<S> original) {
-        var bl = entity instanceof LivingEntity;
+        var bl = entity instanceof CosmeticArmorLookupTogglable;
 
         if (bl) ((CosmeticArmorLookupTogglable) entity).setLookupToggle(true);
 
         var state = original.call(entity, f);
 
-        if (bl) {
-            ((CosmeticArmorLookupTogglable) entity).setLookupToggle(false);
+        if (bl) ((CosmeticArmorLookupTogglable) entity).setLookupToggle(false);
 
-            ((LivingEntityRenderStateExtension) state).setEntity((LivingEntity) entity);
-        }
+        if (state instanceof LivingEntityRenderState) ((LivingEntityRenderStateExtension) state).setEntity((LivingEntity) entity);
 
         return state;
     }
