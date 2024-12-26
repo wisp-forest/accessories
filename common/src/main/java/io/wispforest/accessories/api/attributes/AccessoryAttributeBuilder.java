@@ -25,7 +25,7 @@ import java.util.function.Function;
  */
 public final class AccessoryAttributeBuilder {
 
-    private final Logger LOGGER = LogUtils.getLogger();
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     private final Map<Attribute, Map<ResourceLocation, AttributeModificationData>> exclusiveAttributes = new HashMap<>();
     private final Multimap<Attribute, AttributeModificationData> stackedAttributes = LinkedHashMultimap.create();
