@@ -24,6 +24,7 @@ import net.minecraft.Util;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -38,6 +39,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -49,6 +51,8 @@ import java.util.stream.Stream;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity implements AccessoriesAPIAccess, AccessoriesLivingEntityExtension {
+
+    @Shadow public abstract void swing(InteractionHand hand, boolean updateSelf);
 
     protected LivingEntityMixin(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -167,36 +171,33 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
     //--
 
     @WrapOperation(method = "updateFallFlying", at = @At(value = "INVOKE", target = "Ljava/util/stream/Stream;toList()Ljava/util/List;"))
-    private List<EquipmentSlot> accessories$addEquipmentCheck(Stream<EquipmentSlot> instance, Operation<List<EquipmentSlot>> original) {
-        return original.call(Stream.concat(instance, Stream.of(AccessoriesInternals.INTERNAL_SLOT)));
+    private List<EquipmentSlot> accessories$addEquipmentCheck(Stream<EquipmentSlot> instance, Operation<List<EquipmentSlot>> original, @Share("slotReference") LocalRef<@Nullable SlotReference> slotReference) {
+        var capability = this.accessoriesCapability();
+
+        slotReference.set(null);
+
+        if (capability != null) {
+            var gliders = capability.getEquipped(ItemStackBasedPredicate.ofComponents(DataComponents.GLIDER));
+
+            if (!gliders.isEmpty()) {
+                var glider = Util.getRandom(gliders, this.random);
+
+                if (LivingEntity.canGlideUsing(glider.stack(), AccessoriesInternals.INTERNAL_SLOT)) {
+                    slotReference.set(glider.reference());
+
+                    instance = Stream.concat(instance, Stream.of(AccessoriesInternals.INTERNAL_SLOT));
+                }
+            }
+        }
+
+        return original.call(instance);
     }
 
     @WrapOperation(method = "updateFallFlying", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getItemBySlot(Lnet/minecraft/world/entity/EquipmentSlot;)Lnet/minecraft/world/item/ItemStack;"))
     private ItemStack accessories$adjustGottenStack(LivingEntity instance, EquipmentSlot equipmentSlot, Operation<ItemStack> original, @Share("slotReference") LocalRef<@Nullable SlotReference> slotReference) {
-        if (equipmentSlot == AccessoriesInternals.INTERNAL_SLOT) {
-            var capability = this.accessoriesCapability();
-
-            if (capability != null) {
-                var gliders = capability.getEquipped(ItemStackBasedPredicate.ofComponents(DataComponents.GLIDER));
-
-                if (!gliders.isEmpty()) {
-                    var glider = Util.getRandom(gliders, this.random);
-
-                    if (LivingEntity.canGlideUsing(glider.stack(), AccessoriesInternals.INTERNAL_SLOT)) {
-                        slotReference.set(glider.reference());
-
-                        return glider.stack();
-                    }
-                }
-            }
-
-            // Need to prevent the method getItemBySlot() from using AccessoriesInternals.INTERNAL_SLOT as things will go wrong!
-            return ItemStack.EMPTY;
-        }
-
-        slotReference.set(null);
-
-        return original.call(instance, equipmentSlot);
+        return (equipmentSlot == AccessoriesInternals.INTERNAL_SLOT)
+                ? slotReference.get().getStack()
+                : original.call(instance, equipmentSlot);
     }
 
     @WrapOperation(method = "updateFallFlying", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;hurtAndBreak(ILnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/EquipmentSlot;)V"))
@@ -205,11 +206,7 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
 
         if (ref == null) {
             original.call(instance, amount, entity, slot);
-
-            return;
-        }
-
-        if(entity.level() instanceof ServerLevel serverLevel) {
+        } else if(entity.level() instanceof ServerLevel serverLevel) {
             instance.hurtAndBreak(amount, serverLevel, entity instanceof ServerPlayer serverPlayer ? serverPlayer : null, item -> ref.breakStack());
         }
     }
