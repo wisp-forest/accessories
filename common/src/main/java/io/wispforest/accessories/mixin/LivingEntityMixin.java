@@ -189,6 +189,9 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
                     }
                 }
             }
+
+            // Need to prevent the method getItemBySlot() from using AccessoriesInternals.INTERNAL_SLOT as things will go wrong!
+            return ItemStack.EMPTY;
         }
 
         slotReference.set(null);
