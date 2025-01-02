@@ -1,6 +1,7 @@
 package io.wispforest.accessories.api.slot;
 
 import com.google.common.collect.ImmutableList;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -8,8 +9,10 @@ import io.wispforest.accessories.impl.slot.NestedSlotReferenceImpl;
 import io.wispforest.accessories.impl.slot.SlotReferenceImpl;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
+import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -48,7 +51,15 @@ public interface SlotReference {
      * Helper method to trigger effects of a given accessory being broken on any tracking clients for the given entity
      */
     default void breakStack() {
-        AccessoriesNetworking.sendToTrackingAndSelf(this.entity(), AccessoryBreak.of(this));
+        var entity = this.entity();
+
+        AccessoriesNetworking.sendToTrackingAndSelf(entity, AccessoryBreak.of(this));
+
+        var currentStack = this.getStack();
+
+        ((AccessoriesLivingEntityExtension) entity).pushEnchantmentContext(currentStack, this);
+
+        EnchantmentHelper.stopLocationBasedEffects(currentStack, entity, AccessoriesInternals.INTERNAL_SLOT);
     }
 
     default boolean isValid() {

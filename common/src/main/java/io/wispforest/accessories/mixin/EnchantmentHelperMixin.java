@@ -4,13 +4,19 @@ import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
+import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
+import io.wispforest.accessories.pond.EnchantedItemInUseExtension;
+import io.wispforest.owo.Owo;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -19,6 +25,7 @@ import net.minecraft.world.item.enchantment.EnchantedItemInUse;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -79,15 +86,18 @@ public abstract class EnchantmentHelperMixin {
                             for(var entry : itemEnchantments.entrySet()) {
                                 var holder = entry.getKey();
 
-                                if (holder.value().effects().has(dataComponentType) && enchantmentValidForRedirect(livingEntity.registryAccess(), holder.value())) { //((Enchantment)holder.value()).matchingSlot(equipmentSlot)
-                                    return true;
+                                if (holder.value().effects().has(dataComponentType)) { //((Enchantment)holder.value()).matchingSlot(equipmentSlot)
+                                    var valid = enchantmentValidForRedirect(livingEntity.registryAccess(), holder.value());
+
+                                    if(valid != null) return valid;
                                 }
                             }
                         }
 
                         return false;
                     }).map(entryReference -> {
-                        return new EnchantedItemInUse(entryReference.stack(), AccessoriesInternals.INTERNAL_SLOT, livingEntity, item -> entryReference.reference().breakStack());
+                        return ((EnchantedItemInUseExtension) (Object) new EnchantedItemInUse(entryReference.stack(), AccessoriesInternals.INTERNAL_SLOT, livingEntity, item -> entryReference.reference().breakStack()))
+                                .setSlotReference(entryReference.reference());
                     })
                     .toList();
 
@@ -104,6 +114,7 @@ public abstract class EnchantmentHelperMixin {
                     .forEach(entryReference -> {
                         var itemStack = entryReference.stack();
 
+                        ((AccessoriesLivingEntityExtension) livingEntity).pushEnchantmentContext(itemStack, entryReference.reference());
                         runIterationOnItem(itemStack, AccessoriesInternals.INTERNAL_SLOT, livingEntity, enchantmentInSlotVisitor);
                     });
         }
@@ -114,16 +125,65 @@ public abstract class EnchantmentHelperMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/enchantment/Enchantment;matchingSlot(Lnet/minecraft/world/entity/EquipmentSlot;)Z")
     )
     private static boolean adjustIfIterationOccurs(boolean original, @Local(argsOnly = true) EquipmentSlot equipmentSlot, @Local(argsOnly = true) LivingEntity livingEntity, @Local(ordinal = 0) Holder<Enchantment> holder) {
-        if(equipmentSlot.equals(AccessoriesInternals.INTERNAL_SLOT) && enchantmentValidForRedirect(livingEntity.registryAccess(), holder.value())) {
-            return true;
+        if(equipmentSlot.equals(AccessoriesInternals.INTERNAL_SLOT)) {
+            var valid = enchantmentValidForRedirect(livingEntity.registryAccess(), holder.value());
+
+            if(valid != null) return valid;
         }
 
         return original;
     }
 
+    @WrapOperation(
+            method = "runIterationOnItem(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/EquipmentSlot;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/enchantment/EnchantmentHelper$EnchantmentInSlotVisitor;)V",
+            at = @At(value = "NEW", target = "(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/EquipmentSlot;Lnet/minecraft/world/entity/LivingEntity;)Lnet/minecraft/world/item/enchantment/EnchantedItemInUse;")
+    )
+    private static EnchantedItemInUse addSlotReferenceToEnchantRecord(ItemStack itemStack, EquipmentSlot inSlot, LivingEntity owner, Operation<EnchantedItemInUse> original) {
+        EnchantedItemInUse record = null;
+
+        if (inSlot.equals(AccessoriesInternals.INTERNAL_SLOT)) {
+            var ref = ((AccessoriesLivingEntityExtension) owner).popEnchantmentContext(itemStack);
+
+            if (ref != null) {
+                record = new EnchantedItemInUse(itemStack, inSlot, owner, item -> ref.breakStack());
+
+                ((EnchantedItemInUseExtension)(Object) record).setSlotReference(ref);
+            }
+        }
+
+        if (record == null) record = original.call(itemStack, inSlot, owner);
+
+        return record;
+    }
+
+    @WrapOperation(method = "method_60148", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/enchantment/Enchantment;matchingSlot(Lnet/minecraft/world/entity/EquipmentSlot;)Z"))
+    private static boolean allowAccessoriesSlotEnchentments(Enchantment instance, EquipmentSlot slot, Operation<Boolean> original) {
+        if (slot.equals(AccessoriesInternals.INTERNAL_SLOT)) {
+            var valid = enchantmentValidForRedirect(null, instance);
+
+            if(valid != null) return valid;
+        }
+
+        return original.call(instance, slot);
+    }
+
     @Unique
-    private static boolean enchantmentValidForRedirect(RegistryAccess access, Enchantment enchantment) {
-        var enchantments = access.lookupOrThrow(Registries.ENCHANTMENT);
+    @Nullable
+    private static Boolean enchantmentValidForRedirect(@Nullable RegistryAccess access, Enchantment enchantment) {
+        Registry<Enchantment> enchantments;
+
+        if (access != null) {
+            enchantments = access.lookupOrThrow(Registries.ENCHANTMENT);
+        } else {
+            // THIS IS VERY CRING BUT LACKING CONTEXT MEANS NOT MUCH CAN BE DONE
+            var server = Owo.currentServer();
+
+            if (server != null) {
+                enchantments = server.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            } else {
+                return null;
+            }
+        }
 
         return !enchantments.get(enchantments.getResourceKey(enchantment).orElseThrow())
                 .orElseThrow()

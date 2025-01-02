@@ -23,6 +23,7 @@ import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncData;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.networking.client.SyncPlayerOptions;
+import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.owo.serialization.RegistriesAttribute;
@@ -32,9 +33,11 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
+import net.minecraft.util.StringUtil;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -260,11 +263,42 @@ public class AccessoriesEventHandler {
                         dirtyStacks.put(slotId, currentStack.copy());
 
                         if (!lastStack.isEmpty()) {
+                            var removedEnchantmentBuilder = new AccessoryAttributeBuilder(slotReference);
+
+                            // TODO: MAYBE MOVE THIS TO AccessoryAttributeLogic or something
+                            EnchantmentHelper.forEachModifier(lastStack, AccessoriesInternals.INTERNAL_SLOT, (attributeHolder, modifier) -> {
+                                var namespace = modifier.id().getNamespace();
+                                var splitPath = new ArrayList<>(List.of(modifier.id().getPath().split("/")));
+
+                                splitPath.removeLast();
+
+                                removedEnchantmentBuilder.addStackable(attributeHolder, new AttributeModifier(ResourceLocation.fromNamespaceAndPath(namespace, String.join("/", splitPath)), modifier.amount(), modifier.operation()));
+                            });
+
+                            removedAttributesBuilder.addFrom(removedEnchantmentBuilder);
                             removedAttributesBuilder.addFrom(AccessoryAttributeLogic.getAttributeModifiers(lastStack, slotReference));
+
+                            ((AccessoriesLivingEntityExtension) entity).pushEnchantmentContext(lastStack, slotReference);
+                            EnchantmentHelper.stopLocationBasedEffects(lastStack, entity, AccessoriesInternals.INTERNAL_SLOT);
                         }
 
                         if (!currentStack.isEmpty()) {
+                            var addedEnchantmentBuilder = new AccessoryAttributeBuilder(slotReference);
+
+                            EnchantmentHelper.forEachModifier(currentStack, AccessoriesInternals.INTERNAL_SLOT, (attributeHolder, modifier) -> {
+                                var namespace = modifier.id().getNamespace();
+                                var splitPath = new ArrayList<>(List.of(modifier.id().getPath().split("/")));
+
+                                splitPath.removeLast();
+
+                                addedEnchantmentBuilder.addStackable(attributeHolder, new AttributeModifier(ResourceLocation.fromNamespaceAndPath(namespace, String.join("/", splitPath)), modifier.amount(), modifier.operation()));
+                            });
+
+                            addedAttributesBuilder.addFrom(addedEnchantmentBuilder);
                             addedAttributesBuilder.addFrom(AccessoryAttributeLogic.getAttributeModifiers(currentStack, slotReference));
+
+                            ((AccessoriesLivingEntityExtension) entity).pushEnchantmentContext(currentStack, slotReference);
+                            EnchantmentHelper.runLocationChangedEffects((ServerLevel) entity.level(), currentStack, entity, AccessoriesInternals.INTERNAL_SLOT);
                         }
 
                         boolean equipmentChange = false;

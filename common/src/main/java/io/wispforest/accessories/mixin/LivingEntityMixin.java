@@ -19,6 +19,9 @@ import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.Util;
 import net.minecraft.core.component.DataComponents;
@@ -33,6 +36,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.DeathProtection;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.effects.EnchantmentLocationBasedEffect;
 import net.minecraft.world.item.equipment.Equippable;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -40,19 +45,27 @@ import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity implements AccessoriesAPIAccess, AccessoriesLivingEntityExtension {
 
     @Shadow public abstract void swing(InteractionHand hand, boolean updateSelf);
+
+    @Unique
+    private final Map<ItemStack, SlotReference> accessories$enchantmentLocationContext = new Reference2ObjectOpenHashMap<>();
+
+    private final Map<String, Reference2ObjectMap<Enchantment, Set<EnchantmentLocationBasedEffect>>> accessories$activeLocationDependentEnchantments = new HashMap<>();
 
     protected LivingEntityMixin(EntityType<?> entityType, Level level) {
         super(entityType, level);
@@ -66,6 +79,22 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
         if(slots.isEmpty()) return null;
 
         return new AccessoriesCapabilityImpl((LivingEntity) (Object) this);
+    }
+
+    @Override
+    public void pushEnchantmentContext(ItemStack stack, SlotReference reference) {
+        this.accessories$enchantmentLocationContext.put(stack, reference);
+    }
+
+    @Override
+    @Nullable
+    public SlotReference popEnchantmentContext(ItemStack stack) {
+        return this.accessories$enchantmentLocationContext.remove(stack);
+    }
+
+    @Override
+    public Map<Enchantment, Set<EnchantmentLocationBasedEffect>> activeLocationDependentEnchantmentsFromSlotReference(SlotReference slotReference) {
+        return accessories$activeLocationDependentEnchantments.computeIfAbsent(slotReference.createSlotPath(), equipmentSlot -> new Reference2ObjectArrayMap());
     }
 
     //--
