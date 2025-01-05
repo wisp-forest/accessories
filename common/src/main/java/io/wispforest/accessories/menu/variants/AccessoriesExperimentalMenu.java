@@ -483,4 +483,20 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         return bl;
     }
 
+    //initializeContents
+
+    // REQUIRED TO PREVENT THE MENU FROM RESETTING THE CACHE WITH STACKS THAT ARE ALREADY SYNCED TO THE CLIENT
+    // SINCE ACCESSORIES CONTAINERS ARE FULLY SYNCED
+    @Override
+    public void initializeContents(int stateId, List<ItemStack> items, ItemStack carried) {
+        for(int i = 0; i < items.size(); ++i) {
+            var slot = this.getSlot(i);
+
+            if (slot instanceof SlotTypeAccessible) continue;
+
+            slot.set(items.get(i));
+        }
+
+        super.initializeContents(stateId, List.of(), carried);
+    }
 }
