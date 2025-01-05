@@ -72,11 +72,9 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     public void containerChanged(Container container) {
         if(containerListenerLock) return;
 
-        if (!this.capability.entity().level().isClientSide()) {
-            var cache = AccessoriesHolderImpl.getHolder(this.capability()).getLookupCache();
+        var cache = AccessoriesHolderImpl.getHolder(this.capability()).getLookupCache();
 
-            if (cache != null) cache.clearContainerCache(this.slotName);
-        }
+        if (cache != null) cache.clearContainerCache(this.slotName);
 
         if(((ExpandedSimpleContainer) container).name().contains("cosmetic")) return;
 

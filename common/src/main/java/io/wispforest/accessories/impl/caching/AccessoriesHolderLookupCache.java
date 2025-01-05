@@ -122,20 +122,20 @@ public class AccessoriesHolderLookupCache extends EquipmentLookupCache {
         for (var entry : this.holder.getSlotContainers().entrySet()) {
             this.containerLookupCacheMap.computeIfAbsent(entry.getKey(), string -> new AccessoriesContainerLookupCache(entry.getValue())).clearCache();
         }
-
-        //LOGGER.warn("ALL Containers was cleared!");
     }
 
     public void clearContainerCache(String key) {
-        if (!this.containerLookupCacheMap.containsKey(key)) throw new IllegalStateException("Unable to clear the cache! [Key: " + key + "]");
+        var containerCache = this.containerLookupCacheMap.get(key);
 
-        this.containerLookupCacheMap.get(key).clearCache();
+        if (containerCache == null) throw new IllegalStateException("Unable to clear the cache! [Key: " + key + "]");
 
-        this.getAllEquipped = null;
+        if (containerCache.isEmpty()) {
+            return;
+        }
+
+        containerCache.clearCache();
 
         super.clearCache();
-
-        //LOGGER.warn("Single Container was cleared! [Container: {}]", key);
     }
 
     public void invalidateLookupData(String key, ItemStack stack, List<DataComponentType<?>> types) {

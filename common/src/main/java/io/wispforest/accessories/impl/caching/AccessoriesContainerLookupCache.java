@@ -21,6 +21,8 @@ public class AccessoriesContainerLookupCache extends EquipmentLookupCache {
     }
 
     public boolean isEquipped(ItemStackBasedPredicate predicate) {
+        if(isEmpty) this.isEmpty = false;
+
         var value = isEquipped.getIfPresent(predicate);
 
         if (value == null) {
@@ -34,6 +36,8 @@ public class AccessoriesContainerLookupCache extends EquipmentLookupCache {
 
     @Nullable
     public SlotEntryReference firstEquipped(ItemStackBasedPredicate predicate, EquipmentChecking check) {
+        if(isEmpty) this.isEmpty = false;
+
         var cache = (check == EquipmentChecking.ACCESSORIES_ONLY ? firstEquipped_ACCESSORIES_ONLY : firstEquipped_COSMETICALLY_OVERRIDABLE);
 
         @Nullable var value = cache.getIfPresent(predicate);
@@ -72,6 +76,8 @@ public class AccessoriesContainerLookupCache extends EquipmentLookupCache {
 
     @Nullable
     public List<SlotEntryReference> getEquipped(ItemStackBasedPredicate predicate) {
+        if(isEmpty) this.isEmpty = false;
+
         var value = this.equipped.getIfPresent(predicate);
 
         if (value == null) {
@@ -86,6 +92,8 @@ public class AccessoriesContainerLookupCache extends EquipmentLookupCache {
     }
 
     public List<SlotEntryReference> getAllEquipped() {
+        if(isEmpty) this.isEmpty = false;
+
         if(this.getAllEquipped != null) return this.getAllEquipped;
 
         var currentlyAllEquipped = new ArrayList<SlotEntryReference>();
@@ -103,5 +111,18 @@ public class AccessoriesContainerLookupCache extends EquipmentLookupCache {
         this.getAllEquipped = currentlyAllEquipped;
 
         return currentlyAllEquipped;
+    }
+
+    private boolean isEmpty = true;
+
+    public boolean isEmpty() {
+        return this.isEmpty;
+    }
+
+    @Override
+    public void clearCache() {
+        super.clearCache();
+
+        this.isEmpty = true;
     }
 }
