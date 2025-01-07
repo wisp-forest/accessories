@@ -614,8 +614,8 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
                                         TextureAtlasSprite textureAtlasSprite = sprites.getSprite(BACK_ICON);
 
-                                        var width = Math.max(textureAtlasSprite.contents().width(), 8);
-                                        var height = Math.max(textureAtlasSprite.contents().height(), 8);
+                                        var width = Math.min(textureAtlasSprite.contents().width(), 8);
+                                        var height = Math.min(textureAtlasSprite.contents().height(), 8);
 
                                         context.blitSprite(BACK_ICON, btn.x() + 1, btn.y() + 1, width, height);
 
