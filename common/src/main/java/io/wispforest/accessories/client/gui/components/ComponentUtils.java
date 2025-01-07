@@ -29,6 +29,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.CreativeModeTab;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.function.Consumer;
@@ -37,13 +38,8 @@ import java.util.function.Supplier;
 
 public class ComponentUtils {
 
-    public static final ResourceLocation ENABLED_TEXTURE = Accessories.of("button/enabled");
-    public static final ResourceLocation ENABLED_HOVERED_TEXTURE = Accessories.of("button/enabled_hovered");
-    public static final ResourceLocation DISABLED_TEXTURE = Accessories.of("button/disabled");
-    public static final ResourceLocation DISABLED_HOVERED_TEXTURE = Accessories.of("button/disabled_hovered");
-
     private static final ResourceLocation SLOT = ResourceLocation.withDefaultNamespace("textures/gui/sprites/container/slot.png");
-    private static final ResourceLocation DARK_SLOT = Accessories.of("textures/gui/dark_slot.png");
+    private static final ResourceLocation DARK_SLOT = Accessories.of("textures/gui/theme/dark/slot.png");
 
     public static final Surface BACKGROUND_SLOT_RENDERING_SURFACE = (context, component) -> {
         var slotComponents = new ArrayList<AccessoriesExperimentalScreen.ExtendedSlotComponent>();
@@ -60,80 +56,69 @@ public class ComponentUtils {
         context.pop();
     };
 
-    private static final ResourceLocation VERTICAL_VANILLA_SCROLLBAR_TEXTURE = Accessories.of("scrollbar_dark/vanilla_vertical");
-    private static final ResourceLocation DISABLED_VERTICAL_VANILLA_SCROLLBAR_TEXTURE = Accessories.of("scrollbar_dark/vanilla_vertical_disabled");
-    private static final ResourceLocation HORIZONTAL_VANILLA_SCROLLBAR_TEXTURE = Accessories.of("scrollbar_dark/vanilla_horizontal_disabled");
-    private static final ResourceLocation DISABLED_HORIZONTAL_VANILLA_SCROLLBAR_TEXTURE = Accessories.of("scrollbar_dark/vanilla_horizontal_disabled");
-    private static final ResourceLocation VANILLA_SCROLLBAR_TRACK_TEXTURE = Accessories.of("scrollbar_dark/track");
-
-    public static final ScrollContainer.Scrollbar DARK_VANILLA = (context, x, y, width, height, trackX, trackY, trackWidth, trackHeight, lastInteractTime, direction, active) -> {
-        NinePatchTexture.draw(VANILLA_SCROLLBAR_TRACK_TEXTURE, context, trackX, trackY, trackWidth, trackHeight);
-
-        var texture = direction == ScrollContainer.ScrollDirection.VERTICAL
-                ? active ? VERTICAL_VANILLA_SCROLLBAR_TEXTURE : DISABLED_VERTICAL_VANILLA_SCROLLBAR_TEXTURE
-                : active ? HORIZONTAL_VANILLA_SCROLLBAR_TEXTURE : DISABLED_HORIZONTAL_VANILLA_SCROLLBAR_TEXTURE;
-
-        NinePatchTexture.draw(texture, context, x + 1, y + 1, width - 2, height - 2);
+    public static final ScrollContainer.Scrollbar VANILLA = (context, x, y, width, height, trackX, trackY, trackWidth, trackHeight, lastInteractTime, direction, active) -> {
+        NinePatchTexture.draw(Accessories.of(("theme/" + checkMode("light", "dark") + "/scrollbar/track")), context, trackX, trackY, trackWidth, trackHeight);
+        NinePatchTexture.draw(getScrollabarTexture(direction, active), context, x + 1, y + 1, width - 2, height - 2);
     };
 
-    public static final ResourceLocation DARK_PANEL_INSET_NINE_PATCH_TEXTURE = Accessories.of("panel/dark_inset");
+    public static ResourceLocation getScrollabarTexture(ScrollContainer.ScrollDirection direction, boolean active) {
+        var scrollBarType = (direction == ScrollContainer.ScrollDirection.VERTICAL ? "vertical" : "horizontal") + (active ? "" : "_disabled");
+        var themeType = checkMode("light", "dark");
 
-    public static final Surface DARK_PANEL_INSET = (context, component) -> {
-        NinePatchTexture.draw(DARK_PANEL_INSET_NINE_PATCH_TEXTURE, context, component);
+        return Accessories.of("theme/" + themeType + "/scrollbar/vanilla_" + scrollBarType);
+    }
+
+    public static final Surface PANEL_INSET = (context, component) -> {
+        NinePatchTexture.draw(Accessories.of(("theme/" + checkMode("light", "dark") + "/inset")), context, component);
     };
 
-    public static final ResourceLocation DARK_ACTIVE_TEXTURE = Accessories.of("button_dark/active");
-    public static final ResourceLocation DARK_HOVERED_TEXTURE = Accessories.of("button_dark/hovered");
-    public static final ResourceLocation DARK_DISABLED_TEXTURE = Accessories.of("button_dark/disabled");
+    public static final Surface PANEL = (context, component) -> {
+        NinePatchTexture.draw(Accessories.of(("theme/" + checkMode("light", "dark") + "/panel")), context, component);
+    };
 
-    private static final ButtonComponent.Renderer DARK_BUTTON_RENDERER = (context, button, delta) -> {
+    private static final ButtonComponent.Renderer BUTTON_RENDERER = (context, button, delta) -> {
         RenderSystem.enableDepthTest();
 
-        var texture = button.active ? (button.isHovered() ? DARK_HOVERED_TEXTURE : DARK_ACTIVE_TEXTURE) : DARK_DISABLED_TEXTURE;
-
-        NinePatchTexture.draw(texture, context, button.getX(), button.getY(), button.width(), button.height());
+        NinePatchTexture.draw(getBtnTexture(button), context, button.getX(), button.getY(), button.width(), button.height());
     };
 
+    private static ResourceLocation getBtnTexture(ButtonComponent btn) {
+        var btnType = (btn.isActive() ? (btn.isHovered() ? "hovered" : "active") : "disabled");
+        var themeType = checkMode("light", "dark");
+
+        return Accessories.of("theme/" + themeType + "/button/" + btnType);
+    }
+
+    public static <T> T checkMode(T lightMode, T darkMode) {
+        return Accessories.config().screenOptions.isDarkMode() ? darkMode : lightMode;
+    }
+
     public static ResourceLocation getSlotTexture() {
-        return Accessories.config().screenOptions.isDarkMode() ? DARK_SLOT : SLOT;
+        return checkMode(SLOT, DARK_SLOT);
     }
 
     public static Surface getPanelSurface() {
-        return (context, component) -> {
-            (Accessories.config().screenOptions.isDarkMode() ? Surface.DARK_PANEL : Surface.PANEL)
-                    .draw(context, component);
-        };
+        return PANEL;
     }
 
     public static Surface getInsetPanelSurface() {
-        return (context, component) -> {
-            (Accessories.config().screenOptions.isDarkMode() ? DARK_PANEL_INSET : Surface.PANEL_INSET)
-                    .draw(context, component);
-        };
+        return PANEL_INSET;
     }
 
     public static Surface getPanelWithInset(int insetWidth) {
         return (context, component) -> {
-            var location = (Accessories.config().screenOptions.isDarkMode()
-                    ? DARK_PANEL_INSET_NINE_PATCH_TEXTURE
-                    : OwoUIDrawContext.PANEL_INSET_NINE_PATCH_TEXTURE);
+            var location = Accessories.of(("theme/" + checkMode("light", "dark") + "/inset"));
 
             NinePatchTexture.draw(location, context, component.x() + insetWidth, component.y() + insetWidth, component.width() - insetWidth * 2, component.height() - insetWidth * 2);
         };
     }
 
     public static ButtonComponent.Renderer getButtonRenderer() {
-        return (context, button, delta) -> {
-            (Accessories.config().screenOptions.isDarkMode() ? DARK_BUTTON_RENDERER : ButtonComponent.Renderer.VANILLA)
-                    .draw(context, button, delta);
-        };
+        return BUTTON_RENDERER;
     }
 
     public static ScrollContainer.Scrollbar getScrollbarRenderer() {
-        return (context, x, y, width, height, trackX, trackY, trackWidth, trackHeight, lastInteractTime, direction, active) -> {
-            (Accessories.config().screenOptions.isDarkMode() ? DARK_VANILLA : ScrollContainer.Scrollbar.vanilla())
-                    .draw(context, x, y, width, height, trackX, trackY, trackWidth, trackHeight, lastInteractTime, direction, active);
-        };
+        return VANILLA;
     }
 
     public static <C extends io.wispforest.owo.ui.core.Component> void recursiveSearch(ParentComponent parentComponent, Class<C> target, Consumer<C> action) {
@@ -249,13 +234,7 @@ public class ComponentUtils {
             RenderSystem.enableDepthTest();
             var state = stateSupplier.get();
 
-            ResourceLocation texture;
-
-            if(btn.isHovered()) {
-                texture = (state) ? ENABLED_HOVERED_TEXTURE : DISABLED_HOVERED_TEXTURE;
-            } else {
-                texture = (state) ? ENABLED_TEXTURE : DISABLED_TEXTURE;
-            }
+            ResourceLocation texture = getToggleBtnTexture(btn, state);
 
             context.push();
 
@@ -277,6 +256,13 @@ public class ComponentUtils {
                 .renderer(texturedRenderer);
     }
 
+    private static ResourceLocation getToggleBtnTexture(ButtonComponent btn, Boolean state) {
+        var btnType = (state ? "enabled" : "disabled") + (btn.isHovered() ? "_hovered" : "");
+        var themeType = checkMode("light", "dark");
+
+        return Accessories.of("theme/" + themeType + "/button/toggle/rounded/" + btnType);
+    }
+
     public static <C extends BaseOwoHandledScreen.SlotComponent> io.wispforest.owo.ui.core.Component createCraftingComponent(int start, int end, Function<Integer, C> componentFactory, Consumer<Integer> slotEnabler, boolean isVertical) {
         var craftingLayout = isVertical ? Containers.verticalFlow(Sizing.fixed(18 * 2), Sizing.content()) : Containers.horizontalFlow(Sizing.content(), Sizing.fixed(18 * 2));
 
@@ -287,7 +273,7 @@ public class ComponentUtils {
         slotEnabler.accept(4);
 
         craftingLayout.configure((FlowLayout layout) -> {
-            layout.surface(BACKGROUND_SLOT_RENDERING_SURFACE)
+            layout/*.surface(BACKGROUND_SLOT_RENDERING_SURFACE)*/
                     .allowOverflow(true);
         });
 
@@ -330,7 +316,7 @@ public class ComponentUtils {
 
         var rowLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content())
                 .configure((FlowLayout layout) -> {
-                    layout.surface(BACKGROUND_SLOT_RENDERING_SURFACE)
+                    layout/*.surface(BACKGROUND_SLOT_RENDERING_SURFACE)*/
                             .allowOverflow(true);
                 });
 
@@ -348,7 +334,7 @@ public class ComponentUtils {
 
                 rowLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content())
                         .configure((FlowLayout layout) -> {
-                            layout.surface(BACKGROUND_SLOT_RENDERING_SURFACE)
+                            layout/*.surface(BACKGROUND_SLOT_RENDERING_SURFACE)*/
                                     .allowOverflow(true);
                         });
 

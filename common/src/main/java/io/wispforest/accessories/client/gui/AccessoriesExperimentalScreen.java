@@ -41,6 +41,7 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.metadata.gui.GuiSpriteScaling;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -479,8 +480,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                                         .child(
                                                                 Containers.verticalFlow(Sizing.content(), Sizing.content())
                                                                         .child(this.slotAsComponent(offHandIndex).margins(Insets.of(1)))
-                                                                        .surface(BACKGROUND_SLOT_RENDERING_SURFACE)
-                                                        ).surface(ComponentUtils.getPanelSurface())
+                                                        )
                                                         .zIndex(10)
                                         )
                         )
@@ -495,7 +495,25 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                         .id("crafting_grid_layout")
                         )
                         .padding(Insets.of(6))
-                        .surface(ComponentUtils.getPanelSurface())
+                        .surface((ctx, component) -> {
+                            var showCraftingGrid = !this.sideBarCraftingSpot() && this.showCraftingGrid();
+
+                            var width = showCraftingGrid ? 234 : 195;
+
+                            ctx.blit(
+                                    Accessories.of("textures/gui/theme/" + ComponentUtils.checkMode("light", "dark") + "/player_inv/" + (showCraftingGrid ? "with" : "without") + "_crafting.png"),
+                                    component.x(),
+                                    component.y(),
+                                    component.width(),
+                                    component.height(),
+                                    0,
+                                    0,
+                                    width,
+                                    88,
+                                    width,
+                                    88
+                            );
+                        })
                         .id("bottom_inventory_section")
         );
 
@@ -509,19 +527,13 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         {
             var armorSlotsLayout = Containers.verticalFlow(Sizing.content(), Sizing.content())
-                    .configure((FlowLayout layout) -> {
-                        layout.surface(BACKGROUND_SLOT_RENDERING_SURFACE)
-                                .allowOverflow(true);
-                    });
+                    .configure((FlowLayout layout) -> layout.allowOverflow(true));
 
             var outerLeftArmorLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content())
                     .child(armorSlotsLayout);
 
             var cosmeticArmorSlotsLayout = Containers.verticalFlow(Sizing.content(), Sizing.content())
-                            .configure((FlowLayout layout) -> {
-                                layout.surface(BACKGROUND_SLOT_RENDERING_SURFACE)
-                                        .allowOverflow(true);
-                            });
+                            .configure((FlowLayout layout) -> layout.allowOverflow(true));
 
             var outerRightArmorLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content())
                     .child(cosmeticArmorSlotsLayout);
@@ -569,12 +581,10 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                                     .lookAtCursor(Accessories.config().screenOptions.entityLooksAtMouseCursor())
                                                     .id("entity_rendering_component")
                                     )
-                                    .surface(Surface.flat(Color.BLACK.argb()))
                     )
                     .child(
                             outerLeftArmorLayout
                                     .configure((FlowLayout component) -> component.mouseScroll().subscribe((mouseX, mouseY, amount) -> true))
-                                    .surface(ComponentUtils.getPanelSurface())
                                     .padding(Insets.of(6))
                                     .margins(Insets.left(-6))
                                     .positioning(Positioning.relative(0, 40))
@@ -583,7 +593,6 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                     .child(
                             outerRightArmorLayout
                                     .configure((FlowLayout component) -> component.mouseScroll().subscribe((mouseX, mouseY, amount) -> true))
-                                    .surface(ComponentUtils.getPanelSurface())
                                     .padding(Insets.of(6))
                                     .margins(Insets.right(-6))
                                     .positioning(Positioning.relative(100, 40))
@@ -601,7 +610,14 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                                 ? Accessories.of("widget/back_dark")
                                                 : Accessories.of("widget/back");
 
-                                        context.blitSprite(BACK_ICON, btn.x() + 1, btn.y() + 1, 8, 8);
+                                        var sprites = minecraft.getGuiSprites();
+
+                                        TextureAtlasSprite textureAtlasSprite = sprites.getSprite(BACK_ICON);
+
+                                        var width = Math.max(textureAtlasSprite.contents().width(), 8);
+                                        var height = Math.max(textureAtlasSprite.contents().height(), 8);
+
+                                        context.blitSprite(BACK_ICON, btn.x() + 1, btn.y() + 1, width, height);
 
                                         context.pop();
                                     })
@@ -611,7 +627,23 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                     .sizing(Sizing.fixed(10))
                     )
                     .padding(Insets.of(6))
-                    .surface(ComponentUtils.getPanelSurface());
+                    .surface((ctx, component) -> {
+                        var surfaceType = this.getMenu().addedArmorSlots() > 4 ? "full_armor" : "single_armor" + (this.getMenu().includeSaddle() ? "_saddle" : "");
+
+                        ctx.blit(
+                                Accessories.of("textures/gui/theme/" + ComponentUtils.checkMode("light", "dark") + "/entity_view/" + surfaceType + ".png"),
+                                component.x(),
+                                component.y(),
+                                component.width(),
+                                component.height(),
+                                0,
+                                0,
+                                120,
+                                138,
+                                120,
+                                138
+                                );
+                    });
 
             if(this.getMenu().includeSaddle()) {
                 var saddleIndex = this.getMenu().startingAccessoriesSlot() - 1;
@@ -626,8 +658,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                                         this.slotAsComponent(saddleIndex)
                                                                 .margins(Insets.of(1))
                                                 )
-                                                .surface(BACKGROUND_SLOT_RENDERING_SURFACE)
-                                ).surface(ComponentUtils.getPanelSurface())
+                                )
                                 .padding(Insets.of(6))
                                 .positioning(Positioning.relative(0, 100))
                                 .margins(Insets.of(0, -6, -6, 0))
@@ -779,21 +810,11 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 }).renderer((context, button, delta) -> {
                     ComponentUtils.getButtonRenderer().draw(context, button, delta);
 
-                    var textureAtlasSprite = this.minecraft.getTextureAtlas(InventoryMenu.BLOCK_ATLAS)
-                            .apply(!showCosmeticState() ? Accessories.of("gui/slot/cosmetic") : Accessories.of("gui/slot/charm"));
+                    var texture = !showCosmeticState()
+                            ? Accessories.of("textures/gui/theme/cosmetic_rainbow_icon.png")
+                            : Accessories.of("textures/gui/theme/" + (Accessories.config().screenOptions.isDarkMode() ? "dark" : "light") + "/charm_icon.png");
 
-                    var color = (!showCosmeticState() ? Color.WHITE.interpolate(Color.BLACK, 0.3f) : Color.BLACK);
-
-                    var red = color.red();
-                    var green = color.green();
-                    var blue = color.blue();
-
-                    if(!showCosmeticState()) {
-                        GuiGraphicsUtils.drawWithSpectrum(context, button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, 1f);
-                        context.blit(button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, red, green, blue, 0.4f);
-                    } else {
-                        context.blit(button.x() + 2, button.y() + 2, 0, 16, 16, textureAtlasSprite, red, green, blue, 0.9f);
-                    }
+                    context.blit(texture, button.x() + 2, button.y() + 2, 16, 16, 0, 0, 32, 32, 32, 32);
                 }).sizing(Sizing.fixed(20))
                 .tooltip(createToggleTooltip("slot_cosmetics", false, showCosmeticState()));
 
@@ -801,7 +822,26 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 .child(cosmeticToggleButton.margins(Insets.of(2, 2, 2, 2)))
                 .gap(1)
                 .padding(Insets.of(6))
-                .surface(ComponentUtils.getPanelSurface().and(ComponentUtils.getPanelWithInset(6)))
+                .surface((ctx, component) -> {
+                    if(component.children().size() > 1) {
+                        ComponentUtils.getPanelSurface().and(ComponentUtils.getPanelWithInset(6))
+                                .draw(ctx, component);
+                    } else {
+                        ctx.blit(
+                                Accessories.of("textures/gui/theme/" + ComponentUtils.checkMode("light", "dark") + "/toggle_background.png"),
+                                component.x(),
+                                component.y(),
+                                component.width(),
+                                component.height(),
+                                0,
+                                0,
+                                36,
+                                36,
+                                36,
+                                36
+                        );
+                    }
+                })
                 .horizontalAlignment(HorizontalAlignment.CENTER)
                 .id("accessories_toggle_panel");
 
@@ -986,7 +1026,23 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                     .child(
                             Containers.verticalFlow(Sizing.content(), Sizing.content())
                                     .child(component)
-                                    .surface(ComponentUtils.getPanelSurface())
+                                    .surface(
+                                            (ctx, component1) -> {
+                                                ctx.blit(
+                                                        Accessories.of("textures/gui/theme/" + ComponentUtils.checkMode("light", "dark") + "/crafting_grid.png"),
+                                                        component1.x(),
+                                                        component1.y(),
+                                                        component1.width(),
+                                                        component1.height(),
+                                                        0,
+                                                        0,
+                                                        44,
+                                                        88,
+                                                        44,
+                                                        88
+                                                );
+                                            }
+                                    )
                                     .padding(Insets.of(6))
                     );
         }

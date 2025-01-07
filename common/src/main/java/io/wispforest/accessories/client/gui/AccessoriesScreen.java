@@ -44,7 +44,7 @@ import java.util.*;
 
 public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> implements ContainerScreenExtension, AccessoriesScreenBase {
 
-    private static final ResourceLocation SLOT = Accessories.of("textures/gui/slot.png");
+    private static final ResourceLocation SLOT = Accessories.of("textures/gui/theme/light/slot.png");
 
     private static final ResourceLocation ACCESSORIES_INVENTORY_LOCATION = Accessories.of("textures/gui/container/accessories_inventory.png");
 
