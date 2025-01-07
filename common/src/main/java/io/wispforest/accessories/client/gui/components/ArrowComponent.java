@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 
 public class ArrowComponent extends BaseComponent {
-    protected final ResourceLocation texture = Accessories.of("textures/gui/all_arrow_directions.png");
+    protected final ResourceLocation texture = Accessories.of("textures/gui/theme/all_arrow_directions.png");
 
     protected final int textureWidth = 32;
     protected final int textureHeight = 32;
