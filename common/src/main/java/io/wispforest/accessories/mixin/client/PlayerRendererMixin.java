@@ -30,9 +30,6 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
         super(context, model, shadowRadius);
     }
 
-    @Unique
-    private static HumanoidArm currentArm = null;
-
 //    @WrapWithCondition(method = "renderHand", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/model/geom/ModelPart;render(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;II)V"))
 //    private boolean accessories$fixOverridenInvisibility(ModelPart instance, PoseStack poseStack, VertexConsumer vertexConsumer, int packedLight, int packedOverlay) {
 //        var returned = AccessoriesClient.IS_PLAYER_INVISIBLE;
@@ -49,57 +46,46 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
 
         var state = this.createRenderState(player, partialTicks);
 
-        if (currentArm != null) {
-            var capability = AccessoriesCapability.get(player);
+        var currentArm = rendererArm == this.model.leftArm ? HumanoidArm.LEFT : HumanoidArm.RIGHT;
 
-            if (capability == null) return;
+        var capability = AccessoriesCapability.get(player);
 
-            for (var entry : capability.getContainers().entrySet()) {
-                var container = entry.getValue();
+        if (capability == null) return;
 
-                var accessories = container.getAccessories();
-                var cosmetics = container.getCosmeticAccessories();
+        for (var entry : capability.getContainers().entrySet()) {
+            var container = entry.getValue();
 
-                for (int i = 0; i < accessories.getContainerSize(); i++) {
-                    var stack = accessories.getItem(i);
-                    var cosmeticStack = cosmetics.getItem(i);
+            var accessories = container.getAccessories();
+            var cosmetics = container.getCosmeticAccessories();
 
-                    if (!cosmeticStack.isEmpty() && Accessories.config().clientOptions.showCosmeticAccessories()) stack = cosmeticStack;
+            for (int i = 0; i < accessories.getContainerSize(); i++) {
+                var stack = accessories.getItem(i);
+                var cosmeticStack = cosmetics.getItem(i);
 
-                    if (stack.isEmpty()) continue;
+                if (!cosmeticStack.isEmpty() && Accessories.config().clientOptions.showCosmeticAccessories()) stack = cosmeticStack;
 
-                    var renderer = AccessoriesRendererRegistry.getRender(stack);
+                if (stack.isEmpty()) continue;
 
-                    if(renderer == null || !renderer.shouldRender(container.shouldRender(i))) continue;
+                var renderer = AccessoriesRendererRegistry.getRender(stack);
 
-                    poseStack.pushPose();
+                if(renderer == null || !renderer.shouldRender(container.shouldRender(i))) continue;
 
-                    renderer.renderOnFirstPerson(
-                        currentArm,
-                        stack,
-                        SlotReference.of(player, container.getSlotName(), i),
-                        poseStack,
-                        playerModel,
-                        state,
-                        buffer,
-                        combinedLight,
-                        partialTicks
-                    );
+                poseStack.pushPose();
 
-                    poseStack.popPose();
-                }
+                renderer.renderOnFirstPerson(
+                    currentArm,
+                    stack,
+                    SlotReference.of(player, container.getSlotName(), i),
+                    poseStack,
+                    playerModel,
+                    state,
+                    buffer,
+                    combinedLight,
+                    partialTicks
+                );
+
+                poseStack.popPose();
             }
         }
-        currentArm = null;
-    }
-
-    @Inject(method = "renderRightHand", at = @At("HEAD"))
-    private void accessories$firstPersonRightAccessories(PoseStack poseStack, MultiBufferSource buffer, int combinedLight, ResourceLocation resourceLocation, boolean bl, CallbackInfo ci) {
-        currentArm = HumanoidArm.RIGHT;
-    }
-
-    @Inject(method = "renderLeftHand", at = @At("HEAD"))
-    private void accessories$firstPersonLeftAccessories(PoseStack poseStack, MultiBufferSource buffer, int combinedLight, ResourceLocation resourceLocation, boolean bl, CallbackInfo ci) {
-        currentArm = HumanoidArm.LEFT;
     }
 }
