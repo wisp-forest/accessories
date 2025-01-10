@@ -282,6 +282,9 @@ public class AccessoriesClient {
 
     public static void initLayer() {
         Layers.add(Containers::verticalFlow, instance -> {
+            // THIS IS HERE TO HAVE UPDATE POSITION EVERY FRAME BEFORE RENDER TO STOP STUPID POSITIONING PROBLEMS!!!
+            instance.aggressivePositioning = true;
+            
             var creativeScreen = instance.screen instanceof CreativeModeInventoryScreen;
 
             instance.adapter.rootComponent.allowOverflow(true);
