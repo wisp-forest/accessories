@@ -12,6 +12,7 @@ import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.utils.AttributeUtils;
+import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -33,6 +34,7 @@ import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Nullable;
 import top.theillusivec4.curios.CuriosConstants;
 import top.theillusivec4.curios.api.CuriosApi;
@@ -80,10 +82,18 @@ public class CCLayer {
 
         DeathWrapperEventsImpl.init();
 
+        MutableBoolean canEquipLock = new MutableBoolean(false);
+
         CanEquipCallback.EVENT.register((stack, reference) -> {
+            if (canEquipLock.getValue()) return TriState.DEFAULT;
+
+            canEquipLock.setValue(true);
+
             var event = new CurioEquipEvent(stack, CuriosWrappingUtils.create(reference));
 
             MinecraftForge.EVENT_BUS.post(event);
+
+            canEquipLock.setValue(false);
 
             return CuriosWrappingUtils.convert(event.getEquipResult());
         });
