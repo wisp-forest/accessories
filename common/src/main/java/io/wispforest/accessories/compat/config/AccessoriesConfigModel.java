@@ -15,7 +15,7 @@ public class AccessoriesConfigModel {
 
     @RestartRequired
     @Sync(Option.SyncMode.OVERRIDE_CLIENT)
-    public boolean useExperimentalCaching = true;
+    public boolean useExperimentalCaching = false;
 
     @Nest
     @Expanded

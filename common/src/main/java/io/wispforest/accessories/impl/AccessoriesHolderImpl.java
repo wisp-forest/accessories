@@ -118,7 +118,12 @@ public class AccessoriesHolderImpl implements InstanceEndec {
 
     @Nullable
     public AccessoriesHolderLookupCache getLookupCache() {
-        return Accessories.config().useExperimentalCaching() ? this.lookupCache : null;
+        // TODO: FIX ISSUES WITH LOOK UP CACHE LEADING TO IT EITHER:
+        /*
+            - Not updating on death with YIGD
+            - Not updating with old save leading to issues where Accessorie changes not being picked up
+         */
+        return /*Accessories.config().useExperimentalCaching() ? this.lookupCache :*/ null;
     }
 
     //--
