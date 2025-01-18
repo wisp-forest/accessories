@@ -696,7 +696,7 @@ public class AccessoriesEventHandler {
 
         var droppedStacks = new ArrayList<ItemStack>();
 
-        var gamerules = entity.level().getGameRules();
+        var gamerules = ((ServerLevel) entity.level()).getGameRules();
 
         var keepInv = gamerules.getRule(GameRules.RULE_KEEPINVENTORY).get() || gamerules.getRule(Accessories.RULE_KEEP_ACCESSORY_INVENTORY).get();
 
