@@ -660,6 +660,10 @@ public class AccessoriesEventHandler {
 
         var droppedStacks = new ArrayList<ItemStack>();
 
+        var gamerules = entity.level().getGameRules();
+
+        var keepInv = gamerules.getRule(GameRules.RULE_KEEPINVENTORY).get() || gamerules.getRule(Accessories.RULE_KEEP_ACCESSORY_INVENTORY).get();
+
         for (var containerEntry : ((AccessoriesHolderImpl) capability.getHolder()).getAllSlotContainers().entrySet()) {
             var slotType = containerEntry.getValue().slotType();
 
@@ -673,10 +677,10 @@ public class AccessoriesEventHandler {
             for (int i = 0; i < container.getSize(); i++) {
                 var reference = SlotReference.of(entity, container.getSlotName(), i);
 
-                var stack = dropStack(slotDropRule, entity, stacks, reference, source);
+                var stack = dropStack(slotDropRule, entity, stacks, reference, source, keepInv);
                 if (stack != null) droppedStacks.add(stack);
 
-                var cosmeticStack = dropStack(slotDropRule, entity, cosmeticStacks, reference, source);
+                var cosmeticStack = dropStack(slotDropRule, entity, cosmeticStacks, reference, source, keepInv);
                 if (cosmeticStack != null) droppedStacks.add(cosmeticStack);
             }
         }
@@ -689,7 +693,7 @@ public class AccessoriesEventHandler {
     }
 
     @Nullable
-    private static ItemStack dropStack(DropRule dropRule, LivingEntity entity, Container container, SlotReference reference, DamageSource source) {
+    private static ItemStack dropStack(DropRule dropRule, LivingEntity entity, ExpandedSimpleContainer container, SlotReference reference, DamageSource source, boolean keepInvEnabled) {
         var stack = container.getItem(reference.slot());
         var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
@@ -730,7 +734,7 @@ public class AccessoriesEventHandler {
         } else if (result == DropRule.KEEP) {
             dropStack = false;
         } else if (result == DropRule.DEFAULT) {
-            if (entity.level().getGameRules().getRule(GameRules.RULE_KEEPINVENTORY).get()) {
+            if (keepInvEnabled) {
                 dropStack = false;
             } else if (EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
                 container.setItem(reference.slot(), ItemStack.EMPTY);
