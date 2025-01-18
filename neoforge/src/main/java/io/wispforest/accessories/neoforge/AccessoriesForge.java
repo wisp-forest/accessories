@@ -23,6 +23,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
@@ -96,7 +97,11 @@ public class AccessoriesForge {
 
         AccessoriesForgeNetworkHandler.INSTANCE.initializeNetworking();
 
-        eventBus.addListener((FMLCommonSetupEvent event) -> Accessories.registerCriteria());
+        eventBus.addListener((FMLCommonSetupEvent event) -> {
+            Accessories.registerCriteria();
+
+            Accessories.RULE_KEEP_ACCESSORY_INVENTORY = GameRules.register("accessories.keepAccessoryInventory", GameRules.Category.PLAYER, GameRules.BooleanValue.create(false));
+        });
     }
 
     //--

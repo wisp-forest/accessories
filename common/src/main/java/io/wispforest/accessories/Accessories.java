@@ -18,12 +18,17 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameRules;
 import net.minecraft.world.phys.EntityHitResult;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
 public class Accessories {
+
+    @ApiStatus.Internal
+    public static GameRules.Key<GameRules.BooleanValue> RULE_KEEP_ACCESSORY_INVENTORY = null;
 
     public static final String MODID = "accessories";
 
