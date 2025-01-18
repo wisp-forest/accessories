@@ -29,14 +29,19 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
+import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
+import net.fabricmc.fabric.mixin.gamerule.GameRulesAccessor;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.GameRules;
 
 public class AccessoriesFabric implements ModInitializer {
 
@@ -151,5 +156,7 @@ public class AccessoriesFabric implements ModInitializer {
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
             AccessoriesNetworking.CHANNEL.serverHandle(player).send(new InvalidateEntityCache(player.getId()));
         });
+
+        Accessories.RULE_KEEP_ACCESSORY_INVENTORY = GameRuleRegistry.register("accessories.keepAccessoryInventory", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(false));
     }
 }
