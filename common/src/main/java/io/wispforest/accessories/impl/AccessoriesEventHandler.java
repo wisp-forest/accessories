@@ -256,7 +256,10 @@ public class AccessoriesEventHandler {
 
                     var lastStack = accessories.getPreviousItem(i);
 
-                    if (entity.level().isClientSide()) continue;
+                    // Prevent attribute related logic on the client and if the entity
+                    // is dead as such data should not be updated. Though we allow for
+                    // ticking to occur at least for vanilla parity I guess.
+                    if (entity.level().isClientSide() || entity.isDeadOrDying()) continue;
 
                     if (!ItemStack.matches(currentStack, lastStack)) {
                         container.getAccessories().setPreviousItem(i, currentStack.copy());
@@ -771,6 +774,8 @@ public class AccessoriesEventHandler {
                 // TODO: Do we call break here for the accessory?
             }
         }
+
+        container.setPreviousItem(reference.slot(), ItemStack.EMPTY);
 
         if (!dropStack) return null;
 
