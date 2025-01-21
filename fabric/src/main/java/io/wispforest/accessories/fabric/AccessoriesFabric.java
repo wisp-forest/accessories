@@ -155,6 +155,8 @@ public class AccessoriesFabric implements ModInitializer {
 
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
             AccessoriesNetworking.CHANNEL.serverHandle(player).send(new InvalidateEntityCache(player.getId()));
+
+            AccessoriesEventHandler.onTracking(player, player);
         });
 
         Accessories.RULE_KEEP_ACCESSORY_INVENTORY = GameRuleRegistry.register("accessories.keepAccessoryInventory", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(false));
