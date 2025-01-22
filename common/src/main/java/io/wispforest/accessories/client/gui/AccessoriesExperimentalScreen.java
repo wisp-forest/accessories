@@ -628,7 +628,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                     )
                     .padding(Insets.of(6))
                     .surface((ctx, component) -> {
-                        var surfaceType = this.getMenu().addedArmorSlots() > 4 ? "full_armor" : "single_armor" + (this.getMenu().includeSaddle() ? "_saddle" : "");
+                        var surfaceType = this.getMenu().addedArmorSlots() > 4 ? "full_armor" : "single_armor" + (this.getMenu().includeSaddle() ? "_saddled" : "");
 
                         ctx.blit(
                                 Accessories.of("textures/gui/theme/" + ComponentUtils.checkMode("light", "dark") + "/entity_view/" + surfaceType + ".png"),
