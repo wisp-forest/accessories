@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "entities": [
+    "#accessories:cosmetic_animal_armor_targets"
+  ],
+  "slots": [
+    "accessories:animal_body"
+  ]
+}

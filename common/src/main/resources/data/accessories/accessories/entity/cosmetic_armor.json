@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "entities": [
+    "#accessories:cosmetic_armor_targets"
+  ],
+  "slots": [
+    "accessories:head",
+    "accessories:chest",
+    "accessories:legs",
+    "accessories:feet"
+  ]
+}

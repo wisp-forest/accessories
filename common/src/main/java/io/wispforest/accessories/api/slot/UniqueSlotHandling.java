@@ -6,6 +6,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
+import io.wispforest.accessories.impl.slot.StrictMode;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.resources.ResourceLocation;
@@ -76,7 +77,14 @@ public class UniqueSlotHandling {
         /**
          * Controls whether modification of this slot via a data pack is disallowed.
          */
-        UniqueSlotBuilder strictMode(boolean value);
+        default UniqueSlotBuilder strictMode(boolean value) {
+            return strictMode(value ? StrictMode.FULL : StrictMode.NONE);
+        }
+
+        /**
+         * Controls whether modification of this slot via a data pack is disallowed.
+         */
+        UniqueSlotBuilder strictMode(StrictMode mode);
 
         /**
          * Controls whether this slot can be resized later (e.g. with a data pack or attribute)
@@ -116,7 +124,7 @@ public class UniqueSlotHandling {
         UniqueSlotBuilderFactory eventRegistration = (location, amount) -> new UniqueSlotBuilder() {
             @Override public UniqueSlotBuilder slotPredicates(ResourceLocation... locations) { return this; }
             @Override public UniqueSlotBuilder validTypes(EntityType<?>... types) { return this; }
-            @Override public UniqueSlotBuilder strictMode(boolean value) { return this; }
+            @Override public UniqueSlotBuilder strictMode(StrictMode value) { return this; }
             @Override public UniqueSlotBuilder allowResizing(boolean value) { return this; }
             @Override public UniqueSlotBuilder allowEquipFromUse(boolean value) { return this; }
             @Override public UniqueSlotBuilder allowTooltipInfo(boolean value) { return this; }
@@ -144,7 +152,7 @@ public class UniqueSlotHandling {
         private Set<ResourceLocation> slotPredicates = Set.of(Accessories.of("tag"));
         private Set<EntityType<?>> validTypes = Set.of();
 
-        private boolean strictMode = true;
+        private StrictMode mode = StrictMode.FULL;
         private boolean allowResizing = false;
         private boolean allowEquipFromUse = true;
         private boolean allowTooltipInfo = true;
@@ -172,9 +180,8 @@ public class UniqueSlotHandling {
             return this;
         }
 
-        @Override
-        public ServerUniqueSlotBuilder strictMode(boolean value) {
-            this.strictMode = value;
+        public ServerUniqueSlotBuilder strictMode(StrictMode mode) {
+            this.mode = mode;
 
             return this;
         }
@@ -209,7 +216,7 @@ public class UniqueSlotHandling {
             SLOT_TO_ENTITIES.put(slotTypeRef.slotName(), Set.copyOf(this.validTypes));
 
             ExtraSlotTypeProperties.getProperties(false)
-                    .put(slotTypeRef.slotName(), new ExtraSlotTypeProperties(this.allowResizing, this.strictMode, this.allowEquipFromUse, this.allowTooltipInfo));
+                    .put(slotTypeRef.slotName(), new ExtraSlotTypeProperties(this.allowResizing, this.mode, this.allowEquipFromUse, this.allowTooltipInfo));
 
             return slotTypeRef;
         }

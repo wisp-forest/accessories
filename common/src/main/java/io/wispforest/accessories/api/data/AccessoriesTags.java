@@ -58,6 +58,10 @@ public class AccessoriesTags {
 
     public static final TagKey<EntityType<?>> GAZE_DISGUISED_BLACKLIST = entityTag("gaze_disguised_blacklist");
 
+    public static final TagKey<EntityType<?>> COSMETIC_ARMOR_TARGETS = entityTag("cosmetic_armor_targets");
+
+    public static final TagKey<EntityType<?>> COSMETIC_ANIMAL_ARMOR_TARGETS = entityTag("cosmetic_animal_armor_targets");
+
     /**
      * Tag used to disallow the given {@link Enchantment}'s within the tag to be
      * redirected to an Accessory {@link ItemStack} when iterated

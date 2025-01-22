@@ -6,6 +6,7 @@ import io.wispforest.accessories.api.slot.EntityBasedPredicate;
 import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.impl.slot.StrictMode;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
@@ -135,50 +136,45 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
         headSlotReference = factory.create(Accessories.of("head"), 1)
                 .allowTooltipInfo(false)
                 .slotPredicates(HEAD_PREDICATE_LOCATION)
-                .strictMode(true)
+                .strictMode(StrictMode.PARTIAL)
                 .allowResizing(false)
                 .allowEquipFromUse(false)
-                .validTypes(EntityType.PLAYER, EntityType.ARMOR_STAND)
                 .build();
 
         chestSlotReference = factory.create(Accessories.of("chest"), 1)
                 .allowTooltipInfo(false)
                 .slotPredicates(CHEST_PREDICATE_LOCATION)
-                .strictMode(true)
+                .strictMode(StrictMode.PARTIAL)
                 .allowResizing(false)
                 .allowEquipFromUse(false)
-                .validTypes(EntityType.PLAYER, EntityType.ARMOR_STAND)
                 .build();
 
         legsSlotReference = factory.create(Accessories.of("legs"), 1)
                 .allowTooltipInfo(false)
                 .slotPredicates(LEGS_PREDICATE_LOCATION)
-                .strictMode(true)
+                .strictMode(StrictMode.PARTIAL)
                 .allowResizing(false)
                 .allowEquipFromUse(false)
-                .validTypes(EntityType.PLAYER, EntityType.ARMOR_STAND)
                 .build();
 
         feetSlotReference = factory.create(Accessories.of("feet"), 1)
                 .allowTooltipInfo(false)
                 .slotPredicates(FEET_PREDICATE_LOCATION)
-                .strictMode(true)
+                .strictMode(StrictMode.PARTIAL)
                 .allowResizing(false)
                 .allowEquipFromUse(false)
-                .validTypes(EntityType.PLAYER, EntityType.ARMOR_STAND)
                 .build();
 
         animalBodySlotReference = factory.create(Accessories.of("animal_body"), 1)
                 .allowTooltipInfo(false)
                 .slotPredicates(ANIMAL_BODY_PREDICATE_LOCATION)
-                .strictMode(true)
+                .strictMode(StrictMode.PARTIAL)
                 .allowResizing(false)
                 .allowEquipFromUse(false)
-                .validTypes(EntityType.HORSE, EntityType.WOLF)
                 .build();
     }
 
-    private static TriState isValid(LivingEntity livingEntity, ItemStack stack, EquipmentSlot equipmentSlot) {
+    private static TriState isValid(@Nullable LivingEntity livingEntity, ItemStack stack, EquipmentSlot equipmentSlot) {
         EquipmentSlot stackEquipmentSlot = null;
 
         if(livingEntity == null) {

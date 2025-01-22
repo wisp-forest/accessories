@@ -10,6 +10,7 @@ import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
+import io.wispforest.accessories.impl.slot.StrictMode;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -144,7 +145,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
                 var slotType = slotInfo.right();
 
                 if(slotType != null) {
-                    if(!ExtraSlotTypeProperties.getProperty(slotInfo.left(), false).strictMode()) {
+                    if(!ExtraSlotTypeProperties.getProperty(slotInfo.left(), false).strictMode().equals(StrictMode.FULL)) {
                         slots.put(slotType.name(), slotType);
                     } else {
                         LOGGER.warn("Unable to add the given slot to the given group due to it being in strict mode! [Slot: {}]", slotInfo.left());

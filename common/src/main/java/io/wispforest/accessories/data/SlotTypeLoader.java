@@ -16,6 +16,7 @@ import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.compat.config.SlotAmountModifier;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.impl.slot.SlotTypeImpl;
+import io.wispforest.accessories.impl.slot.StrictMode;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -180,7 +181,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
                 }
             }
 
-            if(!ExtraSlotTypeProperties.getProperty(slotBuilder.name, false).strictMode()) {
+            if(ExtraSlotTypeProperties.getProperty(slotBuilder.name, false).strictMode().equals(StrictMode.NONE)) {
                 var validators = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "validators", new JsonArray(), location);
 
                 decodeJsonArray(validators, "validator", location, element -> ResourceLocation.tryParse(element.getAsString()), slotBuilder::validator);

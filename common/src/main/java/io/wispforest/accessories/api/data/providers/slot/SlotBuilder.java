@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
+import io.wispforest.accessories.impl.slot.StrictMode;
 import net.minecraft.resources.ResourceLocation;
 import org.slf4j.Logger;
 
@@ -84,7 +85,7 @@ public class SlotBuilder {
     }
 
     public SlotBuilder validator(ResourceLocation validator) {
-        if (this.uniqueSlot && !ExtraSlotTypeProperties.getProperty(this.name, false).strictMode()) {
+        if (this.uniqueSlot && !ExtraSlotTypeProperties.getProperty(this.name, false).strictMode().equals(StrictMode.NONE)) {
             LOGGER.error("[SlotDataProvider] An attempt to adjust the validators for a given Unique slot even though strict mode is enabled! [Slot: {}]", this.name);
 
             return this;

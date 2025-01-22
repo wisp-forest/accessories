@@ -10,6 +10,7 @@ import io.wispforest.accessories.menu.*;
 import io.wispforest.accessories.menu.networking.ToggledSlots;
 import io.wispforest.accessories.mixin.HorseInventoryMenuAccessor;
 import io.wispforest.owo.client.screens.SlotGenerator;
+import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -108,7 +109,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
         var containers = capability.getContainers();
 
-        var validEquipmentSlots = new ArrayList<EquipmentSlot>();
+        var validEquipmentSlots = new ArrayList<Pair<EquipmentSlot, SlotTypeReference>>();
 
         for (var value : EquipmentSlot.values()) {
             if (!accessoryTarget.canUseSlot(value)) continue;
@@ -117,13 +118,11 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
             if (armorRef == null || containers.get(armorRef.slotName()) == null) continue;
 
-            validEquipmentSlots.add(value);
+            validEquipmentSlots.add(Pair.of(value, armorRef));
         }
 
-        for (var equipmentSlot : validEquipmentSlots.reversed()) {
-            if (addArmorSlot(equipmentSlot, accessoryTarget, ArmorSlotTypes.getReferenceFromSlot(equipmentSlot), containers)) {
-                addedArmorSlots += 2;
-            }
+        for (var pair : validEquipmentSlots.reversed()) {
+            if (addArmorSlot(pair.left(), accessoryTarget, pair.right(), containers)) addedArmorSlots += 2;
         }
 
         //--
