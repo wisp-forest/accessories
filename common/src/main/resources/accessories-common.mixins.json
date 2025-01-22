@@ -16,7 +16,6 @@
     "client.DefaultTooltipPositionerMixin",
     "client.EntityRendererMixin",
     "client.EquipmentLayerRendererAccessor",
-    "client.HorseInventoryMenuAccessor",
     "client.HumanoidArmorLayerAccessor",
     "client.LivingEntityRendererAccessor",
     "client.LivingEntityRenderStateAccessor",
@@ -72,6 +71,7 @@
     "ServerChunkLoadingManagerAccessor",
     "SlotAccessor",
     "StriderMixin",
+    "HorseInventoryMenuAccessor",
     "owo.ConfigWrapperAccessor",
     "owo.NbtDeserializerMixin"
   ],

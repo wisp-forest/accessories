@@ -25,17 +25,22 @@ public record ScreenOpen(int entityId, boolean targetLookEntity, AccessoriesMenu
         return new ScreenOpen(livingEntity != null ? livingEntity.getId() : -1, false, variant);
     }
 
-    public static ScreenOpen of(boolean targetLookEntity, AccessoriesMenuVariant variant){
-        return new ScreenOpen(-1, targetLookEntity, variant);
-    }
-
     public static void handlePacket(ScreenOpen packet, Player player) {
         LivingEntity livingEntity = null;
 
         if(packet.entityId() != -1) {
             var entity = player.level().getEntity(packet.entityId());
 
-            if(entity instanceof LivingEntity living) livingEntity = living;
+            if(entity instanceof LivingEntity living) {
+                livingEntity = living;
+
+                var bl = !player.equals(livingEntity)
+                        && player.getPermissionLevel() == 0
+                        && player.entityInteractionRange() < player.distanceTo(livingEntity);
+
+                // Prevent people without op perms to have the ability to open inv from any distance
+                if(bl) return;
+            }
         } else if(packet.targetLookEntity()) {
             Accessories.attemptOpenScreenPlayer((ServerPlayer) player, packet.variant());
 

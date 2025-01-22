@@ -2,11 +2,11 @@ package io.wispforest.accessories.client.gui;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.client.screen.AccessoriesScreenTransitionHelper;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.AccessoriesClient;
-import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.client.gui.components.*;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -28,23 +28,19 @@ import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.component.DiscreteSliderComponent;
 import io.wispforest.owo.ui.container.*;
 import io.wispforest.owo.ui.core.*;
-import io.wispforest.owo.ui.util.ScissorStack;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.metadata.gui.GuiSpriteScaling;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.ArmorSlot;
-import net.minecraft.world.inventory.ResultSlot;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.TransientCraftingContainer;
+import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,9 +61,14 @@ import static io.wispforest.accessories.client.gui.components.ComponentUtils.COL
 public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayout, AccessoriesExperimentalMenu> implements AccessoriesScreenBase, ContainerScreenExtension {
 
     private static final Logger LOGGER = LogUtils.getLogger();
+    private final @Nullable AbstractContainerScreen<AbstractContainerMenu> prevScreen;
 
     public AccessoriesExperimentalScreen(AccessoriesExperimentalMenu handler, Inventory inventory, Component title) {
         super(handler, inventory, title);
+
+        this.prevScreen = (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> prevScreen)
+                ? (AbstractContainerScreen<AbstractContainerMenu>) prevScreen
+                : null;
 
         this.inventoryLabelX = 42069;
     }
@@ -569,7 +570,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                     )
                     .child(
                             Components.button(Component.literal(""), (btn) -> {
-                                this.minecraft.setScreen(new InventoryScreen(minecraft.player));
+                                        AccessoriesScreenTransitionHelper.openPrevScreen(Minecraft.getInstance().player, this.menu.targetEntityDefaulted(), prevScreen);
                             }).renderer((context, btn, delta) -> {
                                         ComponentUtils.getButtonRenderer().draw(context, btn, delta);
 

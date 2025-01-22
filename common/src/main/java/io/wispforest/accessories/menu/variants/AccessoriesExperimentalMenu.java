@@ -8,7 +8,7 @@ import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
 import io.wispforest.accessories.menu.*;
 import io.wispforest.accessories.menu.networking.ToggledSlots;
-import io.wispforest.accessories.mixin.client.HorseInventoryMenuAccessor;
+import io.wispforest.accessories.mixin.HorseInventoryMenuAccessor;
 import io.wispforest.owo.client.screens.SlotGenerator;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -85,7 +85,9 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         if(saddleInv != null) {
             this.includeSaddle = true;
 
-            ResourceLocation iconPath = targetEntity instanceof Llama ? HorseInventoryMenuAccessor.accessories$LLAMA_ARMOR_SLOT_SPRITE() : HorseInventoryMenuAccessor.accessories$SADDLE_SLOT_SPRITE();
+            var iconPath = (targetEntity instanceof Llama)
+                    ? HorseInventoryMenuAccessor.accessories$LLAMA_ARMOR_SLOT_SPRITE()
+                    : HorseInventoryMenuAccessor.accessories$SADDLE_SLOT_SPRITE();
 
             this.addSlot(
                     new Slot(saddleInv, 0, -300, -300){

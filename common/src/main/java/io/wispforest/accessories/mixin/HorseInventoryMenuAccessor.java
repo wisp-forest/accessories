@@ -1,6 +1,7 @@
-package io.wispforest.accessories.mixin.client;
+package io.wispforest.accessories.mixin;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
 import net.minecraft.world.inventory.HorseInventoryMenu;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
@@ -17,4 +18,7 @@ public interface HorseInventoryMenuAccessor {
     static ResourceLocation accessories$LLAMA_ARMOR_SLOT_SPRITE() {
         throw new AssertionError();
     }
+
+    @Accessor("horse")
+    AbstractHorse accessories$horse();
 }

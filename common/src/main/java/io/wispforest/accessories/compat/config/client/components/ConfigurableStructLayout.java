@@ -2,11 +2,9 @@ package io.wispforest.accessories.compat.config.client.components;
 
 import io.wispforest.owo.config.Option;
 import io.wispforest.owo.config.annotation.RangeConstraint;
+import io.wispforest.owo.config.ui.OptionComponentFactory;
 import io.wispforest.owo.config.ui.OptionComponents;
-import io.wispforest.owo.config.ui.component.ConfigEnumButton;
-import io.wispforest.owo.config.ui.component.ConfigSlider;
-import io.wispforest.owo.config.ui.component.ConfigTextBox;
-import io.wispforest.owo.config.ui.component.SearchAnchorComponent;
+import io.wispforest.owo.config.ui.component.*;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.LabelComponent;
 import io.wispforest.owo.ui.container.FlowLayout;
@@ -20,7 +18,6 @@ import io.wispforest.owo.util.Observable;
 import net.minecraft.resources.ResourceLocation;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableObject;
-import org.intellij.lang.annotations.Identifier;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -29,6 +26,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class ConfigurableStructLayout<T> extends FlowLayout {
 
@@ -79,6 +77,8 @@ public class ConfigurableStructLayout<T> extends FlowLayout {
                 this.identifierField(field, ReflectOps.get(field, value));
             } else if (fieldClazz.isEnum()) {
                 this.createEnumButton(field, ReflectOps.get(field, value));
+            } else if (fieldClazz == boolean.class || fieldClazz == Boolean.class) {
+                this.createBooleanButton(field, ReflectOps.get(field, value));
             } else {
                 throw new IllegalArgumentException("Unable to handle the given field type found within the struct class! [ParentClass: " + clazz.getSimpleName() + ", FieldName: " + field.getName() + "]");
             }
@@ -116,7 +116,7 @@ public class ConfigurableStructLayout<T> extends FlowLayout {
         });
     }
 
-    public ConfigurableStructLayout<T> identifierField(Field field, Identifier defaultValue) {
+    public ConfigurableStructLayout<T> identifierField(Field field, ResourceLocation defaultValue) {
         return textBoxHandle(field, defaultValue, configTextBox -> {
             configTextBox.inputPredicate(s -> s.matches("[a-z0-9_.:\\-]*"));
             configTextBox.applyPredicate(s -> ResourceLocation.tryParse(s) != null);
@@ -327,6 +327,58 @@ public class ConfigurableStructLayout<T> extends FlowLayout {
                         () -> optionComponent.childById(LabelComponent.class, "option-name").text().getString(),
                         () -> enumButton.getMessage().getString()
                 ));
+
+                return optionComponent;
+            }
+        };
+
+        this.handlers.put(field, factory);
+
+        return this;
+    }
+
+    public ConfigurableStructLayout<T> createBooleanButton(Field field, Boolean defaultValue) {
+        var factory = new ComponentFactory<T, Boolean>() {
+            @Override
+            public Component createComponent(T t, Field field, Function<T, Boolean> getter, BiConsumer<T, Boolean> setter, String translationKey, ParentComponent parentComponent) {
+                FlowLayout optionComponent = model.expandTemplate(FlowLayout.class,
+                        "boolean-toggle-config-option",
+                        OptionComponents.packParameters(translationKey, getter.apply(t).toString())
+                );
+
+                if (sideBySideFormat) optionComponent.horizontalSizing(Sizing.expand(50));
+
+                ConfigToggleButton toggleButton = optionComponent.childById(ConfigToggleButton.class, "toggle-button");
+                ButtonComponent resetButton = optionComponent.childById(ButtonComponent.class, "reset-button");
+
+                if (sideBySideFormat)
+                    resetButton.horizontalSizing(Sizing.fixed(Math.round(resetButton.horizontalSizing().get().value / 1.5f)));
+
+                var tempOption = new Option<>(
+                        configName,
+                        optionKey.child(field.getName()),
+                        getter.apply(t),
+                        Observable.of(getter.apply(t)),
+                        new Option.BoundField<>(t, field),
+                        null,
+                        Option.SyncMode.NONE,
+                        null
+                );
+
+                toggleButton.enabled(tempOption.value());
+
+                resetButton.active = tempOption.value() != tempOption.defaultValue();
+                resetButton.onPress((button) -> {
+                    toggleButton.enabled(tempOption.defaultValue());
+                    button.active = false;
+                });
+                toggleButton.onPress((button) -> resetButton.active = toggleButton.parsedValue() != tempOption.defaultValue());
+
+                optionComponent.child(new SearchAnchorComponent(
+                        optionComponent,
+                        optionKey.child(field.getName()),
+                        () -> optionComponent.childById(LabelComponent.class, "option-name").text().getString(),
+                        () -> toggleButton.getMessage().getString()));
 
                 return optionComponent;
             }

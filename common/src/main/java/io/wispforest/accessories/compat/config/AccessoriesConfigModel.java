@@ -1,11 +1,10 @@
 package io.wispforest.accessories.compat.config;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.compat.config.client.Structured;
 import io.wispforest.accessories.impl.PlayerEquipControl;
 import io.wispforest.owo.config.Option;
 import io.wispforest.owo.config.annotation.*;
-import org.joml.Vector2i;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +64,10 @@ public class AccessoriesConfigModel {
 
     public static class ScreenOptions {
 
+        public boolean keybindIgnoresOtherTargets = false;
+
+        public boolean backButtonClosesScreen = false;
+
         public ScreenType selectedScreenType = ScreenType.NONE;
 
         @Hook
@@ -75,8 +78,14 @@ public class AccessoriesConfigModel {
         // Screen Injected Button offsets
 
         @SectionHeader("button_offsets")
-        @Structured(sideBySide = true) public Vector2i inventoryButtonOffset = new Vector2i(62, 8);
-        @Structured(sideBySide = true) public Vector2i creativeInventoryButtonOffset = new Vector2i(96, 6);
+        @Hook
+        public List<MenuButtonInjection> menuButtonInjections = new ArrayList<>(
+                List.of(
+                        new MenuButtonInjection(ResourceLocation.withDefaultNamespace("creative_player_inventory"), 96, 6, true),
+                        new MenuButtonInjection(ResourceLocation.withDefaultNamespace("player_inventory"), 62, 8, false),
+                        new MenuButtonInjection(ResourceLocation.withDefaultNamespace("horse_inventory"), 69, 18, true)
+                )
+        );
 
         // Experimental Screen
 

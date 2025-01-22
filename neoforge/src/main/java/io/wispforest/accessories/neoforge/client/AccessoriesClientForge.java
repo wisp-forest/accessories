@@ -71,12 +71,7 @@ public class AccessoriesClientForge {
 
     public static void clientTick(ClientTickEvent.Pre event) {
         if (AccessoriesClient.OPEN_SCREEN.consumeClick()) {
-            var client = Minecraft.getInstance();
-            if (client.screen instanceof AccessoriesScreenBase) {
-                client.setScreen(null);
-            } else {
-                AccessoriesClient.attemptToOpenScreen(client.player.isShiftKeyDown());
-            }
+            AccessoriesClient.openScreenFromKey();
         }
     }
 

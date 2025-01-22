@@ -7,7 +7,9 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.client.screen.AccessoriesScreenTransitionHelper;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
+import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.client.gui.ScreenVariantSelectionScreen;
 import io.wispforest.accessories.client.gui.components.ComponentUtils;
 import io.wispforest.accessories.compat.config.ScreenType;
@@ -43,8 +45,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderDefines;
@@ -57,6 +59,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.TriState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.phys.EntityHitResult;
@@ -172,6 +175,27 @@ public class AccessoriesClient {
         initLayer();
     }
 
+    public static void openScreenFromKey() {
+        var minecraft = Minecraft.getInstance();
+        var currentScreen = minecraft.screen;
+
+        if (currentScreen instanceof AccessoriesScreenBase) {
+            minecraft.setScreen(null);
+        } else if (currentScreen == null) {
+            AccessoriesClient.attemptToOpenScreen(minecraft.player.isShiftKeyDown() ? EntityTarget.LOOKING_ENTITY : EntityTarget.PLAYER);
+        } else {
+            LivingEntity targetEntity = null;
+
+            if (currentScreen instanceof AbstractContainerScreen<?> containerScreen) {
+                targetEntity = AccessoriesScreenTransitionHelper.getTargetEntity((AbstractContainerScreen<AbstractContainerMenu>) containerScreen);
+            }
+
+            if (targetEntity == null) targetEntity = minecraft.player;
+
+            AccessoriesClient.attemptToOpenScreenFromEntity(targetEntity);
+        }
+    }
+
     private static void attemptAction(Consumer<AccessoriesPlayerOptions> consumer) {
         var currentPlayer = Minecraft.getInstance().player;
 
@@ -210,28 +234,38 @@ public class AccessoriesClient {
 
     private static boolean displayUnusedSlotWarning = false;
 
-    public static boolean attemptToOpenScreen() {
-        return attemptToOpenScreen(false);
-    }
-
-    public static boolean attemptToOpenScreen(boolean targetingLookingEntity) {
-        return attemptToOpenScreen(targetingLookingEntity, Accessories.config().screenOptions.selectedScreenType());
-    }
-
-    private static boolean attemptToOpenScreen(boolean targetingLookingEntity, ScreenType screenType) {
+    public static boolean attemptToOpenScreen(EntityTarget entityTarget) {
         var player = Minecraft.getInstance().player;
 
-        var selectedVariant = AccessoriesMenuVariant.getVariant(screenType);
+        LivingEntity targetEntity = Accessories.config().screenOptions.keybindIgnoresOtherTargets()
+                ? null
+                : AccessoriesScreenTransitionHelper.getTargetEntity(player);
 
-        if(targetingLookingEntity) {
-            var result = ProjectileUtil.getHitResultOnViewVector(player, e -> e instanceof LivingEntity, player.entityInteractionRange());
+        if(targetEntity == null) {
+            if (entityTarget.equals(EntityTarget.PLAYER)){
+                return attemptToOpenScreenFromEntity(player);
+            } else if (entityTarget.equals(EntityTarget.LOOKING_ENTITY)) {
+                var result = ProjectileUtil.getHitResultOnViewVector(player, e -> e instanceof LivingEntity, player.entityInteractionRange());
 
-            var bl = !(result instanceof EntityHitResult entityHitResult) ||
-                    !(entityHitResult.getEntity() instanceof LivingEntity living)
-                    || EntitySlotLoader.getEntitySlots(living).isEmpty();
+                if (result instanceof EntityHitResult entitResult && entitResult.getEntity() instanceof LivingEntity living) {
+                    targetEntity = living;
+                }
+            }
+        }
 
-            if(bl) return false;
-        } else {
+        if (targetEntity != null && !EntitySlotLoader.getEntitySlots(targetEntity).isEmpty()) return attemptToOpenScreenFromEntity(targetEntity);
+
+        return false;
+    }
+
+    public static boolean attemptToOpenScreenFromEntity(LivingEntity targetingEntity) {
+        return attemptToOpenScreen(targetingEntity, Accessories.config().screenOptions.selectedScreenType());
+    }
+
+    private static boolean attemptToOpenScreen(LivingEntity targetingEntity, ScreenType screenType) {
+        var player = Minecraft.getInstance().player;
+
+        if(targetingEntity.equals(player)) {
             var slots = AccessoriesCapability.getUsedSlotsFor(player);
 
             var options = AccessoriesPlayerOptions.getOptions(player);
@@ -243,11 +277,13 @@ public class AccessoriesClient {
             }
         }
 
+        var selectedVariant = AccessoriesMenuVariant.getVariant(screenType);
+
         if(selectedVariant != null) {
-            AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingLookingEntity, selectedVariant));
+            AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingEntity, selectedVariant));
         } else {
             Minecraft.getInstance().setScreen(new ScreenVariantSelectionScreen(variant -> {
-                AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingLookingEntity, variant));
+                AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingEntity, variant));
             }));
         }
 
@@ -281,19 +317,25 @@ public class AccessoriesClient {
     );
 
     public static void initLayer() {
+        AccessoriesScreenTransitionHelper.init();
+
         Layers.add(Containers::verticalFlow, instance -> {
             // THIS IS HERE TO HAVE UPDATE POSITION EVERY FRAME BEFORE RENDER TO STOP STUPID POSITIONING PROBLEMS!!!
             instance.aggressivePositioning = true;
-            
-            var creativeScreen = instance.screen instanceof CreativeModeInventoryScreen;
 
             instance.adapter.rootComponent.allowOverflow(true);
 
-            var offset = creativeScreen
-                    ? Accessories.config().screenOptions.creativeInventoryButtonOffset()
-                    : Accessories.config().screenOptions.inventoryButtonOffset();
+            var injectionData = AccessoriesScreenTransitionHelper.getInjection(instance.screen);
 
-            var button = (ButtonComponent) Components.button(Component.literal(""), (btn) -> AccessoriesClient.attemptToOpenScreen())
+            if (injectionData == null) return;
+
+            var button = (ButtonComponent) Components.button(Component.literal(""), (btn) -> {
+                        var target = AccessoriesScreenTransitionHelper.getTargetEntity(instance.screen);
+
+                        if (target == null) target = Minecraft.getInstance().player;
+
+                        AccessoriesClient.attemptToOpenScreenFromEntity(target);
+                    })
                     .renderer((context, btn, delta) -> {
                         ButtonComponent.Renderer.VANILLA.draw(context, btn, delta);
 
@@ -309,9 +351,9 @@ public class AccessoriesClient {
                     })
                     .tooltip(Component.translatable(Accessories.translationKey("open.screen")))
                     .margins(Insets.of(1, 0, 0, 1))
-                    .sizing(Sizing.fixed(creativeScreen ? 8 : 12));
+                    .sizing(Sizing.fixed(injectionData.mini ? 8 : 12));
 
-            if(creativeScreen){
+            if(instance.screen instanceof CreativeModeInventoryScreen){
                 var extension = ((ComponentUtils.CreativeScreenExtension) instance.screen);
 
                 button.visible = extension.getTab().getType().equals(CreativeModeTab.Type.INVENTORY);
@@ -321,8 +363,8 @@ public class AccessoriesClient {
 
             instance.adapter.rootComponent.child(button);
 
-            instance.alignComponentToHandledScreenCoordinates(button, offset.x, offset.y);
+            instance.alignComponentToHandledScreenCoordinates(button, injectionData.xOffset(), injectionData.yOffset());
 
-        }, InventoryScreen.class, CreativeModeInventoryScreen.class);
+        }, AccessoriesScreenTransitionHelper.getScreenClasses());
     }
 }
