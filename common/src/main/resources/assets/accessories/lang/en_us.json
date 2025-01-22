@@ -35,6 +35,8 @@
   "accessories.key.category.accessories": "Accessories",
   "argument.livingEntities.nonLiving": "Only living entities may be affected by this command, but the provided selector includes non living entities",
 
+  "gamerule.accessories.keepAccessoryInventory": "Keep Accessory Inventory",
+
   "#comment": "GUI Related Below",
 
   "accessories.key.open_accessories_screen": "Open Accessories Screen",
