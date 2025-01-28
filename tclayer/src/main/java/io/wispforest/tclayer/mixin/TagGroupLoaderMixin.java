@@ -11,7 +11,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagLoader;
-import org.apache.commons.lang3.stream.Streams;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.logging.log4j.util.BiConsumer;
 import org.apache.logging.log4j.util.TriConsumer;
@@ -26,6 +25,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This mixin acts as a method to adjust tags for [Curios -> Trinkets <-> Accessories] specially
@@ -146,7 +146,9 @@ public abstract class TagGroupLoaderMixin {
         var accessoryToCuriosCalls = accessoryToCuriosCalls_share.get();
         var accessoryToTrinketCalls = accessoryToTrinketCalls_share.get();
 
-        var allLocations = Streams.of(accessoryToCuriosCalls.keySet(), curiosToAccessoryCalls.keySet(), accessoryToTrinketCalls.keySet(), trinketToAccessoryCalls.keySet()).flatMap(Collection::stream).collect(Collectors.toSet());
+        var allLocations = Stream.of(accessoryToCuriosCalls.keySet(), curiosToAccessoryCalls.keySet(), accessoryToTrinketCalls.keySet(), trinketToAccessoryCalls.keySet())
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
 
         for (var accessoryLocation : allLocations) {
             var trinketEntries = trinketToAccessoryCalls.get(accessoryLocation);
