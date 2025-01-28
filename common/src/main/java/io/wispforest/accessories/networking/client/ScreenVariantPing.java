@@ -6,6 +6,7 @@ import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.endec.Endec;
+import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
@@ -16,7 +17,7 @@ import java.util.function.Function;
 
 public record ScreenVariantPing(int entityId, boolean targetLookEntity) {
 
-    public static final Endec<ScreenVariantPing> ENDEC = StructEndecBuilder.of(
+    public static final StructEndec<ScreenVariantPing> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", ScreenVariantPing::entityId),
             Endec.BOOLEAN.fieldOf("targetLookEntity", ScreenVariantPing::targetLookEntity),
             ScreenVariantPing::new
