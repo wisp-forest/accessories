@@ -48,6 +48,8 @@ public class AccessoriesNetworking {
 
         CHANNEL.registerClientboundDeferred(MenuScroll.class, MenuScroll.ENDEC);
         CHANNEL.registerClientboundDeferred(SyncOptionChange.class, SyncOptionChange.ENDEC);
+
+        CHANNEL.registerClientboundDeferred(ScreenVariantPing.class, ScreenVariantPing.ENDEC);
     }
 
     @Environment(EnvType.CLIENT)
@@ -62,6 +64,8 @@ public class AccessoriesNetworking {
 
         CHANNEL.registerClientbound(MenuScroll.class, MenuScroll.ENDEC, clientHandler(MenuScroll::handlePacket));
         CHANNEL.registerClientbound(SyncOptionChange.class, SyncOptionChange.ENDEC, clientHandler(SyncOptionChange::handlePacket));
+
+        CHANNEL.registerClientbound(ScreenVariantPing.class, ScreenVariantPing.ENDEC, clientHandler(ScreenVariantPing::handlePacket));
     }
 
     @Environment(EnvType.CLIENT)
