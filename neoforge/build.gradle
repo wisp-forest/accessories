@@ -33,6 +33,7 @@ repositories {
         url "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
         content { includeGroup("software.bernie.geckolib") }
     }
+    maven { url "https://maven.theillusivec4.top/" }
 }
 
 sourceSets {
@@ -64,6 +65,8 @@ dependencies {
     forgeRuntimeLibrary("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
     forgeRuntimeLibrary("io.wispforest.endec:jankson:${rootProject.endec_jankson_version}")
     forgeRuntimeLibrary("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
+
+    modCompileOnly "top.theillusivec4.curios:curios-neoforge:${rootProject.curios_version}"
 
     testmodImplementation sourceSets.main.output
 
