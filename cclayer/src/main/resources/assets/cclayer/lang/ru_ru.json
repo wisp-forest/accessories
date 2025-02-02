@@ -1,8 +1,0 @@
-{
-  "text.config.cclayer.option.useInjectionMethod": "Использовать внедрение тегов для обмена записями тегов слотов",
-  "text.config.cclayer.option.useInjectionMethod.tooltip": [
-    "Полезно, чтобы теги curios и accessories могли\n",
-    "обмениваться записями. Эта опция служит переключателем\n",
-    "между прямым внедрением тегов и более медленным методом.\n"
-  ]
-}
