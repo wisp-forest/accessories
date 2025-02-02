@@ -1,0 +1,174 @@
+plugins {
+    id "com.github.johnrengelman.shadow" version "8.1.1"
+}
+
+architectury {
+    platformSetupLoomIde()
+    neoForge {
+        platformPackage = "neoforge"
+    }
+}
+
+configurations {
+    common
+    shadowCommon // Don't use shadow from the shadow plugin since it *excludes* files.
+    compileClasspath.extendsFrom common
+    runtimeClasspath.extendsFrom common
+    developmentNeoForge.extendsFrom common
+}
+
+repositories {
+    maven { url "https://maven.neoforged.net/releases/" }
+    maven { url "https://maven.su5ed.dev/releases" }
+    maven { url "https://maven.shedaniel.me/" }
+    maven { url "https://maven.architectury.dev/" }
+    maven { url "https://maven.terraformersmc.com/releases" }
+    maven { url "https://maven.blamejared.com/" } // location of the maven that hosts JEI files since January 2023
+    maven { url "https://modmaven.dev" } // location of a maven mirror for JEI files, as a fallback
+    maven { url "https://maven.wispforest.io/releases" }
+    mavenCentral()
+    maven { url "https://api.modrinth.com/maven" }
+//    maven { url 'https://jitpack.io' }
+    maven {
+        url "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+        content { includeGroup("software.bernie.geckolib") }
+    }
+    maven { url "https://maven.theillusivec4.top/" }
+}
+
+sourceSets {
+    testmod {
+        runtimeClasspath += main.runtimeClasspath
+        compileClasspath += main.compileClasspath
+    }
+}
+
+dependencies {
+    neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
+
+    common(project(path: ":common", configuration: "namedElements")) { transitive false }
+    shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive false }
+
+    modImplementation("io.wispforest:owo-lib-neoforge:${rootProject.owo_neo_version}")
+
+    implementation("org.sinytra:forgified-fabric-loader:${project.ffloader_version}")
+
+    modApi("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+d1308dedd1") { exclude group: "fabric-api" }
+//    modRuntimeOnly("org.sinytra.forgified-fabric-api:fabric-networking-api-v1:4.2.2+a92978fd19") { exclude group: "fabric-api" }
+//    modRuntimeOnly("org.sinytra.forgified-fabric-api:fabric-screen-api-v1:2.0.24+79a4c2b0d1") { exclude group: "fabric-api" }
+
+    modCompileOnly "software.bernie.geckolib:geckolib-neoforge-1.21.1:${rootProject.geckolib_version}"
+
+    forgeRuntimeLibrary(implementation("blue.endless:jankson:1.2.2"))
+
+    forgeRuntimeLibrary("io.wispforest:endec:${rootProject.endec_version}")
+    forgeRuntimeLibrary("io.wispforest.endec:gson:${rootProject.endec_gson_version}")
+    forgeRuntimeLibrary("io.wispforest.endec:jankson:${rootProject.endec_jankson_version}")
+    forgeRuntimeLibrary("io.wispforest.endec:netty:${rootProject.endec_netty_version}")
+
+    modCompileOnly "top.theillusivec4.curios:curios-neoforge:${rootProject.curios_version}"
+
+    testmodImplementation sourceSets.main.output
+
+    //modLocalRuntime "maven.modrinth:sodium:mc1.21-0.6.0-beta.2-neoforge"
+
+    var type = rootProject.properties.get("item_viewer_type");
+
+    modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-neoforge:${rootProject.rei_version}")
+    modCompileOnly("dev.emi:emi-neoforge:${rootProject.emi_version}:api")
+    modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-neoforge-api:${rootProject.jei_version}")
+
+    if(type == "rei") {
+        modLocalRuntime("me.shedaniel:RoughlyEnoughItems-neoforge:${rootProject.rei_version}")
+        modLocalRuntime("dev.architectury:architectury-neoforge:${rootProject.arch_api}")
+    } else if(type == "emi") {
+        modLocalRuntime("dev.emi:emi-neoforge:${rootProject.emi_version}")
+    } else if(type == "jei") {
+        modLocalRuntime("mezz.jei:jei-${rootProject.minecraft_version}-neoforge:${rootProject.jei_version}")
+    } else if(type != "none") {
+        throw new IllegalStateException("Unable to locate the given item viewer!")
+    }
+}
+
+processResources {
+    String finalVersion = "${project.mod_version}+${rootProject.minecraft_base_version}"
+
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand "version": finalVersion
+    }
+    inputs.property "META-INF/neoforge.mods.toml", finalVersion
+}
+
+processTestmodResources {
+    filesMatching("META-INF/neoforge.mods.toml") {
+        expand "version": project.version
+    }
+    inputs.property "META-INF/neoforge.mods.toml", project.version
+}
+
+loom {
+    runs {
+        testmodClient {
+            client()
+            forgeTemplate "client"
+            ideConfigGenerated true
+            name = "Testmod Client"
+            mods {
+                create("testccessories") {
+                    sourceSet sourceSets.testmod
+                }
+                create("${project.archives_base_name}"){
+                    sourceSet sourceSets.main
+                }
+            }
+            source sourceSets.testmod
+        }
+        testmodServer {
+            server()
+            ideConfigGenerated true
+            name = "Testmod Server"
+            mods {
+                create("testccessories") {
+                    sourceSet sourceSets.testmod
+                }
+                create("${project.archives_base_name}"){
+                    sourceSet sourceSets.main
+                }
+            }
+            source sourceSets.testmod
+        }
+    }
+
+    accessWidenerPath = project(":common").loom.accessWidenerPath
+
+    neoForge  {
+        //     convertAccessWideners = true
+        //     extraAccessWideners.add loom.accessWidenerPath.get().asFile.name
+    }
+}
+
+shadowJar {
+    exclude "fabric.mod.json"
+    exclude "architectury.common.json"
+
+    configurations = [project.configurations.shadowCommon]
+    archiveClassifier.set "dev-shadow"
+}
+
+remapJar {
+    input.set shadowJar.archiveFile
+    dependsOn shadowJar
+    archiveClassifier.set ""
+}
+
+sourcesJar {
+    def commonSources = project(":common").sourcesJar
+    dependsOn commonSources
+    from commonSources.archiveFile.map { zipTree(it) }
+}
+
+components.java {
+    withVariantsFromConfiguration(project.configurations.shadowRuntimeElements) {
+        skip()
+    }
+}
