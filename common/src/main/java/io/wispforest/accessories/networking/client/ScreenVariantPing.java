@@ -8,6 +8,8 @@ import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -31,6 +33,7 @@ public record ScreenVariantPing(int entityId, boolean targetLookEntity) {
         return new ScreenVariantPing(-1, targetLookEntity);
     }
 
+    @Environment(EnvType.CLIENT)
     public static void handlePacket(ScreenVariantPing packet, Player player) {
         var selectedVariant = AccessoriesMenuVariant.getVariant(Accessories.config().screenOptions.selectedScreenType());
 

@@ -2,12 +2,12 @@ package io.wispforest.accessories.networking.client;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.data.EntitySlotLoader;
-import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.slf4j.Logger;
@@ -21,6 +21,7 @@ public record InvalidateEntityCache(int entityId) {
             InvalidateEntityCache::new
     );
 
+    @Environment(EnvType.CLIENT)
     public static void handlePacket(InvalidateEntityCache packet, Player player) {
         var level = player.level();
         var entity = level.getEntity(packet.entityId());

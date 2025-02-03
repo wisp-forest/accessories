@@ -47,7 +47,6 @@
     "HolderLookupAdapterAccessor",
     "InventoryMixin",
     "ItemStackAccessor",
-    "LevelRendererAccessor",
     "LivingEntityAccessor",
     "LivingEntityMixin",
     "NbtCompoundMixin",

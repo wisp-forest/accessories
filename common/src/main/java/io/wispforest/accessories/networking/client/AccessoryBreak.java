@@ -5,6 +5,8 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 
@@ -21,6 +23,7 @@ public record AccessoryBreak(int entityId, String slotName, int slotIndex) {
         return new AccessoryBreak(slotReference.entity().getId(), slotReference.slotName(), slotReference.slot());
     }
 
+    @Environment(EnvType.CLIENT)
     public static void handlePacket(AccessoryBreak packet, Player player) {
         var entity = player.level().getEntity(packet.entityId());
 
