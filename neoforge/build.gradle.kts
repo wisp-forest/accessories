@@ -77,6 +77,8 @@ dependencies {
     modCompileOnly("dev.emi:emi-neoforge:${rootProject.property("emi_version")}:api")
     modCompileOnly("mezz.jei:jei-${rootProject.property("jei_minecraft_version")}-neoforge-api:${rootProject.property("jei_version")}")
 
+    modCompileOnly("top.theillusivec4.curios:curios-neoforge:${rootProject.property("curios_version")}")
+
     if(type == "rei") {
         modLocalRuntime("me.shedaniel:RoughlyEnoughItems-neoforge:${rootProject.property("rei_version")}")
         modLocalRuntime("dev.architectury:architectury-neoforge:${rootProject.property("arch_api")}")
