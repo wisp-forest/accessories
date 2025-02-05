@@ -8,10 +8,10 @@
     "NeoForgeLoadingOverlayMixin",
     "client.AbstractContainerScreenMixin",
     "client.HumanoidArmorLayerMixin",
-    "client.LivingEntityRendererMixin",
-    "curios.CurioInventoryMixin"
+    "client.LivingEntityRendererMixin"
   ],
   "mixins": [
+    "curios.CurioInventoryMixin"
   ],
   "injectors": {
     "defaultRequire": 1
