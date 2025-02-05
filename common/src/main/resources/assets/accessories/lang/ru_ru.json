@@ -35,6 +35,8 @@
   "accessories.key.category.accessories": "Аксессуары",
   "argument.livingEntities.nonLiving": "Эта команда может касаться только живых существ, но предоставленный выбор включает и неживые существа",
 
+  "gamerule.accessories.keepAccessoryInventory": "Сохранение инвентаря аксессуаров",
+
   "#comment": "Ниже относящееся к интерфейсу",
 
   "accessories.key.open_accessories_screen": "Открыть экран аксессуаров",
