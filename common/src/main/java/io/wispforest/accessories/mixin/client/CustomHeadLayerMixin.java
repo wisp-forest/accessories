@@ -3,6 +3,7 @@ package io.wispforest.accessories.mixin.client;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
 import io.wispforest.accessories.pond.LivingEntityRenderStateExtension;
 import net.minecraft.client.Minecraft;
@@ -14,10 +15,16 @@ import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.ItemDisplayContext;
+import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(CustomHeadLayer.class)
 public abstract class CustomHeadLayerMixin<S extends LivingEntityRenderState, M extends EntityModel<S> & HeadedModel> {
+
+    @Unique private static final Logger LOGGER = LogUtils.getLogger();
+
+    @Unique private boolean hasPrintedError = false;
 
     //TODO: FIGURE OUT WHY ARCH LOOM DON'T REMAP WRAP METHOD
     @WrapMethod(method = {
@@ -29,26 +36,34 @@ public abstract class CustomHeadLayerMixin<S extends LivingEntityRenderState, M 
         ItemStackRenderState prevState = null;
 
         if (livingEntityRenderState instanceof LivingEntityRenderStateExtension extension) {
-            var livingEntity = extension.getEntity();
-            var capability = livingEntity.accessoriesCapability();
+            var entity = extension.getEntity();
 
-            if (capability != null) {
-                var ref = capability.getEquipped(ItemStackBasedPredicate.ofClass(BannerItem.class))
-                        .stream()
-                        .filter(slotEntryReference -> slotEntryReference.reference().slotName().equals("hat"))
-                        .findFirst()
-                        .orElse(null);
+            if (entity.isPresent()) {
+                var capability = entity.get().accessoriesCapability();
 
-                if (ref != null) {
-                    var stack = ref.stack();
-                    prevState = livingEntityRenderState.headItem;
+                if (capability != null) {
+                    var ref = capability.getEquipped(ItemStackBasedPredicate.ofClass(BannerItem.class))
+                            .stream()
+                            .filter(slotEntryReference -> slotEntryReference.reference().slotName().equals("hat"))
+                            .findFirst()
+                            .orElse(null);
 
-                    var alternativeRenderState = new ItemStackRenderState();
+                    if (ref != null) {
+                        var stack = ref.stack();
+                        prevState = livingEntityRenderState.headItem;
 
-                    Minecraft.getInstance().getItemModelResolver()
-                            .updateForLiving(alternativeRenderState, stack, ItemDisplayContext.HEAD, false, livingEntity);
+                        var alternativeRenderState = new ItemStackRenderState();
 
-                    ((LivingEntityRenderStateAccessor) livingEntityRenderState).accessories$headItem(alternativeRenderState);
+                        Minecraft.getInstance().getItemModelResolver()
+                                .updateForLiving(alternativeRenderState, stack, ItemDisplayContext.HEAD, false, entity.get());
+
+                        ((LivingEntityRenderStateAccessor) livingEntityRenderState).accessories$headItem(alternativeRenderState);
+                    }
+                }
+            } else {
+                if (!hasPrintedError) {
+                    LOGGER.error("Unable to get the required Living Entity instance from the given LivingEntityRenderState meaning Accessories may not render!");
+                    hasPrintedError = true;
                 }
             }
         }

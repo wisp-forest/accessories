@@ -8,6 +8,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Mixin(LivingEntityRenderState.class)
 public abstract class LivingEntityRenderStateMixin implements LivingEntityRenderStateExtension {
@@ -17,10 +18,8 @@ public abstract class LivingEntityRenderStateMixin implements LivingEntityRender
     private LivingEntity livingEntity = null;
 
     @Override
-    public LivingEntity getEntity() {
-        Objects.requireNonNull(this.livingEntity, "Unable to get the required Living Entity instance from the given LivingEntityRenderState!");
-
-        return this.livingEntity;
+    public Optional<LivingEntity> getEntity() {
+        return Optional.ofNullable(this.livingEntity);
     }
 
     @Override

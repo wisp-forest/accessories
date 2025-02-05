@@ -3,6 +3,7 @@ package io.wispforest.accessories.client;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
@@ -23,11 +24,13 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.lwjgl.opengl.GL30;
+import org.slf4j.Logger;
 
 import java.awt.*;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 
 /**
@@ -36,6 +39,8 @@ import java.util.Map;
  * extends {@link HumanoidModel}
  */
 public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<S>> extends RenderLayer<S, M> {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final PostEffectBuffer BUFFER = new PostEffectBuffer();
 
@@ -50,13 +55,28 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
         super(renderLayerParent);
     }
 
+    private boolean hasPrintedError = false;
+
     @Override
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, S entityRenderState, float f, float g) {
-        T entity = (T) ((LivingEntityRenderStateExtension) entityRenderState).getEntity();
+        var possibleEntity = (Optional<T>) ((LivingEntityRenderStateExtension) entityRenderState).getEntity();
 
-        var partialTicks = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(!entity.level().tickRateManager().isEntityFrozen(entity));
+        if (possibleEntity.isEmpty()) {
+            // TODO: FIGURE OUT SOLUTION FOR ERRORING IF UNABLE TO RENDER
+            if (!hasPrintedError) {
+                LOGGER.error("Unable to get the required Living Entity instance from the given LivingEntityRenderState meaning Accessories may not render!");
+                hasPrintedError = true;
+            }
 
-        var capability = AccessoriesCapability.get(entity);
+            return;
+        }
+
+        var entity = possibleEntity.get();
+
+        var partialTicks = Minecraft.getInstance().getDeltaTracker()
+                .getGameTimeDeltaPartialTick(!possibleEntity.get().level().tickRateManager().isEntityFrozen(entity));
+
+        var capability = AccessoriesCapability.get(possibleEntity.get());
 
         if (capability == null) return;
 

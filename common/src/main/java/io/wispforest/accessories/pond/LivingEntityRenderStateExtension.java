@@ -2,8 +2,10 @@ package io.wispforest.accessories.pond;
 
 import net.minecraft.world.entity.LivingEntity;
 
+import java.util.Optional;
+
 public interface LivingEntityRenderStateExtension {
-    LivingEntity getEntity();
+    Optional<LivingEntity> getEntity();
 
     void setEntity(LivingEntity livingEntity);
 }
