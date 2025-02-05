@@ -6,14 +6,11 @@
   "minVersion": "0.8",
   "client": [
     "NeoForgeLoadingOverlayMixin",
-    "client.AbstractContainerScreenMixin",
-    "client.HumanoidArmorLayerMixin",
-    "client.LivingEntityRendererMixin",
-    "curios.CurioInventoryMixin",
     "client.AbstractContainerScreenMixin"
   ],
   "mixins": [
-    "ContextAwareReloadListenerAccessor"
+    "ContextAwareReloadListenerAccessor",
+    "curios.CurioInventoryMixin"
   ],
   "injectors": {
     "defaultRequire": 1
