@@ -169,7 +169,7 @@ public class SlotLoader extends SimplePreparableReloadListener<Map<String, SlotL
                 }
             }
 
-            String jsonDropRule = GsonHelper.getAsString(jsonObject, "drop_rule", dropRule).toUpperCase();
+            String jsonDropRule = GsonHelper.getAsString(jsonObject, "drop_rule", dropRule).toUpperCase(Locale.ROOT);
 
             if (TrinketEnums.DropRule.has(jsonDropRule)) {
                 dropRule = jsonDropRule;
