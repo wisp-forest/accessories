@@ -21,6 +21,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ArmorSlot;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -32,9 +33,6 @@ import java.util.stream.Stream;
 public final class AccessoriesMenu extends AccessoriesMenuBase {
 
     private static final Logger LOGGER = LogUtils.getLogger();
-
-    public static final ResourceLocation BLOCK_ATLAS = ResourceLocation.withDefaultNamespace("textures/atlas/blocks.png");
-    public static final ResourceLocation EMPTY_ARMOR_SLOT_SHIELD = ResourceLocation.withDefaultNamespace("item/empty_armor_slot_shield");
 
     public int totalSlots = 0;
     public boolean overMaxVisibleSlots = false;
@@ -95,7 +93,7 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
 
             @Override
             public ResourceLocation getNoItemIcon() {
-                return EMPTY_ARMOR_SLOT_SHIELD;
+                return InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD;
             }
         });
 
