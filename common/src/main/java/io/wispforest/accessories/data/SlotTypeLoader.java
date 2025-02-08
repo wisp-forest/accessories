@@ -162,7 +162,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
                 if(amount != null) {
                     var operation = this.safeHelper((jsonObject1, s) -> {
                         try {
-                            return OperationType.valueOf(GsonHelper.getAsString(jsonObject1, s).toUpperCase());
+                            return OperationType.valueOf(GsonHelper.getAsString(jsonObject1, s).toUpperCase(Locale.ROOT));
                         } catch (IllegalArgumentException e) {
                             return null;
                         }
@@ -186,7 +186,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
                 decodeJsonArray(validators, "validator", location, element -> ResourceLocation.tryParse(element.getAsString()), slotBuilder::validator);
             }
 
-            slotBuilder.dropRule(this.safeHelper((object, s) -> DropRule.valueOf(GsonHelper.getAsString(object, s).toUpperCase()), jsonObject, "drop_rule", location));
+            slotBuilder.dropRule(this.safeHelper((object, s) -> DropRule.valueOf(GsonHelper.getAsString(object, s).toUpperCase(Locale.ROOT)), jsonObject, "drop_rule", location));
 
             builders.put(slotBuilder.name, slotBuilder);
         }
