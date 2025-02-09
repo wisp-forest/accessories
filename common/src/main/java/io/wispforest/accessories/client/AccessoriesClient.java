@@ -249,29 +249,19 @@ public class AccessoriesClient {
 
             var button = (ButtonComponent) Components.button(Component.literal(""), (btn) -> AccessoriesClient.attemptToOpenScreen())
                     .renderer((context, btn, delta) -> {
-                        ButtonComponent.Renderer.VANILLA.draw(context, btn, delta);
 
                         context.push();
 
-                        var groupIcon = Accessories.of("gui/group/misc");
-
-                        var textureAtlasSprite = Minecraft.getInstance()
-                                .getTextureAtlas(ResourceLocation.withDefaultNamespace("textures/atlas/gui.png"))
-                                .apply(groupIcon);
-
-                        var color = Color.BLACK.interpolate(Color.WHITE, 0.4f);
-
-                        RenderSystem.depthMask(false);
-
-                        context.blit(btn.x() + 2, btn.y() + 2, 2, btn.horizontalSizing().get().value - 4, btn.verticalSizing().get().value - 4, textureAtlasSprite, color.red(), color.green(), color.blue(), 1f);
-
-                        RenderSystem.depthMask(true);
+                        context.blit(
+                                Accessories.of("textures/gui/accessories_open_icon" + (btn.isHovered() ? "_hovered" : "") + ".png"),
+                                btn.x(), btn.y(), 0, 0, 8, 8, 8, 8
+                        );
 
                         context.pop();
                     })
                     .tooltip(Component.translatable(Accessories.translationKey("open.screen")))
                     .margins(Insets.of(1, 0, 0, 1))
-                    .sizing(Sizing.fixed(creativeScreen ? 8 : 12));
+                    .sizing(Sizing.fixed(8));
 
             if(creativeScreen){
                 var extension = ((ComponentUtils.CreativeScreenExtension) instance.screen);

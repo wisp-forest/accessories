@@ -51,7 +51,7 @@ public class AccessoriesConfigModel {
         // Screen Injected Button offsets
 
         @SectionHeader("button_offsets")
-        @Structured(sideBySide = true) public Vector2i inventoryButtonOffset = new Vector2i(62, 8);
+        @Structured(sideBySide = true) public Vector2i inventoryButtonOffset = new Vector2i(66, 8);
         @Structured(sideBySide = true) public Vector2i creativeInventoryButtonOffset = new Vector2i(96, 6);
 
         // Experimental Screen
