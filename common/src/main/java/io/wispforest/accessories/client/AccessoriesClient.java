@@ -337,21 +337,20 @@ public class AccessoriesClient {
                         AccessoriesClient.attemptToOpenScreenFromEntity(target);
                     })
                     .renderer((context, btn, delta) -> {
-                        ButtonComponent.Renderer.VANILLA.draw(context, btn, delta);
 
-                        var groupIcon = Accessories.of("container/slot/group/misc");
+                        context.push();
 
-                        var color = Color.BLACK.interpolate(Color.WHITE, 0.4f);
-
-                        context.push().translate(0, 0, 2);
-
-                        context.blitSprite(RenderType::guiTexturedOverlay, groupIcon, btn.x() + 2, btn.y() + 2, btn.horizontalSizing().get().value - 4, btn.verticalSizing().get().value - 4, color.argb());
+                        context.blit(
+                                RenderType::guiTextured,
+                                Accessories.of("textures/gui/accessories_open_icon" + (btn.isHovered() ? "_hovered" : "") + ".png"),
+                                btn.x(), btn.y(), 0, 0, 8, 8, 8, 8
+                        );
 
                         context.pop();
                     })
                     .tooltip(Component.translatable(Accessories.translationKey("open.screen")))
                     .margins(Insets.of(1, 0, 0, 1))
-                    .sizing(Sizing.fixed(injectionData.mini ? 8 : 12));
+                    .sizing(Sizing.fixed(8));
 
             if(instance.screen instanceof CreativeModeInventoryScreen){
                 var extension = ((ComponentUtils.CreativeScreenExtension) instance.screen);

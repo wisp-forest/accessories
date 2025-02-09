@@ -8,21 +8,24 @@ public final class MenuButtonInjection {
     public ResourceLocation menuType;
     public int xOffset;
     public int yOffset;
-    public boolean mini;
 
     public MenuButtonInjection() {
         this.menuType = ResourceLocation.fromNamespaceAndPath("minecraft", "");
         this.xOffset = 0;
         this.yOffset = 0;
-        this.mini = false;
     }
 
+    @Deprecated
     public MenuButtonInjection(ResourceLocation menuType, int xOffset, int yOffset, boolean mini) {
+        this(menuType, xOffset, yOffset);
+    }
+
+    public MenuButtonInjection(ResourceLocation menuType, int xOffset, int yOffset) {
         this.menuType = menuType;
         this.xOffset = xOffset;
         this.yOffset = yOffset;
-        this.mini = mini;
     }
+
 
     public ResourceLocation menuType() {
         return menuType;

@@ -81,9 +81,9 @@ public class AccessoriesConfigModel {
         @Hook
         public List<MenuButtonInjection> menuButtonInjections = new ArrayList<>(
                 List.of(
-                        new MenuButtonInjection(ResourceLocation.withDefaultNamespace("creative_player_inventory"), 96, 6, true),
-                        new MenuButtonInjection(ResourceLocation.withDefaultNamespace("player_inventory"), 62, 8, false),
-                        new MenuButtonInjection(ResourceLocation.withDefaultNamespace("horse_inventory"), 69, 18, true)
+                        new MenuButtonInjection(ResourceLocation.withDefaultNamespace("creative_player_inventory"), 96, 6),
+                        new MenuButtonInjection(ResourceLocation.withDefaultNamespace("player_inventory"), 66, 8),
+                        new MenuButtonInjection(ResourceLocation.withDefaultNamespace("horse_inventory"), 69, 18)
                 )
         );
 
