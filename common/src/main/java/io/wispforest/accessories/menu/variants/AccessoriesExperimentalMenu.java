@@ -36,6 +36,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
     private int addedArmorSlots = 0;
 
+    private int startArmorSlots = 0;
     private int startingAccessoriesSlot = 0;
 
     private boolean includeSaddle = false;
@@ -105,7 +106,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
             );
         }
 
-        this.startingAccessoriesSlot = this.slots.size();
+        this.startArmorSlots = this.slots.size();
 
         var containers = capability.getContainers();
 
@@ -124,6 +125,8 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         for (var pair : validEquipmentSlots.reversed()) {
             if (addArmorSlot(pair.left(), accessoryTarget, pair.right(), containers)) addedArmorSlots += 2;
         }
+
+        this.startingAccessoriesSlot = this.slots.size();
 
         //--
 
@@ -186,7 +189,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
     }
 
     public int startingAccessoriesSlot() {
-        return this.startingAccessoriesSlot;
+        return this.startArmorSlots;
     }
 
     public List<AccessoriesBasedSlot> getAccessoriesSlots() {
@@ -325,8 +328,8 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
         // 0 1 2 3 : 6 - 7 / 4 - 5 / 2 - 3 / 0 - 1
         var equipmentSlot = player.getEquipmentSlotForItem(itemStack);
-        int bottomEquipmentIndex = 8 - ((equipmentSlot.getIndex() + 1) * 2);
-        int topEquipmentIndex = bottomEquipmentIndex + 1;
+        int bottomArmorIndex = 42 + (8 - ((equipmentSlot.getIndex() + 1) * 2));
+        int topArmorIndex = bottomArmorIndex + 1;
 
         var upperInventorySize = this.startingAccessoriesSlot;
 
@@ -340,23 +343,21 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
          * 49 -   : Accessories Slots
          */
 
-        if (index == 0) {
+        if (index == 0) { // If from Crafting Result move to player inventory
             if (!this.moveItemStackTo(itemStack2, 5, 41, true)) return ItemStack.EMPTY;
 
             slot.onQuickCraft(itemStack2, itemStack);
         }
-        else if (index >= 1 && index < 5) {
+        else if ((index >= 1 && index < 5) || (index >= upperInventorySize) || Objects.equals(41, index) || (index >= 43)) { // If from Crafting Grid move to player inventory
             if (!this.moveItemStackTo(itemStack2, 5, 41, false)) return ItemStack.EMPTY;
         }
-        else if(index >= upperInventorySize) {
-            if (!moveItemStackTo(itemStack2, 5, 41, false)) return ItemStack.EMPTY;
+        else if (equipmentSlot.isArmor() && !this.slots.get(bottomArmorIndex).hasItem()) {
+            if(!this.moveItemStackTo(itemStack2, bottomArmorIndex, topArmorIndex, false)) return ItemStack.EMPTY;
         }
-        else if (equipmentSlot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR && (!this.slots.get(42 + bottomEquipmentIndex).hasItem() || !this.slots.get(42 + topEquipmentIndex).hasItem())) {
-            if(!this.moveItemStackTo(itemStack2, 42 + bottomEquipmentIndex, 42 + topEquipmentIndex + 1, false)) return ItemStack.EMPTY;
-        }
-        else if (equipmentSlot == EquipmentSlot.OFFHAND && !this.slots.get(45).hasItem()) {
+        else if (equipmentSlot == EquipmentSlot.OFFHAND && !this.slots.get(41).hasItem()) {
             if(!this.moveItemStackTo(itemStack2, 41, 42, false)) return ItemStack.EMPTY;
-        } else {
+        }
+        else {
             boolean changeOccured = false;
 
             if (canMoveToAccessorySlot(itemStack2, this.targetEntityDefaulted())) {
