@@ -24,6 +24,7 @@ import org.jetbrains.annotations.ApiStatus;
 import top.theillusivec4.curios.CuriosConstants;
 import top.theillusivec4.curios.api.SlotTypeMessage.Builder;
 
+import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -59,7 +60,7 @@ public enum SlotTypePreset {
   @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
   public static Optional<SlotTypePreset> findPreset(String id) {
     try {
-      return Optional.of(SlotTypePreset.valueOf(id.toUpperCase()));
+      return Optional.of(SlotTypePreset.valueOf(id.toUpperCase(Locale.ROOT)));
     } catch (IllegalArgumentException e) {
       return Optional.empty();
     }

@@ -13,6 +13,7 @@ import net.minecraft.world.entity.Entity;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -122,7 +123,7 @@ public abstract class BaseNetworkHandler {
     }
 
     public <M extends HandledPacketPayload> Type<M> getId(Class<M> mClass){
-        var path = this.channelId.getPath() + "/" + mClass.getName().toLowerCase();
+        var path = this.channelId.getPath() + "/" + mClass.getName().toLowerCase(Locale.ROOT);
 
         return new Type<>(new ResourceLocation(this.channelId.getNamespace(), path));
     }

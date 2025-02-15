@@ -15,6 +15,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.slf4j.Logger;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.UUID;
 
 public class AttributeUtils {
@@ -87,7 +88,7 @@ public class AttributeUtils {
     );
 
     public static ResourceLocation getLocation(String name) {
-        var safeName = name.toLowerCase()
+        var safeName = name.toLowerCase(Locale.ROOT)
                 .replace(" ", "_")
                 .replaceAll("(?![a-z0-9/._-]).|\n", "");
 

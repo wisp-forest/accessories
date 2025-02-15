@@ -39,6 +39,7 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 
 import java.util.Arrays;
+import java.util.Locale;
 
 public class AccessoriesCommands {
 
@@ -260,7 +261,7 @@ public class AccessoriesCommands {
 
     private static LiteralArgumentBuilder<CommandSourceStack> createAddLiteral(String literal) {
         var selectedValue = Arrays.stream(AttributeModifier.Operation.values())
-                .filter(value -> value.name().toLowerCase().equals(literal))
+                .filter(value -> value.name().toLowerCase(Locale.ROOT).equals(literal))
                 .findFirst()
                 .orElse(null);
 

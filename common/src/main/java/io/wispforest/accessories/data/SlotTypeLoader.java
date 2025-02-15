@@ -159,7 +159,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
                 if(amount != null) {
                     var operation = this.safeHelper((jsonObject1, s) -> {
                         try {
-                            return OperationType.valueOf(GsonHelper.getAsString(jsonObject1, s).toUpperCase());
+                            return OperationType.valueOf(GsonHelper.getAsString(jsonObject1, s).toUpperCase(Locale.ROOT));
                         } catch (IllegalArgumentException e) {
                             return null;
                         }
