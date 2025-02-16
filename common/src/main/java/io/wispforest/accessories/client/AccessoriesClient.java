@@ -49,6 +49,8 @@ public class AccessoriesClient {
         });
 
         ClientLifecycleEvents.END_DATA_PACK_RELOAD.register((client, success) -> {
+            if (!success) return;
+
             AccessoriesRendererRegistry.onReload();
         });
     }
