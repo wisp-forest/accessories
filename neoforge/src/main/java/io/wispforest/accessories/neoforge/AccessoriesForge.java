@@ -45,7 +45,7 @@ import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.capabilities.EntityCapability;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -60,6 +60,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -157,22 +158,25 @@ public class AccessoriesForge {
         });
     }
 
-    public void registerReloadListeners(AddReloadListenerEvent event){
-        intermediateRegisterListeners(event::addListener);
+    public void registerReloadListeners(AddServerReloadListenersEvent event){
+        intermediateRegisterListeners(event::addListener, event::addDependency);
     }
 
     // This exists as a way to register things within the TCLayer without depending on NeoForge to do this within a mixin
-    public void intermediateRegisterListeners(Consumer<PreparableReloadListener> registrationMethod){
-        registrationMethod.accept(SlotTypeLoader.INSTANCE);
-        registrationMethod.accept(EntitySlotLoader.INSTANCE);
-        registrationMethod.accept(SlotGroupLoader.INSTANCE);
+    public void intermediateRegisterListeners(BiConsumer<ResourceLocation, PreparableReloadListener> registrationMethod, BiConsumer<ResourceLocation, ResourceLocation> dependencyRegisterCallback){
+        registrationMethod.accept(Accessories.SLOT_LOADER_LOCATION, SlotTypeLoader.INSTANCE);
+        registrationMethod.accept(Accessories.ENTITY_SLOT_LOADER_LOCATION, EntitySlotLoader.INSTANCE);
+        registrationMethod.accept(Accessories.SLOT_GROUP_LOADER_LOCATION, SlotGroupLoader.INSTANCE);
 
-        registrationMethod.accept(new SimplePreparableReloadListener<Void>() {
+        registrationMethod.accept(Accessories.DATA_RELOAD_HOOK, new SimplePreparableReloadListener<Void>() {
             @Override protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) { return null; }
             @Override protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profiler) {
                 AccessoriesEventHandler.dataReloadOccurred = true;
             }
         });
+
+        dependencyRegisterCallback.accept(Accessories.SLOT_LOADER_LOCATION, Accessories.ENTITY_SLOT_LOADER_LOCATION);
+        dependencyRegisterCallback.accept(Accessories.ENTITY_SLOT_LOADER_LOCATION, Accessories.DATA_RELOAD_HOOK);
     }
 
     public void registerCapabilities(RegisterCapabilitiesEvent event){

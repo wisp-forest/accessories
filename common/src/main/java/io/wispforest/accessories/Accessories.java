@@ -27,6 +27,11 @@ import org.joml.Vector2i;
 
 public class Accessories {
 
+    public static final ResourceLocation SLOT_LOADER_LOCATION = Accessories.of("slot_loader");
+    public static final ResourceLocation ENTITY_SLOT_LOADER_LOCATION = Accessories.of("entity_slot_loader");
+    public static final ResourceLocation SLOT_GROUP_LOADER_LOCATION = Accessories.of("slot_group_loader");
+    public static final ResourceLocation DATA_RELOAD_HOOK = Accessories.of("data_reload_hook");
+
     @ApiStatus.Internal
     public static GameRules.Key<GameRules.BooleanValue> RULE_KEEP_ACCESSORY_INVENTORY = null;
 

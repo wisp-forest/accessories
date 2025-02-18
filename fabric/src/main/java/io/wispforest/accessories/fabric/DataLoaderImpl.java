@@ -20,10 +20,6 @@ import java.util.concurrent.Executor;
 
 public class DataLoaderImpl extends DataLoaderBase {
 
-    public static final ResourceLocation SLOT_LOADER_LOCATION = Accessories.of("slot_loader");
-    public static final ResourceLocation ENTITY_SLOT_LOADER_LOCATION = Accessories.of("entity_slot_loader");
-    public static final ResourceLocation SLOT_GROUP_LOADER_LOCATION = Accessories.of("slot_group_loader");
-
     private IdentifiableResourceReloadListener identifiedSlotLoader = null;
     private IdentifiableResourceReloadListener identifiedEntitySlotLoader = null;
 
@@ -41,17 +37,17 @@ public class DataLoaderImpl extends DataLoaderBase {
     public void registerListeners() {
         var manager = ResourceManagerHelper.get(PackType.SERVER_DATA);
 
-        this.identifiedSlotLoader = new IdentifiableResourceReloadListenerImpl(SLOT_LOADER_LOCATION, SlotTypeLoader.INSTANCE);
-        this.identifiedEntitySlotLoader = new IdentifiableResourceReloadListenerImpl(ENTITY_SLOT_LOADER_LOCATION, EntitySlotLoader.INSTANCE, SLOT_LOADER_LOCATION);
+        this.identifiedSlotLoader = new IdentifiableResourceReloadListenerImpl(Accessories.SLOT_LOADER_LOCATION, SlotTypeLoader.INSTANCE);
+        this.identifiedEntitySlotLoader = new IdentifiableResourceReloadListenerImpl(Accessories.ENTITY_SLOT_LOADER_LOCATION, EntitySlotLoader.INSTANCE, Accessories.SLOT_LOADER_LOCATION);
 
         manager.registerReloadListener(identifiedSlotLoader);
         manager.registerReloadListener(identifiedEntitySlotLoader);
-        manager.registerReloadListener(new IdentifiableResourceReloadListenerImpl(SLOT_GROUP_LOADER_LOCATION, SlotGroupLoader.INSTANCE, SLOT_LOADER_LOCATION));
+        manager.registerReloadListener(new IdentifiableResourceReloadListenerImpl(Accessories.SLOT_GROUP_LOADER_LOCATION, SlotGroupLoader.INSTANCE, Accessories.SLOT_LOADER_LOCATION));
 
         manager.registerReloadListener(new SimpleSynchronousResourceReloadListener() {
             @Override
             public ResourceLocation getFabricId() {
-                return Accessories.of("data_reload_hook");
+                return Accessories.DATA_RELOAD_HOOK;
             }
 
             @Override
