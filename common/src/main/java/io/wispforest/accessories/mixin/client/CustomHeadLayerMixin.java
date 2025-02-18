@@ -36,7 +36,7 @@ public abstract class CustomHeadLayerMixin<S extends LivingEntityRenderState, M 
         ItemStackRenderState prevState = null;
 
         if (livingEntityRenderState instanceof LivingEntityRenderStateExtension extension) {
-            var entity = extension.getEntity();
+            var entity = extension.accessories$getEntity();
 
             if (entity.isPresent()) {
                 var capability = entity.get().accessoriesCapability();

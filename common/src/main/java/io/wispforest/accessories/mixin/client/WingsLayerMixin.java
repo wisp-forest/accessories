@@ -52,7 +52,7 @@ public abstract class WingsLayerMixin<S extends HumanoidRenderState, M extends E
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;get(Lnet/minecraft/core/component/DataComponentType;)Ljava/lang/Object;"))
     private Object accessories$adjustGliderItemstack(ItemStack instance, DataComponentType dataComponentType, Operation<Object> original, @Local(argsOnly = true) S humanoidRenderState, @Local(ordinal = 0) LocalRef<ItemStack> stack) {
         if (humanoidRenderState instanceof LivingEntityRenderStateExtension extension) {
-            var entity = extension.getEntity();
+            var entity = extension.accessories$getEntity();
 
             if (entity.isPresent()) {
                 var capability = entity.get().accessoriesCapability();

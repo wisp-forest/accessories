@@ -32,7 +32,7 @@ public abstract class CapeLayerMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/entity/layers/CapeLayer;hasLayer(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/client/resources/model/EquipmentClientInfo$LayerType;)Z"))
     private boolean accessories$adjustGliderStackCheck(CapeLayer instance, ItemStack itemStack, EquipmentClientInfo.LayerType layerType, Operation<Boolean> original, @Local(argsOnly = true) PlayerRenderState playerRenderState) {
         if (playerRenderState instanceof LivingEntityRenderStateExtension extension) {
-            var entity = extension.getEntity();
+            var entity = extension.accessories$getEntity();
 
             if (entity.isPresent()) {
                 var capability = entity.get().accessoriesCapability();

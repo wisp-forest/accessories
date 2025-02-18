@@ -5,7 +5,7 @@ import net.minecraft.world.entity.LivingEntity;
 import java.util.Optional;
 
 public interface LivingEntityRenderStateExtension {
-    Optional<LivingEntity> getEntity();
+    Optional<LivingEntity> accessories$getEntity();
 
-    void setEntity(LivingEntity livingEntity);
+    void accessories$setEntity(LivingEntity livingEntity);
 }

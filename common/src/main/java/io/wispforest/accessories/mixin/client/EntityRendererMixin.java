@@ -28,7 +28,7 @@ public abstract class EntityRendererMixin<T extends Entity, S extends EntityRend
 
         if (bl) ((CosmeticArmorLookupTogglable) entity).setLookupToggle(false);
 
-        if (state instanceof LivingEntityRenderState) ((LivingEntityRenderStateExtension) state).setEntity((LivingEntity) entity);
+        if (state instanceof LivingEntityRenderState) ((LivingEntityRenderStateExtension) state).accessories$setEntity((LivingEntity) entity);
 
         return state;
     }

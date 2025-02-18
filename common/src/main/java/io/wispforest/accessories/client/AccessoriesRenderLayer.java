@@ -59,7 +59,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
 
     @Override
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, S entityRenderState, float f, float g) {
-        var possibleEntity = (Optional<T>) ((LivingEntityRenderStateExtension) entityRenderState).getEntity();
+        var possibleEntity = (Optional<T>) ((LivingEntityRenderStateExtension) entityRenderState).accessories$getEntity();
 
         if (possibleEntity.isEmpty()) {
             // TODO: FIGURE OUT SOLUTION FOR ERRORING IF UNABLE TO RENDER

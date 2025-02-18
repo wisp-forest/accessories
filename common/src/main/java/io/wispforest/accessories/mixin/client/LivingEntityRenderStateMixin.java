@@ -18,12 +18,12 @@ public abstract class LivingEntityRenderStateMixin implements LivingEntityRender
     private LivingEntity livingEntity = null;
 
     @Override
-    public Optional<LivingEntity> getEntity() {
+    public Optional<LivingEntity> accessories$getEntity() {
         return Optional.ofNullable(this.livingEntity);
     }
 
     @Override
-    public void setEntity(LivingEntity livingEntity) {
+    public void accessories$setEntity(LivingEntity livingEntity) {
         this.livingEntity = livingEntity;
     }
 }
