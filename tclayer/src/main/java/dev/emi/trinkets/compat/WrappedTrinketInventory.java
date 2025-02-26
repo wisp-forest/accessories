@@ -22,6 +22,10 @@ public class WrappedTrinketInventory extends TrinketInventory {
         this.container = (AccessoriesContainer) container;
     }
 
+    public void setOtherName(String value) {
+        ((WrappedSlotType) this.getSlotType()).setOtherName(value);
+    }
+
     @Override
     public Map<ResourceLocation, AttributeModifier> getModifiers() {
         return container.getModifiers();

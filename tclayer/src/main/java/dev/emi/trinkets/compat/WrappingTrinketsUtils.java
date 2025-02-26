@@ -26,6 +26,10 @@ public class WrappingTrinketsUtils {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public static Optional<SlotReference> createTrinketsReference(io.wispforest.accessories.api.slot.SlotReference slotReference){
+        return createTrinketsReference(slotReference, false);
+    }
+
+    public static Optional<SlotReference> createTrinketsReference(io.wispforest.accessories.api.slot.SlotReference slotReference, boolean allowAlternativeHand){
         try {
             var capability = AccessoriesCapability.get(slotReference.entity());
 
@@ -36,6 +40,10 @@ public class WrappingTrinketsUtils {
             var slotType = SlotTypeLoader.getSlotType(slotReference.entity().level(), container.getSlotName());
 
             var trinketInv = new WrappedTrinketInventory(new LivingEntityTrinketComponent(slotReference.entity()), container, slotType);
+
+            if (allowAlternativeHand && slotReference.slotName().equals("hand") && (slotReference.slot() % 2 != 0)) {
+                trinketInv.setOtherName("offhand");
+            }
 
             return Optional.of(new SlotReference(trinketInv, slotReference.slot()));
         } catch (Exception e){
