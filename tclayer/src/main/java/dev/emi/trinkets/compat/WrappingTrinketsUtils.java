@@ -144,7 +144,7 @@ public class WrappingTrinketsUtils {
 
     public static String trinketsToAccessories_Group(String trinketType){
         return switch (trinketType){
-            case "legs", "feet" -> "leg";
+            case "legs" -> "leg";
             case "offhand", "hand" -> "arm";
             case "charm" -> "misc";
             default -> trinketType;
