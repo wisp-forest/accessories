@@ -24,6 +24,8 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -34,6 +36,7 @@ import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
+import net.fabricmc.fabric.impl.attachment.AttachmentTargetImpl;
 import net.fabricmc.fabric.mixin.gamerule.GameRulesAccessor;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -157,6 +160,14 @@ public class AccessoriesFabric implements ModInitializer {
             AccessoriesNetworking.CHANNEL.serverHandle(player).send(new InvalidateEntityCache(player.getId()));
 
             AccessoriesEventHandler.onTracking(player, player);
+        });
+
+        var afterDefault = Accessories.of("after_default");
+
+        ServerPlayerEvents.AFTER_RESPAWN.addPhaseOrdering(Event.DEFAULT_PHASE, afterDefault);
+
+        ServerPlayerEvents.AFTER_RESPAWN.register(afterDefault, (oldPlayer, newPlayer, alive) -> {
+            if (!alive) AccessoriesEventHandler.onTracking(newPlayer, newPlayer);
         });
 
         Accessories.RULE_KEEP_ACCESSORY_INVENTORY = GameRuleRegistry.register("accessories.keepAccessoryInventory", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(false));
