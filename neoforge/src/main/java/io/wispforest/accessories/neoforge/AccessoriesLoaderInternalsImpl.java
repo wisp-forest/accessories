@@ -16,6 +16,6 @@ public class AccessoriesLoaderInternalsImpl {
     }
 
     public static Path getConfigPath() {
-        return FMLLoader.getGamePath().resolve(FMLPaths.CONFIGDIR.relative())
+        return FMLLoader.getGamePath().resolve(FMLPaths.CONFIGDIR.relative());
     }
 }
