@@ -3,6 +3,8 @@ package io.wispforest.accessories.neoforge;
 import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 
+import java.nio.file.Path;
+
 public class AccessoriesLoaderInternalsImpl {
 
     public static boolean isDevelopmentEnv() {
