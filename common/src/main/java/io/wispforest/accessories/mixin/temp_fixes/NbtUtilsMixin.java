@@ -1,4 +1,4 @@
-package io.wispforest.accessories.mixin;
+package io.wispforest.accessories.mixin.temp_fixes;
 
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.ListTag;
@@ -12,6 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.UUID;
 
+// TODO: REMOVE IN THE FUTURE 1.21.5?
 @Mixin(NbtUtils.class)
 public abstract class NbtUtilsMixin {
     @Inject(method = "loadUUID", at = @At(value = "HEAD"), cancellable = true)
