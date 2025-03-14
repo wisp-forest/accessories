@@ -116,6 +116,9 @@ public class ClientRenderingUtils {
                         handle(compoundFunction.renderingFunctions(), arm, targetEntity, entityModel, poseStack, buffer, packedLight, packedOverlay, color);
                     }
                 }
+                case RenderingFunction.Renderer renderer -> {
+                    
+                }
             }
         }
     }
