@@ -27,7 +27,7 @@
           "description": "A List of transformations to before calling the the given rendering function",
           "type": "array",
           "items": {
-            "$ref": "./transformation_schema.json"
+            "$ref": "https://github.com/wisp-forest/accessories/blob/1.21.x/common/src/main/resources/schemas/transformation_schema.json"
           }
         },
         "rendering_function": {
