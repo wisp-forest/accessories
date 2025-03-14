@@ -69,18 +69,6 @@ public class AccessoriesFabric implements ModInitializer {
 
         AccessoriesFabricNetworkHandler.INSTANCE.init();
 
-        ServerLivingEntityEvents.AFTER_DEATH.register((livingEntity, damageSource) -> {
-            var droppedStacks = AccessoriesEventHandler.onDeath(livingEntity, damageSource);
-
-            for (var droppedStack : droppedStacks) {
-                if (livingEntity instanceof Player player) {
-                    player.drop(droppedStack, true);
-                } else {
-                    livingEntity.spawnAtLocation(droppedStack);
-                }
-            }
-        });
-
         ServerTickEvents.START_WORLD_TICK.register(AccessoriesEventHandler::onWorldTick);
 
         ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> {

@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import io.wispforest.accessories.api.events.extra.ExtraEventHandler;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -24,6 +25,22 @@ public abstract class LivingEntityMixin {
     }
 
     //--
+
+    @Inject(method = "dropAllDeathLoot", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;dropEquipment()V"))
+    private void handleAccessoriesDrop(DamageSource damageSource, CallbackInfo ci) {
+        var entity = (LivingEntity) (Object) this;
+        var droppedStacks = AccessoriesEventHandler.onDeath(entity, damageSource);
+
+        if (droppedStacks == null) return;
+
+        for (var droppedStack : droppedStacks) {
+            if (entity instanceof Player player) {
+                player.drop(droppedStack, true);
+            } else {
+                entity.spawnAtLocation(droppedStack);
+            }
+        }
+    }
 
     @WrapOperation(method = "dropAllDeathLoot", constant = @Constant(classValue = Player.class))
     private boolean accessories$allowAllLivingEntities(Object object, Operation<Boolean> original){
