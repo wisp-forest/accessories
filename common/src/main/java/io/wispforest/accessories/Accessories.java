@@ -14,6 +14,7 @@ import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.format.jankson.JanksonDeserializer;
 import io.wispforest.endec.format.jankson.JanksonSerializer;
 import net.fabricmc.fabric.api.util.TriState;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,6 +30,18 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 
 public class Accessories {
+
+    public static final boolean DEBUG;
+
+    static {
+        boolean debug = AccessoriesLoaderInternals.isDevelopmentEnv();
+
+        if (System.getProperty("owo.debug") != null) {
+            debug = Boolean.getBoolean("owo.debug");
+        }
+
+        DEBUG = debug;
+    }
 
     @ApiStatus.Internal
     public static GameRules.Key<GameRules.BooleanValue> RULE_KEEP_ACCESSORY_INVENTORY = null;

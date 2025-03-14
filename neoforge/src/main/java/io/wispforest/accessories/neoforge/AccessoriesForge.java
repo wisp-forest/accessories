@@ -7,6 +7,7 @@ import io.wispforest.accessories.commands.AccessoriesCommands;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.utils.ManagedEndecDataLoader;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
@@ -144,6 +145,10 @@ public class AccessoriesForge {
     public void commonInit(FMLCommonSetupEvent event) {
         AccessoriesNetworking.init();
 
+        ManagedEndecDataLoader.init(AccessoriesNetworking.CHANNEL, playerConsumer -> {
+            NeoForge.EVENT_BUS.<OnDatapackSyncEvent>addListener(syncEvent -> syncEvent.getRelevantPlayers().forEach(playerConsumer::accept));
+        });
+
         Accessories.RULE_KEEP_ACCESSORY_INVENTORY = GameRules.register("accessories.keepAccessoryInventory", GameRules.Category.PLAYER, GameRules.BooleanValue.create(false));
     }
 
@@ -163,6 +168,11 @@ public class AccessoriesForge {
         intermediateRegisterListeners(event::addListener);
 
         AccessoriesInternalsImpl.setContext(event.getConditionContext());
+
+        ManagedEndecDataLoader.iterateAllLoaders(managedEndecDataLoader -> {
+            managedEndecDataLoader.setupOps(event.getRegistryAccess());
+            event.addListener(managedEndecDataLoader);
+        });
     }
 
     // This exists as a way to register things within the TCLayer without depending on NeoForge to do this within a mixin

@@ -59,9 +59,22 @@ public class AccessoriesCommands {
 
     //accessories edit {}
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context) {
+        var base = Commands.literal("accessories")
+                .requires(commandSourceStack -> commandSourceStack.hasPermission(Commands.LEVEL_GAMEMASTERS));
+
+        if (Accessories.DEBUG) {
+            base.then(
+                    Commands.literal("create-render-stack")
+                            .executes(ctx -> {
+                                TempUtilCommands.createRenderStack(ctx.getSource().getPlayerOrException());
+
+                                return 1;
+                            })
+            );
+        }
+
         dispatcher.register(
-                Commands.literal("accessories")
-                        .requires(commandSourceStack -> commandSourceStack.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                base
                         .then(
                                 Commands.literal("edit")
                                         .then(

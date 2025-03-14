@@ -3,6 +3,8 @@ package io.wispforest.accessories.api.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.HeadedModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.world.entity.LivingEntity;
@@ -11,10 +13,10 @@ import org.joml.Quaternionf;
 
 import java.util.List;
 
+@Environment(EnvType.CLIENT)
 public class ClientTransformationUtils {
 
-    @Environment(EnvType.CLIENT)
-    public static void transformStack(List<Transformation> transformations, PoseStack poseStack, HumanoidModel<? extends LivingEntity> model, Runnable renderCall) {
+    public static void transformStack(List<Transformation> transformations, PoseStack poseStack, EntityModel<? extends LivingEntity> model, Runnable renderCall) {
         poseStack.pushPose();
 
         transformStack(transformations, poseStack, model);
@@ -24,15 +26,13 @@ public class ClientTransformationUtils {
         poseStack.popPose();
     }
 
-    @Environment(EnvType.CLIENT)
-    public static void transformStack(List<Transformation> transformations, PoseStack poseStack, HumanoidModel<? extends LivingEntity> model) {
+    public static void transformStack(List<Transformation> transformations, PoseStack poseStack, EntityModel<? extends LivingEntity> model) {
         for (var transformation : transformations) {
             transform(transformation, poseStack, model);
         }
     }
 
-    @Environment(EnvType.CLIENT)
-    private static void transform(Transformation value, PoseStack poseStack, HumanoidModel<? extends LivingEntity> model) {
+    private static void transform(Transformation value, PoseStack poseStack, EntityModel<? extends LivingEntity> model) {
         switch (value) {
             case Transformation.Translation translation -> {
                 var translationVector = translation.translation();
@@ -69,22 +69,28 @@ public class ClientTransformationUtils {
     }
 
     @Nullable
-    @Environment(EnvType.CLIENT)
-    private static ModelPart getPart(String partKey, HumanoidModel<? extends LivingEntity> model) {
-        return switch (partKey) {
-            case "head" -> model.head;
-            case "hat" -> model.hat;
-            case "body" -> model.body;
-            case "rightArm" -> model.rightArm;
-            case "leftArm" -> model.leftArm;
-            case "rightLeg" -> model.rightLeg;
-            case "leftLeg" -> model.leftLeg;
-            default -> {
-                // TOOD: Handle error by log or something?
-                //throw new IllegalStateException("Unable to locate the given model part for the given model!: " + partKey);
+    private static ModelPart getPart(String partKey, EntityModel<? extends LivingEntity> model) {
+        if (partKey.equals("head") && model instanceof HeadedModel headedModel) {
+            return headedModel.getHead();
+        }
 
-                yield null;
-            }
-        };
+        if (model instanceof HumanoidModel<? extends LivingEntity> humanoidModel) {
+            return switch (partKey) {
+                case "hat" -> humanoidModel.hat;
+                case "body" -> humanoidModel.body;
+                case "rightArm" -> humanoidModel.rightArm;
+                case "leftArm" -> humanoidModel.leftArm;
+                case "rightLeg" -> humanoidModel.rightLeg;
+                case "leftLeg" -> humanoidModel.leftLeg;
+                default -> {
+                    // TOOD: Handle error by log or something?
+                    //throw new IllegalStateException("Unable to locate the given model part for the given model!: " + partKey);
+
+                    yield null;
+                }
+            };
+        }
+
+        return null;
     }
 }

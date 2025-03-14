@@ -64,7 +64,7 @@ public class DataLoaderImpl extends DataLoaderBase {
         super.registerListeners();
     }
 
-    private record IdentifiableResourceReloadListenerImpl(ResourceLocation location, PreparableReloadListener listener, Set<ResourceLocation> dependencies) implements IdentifiableResourceReloadListener {
+    public record IdentifiableResourceReloadListenerImpl(ResourceLocation location, PreparableReloadListener listener, Set<ResourceLocation> dependencies) implements IdentifiableResourceReloadListener {
 
         public IdentifiableResourceReloadListenerImpl(ResourceLocation location, PreparableReloadListener listener, ResourceLocation ...dependencies){
             this(location, listener, new HashSet<>(List.of(dependencies)));
