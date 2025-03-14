@@ -8,12 +8,14 @@ import net.minecraft.client.model.HeadedModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 
 import java.util.List;
 
 @Environment(EnvType.CLIENT)
+@ApiStatus.Experimental
 public class ClientTransformationUtils {
 
     public static void transformStack(List<Transformation> transformations, PoseStack poseStack, EntityModel<? extends LivingEntity> model, Runnable renderCall) {

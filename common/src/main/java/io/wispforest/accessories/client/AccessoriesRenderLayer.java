@@ -1,15 +1,12 @@
 package io.wispforest.accessories.client;
 
 import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.caching.ClientRenderingUtils;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
-import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
