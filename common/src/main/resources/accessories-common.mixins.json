@@ -73,7 +73,8 @@
     "StriderMixin",
     "HorseInventoryMenuAccessor",
     "owo.ConfigWrapperAccessor",
-    "owo.NbtDeserializerMixin"
+    "owo.NbtDeserializerMixin",
+    "StateHolderAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

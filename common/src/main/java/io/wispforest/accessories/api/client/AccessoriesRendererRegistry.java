@@ -1,9 +1,18 @@
 package io.wispforest.accessories.api.client;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.caching.ClientRenderingUtils;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryRenderOverrideComponent;
+import io.wispforest.accessories.api.slot.SlotReference;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.equipment.Equippable;
@@ -60,6 +69,10 @@ public class AccessoriesRendererRegistry {
      */
     @Nullable
     public static AccessoryRenderer getRender(ItemStack stack){
+        if (stack.has(AccessoriesDataComponents.CUSTOM_RENDERER)) {
+            return DataDrivenAccessoryRenderer.INSTANCE;
+        }
+
         var renderOverrides = stack.getOrDefault(AccessoriesDataComponents.RENDER_OVERRIDE, AccessoryRenderOverrideComponent.DEFAULT);
 
         var defaultRenderOverride = renderOverrides.defaultRenderOverride();
@@ -97,5 +110,31 @@ public class AccessoriesRendererRegistry {
         CACHED_RENDERERS.clear();
 
         RENDERERS.forEach((item, supplier) -> CACHED_RENDERERS.put(item, supplier.get()));
+    }
+
+    public static class DataDrivenAccessoryRenderer implements AccessoryRenderer {
+
+        public static final DataDrivenAccessoryRenderer INSTANCE = new DataDrivenAccessoryRenderer();
+
+        @Override
+        public <M extends LivingEntity> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+            var data = stack.get(AccessoriesDataComponents.CUSTOM_RENDERER);
+
+            ClientRenderingUtils.handle(data.renderingFunctions(), null, reference.entity(), model, matrices, multiBufferSource, 15728880, OverlayTexture.NO_OVERLAY, -1);
+        }
+
+        @Override
+        public <M extends LivingEntity> void renderOnFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light) {
+            var data = stack.get(AccessoriesDataComponents.CUSTOM_RENDERER);
+
+            ClientRenderingUtils.handle(data.renderingFunctions(), arm, reference.entity(), model, matrices, multiBufferSource, 15728880, OverlayTexture.NO_OVERLAY, -1);
+        }
+
+
+        // TODO: ATTEMPT TO DEAL WITH ALWAYS RENDERING BY CHECKING THE TREE OF FUNCTIONS TO SEE IF SUCH EXISTS INSTAED OF ALWAYS TRUE
+        @Override
+        public boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference) {
+            return true;
+        }
     }
 }

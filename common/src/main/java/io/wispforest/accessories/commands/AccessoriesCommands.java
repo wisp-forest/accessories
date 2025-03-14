@@ -65,6 +65,17 @@ public class AccessoriesCommands extends CommandBuilderHelper {
     protected void generateTrees(CommandBuildContext context) {
         getOrCreateNode("accessories").requires(stack -> stack.hasPermission(Commands.LEVEL_GAMEMASTERS));
 
+        if (Accessories.DEBUG) {
+            base.then(
+                    Commands.literal("create-render-stack")
+                            .executes(ctx -> {
+                                TempUtilCommands.createRenderStack(ctx.getSource().getPlayerOrException());
+
+                                return 1;
+                            })
+            );
+        }
+
         optionalArgExectution(
                 "accessories/edit",
                 argumentHolder("entity", EntityArgument.entity(), AccessoriesCommands::getOrThrowLivingEntity),

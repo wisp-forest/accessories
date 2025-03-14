@@ -11,6 +11,8 @@ import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
+import io.wispforest.accessories.networking.client.InvalidateEntityCache;
+import io.wispforest.accessories.utils.ManagedEndecDataLoader;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
@@ -43,6 +45,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
         AccessoriesClient.init();
 
         AccessoriesNetworking.initClient();
+        ManagedEndecDataLoader.initClient(AccessoriesNetworking.CHANNEL);
 
         AccessoriesMenuTypes.registerClientMenuConstructors(MenuScreens::register);
 

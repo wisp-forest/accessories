@@ -2,6 +2,7 @@ package io.wispforest.accessories.api.client;
 
 import io.wispforest.endec.Endec;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 
 /**
  * Class acting as a wrapper around {@link Direction} with easy
@@ -21,5 +22,9 @@ public enum Side {
 
     Side(Direction direction) {
         this.direction = direction;
+    }
+
+    public Vec3i rotationAxis() {
+        return this.direction.getNormal();
     }
 }

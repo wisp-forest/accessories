@@ -7,6 +7,7 @@ import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
+import io.wispforest.accessories.utils.ManagedEndecDataLoader;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
@@ -61,6 +62,7 @@ public class AccessoriesClientForge {
         AccessoriesClient.init();
 
         AccessoriesNetworking.initClient();
+        ManagedEndecDataLoader.initClient(AccessoriesNetworking.CHANNEL);
     }
 
     public void initKeybindings(RegisterKeyMappingsEvent event) {

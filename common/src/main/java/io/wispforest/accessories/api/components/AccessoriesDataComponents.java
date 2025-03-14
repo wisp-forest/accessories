@@ -17,33 +17,31 @@ public class AccessoriesDataComponents {
     private static final SerializationContext BASE_CTX = SerializationContext.attributes(SerializationAttributes.HUMAN_READABLE);
 
     public static final DataComponentType<AccessoryNestContainerContents> NESTED_ACCESSORIES = register(Accessories.of("nested_accessories"),
-            builder -> builder.persistent(CodecUtils.toCodec(AccessoryNestContainerContents.ENDEC, BASE_CTX))
-                    .networkSynchronized(CodecUtils.toPacketCodec(AccessoryNestContainerContents.ENDEC))
+            builder -> builder.endec(AccessoryNestContainerContents.ENDEC, BASE_CTX)
     );
 
     public static final DataComponentType<AccessoryRenderOverrideComponent> RENDER_OVERRIDE = register(Accessories.of("render_override"),
-            builder -> builder.persistent(CodecUtils.toCodec(AccessoryRenderOverrideComponent.ENDEC, BASE_CTX))
-                    .networkSynchronized(CodecUtils.toPacketCodec(AccessoryRenderOverrideComponent.ENDEC))
+            builder -> builder.endec(AccessoryRenderOverrideComponent.ENDEC, BASE_CTX)
     );
 
     public static final DataComponentType<AccessoryRenderTransformations> RENDER_TRANSFORMATIONS = register(Accessories.of("render_transformations"),
-            builder -> builder.persistent(CodecUtils.toCodec(AccessoryRenderTransformations.ENDEC, BASE_CTX))
-                    .networkSynchronized(CodecUtils.toPacketCodec(AccessoryRenderTransformations.ENDEC))
+            builder -> builder.endec(AccessoryRenderTransformations.ENDEC, BASE_CTX)
     );
 
     public static final DataComponentType<AccessorySlotValidationComponent> SLOT_VALIDATION = register(Accessories.of("slot_validation"),
-            builder -> builder.persistent(CodecUtils.toCodec(AccessorySlotValidationComponent.ENDEC, BASE_CTX))
-                    .networkSynchronized(CodecUtils.toPacketCodec(AccessorySlotValidationComponent.ENDEC))
+            builder -> builder.endec(AccessorySlotValidationComponent.ENDEC, BASE_CTX)
     );
 
     public static final DataComponentType<AccessoryItemAttributeModifiers> ATTRIBUTES = register(Accessories.of("attributes"),
-            builder -> builder.persistent(CodecUtils.toCodec(AccessoryItemAttributeModifiers.ENDEC, BASE_CTX))
-                    .networkSynchronized(CodecUtils.toPacketCodec(AccessoryItemAttributeModifiers.ENDEC))
+            builder -> builder.endec(AccessoryItemAttributeModifiers.ENDEC, BASE_CTX)
     );
 
     public static final DataComponentType<AccessoryStackSizeComponent> STACK_SIZE = register(Accessories.of("stack_size"),
-            builder -> builder.persistent(CodecUtils.toCodec(AccessoryStackSizeComponent.ENDEC, BASE_CTX))
-                    .networkSynchronized(CodecUtils.toPacketCodec(AccessoryStackSizeComponent.ENDEC))
+            builder -> builder.endec(AccessoryStackSizeComponent.ENDEC, BASE_CTX)
+    );
+
+    public static final DataComponentType<AccessoryCustomRendererComponent> CUSTOM_RENDERER = register(Accessories.of("custom_renderer"),
+            builder -> builder.endec(AccessoryCustomRendererComponent.ENDEC, BASE_CTX)
     );
 
     private static <T> DataComponentType<T> register(ResourceLocation string, UnaryOperator<DataComponentType.Builder<T>> unaryOperator) {

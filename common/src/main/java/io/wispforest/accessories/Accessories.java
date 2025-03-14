@@ -11,6 +11,7 @@ import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.ScreenVariantPing;
 import io.wispforest.accessories.utils.EndecUtils;
 import net.fabricmc.fabric.api.util.TriState;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,6 +32,18 @@ public class Accessories {
     public static final ResourceLocation ENTITY_SLOT_LOADER_LOCATION = Accessories.of("entity_slot_loader");
     public static final ResourceLocation SLOT_GROUP_LOADER_LOCATION = Accessories.of("slot_group_loader");
     public static final ResourceLocation DATA_RELOAD_HOOK = Accessories.of("data_reload_hook");
+
+    public static final boolean DEBUG;
+
+    static {
+        boolean debug = AccessoriesLoaderInternals.isDevelopmentEnv();
+
+        if (System.getProperty("owo.debug") != null) {
+            debug = Boolean.getBoolean("owo.debug");
+        }
+
+        DEBUG = debug;
+    }
 
     @ApiStatus.Internal
     public static GameRules.Key<GameRules.BooleanValue> RULE_KEEP_ACCESSORY_INVENTORY = null;
