@@ -3,7 +3,6 @@ package io.wispforest.accessories.api.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
-import io.wispforest.accessories.api.caching.ClientRenderingUtils;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryRenderOverrideComponent;
 import io.wispforest.accessories.api.slot.SlotReference;

@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
@@ -30,6 +31,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
+@ApiStatus.Experimental
 public sealed interface RenderingFunction permits RenderingFunction.Block, RenderingFunction.Compound, RenderingFunction.Entity, RenderingFunction.Item, RenderingFunction.Model, RenderingFunction.Particle, RenderingFunction.Renderer, RenderingFunction.Transformation {
 
     static Transformation ofTransformation(List<io.wispforest.accessories.api.client.Transformation> transformations, RenderingFunction innerRendering) {

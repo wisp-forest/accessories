@@ -1,10 +1,8 @@
-package io.wispforest.accessories.api.caching;
+package io.wispforest.accessories.api.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.api.client.ClientTransformationUtils;
-import io.wispforest.accessories.api.client.RenderingFunction;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -24,13 +22,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 import org.slf4j.Logger;
 
 import java.util.List;
-import java.util.Objects;
 
+@ApiStatus.Experimental
 @Environment(EnvType.CLIENT)
 public class ClientRenderingUtils {
     public static void handle(List<RenderingFunction> functions, @Nullable HumanoidArm arm, LivingEntity targetEntity, EntityModel<? extends LivingEntity> entityModel, PoseStack poseStack, MultiBufferSource buffer, int packedLight, int packedOverlay, int color) {
@@ -117,7 +116,7 @@ public class ClientRenderingUtils {
                     }
                 }
                 case RenderingFunction.Renderer renderer -> {
-                    
+
                 }
             }
         }
