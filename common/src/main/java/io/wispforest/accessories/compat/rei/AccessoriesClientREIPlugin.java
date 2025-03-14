@@ -37,12 +37,6 @@ public class AccessoriesClientREIPlugin implements REIClientPlugin {
 
             return List.of(new Rectangle(x, y, width, height));
         });
-
-        zones.register(AccessoriesExperimentalScreen.class, screen -> {
-            return screen.getComponentRectangles().stream()
-                    .map(rectangle -> new Rectangle(rectangle.x(), rectangle.y(), rectangle.width(), rectangle.height()))
-                    .toList();
-        });
     }
 
     @Override

@@ -27,8 +27,6 @@
     "client.owo.ComponentMixin",
     "client.owo.ComponentStubMixin",
     "client.owo.DiscreteSliderComponentAccessor",
-    "client.owo.OwoEmiPluginMixin",
-    "client.owo.OwoReiPluginMixin",
     "client.owo.ScissorStackMixin",
     "client.owo.ScrollContainerMixin",
     "sodium.MPOATVConstructingVertexConsumerMixin_SodiumImpl"

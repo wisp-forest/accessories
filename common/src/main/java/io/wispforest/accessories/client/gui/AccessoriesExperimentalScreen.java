@@ -64,6 +64,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.wispforest.accessories.client.gui.components.ComponentUtils.BACKGROUND_SLOT_RENDERING_SURFACE;
 
@@ -94,8 +95,9 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         return OwoUIAdapter.create(this, Containers::verticalFlow);
     }
 
-    public List<PositionedRectangle> getComponentRectangles() {
-        return this.uiAdapter.rootComponent.children().stream().map(component -> (PositionedRectangle) component).toList();
+    @Override
+    public Stream<io.wispforest.owo.ui.core.Component> componentsForExclusionAreas() {
+        return this.uiAdapter.rootComponent.children().stream();
     }
 
     @Override
@@ -133,12 +135,9 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
     @Override
     public void disableSlot(Slot slot) {
-        disableSlot(slot.index);
-    }
+        super.disableSlot(slot);
 
-    @Override
-    public void disableSlot(int index) {
-        super.disableSlot(index);
+        var index = slot.index;
 
         var state = this.changedSlots.getOrDefault(index, null);
 
@@ -155,28 +154,15 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
     @Override
     public void enableSlot(Slot slot) {
-        enableSlot(slot.index);
-    }
+        super.enableSlot(slot);
 
-    @Override
-    public void enableSlot(int index) {
-        super.enableSlot(index);
+        var index = slot.index;
 
         var state = this.changedSlots.getOrDefault(index, null);
 
         if (state != null && !state) return;
 
         this.changedSlots.put(index, false);
-    }
-
-    @Override
-    protected boolean isSlotEnabled(int index) {
-        return isSlotEnabled(this.menu.slots.get(index));
-    }
-
-    @Override
-    protected boolean isSlotEnabled(Slot slot) {
-        return !((OwoSlotExtension) slot).owo$getDisabledOverride();
     }
 
     //--

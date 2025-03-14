@@ -26,11 +26,5 @@ public class AccessoriesClientEMIPlugin implements EmiPlugin {
 
             consumer.accept(new Bounds(x, y, width, height));
         });
-
-        registry.addExclusionArea(AccessoriesExperimentalScreen.class, (screen, consumer) -> {
-            screen.getComponentRectangles().forEach(rectangle -> {
-                consumer.accept(new Bounds(rectangle.x(), rectangle.y(), rectangle.width(), rectangle.height()));
-            });
-        });
     }
 }

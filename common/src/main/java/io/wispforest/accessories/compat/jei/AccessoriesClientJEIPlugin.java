@@ -42,7 +42,7 @@ public class AccessoriesClientJEIPlugin implements IModPlugin {
         registration.addGuiContainerHandler(AccessoriesExperimentalScreen.class, new IGuiContainerHandler<AccessoriesExperimentalScreen>() {
             @Override
             public List<Rect2i> getGuiExtraAreas(AccessoriesExperimentalScreen screen) {
-                return screen.getComponentRectangles().stream()
+                return screen.componentsForExclusionAreas()
                         .map(rectangle -> new Rect2i(rectangle.x(), rectangle.y(), rectangle.width(), rectangle.height()))
                         .toList();
             }
