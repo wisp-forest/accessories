@@ -1,9 +1,12 @@
 package io.wispforest.accessories.api.client;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.data.CustomRendererLoader;
+import it.unimi.dsi.fastutil.Pair;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -23,30 +26,36 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import org.apache.commons.lang3.mutable.MutableFloat;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import org.slf4j.Logger;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.UUID;
 
 @ApiStatus.Experimental
 @Environment(EnvType.CLIENT)
 public class ClientRenderingUtils {
-    public static void handle(List<RenderingFunction> functions, @Nullable HumanoidArm arm, LivingEntity targetEntity, EntityModel<? extends LivingEntity> entityModel, PoseStack poseStack, MultiBufferSource buffer, int packedLight, int packedOverlay, int color) {
+
+    private static final Cache<Pair<UUID, RenderingFunction.Particle>, Float> PARTICLE_UPDATE_CACHE = CacheBuilder.newBuilder()
+            .expireAfterAccess(Duration.ofSeconds(30))
+            .build();
+
+    public static void handle(List<RenderingFunction> functions, @Nullable HumanoidArm arm, LivingEntity targetEntity, EntityModel<? extends LivingEntity> entityModel, PoseStack poseStack, MultiBufferSource buffer, float partialTicks, int packedLight, int packedOverlay, int color) {
         var client = Minecraft.getInstance();
         var level = Minecraft.getInstance().level;
-
-        var tickRateManager = level.tickRateManager();
-
-        var partialTicks = client.getTimer().getGameTimeDeltaPartialTick(!tickRateManager.isEntityFrozen(targetEntity));
 
         for (var function : functions) {
             switch (function) {
                 case RenderingFunction.Transformation transformation -> {
                     poseStack.pushPose();
 
-                    ClientTransformationUtils.transformStack(transformation.transformations(), poseStack, entityModel, () -> handle(List.of(transformation.renderingFunction()), arm, targetEntity, entityModel, poseStack, buffer, packedLight, packedOverlay, color));
+                    ClientTransformationUtils.transformStack(transformation.transformations(), poseStack, entityModel, () -> handle(List.of(transformation.renderingFunction()), arm, targetEntity, entityModel, poseStack, buffer, partialTicks, packedLight, packedOverlay, color));
 
                     poseStack.popPose();
                 }
@@ -103,23 +112,36 @@ public class ClientRenderingUtils {
                     );
                 }
                 case RenderingFunction.Particle particleData -> {
-                    var entityPos = targetEntity.getPosition(partialTicks);
+                    var key = Pair.of(targetEntity.getUUID(), particleData);
+                    var prevAmount = PARTICLE_UPDATE_CACHE.getIfPresent(key);
 
-                    var pos = new Vector3f((float) entityPos.x(), (float) entityPos.y(), (float) entityPos.z())
-                            .mulDirection(poseStack.last().pose())
-                            .mul(poseStack.last().normal());
+                    if (prevAmount == null) prevAmount = 0f;
 
-                    renderParticle(level, particleData, pos.x(), pos.y(), pos.z());
+                    var deltaTick = Minecraft.getInstance().getTimer().getGameTimeDeltaTicks();
+
+                    var currentAmount = prevAmount + deltaTick;
+
+                    if (currentAmount >= particleData.delay()) {
+                        var pos = new Vector3f(0, 0, 0)
+                                .mulPosition(poseStack.last().pose())
+                                .add(Minecraft.getInstance().gameRenderer.getMainCamera().getPosition().toVector3f());
+
+                        renderParticle(level, particleData, pos.x(), pos.y(), pos.z());
+
+                        currentAmount = 0;
+                    }
+
+                    PARTICLE_UPDATE_CACHE.put(key, currentAmount);
                 }
                 case RenderingFunction.Compound compoundFunction -> {
                     if (arm == null || compoundFunction.firstPersonArmTarget().hasArm(arm)) {
-                        handle(compoundFunction.renderingFunctions(), arm, targetEntity, entityModel, poseStack, buffer, packedLight, packedOverlay, color);
+                        handle(compoundFunction.renderingFunctions(), arm, targetEntity, entityModel, poseStack, buffer, partialTicks, packedLight, packedOverlay, color);
                     }
                 }
                 case CustomDataRenderer renderer -> {
                     var renderFunction = CustomRendererLoader.getOrResolveRenderer(renderer, !CustomRendererLoader.isConstantResolveTarget());
 
-                    if(renderFunction != null) handle(List.of(renderFunction), arm, targetEntity, entityModel, poseStack, buffer, packedLight, packedOverlay, color);
+                    if(renderFunction != null) handle(List.of(renderFunction), arm, targetEntity, entityModel, poseStack, buffer, partialTicks, packedLight, packedOverlay, color);
                 }
                 default -> throw new IllegalStateException("Unimplemented RendererFunc: " + function.key());
             }

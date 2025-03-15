@@ -4,9 +4,12 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Supplier;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
+import io.wispforest.endec.format.edm.EdmEndec;
+import io.wispforest.endec.format.edm.EdmSerializer;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.CodecUtils;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
@@ -23,6 +26,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -87,8 +91,8 @@ public sealed interface RenderingFunction permits RenderingFunction.Block, Rende
         return new Entity(entityType, data);
     }
 
-    static Particle ofParticle(ParticleOptions particleData, Vector3f delta, float speed, int count, boolean force) {
-        return new Particle(particleData, delta, speed, count, force);
+    static Particle ofParticle(ResourceLocation uniqueId, float delay, ParticleOptions particleData, Vector3f delta, float speed, int count, boolean force) {
+        return new Particle(uniqueId, delay, particleData, delta, speed, count, force);
     }
 
     //--
@@ -168,15 +172,51 @@ public sealed interface RenderingFunction permits RenderingFunction.Block, Rende
         );
     }
 
-    record Particle(ParticleOptions particleData, Vector3f delta, float speed, int count, boolean force) implements RenderingFunction {
+    record Particle(ResourceLocation uniqueId, float delay, ParticleOptions particleData, Vector3f delta, float speed, int count, boolean force) implements RenderingFunction {
+        private static final Endec<ParticleOptions> PARTICLE_OPTIONS_ENDEC = CodecUtils.toEndec(ParticleTypes.CODEC);
+
         public static final StructEndec<Particle> ENDEC = StructEndecBuilder.of(
-                CodecUtils.toEndec(ParticleTypes.CODEC).fieldOf("particle_data", Particle::particleData),
+                MinecraftEndecs.IDENTIFIER.optionalFieldOf("unique_id", Particle::uniqueId, () -> Accessories.of("shared")),
+                Endec.FLOAT.optionalFieldOf("delay", Particle::delay, () -> 20f),
+                PARTICLE_OPTIONS_ENDEC.fieldOf("particle_data", Particle::particleData),
                 EndecUtils.VECTOR_3_F_ENDEC.flatFieldOf(Particle::delta),
                 Endec.FLOAT.optionalFieldOf("speed", Particle::speed, 1f),
                 Endec.INT.optionalFieldOf("count", Particle::count, 1),
                 Endec.BOOLEAN.optionalFieldOf("force", Particle::force, false),
                 Particle::new
         );
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (Particle) obj;
+
+            var rawParticleData = PARTICLE_OPTIONS_ENDEC.encodeFully(EdmSerializer::of, this.particleData);
+            var thatRawParticleData = PARTICLE_OPTIONS_ENDEC.encodeFully(EdmSerializer::of, that.particleData);
+
+            return Objects.equals(rawParticleData, thatRawParticleData) &&
+                    Objects.equals(this.delta, that.delta) &&
+                    Float.floatToIntBits(this.speed) == Float.floatToIntBits(that.speed) &&
+                    this.count == that.count &&
+                    this.force == that.force;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(PARTICLE_OPTIONS_ENDEC.encodeFully(EdmSerializer::of, this.particleData), delta, speed, count, force);
+        }
+
+        @Override
+        public String toString() {
+            return "Particle[" +
+                    "particleData=" + particleData + ", " +
+                    "delta=" + delta + ", " +
+                    "speed=" + speed + ", " +
+                    "count=" + count + ", " +
+                    "force=" + force + ']';
+        }
+
     }
 
     record Compound(List<RenderingFunction> renderingFunctions, ArmTarget firstPersonArmTarget) implements RenderingFunction {

@@ -6,6 +6,7 @@ import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryRenderOverrideComponent;
 import io.wispforest.accessories.api.slot.SlotReference;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -118,15 +119,21 @@ public class AccessoriesRendererRegistry {
         @Override
         public <M extends LivingEntity> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
             var data = stack.get(AccessoriesDataComponents.CUSTOM_RENDERER);
+            var targetEntity = reference.entity();
 
-            ClientRenderingUtils.handle(data.renderingFunctions(), null, reference.entity(), model, matrices, multiBufferSource, 15728880, OverlayTexture.NO_OVERLAY, -1);
+            ClientRenderingUtils.handle(data.renderingFunctions(), null, reference.entity(), model, matrices, multiBufferSource, partialTicks,15728880, OverlayTexture.NO_OVERLAY, -1);
         }
 
         @Override
         public <M extends LivingEntity> void renderOnFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light) {
             var data = stack.get(AccessoriesDataComponents.CUSTOM_RENDERER);
+            var targetEntity = reference.entity();
 
-            ClientRenderingUtils.handle(data.renderingFunctions(), arm, reference.entity(), model, matrices, multiBufferSource, 15728880, OverlayTexture.NO_OVERLAY, -1);
+            var tickRateManager = targetEntity.level().tickRateManager();
+
+            var partialTicks = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(!tickRateManager.isEntityFrozen(targetEntity));
+
+            ClientRenderingUtils.handle(data.renderingFunctions(), arm, reference.entity(), model, matrices, multiBufferSource, partialTicks,15728880, OverlayTexture.NO_OVERLAY, -1);
         }
 
 
