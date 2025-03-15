@@ -3,33 +3,5 @@
   "title": "Data Driven Accessory Renderer",
   "description": "Defines a data driven way of rendering a given custom renderer for an Accessory",
   "type": "object",
-  "properties": {
-    "references": {
-      "title": "References",
-      "description": "A map of reference key to string entry usable within id fields as a way to reuse a renderer structure",
-      "type": "object",
-      "propertyNames": {
-        "pattern": "#.*"
-      },
-      "additionalProperties": {
-        "type": "string",
-        "pattern": "^[a-z0-9/._-]+$"
-      }
-    },
-    "rendering_functions": {
-      "title": "Rendering Functions",
-      "description": "Rendering functions that will be rendered when the compound is unpacked",
-      "type": "array",
-      "items": {
-        "$ref": "https://github.com/wisp-forest/accessories/blob/1.21.x/common/src/main/resources/schemas/rendering_function_schema.json/#"
-      }
-    },
-    "first_person_arm_target": {
-      "title": "Render In First Person",
-      "description": "Controls weather or not the given Render Functions will be rendered in First person",
-      "enum": ["LEFT", "RIGHT", "BOTH", "NONE"],
-      "default": "NONE"
-    }
-  },
-  "required": ["rendering_functions"]
+  "$ref": "https://github.com/wisp-forest/accessories/blob/1.21.x/common/src/main/resources/schemas/rendering_function_schema.json/#/definitions/renderer#"
 }

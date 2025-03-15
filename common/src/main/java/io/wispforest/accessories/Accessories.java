@@ -3,6 +3,7 @@ package io.wispforest.accessories;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
 import io.wispforest.accessories.criteria.AccessoryChangedCriterion;
+import io.wispforest.accessories.data.CustomRendererLoader;
 import io.wispforest.accessories.impl.VanillaItemPredicates;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.menu.ArmorSlotTypes;
@@ -112,6 +113,8 @@ public class Accessories {
     public static AccessoryChangedCriterion ACCESSORY_UNEQUIPPED;
 
     public static void init() {
+        CustomRendererLoader.init();
+
         AllowEntityModificationCallback.EVENT.register((target, player, reference) -> {
             var type = target.getType();
 

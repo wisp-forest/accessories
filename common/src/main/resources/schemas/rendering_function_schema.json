@@ -14,7 +14,7 @@
       "title": "Rendering Function types",
       "description": "All possible Transformations valid within Accessories Transformation Type",
       "type": "string",
-      "enum": [ "transformation", "model", "block", "item", "entity", "particle", "compound" ]
+      "enum": [ "transformation", "model", "block", "item", "entity", "particle", "compound", "renderer"]
     },
     "transformation": {
       "title": "Transformation",
@@ -27,7 +27,7 @@
           "description": "A List of transformations to before calling the the given rendering function",
           "type": "array",
           "items": {
-            "$ref": "https://github.com/wisp-forest/accessories/blob/1.21.x/common/src/main/resources/schemas/transformation_schema.json"
+            "$ref": "https://github.com/wisp-forest/accessories/blob/1.21.x/common/src/main/resources/schemas/transformation_schema.json#"
           }
         },
         "rendering_function": {
@@ -196,6 +196,56 @@
         }
       },
       "required": ["type", "rendering_functions"]
+    },
+    "renderer": {
+      "title": "Renderer",
+      "description": "Either a reference to a Renderer or a defined renderer",
+      "type": "object",
+      "properties": {
+        "type": { "const": "renderer" },
+        "references": {
+          "title": "References",
+          "description": "A map of reference key to string entry usable within id fields as a way to reuse a renderer structure",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "#.*"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[a-z0-9/._-]+$"
+          }
+        },
+        "first_person_arm_target": {
+          "title": "Render In First Person",
+          "description": "Controls weather or not the given Render Functions will be rendered in First person",
+          "enum": ["LEFT", "RIGHT", "BOTH", "NONE"],
+          "default": "NONE"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "renderer_id": {
+              "title": "Renderer Identifier",
+              "description": "The given Renderer Identifier attempting to be used to render",
+              "$ref": "#/definitions/identifier"
+            }
+          }
+        },
+        {
+          "properties": {
+            "rendering_functions": {
+              "title": "Rendering Functions",
+              "description": "Rendering functions that will be rendered when the such is unpacked",
+              "type": "array",
+              "items": {
+                "$ref": "https://github.com/wisp-forest/accessories/blob/1.21.x/common/src/main/resources/schemas/rendering_function_schema.json/#"
+              }
+            }
+          }
+        }
+      ],
+      "required": ["type"]
     }
   },
   "properties": {
@@ -211,6 +261,7 @@
     { "$ref": "#/definitions/item" },
     { "$ref": "#/definitions/entity" },
     { "$ref": "#/definitions/particle" },
-    { "$ref": "#/definitions/compound" }
+    { "$ref": "#/definitions/compound" },
+    { "$ref": "#/definitions/renderer" }
   ]
 }

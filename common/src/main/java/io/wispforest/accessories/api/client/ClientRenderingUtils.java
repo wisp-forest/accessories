@@ -3,6 +3,7 @@ package io.wispforest.accessories.api.client;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.data.CustomRendererLoader;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -115,9 +116,12 @@ public class ClientRenderingUtils {
                         handle(compoundFunction.renderingFunctions(), arm, targetEntity, entityModel, poseStack, buffer, packedLight, packedOverlay, color);
                     }
                 }
-                case RenderingFunction.Renderer renderer -> {
+                case CustomDataRenderer renderer -> {
+                    var renderFunction = CustomRendererLoader.getOrResolveRenderer(renderer, !CustomRendererLoader.isConstantResolveTarget());
 
+                    if(renderFunction != null) handle(List.of(renderFunction), arm, targetEntity, entityModel, poseStack, buffer, packedLight, packedOverlay, color);
                 }
+                default -> throw new IllegalStateException("Unimplemented RendererFunc: " + function.key());
             }
         }
     }

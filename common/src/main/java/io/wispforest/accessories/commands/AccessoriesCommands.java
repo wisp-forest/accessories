@@ -12,7 +12,10 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.api.client.CustomDataRenderer;
 import io.wispforest.accessories.api.components.*;
+import io.wispforest.accessories.data.CustomRendererLoader;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -28,12 +31,16 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.Items;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class AccessoriesCommands extends CommandBuilderHelper {
 
@@ -67,12 +74,50 @@ public class AccessoriesCommands extends CommandBuilderHelper {
 
         if (Accessories.DEBUG) {
             base.then(
-                    Commands.literal("create-render-stack")
+                    Commands.literal("create-renderer-stack")
+                            .then(
+                                    Commands.argument("id", ResourceLocationArgument.id())
+                                            .executes(ctx -> {
+                                                var id = ctx.getArgument("id", ResourceLocation.class);
+
+                                                var player = ctx.getSource().getPlayerOrException();
+
+                                                var itemStack = Items.BEDROCK.getDefaultInstance();
+
+                                                itemStack.set(
+                                                        AccessoriesDataComponents.CUSTOM_RENDERER,
+                                                        new AccessoryCustomRendererComponent(List.of(
+                                                                new CustomDataRenderer(id, Map.of(), List.of(), null)))
+                                                );
+
+                                                itemStack.set(
+                                                        AccessoriesDataComponents.SLOT_VALIDATION,
+                                                        new AccessorySlotValidationComponent(Set.of("any"), Set.of())
+                                                );
+
+                                                player.addItem(itemStack);
+
+                                                return 1;
+                                            })
+                            )
+            ).then(
+                    Commands.literal("listen-to-renderer")
+                            .then(
+                                    Commands.argument("id", ResourceLocationArgument.id())
+                                            .executes(ctx -> {
+                                                var id = ctx.getArgument("id", ResourceLocation.class);
+
+                                                CustomRendererLoader.constantFileResolving(ctx.getSource().getServer(), id);
+
+                                                return 1;
+                                            })
+                            )
                             .executes(ctx -> {
-                                TempUtilCommands.createRenderStack(ctx.getSource().getPlayerOrException());
+                                CustomRendererLoader.constantFileResolving(ctx.getSource().getServer(), null);
 
                                 return 1;
                             })
+
             );
         }
 

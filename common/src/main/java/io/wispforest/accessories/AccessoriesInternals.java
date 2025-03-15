@@ -6,6 +6,7 @@ import dev.architectury.injectables.annotations.ExpectPlatform;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
+import io.wispforest.accessories.utils.ManagedEndecDataLoader;
 import io.wispforest.endec.Endec;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
@@ -28,6 +29,9 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
+import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
@@ -91,6 +95,11 @@ public class AccessoriesInternals {
 
     @ExpectPlatform
     public static void addAttributeTooltips(@Nullable Player player, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, Consumer<Component> tooltipAddCallback, Item.TooltipContext context, TooltipFlag flag) {
+        throw new AssertionError();
+    }
+
+    @ExpectPlatform
+    public static void registerLoader(ManagedEndecDataLoader<?> loader, Consumer<HolderLookup.Provider> registrySetCall) {
         throw new AssertionError();
     }
 }

@@ -74,7 +74,8 @@
     "HorseInventoryMenuAccessor",
     "owo.ConfigWrapperAccessor",
     "owo.NbtDeserializerMixin",
-    "StateHolderAccessor"
+    "StateHolderAccessor",
+    "ConfigurableRegistryLookupAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

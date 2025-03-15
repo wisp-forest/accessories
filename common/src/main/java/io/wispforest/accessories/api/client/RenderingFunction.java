@@ -27,12 +27,10 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @ApiStatus.Experimental
-public sealed interface RenderingFunction permits RenderingFunction.Block, RenderingFunction.Compound, RenderingFunction.Entity, RenderingFunction.Item, RenderingFunction.Model, RenderingFunction.Particle, RenderingFunction.Renderer, RenderingFunction.Transformation {
+public sealed interface RenderingFunction permits RenderingFunction.Block, RenderingFunction.Compound, RenderingFunction.Entity, RenderingFunction.Item, RenderingFunction.Model, RenderingFunction.Particle, CustomDataRenderer, RenderingFunction.Transformation {
 
     static Transformation ofTransformation(List<io.wispforest.accessories.api.client.Transformation> transformations, RenderingFunction innerRendering) {
         return new Transformation(transformations, innerRendering);
@@ -104,7 +102,7 @@ public sealed interface RenderingFunction permits RenderingFunction.Block, Rende
                 case "entity" -> RenderingFunction.Entity.ENDEC;
                 case "particle" -> RenderingFunction.Particle.ENDEC;
                 case "compound" -> RenderingFunction.Compound.ENDEC;
-                case "renderer" -> RenderingFunction.Renderer.ENDEC;
+                case "renderer" -> CustomDataRenderer.ENDEC;
                 default -> throw new IllegalStateException("A invalid rendering function was created meaning such is unable to be decoded!");
             },
             RenderingFunction::key,
@@ -186,13 +184,6 @@ public sealed interface RenderingFunction permits RenderingFunction.Block, Rende
                 RenderingFunction.ENDEC.listOf().fieldOf("rendering_functions", Compound::renderingFunctions),
                 Endec.forEnum(ArmTarget.class).optionalFieldOf("first_person_arm_target", Compound::firstPersonArmTarget, () -> ArmTarget.NONE),
                 Compound::new
-        );
-    }
-
-    record Renderer(ResourceLocation rendererId) implements RenderingFunction {
-        public static final StructEndec<Renderer> ENDEC = StructEndecBuilder.of(
-                MinecraftEndecs.IDENTIFIER.fieldOf("renderer_id", Renderer::rendererId),
-                Renderer::new
         );
     }
 
