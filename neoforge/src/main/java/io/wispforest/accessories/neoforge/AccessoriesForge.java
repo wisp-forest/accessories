@@ -169,8 +169,8 @@ public class AccessoriesForge {
 
         AccessoriesInternalsImpl.setContext(event.getConditionContext());
 
-        ManagedEndecDataLoader.iterateAllLoaders(managedEndecDataLoader -> {
-            managedEndecDataLoader.setupOps(event.getRegistryAccess());
+        AccessoriesInternalsImpl.TO_BE_LOADED.forEach((managedEndecDataLoader, setupRegistryCallback) -> {
+            setupRegistryCallback.accept(event.getRegistryAccess());
             event.addListener(managedEndecDataLoader);
         });
     }

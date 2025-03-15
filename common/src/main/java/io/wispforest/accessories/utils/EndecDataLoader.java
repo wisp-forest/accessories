@@ -13,7 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -21,7 +20,9 @@ import java.util.function.BiConsumer;
 // TODO: 1.21.4 ADJUSTMENTS SHOULD BE MADE TO USE LESS DIRECT CODE ANYWAYS
 public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListener {
 
-    private static final Gson GSON = new GsonBuilder().setLenient().setPrettyPrinting().create();
+    protected static final Gson GSON = new GsonBuilder().setLenient().setPrettyPrinting().create();
+
+    protected final String type;
 
     protected final ResourceLocation id;
     protected final Endec<T> endec;
@@ -30,6 +31,8 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
 
     protected EndecDataLoader(SerializationContext context, ResourceLocation id, String type, Endec<T> endec) {
         super(GSON, type);
+
+        this.type = type;
 
         this.id = id;
 
@@ -49,25 +52,19 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
         };
     }
 
-    public abstract void handleRawEntry(ResourceLocation identifier, T t);
-
-    private final Map<ResourceLocation, JsonElement> loadedObjects = new LinkedHashMap<>();
+    protected abstract void handleRawEntry(ResourceLocation identifier, T t);
 
     @Override
     protected void apply(Map<ResourceLocation, JsonElement> loadedObjects, net.minecraft.server.packs.resources.ResourceManager resourceManager, ProfilerFiller profiler) {
-        this.loadedObjects.clear();
-        this.loadedObjects.putAll(loadedObjects);
+        for (var entry : loadedObjects.entrySet()) {
+            var location = entry.getKey();
+            var t = this.endec.decodeFully(this.context, GsonDeserializer::of, entry.getValue());
 
-        for (var entry : this.loadedObjects.entrySet()) {
-            var data = this.endec.decodeFully(context, GsonDeserializer::of, entry.getValue());
-
-            this.handleRawEntry(entry.getKey(), data);
+            this.handleRawEntry(location, t);
         }
-
-        this.loadedObjects.clear();
     }
 
-    public ResourceLocation getId() {
+    public ResourceLocation getLoaderId() {
         return id;
     }
 }

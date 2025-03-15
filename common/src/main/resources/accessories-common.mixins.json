@@ -59,7 +59,8 @@
     "owo.ConfigWrapperAccessor",
     "ArmorSlotMixin",
     "PatchedDataComponentMapMixin",
-    "StateHolderAccessor"
+    "StateHolderAccessor",
+    "ConfigurableRegistryLookupAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

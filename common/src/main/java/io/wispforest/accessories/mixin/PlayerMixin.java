@@ -1,14 +1,10 @@
 package io.wispforest.accessories.mixin;
 
-import io.wispforest.accessories.commands.TempUtilCommands;
 import io.wispforest.accessories.pond.DroppedStacksExtension;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Collection;
 import java.util.List;
@@ -27,12 +23,5 @@ public abstract class PlayerMixin implements DroppedStacksExtension {
     @Override
     public Collection<ItemStack> toBeDroppedStacks() {
         return this.toBeDroppedStacks;
-    }
-
-    @Inject(method = "tick", at = @At("HEAD"))
-    private void injectHookForTick(CallbackInfo ci) {
-        var player = (Player) (Object) this;
-
-        if (!player.level().isClientSide() && TempUtilCommands.shouldKeepCreatingStack(player)) TempUtilCommands.createRenderStack(player);
     }
 }

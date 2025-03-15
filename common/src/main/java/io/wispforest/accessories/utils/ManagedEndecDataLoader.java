@@ -3,6 +3,8 @@ package io.wispforest.accessories.utils;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.gson.JsonElement;
+import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.mixin.ConfigurableRegistryLookupAccessor;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.StructEndec;
@@ -14,6 +16,7 @@ import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.player.Player;
@@ -27,36 +30,35 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-public abstract class ManagedEndecDataLoader<T> extends EndecDataLoader<T>  {
+public class ManagedEndecDataLoader<T> extends EndecDataLoader<T>  {
 
     private static final Map<ResourceLocation, ManagedEndecDataLoader<?>> ALL_DATA_LOADERS = new LinkedHashMap<>();
 
-    private final Endec<BiMap<ResourceLocation, T>> mapEndec;
-
     private final BiMap<ResourceLocation, T> server = HashBiMap.create();
     private final BiMap<ResourceLocation, T> client = HashBiMap.create();
+
+    private final Endec<BiMap<ResourceLocation, T>> mapEndec;
+
+    private BiConsumer<ResourceLocation, T> handleEntry = (location, t) -> {};
 
     protected ManagedEndecDataLoader(ResourceLocation id, String type, Endec<T> endec) {
         super(SerializationContext.empty(), id, type, endec);
 
         this.mapEndec = biMapEndec(ResourceLocation::toString, ResourceLocation::tryParse, endec);
+
+        ALL_DATA_LOADERS.put(id, this);
+
+        AccessoriesInternals.registerLoader(this, this::setupOps);
     }
 
     public static <T> ManagedEndecDataLoader<T> of(ResourceLocation id, String type, Endec<T> endec) {
-        return of(id, type, endec, (identifier, t) -> {});
+        return of(id, type, endec);
     }
 
-    public static <T> ManagedEndecDataLoader<T> of(ResourceLocation id, String type, Endec<T> endec, BiConsumer<ResourceLocation, T> handleEntry) {
-        return of(id, type, endec, handleEntry);
-    }
+    public ManagedEndecDataLoader<T> onEntryAdd(BiConsumer<ResourceLocation, T> value) {
+        this.handleEntry = value;
 
-    public static <T> ManagedEndecDataLoader<T> of(ResourceLocation id, String type, Endec<T> endec, UnaryOperator<ResourceLocation> mapId, BiConsumer<ResourceLocation, T> handleEntry) {
-        var loader = new ManagedEndecDataLoader<T>(id, type, endec) {
-            @Override public ResourceLocation mapId(ResourceLocation fileId) { return mapId.apply(fileId); }
-            @Override public void handleIdEntry(ResourceLocation id, T t) { handleEntry.accept(id, t); }
-        };
-
-        return loader;
+        return this;
     }
 
     @Nullable
@@ -64,18 +66,12 @@ public abstract class ManagedEndecDataLoader<T> extends EndecDataLoader<T>  {
         return (ManagedEndecDataLoader<T>) ALL_DATA_LOADERS.get(id);
     }
 
-    public abstract ResourceLocation mapId(ResourceLocation fileId);
-
     @Override
-    public void handleRawEntry(ResourceLocation fileId, T t) {
-        var id = mapId(fileId);
-
-        handleIdEntry(fileId, t);
+    protected void handleRawEntry(ResourceLocation id, T t) {
+        handleEntry.accept(id, t);
 
         server.put(id, t);
     }
-
-    public abstract void handleIdEntry(ResourceLocation id, T t);
 
     public Endec<BiMap<ResourceLocation, T>> mapEndec() {
         return this.mapEndec;
@@ -84,7 +80,11 @@ public abstract class ManagedEndecDataLoader<T> extends EndecDataLoader<T>  {
     private void handleUnsafeSync(BiMap<ResourceLocation, ?> map) {
         this.client.clear();
         this.client.putAll((Map<? extends ResourceLocation, ? extends T>) map);
+
+        this.onSync();
     }
+
+    protected void onSync() {}
 
     public Map<ResourceLocation, T> getEntries(Level level) {
         return getEntries(level.isClientSide());
@@ -94,10 +94,12 @@ public abstract class ManagedEndecDataLoader<T> extends EndecDataLoader<T>  {
         return Collections.unmodifiableMap(isClientSide ? client : server);
     }
 
+    @Nullable
     public T getEntry(ResourceLocation id, Level level) {
         return getEntry(id, level.isClientSide());
     }
 
+    @Nullable
     public T getEntry(ResourceLocation id, boolean isClientSide) {
         return (isClientSide ? client : server).get(id);
     }
@@ -113,8 +115,12 @@ public abstract class ManagedEndecDataLoader<T> extends EndecDataLoader<T>  {
     //--
 
     @ApiStatus.Internal
-    public ManagedEndecDataLoader<T> setupOps(HolderLookup.Provider registries) {
-        this.context = context.withAttributes(RegistriesAttribute.of((RegistryAccess) registries));
+    private ManagedEndecDataLoader<T> setupOps(HolderLookup.Provider registries) {
+        if (registries instanceof ReloadableServerResources.ConfigurableRegistryLookup lookup) {
+            this.context = context.withAttributes(RegistriesAttribute.of(((ConfigurableRegistryLookupAccessor) lookup).getRegistryAccess()));
+        } else {
+            this.context = context.withAttributes(RegistriesAttribute.of((RegistryAccess) registries));
+        }
 
         return this;
     }
@@ -123,7 +129,7 @@ public abstract class ManagedEndecDataLoader<T> extends EndecDataLoader<T>  {
     @ApiStatus.Internal
     protected Map<ResourceLocation, JsonElement> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
         if (!this.context.hasAttribute(RegistriesAttribute.REGISTRIES)) {
-            throw new IllegalStateException("Unable to prepare files as the given Registry access has not been setup on the server! [Id: " + this.getId() + "]");
+            throw new IllegalStateException("Unable to prepare files as the given Registry access has not been setup on the server! [Id: " + this.getLoaderId() + "]");
         }
 
         return super.prepare(resourceManager, profiler);
@@ -143,10 +149,6 @@ public abstract class ManagedEndecDataLoader<T> extends EndecDataLoader<T>  {
 
             return map;
         });
-    }
-
-    public static void iterateAllLoaders(Consumer<ManagedEndecDataLoader<?>> loaderConsumer) {
-        ALL_DATA_LOADERS.values().forEach(loaderConsumer);
     }
 
     @ApiStatus.Internal

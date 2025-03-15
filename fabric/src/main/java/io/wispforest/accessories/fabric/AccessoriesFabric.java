@@ -31,22 +31,14 @@ import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
-import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.mixin.gamerule.GameRulesAccessor;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.GameRules;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 public class AccessoriesFabric implements ModInitializer {
 
@@ -70,14 +62,6 @@ public class AccessoriesFabric implements ModInitializer {
 
         ManagedEndecDataLoader.init(AccessoriesNetworking.CHANNEL, playerConsumer -> {
             ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> playerConsumer.accept(player));
-        });
-
-        ManagedEndecDataLoader.iterateAllLoaders(managedEndecDataLoader -> {
-            ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(managedEndecDataLoader.getId(), provider -> {
-                managedEndecDataLoader.setupOps(provider);
-
-                return new DataLoaderImpl.IdentifiableResourceReloadListenerImpl(managedEndecDataLoader.getId(), managedEndecDataLoader);
-            });
         });
 
         AccessoriesDataComponents.init();

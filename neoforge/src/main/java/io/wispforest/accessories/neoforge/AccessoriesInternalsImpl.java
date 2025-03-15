@@ -8,6 +8,7 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import io.wispforest.accessories.api.AccessoriesHolder;
+import io.wispforest.accessories.utils.ManagedEndecDataLoader;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.menu.AccessoriesMenuData;
@@ -25,6 +26,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.LivingEntity;
@@ -49,6 +51,8 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -131,5 +135,11 @@ public class AccessoriesInternalsImpl {
         if (modifiers.isEmpty()) return;
 
         AttributeUtil.applyTextFor(stack, tooltipAddCallback, modifiers, neoTooltipCtx);
+    }
+
+    public static final Map<ManagedEndecDataLoader<?>, Consumer<HolderLookup.Provider>> TO_BE_LOADED = new HashMap<>();
+
+    public static void registerLoader(ManagedEndecDataLoader<?> loader, Consumer<HolderLookup.Provider> registrySetCall) {
+        TO_BE_LOADED.put(loader, registrySetCall);
     }
 }

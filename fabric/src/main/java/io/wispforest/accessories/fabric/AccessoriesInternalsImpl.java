@@ -9,9 +9,11 @@ import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.mixin.ItemStackAccessor;
+import io.wispforest.accessories.utils.ManagedEndecDataLoader;
 import io.wispforest.endec.Endec;
 import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -28,6 +30,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.tags.TagKey;
 import net.minecraft.tags.TagManager;
 import net.minecraft.world.entity.LivingEntity;
@@ -143,5 +146,13 @@ public class AccessoriesInternalsImpl {
         for (Map.Entry<Holder<Attribute>, AttributeModifier> entry : multimap.entries()) {
             ((ItemStackAccessor) (Object) ItemStack.EMPTY).accessories$addModifierTooltip(tooltipAddCallback, player, entry.getKey(), entry.getValue());
         }
+    }
+
+    public static void registerLoader(ManagedEndecDataLoader<?> loader, Consumer<HolderLookup.Provider> registrySetCall) {
+        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(loader.getLoaderId(), provider -> {
+            registrySetCall.accept(provider);
+
+            return new DataLoaderImpl.IdentifiableResourceReloadListenerImpl(loader.getLoaderId(), loader);
+        });
     }
 }
