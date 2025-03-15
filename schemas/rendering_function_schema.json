@@ -197,12 +197,9 @@
       },
       "required": ["type", "rendering_functions"]
     },
-    "renderer": {
-      "title": "Renderer",
-      "description": "Either a reference to a Renderer or a defined renderer",
+    "typeless_renderer": {
       "type": "object",
       "properties": {
-        "type": { "const": "renderer" },
         "references": {
           "title": "References",
           "description": "A map of reference key to string entry usable within id fields as a way to reuse a renderer structure",
@@ -213,7 +210,8 @@
           "additionalProperties": {
             "type": "string",
             "pattern": "^[a-z0-9/._-]+$"
-          }
+          },
+          "default": {}
         },
         "first_person_arm_target": {
           "title": "Render In First Person",
@@ -230,7 +228,8 @@
               "description": "The given Renderer Identifier attempting to be used to render",
               "$ref": "#/definitions/identifier"
             }
-          }
+          },
+          "required": ["renderer_id"]
         },
         {
           "properties": {
@@ -239,12 +238,21 @@
               "description": "Rendering functions that will be rendered when the such is unpacked",
               "type": "array",
               "items": {
-                "$ref": "https://github.com/wisp-forest/accessories/blob/1.21.x/common/src/main/resources/schemas/rendering_function_schema.json/#"
+                "$ref": "#"
               }
             }
-          }
+          },
+          "required": ["rendering_functions"]
         }
-      ],
+      ]
+    },
+    "renderer": {
+      "title": "Renderer",
+      "description": "Either a reference to a Renderer or a defined renderer",
+      "$ref": "#/definitions/typeless_renderer",
+      "properties": {
+        "type": { "const": "renderer" }
+      },
       "required": ["type"]
     }
   },

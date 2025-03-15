@@ -1,4 +1,5 @@
 {
+  "contentMediaType": "",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Data Driven Accessory Renderer",
   "description": "Defines a data driven way of rendering a given custom renderer for an Accessory",
