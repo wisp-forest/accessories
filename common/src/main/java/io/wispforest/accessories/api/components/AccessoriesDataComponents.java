@@ -1,7 +1,6 @@
 package io.wispforest.accessories.api.components;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.owo.serialization.CodecUtils;
 import io.wispforest.endec.SerializationAttributes;
 import io.wispforest.endec.SerializationContext;
 import net.minecraft.core.Registry;
@@ -42,6 +41,10 @@ public class AccessoriesDataComponents {
 
     public static final DataComponentType<AccessoryCustomRendererComponent> CUSTOM_RENDERER = register(Accessories.of("custom_renderer"),
             builder -> builder.endec(AccessoryCustomRendererComponent.ENDEC, BASE_CTX)
+    );
+
+    public static final DataComponentType<AccessoryItemCosmeticOverride> ITEM_MODEL_OVERRIDE = register(Accessories.of("item_cosmetic_override"),
+            builder -> builder.endec(AccessoryItemCosmeticOverride.ENDEC, BASE_CTX)
     );
 
     private static <T> DataComponentType<T> register(ResourceLocation string, UnaryOperator<DataComponentType.Builder<T>> unaryOperator) {

@@ -22,10 +22,12 @@ import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.ComponentArgument;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
@@ -72,29 +74,43 @@ public class AccessoriesCommands {
             base.then(
                     Commands.literal("create-renderer-stack")
                             .then(
-                                    Commands.argument("id", ResourceLocationArgument.id())
-                                            .executes(ctx -> {
-                                                var id = ctx.getArgument("id", ResourceLocation.class);
+                                    Commands.argument("custom_name", ComponentArgument.textComponent(context))
+                                            .then(
+                                                    Commands.argument("renderer_id", ResourceLocationArgument.id())
+                                                            .then(
+                                                                    Commands.argument("item_model_id", ResourceLocationArgument.id()).executes(ctx -> {
+                                                                        var rendererId = ctx.getArgument("renderer_id", ResourceLocation.class);
+                                                                        var modelId = ctx.getArgument("item_model_id", ResourceLocation.class);
+                                                                        var component = ComponentArgument.getComponent(ctx, "custom_name");
 
-                                                var player = ctx.getSource().getPlayerOrException();
+                                                                        var player = ctx.getSource().getPlayerOrException();
 
-                                                var itemStack = Items.BEDROCK.getDefaultInstance();
+                                                                        var itemStack = Items.STICK.getDefaultInstance();
 
-                                                itemStack.set(
-                                                        AccessoriesDataComponents.CUSTOM_RENDERER,
-                                                        new AccessoryCustomRendererComponent(List.of(
-                                                                new CustomDataRenderer(id, Map.of(), List.of(), null)))
-                                                );
+                                                                        itemStack.set(DataComponents.ITEM_NAME, component);
 
-                                                itemStack.set(
-                                                        AccessoriesDataComponents.SLOT_VALIDATION,
-                                                        new AccessorySlotValidationComponent(Set.of("any"), Set.of())
-                                                );
+                                                                        itemStack.set(
+                                                                                AccessoriesDataComponents.CUSTOM_RENDERER,
+                                                                                new AccessoryCustomRendererComponent(List.of(
+                                                                                        new CustomDataRenderer(rendererId, Map.of(), List.of(), null)))
+                                                                        );
 
-                                                player.addItem(itemStack);
+                                                                        itemStack.set(
+                                                                                AccessoriesDataComponents.ITEM_MODEL_OVERRIDE,
+                                                                                new AccessoryItemCosmeticOverride(modelId)
+                                                                        );
 
-                                                return 1;
-                                            })
+                                                                        itemStack.set(
+                                                                                AccessoriesDataComponents.SLOT_VALIDATION,
+                                                                                new AccessorySlotValidationComponent(Set.of("any"), Set.of())
+                                                                        );
+
+                                                                        player.addItem(itemStack);
+
+                                                                        return 1;
+                                                                    })
+                                                            )
+                                            )
                             )
             ).then(
                     Commands.literal("listen-to-renderer")
