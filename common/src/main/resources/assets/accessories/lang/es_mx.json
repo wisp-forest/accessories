@@ -251,7 +251,7 @@
 
   "text.config.accessories.option.clientOptions.equipControl": "Modo de Equipamiento Rápido",
   "text.config.accessories.option.clientOptions.equipControl.tooltip": [
-    "Cambia el modo utilizado para equipar rápidamente una pila desde tu mano."
+    "Cambia el modo utilizado para equipar rápidamente un stack desde tu mano."
   ],
 
   "text.config.accessories.enum.playerEquipControl.must_crouch": "Requiere Agacharse",
@@ -278,13 +278,13 @@
 
   "text.config.accessories.option.screenOptions.allowSlotScrolling": "Permitir Desplazamiento de Ranuras",
   "text.config.accessories.option.screenOptions.allowSlotScrolling.tooltip": [
-    "Útil si el mod dado permite el desplazamiento de pilas\n",
+    "Útil si el mod dado permite el desplazamiento de stacks\n",
     "lo que lleva a problemas al pasar por Accesories."
   ],
 
-  "text.config.accessories.option.screenOptions.showEquippedStackSlotType": "Mostrar Tipo de Ranura de Pilas Equipadas",
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType": "Mostrar Tipo de Ranura de stacks Equipadas",
   "text.config.accessories.option.screenOptions.showEquippedStackSlotType.tooltip": [
-    "Muestra el tipo de ranura en la que la pila está equipada dentro de su tooltip."
+    "Muestra el tipo de ranura en la que el stack está equipada dentro de su tooltip."
   ],
 
   "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor": "Hacer que la Entidad Siga el Cursor del Ratón",
