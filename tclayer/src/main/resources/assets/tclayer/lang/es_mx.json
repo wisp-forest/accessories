@@ -1,0 +1,15 @@
+{
+  "text.config.tclayer.option.useInjectionMethod": "Usar Inyección de Etiquetas para compartir Entradas de Etiquetas de Ranuras",
+  "text.config.tclayer.option.useInjectionMethod.tooltip": [
+    "Útil para permitir que las etiquetas de curiosidades y accesorios\n",
+    "compartan entradas. Esta opción actúa como un interruptor entre\n",
+    "usar la inyección de etiquetas directa versus un método más lento."
+  ],
+
+  "text.config.tclayer.option.slotIdRedirects": "Redirecciones de Ranuras",
+
+  "text.config.tclayer.option.slotIdRedirects.trinketsId": "Identificador de Chucherías",
+  "text.config.tclayer.option.slotIdRedirects.accessoriesId": "Identificador de Accesorios",
+  "text.config.tclayer.option.slotIdRedirects.additionalSlot": "Ranuras Adicionales"
+
+}
