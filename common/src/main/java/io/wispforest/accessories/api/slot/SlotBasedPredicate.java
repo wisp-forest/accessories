@@ -36,4 +36,8 @@ public interface SlotBasedPredicate {
     static <T> SlotBasedPredicate ofClass(Class<T> clazz) {
         return (level, slotType, slot, stack) -> TriState.of(clazz.isInstance(stack.getItem()));
     }
+
+    static SlotBasedPredicate withEntity(EntityBasedPredicate entityBasedPredicate) {
+        return entityBasedPredicate;
+    }
 }

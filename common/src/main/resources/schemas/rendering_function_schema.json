@@ -1,0 +1,275 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Rendering Function",
+  "description": "A object used to call some rendering related Function",
+  "type": "object",
+  "definitions": {
+    "identifier": {
+      "title": "Identifier",
+      "description": "Minecraft Identifier with a namespace and path between a colon (:)",
+      "type": "string",
+      "pattern": "(^[a-z0-9\/._-]+$|#.*)"
+    },
+    "rendering_function_types": {
+      "title": "Rendering Function types",
+      "description": "All possible Transformations valid within Accessories Transformation Type",
+      "type": "string",
+      "enum": [ "transformation", "model", "block", "item", "entity", "particle", "compound", "renderer"]
+    },
+    "transformation": {
+      "title": "Transformation",
+      "description": "Allows for the transformation of the given inner rendering functions",
+      "type": "object",
+      "properties": {
+        "type": { "const": "transformation" },
+        "transformations": {
+          "title": "Transformations",
+          "description": "A List of transformations to before calling the the given rendering function",
+          "type": "array",
+          "items": {
+            "$ref": "https://github.com/wisp-forest/accessories/blob/1.21.x/common/src/main/resources/schemas/transformation_schema.json#"
+          }
+        },
+        "rendering_function": {
+          "$ref": "./rendering_function_schema.json"
+        }
+      },
+      "required": [ "type", "transformations", "rendering_function" ]
+    },
+    "model": {
+      "title": "Model",
+      "description": "Renders the given model",
+      "type": "object",
+      "properties": {
+        "type": { "const": "model" },
+        "id": {
+          "title": "Model Identifier",
+          "description": "The given Model Identifier attempting to be rendered",
+          "$ref": "#/definitions/identifier"
+        },
+        "variant": {
+          "title": "Model Variant",
+          "description": "The variant info for the given model",
+          "type": "string"
+        }
+      },
+      "required": ["type", "id"]
+    },
+    "block": {
+      "title": "Block",
+      "description": "Renders the given block and any corresponding entity",
+      "type": "object",
+      "properties": {
+        "type": { "const": "block" },
+        "id": {
+          "title": "Block Identifier",
+          "description": "The given Block Identifier attempting to be rendered",
+          "$ref": "#/definitions/identifier"
+        },
+        "properties": {
+          "title": "Properties",
+          "description": "The given block properties used to create a the given state",
+          "type": "object"
+        },
+        "entity_id": {
+          "title": "Block Entity Identifier",
+          "description": "The given Block Entity Identifier attempting to be rendered",
+          "$ref": "#/definitions/identifier"
+        },
+        "data": {
+          "title": "Block Entity Data",
+          "description": "The given data to load for the given block entity",
+          "type": "object"
+        }
+      },
+      "required": ["type","id"]
+    },
+    "item": {
+      "title": "Item",
+      "description": "Renders the given Item as a stack",
+      "type": "object",
+      "properties": {
+        "type": { "const": "item" },
+        "id": {
+          "title": "Item Identifier",
+          "description": "The given Item Identifier attempting to be rendered",
+          "$ref": "#/definitions/identifier"
+        },
+        "count": {
+          "title": "Count",
+          "description": "The given amount for the ItemStack",
+          "type": "integer",
+          "minimum": 0
+        },
+        "components": {
+          "title": "Components",
+          "description": "Data components for the given ItemStack"
+        }
+      },
+      "required": ["type", "id"]
+    },
+    "entity": {
+      "title": "Entity",
+      "description": "Renders the given Entity",
+      "type": "object",
+      "properties": {
+        "type": { "const": "entity" },
+        "entity_id": {
+          "title": "Block Entity Identifier",
+          "description": "The given Block Entity Identifier attempting to be rendered",
+          "$ref": "#/definitions/identifier"
+        },
+        "data": {
+          "title": "Entity Data",
+          "description": "The given data to load for the given entity",
+          "type": "object"
+        }
+      },
+      "required": ["type", "entity_id"]
+    },
+    "particle": {
+      "title": "Particle",
+      "description": "Renders the given Particle",
+      "type": "object",
+      "properties": {
+        "type": { "const": "particle" },
+        "particle_data": {
+          "title": "Particle Data",
+          "description": "All data required to construct the particle",
+          "type": "object"
+        },
+        "x": {
+          "title": "X Offset",
+          "description": "The X offset applied to the created particle",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y Offset",
+          "description": "The Y offset applied to the created particle",
+          "type": "number"
+        },
+        "z": {
+          "title": "Z Offset",
+          "description": "The Z offset applied to the created particle",
+          "type": "number"
+        },
+        "speed": {
+          "title": "Speed",
+          "description": "The speed applied to the created particle",
+          "type": "number",
+          "default": 1
+        },
+        "count": {
+          "title": "Count",
+          "description": "The amount of particles to create",
+          "type": "integer",
+          "default": 1
+        },
+        "force": {
+          "title": "Force",
+          "description": "Should particle always Render",
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "required": ["type", "particle_data", "x", "y", "z"]
+    },
+    "compound": {
+      "title": "Compound",
+      "description": "A list of Rendering functions",
+      "type": "object",
+      "properties": {
+        "type": { "const": "compound" },
+        "rendering_functions": {
+          "title": "Rendering Functions",
+          "description": "Rendering functions that will be rendered when the compound is unpacked",
+          "type": "array",
+          "items": {
+            "$ref": "#"
+          }
+        },
+        "first_person_arm_target": {
+          "title": "Render In First Person",
+          "description": "Controls weather or not the given Render Functions will be rendered in First person",
+          "enum": ["LEFT", "RIGHT", "BOTH", "NONE"],
+          "default": "NONE"
+        }
+      },
+      "required": ["type", "rendering_functions"]
+    },
+    "typeless_renderer": {
+      "type": "object",
+      "properties": {
+        "references": {
+          "title": "References",
+          "description": "A map of reference key to string entry usable within id fields as a way to reuse a renderer structure",
+          "type": "object",
+          "propertyNames": {
+            "pattern": "#.*"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[a-z0-9/._-]+$"
+          },
+          "default": {}
+        },
+        "first_person_arm_target": {
+          "title": "Render In First Person",
+          "description": "Controls weather or not the given Render Functions will be rendered in First person",
+          "enum": ["LEFT", "RIGHT", "BOTH", "NONE"],
+          "default": "NONE"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "renderer_id": {
+              "title": "Renderer Identifier",
+              "description": "The given Renderer Identifier attempting to be used to render",
+              "$ref": "#/definitions/identifier"
+            }
+          },
+          "required": ["renderer_id"]
+        },
+        {
+          "properties": {
+            "rendering_functions": {
+              "title": "Rendering Functions",
+              "description": "Rendering functions that will be rendered when the such is unpacked",
+              "type": "array",
+              "items": {
+                "$ref": "#"
+              }
+            }
+          },
+          "required": ["rendering_functions"]
+        }
+      ]
+    },
+    "renderer": {
+      "title": "Renderer",
+      "description": "Either a reference to a Renderer or a defined renderer",
+      "$ref": "#/definitions/typeless_renderer",
+      "properties": {
+        "type": { "const": "renderer" }
+      },
+      "required": ["type"]
+    }
+  },
+  "properties": {
+    "type": {
+      "$ref": "#/definitions/rendering_function_types"
+    }
+  },
+  "required": ["type"],
+  "oneOf": [
+    { "$ref": "#/definitions/transformation" },
+    { "$ref": "#/definitions/model" },
+    { "$ref": "#/definitions/block" },
+    { "$ref": "#/definitions/item" },
+    { "$ref": "#/definitions/entity" },
+    { "$ref": "#/definitions/particle" },
+    { "$ref": "#/definitions/compound" },
+    { "$ref": "#/definitions/renderer" }
+  ]
+}

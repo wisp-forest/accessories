@@ -1,16 +1,12 @@
 package io.wispforest.accessories.api.events;
 
-import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.world.Container;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -30,6 +26,12 @@ public interface OnDropCallback {
                 return dropRule;
             }
     );
+
+    static DropRule getAlternativeRule(DropRule dropRule, ItemStack stack, SlotReference reference, DamageSource damageSource) {
+        var result = OnDropCallback.EVENT.invoker().onDrop(dropRule, stack, reference, damageSource);
+
+        return result != null ? result : dropRule;
+    }
 
     /**
      * @param dropRule  The current drop rule to use for the given stack

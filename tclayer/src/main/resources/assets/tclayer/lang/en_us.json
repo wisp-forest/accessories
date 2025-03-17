@@ -1,0 +1,15 @@
+{
+  "text.config.tclayer.option.useInjectionMethod": "Use Tag Injection to share Slot Tag Entries",
+  "text.config.tclayer.option.useInjectionMethod.tooltip": [
+    "Useful to allow for curios and accessories tags to\n",
+    "share entries. This option acts as a toggle between\n",
+    "using direct tag injection verses a slower method."
+  ],
+
+  "text.config.tclayer.option.slotIdRedirects": "Slot Redirects",
+
+  "text.config.tclayer.option.slotIdRedirects.trinketsId": "Trinket Identifier",
+  "text.config.tclayer.option.slotIdRedirects.accessoriesId": "Accessory Identifier",
+  "text.config.tclayer.option.slotIdRedirects.additionalSlot": "Additional Slots"
+
+}

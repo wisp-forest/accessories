@@ -9,7 +9,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.arguments.AngleArgument;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
@@ -25,11 +25,19 @@ public final class SlotArgumentType implements ArgumentType<String> {
 
     @Override
     public String parse(StringReader reader) throws CommandSyntaxException {
-        var slot = reader.readUnquotedString();
+        ResourceLocation arg = ResourceLocation.read(reader);
 
-        if (slot.equals("any")) return "any";
+        String slotName = "";
 
-        var slotType = SlotTypeLoader.INSTANCE.getSlotTypes(false).getOrDefault(slot, null);
+        if(arg.getNamespace().equals("minecraft")) {
+            slotName = arg.getPath();
+        } else {
+            slotName = arg.toString();
+        }
+
+        if (slotName.equals("any")) return "any";
+
+        var slotType = SlotTypeLoader.INSTANCE.getSlotTypes(false).getOrDefault(slotName, null);
 
         if (slotType == null) throw AccessoriesCommands.INVALID_SLOT_TYPE.create();
 

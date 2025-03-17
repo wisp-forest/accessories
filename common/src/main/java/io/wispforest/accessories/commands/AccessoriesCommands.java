@@ -13,30 +13,34 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.api.client.CustomDataRenderer;
 import io.wispforest.accessories.api.components.*;
-import io.wispforest.accessories.api.slot.SlotGroup;
+import io.wispforest.accessories.data.CustomRendererLoader;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.utils.AttributeUtils;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.ComponentArgument;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.ResourceArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.Items;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class AccessoriesCommands {
 
@@ -63,25 +67,89 @@ public class AccessoriesCommands {
 
     //accessories edit {}
     public static void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context) {
+        var base = Commands.literal("accessories")
+                .requires(commandSourceStack -> commandSourceStack.hasPermission(Commands.LEVEL_GAMEMASTERS));
+
+        if (Accessories.DEBUG) {
+            base.then(
+                    Commands.literal("create-renderer-stack")
+                            .then(
+                                    Commands.argument("custom_name", ComponentArgument.textComponent(context))
+                                            .then(
+                                                    Commands.argument("renderer_id", ResourceLocationArgument.id())
+                                                            .then(
+                                                                    Commands.argument("item_model_id", ResourceLocationArgument.id()).executes(ctx -> {
+                                                                        var rendererId = ctx.getArgument("renderer_id", ResourceLocation.class);
+                                                                        var modelId = ctx.getArgument("item_model_id", ResourceLocation.class);
+                                                                        var component = ComponentArgument.getComponent(ctx, "custom_name");
+
+                                                                        var player = ctx.getSource().getPlayerOrException();
+
+                                                                        var itemStack = Items.STICK.getDefaultInstance();
+
+                                                                        itemStack.set(DataComponents.ITEM_NAME, component);
+
+                                                                        itemStack.set(
+                                                                                AccessoriesDataComponents.CUSTOM_RENDERER,
+                                                                                new AccessoryCustomRendererComponent(List.of(
+                                                                                        new CustomDataRenderer(rendererId, Map.of(), List.of(), null)))
+                                                                        );
+
+                                                                        itemStack.set(
+                                                                                AccessoriesDataComponents.ITEM_MODEL_OVERRIDE,
+                                                                                new AccessoryItemCosmeticOverride(modelId)
+                                                                        );
+
+                                                                        itemStack.set(
+                                                                                AccessoriesDataComponents.SLOT_VALIDATION,
+                                                                                new AccessorySlotValidationComponent(Set.of("any"), Set.of())
+                                                                        );
+
+                                                                        player.addItem(itemStack);
+
+                                                                        return 1;
+                                                                    })
+                                                            )
+                                            )
+                            )
+            ).then(
+                    Commands.literal("listen-to-renderer")
+                            .then(
+                                    Commands.argument("id", ResourceLocationArgument.id())
+                                            .executes(ctx -> {
+                                                var id = ctx.getArgument("id", ResourceLocation.class);
+
+                                                CustomRendererLoader.constantFileResolving(ctx.getSource().getServer(), id);
+
+                                                return 1;
+                                            })
+                            )
+                            .executes(ctx -> {
+                                CustomRendererLoader.constantFileResolving(ctx.getSource().getServer(), null);
+
+                                return 1;
+                            })
+
+            );
+        }
+
         dispatcher.register(
-                Commands.literal("accessories")
-                        .requires(commandSourceStack -> commandSourceStack.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                base
                         .then(
                                 Commands.literal("edit")
                                         .then(
                                                 Commands.argument("entity", EntityArgument.entity())
                                                         .executes((ctx) -> {
-                                                            var player = ctx.getSource().getPlayerOrException();
-
-                                                            Accessories.openAccessoriesMenu(player, getOrThrowLivingEntity(ctx));
+                                                            Accessories.askPlayerForVariant(ctx.getSource().getPlayerOrException(), getOrThrowLivingEntity(ctx));
 
                                                             return 1;
                                                         })
                                         )
                                         .executes(ctx -> {
-                                            return Accessories.attemptOpenScreenPlayer(ctx.getSource().getPlayerOrException())
-                                                    ? 1
-                                                    : 0;
+                                            Accessories.askPlayerForVariant(ctx.getSource().getPlayerOrException());
+
+
+                                            return 1;
                                         })
                         )
                         .then(

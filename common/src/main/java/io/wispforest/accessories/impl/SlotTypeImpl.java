@@ -1,18 +1,14 @@
 package io.wispforest.accessories.impl;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.endec.MinecraftEndecs;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.resources.ResourceLocation;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -31,7 +27,7 @@ public record SlotTypeImpl(String name, Optional<String> alternativeTranslation,
             Endec.STRING.optionalOf().fieldOf("alternativeTranslation", slotType -> {
                 var translation = slotType.translation();
 
-                return Optional.ofNullable(slotType.translation().contains(Accessories.translation("")) ? null : translation);
+                return Optional.ofNullable(slotType.translation().contains(Accessories.translationKey("")) ? null : translation);
             }),
             MinecraftEndecs.IDENTIFIER.fieldOf("icon", SlotType::icon),
             Endec.INT.fieldOf("order", SlotType::order),

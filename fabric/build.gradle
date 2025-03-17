@@ -26,6 +26,11 @@ repositories {
     maven { url = "https://maven.terraformersmc.com/" }
     maven { url = "https://maven.blamejared.com/" } // location of the maven that hosts JEI files since January 2023
     maven { url = "https://modmaven.dev" } // location of a maven mirror for JEI files, as a fallback
+    maven { url "https://api.modrinth.com/maven" }
+    maven {
+        url "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/"
+        content { includeGroup("software.bernie.geckolib") }
+    }
 }
 
 sourceSets {
@@ -42,17 +47,18 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
 
-    modImplementation("me.shedaniel.cloth:cloth-config-fabric:${rootProject.cloth_version}") {
-        exclude(group: "net.fabricmc.fabric-api")
-    }
+    modImplementation("io.wispforest:owo-lib:${project.owo_version}")
+    include "io.wispforest:owo-sentinel:${project.owo_version}"
 
-    modCompileOnly modLocalRuntime("com.terraformersmc:modmenu:${rootProject.modmenu_version}")
+    modCompileOnly(modLocalRuntime("com.terraformersmc:modmenu:${rootProject.modmenu_version}"))
 
-//    modLocalRuntime("maven.modrinth:ok-boomer:0.1.3+1.20.2")
-//    modLocalRuntime("io.wispforest:owo-lib:0.12.4-pre.2+1.20.3")
-//    modLocalRuntime("io.wispforest:gadget:0.2.3+1.20.3")
+    modCompileOnly "software.bernie.geckolib:geckolib-fabric-1.21.1:${rootProject.geckolib_version}"
+
+    modLocalRuntime("maven.modrinth:ok-boomer:0.1.3+1.21")
 
     testmodImplementation sourceSets.main.output
+
+    modLocalRuntime "maven.modrinth:sodium:mc1.21-0.6.0-beta.2-fabric"
 
     var type = rootProject.properties.get("item_viewer_type");
 
@@ -94,6 +100,13 @@ loom {
             ideConfigGenerated true
             name = "Testmod Client"
             source sourceSets.testmod
+        }
+        testmodClient_renderDoc {
+            client()
+            ideConfigGenerated true
+            name = "Testmod Client - (RenderDoc)"
+            source sourceSets.testmod
+            vmArg "-Dowo.renderdocPath=${System.getenv('renderDocPath')}"
         }
         testmodServer {
             server()

@@ -11,7 +11,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.functions.EnchantedCountIncreaseFunction;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -22,12 +21,8 @@ public abstract class EnchantedCountIncreaseFunctionMixin {
     private int attemptAdjustCountWithAccessoriesLooting(Holder<Enchantment> holder, LivingEntity livingEntity, Operation<Integer> original, @Local(argsOnly = true) LootContext context) {
         var amount = original.call(holder, livingEntity);
 
-        var enchantments = livingEntity.registryAccess().registry(Registries.ENCHANTMENT).orElseThrow();
-
-        var damageSource = context.getParamOrNull(LootContextParams.DAMAGE_SOURCE);
-
-        if(enchantments.getResourceKey(holder.value()).orElseThrow().equals(Enchantments.LOOTING) && damageSource != null){
-            amount = ExtraEventHandler.lootingAdjustments(livingEntity, damageSource, amount);
+        if(holder.value() == livingEntity.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.LOOTING).value()){
+            amount = ExtraEventHandler.lootingAdjustments(livingEntity, context, amount);
         }
 
         return amount;

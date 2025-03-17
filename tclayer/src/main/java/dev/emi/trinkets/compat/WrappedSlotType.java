@@ -2,18 +2,20 @@ package dev.emi.trinkets.compat;
 
 import dev.emi.trinkets.api.SlotType;
 import dev.emi.trinkets.api.TrinketEnums;
-import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
 public class WrappedSlotType extends SlotType {
 
     public final io.wispforest.accessories.api.slot.SlotType slotType;
+
+    @Nullable
+    private String otherName = null;
 
     public WrappedSlotType(io.wispforest.accessories.api.slot.SlotType slotType, String group){
         super(group, "", 0, 0, ResourceLocation.withDefaultNamespace(""), Set.of(), Set.of(), Set.of(), null);
@@ -37,9 +39,13 @@ public class WrappedSlotType extends SlotType {
         return new WrappedSlotType(slotType, slotGroup);
     }
 
+    public void setOtherName(String value) {
+        otherName = value;
+    }
+
     @Override
     public String getName() {
-        return WrappingTrinketsUtils.accessoriesToTrinkets_Slot(slotType.name());
+        return otherName != null ? otherName : WrappingTrinketsUtils.accessoriesToTrinkets_Slot(slotType.name());
     }
 
     @Override

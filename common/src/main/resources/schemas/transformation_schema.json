@@ -1,0 +1,241 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Transformation",
+  "description": "A object used to transform Accessories rendering",
+  "type": "object",
+  "definitions": {
+    "transformation_types": {
+      "title": "Transformation Types",
+      "description": "All possible types of Transformation",
+      "type": "string",
+      "enum": [ "translation", "raw_rotation", "axis_rotation", "scale", "transform_to", "matrix" ]
+    },
+    "translation": {
+      "title": "Translation",
+      "description": "Translates the given MatrixStack",
+      "type": "object",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "description": "The given Transforms Type",
+          "const": "translation"
+        },
+        "x": {
+          "title": "X",
+          "description": "The X Axis Translation amount",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "description": "The Y Axis Translation amount",
+          "type": "number"
+        },
+        "z": {
+          "title": "Z",
+          "description": "The Z Axis Translation amount",
+          "type": "number"
+        }
+      },
+      "required": ["x","y","z"]
+    },
+    "raw_rotation": {
+      "title": "Raw Rotation",
+      "description": "Rotates the given MatrixStack with the values represented as a Quaternion",
+      "type": "object",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "description": "The given Transforms Type",
+          "const": "raw_rotation"
+        },
+        "x": {
+          "title": "X",
+          "description": "The first component of the vector part.",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "description": "The second component of the vector part",
+          "type": "number"
+        },
+        "z": {
+          "title": "Z",
+          "description": "The third component of the vector part",
+          "type": "number"
+        },
+        "w": {
+          "title": "W",
+          "description": "The real/scalar part of the quaternion",
+          "type": "number"
+        }
+      },
+      "required": ["x","y","z","w"]
+    },
+    "axis_rotation": {
+      "title": "Axis Rotation",
+      "description": "Rotates the given MatrixStack by the provided Axis around the given rotation amount",
+      "type": "object",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "description": "The given Transforms Type",
+          "const": "axis_rotation"
+        },
+        "axis": {
+          "title": "Axis",
+          "description": "The Axis to rotate around",
+          "type": "object",
+          "properties": {
+            "x": {
+              "title": "X",
+              "description": "The X component of the Axis Vector",
+              "type": "number"
+            },
+            "y": {
+              "title": "Y",
+              "description": "The Y component of the Axis Vector",
+              "type": "number"
+            },
+            "z": {
+              "title": "Z",
+              "description": "The Z component of the Axis Vector",
+              "type": "number"
+            }
+          },
+          "required": ["x","y","z"]
+        },
+        "angle": {
+          "title": "Angle",
+          "description": "The amount to rotate around the given axis",
+          "type": "number"
+        }
+      },
+      "required": ["angle","axis"]
+    },
+    "scale": {
+      "title": "Scale",
+      "description": "Adjusts the Scale of the given MatrixStack",
+      "type": "object",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "description": "The given Transforms Type",
+          "const": "scale"
+        },
+        "x": {
+          "title": "X",
+          "description": "The X Axis Scale amount",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "description": "The Y Axis Scale amount",
+          "type": "number"
+        },
+        "z": {
+          "title": "Z",
+          "description": "The Z Axis Scale amount",
+          "type": "number"
+        }
+      },
+      "required": ["x","y","z"]
+    },
+    "transform_to": {
+      "title": "Transform To",
+      "description": "Translates to the given targeted Model Part",
+      "type": "object",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "description": "The given Transforms Type",
+          "const": "transform_to"
+        },
+        "model_part": {
+          "title": "Model Part",
+          "description": "The name for the Model Part targeted",
+          "type": "string"
+        },
+        "raw_normal": {
+          "title": "Raw Normals",
+          "description": "The raw percentage of axis translation amount",
+          "type": "object",
+          "properties": {
+            "x": {
+              "title": "X",
+              "description": "The percentage of the x-axis to translate to",
+              "type": "number",
+              "minimum": -1.0,
+              "maximum": 1
+            },
+            "y": {
+              "title": "Y",
+              "description": "The percentage of the y-axis to translate to",
+              "type": "number",
+              "minimum": -1.0,
+              "maximum": 1
+            },
+            "z": {
+              "title": "Z",
+              "description": "The percentage of the z-axis to translate to",
+              "type": "number",
+              "minimum": -1.0,
+              "maximum": 1
+            }
+          }
+        },
+        "side": {
+          "title": "Side",
+          "description": "The side in which to translate the MatrixStack for the targeted model part",
+          "enum": [
+            "BOTTOM",
+            "TOP",
+            "BACK",
+            "FRONT",
+            "LEFT",
+            "RIGHT"
+          ]
+        }
+      },
+      "required": [
+        "model_part"
+      ]
+    },
+    "matrix": {
+      "title": "Matrix",
+      "description": "Modifies the MatrixStack using the provided Matrix",
+      "type": "object",
+      "properties": {
+        "type": {
+          "title": "Type",
+          "description": "The given Transforms Type",
+          "const": "matrix"
+        },
+        "value": {
+          "title": "Matrix4f",
+          "description": "Contains the definition of a 4x4 matrix of floats, and associated functions to transform\n * it. The matrix is column-major to match OpenGL's interpretation",
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 16,
+          "maxItems": 16
+        }
+      },
+      "required": ["value"]
+    }
+  },
+  "properties": {
+    "type": {
+      "$ref": "#/definitions/transformation_types"
+    }
+  },
+  "required": ["type"],
+  "oneOf": [
+    { "$ref": "#/definitions/translation" },
+    { "$ref": "#/definitions/raw_rotation" },
+    { "$ref": "#/definitions/axis_rotation" },
+    { "$ref": "#/definitions/scale" },
+    { "$ref": "#/definitions/transform_to" },
+    { "$ref": "#/definitions/matrix" }
+  ]
+}

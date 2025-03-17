@@ -24,7 +24,7 @@ public interface SlotType {
      * @return The {@link Component} Translation key for the given slot type.
      */
     default String translation(){
-        return Accessories.translation("slot." + name().replace(":", "."));
+        return Accessories.translationKey("slot." + name().replace(":", "."));
     }
 
     /**

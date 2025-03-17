@@ -11,7 +11,6 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.UUID;
 
 public class WrappedTrinketInventory extends TrinketInventory {
 
@@ -21,6 +20,10 @@ public class WrappedTrinketInventory extends TrinketInventory {
         super(WrappedSlotType.of(slotType, container.capability().entity().level().isClientSide()), component, trinketInventory -> {});
 
         this.container = (AccessoriesContainer) container;
+    }
+
+    public void setOtherName(String value) {
+        ((WrappedSlotType) this.getSlotType()).setOtherName(value);
     }
 
     @Override

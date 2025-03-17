@@ -1,8 +1,6 @@
 package io.wispforest.testccessories.neoforge;
 
 import io.wispforest.accessories.api.menu.AccessoriesSlotGenerator;
-import io.wispforest.testccessories.neoforge.Testccessories;
-import io.wispforest.testccessories.neoforge.UniqueSlotTest;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;

@@ -2,9 +2,9 @@ package io.wispforest.testccessories.neoforge;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.testccessories.neoforge.accessories.*;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
+import io.wispforest.testccessories.neoforge.client.TestScreenPacket;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.flag.FeatureFlags;
@@ -33,6 +33,10 @@ public class Testccessories {
         TestItems.REGISTER.register(bus);
         bus.addListener(Testccessories::registerStuff);
         bus.addListener(TestItems::addToItemGroup);
+    }
+
+    public void commonInit(FMLCommonSetupEvent event) {
+        AccessoriesNetworking.CHANNEL.registerClientboundDeferred(TestScreenPacket.class, TestScreenPacket.ENDEC);
     }
 
     public static void registerStuff(RegisterEvent event) {

@@ -1,3 +1,26 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2019 Emily Rose Ploszaj
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package dev.emi.trinkets.api;
 
 import com.google.common.collect.ImmutableMap;
@@ -10,10 +33,9 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
+import io.wispforest.accessories.api.slot.EntityBasedPredicate;
 import io.wispforest.accessories.api.slot.SlotBasedPredicate;
-import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.tclayer.ImmutableDelegatingMap;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -26,6 +48,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
 import org.ladysnake.cca.api.v3.component.ComponentKey;
 import org.ladysnake.cca.api.v3.component.ComponentRegistryV3;
 import org.ladysnake.cca.api.v3.entity.EntityComponentFactoryRegistry;
@@ -34,7 +57,6 @@ import org.ladysnake.cca.api.v3.entity.RespawnCopyStrategy;
 import org.slf4j.Logger;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 public class TrinketsApi implements EntityComponentInitializer {
     public static final ComponentKey<TrinketComponent> TRINKET_COMPONENT = ComponentRegistryV3.INSTANCE
@@ -145,7 +167,7 @@ public class TrinketsApi implements EntityComponentInitializer {
             throw new IllegalStateException("Unable to get a SlotType using the WrappedTrinketInventory from the SlotTypeLoader! [Name: " + slotName +"]");
         }
 
-        return AccessoriesAPI.getPredicateResults(convertedSet, entity.level(), slotType, ref.index(), stack);
+        return AccessoriesAPI.getPredicateResults(convertedSet, entity.level(), entity, slotType, ref.index(), stack);
     }
 
     public static Enchantment.EnchantmentDefinition withTrinketSlots(Enchantment.EnchantmentDefinition definition, Set<String> slots) {
@@ -191,7 +213,7 @@ public class TrinketsApi implements EntityComponentInitializer {
         registry.registerForPlayers(TrinketsApi.TRINKET_COMPONENT, player -> getTrinketComponent(player).get(), RespawnCopyStrategy.ALWAYS_COPY);
     }
 
-    private final static class SafeSlotBasedPredicate implements SlotBasedPredicate {
+    private final static class SafeSlotBasedPredicate implements EntityBasedPredicate {
         private static final Logger LOGGER = LogUtils.getLogger();
         private boolean hasErrored = false;
 
@@ -204,11 +226,11 @@ public class TrinketsApi implements EntityComponentInitializer {
         }
 
         @Override
-        public TriState isValid(Level level, io.wispforest.accessories.api.slot.SlotType slotType, int slot, ItemStack stack) {
+        public TriState isValid(Level level, @Nullable LivingEntity entity, io.wispforest.accessories.api.slot.SlotType slotType, int slot, ItemStack stack) {
             if(hasErrored) return TriState.DEFAULT;
 
             try {
-                return this.trinketPredicate.apply(stack, new SlotReference(new CursedTrinketInventory(slotType, level.isClientSide()), slot), null);
+                return this.trinketPredicate.apply(stack, new SlotReference(new CursedTrinketInventory(slotType, level.isClientSide()), slot), entity);
             } catch (Exception e) {
                 this.hasErrored = true;
                 LOGGER.warn("Unable to handle Trinket Slot Predicate converted to Accessories Slot Predicate due to fundamental incompatibility, issues may be present with it! [Slot: {}, Predicate ID: {}]", slotType.name(), this.location, e);

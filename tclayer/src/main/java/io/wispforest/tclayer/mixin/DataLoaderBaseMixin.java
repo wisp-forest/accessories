@@ -1,13 +1,11 @@
 package io.wispforest.tclayer.mixin;
 
 import dev.emi.trinkets.data.SlotLoader;
-import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.DataLoaderBase;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
 import org.spongepowered.asm.mixin.Shadow;

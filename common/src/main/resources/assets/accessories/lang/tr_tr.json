@@ -1,0 +1,372 @@
+{
+  "accessories.slot.tooltip.singular": "Yuva: ",
+  "accessories.slot.tooltip.plural": "Yuvalar: ",
+  "accessories.cosmetic_slot.tooltip.singular": "Kozmetik Yuvası: ",
+  "accessories.cosmetic_slot.tooltip.plural": "Kozmetik Yuvaları: ",
+  "accessories.slot.any": "Herhangi",
+  "accessories.slot.except": " hariç ",
+  "accessories.tooltip.attributes.any": "Donatıldığında:",
+  "accessories.tooltip.attributes.slot": "%s İçinde Donatıldığında:",
+  "accessories.tooltip.currently_equipped_in": "Şurada Donatılmış: ",
+  "accessories.slot.hat": "Şapka",
+  "accessories.slot.face": "Yüz",
+  "accessories.slot.cape": "Pelerin",
+  "accessories.slot.necklace": "Kolye",
+  "accessories.slot.back": "Sırt",
+  "accessories.slot.hand": "El",
+  "accessories.slot.ring": "Yüzük",
+  "accessories.slot.wrist": "Bilek",
+  "accessories.slot.belt": "Kemer",
+  "accessories.slot.anklet": "Halhal",
+  "accessories.slot.shoes": "Ayakkabı",
+  "accessories.slot.charm": "Nazarlık",
+  "accessories.slot.accessories.head": "Kafa",
+  "accessories.slot.accessories.chest": "Göğüs",
+  "accessories.slot.accessories.legs": "Bacaklar",
+  "accessories.slot.accessories.feet": "Ayaklar",
+  "accessories.slot.accessories.animal_body": "Vücut",
+  "accessories.slot_group.misc": "Çeşitli",
+  "accessories.slot_group.head": "Kafa",
+  "accessories.slot_group.chest": "Göğüs",
+  "accessories.slot_group.arm": "Kollar",
+  "accessories.slot_group.leg": "Bacaklar",
+  "accessories.slot_group.feet": "Ayaklar",
+  "accessories.slot_group.unsorted": "Sınıflandırılmamış",
+  "accessories.key.category.accessories": "Aksesuarlar",
+  "argument.livingEntities.nonLiving": "Bu komuttan yalnızca canlı varlıklar etkilenebilir, ancak sağlanan seçici canlı olmayan varlıkları da içerir",
+
+  "#comment": "GUI Related Below",
+
+  "accessories.key.open_accessories_screen": "Aksesuar Ekranını Aç",
+  "accessories.slot.cosmetics.toggle.show": "Kozmetik Yuvalarını Göster",
+  "accessories.slot.cosmetics.toggle.hide": "Kozmetik Yuvalarını Gizle",
+  "accessories.display.toggle.show": "Aksesuarı Göster",
+  "accessories.display.toggle.hide": "Aksesuarı Gizle",
+  "accessories.lines.toggle.show": "Tüm Çizgileri Göster",
+  "accessories.lines.toggle.hide": "Tüm Çizgileri Gizle",
+  "accessories.unused_slots.toggle.show": "Kullanılmayan Yuvaları Göster",
+  "accessories.unused_slots.toggle.hide": "Kullanılmayan Yuvaları Gizle",
+  "accessories.slot_cosmetics.toggle.enabled": "Aksesuar Yuvalarını Göster",
+  "accessories.slot_cosmetics.toggle.disabled": "Kozmetik Yuvalarını Göster",
+  "accessories.advanced_options.toggle.enabled": "❤",
+  "accessories.advanced_options.toggle.disabled": "⚗",
+  "accessories.advanced_options.toggle.enabled.tooltip": "Ekstra Ekran yapılandırma seçeneklerini gizle",
+  "accessories.advanced_options.toggle.disabled.tooltip": "Ekstra Ekran yapılandırma seçeneklerini göster",
+  "accessories.unused_slots.label": "Kullanılmayan Yuvalar:",
+  "accessories.unused_slots.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Gösterilen"
+  ],
+  "accessories.unused_slots.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Gizlenen"
+  ],
+  "accessories.unused_slots.toggle.enabled.tooltip": "Tüm Kullanılmayan Yuvaları Gizle",
+  "accessories.unused_slots.toggle.disabled.tooltip": "Tüm Kullanılmayan Yuvaları Göster",
+  "accessories.column_amount_slider.label": "Sütun Miktarı:",
+  "accessories.column_amount_slider.tooltip": "Aksesuar Düzeni için Sütun miktarını ayarlamak için kullanılan kaydırıcı",
+  "accessories.widget_type.label": "Widget Varyantı:",
+  "accessories.widget_type.paginated": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☰", "color": "#347ecf"},
+    {"text": "]", "color": "gray"},
+    " Sayfalandırılmış"
+  ],
+  "accessories.widget_type.paginated.tooltip": "Aksesuar Yuvaları için Sayfalandırılmış Düzen",
+  "accessories.widget_type.scrollable": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "⏷", "color": "#953abd"},
+    {"text": "]", "color": "gray"},
+    " Kaydırılabilir"
+  ],
+  "accessories.main_widget_position.label": "Widget Konumu:",
+  "accessories.main_widget_position.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "←", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Sol"
+  ],
+  "accessories.main_widget_position.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "→", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Sağ"
+  ],
+  "accessories.main_widget_position.toggle.enabled.tooltip": "Aksesuarlar Widget'ını Sağa Taşı",
+  "accessories.main_widget_position.toggle.disabled.tooltip": "Aksesuarlar Widget'ını Sola Taşı",
+  "accessories.group_filter.label": "Grup Filtreleri:",
+  "accessories.group_filter.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Gösterilen"
+  ],
+  "accessories.group_filter.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Gizlenen"
+  ],
+  "accessories.group_filter.toggle.enabled.tooltip": "Grup filtresi widget'ını gizle",
+  "accessories.group_filter.toggle.disabled.tooltip": "Grup filtresi widget'ını göster",
+  "accessories.side_widget_position.label": "Yan Konumu:",
+  "accessories.side_widget_position.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "()", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Birlikte"
+  ],
+  "accessories.side_widget_position.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "||", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Ayrı"
+  ],
+  "accessories.side_widget_position.toggle.enabled.tooltip": "Yan Widget'ı Aksesuarlar Widget'ıyla birlikte olacak şekilde taşı",
+  "accessories.side_widget_position.toggle.disabled.tooltip": "Yan Widget'ı Aksesuarlar Widget'ının karşısına taşı",
+  "accessories.dark_mode_toggle.label": "Tema Modu:",
+  "accessories.dark_mode_toggle.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☽", "color": "#3d29c2"},
+    {"text": "]", "color": "gray"},
+    " Koyu"
+  ],
+  "accessories.dark_mode_toggle.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☀", "color": "#bffa9b"},
+    {"text": "]", "color": "gray"},
+    " Aydınlık"
+  ],
+  "accessories.dark_mode_toggle.toggle.enabled.tooltip": "Temayı Aydınlık Mod olarak değiştir",
+  "accessories.dark_mode_toggle.toggle.disabled.tooltip": "Temayı Koyu Mod olarak değiştir",
+  "accessories.show_equipped_stack_slot_type.label": "Donatılmış Tür:",
+  "accessories.show_equipped_stack_slot_type.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Gösterilen"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Gizlenen"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.enabled.tooltip": "Donatılmış istif Yuva türünü gizle",
+  "accessories.show_equipped_stack_slot_type.toggle.disabled.tooltip": "Donatılmış istif Yuva türünü göster",
+  "accessories.entity_look_at_cursor.label": "Fareye bak:",
+  "accessories.entity_look_at_cursor.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Etkin"
+  ],
+  "accessories.entity_look_at_cursor.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Devre Dışı"
+  ],
+  "accessories.entity_look_at_cursor.toggle.enabled.tooltip": "İmlece bakmayı devre dışı bırak",
+  "accessories.entity_look_at_cursor.toggle.disabled.tooltip": "İmlece bakmayı etkinleştir",
+  "accessories.lines.toggle.enabled.tooltip": "Tüm Çizgi Oluşturmayı Gizle",
+  "accessories.lines.toggle.disabled.tooltip": "Tüm Çizgi Oluşturmayı Göster",
+  "accessories.crafting_grid.toggle.enabled": "☒",
+  "accessories.crafting_grid.toggle.disabled": "☐",
+  "accessories.crafting_grid.toggle.enabled.tooltip": "Küçük üretim ızgarasını gizle",
+  "accessories.crafting_grid.toggle.disabled.tooltip": "Küçük üretim ızgarasını göster",
+  "accessories.widget_type.scrollable.tooltip": "Aksesuar Yuvaları için Kaydırılabilir Bir Düzen",
+  "accessories.selection_screen.message": [
+    "Aşağıda, Mod Paketi stiline veya oyun tarzınıza \n",
+    "bağlı olarak seçebileceğiniz \n",
+    "bir dizi ekran seçeneği bulunmaktadır. \n\n",
+    "Verilen seçenek hoşunuza gitmiyorsa, \n",
+    "Aksesuar Yapılandırması içinde \n",
+    "bunu değiştirebileceğinizi unutmayın."
+  ],
+  "accessories.unique_slots.toggle.show": "Eşsiz Yuvaları Göster",
+  "accessories.unique_slots.toggle.hide": "Eşsiz Yuvaları Gizle",
+  "accessories.back.screen": "Önceki Ekrana",
+  "accessories.open.screen": "Aksesuar Ekranını Aç",
+  "accessories.reset.group_filter": "Grup Filtrelerini Sıfırla",
+
+  "#comment": "Config Related Below",
+
+  "text.config.accessories.title": "Aksesuar Yapılandırması",
+
+  "text.config.accessories.option.useExperimentalCaching": "Deneysel Önbelleğe Almayı Kullan",
+  "text.config.accessories.option.useExperimentalCaching.tooltip": [
+    "Daha performanslı olmak için çeşitli ItemStack aramalarını\n",
+    "önbelleğe almaya çalışır ancak sorunlara neden olabilir."
+  ],
+
+  "text.config.accessories.category.clientOptions": "İstemci Seçenekleri",
+  "text.config.accessories.category.clientOptions.tooltip": [
+    "Oluşturma veya oyuncu girişi için daha genel istemci tarafı seçenekleri içerir"
+  ],
+
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement": "Boş Oluşturucu Değiştirmeyi Zorla",
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement.tooltip": [
+    "Oluşturulmadığı tespit edilen herhangi bir kayıtlı oluşturucuyu\n",
+    "bunun yerine varsayılan oluşturmayı kullanmaya zorlar."
+  ],
+
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError": "Boş Aksesuar Hatasını Devre Dışı Bırak",
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError.tooltip": [
+    "Aksesuar ekranı açıldığında ve kullanılmış yuva bulunmadığında\n",
+    "görüntülenen hata mesajını devre dışı bırakır."
+  ],
+
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories": "Eşya Kozmetik Oluşturmayı Göster",
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories.tooltip": [
+    "Varsa kozmetik eşya çeşitlerinin oluşturulmasını etkinleştirir/devre dışı bırakır."
+  ],
+
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders": "Devre Dışı Bırakılmış Varsayılan Oluşturma",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.tooltip": [
+    "Kullanılıyorsa, eşyaların varsayılan oluşturucuyla oluşturulmasını devre dışı bırakır."
+  ],
+
+  "text.config.accessories.option.clientOptions.equipControl": "Hızlı El Donatma Modu",
+  "text.config.accessories.option.clientOptions.equipControl.tooltip": [
+    "Elinizden bir istifin hızlıca donatılması için kullanılan modu değiştirir."
+  ],
+
+  "text.config.accessories.enum.playerEquipControl.must_crouch": "Eğilme Gerektiriyor",
+  "text.config.accessories.enum.playerEquipControl.must_not_crouch": "Eğilme Olmadan",
+  "text.config.accessories.enum.playerEquipControl.disabled": "Devre Dışı",
+
+  "text.config.accessories.category.screenOptions": "Ekran Seçenekleri",
+  "text.config.accessories.category.screenOptions.tooltip": [
+    "Tüm varyantlar ve enjekte edilen düğme ofseti için tüm ekran yapılandırma seçeneklerini içerir"
+  ],
+
+  "text.config.accessories.option.screenOptions.selectedScreenType": "Seçilen Ekran Türü",
+  "text.config.accessories.option.screenOptions.selectedScreenType.tooltip": [
+    "Hangi ekranın kullanılacağını ayarlamak için kullanılır,\n",
+    "hiçbiri kullanıcı seçimi için bir istem getirmez."
+  ],
+
+  "text.config.accessories.enum.screenType.none": "Kararsız",
+  "text.config.accessories.enum.screenType.original": "Orijinal",
+  "text.config.accessories.enum.screenType.experimental_v1": "Deneysel",
+
+  "text.config.accessories.option.screenOptions.showUnusedSlots": "Kullanılmayan Yuvaları Göster",
+  "text.config.accessories.option.screenOptions.showUnusedSlots.tooltip": "Kullanılmayan yuvaların filtrelenmesini açar",
+
+  "text.config.accessories.option.screenOptions.allowSlotScrolling": "Ekran Yuvası Kaydırmasına İzin Ver",
+  "text.config.accessories.option.screenOptions.allowSlotScrolling.tooltip": [
+    "Verilen mod, aksesuarlardan geçerken sorunlara yol açan\n",
+    "kaydırılan istiflere izin veriyorsa kullanışlıdır."
+  ],
+
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType": "Donatılmış İstiflerin Yuva Türünü Göster",
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType.tooltip": [
+    "Verilen istifin donatıldığı yuva türünü araç ipucunda gösterir."
+  ],
+
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor": "Varlığın Fare İmlecini Takip Etmesini Sağla",
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor.tooltip": [
+    "Etkinleştirilirse, varlığın fare imlecini takip etmesini sağlar\n",
+    "aksi takdirde varlığın manuel olarak döndürülmesine izin verir."
+  ],
+
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid": "Kenar Çubuğunda Üretim Izgarasına İzin Ver",
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid.tooltip": [
+    "Grup filtreleri mevcut değilse, üretim ızgarasını aşağıdaki\n",
+    "kenar çubuğunun içine yerleştirmeye çalışacaktır."
+  ],
+
+  "text.config.accessories.section.button_offsets": "Enjekte Edilen Düğme Ofsetleri",
+
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset": "Envanter Düğmesi Ofseti",
+
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.x": "X Ofseti",
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.y": "Y Ofseti",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset": "Yaratıcı Mod Envanter Düğmesi Ofseti",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.x": "X Ofseti",
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.y": "Y Ofseti",
+
+  "text.config.accessories.section.experimental": "Deneysel Ekran",
+
+  "text.config.accessories.option.screenOptions.isDarkMode": "Koyu mod temasını kullan",
+  "text.config.accessories.option.screenOptions.isDarkMode.tooltip": [
+    "Deneysel ekranın temasını koyu mod olarak değiştirir."
+  ],
+
+  "text.config.accessories.section.legacy": "Orijinal Ekran",
+
+  "text.config.accessories.option.screenOptions.showGroupTabs": "Hızlı arama grubu sekmelerini göster",
+  "text.config.accessories.option.screenOptions.showGroupTabs.tooltip": [
+    "Orijinal ekrandaki grup sekmelerinin gösterilmesini veya gizlenmesini sağlar."
+  ],
+
+  "text.config.accessories.section.hover": "Vurgulanmış Efektleri",
+
+  "text.config.accessories.category.screenOptions.hoveredOptions": "Vurgulanmış Seçenekleri",
+  "text.config.accessories.category.screenOptions.hoveredOptions.tooltip": [
+    "Üzerine gelinen girişleri oluşturma efektlerini kontrol etme seçenekleri."
+  ],
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.brightenHovered": "Aydınlatılmış Vurgulama",
+  "text.config.accessories.option.screenOptions.hoveredOptions.cycleBrightness": "Döngü Parlaklığı",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.line": "Çizgi Çiz",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.clickbait": "Clickbait",
+
+  "text.config.accessories.category.screenOptions.unHoveredOptions": "Vurgulanmamış Seçenekleri",
+  "text.config.accessories.category.screenOptions.unHoveredOptions.tooltip": [
+    "Üzerine gelinmeyen girişlerin oluşturma efektlerini kontrol etme seçenekleri."
+  ],
+
+  "text.config.accessories.option.screenOptions.unHoveredOptions.renderUnHovered": "Vurgulanmamışı Oluştur",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenUnHovered": "Koyu Vurgulanmamış",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedBrightness": "Koyulaştırılmış Parlaklık",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedOpacity": "Koyulaştırılmış Opaklık",
+
+  "text.config.accessories.option.disabledDefaultRenders": "Devre Dışı Bırakılmış Varsayılan Oluşturucular",
+  "text.config.accessories.option.disabledDefaultRenders.tooltip": [
+    "Belirli bir yuva için varsayılan oluşturmayı özellikle blok ve/veya eşya\n",
+    "oluşturmalarını devre dışı bırakmak için kullanışlıdır"
+  ],
+
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.slotType": "Yuva",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.targetType": "Tür",
+
+  "text.config.accessories.enum.targetType.item": "Eşya",
+  "text.config.accessories.enum.targetType.block": "Blok",
+  "text.config.accessories.enum.targetType.all": "Hepsi",
+
+  "text.config.accessories.option.modifiers": "Yuva Miktar Değiştiricileri",
+  "text.config.accessories.option.modifiers.tooltip": [
+    "Hem pozitif hem de negatif ofset değerine izin verdiği için\n",
+    "bir veri paketine ihtiyaç duymadan belirli bir yuva türüne\n",
+    "ofset değerleri eklemek için kullanışlıdır."
+  ],
+
+  "text.config.accessories.option.modifiers.slotType": "Yuva",
+  "text.config.accessories.option.modifiers.amount": "Ofset"
+}

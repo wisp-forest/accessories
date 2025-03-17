@@ -1,29 +1,43 @@
 package io.wispforest.accessories.mixin;
 
-import com.google.common.collect.Iterables;
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.Share;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesHolder;
-import io.wispforest.accessories.api.slot.SlotEntryReference;
+import io.wispforest.accessories.api.events.extra.ExtraEventHandler;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
+import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin implements AccessoriesAPIAccess {
+public abstract class LivingEntityMixin extends Entity implements AccessoriesAPIAccess, AccessoriesLivingEntityExtension {
+
+    protected LivingEntityMixin(EntityType<?> entityType, Level level) {
+        super(entityType, level);
+    }
 
     @Override
     @Nullable
@@ -53,6 +67,31 @@ public abstract class LivingEntityMixin implements AccessoriesAPIAccess {
     @Inject(method = "entityEventForEquipmentBreak", at = @At("HEAD"), cancellable = true)
     private static void preventMatchExceptionForAccessories(EquipmentSlot slot, CallbackInfoReturnable<Byte> cir) {
         if(slot.equals(AccessoriesInternals.INTERNAL_SLOT)) cir.setReturnValue((byte) -1);
+    }
+
+    public void onEquipItem(SlotReference slotReference, ItemStack oldItem, ItemStack newItem) {
+        var level = this.level();
+
+        if (!ItemStack.isSameItemSameComponents(oldItem, newItem) && !this.firstTick && !level.isClientSide() && !this.isSpectator()) {
+            var isEquitableFor = newItem.isEmpty() || AccessoriesAPI.canInsertIntoSlot(newItem, slotReference);
+
+            if (!this.isSilent() && !newItem.isEmpty()) {
+                var sound = AccessoriesAPI.getOrDefaultAccessory(newItem).getEquipSound(newItem, slotReference);
+
+                if(sound != null) level.playSeededSound(null, this.getX(), this.getY(), this.getZ(), sound.event().value(), this.getSoundSource(), sound.volume(), sound.pitch(), this.random.nextLong());
+            }
+
+            if (isEquitableFor) this.gameEvent(!newItem.isEmpty() ? GameEvent.EQUIP : GameEvent.UNEQUIP);
+        }
+    }
+
+    //--
+
+    @ModifyReturnValue(method = "canFreeze", at = @At(value = "RETURN", ordinal = 1))
+    private boolean canFreezeAccessoriesCheck(boolean bl) {
+        var state = ExtraEventHandler.canFreezeEntity((LivingEntity) (Object) this);
+
+        return state.orElse(bl);
     }
 
 //    @WrapOperation(method = "getDamageAfterMagicAbsorb", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getArmorAndBodyArmorSlots()Ljava/lang/Iterable;"))

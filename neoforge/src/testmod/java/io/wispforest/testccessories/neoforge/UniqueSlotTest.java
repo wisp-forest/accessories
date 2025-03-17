@@ -4,7 +4,6 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.slot.SlotBasedPredicate;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
-import io.wispforest.testccessories.neoforge.client.TestccessoriesClient;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import org.jetbrains.annotations.Nullable;

@@ -1,16 +1,10 @@
 package dev.emi.trinkets.compat;
 
 import dev.emi.trinkets.api.SlotGroup;
-import dev.emi.trinkets.api.SlotType;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.tclayer.ImmutableDelegatingMap;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class WrappedSlotGroup extends SlotGroup {
 

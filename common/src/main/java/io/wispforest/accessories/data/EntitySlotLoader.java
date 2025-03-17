@@ -1,7 +1,10 @@
 package io.wispforest.accessories.data;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;

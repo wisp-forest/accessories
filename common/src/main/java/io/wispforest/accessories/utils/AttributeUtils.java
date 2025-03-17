@@ -2,7 +2,7 @@ package io.wispforest.accessories.utils;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
-import io.wispforest.accessories.endec.MinecraftEndecs;
+import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
@@ -74,7 +74,7 @@ public class AttributeUtils {
     public static final StructEndec<AttributeModifier> ATTRIBUTE_MODIFIER_ENDEC = StructEndecBuilder.of(
             MinecraftEndecs.IDENTIFIER.fieldOf("id", AttributeModifier::id),
             Endec.DOUBLE.fieldOf("amount", AttributeModifier::amount),
-            MinecraftEndecs.forEnumStringRepresentable(AttributeModifier.Operation.class).fieldOf("operation", AttributeModifier::operation),
+            EndecUtils.forEnumStringRepresentable(AttributeModifier.Operation.class).fieldOf("operation", AttributeModifier::operation),
             AttributeModifier::new
     );
 }

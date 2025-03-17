@@ -1,0 +1,14 @@
+{
+  "text.config.tclayer.option.useInjectionMethod": "Использовать внедрение тегов для обмена записями тегов слотов",
+  "text.config.tclayer.option.useInjectionMethod.tooltip": [
+    "Полезно, чтобы теги curios и accessories могли\n",
+    "обмениваться записями. Эта опция служит переключателем\n",
+    "между прямым внедрением тегов и более медленным методом.\n"
+  ],
+
+  "text.config.tclayer.option.slotIdRedirects": "Перенаправление слотов",
+
+  "text.config.tclayer.option.slotIdRedirects.trinketsId": "Идентификатор безделушки",
+  "text.config.tclayer.option.slotIdRedirects.accessoriesId": "Идентификатор аксессуара",
+  "text.config.tclayer.option.slotIdRedirects.additionalSlot": "Дополнительные слоты"
+}

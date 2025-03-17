@@ -1,6 +1,5 @@
 package io.wispforest.accessories.neoforge;
 
-import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
@@ -8,17 +7,19 @@ import io.wispforest.accessories.commands.AccessoriesCommands;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.endec.RegistriesAttribute;
-import io.wispforest.accessories.endec.format.nbt.NbtDeserializer;
-import io.wispforest.accessories.endec.format.nbt.NbtSerializer;
+import io.wispforest.accessories.utils.ManagedEndecDataLoader;
+import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.InstanceEndec;
+import io.wispforest.accessories.menu.AccessoriesMenuTypes;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
+import io.wispforest.owo.serialization.format.nbt.NbtDeserializer;
+import io.wispforest.owo.serialization.format.nbt.NbtSerializer;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -31,9 +32,14 @@ import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import net.neoforged.neoforge.attachment.IAttachmentSerializer;
@@ -53,47 +59,39 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 @Mod(Accessories.MODID)
 public class AccessoriesForge {
 
-    public static final Logger LOGGER = LogUtils.getLogger();
+    public static final AttachmentType<AccessoriesHolderImpl> HOLDER_ATTACHMENT_TYPE = AttachmentType.builder(AccessoriesHolderImpl::of)
+            .serialize(new IAttachmentSerializer<>() {
+                private final Endec<AccessoriesHolderImpl> ENDEC = InstanceEndec.constructed(AccessoriesHolderImpl::new);
 
-    public static final AttachmentType<AccessoriesHolderImpl> HOLDER_ATTACHMENT_TYPE;
+                @Override
+                public AccessoriesHolderImpl read(IAttachmentHolder holder, Tag tag, HolderLookup.Provider provider) {
+                    return ENDEC.decodeFully(
+                            SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) provider)),
+                            NbtDeserializer::of,
+                            tag);
+                }
+
+                @Override
+                @Nullable
+                public Tag write(AccessoriesHolderImpl object, HolderLookup.Provider provider) {
+                    return ENDEC.encodeFully(
+                            SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) provider)),
+                            NbtSerializer::of,
+                            object);
+                }
+            })
+            .copyOnDeath()
+            .build();
 
     public static final EntityCapability<AccessoriesCapability, Void> CAPABILITY = EntityCapability.createVoid(Accessories.of("capability"), AccessoriesCapability.class);
-
-    static {
-        HOLDER_ATTACHMENT_TYPE = Registry.register(
-                NeoForgeRegistries.ATTACHMENT_TYPES,
-                Accessories.of("inventory_holder"),
-                AttachmentType.builder(AccessoriesHolderImpl::of)
-                        .serialize(new IAttachmentSerializer<>() {
-                            private final Endec<AccessoriesHolderImpl> ENDEC = InstanceEndec.constructed(AccessoriesHolderImpl::new);
-
-                            @Override
-                            public AccessoriesHolderImpl read(IAttachmentHolder holder, Tag tag, HolderLookup.Provider provider) {
-                                return ENDEC.decodeFully(
-                                        SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) provider)),
-                                        NbtDeserializer::of,
-                                        tag);
-                            }
-
-                            @Override
-                            @Nullable
-                            public Tag write(AccessoriesHolderImpl object, HolderLookup.Provider provider) {
-                                return ENDEC.encodeFully(
-                                        SerializationContext.attributes(RegistriesAttribute.of((RegistryAccess) provider)),
-                                        NbtSerializer::of,
-                                        object);
-                            }
-                        })
-                        .copyOnDeath()
-                        .build());
-    }
 
     public static IEventBus BUS;
 
@@ -101,6 +99,12 @@ public class AccessoriesForge {
         AccessoriesForge.BUS = eventBus;
 
         Accessories.init();
+
+        eventBus.addListener(this::registerStuff);
+
+        eventBus.addListener(this::registerCapabilities);
+
+        eventBus.addListener(this::commonInit);
 
         NeoForge.EVENT_BUS.addListener(this::attemptEquipFromUse);
         NeoForge.EVENT_BUS.addListener(this::attemptEquipOnEntity);
@@ -113,12 +117,7 @@ public class AccessoriesForge {
 
         NeoForge.EVENT_BUS.addListener(this::registerCommands);
 
-        eventBus.addListener(AccessoriesForgeNetworkHandler.INSTANCE::initializeNetworking);
-        eventBus.addListener(this::registerStuff);
-
         NeoForge.EVENT_BUS.addListener(this::registerReloadListeners);
-
-        eventBus.addListener(this::registerCapabilities);
 
         NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerChangedDimensionEvent event) -> {
             // A hack to deal with player data not being transferred when a ClientboundRespawnPacket occurs for teleporting between two dimensions
@@ -126,6 +125,10 @@ public class AccessoriesForge {
 
             AccessoriesEventHandler.onTracking(serverPlayer, serverPlayer);
         });
+
+//        NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerChangedDimensionEvent event) -> {
+//            AccessoriesNetworking.CHANNEL.serverHandle(event.getEntity()).send(new InvalidateEntityCache(event.getEntity().getId()));
+//        });
 
         eventBus.addListener((ModifyDefaultComponentsEvent event) -> {
             AccessoriesEventHandler.setupItems(new AccessoriesEventHandler.AddDataComponentCallback() {
@@ -139,21 +142,37 @@ public class AccessoriesForge {
 
     //--
 
+    public void commonInit(FMLCommonSetupEvent event) {
+        AccessoriesNetworking.init();
+
+        ManagedEndecDataLoader.init(AccessoriesNetworking.CHANNEL, playerConsumer -> {
+            NeoForge.EVENT_BUS.<OnDatapackSyncEvent>addListener(syncEvent -> syncEvent.getRelevantPlayers().forEach(playerConsumer::accept));
+        });
+
+        Accessories.RULE_KEEP_ACCESSORY_INVENTORY = GameRules.register("accessories.keepAccessoryInventory", GameRules.Category.PLAYER, GameRules.BooleanValue.create(false));
+    }
+
     public void registerCommands(RegisterCommandsEvent event) {
         AccessoriesCommands.registerCommands(event.getDispatcher(), event.getBuildContext());
     }
 
     public void registerStuff(RegisterEvent event){
-        event.register(Registries.MENU, (helper) -> Accessories.registerMenuType());
+        event.register(Registries.MENU, (helper) -> AccessoriesMenuTypes.registerMenuType());
         event.register(Registries.TRIGGER_TYPE, (helper) -> Accessories.registerCriteria());
         event.register(Registries.DATA_COMPONENT_TYPE, (helper) -> AccessoriesDataComponents.init());
         event.register(Registries.COMMAND_ARGUMENT_TYPE, (helper) -> AccessoriesCommands.registerCommandArgTypes());
+        event.register(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, (helper) -> helper.register(Accessories.of("inventory_holder"), HOLDER_ATTACHMENT_TYPE));
     }
 
     public void registerReloadListeners(AddReloadListenerEvent event){
         intermediateRegisterListeners(event::addListener);
 
         AccessoriesInternalsImpl.setContext(event.getConditionContext());
+
+        AccessoriesInternalsImpl.TO_BE_LOADED.forEach((managedEndecDataLoader, setupRegistryCallback) -> {
+            setupRegistryCallback.accept(event.getRegistryAccess());
+            event.addListener(managedEndecDataLoader);
+        });
     }
 
     // This exists as a way to register things within the TCLayer without depending on NeoForge to do this within a mixin
@@ -205,7 +224,38 @@ public class AccessoriesForge {
     }
 
     public void onEntityDeath(LivingDropsEvent event){
-        AccessoriesEventHandler.onDeath(event.getEntity(), event.getSource());
+        var droppedStacks = AccessoriesEventHandler.onDeath(event.getEntity(), event.getSource());
+
+        if (droppedStacks == null) return;
+
+        event.getDrops().addAll(
+                droppedStacks.stream().flatMap(itemStack -> {
+                    var pos = event.getEntity().position();
+
+                    return getItemEntities(event.getEntity().level(), pos.x, pos.y, pos.z, itemStack);
+                }).toList()
+        );
+    }
+
+    private static Stream<ItemEntity> getItemEntities(Level level, double x, double y, double z, ItemStack stack) {
+        double d = EntityType.ITEM.getWidth();
+
+        double e = 1.0 - d;
+        double f = d / 2.0;
+
+        double g = Math.floor(x) + level.random.nextDouble() * e + f;
+        double h = Math.floor(y) + level.random.nextDouble() * e;
+        double i = Math.floor(z) + level.random.nextDouble() * e + f;
+
+        var itemEntities = new ArrayList<ItemEntity>();
+
+        while(!stack.isEmpty()) {
+            ItemEntity itemEntity = new ItemEntity(level, g, h, i, stack.split(level.random.nextInt(21) + 10));
+            itemEntity.setDeltaMovement(level.random.triangle(0.0, 0.11485000171139836), level.random.triangle(0.2, 0.11485000171139836), level.random.triangle(0.0, 0.11485000171139836));
+            itemEntities.add(itemEntity);
+        }
+
+        return itemEntities.stream();
     }
 
     public void onLivingEntityTick(EntityTickEvent.Pre event){

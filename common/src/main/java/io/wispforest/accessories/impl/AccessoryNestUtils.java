@@ -1,22 +1,15 @@
 package io.wispforest.accessories.impl;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import io.wispforest.accessories.api.AccessoriesAPI;
-import io.wispforest.accessories.api.components.AccessoriesDataComponents;
-import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.AccessoryNest;
+import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
 import io.wispforest.accessories.api.slot.NestedSlotReferenceImpl;
-import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 

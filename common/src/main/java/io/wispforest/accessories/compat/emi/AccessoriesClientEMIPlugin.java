@@ -4,6 +4,7 @@ import dev.emi.emi.api.EmiEntrypoint;
 import dev.emi.emi.api.EmiPlugin;
 import dev.emi.emi.api.EmiRegistry;
 import dev.emi.emi.api.widget.Bounds;
+import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 
 @EmiEntrypoint

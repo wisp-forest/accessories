@@ -1,0 +1,8 @@
+{
+  "contentMediaType": "",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Data Driven Accessory Renderer",
+  "description": "Defines a data driven way of rendering a given custom renderer for an Accessory",
+  "type": "object",
+  "$ref": "https://github.com/wisp-forest/accessories/blob/1.21.x/common/src/main/resources/schemas/rendering_function_schema.json/#/definitions/renderer#"
+}

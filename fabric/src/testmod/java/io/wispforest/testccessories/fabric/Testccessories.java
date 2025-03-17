@@ -1,7 +1,9 @@
 package io.wispforest.testccessories.fabric;
 
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.testccessories.fabric.accessories.*;
+import io.wispforest.testccessories.fabric.client.TestScreenPacket;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -28,6 +30,8 @@ public class Testccessories implements ModInitializer {
         UniqueSlotHandling.EVENT.register(UniqueSlotTest.INSTANCE);
 
         TestItems.init();
+
+        AccessoriesNetworking.CHANNEL.registerClientboundDeferred(TestScreenPacket.class, TestScreenPacket.ENDEC);
     }
 
     public static ResourceLocation of(String path) {

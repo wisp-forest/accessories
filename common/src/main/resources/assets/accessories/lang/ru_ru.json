@@ -1,0 +1,374 @@
+{
+  "accessories.slot.tooltip.singular": "Слот: ",
+  "accessories.slot.tooltip.plural": "Слоты: ",
+  "accessories.cosmetic_slot.tooltip.singular": "Косметический слот: ",
+  "accessories.cosmetic_slot.tooltip.plural": "Косметические слоты: ",
+  "accessories.slot.any": "Любой",
+  "accessories.slot.except": " кроме ",
+  "accessories.tooltip.attributes.any": "Когда надето:",
+  "accessories.tooltip.attributes.slot": "Когда надето в %s:",
+  "accessories.tooltip.currently_equipped_in": "Надето в: ",
+  "accessories.slot.hat": "Шляпа",
+  "accessories.slot.face": "Маска",
+  "accessories.slot.cape": "Плащ",
+  "accessories.slot.necklace": "Подвеска",
+  "accessories.slot.back": "Спина",
+  "accessories.slot.hand": "Рука",
+  "accessories.slot.ring": "Кольцо",
+  "accessories.slot.wrist": "Запястье",
+  "accessories.slot.belt": "Ремень",
+  "accessories.slot.anklet": "Ножной браслет",
+  "accessories.slot.shoes": "Обувь",
+  "accessories.slot.charm": "Амулет",
+  "accessories.slot.accessories.head": "Голова",
+  "accessories.slot.accessories.chest": "Грудь",
+  "accessories.slot.accessories.legs": "Ноги",
+  "accessories.slot.accessories.feet": "Ступни",
+  "accessories.slot.accessories.animal_body": "Тело",
+  "accessories.slot_group.misc": "Прочее",
+  "accessories.slot_group.head": "Голова",
+  "accessories.slot_group.chest": "Грудь",
+  "accessories.slot_group.arm": "Руки",
+  "accessories.slot_group.leg": "Ноги",
+  "accessories.slot_group.feet": "Ступни",
+  "accessories.slot_group.unsorted": "Неотсортированные",
+  "accessories.key.category.accessories": "Аксессуары",
+  "argument.livingEntities.nonLiving": "Эта команда может касаться только живых существ, но предоставленный выбор включает и неживые существа",
+
+  "gamerule.accessories.keepAccessoryInventory": "Сохранение инвентаря аксессуаров",
+
+  "#comment": "Ниже относящееся к интерфейсу",
+
+  "accessories.key.open_accessories_screen": "Открыть экран аксессуаров",
+  "accessories.slot.cosmetics.toggle.show": "Показать косметические слоты",
+  "accessories.slot.cosmetics.toggle.hide": "Скрыть косметические слоты",
+  "accessories.display.toggle.show": "Показать аксессуар",
+  "accessories.display.toggle.hide": "Скрыть аксессуар",
+  "accessories.lines.toggle.show": "Показать все строки",
+  "accessories.lines.toggle.hide": "Скрыть все строки",
+  "accessories.unused_slots.toggle.show": "Показать неиспользуемые слоты",
+  "accessories.unused_slots.toggle.hide": "Скрыть неиспользуемые слоты",
+  "accessories.slot_cosmetics.toggle.enabled": "Показать слоты аксессуаров",
+  "accessories.slot_cosmetics.toggle.disabled": "Показать косметические слоты",
+  "accessories.advanced_options.toggle.enabled": "❤",
+  "accessories.advanced_options.toggle.disabled": "⚗",
+  "accessories.advanced_options.toggle.enabled.tooltip": "Скрыть дополнительные параметры конфигурации экрана",
+  "accessories.advanced_options.toggle.disabled.tooltip": "Показать дополнительные параметры конфигурации экрана",
+  "accessories.unused_slots.label": "Неиспользуемые слоты:",
+  "accessories.unused_slots.toggle.enabled": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "✔", "color": "#28FFBF" },
+    { "text": "]", "color": "gray" },
+    " Показаны"
+  ],
+  "accessories.unused_slots.toggle.disabled": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "❌", "color": "#EB1D36" },
+    { "text": "]", "color": "gray" },
+    " Скрыты"
+  ],
+  "accessories.unused_slots.toggle.enabled.tooltip": "Скрыть все неиспользуемые слоты",
+  "accessories.unused_slots.toggle.disabled.tooltip": "Показать все неиспользуемые слоты",
+  "accessories.column_amount_slider.label": "Количество столбцов:",
+  "accessories.column_amount_slider.tooltip": "Ползунок, используемый для регулировки количества столбцов в компоновке аксессуаров",
+  "accessories.widget_type.label": "Вариант виджета:",
+  "accessories.widget_type.paginated": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "☰", "color": "#347ecf" },
+    { "text": "]", "color": "gray" },
+    " Постраничный"
+  ],
+  "accessories.widget_type.paginated.tooltip": "Постраничная компоновка слотов аксессуаров",
+  "accessories.widget_type.scrollable": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "⏷", "color": "#953abd" },
+    { "text": "]", "color": "gray" },
+    " Прокручиваемый"
+  ],
+  "accessories.main_widget_position.label": "Положение виджета:",
+  "accessories.main_widget_position.toggle.enabled": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "←", "color": "#32a852" },
+    { "text": "]", "color": "gray" },
+    " Слева"
+  ],
+  "accessories.main_widget_position.toggle.disabled": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "→", "color": "#32a852" },
+    { "text": "]", "color": "gray" },
+    " Справа"
+  ],
+  "accessories.main_widget_position.toggle.enabled.tooltip": "Переместить виджет аксессуаров вправо",
+  "accessories.main_widget_position.toggle.disabled.tooltip": "Переместите виджет аксессуаров влево",
+  "accessories.group_filter.label": "Групповой фильтр:",
+  "accessories.group_filter.toggle.enabled": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "✔", "color": "#28FFBF" },
+    { "text": "]", "color": "gray" },
+    " Показан"
+  ],
+  "accessories.group_filter.toggle.disabled": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "❌", "color": "#EB1D36" },
+    { "text": "]", "color": "gray" },
+    " Скрыт"
+  ],
+  "accessories.group_filter.toggle.enabled.tooltip": "Скрыть виджет группового фильтра",
+  "accessories.group_filter.toggle.disabled.tooltip": "Показать виджет группового фильтра",
+  "accessories.side_widget_position.label": "Боковое положение:",
+  "accessories.side_widget_position.toggle.enabled": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "()", "color": "#32a852" },
+    { "text": "]", "color": "gray" },
+    " Вместе"
+  ],
+  "accessories.side_widget_position.toggle.disabled": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "||", "color": "#32a852" },
+    { "text": "]", "color": "gray" },
+    " Раздельно"
+  ],
+  "accessories.side_widget_position.toggle.enabled.tooltip": "Переместить боковой виджет, чтобы он был рядом с виджетом аксессуаров",
+  "accessories.side_widget_position.toggle.disabled.tooltip": "Переместить боковой виджет так, чтобы он был противоположен виджету аксессуаров",
+  "accessories.dark_mode_toggle.label": "Тема:",
+  "accessories.dark_mode_toggle.toggle.enabled": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "☽", "color": "#3d29c2" },
+    { "text": "]", "color": "gray" },
+    " Тёмная"
+  ],
+  "accessories.dark_mode_toggle.toggle.disabled": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "☀", "color": "#bffa9b" },
+    { "text": "]", "color": "gray" },
+    " Светлая"
+  ],
+  "accessories.dark_mode_toggle.toggle.enabled.tooltip": "Изменить тему на светлую",
+  "accessories.dark_mode_toggle.toggle.disabled.tooltip": "Изменить тему на тёмную",
+  "accessories.show_equipped_stack_slot_type.label": "Тип надетого:",
+  "accessories.show_equipped_stack_slot_type.toggle.enabled": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "✔", "color": "#28FFBF" },
+    { "text": "]", "color": "gray" },
+    " Показан"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.disabled": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "❌", "color": "#EB1D36" },
+    { "text": "]", "color": "gray" },
+    " Скрыт"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.enabled.tooltip": "Скрыть тип слота надетого предмета",
+  "accessories.show_equipped_stack_slot_type.toggle.disabled.tooltip": "Показать тип слота надетого предмета",
+  "accessories.entity_look_at_cursor.label": "Взгляд на мышь:",
+  "accessories.entity_look_at_cursor.toggle.enabled": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "✔", "color": "#28FFBF" },
+    { "text": "]", "color": "gray" },
+    " Включён"
+  ],
+  "accessories.entity_look_at_cursor.toggle.disabled": [
+    "",
+    { "text": "[", "color": "gray" },
+    { "text": "❌", "color": "#EB1D36" },
+    { "text": "]", "color": "gray" },
+    " Отключён"
+  ],
+  "accessories.entity_look_at_cursor.toggle.enabled.tooltip": "Отключить взгляд на курсор",
+  "accessories.entity_look_at_cursor.toggle.disabled.tooltip": "Включить взгляд на курсор",
+  "accessories.lines.toggle.enabled.tooltip": "Скрыть рендеринг всех линий",
+  "accessories.lines.toggle.disabled.tooltip": "Показать рендеринг всех линий",
+  "accessories.crafting_grid.toggle.enabled": "☒",
+  "accessories.crafting_grid.toggle.disabled": "☐",
+  "accessories.crafting_grid.toggle.enabled.tooltip": "Скрыть маленькую сетку создания",
+  "accessories.crafting_grid.toggle.disabled.tooltip": "Показать маленькую сетку создания",
+  "accessories.widget_type.scrollable.tooltip": "Прокручиваемая компоновка слотов аксессуаров",
+  "accessories.selection_screen.message": [
+    "Ниже приведен набор настроек экрана, \n",
+    "которые вы можете выбрать в зависимости \n",
+    "от модпака или вашего стиля игры. \n\n",
+    "Обратите внимание, что вы можете изменить это \n",
+    "в конфигурации аксессуаров, если данный параметр \n",
+    "вам не нравится."
+  ],
+  "accessories.unique_slots.toggle.show": "Показать уникальные слоты",
+  "accessories.unique_slots.toggle.hide": "Скрыть уникальные слоты",
+  "accessories.back.screen": "К предыдущему экрану",
+  "accessories.open.screen": "Открыть аксессуары",
+  "accessories.reset.group_filter": "Сбросить групповые фильтры",
+
+  "#comment": "Ниже относящееся к конфигурации",
+
+  "text.config.accessories.title": "Настройка аксессуаров",
+
+  "text.config.accessories.option.useExperimentalCaching": "Использовать экспериментальное кэширование",
+  "text.config.accessories.option.useExperimentalCaching.tooltip": [
+    "Пытается кэшировать различные запросы в ItemStack для\n",
+    "для повышения производительности, но может вызвать проблемы."
+  ],
+
+  "text.config.accessories.category.clientOptions": "Параметры клиента",
+  "text.config.accessories.category.clientOptions.tooltip": [
+    "Содержит более общие параметры на стороне клиента для рендеринга или ввода игроком"
+  ],
+
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement": "Принудительная замена пустого рендеринга",
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement.tooltip": [
+    "Заставляет любой зарегистрированный рендерер, который, как оказалось,\n",
+    "не является рендерингом, вместо этого использовать рендеринг по умолчанию."
+  ],
+
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError": "Отключить ошибку пустого аксессуара",
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError.tooltip": [
+    "Отключает отображение сообщения об ошибке, если открыт\n",
+    "экран аксессуаров и не найдено ни одного используемого слота."
+  ],
+
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories": "Показывать косметический рендеринг элемента",
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories.tooltip": [
+    "Включает/отключает отображение косметических вариантов предметов, если таковые имеются."
+  ],
+
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders": "Отключить рендеринг по умолчанию",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.tooltip": [
+    "Отключает включенный по умолчанию рендерер отображения элементов, если он используется."
+  ],
+
+  "text.config.accessories.option.clientOptions.equipControl": "Режим быстрой экипировки",
+  "text.config.accessories.option.clientOptions.equipControl.tooltip": [
+    "Изменяет режим, используемый для быстрой экипировки предметов из вашей руки."
+  ],
+
+  "text.config.accessories.enum.playerEquipControl.must_crouch": "Требует приседания",
+  "text.config.accessories.enum.playerEquipControl.must_not_crouch": "Без приседания",
+  "text.config.accessories.enum.playerEquipControl.disabled": "Отключено",
+
+  "text.config.accessories.category.screenOptions": "Параметры экрана",
+  "text.config.accessories.category.screenOptions.tooltip": [
+    "Содержит все параметры конфигурации экрана для всех вариантов и смещений введённых кнопок"
+  ],
+
+  "text.config.accessories.option.screenOptions.selectedScreenType": "Выбранный тип экрана",
+  "text.config.accessories.option.screenOptions.selectedScreenType.tooltip": [
+    "Используется для настройки того, какой экран будет использоваться,\n",
+    "но ни один из них не выводит запрос на выбор пользователя."
+  ],
+
+  "text.config.accessories.enum.screenType.none": "Неопределённый",
+  "text.config.accessories.enum.screenType.original": "Оригинальный",
+  "text.config.accessories.enum.screenType.experimental_v1": "Экспериментальный",
+
+  "text.config.accessories.option.screenOptions.showUnusedSlots": "Показывать неиспользуемые слоты",
+  "text.config.accessories.option.screenOptions.showUnusedSlots.tooltip": "Переключает фильтрацию неиспользуемых слотов",
+
+  "text.config.accessories.option.screenOptions.allowSlotScrolling": "Разрешить прокрутку экранного слота",
+  "text.config.accessories.option.screenOptions.allowSlotScrolling.tooltip": [
+    "Полезно, если данный мод позволяет прокручивать предметы,\n",
+    "что приводит к проблемам при выборе аксессуаров."
+  ],
+
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType": "Показывать тип слота для экипированных предметов",
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType.tooltip": [
+    "Показывает данный тип слота, в котором экипирован данный предмет, во всплывающей подсказке."
+  ],
+
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor": "Заставить сущность следовать за курсором мыши",
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor.tooltip": [
+    "Если включено, сущность следует за курсором мыши,\n",
+    "в противном случае позволяет поворачивать объект вручную."
+  ],
+
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid": "Разрешить сетку создания на боковой панели",
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid.tooltip": [
+    "Если групповые фильтры отсутствуют, то попытается\n",
+    "поместить сетку создания на боковую панель, а не внизу."
+  ],
+
+  "text.config.accessories.section.button_offsets": "Смещения введённых кнопок",
+
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset": "Смещение кнопки инвентаря",
+
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.x": "Смещение по X",
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.y": "Смещение по Y",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset": "Смещение кнопки творческого инвентаря",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.x": "Смещение по X",
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.y": "Смещение по Y",
+
+  "text.config.accessories.section.experimental": "Экспериментальный экран",
+
+  "text.config.accessories.option.screenOptions.isDarkMode": "Использовать тёмную тему",
+  "text.config.accessories.option.screenOptions.isDarkMode.tooltip": [
+    "Изменяет тему экспериментального экрана на тёмную"
+  ],
+
+  "text.config.accessories.section.legacy": "Оригинальный экран",
+
+  "text.config.accessories.option.screenOptions.showGroupTabs": "Показывать вкладки групп быстрого поиска",
+  "text.config.accessories.option.screenOptions.showGroupTabs.tooltip": [
+    "Позволяет отображать или скрывать вкладки групп на оригинальном экране."
+  ],
+
+  "text.config.accessories.section.hover": "Эффекты наведения",
+
+  "text.config.accessories.category.screenOptions.hoveredOptions": "Параметры наведения",
+  "text.config.accessories.category.screenOptions.hoveredOptions.tooltip": [
+    "Параметры для управления эффектами рендеринга на наведённой записи."
+  ],
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.brightenHovered": "Подсвечивать наведённую",
+  "text.config.accessories.option.screenOptions.hoveredOptions.cycleBrightness": "Зациклить яркость",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.line": "Нарисовать линию",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.clickbait": "Кликбейт",
+
+  "text.config.accessories.category.screenOptions.unHoveredOptions": "Параметры отведения",
+  "text.config.accessories.category.screenOptions.unHoveredOptions.tooltip": [
+    "Параметры для управления эффектами рендеринга на отведённой записи."
+  ],
+
+  "text.config.accessories.option.screenOptions.unHoveredOptions.renderUnHovered": "Отображать отведённую",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenUnHovered": "Затемнять отведённую",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedBrightness": "Яркость затемнённой",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedOpacity": "Непрозрачность затемнённой",
+
+  "text.config.accessories.option.disabledDefaultRenders": "Отключить рендереры по умолчанию",
+  "text.config.accessories.option.disabledDefaultRenders.tooltip": [
+    "Полезно отключить рендеринг по умолчанию для данного слота\n",
+    "либо для конкретного рендеринга блоков и/или предметов."
+  ],
+
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.slotType": "Слот",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.targetType": "Тип",
+
+  "text.config.accessories.enum.targetType.item": "Предмет",
+  "text.config.accessories.enum.targetType.block": "Блок",
+  "text.config.accessories.enum.targetType.all": "Все",
+
+  "text.config.accessories.option.modifiers": "Модификаторы количества слотов",
+  "text.config.accessories.option.modifiers.tooltip": [
+    "Полезно для добавления значения смещения к заданному типу слота без\n",
+    "использования пакета данных, поскольку это позволяет использовать\n",
+    "как положительное, так и отрицательное смещение."
+  ],
+
+  "text.config.accessories.option.modifiers.slotType": "Слот",
+  "text.config.accessories.option.modifiers.amount": "Смещение"
+}

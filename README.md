@@ -34,6 +34,8 @@ This API is based on the works of [Curios](https://github.com/TheIllusiveC4/Curi
 
 ## Build Setup
 
+Below is an example of various dependencies setups for platforms with the given repositories are all required for all accessories dependencies.
+
 ### Groovy
 ```groovy
 repositories {
@@ -43,20 +45,41 @@ repositories {
     maven { url 'https://maven.shedaniel.me/' }
 }
 
+// Fabric
 dependencies {
-    // Fabric
     modImplementation("io.wispforest:accessories-fabric:${project.accessories_version}")
-    
-    // Neoforge 
-    implementation("io.wispforest:accessories-neoforge:${project.accessories_version}")
+}
+//...
 
-    // Arch Common
+// Arch Common
+dependencies {
     modImplementation("io.wispforest:accessories-common:${project.accessories_version}")
+}
+//...
 
-    // Multiloader Common Intermediary
+// Arch NeoForge
+dependencies {
+    modImplementation("io.wispforest:accessories-neoforge:${project.accessories_version}")
+
+    // Required due to issues with JIJ dependency resolving in arch or something
+    forgeRuntimeLibrary("io.wispforest:endec:0.1.8")
+    forgeRuntimeLibrary("io.wispforest.endec:gson:0.1.5")
+    forgeRuntimeLibrary("io.wispforest.endec:netty:0.1.4")
+}
+//...
+
+// NeoForge
+dependencies {
+    implementation("io.wispforest:accessories-neoforge:${project.accessories_version}")
+}
+//...
+
+// Vanilla Gradle Common
+dependencies {
+    // Yarn Intermediary 
     compileOnly("io.wispforest:accessories-common:${project.accessories_version}")
-
-    // Multiloader Common Mojang Mappings
+    
+    // Mojang Mappings
     compileOnly("io.wispforest:accessories-common:${project.accessories_version}-mojmap")
 }
 ```
@@ -71,20 +94,41 @@ repositories {
     maven("https://maven.shedaniel.me/")
 }
 
+// Fabric
 dependencies {
-    // Fabric
     modImplementation("io.wispforest:accessories-fabric:${properties["accessories_version"]}")
-    
-    // Neoforge 
-    implementation("io.wispforest:accessories-neoforge:${properties["accessories_version"]}")
+}
+//...
 
-    // Arch Common
+// Arch Common
+dependencies {
     modImplementation("io.wispforest:accessories-common:${properties["accessories_version"]}")
+}
+//...
 
-    // Multiloader Common Intermediary
+// Arch NeoForge
+dependencies {
+    modImplementation("io.wispforest:accessories-neoforge:${properties["accessories_version"]}")
+
+    // Required due to issues with JIJ dependency resolving in arch or something
+    forgeRuntimeLibrary("io.wispforest:endec:0.1.8")
+    forgeRuntimeLibrary("io.wispforest.endec:gson:0.1.5")
+    forgeRuntimeLibrary("io.wispforest.endec:netty:0.1.4")
+}
+//...
+
+// NeoForge
+dependencies {
+    implementation("io.wispforest:accessories-neoforge:${properties["accessories_version"]}")
+}
+//...
+
+// Vanilla Gradle Common
+dependencies {
+    // Yarn Intermediary 
     compileOnly("io.wispforest:accessories-common:${properties["accessories_version"]}")
 
-    // Multiloader Common Mojang Mappings
+    // Mojang Mappings
     compileOnly("io.wispforest:accessories-common:${properties["accessories_version"]}-mojmap")
 }
 ```

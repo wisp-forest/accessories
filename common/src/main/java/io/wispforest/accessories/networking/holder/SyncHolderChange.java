@@ -1,8 +1,7 @@
 package io.wispforest.accessories.networking.holder;
 
-import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.client.gui.AccessoriesScreen;
-import io.wispforest.accessories.networking.BaseAccessoriesPacket;
+import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.endec.*;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -12,9 +11,9 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.function.Function;
 
-public record SyncHolderChange(HolderProperty<?> property, Object data) implements BaseAccessoriesPacket {
+public record SyncHolderChange(HolderProperty<?> property, Object data) {
 
-    public static final Endec<SyncHolderChange> ENDEC = new StructEndec<SyncHolderChange>() {
+    public static final StructEndec<SyncHolderChange> ENDEC = new StructEndec<>() {
         @Override
         public void encodeStruct(SerializationContext ctx, Serializer<?> serializer, Serializer.Struct struct, SyncHolderChange value) {
             struct.field("property", ctx, HolderProperty.ENDEC, value.property());
@@ -37,21 +36,20 @@ public record SyncHolderChange(HolderProperty<?> property, Object data) implemen
         return new SyncHolderChange(property, operation.apply(property.getter().apply(player.accessoriesHolder())));
     }
 
-    @Override
-    public void handle(Player player) {
-        this.property.setData(player, this.data);
+    public static void handlePacket(SyncHolderChange packet, Player player) {
+        packet.property().setData(player, packet.data());
 
         if(player.level().isClientSide()) {
-            handleClient(player);
+            handleClient(packet, player);
         } else {
-            AccessoriesInternals.getNetworkHandler().sendToPlayer((ServerPlayer) player, SyncHolderChange.of((HolderProperty<Object>) this.property, (Object) this.property.getter().apply(player.accessoriesHolder())));
+            AccessoriesNetworking.sendToPlayer((ServerPlayer) player, SyncHolderChange.of((HolderProperty<Object>) packet.property(), (Object) packet.property().getter().apply(player.accessoriesHolder())));
         }
     }
 
     @Environment(EnvType.CLIENT)
-    public void handleClient(Player player) {
-        if(Minecraft.getInstance().screen instanceof AccessoriesScreen accessoriesScreen) {
-            accessoriesScreen.updateButtons(this.property.name());
+    public static void handleClient(SyncHolderChange packet, Player player) {
+        if(Minecraft.getInstance().screen instanceof AccessoriesScreenBase accessoriesScreen) {
+            accessoriesScreen.onHolderChange(packet.property().name());
         }
     }
 }

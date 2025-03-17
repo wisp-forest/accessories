@@ -1,13 +1,12 @@
 package io.wispforest.testccessories.neoforge.accessories;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
-import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
 import io.wispforest.accessories.api.client.SimpleAccessoryRenderer;
+import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.world.entity.LivingEntity;

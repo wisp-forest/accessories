@@ -6,7 +6,6 @@ import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.testccessories.fabric.TestItems;
 import io.wispforest.testccessories.fabric.Testccessories;
-import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;

@@ -6,3 +6,5 @@ accessible class net/minecraft/world/item/enchantment/EnchantmentHelper$Enchantm
 extendable class net/minecraft/world/item/enchantment/EnchantmentHelper$EnchantmentInSlotVisitor
 accessible class net/minecraft/world/inventory/ArmorSlot
 extendable class net/minecraft/world/inventory/ArmorSlot
+
+accessible class net/minecraft/server/ReloadableServerResources$ConfigurableRegistryLookup

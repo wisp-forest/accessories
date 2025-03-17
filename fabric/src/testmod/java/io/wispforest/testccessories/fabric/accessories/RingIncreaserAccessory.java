@@ -10,8 +10,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-import java.util.UUID;
-
 public class RingIncreaserAccessory implements Accessory {
 
     public static void init(){

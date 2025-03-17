@@ -1,7 +1,6 @@
 package io.wispforest.accessories.api.events;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.fabricmc.fabric.api.event.Event;
@@ -11,8 +10,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.UUID;
 
 /**
  * Event callback used to allow or denied the ability to adjust a given entities accessories or prevent the Accessory

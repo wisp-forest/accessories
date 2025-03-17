@@ -5,12 +5,11 @@ import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.events.SlotStateChange;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.endec.CodecUtils;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.owo.serialization.CodecUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.*;
@@ -20,7 +19,7 @@ public final class AccessoryNestContainerContents {
     public static final AccessoryNestContainerContents EMPTY = new AccessoryNestContainerContents(List.of());
 
     public static final Endec<AccessoryNestContainerContents> ENDEC = StructEndecBuilder.of(
-            CodecUtils.ofCodec(ItemStack.OPTIONAL_CODEC).listOf().fieldOf("accessories", AccessoryNestContainerContents::accessories),
+            CodecUtils.toEndec(ItemStack.OPTIONAL_CODEC).listOf().fieldOf("accessories", AccessoryNestContainerContents::accessories),
             AccessoryNestContainerContents::new
     );
 

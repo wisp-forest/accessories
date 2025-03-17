@@ -3,6 +3,7 @@ package io.wispforest.accessories.api.data;
 import io.wispforest.accessories.Accessories;
 import net.minecraft.resources.ResourceLocation;
 
+// TODO: Rename to constants?
 public class AccessoriesBaseData {
 
     public static final String ANKLET_SLOT = "anklet";

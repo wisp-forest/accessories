@@ -3,17 +3,12 @@ package io.wispforest.accessories.api.slot;
 import com.google.common.collect.ImmutableList;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.AccessoryNest;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.endec.Endec;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * A reference to a specific accessory slot of a {@link LivingEntity}.

@@ -8,7 +8,7 @@ modId = "accessories"
 version = "${version}"
 displayName = "Accessories"
 authors = "Blodhgarm, chyzman, Dr.Zeal"
-credits = "Special thanks to both Emi and C4 for the creation of both Trinkets and Curios"
+credits = "BasiqueEvangelist, mpustovoi, EvanHsieh0415, notlin4, RuyaSavascisi, and Special thanks to both Emi and C4 for the creation of both Trinkets and Curios"
 description = '''
 A extendable and data-driven Accessory Mod for Minecraft.
 '''
@@ -34,8 +34,8 @@ ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.accessories]]
-modId = "cloth_config"
+modId = "owo"
 required = true
-versionRange = "[15,)"
+versionRange = "[0.12.15.1+1.21,)"
 ordering = "NONE"
 side = "BOTH"

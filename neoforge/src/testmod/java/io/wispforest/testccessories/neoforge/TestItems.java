@@ -1,9 +1,7 @@
 package io.wispforest.testccessories.neoforge;
 
 import io.wispforest.testccessories.neoforge.accessories.WaterBreathingAccessory;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;

@@ -6,7 +6,7 @@ import com.google.common.cache.LoadingCache;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import net.fabricmc.fabric.api.util.TriState;
-import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.level.storage.loot.LootContext;
@@ -21,7 +21,9 @@ import java.util.Map;
  */
 public class ExtraEventHandler {
 
-    public static int lootingAdjustments(LivingEntity entity, DamageSource damageSource, int currentLevel){
+    public static int lootingAdjustments(LivingEntity entity, LootContext context, int currentLevel){
+        var damageSource = context.getParamOrNull(LootContextParams.DAMAGE_SOURCE);
+
         if(damageSource != null && damageSource.getEntity() instanceof LivingEntity targetEntity){
             var capability = AccessoriesCapability.get(entity);
 
@@ -32,11 +34,15 @@ public class ExtraEventHandler {
 
                     var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
-                    if(accessory instanceof LootingAdjustment lootingAdjustment){
-                        currentLevel += lootingAdjustment.getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
-                    }
+                    currentLevel += io.wispforest.accessories.api.events.extra.LootingAdjustment.EVENT.invoker().getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
 
-                    currentLevel += LootingAdjustment.EVENT.invoker().getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
+                    currentLevel += io.wispforest.accessories.api.events.extra.v2.LootingAdjustment.EVENT.invoker().getLootingAdjustment(stack, reference, targetEntity, context, damageSource, currentLevel);
+
+                    //--
+
+                    if(accessory instanceof io.wispforest.accessories.api.events.extra.v2.LootingAdjustment lootingAdjustment){
+                        currentLevel += lootingAdjustment.getLootingAdjustment(stack, reference, targetEntity, context, damageSource, currentLevel);
+                    }
                 }
             }
         }
@@ -120,6 +126,37 @@ public class ExtraEventHandler {
 
         return state;
     }
+
+    public static TriState canFreezeEntity(LivingEntity entity){
+        var state = TriState.DEFAULT;
+
+        var capability = AccessoriesCapability.get(entity);
+
+        if(capability != null){
+            for (var entryRef : capability.getAllEquipped()) {
+                var reference = entryRef.reference();
+                var stack = entryRef.stack();
+
+                var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
+
+                if(accessory instanceof ShouldFreezeEntity check){
+                    state = check.shouldFreeze(stack, reference);
+
+                    if(state != TriState.DEFAULT) return state;
+                }
+
+                state = ShouldFreezeEntity.EVENT.invoker().shouldFreeze(stack, reference);
+
+                if(state != TriState.DEFAULT) return state;
+
+                if (stack.is(ItemTags.FREEZE_IMMUNE_WEARABLES)) return TriState.FALSE;
+            }
+        }
+
+        return state;
+    }
+
+    //--
 
     private static final LoadingCache<Integer, Map<Integer, TriState>> endermanAngyCacheResults = CacheBuilder.newBuilder()
             .concurrencyLevel(1)

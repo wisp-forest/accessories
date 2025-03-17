@@ -1,0 +1,386 @@
+{
+  "accessories.slot.tooltip.singular": "飾品欄：",
+  "accessories.slot.tooltip.plural": "飾品欄：",
+  "accessories.cosmetic_slot.tooltip.singular": "裝飾欄：",
+  "accessories.cosmetic_slot.tooltip.plural": "裝飾欄：",
+  "accessories.slot.any": "任何",
+  "accessories.slot.except": " 除了 ",
+  "accessories.tooltip.attributes.any": "裝備時：",
+  "accessories.tooltip.attributes.slot": "裝備在%s時：",
+  "accessories.tooltip.currently_equipped_in": "裝備於：",
+  "accessories.slot.hat": "帽子",
+  "accessories.slot.face": "面具",
+  "accessories.slot.cape": "披風",
+  "accessories.slot.necklace": "項鍊",
+  "accessories.slot.back": "背部",
+  "accessories.slot.hand": "手部",
+  "accessories.slot.ring": "戒指",
+  "accessories.slot.wrist": "手腕",
+  "accessories.slot.belt": "腰帶",
+  "accessories.slot.anklet": "腳環",
+  "accessories.slot.shoes": "鞋子",
+  "accessories.slot.charm": "護符",
+  "accessories.slot.accessories.head": "頭部",
+  "accessories.slot.accessories.chest": "胸部",
+  "accessories.slot.accessories.legs": "腿部",
+  "accessories.slot.accessories.feet": "腳部",
+  "accessories.slot.accessories.animal_body": "身體",
+  "accessories.slot_group.misc": "其他",
+  "accessories.slot_group.head": "頭部",
+  "accessories.slot_group.chest": "胸部",
+  "accessories.slot_group.arm": "手臂",
+  "accessories.slot_group.leg": "腿部",
+  "accessories.slot_group.feet": "腳",
+  "accessories.slot_group.unsorted": "未分類",
+
+  "accessories.key.category.accessories": "飾品｜Accessories",
+  "argument.livingEntities.nonLiving": "只有活體（Living Entity）可能受此指令影響，但所提供的實體選擇器包括非活體",
+
+  "#comment": "GUI Related Below",
+
+  "accessories.key.open_accessories_screen": "開啟飾品欄",
+
+  "accessories.slot.cosmetics.toggle.show": "顯示裝飾欄",
+  "accessories.slot.cosmetics.toggle.hide": "隱藏裝飾欄",
+
+  "accessories.display.toggle.show": "顯示飾品",
+  "accessories.display.toggle.hide": "隱藏飾品",
+
+  "accessories.lines.toggle.show": "顯示所有行",
+  "accessories.lines.toggle.hide": "隱藏所有行",
+
+  "accessories.unused_slots.toggle.show": "顯示未使用的飾品欄",
+  "accessories.unused_slots.toggle.hide": "隱藏未使用的飾品欄",
+
+  "accessories.slot_cosmetics.toggle.enabled": "顯示飾品飾品欄",
+  "accessories.slot_cosmetics.toggle.disabled": "顯示裝飾品飾品欄",
+
+  "accessories.advanced_options.toggle.enabled": "❤",
+  "accessories.advanced_options.toggle.enabled.tooltip": "隱藏額外飾品介面設定",
+  "accessories.advanced_options.toggle.disabled": "⚗",
+  "accessories.advanced_options.toggle.disabled.tooltip": "顯示額外飾品介面設定",
+
+  "accessories.unused_slots.label": "未使用的飾品欄：",
+  "accessories.unused_slots.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    "顯示"
+  ],
+  "accessories.unused_slots.toggle.enabled.tooltip": "隱藏所有未使用的飾品欄",
+  "accessories.unused_slots.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    "隱藏"
+  ],
+  "accessories.unused_slots.toggle.disabled.tooltip": "顯示所有未使用的飾品欄",
+
+  "accessories.column_amount_slider.label": "欄數：",
+  "accessories.column_amount_slider.tooltip": "用於調整飾品佈局欄數的滑桿",
+
+  "accessories.widget_type.label": "飾品介面變體：",
+  "accessories.widget_type.paginated": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☰", "color": "#347ecf"},
+    {"text": "]", "color": "gray"},
+    " 分頁"
+  ],
+  "accessories.widget_type.paginated.tooltip": "有欄列的飾品布局",
+  "accessories.widget_type.scrollable": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "⏷", "color": "#953abd"},
+    {"text": "]", "color": "gray"},
+    " 捲動"
+  ],
+  "accessories.widget_type.scrollable.tooltip": "可捲動的飾品佈局",
+
+  "accessories.main_widget_position.label": "飾品介面按鈕位置：",
+  "accessories.main_widget_position.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "←", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " 左"
+  ],
+  "accessories.main_widget_position.toggle.enabled.tooltip": "移動飾品欄按鈕到右側",
+  "accessories.main_widget_position.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "→", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " 右"
+  ],
+  "accessories.main_widget_position.toggle.disabled.tooltip": "移動飾品欄按鈕到左側",
+
+  "accessories.group_filter.label": "群組篩選器：",
+  "accessories.group_filter.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " 顯示"
+  ],
+  "accessories.group_filter.toggle.enabled.tooltip": "隱藏群組篩選器按鈕",
+  "accessories.group_filter.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " 隱藏"
+  ],
+  "accessories.group_filter.toggle.disabled.tooltip": "顯示群組篩選器按鈕",
+
+  "accessories.side_widget_position.label": "邊界位置：",
+  "accessories.side_widget_position.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "()", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " 合併"
+  ],
+  "accessories.side_widget_position.toggle.enabled.tooltip": "將側邊小工具移到與配件小工具在一起",
+  "accessories.side_widget_position.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "||", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " 分離"
+  ],
+  "accessories.side_widget_position.toggle.disabled.tooltip": "將側邊小工具移到配件小工具的對面",
+
+  "accessories.dark_mode_toggle.label": "主題：",
+  "accessories.dark_mode_toggle.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☽", "color": "#3d29c2"},
+    {"text": "]", "color": "gray"},
+    " 暗色"
+  ],
+  "accessories.dark_mode_toggle.toggle.enabled.tooltip": "切換到亮色主題",
+  "accessories.dark_mode_toggle.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☀", "color": "#bffa9b"},
+    {"text": "]", "color": "gray"},
+    " 亮色"
+  ],
+  "accessories.dark_mode_toggle.toggle.disabled.tooltip": "切換到暗色主題",
+
+  "accessories.show_equipped_stack_slot_type.label": "已裝備的飾品欄類型：",
+  "accessories.show_equipped_stack_slot_type.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " 顯示"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.enabled.tooltip": "隱藏已裝備的飾品欄類型",
+  "accessories.show_equipped_stack_slot_type.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " 隱藏"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.disabled.tooltip": "顯示已裝備的飾品欄類型",
+
+  "accessories.entity_look_at_cursor.label": "看向游標：",
+  "accessories.entity_look_at_cursor.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " 啟用"
+  ],
+  "accessories.entity_look_at_cursor.toggle.enabled.tooltip": "禁止玩家模型看向游標",
+  "accessories.entity_look_at_cursor.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " 停用"
+  ],
+  "accessories.entity_look_at_cursor.toggle.disabled.tooltip": "啟用玩家模型看向游標",
+
+  "accessories.lines.toggle.enabled.tooltip": "隱藏所有行",
+  "accessories.lines.toggle.disabled.tooltip": "顯示所有行",
+  
+  "accessories.crafting_grid.toggle.enabled": "☒",
+  "accessories.crafting_grid.toggle.enabled.tooltip": "隱藏背包合成欄",
+  "accessories.crafting_grid.toggle.disabled": "☐",
+  "accessories.crafting_grid.toggle.disabled.tooltip": "隱藏背包合成欄",
+  
+  "accessories.selection_screen.message": [
+    "Below is a set of screen options that you \n",
+    "can choose from depending on the style of \n",
+    "Modpack or your play style. \n\n",
+    "Do note that you can change such within the \n",
+    "Accessories Config if the given option is not \n",
+    "to your liking."
+  ],
+
+  "accessories.unique_slots.toggle.show": "顯示獨特欄位",
+  "accessories.unique_slots.toggle.hide": "隱藏獨特欄位",
+  
+  "accessories.back.screen": "返回上次介面",
+
+  "accessories.open.screen": "開啟飾品介面",
+  
+  "accessories.reset.group_filter": "重設群組篩選器",
+
+
+  "#comment": "以下與設定相關",
+
+  "text.config.accessories.title": "Accessories 設定",
+
+  "text.config.accessories.option.useExperimentalCaching": "使用實驗性快取",
+  "text.config.accessories.option.useExperimentalCaching.tooltip": [
+    "嘗試快取各種物品堆疊查詢以提高效能，但可能會造成問題。"
+  ],
+
+  "text.config.accessories.category.clientOptions": "用戶端選項",
+  "text.config.accessories.category.clientOptions.tooltip": [
+    "包含更多通用的用戶端選項，用於繪製或玩家輸入"
+  ],
+
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement": "強制空繪製替換",
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement.tooltip": [
+    "強制任何已登錄的繪製，若發現沒有繪製，就改用預設繪製。"
+  ],
+
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError": "停用空飾品錯誤",
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError.tooltip": [
+    "停用在開啟飾品介面且未找到使用過的飾品欄時顯示的錯誤訊息。"
+  ],
+
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories": "顯示物品外觀繪製",
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories.tooltip": [
+    "啟用/停用外觀物品變體（如果已裝備）的繪製。"
+  ],
+
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders": "停用預設繪製",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.tooltip": [
+    "如果正在使用，停用內建的預設渲染器繪製物品。"
+  ],
+
+  "text.config.accessories.option.clientOptions.equipControl": "快速手動裝備模式",
+  "text.config.accessories.option.clientOptions.equipControl.tooltip": [
+    "變更從您的手快速裝備物品的模式。"
+  ],
+
+  "text.config.accessories.enum.playerEquipControl.must_crouch": "必須蹲下",
+  "text.config.accessories.enum.playerEquipControl.must_not_crouch": "不須蹲下",
+  "text.config.accessories.enum.playerEquipControl.disabled": "停用",
+
+  "text.config.accessories.category.screenOptions": "介面選項",
+  "text.config.accessories.category.screenOptions.tooltip": [
+    "包含所有變體的所有介面設定選項，以及注入的按鈕偏移量"
+  ],
+
+  "text.config.accessories.option.screenOptions.selectedScreenType": "選取飾品欄介面類型",
+  "text.config.accessories.option.screenOptions.selectedScreenType.tooltip": [
+    "用於調整使用何種介面，否則會提示使用者選擇。"
+  ],
+
+  "text.config.accessories.enum.screenType.none": "未決定",
+  "text.config.accessories.enum.screenType.original": "原始",
+  "text.config.accessories.enum.screenType.experimental_v1": "實驗性",
+
+  "text.config.accessories.option.screenOptions.showUnusedSlots": "顯示未使用的飾品欄",
+  "text.config.accessories.option.screenOptions.showUnusedSlots.tooltip": "切換顯示未使用的飾品欄",
+
+  "text.config.accessories.option.screenOptions.allowSlotScrolling": "允許欄位介面捲動",
+  "text.config.accessories.option.screenOptions.allowSlotScrolling.tooltip": [
+    "如果有模組會影響捲動時的物品操作，會在瀏覽飾品時發生問題，則可以關閉此選項以解決問題。"
+  ],
+
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType": "顯示已裝備的飾品欄位類型",
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType.tooltip": [
+    "在物品提示中顯示已裝備的物品所在的飾品欄位類型。"
+  ],
+
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor": "使實體朝向游標",
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor.tooltip": [
+    "啟用時使背包中的實體模型看向滑鼠游標，反之當停用時則允許手動旋轉實體模型。"
+  ],
+
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid": "允許在側邊欄顯示合成欄",
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid.tooltip": [
+    "如果沒有群組篩選器，則會嘗試將合成欄顯示在側邊欄中，而非在下方。"
+  ],
+
+  "text.config.accessories.section.button_offsets": "注入的按鈕位移",
+
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset": "玩家物品欄中按鈕的位移",
+
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.x": "X 軸位移",
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.y": "Y 軸位移",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset": "創造模式物品欄按鈕位移",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.x": "X 軸位移",
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.y": "Y 軸位移",
+
+  "text.config.accessories.section.experimental": "實驗性設定畫面",
+
+  "text.config.accessories.option.screenOptions.isDarkMode": "使用黑暗模式",
+  "text.config.accessories.option.screenOptions.isDarkMode.tooltip": [
+    "允許在實驗性設定中將畫面主題設為黑暗模式。"
+  ],
+
+  "text.config.accessories.section.legacy": "原始風格畫面",
+
+  "text.config.accessories.option.screenOptions.showGroupTabs": "顯示快速尋找群組標籤",
+  "text.config.accessories.option.screenOptions.showGroupTabs.tooltip": [
+    "切換顯示或隱藏原始風格畫面的群組標籤。"
+  ],
+
+  "text.config.accessories.section.hover": "懸停效果",
+
+  "text.config.accessories.category.screenOptions.hoveredOptions": "懸停選項",
+  "text.config.accessories.category.screenOptions.hoveredOptions.tooltip": [
+    "當游標懸停在物品上時的繪製效果"
+  ],
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.brightenHovered": "提高亮度",
+  "text.config.accessories.option.screenOptions.hoveredOptions.cycleBrightness": "循環閃爍",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.line": "繪製線",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.clickbait": "點擊引導",
+
+  "text.config.accessories.category.screenOptions.unHoveredOptions": "未懸停選項",
+  "text.config.accessories.category.screenOptions.unHoveredOptions.tooltip": [
+    "游標未懸停在物品上的繪製效果"
+  ],
+
+  "text.config.accessories.option.screenOptions.unHoveredOptions.renderUnHovered": "依然繪製未有游標懸停的物品",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenUnHovered": "降低物品亮度",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedBrightness": "降低亮度",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedOpacity": "降低不透明度",
+
+  "text.config.accessories.option.disabledDefaultRenders": "停用預設渲染器",
+  "text.config.accessories.option.disabledDefaultRenders.tooltip": [
+    "停用指定飾品欄位的預設繪製，例如方塊或/和物品的繪製"
+  ],
+
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.slotType": "欄位",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.targetType": "類型",
+
+  "text.config.accessories.enum.targetType.item": "物品",
+  "text.config.accessories.enum.targetType.block": "方塊",
+  "text.config.accessories.enum.targetType.all": "全部",
+
+  "text.config.accessories.option.modifiers": "修改飾品欄位數量",
+  "text.config.accessories.option.modifiers.tooltip": [
+    "用於調整飾品欄位數量，可以輸入負數以減少欄位數量，亦可以輸入正數以增加欄位數量。"
+  ],
+
+  "text.config.accessories.option.modifiers.slotType": "欄位",
+  "text.config.accessories.option.modifiers.amount": "位移"
+}

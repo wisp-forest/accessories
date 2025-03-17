@@ -2,17 +2,13 @@ package io.wispforest.testccessories.fabric;
 
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.slot.SlotBasedPredicate;
-import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 public class UniqueSlotTest implements UniqueSlotHandling.RegistrationCallback {

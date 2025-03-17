@@ -1,7 +1,6 @@
 package io.wispforest.accessories.fabric.mixin;
 
 import io.wispforest.accessories.fabric.AccessoriesInternalsImpl;
-import net.fabricmc.fabric.impl.resource.conditions.ResourceConditionsImpl;
 import net.minecraft.tags.TagManager;
 import org.spongepowered.asm.mixin.Dynamic;
 import org.spongepowered.asm.mixin.Mixin;

@@ -18,11 +18,11 @@ import java.util.Map;
  */
 public class SlotAttribute extends Attribute {
 
-    private static final Map<String, SlotAttribute> CACHED_ATTRIBUTES = new HashMap<>();
+    private static final Map<String, Holder<Attribute>> CACHED_ATTRIBUTES = new HashMap<>();
 
     private final String slotName;
 
-    private SlotAttribute(String slotName) {
+    protected SlotAttribute(String slotName) {
         super(slotName, 0);
 
         this.slotName = slotName;
@@ -32,33 +32,49 @@ public class SlotAttribute extends Attribute {
         return this.slotName;
     }
 
+    /**
+     * @deprecated Use {{@link #getAttributeHolder(SlotType)}}
+     */
+    @Deprecated(forRemoval = true)
     public static SlotAttribute getSlotAttribute(SlotType slotType){
         return getSlotAttribute(slotType.name());
     }
 
+    /**
+     * @deprecated Use {{@link #getAttributeHolder(String)}}
+     */
+    @Deprecated(forRemoval = true)
     public static SlotAttribute getSlotAttribute(String slotName){
-        return CACHED_ATTRIBUTES.computeIfAbsent(slotName, SlotAttribute::new);
+        return (SlotAttribute) getAttributeHolder(slotName).value();
+    }
+
+    public static Holder<Attribute> getAttributeHolder(SlotType slotType){
+        return getAttributeHolder(slotType.name());
+    }
+
+    public static Holder<Attribute> getAttributeHolder(String slotName){
+        return CACHED_ATTRIBUTES.computeIfAbsent(slotName, string -> Holder.direct(new SlotAttribute(slotName)));
     }
 
     //--
 
-    public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, SlotType slotType, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
+    public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, SlotType slotType, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
         addSlotModifier(map, slotType.name(), location, amount, operation);
     }
 
-    public static void addSlotModifier(Multimap<Attribute, AttributeModifier> map, String slot, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
-        map.put(SlotAttribute.getSlotAttribute(slot), new AttributeModifier(location, amount, operation));
+    public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String slot, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
+        map.put(SlotAttribute.getAttributeHolder(slot), new AttributeModifier(location, amount, operation));
     }
 
     public static void addSlotAttribute(AccessoryAttributeBuilder builder, String targetSlot, ResourceLocation location, double amount, AttributeModifier.Operation operation, boolean isStackable) {
         if(isStackable) {
-            builder.addStackable(Holder.direct(SlotAttribute.getSlotAttribute(targetSlot)), location, amount, operation);
+            builder.addStackable(SlotAttribute.getAttributeHolder(targetSlot), location, amount, operation);
         } else {
-            builder.addExclusive(Holder.direct(SlotAttribute.getSlotAttribute(targetSlot)), location, amount, operation);
+            builder.addExclusive(SlotAttribute.getAttributeHolder(targetSlot), location, amount, operation);
         }
     }
 
     public static void addSlotAttribute(ItemStack stack, String targetSlot, String boundSlot, ResourceLocation location, double amount, AttributeModifier.Operation operation, boolean isStackable) {
-        AccessoriesAPI.addAttribute(stack, boundSlot, Holder.direct(SlotAttribute.getSlotAttribute(targetSlot)), location, amount, operation, isStackable);
+        AccessoriesAPI.addAttribute(stack, boundSlot, SlotAttribute.getAttributeHolder(targetSlot), location, amount, operation, isStackable);
     }
 }

@@ -1,7 +1,10 @@
 package io.wispforest.accessories.api.slot;
 
 import io.netty.buffer.ByteBuf;
-import io.wispforest.endec.*;
+import io.wispforest.endec.Endec;
+import io.wispforest.endec.SerializationAttribute;
+import io.wispforest.endec.SerializationContext;
+import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.format.bytebuf.ByteBufDeserializer;
 import io.wispforest.endec.format.bytebuf.ByteBufSerializer;
 import io.wispforest.endec.impl.StructEndecBuilder;

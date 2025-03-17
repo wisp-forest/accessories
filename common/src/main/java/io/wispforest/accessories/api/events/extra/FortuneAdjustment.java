@@ -3,7 +3,6 @@ package io.wispforest.accessories.api.events.extra;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;

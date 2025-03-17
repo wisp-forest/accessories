@@ -1,14 +1,37 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2019 Emily Rose Ploszaj
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 package dev.emi.trinkets.api;
 
 import com.google.common.collect.ImmutableList;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.attributes.SlotAttribute;
-import io.wispforest.accessories.endec.CodecUtils;
-import io.wispforest.accessories.endec.MinecraftEndecs;
-import io.wispforest.accessories.endec.RegistriesAttribute;
+import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.owo.serialization.CodecUtils;
+import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -28,8 +51,8 @@ public record TrinketsAttributeModifiersComponent(List<Entry> modifiers, boolean
     );
 
     public static final DataComponentType<TrinketsAttributeModifiersComponent> TYPE = DataComponentType.<TrinketsAttributeModifiersComponent>builder()
-            .persistent(CodecUtils.ofEndec(ENDEC))
-            .networkSynchronized(CodecUtils.packetCodec(ENDEC))
+            .persistent(CodecUtils.toCodec(ENDEC))
+            .networkSynchronized(CodecUtils.toPacketCodec(ENDEC))
             .build();
 
     public TrinketsAttributeModifiersComponent(List<Entry> modifiers, boolean showInTooltip) {
@@ -79,7 +102,7 @@ public record TrinketsAttributeModifiersComponent(List<Entry> modifiers, boolean
     public record Entry(Holder<Attribute> attribute, AttributeModifier modifier, Optional<String> slot) {
         private static final Endec<Holder<net.minecraft.world.entity.ai.attributes.Attribute>> ATTRIBUTE_ENDEC = MinecraftEndecs.IDENTIFIER.xmapWithContext(
                 (context, attributeType) -> {
-                    if(attributeType.getNamespace().equals(Accessories.MODID)) return Holder.direct(SlotAttribute.getSlotAttribute(attributeType.getPath()));
+                    if(attributeType.getNamespace().equals(Accessories.MODID)) return SlotAttribute.getAttributeHolder(attributeType.getPath());
 
                     return context.requireAttributeValue(RegistriesAttribute.REGISTRIES)
                             .registryManager()

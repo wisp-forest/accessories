@@ -9,16 +9,19 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.endec.RegistriesAttribute;
-import io.wispforest.accessories.endec.format.nbt.NbtEndec;
+import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.utils.AttributeUtils;
+import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
-import net.minecraft.nbt.*;
+import io.wispforest.owo.serialization.format.nbt.NbtEndec;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
+import net.minecraft.world.ContainerListener;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
@@ -28,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 @ApiStatus.Internal
-public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceEndec {
+public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceEndec, ContainerListener {
 
     protected AccessoriesCapability capability;
     private String slotName;
@@ -56,16 +59,21 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         this.slotName = slotType.name();
         this.baseSize = slotType.amount();
 
-        this.accessories = new ExpandedSimpleContainer(this::onContainerUpdate, this.baseSize, "accessories", false);
-        this.cosmeticAccessories = new ExpandedSimpleContainer(this::onContainerUpdate, this.baseSize, "cosmetic_accessories", false);
+        this.accessories = new ExpandedSimpleContainer(this, this.baseSize, "accessories", false);
+        this.cosmeticAccessories = new ExpandedSimpleContainer(this, this.baseSize, "cosmetic_accessories", false);
 
         this.renderOptions = getWithSize(baseSize, new ArrayList<>(), true);
     }
 
-    private boolean isWithinUpdateCall = false;
+    protected boolean containerListenerLock = false;
 
-    private void onContainerUpdate(Container container) {
-        if(isWithinUpdateCall) return;
+    @Override
+    public void containerChanged(Container container) {
+        if(containerListenerLock) return;
+
+        var cache = ((AccessoriesHolderImpl)this.capability().getHolder()).getLookupCache();
+
+        if (cache != null) cache.clearContainerCache(this.slotName);
 
         if(((ExpandedSimpleContainer) container).name().contains("cosmetic")) return;
 
@@ -148,10 +156,10 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
             var invalidStacks = new ArrayList<ItemStack>();
 
-            isWithinUpdateCall = true;
+            this.containerListenerLock = true;
 
-            var newAccessories = new ExpandedSimpleContainer(this::onContainerUpdate, currentSize, "accessories");
-            var newCosmetics = new ExpandedSimpleContainer(this::onContainerUpdate, currentSize, "cosmetic_accessories");
+            var newAccessories = new ExpandedSimpleContainer(this, currentSize, "accessories");
+            var newCosmetics = new ExpandedSimpleContainer(this, currentSize, "cosmetic_accessories");
 
             for (int i = 0; i < this.accessories.getContainerSize(); i++) {
                 if (i < newAccessories.getContainerSize()) {
@@ -163,7 +171,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                 }
             }
 
-            isWithinUpdateCall = false;
+            this.containerListenerLock = false;
 
             newAccessories.copyPrev(this.accessories);
             newCosmetics.copyPrev(this.cosmeticAccessories);
@@ -203,6 +211,10 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
             var inv = ((AccessoriesCapabilityImpl) this.capability).getUpdatingInventories();
 
             inv.remove(this);
+        } else {
+            var cache = ((AccessoriesHolderImpl)this.capability().getHolder()).getLookupCache();
+
+            if (cache != null) cache.clearContainerCache(this.slotName);
         }
     }
 
@@ -327,20 +339,20 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
     //--
 
-    public static final KeyedEndec<String> SLOT_NAME_KEY = Endec.STRING.keyed("SlotName", "UNKNOWN");
+    public static final KeyedEndec<String> SLOT_NAME_KEY = Endec.STRING.keyed("slot_name", "UNKNOWN");
 
-    public static final KeyedEndec<Integer> BASE_SIZE_KEY = Endec.INT.keyed("BaseSize", () -> null);
+    public static final KeyedEndec<Integer> BASE_SIZE_KEY = Endec.INT.keyed("base_size", () -> null);
 
-    public static final KeyedEndec<Integer> CURRENT_SIZE_KEY = Endec.INT.keyed("CurrentSize", 0);
+    public static final KeyedEndec<Integer> CURRENT_SIZE_KEY = Endec.INT.keyed("current_size", 0);
 
-    public static final KeyedEndec<List<Boolean>> RENDER_OPTIONS_KEY = Endec.BOOLEAN.listOf().keyed("RenderOptions", ArrayList::new);
+    public static final KeyedEndec<List<Boolean>> RENDER_OPTIONS_KEY = Endec.BOOLEAN.listOf().keyed("render_options", ArrayList::new);
 
-    public static final KeyedEndec<List<CompoundTag>> MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("Modifiers", ArrayList::new);
-    public static final KeyedEndec<List<CompoundTag>> PERSISTENT_MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("PersistentModifiers", ArrayList::new);
-    public static final KeyedEndec<List<CompoundTag>> CACHED_MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("CachedModifiers", ArrayList::new);
+    public static final KeyedEndec<List<CompoundTag>> MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("modifiers", ArrayList::new);
+    public static final KeyedEndec<List<CompoundTag>> PERSISTENT_MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("persistent_modifiers", ArrayList::new);
+    public static final KeyedEndec<List<CompoundTag>> CACHED_MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("cached_modifiers", ArrayList::new);
 
-    public static final KeyedEndec<ListTag> ITEMS_KEY = NbtEndec.LIST.keyed("Items", ListTag::new);
-    public static final KeyedEndec<ListTag> COSMETICS_KEY = NbtEndec.LIST.keyed("Cosmetics", ListTag::new);
+    public static final KeyedEndec<ListTag> ITEMS_KEY = EndecUtils.NBT_LIST.keyed("items", ListTag::new);
+    public static final KeyedEndec<ListTag> COSMETICS_KEY = EndecUtils.NBT_LIST.keyed("cosmetics", ListTag::new);
 
     @Override
     public void write(MapCarrier carrier, SerializationContext ctx) {
@@ -402,27 +414,23 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     public void read(MapCarrier carrier, SerializationContext ctx, boolean sync){
         var registryAccess = ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager();
 
+        EndecUtils.dfuKeysCarrier(
+                carrier,
+                Map.of(
+                        "SlotName", "slot_name",
+                        "BaseSize", "base_size",
+                        "CurrentSize", "current_size",
+                        "RenderOptions", "render_options",
+                        "Modifiers", "modifiers",
+                        "PersistentModifiers", "persistent_modifiers",
+                        "CachedModifiers", "cached_modifiers",
+                        "Items", "items",
+                        "Cosmetics", "cosmetics"
+                ));
+
         this.slotName = carrier.get(SLOT_NAME_KEY);
 
         this.baseSize = carrier.get(BASE_SIZE_KEY);
-
-        if(carrier.has(CURRENT_SIZE_KEY)) {
-            var currentSize = carrier.get(CURRENT_SIZE_KEY);
-
-            var sentOptions = carrier.get(RENDER_OPTIONS_KEY);
-
-            this.renderOptions = getWithSize(currentSize, sentOptions, true);
-
-            if(this.accessories.getContainerSize() != currentSize) {
-                this.accessories = new ExpandedSimpleContainer(this::onContainerUpdate, currentSize, "accessories");
-                this.cosmeticAccessories = new ExpandedSimpleContainer(this::onContainerUpdate, currentSize, "cosmetic_accessories");
-            }
-
-            this.accessories.fromTag(carrier.get(ITEMS_KEY), registryAccess);
-            this.cosmeticAccessories.fromTag(carrier.get(COSMETICS_KEY), registryAccess);
-        } else {
-            this.renderOptions = carrier.get(RENDER_OPTIONS_KEY);
-        }
 
         if(sync) {
             this.modifiers.clear();
@@ -450,7 +458,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
             }
 
             if (carrier.has(CACHED_MODIFIERS_KEY)) {
-                var cachedTag = carrier.get(PERSISTENT_MODIFIERS_KEY);
+                var cachedTag = carrier.get(CACHED_MODIFIERS_KEY);
 
                 for (CompoundTag compoundTag : cachedTag) {
                     var modifier = AttributeModifier.load(compoundTag);
@@ -459,10 +467,28 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                         this.cachedModifiers.add(modifier);
                         this.addTransientModifier(modifier);
                     }
-
-                    this.update();
                 }
+
+                this.update();
             }
+        }
+
+        if(carrier.has(CURRENT_SIZE_KEY)) {
+            var currentSize = carrier.get(CURRENT_SIZE_KEY);
+
+            var sentOptions = carrier.get(RENDER_OPTIONS_KEY);
+
+            this.renderOptions = getWithSize(currentSize, sentOptions, true);
+
+            if(this.accessories.getContainerSize() != currentSize) {
+                this.accessories = new ExpandedSimpleContainer(this, currentSize, "accessories");
+                this.cosmeticAccessories = new ExpandedSimpleContainer(this, currentSize, "cosmetic_accessories");
+            }
+
+            this.accessories.fromTag(carrier.get(ITEMS_KEY), registryAccess);
+            this.cosmeticAccessories.fromTag(carrier.get(COSMETICS_KEY), registryAccess);
+        } else {
+            this.renderOptions = carrier.get(RENDER_OPTIONS_KEY);
         }
     }
 
