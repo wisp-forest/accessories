@@ -8,8 +8,8 @@
 
   "text.config.tclayer.option.slotIdRedirects": "Redirecciones de Ranuras",
 
-  "text.config.tclayer.option.slotIdRedirects.trinketsId": "Identificador de Chucherías",
-  "text.config.tclayer.option.slotIdRedirects.accessoriesId": "Identificador de Accesorios",
+  "text.config.tclayer.option.slotIdRedirects.trinketsId": "Identificador de Trinkets",
+  "text.config.tclayer.option.slotIdRedirects.accessoriesId": "Identificador de Accesories",
   "text.config.tclayer.option.slotIdRedirects.additionalSlot": "Ranuras Adicionales"
 
 }
