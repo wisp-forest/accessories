@@ -284,7 +284,7 @@
 
   "text.config.accessories.option.screenOptions.showEquippedStackSlotType": "Mostrar Tipo de Ranura de stacks Equipadas",
   "text.config.accessories.option.screenOptions.showEquippedStackSlotType.tooltip": [
-    "Muestra el tipo de ranura en la que el stack está equipada dentro de su tooltip."
+    "Muestra el tipo de ranura en la que el stack está equipado dentro de su tooltip."
   ],
 
   "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor": "Hacer que la Entidad Siga el Cursor del Ratón",
@@ -337,7 +337,7 @@
 
   "text.config.accessories.option.screenOptions.hoveredOptions.line": "Dibujar Línea",
 
-  "text.config.accessories.option.screenOptions.hoveredOptions.clickbait": "Cebo de Clic",
+  "text.config.accessories.option.screenOptions.hoveredOptions.clickbait": "ClickBait",
 
   "text.config.accessories.category.screenOptions.unHoveredOptions": "Opciones sin Pasar el Ratón",
   "text.config.accessories.category.screenOptions.unHoveredOptions.tooltip": [
