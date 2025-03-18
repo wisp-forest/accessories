@@ -1,6 +1,7 @@
 {
   "required": true,
   "package": "io.wispforest.accessories.fabric.mixin",
+  "plugin": "io.wispforest.accessories.fabric.mixin.AccessoriesFabricMixinConfig",
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [
@@ -10,7 +11,9 @@
     "DataPackContentsMixin",
     "LivingEntityMixin",
     "PlayerListMixin",
-    "ServerEntityEvent"
+    "ServerEntityEvent",
+    "TagManagerMixin",
+    "trinkets.LivingEntityTrinketComponentMixin"
   ],
   "injectors": {
     "defaultRequire": 1
