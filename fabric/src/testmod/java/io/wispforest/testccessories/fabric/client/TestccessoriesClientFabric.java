@@ -14,6 +14,7 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.Items;
 
 public class TestccessoriesClientFabric implements ClientModInitializer {
     @Override
@@ -22,6 +23,9 @@ public class TestccessoriesClientFabric implements ClientModInitializer {
         PotatoAccessory.clientInit();
         PointedDripstoneAccessory.clientInit();
         TntAccessory.clientInit();
+
+        AccessoriesRendererRegistry.registerNoRenderer(Items.BAMBOO);
+        AccessoriesRendererRegistry.registerNoRenderer(Items.STICK);
 
         MenuScreens.register(Testccessories.TEST_MENU_TYPE, TestScreen::new);
 

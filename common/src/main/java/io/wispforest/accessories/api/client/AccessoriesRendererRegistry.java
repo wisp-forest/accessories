@@ -3,6 +3,7 @@ package io.wispforest.accessories.api.client;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
@@ -23,9 +24,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -34,7 +39,9 @@ import java.util.function.Supplier;
  */
 public class AccessoriesRendererRegistry {
 
-    private static final BiMap<ResourceLocation, Supplier<AccessoryRenderer>> RENDERERS = HashBiMap.create();
+    private static final Logger LOGGER = LogUtils.getLogger();
+
+    private static final Map<ResourceLocation, Supplier<AccessoryRenderer>> RENDERERS = new HashMap<>();
 
     private static final BiMap<ResourceLocation, AccessoryRenderer> CACHED_RENDERERS = HashBiMap.create();
 
@@ -45,7 +52,7 @@ public class AccessoriesRendererRegistry {
     /**
      * Main method used to register an {@link Item} with a given {@link AccessoryRenderer}
      */
-    public static void registerRenderer(Item item, Supplier<AccessoryRenderer> renderer){
+    public static void registerRenderer(Item item, Supplier<@NotNull AccessoryRenderer> renderer){
         registerRenderer(getRendererId(item), renderer);
     }
 
@@ -55,7 +62,7 @@ public class AccessoriesRendererRegistry {
      * This should ONLY be used if ABSOLUTELY necessary
      */
     public static void registerNoRenderer(Item item){
-        registerRenderer(item, () -> null);
+        registerRenderer(item, EmptyRenderer::new);
     }
 
     /**
@@ -64,7 +71,7 @@ public class AccessoriesRendererRegistry {
      */
     public static void registerArmorRendering(Item item) {
         if (item instanceof Equipable && !AccessoriesRendererRegistry.hasRenderer(item)) {
-            AccessoriesRendererRegistry.registerRenderer(item, () -> ArmorRenderingExtension.RENDERER);
+            AccessoriesRendererRegistry.registerRenderer(item, () -> new AccessoryArmorRenderer(){});
         }
     }
 
@@ -81,7 +88,6 @@ public class AccessoriesRendererRegistry {
     /**
      * @return Either the {@link AccessoryRenderer} bound to the item or the instance of the {@link DefaultAccessoryRenderer}
      */
-    @Nullable
     public static AccessoryRenderer getRenderer(ItemStack stack){
         if (stack.has(AccessoriesDataComponents.CUSTOM_RENDERER) && !stack.is(Items.BUNDLE)) {
             return DataDrivenAccessoryRenderer.INSTANCE;
@@ -95,13 +101,15 @@ public class AccessoriesRendererRegistry {
             if(defaultRenderOverride) {
                 return DefaultAccessoryRenderer.INSTANCE;
             } else if(AccessoriesAPI.isDefaultAccessory(AccessoriesAPI.getOrDefaultAccessory(stack))) {
-                return null;
+                return new EmptyRenderer();
             }
         }
 
         var armorRenderOverride = renderOverrides.useArmorRenderer();
 
-        if(armorRenderOverride) return ArmorRenderingExtension.RENDERER;
+        if(armorRenderOverride) {
+            return ArmorRenderingExtension.RENDERER;
+        }
 
         return getRenderer(stack.getItem());
     }
@@ -109,7 +117,6 @@ public class AccessoriesRendererRegistry {
     /**
      * @return Either the {@link AccessoryRenderer} bound to the item or the instance of the {@link DefaultAccessoryRenderer}
      */
-    @Nullable
     public static AccessoryRenderer getRenderer(Item item){
         var id = getRendererId(item);
         var renderer = getRenderer(id);
@@ -118,11 +125,11 @@ public class AccessoriesRendererRegistry {
             renderer = DefaultAccessoryRenderer.INSTANCE;
         }
 
-        if(renderer == null && Accessories.config().clientOptions.forceNullRenderReplacement()) {
+        if(renderer instanceof EmptyRenderer && Accessories.config().clientOptions.forceNullRenderReplacement()) {
             renderer = DefaultAccessoryRenderer.INSTANCE;
         }
 
-        return renderer;
+        return renderer == null ? new EmptyRenderer() : renderer;
     }
 
     @Nullable
@@ -145,7 +152,25 @@ public class AccessoriesRendererRegistry {
     public static void onReload() {
         CACHED_RENDERERS.clear();
 
-        RENDERERS.forEach((item, supplier) -> CACHED_RENDERERS.put(item, supplier.get()));
+        RENDERERS.forEach((rendererId, supplier) -> {
+            var renderer = supplier.get();
+
+            if (renderer == null) {
+                LOGGER.warn("A given renderer [{}] was found to be returning a null renderer which is not advised as method to indicate no rendering!", rendererId);
+
+                renderer = new EmptyRenderer();
+            }
+
+            var otherRendererId = CACHED_RENDERERS.inverse().get(renderer);
+
+            if (otherRendererId != null) {
+                LOGGER.warn("A given renderer [{}] was found to be shared by another renderer [{}], such will be wrapped to prevent crashing and should be reported!", rendererId, otherRendererId);
+
+                renderer = new WrappedAccessoryRenderer(renderer);
+            }
+
+            CACHED_RENDERERS.put(rendererId, renderer);
+        });
     }
 
     @ApiStatus.Internal
@@ -203,7 +228,7 @@ public class AccessoriesRendererRegistry {
 
                     var renderer = AccessoriesRendererRegistry.getRenderer(innerStack);
 
-                    if (renderer == null) continue;
+                    if (renderer.isEmpty()) continue;
 
                     matrices.pushPose();
 
@@ -236,7 +261,7 @@ public class AccessoriesRendererRegistry {
 
                     var ref = AccessoryNestUtils.create(reference, i);
 
-                    if (renderer == null || !renderer.shouldRenderInFirstPerson(arm, innerStack, ref)) continue;
+                    if (renderer.isEmpty() || !renderer.shouldRenderInFirstPerson(arm, innerStack, ref)) continue;
 
                     matrices.pushPose();
 

@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
+import io.wispforest.accessories.api.client.EmptyRenderer;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.client.AccessoryRendererErrorCache;
 import net.minecraft.client.model.PlayerModel;
@@ -59,7 +60,7 @@ public abstract class PlayerRendererMixin {
 
                     var renderer = AccessoriesRendererRegistry.getRenderer(stack);
 
-                    if(renderer == null || !renderer.shouldRender(container.shouldRender(i))) continue;
+                    if(renderer.isEmpty() || !renderer.shouldRender(container.shouldRender(i))) continue;
 
                     poseStack.pushPose();
 
