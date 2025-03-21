@@ -5,6 +5,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.client.AccessoryRendererErrorCache;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -56,21 +57,25 @@ public abstract class PlayerRendererMixin {
 
                     if (stack.isEmpty()) continue;
 
-                    var renderer = AccessoriesRendererRegistry.getRender(stack);
+                    var renderer = AccessoriesRendererRegistry.getRenderer(stack);
 
                     if(renderer == null || !renderer.shouldRender(container.shouldRender(i))) continue;
 
                     poseStack.pushPose();
 
-                    renderer.renderOnFirstPerson(
-                        currentArm,
-                        stack,
-                        SlotReference.of(player, container.getSlotName(), i),
-                        poseStack,
-                        playerModel,
-                        buffer,
-                        combinedLight
-                    );
+                    try {
+                        renderer.renderOnFirstPerson(
+                                currentArm,
+                                stack,
+                                SlotReference.of(player, container.getSlotName(), i),
+                                poseStack,
+                                playerModel,
+                                buffer,
+                                combinedLight
+                        );
+                    } catch (Throwable e) {
+                        AccessoryRendererErrorCache.logIfTimeAllotted(player, stack, renderer, e);
+                    }
 
                     poseStack.popPose();
                 }

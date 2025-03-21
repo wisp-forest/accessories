@@ -7,6 +7,7 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.client.CustomDataRenderer;
 import io.wispforest.accessories.api.client.RenderingFunction;
+import io.wispforest.accessories.utils.HashUtils;
 import io.wispforest.accessories.utils.ManagedEndecDataLoader;
 import io.wispforest.endec.format.gson.GsonDeserializer;
 import io.wispforest.owo.Owo;
@@ -300,22 +301,12 @@ public class CustomRendererLoader extends ManagedEndecDataLoader<CustomDataRende
         }
 
         var prevErrorHash = ERROR_CACHE.getIfPresent(id);
-        var hash = getHash(e);
+        var hash = HashUtils.getHash(e);
 
         if (!Objects.equals(hash, prevErrorHash)) {
             ERROR_CACHE.put(id, hash);
             runnable.run();
         }
-    }
-
-    private static int getHash(Throwable throwable) {
-        var hash = (throwable.getCause() != null) ? getHash(throwable.getCause()) : 0;
-
-        for (var innerThrowable : throwable.getSuppressed()) {
-            hash = Objects.hash(hash, getHash(innerThrowable));
-        }
-
-        return Objects.hash(hash, throwable.getMessage());
     }
 
     // TODO: I KNOW ITS UNSAFEISH!!!!

@@ -33,6 +33,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
@@ -41,6 +42,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class AccessoriesCommands {
 
@@ -78,37 +81,12 @@ public class AccessoriesCommands {
                                             .then(
                                                     Commands.argument("renderer_id", ResourceLocationArgument.id())
                                                             .then(
-                                                                    Commands.argument("item_model_id", ResourceLocationArgument.id()).executes(ctx -> {
-                                                                        var rendererId = ctx.getArgument("renderer_id", ResourceLocation.class);
-                                                                        var modelId = ctx.getArgument("item_model_id", ResourceLocation.class);
-                                                                        var component = ComponentArgument.getComponent(ctx, "custom_name");
-
-                                                                        var player = ctx.getSource().getPlayerOrException();
-
-                                                                        var itemStack = Items.STICK.getDefaultInstance();
-
-                                                                        itemStack.set(DataComponents.ITEM_NAME, component);
-
-                                                                        itemStack.set(
-                                                                                AccessoriesDataComponents.CUSTOM_RENDERER,
-                                                                                new AccessoryCustomRendererComponent(List.of(
-                                                                                        new CustomDataRenderer(rendererId, Map.of(), List.of(), null)))
-                                                                        );
-
-                                                                        itemStack.set(
-                                                                                AccessoriesDataComponents.ITEM_MODEL_OVERRIDE,
-                                                                                new AccessoryItemCosmeticOverride(modelId)
-                                                                        );
-
-                                                                        itemStack.set(
-                                                                                AccessoriesDataComponents.SLOT_VALIDATION,
-                                                                                new AccessorySlotValidationComponent(Set.of("any"), Set.of())
-                                                                        );
-
-                                                                        player.addItem(itemStack);
-
-                                                                        return 1;
-                                                                    })
+                                                                    Commands.argument("item_model_id", ResourceLocationArgument.id())
+                                                                            .then(
+                                                                                    Commands.argument("is_bundle", BoolArgumentType.bool())
+                                                                                            .executes(AccessoriesCommands::createRenderStack)
+                                                                            )
+                                                                            .executes(AccessoriesCommands::createRenderStack)
                                                             )
                                             )
                             )
@@ -468,6 +446,43 @@ public class AccessoriesCommands {
                 default -> throw new IllegalStateException("Unexpected value: " + operation);
             };
         });
+
+        return 1;
+    }
+
+    private static int createRenderStack(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        var rendererId = ctx.getArgument("renderer_id", ResourceLocation.class);
+        var modelId = ctx.getArgument("item_model_id", ResourceLocation.class);
+        var component = ComponentArgument.getComponent(ctx, "custom_name");
+
+        Item item = Items.STICK;
+
+        try {
+            if (ctx.getArgument("is_bundle", Boolean.class)) item = Items.BUNDLE;
+        } catch (Throwable ignored) {}
+
+        var itemStack = item.getDefaultInstance();
+
+        itemStack.set(DataComponents.ITEM_NAME, component);
+
+        itemStack.set(
+                AccessoriesDataComponents.CUSTOM_RENDERER,
+                new AccessoryCustomRendererComponent(List.of(
+                        new CustomDataRenderer(rendererId, Map.of(), List.of(), null)))
+        );
+
+        itemStack.set(
+                AccessoriesDataComponents.ITEM_MODEL_OVERRIDE,
+                new AccessoryItemCosmeticOverride(modelId)
+        );
+
+        itemStack.set(
+                AccessoriesDataComponents.SLOT_VALIDATION,
+                new AccessorySlotValidationComponent(Set.of("any"), Set.of())
+        );
+
+        ctx.getSource().getPlayerOrException()
+                .addItem(itemStack);
 
         return 1;
     }
