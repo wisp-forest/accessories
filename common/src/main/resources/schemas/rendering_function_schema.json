@@ -133,6 +133,11 @@
       "type": "object",
       "properties": {
         "type": { "const": "particle" },
+        "unique_id": {
+          "title": "Unique ID",
+          "description": "Id used when caching when the particle will fire",
+          "$ref": "#/definitions/identifier"
+        },
         "particle_data": {
           "title": "Particle Data",
           "description": "All data required to construct the particle",

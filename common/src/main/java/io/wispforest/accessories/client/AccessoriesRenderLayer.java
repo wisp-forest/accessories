@@ -7,11 +7,14 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
+import io.wispforest.accessories.api.client.AccessoryRenderer;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import io.wispforest.accessories.pond.LivingEntityRenderStateExtension;
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -21,8 +24,11 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.lwjgl.opengl.GL30;
 import org.slf4j.Logger;
@@ -32,6 +38,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 
 /**
@@ -146,7 +153,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
 
                 if (stack.isEmpty()) continue;
 
-                var renderer = AccessoriesRendererRegistry.getRender(stack);
+                var renderer = AccessoriesRendererRegistry.getRenderer(stack);
 
                 if (renderer == null || !renderer.shouldRender(container.shouldRender(i))) continue;
 
@@ -165,16 +172,19 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
                 };
 
                 if (!AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.getValue() || isSelected || selected == null || unHoveredOptions.renderUnHovered()) {
-                    renderer.render(
-                            stack,
-                            SlotReference.of(entity, container.getSlotName(), i),
-                            poseStack,
-                            getParentModel(),
-                            entityRenderState,
+                    try {
+                        renderer.render(
+                                stack,
+                                SlotReference.of(entity, container.getSlotName(), i),
+                                poseStack,
+                                getParentModel(),
+                                entityRenderState,
                             innerBufferSource,
                             light,
-                            partialTicks
-                    );
+                                partialTicks
+                    );} catch (Throwable e) {
+                        AccessoryRendererErrorCache.logIfTimeAllotted(entity, stack, renderer, e);
+                    }
                 }
 
                 float[] colorValues = null;

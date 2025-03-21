@@ -7,6 +7,7 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.client.Minecraft;
+import io.wispforest.accessories.client.AccessoryRendererErrorCache;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.player.AbstractClientPlayer;
@@ -66,13 +67,13 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
 
                 if (stack.isEmpty()) continue;
 
-                var renderer = AccessoriesRendererRegistry.getRender(stack);
+                var renderer = AccessoriesRendererRegistry.getRenderer(stack);
 
                 if(renderer == null || !renderer.shouldRender(container.shouldRender(i))) continue;
 
                 poseStack.pushPose();
 
-                renderer.renderOnFirstPerson(
+                try {renderer.renderOnFirstPerson(
                     currentArm,
                     stack,
                     SlotReference.of(player, container.getSlotName(), i),
@@ -81,8 +82,10 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
                     state,
                     buffer,
                     combinedLight,
-                    partialTicks
-                );
+                        partialTicks
+                );} catch (Throwable e) {
+                        AccessoryRendererErrorCache.logIfTimeAllotted(player, stack, renderer, e);
+                    }
 
                 poseStack.popPose();
             }
