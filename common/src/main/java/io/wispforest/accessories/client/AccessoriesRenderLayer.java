@@ -8,6 +8,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.client.AccessoryRenderer;
+import io.wispforest.accessories.api.client.EmptyRenderer;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
@@ -155,7 +156,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
 
                 var renderer = AccessoriesRendererRegistry.getRenderer(stack);
 
-                if (renderer == null || !renderer.shouldRender(container.shouldRender(i))) continue;
+                if (renderer.isEmpty() || !renderer.shouldRender(container.shouldRender(i))) continue;
 
                 poseStack.pushPose();
 

@@ -11,11 +11,14 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -82,6 +85,11 @@ public interface AccessoryRenderer {
         if (!shouldRenderInFirstPerson(arm, stack, reference)) return;
 
         this.render(stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks);
+    }
+
+    @ApiStatus.NonExtendable
+    default boolean isEmpty() {
+        return this instanceof EmptyRenderer;
     }
 
     /**
