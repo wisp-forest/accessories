@@ -111,7 +111,12 @@ public class AccessoriesRendererRegistry {
      */
     @Nullable
     public static AccessoryRenderer getRenderer(Item item){
-        var renderer = getRenderer(getRendererId(item));
+        var id = getRendererId(item);
+        var renderer = getRenderer(id);
+
+        if (!CACHED_RENDERERS.containsKey(id)) {
+            renderer = DefaultAccessoryRenderer.INSTANCE;
+        }
 
         if(renderer == null && Accessories.config().clientOptions.forceNullRenderReplacement()) {
             renderer = DefaultAccessoryRenderer.INSTANCE;
