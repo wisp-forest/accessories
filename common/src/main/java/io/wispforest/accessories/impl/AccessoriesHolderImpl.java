@@ -6,6 +6,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.impl.caching.AccessoriesHolderLookupCache;
@@ -31,6 +32,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 import static io.wispforest.accessories.impl.AccessoriesPlayerOptions.*;
+import java.util.concurrent.locks.ReentrantLock;
 
 @ApiStatus.Internal
 public class AccessoriesHolderImpl implements InstanceEndec {
@@ -93,6 +95,18 @@ public class AccessoriesHolderImpl implements InstanceEndec {
     private Map<String, AccessoriesContainer> validSlotContainers = null;
 
     public void setValidTypes(Set<String> validTypes) {
+        if (this.currentlyInitializingHolder.isLocked()) {
+            var threadOwner = currentlyInitializingHolder.getOwner();
+
+            var threadOwnerName = "";
+
+            if (threadOwner != null) threadOwnerName = threadOwner.getName();
+
+            LOGGER.warn("Valid Slot View was attempted to created but somehow its currently Locked! [Current Thread: {}, Lock Owner: {}]", Thread.currentThread().getName(), threadOwnerName);
+
+            return;
+        }
+
         var validSlotContainers = ImmutableMap.<String, AccessoriesContainer>builder();
 
         this.slotContainers.forEach((string, container) -> {
@@ -110,7 +124,7 @@ public class AccessoriesHolderImpl implements InstanceEndec {
 
     @ApiStatus.Internal
     public Map<String, AccessoriesContainer> getSlotContainers() {
-        return this.validSlotContainers != null ? this.validSlotContainers : this.getAllSlotContainers();
+        return this.validSlotContainers != null ? this.validSlotContainers : Collections.unmodifiableMap(this.getAllSlotContainers());
     }
 
     @Nullable
@@ -143,21 +157,28 @@ public class AccessoriesHolderImpl implements InstanceEndec {
 
         this.validSlotContainers = null;
 
-        if (loadedFromTag) {
-            entitySlots.forEach((s, slotType) -> {
-                this.slotContainers.putIfAbsent(s, new AccessoriesContainerImpl(capability, slotType));
-            });
+        try {
+            this.currentlyInitializingHolder.lock();
 
-            var ctx = SerializationContext.attributes(
-                    new EntityAttribute(livingEntity),
-                    RegistriesAttribute.of(livingEntity.registryAccess())
-            );
+            if (loadedFromTag) {
+                entitySlots.forEach((s, slotType) -> {
+                    this.slotContainers.putIfAbsent(s, new AccessoriesContainerImpl(capability, slotType));
+                });
 
-            read(capability, livingEntity, this.carrier, ctx);
-        } else {
-            entitySlots.forEach((s, slotType) -> {
-                this.slotContainers.put(s, new AccessoriesContainerImpl(capability, slotType));
-            });
+                var ctx = SerializationContext.attributes(
+                        new EntityAttribute(livingEntity),
+                        RegistriesAttribute.of(livingEntity.registryAccess())
+                );
+
+                read(capability, livingEntity, this.carrier, ctx);
+            } else {
+                entitySlots.forEach((s, slotType) -> {
+                    this.slotContainers.put(s, new AccessoriesContainerImpl(capability, slotType));
+                });
+            }
+
+        } finally {
+            this.currentlyInitializingHolder.unlock();
         }
 
         this.setValidTypes(entitySlots.keySet());
@@ -306,5 +327,12 @@ public class AccessoriesHolderImpl implements InstanceEndec {
 
         @Override public SerializationAttribute attribute() { return ENTITY; }
         @Override public Object value() { return this;}
+    }
+
+    private class OwnerAccessibleReentrantLock extends ReentrantLock {
+        @Override
+        public Thread getOwner() {
+            return super.getOwner();
+        }
     }
 }
