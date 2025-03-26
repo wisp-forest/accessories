@@ -115,11 +115,11 @@ public class AccessoriesHolderImpl implements InstanceEndec {
 
         this.validSlotContainers = validSlotContainers.build();
 
-        if (this.lookupCache == null) {
-            this.lookupCache = new AccessoriesHolderLookupCache(this);
-        }
-
-        this.lookupCache.clearCache();
+//        if (this.lookupCache == null) {
+//            this.lookupCache = new AccessoriesHolderLookupCache(this);
+//        }
+//
+//        this.lookupCache.clearCache();
     }
 
     @ApiStatus.Internal
