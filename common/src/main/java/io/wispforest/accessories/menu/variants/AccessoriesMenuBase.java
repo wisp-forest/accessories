@@ -4,7 +4,9 @@ import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.mixin.CraftingMenuAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.server.ScreenOpen;
+import io.wispforest.endec.StructEndec;
 import it.unimi.dsi.fastutil.Pair;
+import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -27,6 +29,8 @@ public abstract class AccessoriesMenuBase extends RecipeBookMenu<CraftingInput, 
     @Nullable
     protected final LivingEntity targetEntity;
 
+    protected boolean sendCarriedStackToInventory = false;
+
     protected AccessoriesMenuBase(MenuType<? extends AccessoriesMenuBase> menuType, int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
         super(menuType, containerId);
 
@@ -46,6 +50,10 @@ public abstract class AccessoriesMenuBase extends RecipeBookMenu<CraftingInput, 
         } else {
             this.craftSlots = new TransientCraftingContainer(this, 0, 0);
         }
+
+        this.addServerboundMessage(SetTransferFlag.class, StructEndec.unit(SetTransferFlag::new), setTransferFlag -> {
+            this.sendCarriedStackToInventory = true;
+        });
     }
 
     public final AccessoriesMenuVariant menuVariant() {
@@ -63,6 +71,14 @@ public abstract class AccessoriesMenuBase extends RecipeBookMenu<CraftingInput, 
 
     public final void reopenMenu() {
         AccessoriesNetworking.sendToServer(ScreenOpen.of(this.targetEntity(), this.menuVariant()));
+    }
+
+    public void transferAndClose(Runnable setupCall) {
+        this.sendMessage(new SetTransferFlag());
+
+        setupCall.run();
+
+        this.player().closeContainer();
     }
 
     //--
@@ -111,6 +127,11 @@ public abstract class AccessoriesMenuBase extends RecipeBookMenu<CraftingInput, 
     }
 
     public void removed(Player player) {
+        if (player.inventoryMenu.getCarried().isEmpty() && this.sendCarriedStackToInventory) {
+            player.inventoryMenu.setCarried(this.getCarried());
+            this.setCarried(ItemStack.EMPTY);
+        }
+
         super.removed(player);
         this.resultSlots.clearContent();
         if (!player.level().isClientSide) {
@@ -145,4 +166,6 @@ public abstract class AccessoriesMenuBase extends RecipeBookMenu<CraftingInput, 
     public boolean shouldMoveToInventory(int slotIndex) {
         return slotIndex != this.getResultSlotIndex();
     }
+
+    private record SetTransferFlag() {}
 }

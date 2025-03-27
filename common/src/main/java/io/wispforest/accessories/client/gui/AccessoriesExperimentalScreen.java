@@ -68,7 +68,7 @@ import java.util.stream.Stream;
 
 import static io.wispforest.accessories.client.gui.components.ComponentUtils.BACKGROUND_SLOT_RENDERING_SURFACE;
 
-public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayout, AccessoriesExperimentalMenu> implements AccessoriesScreenBase, ContainerScreenExtension {
+public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayout, AccessoriesExperimentalMenu> implements AccessoriesScreenBase<AccessoriesExperimentalMenu>, ContainerScreenExtension {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -585,9 +585,8 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                     .zIndex(200) // 140
                     )
                     .child(
-                            Components.button(Component.literal(""), (btn) -> {
-                                this.minecraft.setScreen(new InventoryScreen(minecraft.player));
-                            }).renderer((context, btn, delta) -> {
+                            Components.button(Component.literal(""), (btn) -> this.switchToBaseInventory())
+                                    .renderer((context, btn, delta) -> {
                                         ComponentUtils.getButtonRenderer().draw(context, btn, delta);
 
                                         context.push();
