@@ -42,7 +42,7 @@ import org.lwjgl.glfw.GLFW;
 import java.lang.Math;
 import java.util.*;
 
-public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> implements ContainerScreenExtension, AccessoriesScreenBase {
+public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> implements ContainerScreenExtension, AccessoriesScreenBase<AccessoriesMenu> {
 
     private static final ResourceLocation SLOT = Accessories.of("textures/gui/theme/light/slot.png");
 
@@ -476,7 +476,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         this.cosmeticButtons.clear();
 
         this.backButton = this.addRenderableWidget(
-                Button.builder(Component.empty(), (btn) -> this.minecraft.setScreen(new InventoryScreen(minecraft.player)))
+                Button.builder(Component.empty(), (btn) -> this.switchToBaseInventory())
                         .bounds(this.leftPos + 141, this.topPos + 9, 8, 8)
                         .tooltip(Tooltip.create(Component.translatable(Accessories.translationKey("back.screen"))))
                         .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {

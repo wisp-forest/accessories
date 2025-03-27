@@ -5,6 +5,8 @@
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [
+    "client.LocalPlayerMixin",
+    "client.ItemModelShaperMixin",
     "client.AbstractButtonMixin",
     "client.AbstractContainerScreenAccessor",
     "client.AbstractContainerScreenMixin",

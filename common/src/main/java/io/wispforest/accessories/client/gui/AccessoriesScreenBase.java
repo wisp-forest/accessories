@@ -1,7 +1,13 @@
 package io.wispforest.accessories.client.gui;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.menu.variants.AccessoriesMenu;
+import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
+import io.wispforest.accessories.pond.CloseContainerTransfer;
 import it.unimi.dsi.fastutil.Pair;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.Slot;
 import org.apache.commons.lang3.mutable.MutableBoolean;
@@ -13,7 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public interface AccessoriesScreenBase {
+public interface AccessoriesScreenBase<M extends AccessoriesMenuBase> extends MenuAccess<M> {
     // are we currently rendering an entity in a screen
     MutableBoolean IS_RENDERING_UI_ENTITY = new MutableBoolean(false);
 
@@ -43,4 +49,12 @@ public interface AccessoriesScreenBase {
     LivingEntity targetEntityDefaulted();
 
     Slot getHoveredSlot();
+
+    default void switchToBaseInventory() {
+        this.getMenu().transferAndClose(() -> {
+            var player = Minecraft.getInstance().player;
+
+            ((CloseContainerTransfer) player).accessories$setScreenTransfer(new InventoryScreen(player));
+        });
+    }
 }
