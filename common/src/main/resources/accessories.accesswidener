@@ -11,3 +11,4 @@ extendable method net/minecraft/client/gui/screens/inventory/AbstractContainerSc
 extendable method net/minecraft/client/gui/screens/inventory/AbstractContainerScreen renderSlotHighlightFront (Lnet/minecraft/client/gui/GuiGraphics;)V
 extendable method net/minecraft/client/gui/screens/inventory/AbstractContainerScreen renderFloatingItem (Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/world/item/ItemStack;IILjava/lang/String;)V
 accessible class net/minecraft/server/level/ChunkMap$TrackedEntity
+accessible method net/minecraft/world/entity/player/Player closeContainer ()V
