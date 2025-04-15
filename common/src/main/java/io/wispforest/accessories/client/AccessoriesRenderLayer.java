@@ -3,18 +3,13 @@ package io.wispforest.accessories.client;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
-import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
-import io.wispforest.accessories.api.client.AccessoryRenderer;
-import io.wispforest.accessories.api.client.EmptyRenderer;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
-import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -22,20 +17,15 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.lwjgl.opengl.GL30;
-import org.slf4j.Logger;
 
 import java.awt.*;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 
 /**
@@ -75,40 +65,45 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
 
         if (capability == null) return;
 
-        var calendar = Calendar.getInstance();
+        var containers = capability.getContainers();
 
-        float scale = (float) (1 + (0.5 * (0.75 + (Math.sin((System.currentTimeMillis()) / 250d)))));
+        if (containers.isEmpty()) return;
 
         var renderingLines = AccessoriesScreen.COLLECT_ACCESSORY_POSITIONS.getValue();
-
-        var useCustomerBuffer = AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.getValue();
 
         if (!renderingLines && !AccessoriesScreen.NOT_VERY_NICE_POSITIONS.isEmpty()) {
             AccessoriesScreen.NOT_VERY_NICE_POSITIONS.clear();
         }
 
-        if (multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
+        var useCustomerBuffer = AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.getValue();
+
+        if (useCustomerBuffer && multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
             bufferSource.endBatch();
         }
 
+        var scale = (float) (1 + (0.5 * (0.75 + (Math.sin((System.currentTimeMillis()) / 250d)))));
+
+        var calendar = Calendar.getInstance();
+
         var current20th = calendar.getTimeInMillis() / 50;
+
         var shouldUpdate = lastUpdated20th != current20th;
-
         if (shouldUpdate) lastUpdated20th = current20th;
-
-        var screen = Minecraft.getInstance().screen;
 
         AccessoriesInternalSlot selected = null;
 
-        if (screen instanceof AccessoriesScreenBase screenBase && screenBase.getHoveredSlot() instanceof AccessoriesInternalSlot slot) {
+        if (Minecraft.getInstance().screen instanceof AccessoriesScreenBase screenBase && screenBase.getHoveredSlot() instanceof AccessoriesInternalSlot slot) {
             selected = slot;
         }
+
+        boolean preventHovering = selected != null && selected.getItem().isEmpty();
 
         var unHoveredOptions = Accessories.config().screenOptions.unHoveredOptions;
         var hoveredOptions = Accessories.config().screenOptions.hoveredOptions;
 
-        for (var entry : capability.getContainers().entrySet()) {
+        var isFunnyDate = calendar.get(Calendar.MONTH) + 1 == 5 && calendar.get(Calendar.DATE) == 16;
 
+        for (var entry : containers.entrySet()) {
             var container = entry.getValue();
 
             var accessories = container.getAccessories();
@@ -117,34 +112,35 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
             var containerSelected = selected != null && selected.accessoriesContainer.slotType() == container.slotType();
 
             for (int i = 0; i < accessories.getContainerSize(); i++) {
-
                 var isSelected = containerSelected && selected.getContainerSlot() == i;
-
-                if (shouldUpdate) {
-                    var currentBrightness = brightnessMap.getOrDefault(entry.getKey() + i, 1f);
-                    var currentOpacity = opacityMap.getOrDefault(entry.getKey() + i, 1f);
-
-                    if (selected != null && !isSelected) {
-                        brightnessMap.put(entry.getKey() + i, Math.max(unHoveredOptions.darkenedBrightness(), currentBrightness - increment));
-                        opacityMap.put(entry.getKey() + i, Math.max(unHoveredOptions.darkenedOpacity(), currentOpacity - increment));
-                    } else {
-                        brightnessMap.put(entry.getKey() + i, Math.min(1, currentBrightness + increment));
-                        opacityMap.put(entry.getKey() + i, Math.min(1, currentOpacity + increment));
-                    }
-                }
 
                 var stack = accessories.getItem(i);
                 var cosmeticStack = cosmetics.getItem(i);
 
                 if (!cosmeticStack.isEmpty() && Accessories.config().clientOptions.showCosmeticAccessories()) stack = cosmeticStack;
 
+                // No stack to renderer so no need to run any code
                 if (stack.isEmpty()) continue;
 
                 var renderer = AccessoriesRendererRegistry.getRenderer(stack);
 
+                // No Renderer to render meaning no need to run any code
                 if (renderer.isEmpty() || !renderer.shouldRender(container.shouldRender(i))) continue;
 
-                poseStack.pushPose();
+                var mapKey = entry.getKey() + i;
+
+                if (shouldUpdate) {
+                    var currentBrightness = brightnessMap.getOrDefault(mapKey, 1f);
+                    var currentOpacity = opacityMap.getOrDefault(mapKey, 1f);
+
+                    if (selected != null && !isSelected && !preventHovering) {
+                        brightnessMap.put(mapKey, Math.max(unHoveredOptions.darkenedBrightness(), currentBrightness - increment));
+                        opacityMap.put(mapKey, Math.max(unHoveredOptions.darkenedOpacity(), currentOpacity - increment));
+                    } else {
+                        brightnessMap.put(mapKey, Math.min(1, currentBrightness + increment));
+                        opacityMap.put(mapKey, Math.min(1, currentOpacity + increment));
+                    }
+                }
 
                 var mpoatv = new MPOATVConstructingVertexConsumer();
 
@@ -159,6 +155,8 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                 };
 
                 if (!AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.getValue() || isSelected || selected == null || unHoveredOptions.renderUnHovered()) {
+                    poseStack.pushPose();
+
                     try {
                         renderer.render(
                                 stack,
@@ -177,6 +175,8 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                     } catch (Throwable e) {
                         AccessoryRendererErrorCache.logIfTimeAllotted(entity, stack, renderer, e);
                     }
+
+                    poseStack.popPose();
                 }
 
                 float[] colorValues = null;
@@ -184,19 +184,20 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                 if (useCustomerBuffer && bufferedGrabbedFlag.getValue()) {
                     if (multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
                         if (hoveredOptions.brightenHovered() && isSelected) {
-                            if (calendar.get(Calendar.MONTH) + 1 == 5 && calendar.get(Calendar.DATE) == 16) {
+                            if (isFunnyDate) {
                                 var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
-
                                 var color = new Color(Mth.hsvToRgb(hue, 1, 1));
 
                                 colorValues = new float[]{color.getRed() / 128f, color.getGreen() / 128f, color.getBlue() / 128f, 1};
                             } else {
                                 var mul = hoveredOptions.cycleBrightness() ? scale : 1.5f;
+
                                 colorValues = new float[]{mul, mul, mul, 1};
                             }
                         } else if (unHoveredOptions.darkenUnHovered()) {
-                            var darkness = brightnessMap.getOrDefault(entry.getKey() + i, 1f);
-                            colorValues = new float[]{darkness, darkness, darkness, opacityMap.getOrDefault(entry.getKey() + i, 1f)};
+                            var darkness = brightnessMap.getOrDefault(mapKey, 1f);
+
+                            colorValues = new float[]{darkness, darkness, darkness, opacityMap.getOrDefault(mapKey, 1f)};
                         }
 
                         if (colorValues != null) {
@@ -231,8 +232,6 @@ public class AccessoriesRenderLayer<T extends LivingEntity, M extends EntityMode
                         AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, mpoatv.meanPos());
                     }
                 }
-
-                poseStack.popPose();
             }
         }
     }
