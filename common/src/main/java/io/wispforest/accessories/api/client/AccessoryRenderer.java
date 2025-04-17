@@ -2,6 +2,7 @@ package io.wispforest.accessories.api.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.client.rendering.ModelTransformUtils;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import net.minecraft.client.Minecraft;
@@ -17,7 +18,6 @@ import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -180,7 +180,7 @@ public interface AccessoryRenderer {
      * @param side      The side of the ModelPart to transform to
      */
     static void transformToFace(PoseStack poseStack, ModelPart part, Side side) {
-        transformToModelPart(poseStack, part, side.direction.getStepX(), side.direction.getStepY(), side.direction.getStepZ());
+        ModelTransformUtils.transformToFace(poseStack, part, side);
     }
 
     /**
@@ -190,7 +190,7 @@ public interface AccessoryRenderer {
      * @param part      The ModelPart to transform to
      */
     static void transformToModelPart(PoseStack poseStack, ModelPart part) {
-        TransformOps.transformToModelPart(poseStack, part, 0, 0, 0);
+        ModelTransformUtils.transformToModelPart(poseStack, part, 0, 0, 0);
     }
 
     /**
@@ -215,6 +215,6 @@ public interface AccessoryRenderer {
      *                  If null, will be ignored
      */
     static void transformToModelPart(PoseStack poseStack, ModelPart part, @Nullable Number xPercent, @Nullable Number yPercent, @Nullable Number zPercent) {
-        TransformOps.transformToModelPart(poseStack, part, xPercent, yPercent, zPercent);
+        ModelTransformUtils.transformToModelPart(poseStack, part, xPercent, yPercent, zPercent);
     }
 }

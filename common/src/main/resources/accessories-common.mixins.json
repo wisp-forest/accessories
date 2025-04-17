@@ -5,8 +5,6 @@
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [
-    "client.LocalPlayerMixin",
-    "client.ItemModelShaperMixin",
     "client.AbstractButtonMixin",
     "client.AbstractContainerScreenAccessor",
     "client.AbstractContainerScreenMixin",
@@ -19,10 +17,12 @@
     "client.EntityRendererMixin",
     "client.EquipmentLayerRendererAccessor",
     "client.HumanoidArmorLayerAccessor",
+    "client.ItemModelShaperMixin",
     "client.LivingEntityRendererAccessor",
     "client.LivingEntityRenderStateAccessor",
     "client.LivingEntityRenderStateMixin",
     "client.LoadingOverlayMixin",
+    "client.LocalPlayerMixin",
     "client.MinecraftMixin",
     "client.ModelPartAccessor",
     "client.PlayerRendererMixin",
@@ -41,10 +41,16 @@
     "client.owo.OwoReiPluginMixin",
     "client.owo.ScissorStackMixin",
     "client.owo.ScrollContainerMixin",
-    "sodium.MPOATVConstructingVertexConsumerMixin_SodiumImpl"
+    "sodium.MPOATVConstructingVertexConsumerMixin_SodiumImpl",
+    "client.model.EntityModelSetMixin",
+    "client.model.ModelMixin",
+    "client.model.EntityRenderersMixin",
+    "client.model.BlockEntityRenderersMixin"
   ],
   "mixins": [
     "ApplyBonusCountMixin",
+    "ArmorSlotMixin",
+    "ConfigurableRegistryLookupAccessor",
     "CraftingMenuAccessor",
     "CriteriaTriggersAccessor",
     "DataPackContentsMixin",
@@ -62,8 +68,7 @@
     "ItemStackAccessor",
     "LivingEntityAccessor",
     "LivingEntityMixin",
-    "temp_fixes.NbtCompoundMixin",
-    "temp_fixes.NbtUtilsMixin",
+    "PatchedDataComponentMapMixin",
     "PatchedDataComponentMapMixin",
     "PigEntityMixin",
     "PiglinAiMixin",
@@ -72,12 +77,15 @@
     "RegistryOpsAccessor",
     "ServerChunkLoadingManagerAccessor",
     "SlotAccessor",
+    "StateHolderAccessor",
     "StriderMixin",
     "HorseInventoryMenuAccessor",
     "owo.ConfigWrapperAccessor",
     "owo.NbtDeserializerMixin",
     "StateHolderAccessor",
-    "ConfigurableRegistryLookupAccessor"
+    "ConfigurableRegistryLookupAccessor",
+    "temp_fixes.NbtCompoundMixin",
+    "temp_fixes.NbtUtilsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

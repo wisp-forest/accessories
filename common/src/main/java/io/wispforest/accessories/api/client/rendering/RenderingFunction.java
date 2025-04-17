@@ -1,4 +1,4 @@
-package io.wispforest.accessories.api.client;
+package io.wispforest.accessories.api.client.rendering;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Supplier;
@@ -8,7 +8,6 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
-import io.wispforest.endec.format.edm.EdmEndec;
 import io.wispforest.endec.format.edm.EdmSerializer;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.CodecUtils;
@@ -26,7 +25,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -34,7 +32,7 @@ import org.joml.Vector3f;
 import java.util.*;
 
 @ApiStatus.Experimental
-public sealed interface RenderingFunction permits RenderingFunction.Block, RenderingFunction.Compound, RenderingFunction.Entity, RenderingFunction.Item, RenderingFunction.Model, RenderingFunction.Particle, CustomDataRenderer, RenderingFunction.Transformation {
+public sealed interface RenderingFunction permits CustomDataRenderer, RenderingFunction.Block, RenderingFunction.Compound, RenderingFunction.Conditional, RenderingFunction.Entity, RenderingFunction.Item, RenderingFunction.Model, RenderingFunction.Particle, RenderingFunction.Transformation {
 
     static Transformation ofTransformation(List<io.wispforest.accessories.api.client.Transformation> transformations, RenderingFunction innerRendering) {
         return new Transformation(transformations, innerRendering);
@@ -107,6 +105,7 @@ public sealed interface RenderingFunction permits RenderingFunction.Block, Rende
                 case "particle" -> RenderingFunction.Particle.ENDEC;
                 case "compound" -> RenderingFunction.Compound.ENDEC;
                 case "renderer" -> CustomDataRenderer.ENDEC;
+                case "conditional" -> RenderingFunction.Conditional.ENDEC;
                 default -> throw new IllegalStateException("A invalid rendering function was created meaning such is unable to be decoded!");
             },
             RenderingFunction::key,
@@ -216,7 +215,6 @@ public sealed interface RenderingFunction permits RenderingFunction.Block, Rende
                     "count=" + count + ", " +
                     "force=" + force + ']';
         }
-
     }
 
     record Compound(List<RenderingFunction> renderingFunctions, ArmTarget firstPersonArmTarget) implements RenderingFunction {
@@ -224,6 +222,14 @@ public sealed interface RenderingFunction permits RenderingFunction.Block, Rende
                 RenderingFunction.ENDEC.listOf().fieldOf("rendering_functions", Compound::renderingFunctions),
                 Endec.forEnum(ArmTarget.class).optionalFieldOf("first_person_arm_target", Compound::firstPersonArmTarget, () -> ArmTarget.NONE),
                 Compound::new
+        );
+    }
+
+    record Conditional(List<RenderingFunctionPredicate> predicates, RenderingFunction renderingFunction) implements RenderingFunction {
+        public static final StructEndec<Conditional> ENDEC = StructEndecBuilder.of(
+                RenderingFunctionPredicate.ENDEC.listOf().fieldOf("predicates", Conditional::predicates),
+                RenderingFunction.ENDEC.fieldOf("rendering_function", Conditional::renderingFunction),
+                Conditional::new
         );
     }
 

@@ -1,9 +1,8 @@
-package io.wispforest.accessories.api.client;
+package io.wispforest.accessories.api.client.rendering;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.client.ClientDelayedCache;
 import io.wispforest.accessories.data.CustomRendererLoader;
 import net.fabricmc.api.EnvType;
@@ -52,7 +51,7 @@ public class ClientRenderingUtils {
                 case RenderingFunction.Transformation transformation -> {
                     poseStack.pushPose();
 
-                    ClientTransformationUtils.transformStack(transformation.transformations(), poseStack, entityModel, () -> handle(uniqueKey, targetEntity, arm, entityModel, poseStack, buffer, partialTicks, packedLight, packedOverlay, color, List.of(transformation.renderingFunction())));
+                    ClientTransformationUtils.transformStack(transformation.transformations(), poseStack, targetEntity, entityModel, () -> handle(uniqueKey, targetEntity, arm, entityModel, poseStack, buffer, partialTicks, packedLight, packedOverlay, color, List.of(transformation.renderingFunction())));
 
                     poseStack.popPose();
                 }
