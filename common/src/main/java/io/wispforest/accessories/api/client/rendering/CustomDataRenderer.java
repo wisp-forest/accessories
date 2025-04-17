@@ -1,8 +1,7 @@
-package io.wispforest.accessories.api.client;
+package io.wispforest.accessories.api.client.rendering;
 
 import com.google.gson.JsonElement;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.data.CustomRendererLoader;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.format.gson.GsonEndec;

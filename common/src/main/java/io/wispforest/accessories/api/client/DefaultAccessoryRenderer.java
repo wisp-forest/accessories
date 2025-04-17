@@ -5,6 +5,8 @@ import com.mojang.logging.LogUtils;
 import com.mojang.math.Axis;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.client.rendering.ClientTransformationUtils;
+import io.wispforest.accessories.api.client.rendering.ModelTransformUtils;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryRenderTransformations;
 import io.wispforest.accessories.api.slot.SlotReference;
@@ -68,7 +70,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
         var translationData = stack.getOrDefault(AccessoriesDataComponents.RENDER_TRANSFORMATIONS, AccessoryRenderTransformations.EMPTY);
 
         Consumer<PoseStack> translationAndRender = poseStack -> {
-            ClientTransformationUtils.transformStack(translationData.transformations(), poseStack, humanoidModel, () -> {
+            ClientTransformationUtils.transformStack(translationData.transformations(), poseStack, reference.entity(), humanoidModel, () -> {
                 render.accept(poseStack);
             });
         };
@@ -104,14 +106,14 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 Map.entry("face", new RenderHelper() {
                     @Override
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
-                        AccessoryRenderer.transformToFace(matrices, humanoidModel.head, Side.FRONT);
+                        ModelTransformUtils.transformToFace(matrices, reference.entity(), humanoidModel, "head", Side.FRONT);
                         renderCall.accept(matrices);
                     }
                 }),
                 Map.entry("hat", new RenderHelper() {
                     @Override
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
-                        AccessoryRenderer.transformToFace(matrices, humanoidModel.head, Side.TOP);
+                        ModelTransformUtils.transformToFace(matrices, reference.entity(), humanoidModel, "head", Side.TOP);
                         matrices.translate(0, 0.25, 0);
                         for (int i = 0; i < reference.getStack().getCount(); i++) {
                             renderCall.accept(matrices);
@@ -122,7 +124,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 Map.entry("back", new RenderHelper() {
                     @Override
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
-                        AccessoryRenderer.transformToFace(matrices, humanoidModel.body, Side.BACK);
+                        ModelTransformUtils.transformToFace(matrices, reference.entity(), humanoidModel, "body", Side.BACK);
                         matrices.scale(1.5f, 1.5f, 1.5f);
                         renderCall.accept(matrices);
                     }
@@ -130,7 +132,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 Map.entry("necklace", new RenderHelper() {
                     @Override
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
-                        AccessoryRenderer.transformToModelPart(matrices, humanoidModel.body, 0, 1, 1);
+                        ModelTransformUtils.transformToModelPart(matrices, reference.entity(), humanoidModel, "body", 0, 1, 1);
                         matrices.translate(0, -0.25, 0);
                         renderCall.accept(matrices);
                     }
@@ -138,7 +140,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 Map.entry("cape", new RenderHelper() {
                     @Override
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
-                        AccessoryRenderer.transformToModelPart(matrices, humanoidModel.body, 0, 1, -1);
+                        ModelTransformUtils.transformToModelPart(matrices, reference.entity(), humanoidModel, "body", 0, 1, -1);
                         matrices.translate(0, -0.25, 0);
                         renderCall.accept(matrices);
                     }
@@ -146,10 +148,15 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 Map.entry("ring", new RenderHelper() {
                     @Override
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
-                        AccessoryRenderer.transformToModelPart(
+                        var modelTarget = reference.slot() % 2 == 0 ? "right_arm" : "left_arm";
+                        var xPercent = reference.slot() % 2 == 0 ? 1 : -1;
+
+                        ModelTransformUtils.transformToModelPart(
                                 matrices,
-                                reference.slot() % 2 == 0 ? humanoidModel.rightArm : humanoidModel.leftArm,
-                                reference.slot() % 2 == 0 ? 1 : -1,
+                                reference.entity(),
+                                humanoidModel,
+                                modelTarget,
+                                xPercent,
                                 -1,
                                 0
                         );
@@ -174,7 +181,8 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 Map.entry("wrist", new RenderHelper() {
                     @Override
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
-                        AccessoryRenderer.transformToModelPart(matrices, reference.slot() % 2 == 0 ? humanoidModel.rightArm : humanoidModel.leftArm, 0, -0.5, 0);
+                        var modelTarget = reference.slot() % 2 == 0 ? "right_arm" : "left_arm";
+                        ModelTransformUtils.transformToModelPart(matrices, reference.entity(), humanoidModel, modelTarget, 0, -0.5, 0);
                         matrices.scale(1.01f, 1.01f, 1.01f);
                         matrices.mulPose(Axis.YP.rotationDegrees(90));
                         renderCall.accept(matrices);
@@ -183,7 +191,8 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 Map.entry("hand", new RenderHelper() {
                     @Override
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
-                        AccessoryRenderer.transformToFace(matrices, reference.slot() % 2 == 0 ? humanoidModel.rightArm : humanoidModel.leftArm, Side.BOTTOM);
+                        var modelTarget = reference.slot() % 2 == 0 ? "right_arm" : "left_arm";
+                        ModelTransformUtils.transformToFace(matrices, reference.entity(), humanoidModel, modelTarget, Side.BOTTOM);
                         matrices.translate(0, 0.25, 0);
                         matrices.scale(1.02f, 1.02f, 1.02f);
                         matrices.mulPose(Axis.YP.rotationDegrees(90));
@@ -193,7 +202,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 Map.entry("belt", new RenderHelper() {
                     @Override
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
-                        AccessoryRenderer.transformToFace(matrices, humanoidModel.body, Side.BOTTOM);
+                        ModelTransformUtils.transformToFace(matrices, reference.entity(), humanoidModel, "body", Side.BOTTOM);
                         matrices.scale(1.01f, 1.01f, 1.01f);
                         renderCall.accept(matrices);
                     }
@@ -201,7 +210,8 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                 Map.entry("anklet", new RenderHelper() {
                     @Override
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
-                        AccessoryRenderer.transformToModelPart(matrices, reference.slot() % 2 == 0 ? humanoidModel.rightLeg : humanoidModel.leftLeg, 0, -0.5, 0);
+                        var modelTarget = reference.slot() % 2 == 0 ? "right_leg" : "left_leg";
+                        ModelTransformUtils.transformToModelPart(matrices, reference.entity(), humanoidModel, modelTarget, 0, -0.5, 0);
                         matrices.scale(1.01f, 1.01f, 1.01f);
                         renderCall.accept(matrices);
                     }
@@ -210,13 +220,13 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
                     @Override
                     public <M extends LivingEntity> void render(Consumer<PoseStack> renderCall, PoseStack matrices, HumanoidModel<M> humanoidModel, SlotReference reference) {
                         matrices.pushPose();
-                        AccessoryRenderer.transformToFace(matrices, humanoidModel.rightLeg, Side.BOTTOM);
+                        ModelTransformUtils.transformToFace(matrices, reference.entity(), humanoidModel, "right_leg", Side.BOTTOM);
                         matrices.translate(0, 0.25, 0);
                         matrices.scale(1.02f, 1.02f, 1.02f);
                         renderCall.accept(matrices);
                         matrices.popPose();
                         matrices.pushPose();
-                        AccessoryRenderer.transformToFace(matrices, humanoidModel.leftLeg, Side.BOTTOM);
+                        ModelTransformUtils.transformToFace(matrices, reference.entity(), humanoidModel, "left_leg", Side.BOTTOM);
                         matrices.translate(0, 0.25, 0);
                         matrices.scale(1.02f, 1.02f, 1.02f);
                         renderCall.accept(matrices);
