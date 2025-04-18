@@ -9,7 +9,7 @@ public interface ModelPartLoadingHelper {
     }
 
     @Nullable
-    default ModelPart accessories$popRoot() {
+    default ModelPart accessories$pollRoot() {
         throw new IllegalStateException("Interface Method not overridden!");
     }
 

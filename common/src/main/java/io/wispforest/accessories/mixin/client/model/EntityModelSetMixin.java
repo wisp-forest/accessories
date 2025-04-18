@@ -18,7 +18,7 @@ import java.util.Deque;
 public abstract class EntityModelSetMixin implements ModelPartLoadingHelper {
 
     @Unique
-    private final Deque<ModelPart>  accessories$modelPartStorage = new ArrayDeque<>();
+    private final Deque<ModelPart> accessories$modelPartStorage = new ArrayDeque<>();
 
     @Override
     public void accessories$pushRoot(ModelPart root) {
@@ -27,7 +27,7 @@ public abstract class EntityModelSetMixin implements ModelPartLoadingHelper {
 
     @Override
     @Nullable
-    public ModelPart accessories$popRoot() {
+    public ModelPart accessories$pollRoot() {
         return accessories$modelPartStorage.poll();
     }
 

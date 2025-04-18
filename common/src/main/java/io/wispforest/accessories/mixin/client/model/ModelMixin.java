@@ -26,7 +26,11 @@ public abstract class ModelMixin implements ModelRootAccess {
     private void accessories$saveRootPart(Function renderType, CallbackInfo ci) {
         if (((Model)(Object) this) instanceof HierarchicalModel<?>) return;
 
-        this.accessories$rootPart = ((ModelPartLoadingHelper) Minecraft.getInstance().getEntityModels()).accessories$popRoot();
+        // For cases where Modder's bypass model loading and instantiate models outside such loading
+        var modelSet = Minecraft.getInstance().getEntityModels();
+        if (modelSet == null) return;
+
+        this.accessories$rootPart = ((ModelPartLoadingHelper) modelSet).accessories$pollRoot();
     }
 
     @Override
