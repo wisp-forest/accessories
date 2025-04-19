@@ -29,7 +29,7 @@ public sealed interface RenderingFunctionPredicate permits RenderingFunctionPred
         @Override
         public boolean shouldRender(LivingEntity entity, Model model) {
             if (model instanceof ModelRootAccess access) {
-                return access.getAnyDescendantWithName(this.modelPartName()).isPresent();
+                return access.accessories$getAnyDescendantWithName(this.modelPartName()).isPresent();
             }
 
             return false;
