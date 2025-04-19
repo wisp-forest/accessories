@@ -65,7 +65,7 @@ public class ModelTransformUtils {
     @Nullable
     public static ModelPart getPart(Model model, String modelPartName) {
         if (model instanceof ModelRootAccess access) {
-            var possiblePart = access.getAnyDescendantWithName(modelPartName);
+            var possiblePart = access.accessories$getAnyDescendantWithName(modelPartName);
 
             if(possiblePart.isPresent()) return possiblePart.get();
         }
