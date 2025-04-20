@@ -28,7 +28,7 @@ public interface ModelRootAccess {
 
             if (childName.equals(name)) return Optional.of(childPart);
 
-            var result = accessories$getAnyDescendantWithName(part, name);
+            var result = accessories$getAnyDescendantWithName(childPart, name);
 
             if (result.isPresent()) return result;
         }
