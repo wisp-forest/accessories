@@ -69,11 +69,13 @@ public class ClientRenderingUtils {
                     try {
                         entity = entityData.entityType().create(level);
 
-                        if (entity == null) return;
+                        if (entity == null) continue;
 
                         entity.load(entityData.data());
-                    } catch (RuntimeException var3) {
-                        return;
+
+                        entity.tick();
+                    } catch (Exception e) {
+                        continue;
                     }
 
                     client.getEntityRenderDispatcher()
