@@ -82,11 +82,11 @@ public sealed interface RenderingFunction permits CustomDataRenderer, RenderingF
         compound.putString("id", string);
         entity.saveWithoutId(compound);
 
-        return new Entity(entityType, compound);
+        return new Entity(entityType, compound, true);
     }
 
     static Entity ofEntity(EntityType<? extends net.minecraft.world.entity.Entity> entityType, CompoundTag data) {
-        return new Entity(entityType, data);
+        return new Entity(entityType, data, true);
     }
 
     static Particle ofParticle(ResourceLocation uniqueId, float delay, ParticleOptions particleData, Vector3f delta, float speed, int count, boolean force) {
@@ -163,10 +163,11 @@ public sealed interface RenderingFunction permits CustomDataRenderer, RenderingF
         );
     }
 
-    record Entity(EntityType<?> entityType, CompoundTag data) implements RenderingFunction {
+    record Entity(EntityType<?> entityType, CompoundTag data, boolean allowTicking) implements RenderingFunction {
         public static final StructEndec<Entity> ENDEC = StructEndecBuilder.of(
                 CodecUtils.toEndec(BuiltInRegistries.ENTITY_TYPE.byNameCodec()).fieldOf("entity_id", Entity::entityType),
                 NbtEndec.COMPOUND.optionalFieldOf("stack", Entity::data, CompoundTag::new),
+                Endec.BOOLEAN.optionalFieldOf("allow_ticking", Entity::allowTicking, true),
                 Entity::new
         );
     }

@@ -73,7 +73,7 @@ public class ClientRenderingUtils {
 
                         entity.load(entityData.data());
 
-                        entity.tick();
+                        if (entityData.allowTicking()) entity.tick();
                     } catch (Exception e) {
                         continue;
                     }
