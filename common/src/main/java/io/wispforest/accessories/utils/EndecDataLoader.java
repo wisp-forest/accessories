@@ -3,6 +3,7 @@ package io.wispforest.accessories.utils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import com.mojang.logging.LogUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.format.gson.GsonDeserializer;
@@ -12,6 +13,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
+import org.slf4j.Logger;
 
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -19,6 +21,8 @@ import java.util.function.BiConsumer;
 
 // TODO: 1.21.4 ADJUSTMENTS SHOULD BE MADE TO USE LESS DIRECT CODE ANYWAYS
 public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListener {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     protected static final Gson GSON = new GsonBuilder().setLenient().setPrettyPrinting().create();
 
@@ -58,9 +62,14 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
     protected void apply(Map<ResourceLocation, JsonElement> loadedObjects, net.minecraft.server.packs.resources.ResourceManager resourceManager, ProfilerFiller profiler) {
         for (var entry : loadedObjects.entrySet()) {
             var location = entry.getKey();
-            var t = this.endec.decodeFully(this.context, GsonDeserializer::of, entry.getValue());
 
-            this.handleRawEntry(location, t);
+            try {
+                var t = this.endec.decodeFully(this.context, GsonDeserializer::of, entry.getValue());
+
+                this.handleRawEntry(location, t);
+            } catch (Exception e) {
+                LOGGER.error("[EndecDataLoader: {}] An issue has occurred with attempting to decode the following entry: {}", this.getLoaderId(), location, e);
+            }
         }
     }
 
