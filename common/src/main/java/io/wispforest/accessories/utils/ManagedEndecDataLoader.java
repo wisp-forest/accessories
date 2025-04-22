@@ -114,6 +114,14 @@ public class ManagedEndecDataLoader<T> extends EndecDataLoader<T>  {
 
     //--
 
+
+    @Override
+    protected void apply(Map<ResourceLocation, JsonElement> loadedObjects, ResourceManager resourceManager, ProfilerFiller profiler) {
+        this.server.clear();
+
+        super.apply(loadedObjects, resourceManager, profiler);
+    }
+
     @ApiStatus.Internal
     private ManagedEndecDataLoader<T> setupOps(HolderLookup.Provider registries) {
         if (registries instanceof ReloadableServerResources.ConfigurableRegistryLookup lookup) {
