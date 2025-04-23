@@ -167,7 +167,7 @@ public sealed interface RenderingFunction permits CustomDataRenderer, RenderingF
         public static final StructEndec<Entity> ENDEC = StructEndecBuilder.of(
                 CodecUtils.toEndec(BuiltInRegistries.ENTITY_TYPE.byNameCodec()).fieldOf("entity_id", Entity::entityType),
                 NbtEndec.COMPOUND.optionalFieldOf("stack", Entity::data, CompoundTag::new),
-                Endec.BOOLEAN.optionalFieldOf("allow_ticking", Entity::allowTicking, true),
+                Endec.BOOLEAN.optionalFieldOf("allow_ticking", Entity::allowTicking, false),
                 Entity::new
         );
     }
