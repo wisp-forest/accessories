@@ -20,9 +20,12 @@ public class ClientTransformationUtils {
 
         transformStack(transformations, poseStack, entity, model);
 
-        renderCall.run();
+        try {
+            renderCall.run();
+        } finally {
+            poseStack.popPose();
+        }
 
-        poseStack.popPose();
     }
 
     public static void transformStack(List<Transformation> transformations, PoseStack poseStack, LivingEntity entity, EntityModel<? extends LivingEntity> model) {

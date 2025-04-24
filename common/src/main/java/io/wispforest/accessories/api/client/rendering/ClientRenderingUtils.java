@@ -125,19 +125,19 @@ public class ClientRenderingUtils {
         for (var function : functions) {
             switch (function) {
                 case RenderingFunction.Transformation transformation -> {
-                    poseStack.pushPose();
-
                     ClientTransformationUtils.transformStack(transformation.transformations(), poseStack, targetEntity, entityModel, () -> handle(uniqueKey, targetEntity, arm, entityModel, poseStack, buffer, partialTicks, packedLight, packedOverlay, color, List.of(transformation.renderingFunction())));
-
-                    poseStack.popPose();
                 }
                 case RenderingFunction.Block blockData -> {
                     var state = blockData.state();
                     var blockEntity = (blockData.type() != null) ? net.minecraft.world.level.block.entity.BlockEntity.loadStatic(BlockPos.ZERO, blockData.state(), blockData.data(), level.registryAccess()) : null;
 
+                    poseStack.pushPose();
+
                     poseStack.translate(-0.5, 0, -0.5);
 
                     renderBlock(client, state, blockEntity, 0, poseStack, buffer, packedLight, packedOverlay, color);
+
+                    poseStack.popPose();
                 }
                 case RenderingFunction.Entity entityData -> {
                     try {
