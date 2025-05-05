@@ -71,12 +71,12 @@ body:
     attributes:
       label: What Compatibility layer are you using?
       options:
-        - None
+        - Neither
         - Trinkets
         - Curios
         - Both
-      placeholder: Both
-    required: false
+    validations:
+      required: false
   - type: input
     id: compat-ver
     attributes:
