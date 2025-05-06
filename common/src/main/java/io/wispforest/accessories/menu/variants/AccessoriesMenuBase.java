@@ -4,6 +4,7 @@ import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.mixin.CraftingMenuAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.server.ScreenOpen;
+import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.server.level.ServerLevel;
@@ -45,7 +46,7 @@ public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
             this.addCraftingGridSlots(98, 18);
         }
 
-        this.addServerboundMessage(SetTransferFlag.class, StructEndec.unit(SetTransferFlag::new), setTransferFlag -> {
+        this.addServerboundMessage(SetTransferFlag.class, Endec.unit(SetTransferFlag::new), setTransferFlag -> {
             this.sendCarriedStackToInventory = true;
         });
     }

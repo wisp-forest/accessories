@@ -33,6 +33,7 @@ import java.util.*;
 @ApiStatus.Experimental
 public class CustomRendererLoader extends ManagedEndecDataLoader<CustomDataRenderer> {
 
+    private static final Gson GSON = new GsonBuilder().setLenient().setPrettyPrinting().create();
     private static final Logger LOGGER = LogUtils.getLogger();
 
     @Nullable

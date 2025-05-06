@@ -11,19 +11,18 @@ import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryRenderOverrideComponent;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.Equipable;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.equipment.Equippable;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -71,7 +70,7 @@ public class AccessoriesRendererRegistry {
      * as dictated by {@link Equippable#slot()}
      */
     public static void registerArmorRendering(Item item) {
-        if (item instanceof Equipable && !AccessoriesRendererRegistry.hasRenderer(item)) {
+        if (!AccessoriesRendererRegistry.hasRenderer(item)) {
             AccessoriesRendererRegistry.registerRenderer(item, () -> BuiltinAccessoryRenderers.ARMOR_RENDERER);
         }
     }
@@ -180,7 +179,7 @@ public class AccessoriesRendererRegistry {
         public static final DataDrivenAccessoryRenderer INSTANCE = new DataDrivenAccessoryRenderer();
 
         @Override
-        public <M extends LivingEntity> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
             var data = stack.get(AccessoriesDataComponents.CUSTOM_RENDERER);
 
             if (data == null) return;
@@ -189,20 +188,15 @@ public class AccessoriesRendererRegistry {
         }
 
         @Override
-        public <M extends LivingEntity> void renderOnFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light) {
+        public <S extends LivingEntityRenderState> void renderOnFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
             var data = stack.get(AccessoriesDataComponents.CUSTOM_RENDERER);
 
             if (data == null) return;
 
             var targetEntity = reference.entity();
 
-            var tickRateManager = targetEntity.level().tickRateManager();
-
-            var partialTicks = Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(!tickRateManager.isEntityFrozen(targetEntity));
-
             ClientRenderingUtils.handle(stack, targetEntity, arm, model, matrices, multiBufferSource, partialTicks,15728880, OverlayTexture.NO_OVERLAY, -1, data.renderingFunctions());
         }
-
 
         // TODO: ATTEMPT TO DEAL WITH ALWAYS RENDERING BY CHECKING THE TREE OF FUNCTIONS TO SEE IF SUCH EXISTS INSTAED OF ALWAYS TRUE
         @Override
@@ -214,12 +208,12 @@ public class AccessoriesRendererRegistry {
     @ApiStatus.Internal
     private static class BundleAccessoryRenderer implements AccessoryRenderer {
         @Override
-        public <M extends LivingEntity> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
             var contents = stack.get(DataComponents.BUNDLE_CONTENTS);
 
             if (contents == null) return;
 
-            DataDrivenAccessoryRenderer.INSTANCE.render(stack, reference, matrices, model, multiBufferSource, light, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
+            DataDrivenAccessoryRenderer.INSTANCE.render(stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks);
 
             if (contents.items() instanceof List<ItemStack> list) {
                 for (int i = 0; i < list.size(); i++) {
@@ -234,7 +228,7 @@ public class AccessoriesRendererRegistry {
                     matrices.pushPose();
 
                     try {
-                        renderer.render(innerStack, AccessoryNestUtils.create(reference, i), matrices, model, multiBufferSource, light, limbSwing, limbSwingAmount, partialTicks, ageInTicks, netHeadYaw, headPitch);
+                        renderer.render(innerStack, AccessoryNestUtils.create(reference, i), matrices, model, renderState, multiBufferSource, light, partialTicks);
                     } catch (Throwable e) {
                         throw new IllegalStateException("[BundleAccessoryRenderer] Unable to render a given inner item stack due the following error: ", e);
                     }
@@ -245,12 +239,12 @@ public class AccessoriesRendererRegistry {
         }
 
         @Override
-        public <M extends LivingEntity> void renderOnFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<M> model, MultiBufferSource multiBufferSource, int light) {
+        public <S extends LivingEntityRenderState> void renderOnFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
             var contents = stack.get(DataComponents.BUNDLE_CONTENTS);
 
             if (contents == null) return;
 
-            DataDrivenAccessoryRenderer.INSTANCE.renderOnFirstPerson(arm, stack, reference, matrices, model, multiBufferSource, light);
+            DataDrivenAccessoryRenderer.INSTANCE.renderOnFirstPerson(arm, stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks);
 
             if (contents.items() instanceof List<ItemStack> list) {
                 for (int i = 0; i < list.size(); i++) {
@@ -267,7 +261,7 @@ public class AccessoriesRendererRegistry {
                     matrices.pushPose();
 
                     try {
-                        renderer.renderOnFirstPerson(arm, innerStack, ref, matrices, model, multiBufferSource, light);
+                        renderer.renderOnFirstPerson(arm, innerStack, ref, matrices, model, renderState, multiBufferSource, light, partialTicks);
                     } catch (Throwable e) {
                         throw new IllegalStateException("[BundleAccessoryRenderer] Unable to render a given inner item stack due the following error: ", e);
                     }

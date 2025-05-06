@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
 import static io.wispforest.accessories.client.gui.components.ComponentUtils.BACKGROUND_SLOT_RENDERING_SURFACE;
 import static io.wispforest.accessories.client.gui.components.ComponentUtils.COLORED_GUI_TEXTURED;
 
-public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayout, AccessoriesExperimentalMenu> implements AccessoriesScreenBase, ContainerScreenExtension {
+public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayout, AccessoriesExperimentalMenu> implements AccessoriesScreenBase<AccessoriesExperimentalMenu>, ContainerScreenExtension {
 
     private static final Logger LOGGER = LogUtils.getLogger();
     private final @Nullable AbstractContainerScreen<AbstractContainerMenu> prevScreen;

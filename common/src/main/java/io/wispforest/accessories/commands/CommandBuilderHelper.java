@@ -44,7 +44,11 @@ public abstract class CommandBuilderHelper {
     //--
 
     public <T> CommandArgumentHolder<T> argumentHolder(String name, ArgumentType<?> type, CommandArgumentGetter<T> getter) {
-        return new CommandArgumentHolder<>(name, type, getter);
+        return CommandArgumentHolder.of(name, type, getter);
+    }
+
+    public <T> CommandArgumentHolder<T> defaultedArgumentHolder(String name, ArgumentType<?> type, CommandArgumentGetter<T> getter, T defaultValue) {
+        return CommandArgumentHolder.defaulted(name, type, getter, defaultValue);
     }
 
     public <T extends ArgumentBuilder<CommandSourceStack, T>> ArgumentBuilder<CommandSourceStack, T> getOrCreateNode(String key, CommandArgumentHolder<?> ...argumentsParts) {
@@ -172,6 +176,16 @@ public abstract class CommandBuilderHelper {
         );
     }
 
+    public <T1, T2, T3, T4> void requiredArgExectution(String key, CommandArgumentHolder<T1> arg1, CommandArgumentHolder<T2> arg2, CommandArgumentHolder<T3> arg3, CommandArgumentHolder<T4> arg4, CommandFunction4<T1, T2, T3, T4> commandExecution) {
+        requiredArgExectution(new Key(key), arg1, arg2, arg3, arg4, commandExecution);
+    }
+
+    public <T1, T2, T3, T4> void requiredArgExectution(Key key, CommandArgumentHolder<T1> arg1, CommandArgumentHolder<T2> arg2, CommandArgumentHolder<T3> arg3, CommandArgumentHolder<T4> arg4, CommandFunction4<T1, T2, T3, T4> commandExecution) {
+        updateParent(
+                this.getOrCreateNode(key).then(arg1.builder().then(arg2.builder().then(arg3.builder().executes((ctx) -> commandExecution.execute(ctx, arg1.getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx))))))
+        );
+    }
+
     public void requiredExectutionBranched(String key, List<String> literalBranches, CommandFunction1<String> commandExecution) {
         requiredExectutionBranched(new Key(key), literalBranches, commandExecution);
     }
@@ -211,9 +225,13 @@ public abstract class CommandBuilderHelper {
 
     //--
 
-    public record CommandArgumentHolder<T>(String name, ArgumentType<?> type, CommandArgumentGetter<T> getter) {
+    public record CommandArgumentHolder<T>(String name, ArgumentType<?> type, CommandArgumentGetter<T> getter, boolean defaulted, @Nullable T defaultValue) {
         public static <T> CommandArgumentHolder<T> of(String name, ArgumentType<?> type, CommandArgumentGetter<T> getter) {
-            return new CommandArgumentHolder<>(name, type, getter);
+            return new CommandArgumentHolder<>(name, type, getter, false, null);
+        }
+
+        public static <T> CommandArgumentHolder<T> defaulted(String name, ArgumentType<?> type, CommandArgumentGetter<T> getter, T defaultValue) {
+            return new CommandArgumentHolder<>(name, type, getter, true, defaultValue);
         }
 
         public RequiredArgumentBuilder<CommandSourceStack, ?> builder() {
@@ -221,7 +239,13 @@ public abstract class CommandBuilderHelper {
         }
 
         public T getArgument(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-            return this.getter.get(ctx, name);
+            try {
+                return this.getter.get(ctx, name);
+            } catch (IllegalArgumentException e) {
+                if (defaulted) return defaultValue;
+
+                throw e;
+            }
         }
     }
 

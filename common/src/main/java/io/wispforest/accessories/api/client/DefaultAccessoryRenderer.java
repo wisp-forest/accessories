@@ -71,7 +71,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
         var translationData = stack.getOrDefault(AccessoriesDataComponents.RENDER_TRANSFORMATIONS, AccessoryRenderTransformations.EMPTY);
 
         Consumer<PoseStack> translationAndRender = poseStack -> {
-            TransformOps.transformStack(translationData.transformations(), poseStack, reference.entity(), humanoidModel, () -> {
+            TransformOps.transformStack(translationData.transformations(), poseStack, humanoidModel, () -> {
                 render.accept(poseStack);
             });
         };

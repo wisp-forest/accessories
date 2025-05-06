@@ -1,7 +1,7 @@
 package io.wispforest.accessories.api.client.rendering;
 
 import com.google.common.base.CaseFormat;
-import io.wispforest.accessories.pond.ModelRootAccess;
+import io.wispforest.accessories.api.client.TransformOps;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
@@ -28,11 +28,7 @@ public sealed interface RenderingFunctionPredicate permits RenderingFunctionPred
 
         @Override
         public boolean shouldRender(LivingEntity entity, Model model) {
-            if (model instanceof ModelRootAccess access) {
-                return access.accessories$getAnyDescendantWithName(this.modelPartName()).isPresent();
-            }
-
-            return false;
+            return ModelTransformUtils.getPart(model, this.modelPartName()) != null;
         }
     }
 

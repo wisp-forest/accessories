@@ -2,9 +2,7 @@ package io.wispforest.accessories.utils;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.google.gson.JsonElement;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.mixin.ConfigurableRegistryLookupAccessor;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.StructEndec;
@@ -15,8 +13,8 @@ import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.ReloadableServerResources;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.player.Player;
@@ -28,7 +26,6 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 public class ManagedEndecDataLoader<T> extends EndecDataLoader<T>  {
 
@@ -114,33 +111,45 @@ public class ManagedEndecDataLoader<T> extends EndecDataLoader<T>  {
 
     //--
 
-
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> loadedObjects, ResourceManager resourceManager, ProfilerFiller profiler) {
+    protected void apply(Map<ResourceLocation, T> loadedObjects, ResourceManager resourceManager, ProfilerFiller profiler) {
         this.server.clear();
 
         super.apply(loadedObjects, resourceManager, profiler);
     }
 
+    @Nullable
+    private HolderLookup.Provider registries = null;
+
+    @Override
+    protected SerializationContext getContext() {
+        Objects.requireNonNull(registries, "Can not build the needed context for the ManagedEndecDataLoader: " + this.getLoaderId());
+
+        return super.getContext().withAttributes(RegistriesAttribute.fromInfoGetter(new RegistryOps.HolderLookupAdapter(registries)));
+    }
+
     @ApiStatus.Internal
     private ManagedEndecDataLoader<T> setupOps(HolderLookup.Provider registries) {
-        if (registries instanceof ReloadableServerResources.ConfigurableRegistryLookup lookup) {
-            this.context = context.withAttributes(RegistriesAttribute.of(((ConfigurableRegistryLookupAccessor) lookup).getRegistryAccess()));
-        } else {
-            this.context = context.withAttributes(RegistriesAttribute.of((RegistryAccess) registries));
-        }
+        this.registries = registries;
+
+        // Resets the given converted endec to grab new context with current registries
+        setupCodec();
 
         return this;
     }
 
     @Override
     @ApiStatus.Internal
-    protected Map<ResourceLocation, JsonElement> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
-        if (!this.context.hasAttribute(RegistriesAttribute.REGISTRIES)) {
+    protected Map<ResourceLocation, T> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
+        if (registries == null) {
             throw new IllegalStateException("Unable to prepare files as the given Registry access has not been setup on the server! [Id: " + this.getLoaderId() + "]");
         }
 
-        return super.prepare(resourceManager, profiler);
+        var entries = super.prepare(resourceManager, profiler);
+
+        this.registries = null;
+
+        return entries;
     }
 
     @ApiStatus.Internal

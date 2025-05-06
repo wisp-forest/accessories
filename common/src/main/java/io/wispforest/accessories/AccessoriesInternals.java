@@ -9,6 +9,7 @@ import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.utils.ManagedEndecDataLoader;
 import io.wispforest.endec.Endec;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;

@@ -6,7 +6,6 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.AccessoriesHolder;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.impl.caching.AccessoriesHolderLookupCache;
@@ -141,6 +140,8 @@ public class AccessoriesHolderImpl implements InstanceEndec {
     }
 
     //--
+
+    private final OwnerAccessibleReentrantLock currentlyInitializingHolder = new OwnerAccessibleReentrantLock();
 
     public void init(AccessoriesCapability capability) {
         var livingEntity = capability.entity();

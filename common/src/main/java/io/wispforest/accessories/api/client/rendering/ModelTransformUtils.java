@@ -5,7 +5,6 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
 import io.wispforest.accessories.api.client.Side;
 import io.wispforest.accessories.mixin.client.ModelPartAccessor;
-import io.wispforest.accessories.pond.ModelRootAccess;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.resources.ResourceLocation;
@@ -32,7 +31,9 @@ public class ModelTransformUtils {
 
     @ApiStatus.Experimental
     public static boolean transformToFace(PoseStack poseStack, LivingEntity livingEntity, Model model, String modelPartName, Side side) {
-        return transformToModelPart(poseStack, livingEntity, model, modelPartName, side.direction.getNormal().getX(), side.direction.getNormal().getY(), side.direction.getNormal().getZ());
+        var vec = side.direction.getUnitVec3i();
+
+        return transformToModelPart(poseStack, livingEntity, model, modelPartName, vec.getX(), vec.getY(), vec.getZ());
     }
 
     @ApiStatus.Experimental
@@ -64,13 +65,32 @@ public class ModelTransformUtils {
     @ApiStatus.Experimental
     @Nullable
     public static ModelPart getPart(Model model, String modelPartName) {
-        if (model instanceof ModelRootAccess access) {
-            var possiblePart = access.accessories$getAnyDescendantWithName(modelPartName);
+        var possiblePart = getAnyDescendantWithName(model, modelPartName);
 
-            if(possiblePart.isPresent()) return possiblePart.get();
+        return possiblePart.orElse(null);
+    }
+
+    public static Optional<ModelPart> getAnyDescendantWithName(Model model, String name) {
+        var root = model.root();
+
+        if (name.equals("root")) return Optional.of(root);
+
+        return getAnyDescendantWithName(root, name);
+    }
+
+    private static Optional<ModelPart> getAnyDescendantWithName(ModelPart part, String name) {
+        for (var entry : ((ModelPartAccessor) (Object) part).getChildren().entrySet()) {
+            var childName = entry.getKey();
+            var childPart = entry.getValue();
+
+            if (childName.equals(name)) return Optional.of(childPart);
+
+            var result = getAnyDescendantWithName(childPart, name);
+
+            if (result.isPresent()) return result;
         }
 
-        return null;
+        return Optional.empty();
     }
 
     /**
@@ -81,7 +101,9 @@ public class ModelTransformUtils {
      * @param side      The side of the ModelPart to transform to
      */
     public static void transformToFace(PoseStack poseStack, ModelPart part, Side side) {
-        transformToModelPart(poseStack, part, side.direction.getNormal().getX(), side.direction.getNormal().getY(), side.direction.getNormal().getZ());
+        var vec = side.direction.getUnitVec3i();
+
+        transformToModelPart(poseStack, part, vec.getX(), vec.getY(), vec.getZ());
     }
 
     /**

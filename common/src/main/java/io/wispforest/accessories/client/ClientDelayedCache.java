@@ -36,7 +36,7 @@ public class ClientDelayedCache<K> {
             return true;
         }
 
-        var currentAmount = prevAmount + Minecraft.getInstance().getTimer().getGameTimeDeltaTicks();
+        var currentAmount = prevAmount + Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaTicks();
 
         var bl = (currentAmount >= totalAmountSecs * 20);
 

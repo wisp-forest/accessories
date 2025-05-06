@@ -5,6 +5,7 @@ import io.wispforest.accessories.api.client.Transformation;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.ApiStatus;
 import org.joml.Quaternionf;
@@ -15,7 +16,7 @@ import java.util.List;
 @ApiStatus.Experimental
 public class ClientTransformationUtils {
 
-    public static void transformStack(List<Transformation> transformations, PoseStack poseStack, LivingEntity entity, EntityModel<? extends LivingEntity> model, Runnable renderCall) {
+    public static void transformStack(List<Transformation> transformations, PoseStack poseStack, LivingEntity entity, EntityModel<? extends LivingEntityRenderState> model, Runnable renderCall) {
         poseStack.pushPose();
 
         transformStack(transformations, poseStack, entity, model);
@@ -28,13 +29,13 @@ public class ClientTransformationUtils {
 
     }
 
-    public static void transformStack(List<Transformation> transformations, PoseStack poseStack, LivingEntity entity, EntityModel<? extends LivingEntity> model) {
+    public static void transformStack(List<Transformation> transformations, PoseStack poseStack, LivingEntity entity, EntityModel<? extends LivingEntityRenderState> model) {
         for (var transformation : transformations) {
             transform(transformation, poseStack, entity, model);
         }
     }
 
-    private static void transform(Transformation value, PoseStack poseStack, LivingEntity entity, EntityModel<? extends LivingEntity> model) {
+    private static void transform(Transformation value, PoseStack poseStack, LivingEntity entity, EntityModel<? extends LivingEntityRenderState> model) {
         switch (value) {
             case Transformation.Translation translation -> {
                 var translationVector = translation.translation();

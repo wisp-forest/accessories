@@ -35,6 +35,7 @@ repositories {
     maven("https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/") {
         content { includeGroup("software.bernie.geckolib") }
     }
+    maven("https://maven.ladysnake.org/releases")
 }
 
 sourceSets {
@@ -66,6 +67,7 @@ dependencies {
 
     //modLocalRuntime("maven.modrinth:ok-boomer:0.1.3+1.21")
     //modLocalRuntime("maven.modrinth:sodium:mc1.21-0.6.0-beta.2-fabric")
+    modCompileOnly("dev.emi:trinkets:3.10.0")
 
     val type = rootProject.properties.get("item_viewer_type");
 

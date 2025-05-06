@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.BlockPos;
@@ -37,7 +38,7 @@ public class ClientRenderingUtils {
 
     private static final ClientDelayedCache<ParticleTimeKey> PARTICLE_UPDATE_CACHE = new ClientDelayedCache<>();
 
-    public static void handle(ItemStack stack, LivingEntity targetEntity, @Nullable HumanoidArm arm, EntityModel<? extends LivingEntity> entityModel, PoseStack poseStack, MultiBufferSource buffer, float partialTicks, int packedLight, int packedOverlay, int color, List<RenderingFunction> functions) {
+    public static void handle(ItemStack stack, LivingEntity targetEntity, @Nullable HumanoidArm arm, EntityModel<? extends LivingEntityRenderState> entityModel, PoseStack poseStack, MultiBufferSource buffer, float partialTicks, int packedLight, int packedOverlay, int color, List<RenderingFunction> functions) {
         handle(ItemStack.hashItemAndComponents(stack), targetEntity, arm, entityModel, poseStack, buffer, partialTicks, packedLight, packedOverlay, color, functions);
     }
     private static final Map<EntityType, EntityData> ENTITY_CACHE = new HashMap<>();
@@ -75,7 +76,7 @@ public class ClientRenderingUtils {
         }
 
         public void createNewReference(EntityType type, Level level) {
-            var entity = type.create(level);
+            var entity = type.create(level, EntitySpawnReason.EVENT);
 
             if (entity == null) {
                 this.wasSpawnable = false;
@@ -118,7 +119,7 @@ public class ClientRenderingUtils {
         }
     }
 
-    public static void handle(int uniqueKey, LivingEntity targetEntity, @Nullable HumanoidArm arm, EntityModel<? extends LivingEntity> entityModel, PoseStack poseStack, MultiBufferSource buffer, float partialTicks, int packedLight, int packedOverlay, int color, List<RenderingFunction> functions) {
+    public static void handle(int uniqueKey, LivingEntity targetEntity, @Nullable HumanoidArm arm, EntityModel<? extends LivingEntityRenderState> entityModel, PoseStack poseStack, MultiBufferSource buffer, float partialTicks, int packedLight, int packedOverlay, int color, List<RenderingFunction> functions) {
         var client = Minecraft.getInstance();
         var level = Minecraft.getInstance().level;
 
@@ -142,7 +143,7 @@ public class ClientRenderingUtils {
                 case RenderingFunction.Entity entityData -> {
                     try {
                         var currentEntityData = ENTITY_CACHE.computeIfAbsent(entityData.entityType(), entityType -> {
-                            var entity = entityData.entityType().create(level);
+                            var entity = entityData.entityType().create(level, EntitySpawnReason.EVENT);
 
                             if (entity != null) {
                                 var defaultData = entity.saveWithoutId(new CompoundTag());
@@ -176,7 +177,7 @@ public class ClientRenderingUtils {
                         if (entityData.allowTicking() || entity instanceof Display) entity.tick();
 
                         client.getEntityRenderDispatcher()
-                                .render(entity, 0, 0, 0, 0, partialTicks, poseStack, buffer, packedLight);
+                                .render(entity, 0, 0, 0, partialTicks, poseStack, buffer, packedLight);
 
                         if (customData) {
                             currentEntityData.resetEntity();
@@ -188,30 +189,33 @@ public class ClientRenderingUtils {
                 case RenderingFunction.Item itemData -> {
                     ItemStack stack = itemData.stack();
 
-                    client.getItemRenderer().render(
+                    client.getItemRenderer().renderStatic(
+                            targetEntity,
                             stack,
                             ItemDisplayContext.GUI,
                             false,
                             poseStack,
                             buffer,
+                            level,
                             packedLight,
                             packedOverlay,
-                            client.getItemRenderer().getModel(stack, level, null, 0)
+                            uniqueKey // TODO: CONFIRM THIS IS CORRECT
                     );
                 }
                 case RenderingFunction.Model modelData -> {
                     var model = Minecraft.getInstance().getModelManager().getModel(new ModelResourceLocation(modelData.id(), modelData.variant()));
 
-                    client.getItemRenderer().render(
-                            Items.BEDROCK.getDefaultInstance(),
-                            ItemDisplayContext.GROUND,
-                            false,
-                            poseStack,
-                            buffer,
-                            packedLight,
-                            packedOverlay,
-                            model
-                    );
+                    // TODO: GET WORKING AGAIN
+//                    client.getItemRenderer().render(
+//                            Items.BEDROCK.getDefaultInstance(),
+//                            ItemDisplayContext.GROUND,
+//                            false,
+//                            poseStack,
+//                            buffer,
+//                            packedLight,
+//                            packedOverlay,
+//                            model
+//                    );
                 }
                 case RenderingFunction.Particle particleData -> {
                     if (PARTICLE_UPDATE_CACHE.hasAllottedTime(new ParticleTimeKey(targetEntity.getUUID(), uniqueKey, particleData), particleData.delay())) {
@@ -248,7 +252,7 @@ public class ClientRenderingUtils {
                 double ySpd = particle.speed() * particle.delta().y();
                 double zSpd = particle.speed() * particle.delta().z();
 
-                level.addParticle(particle.particleData(), particle.force(), x, y, z, xSpd, ySpd, zSpd);
+                level.addParticle(particle.particleData(), particle.overrideLimiter(), particle.alwaysShow(), x, y, z, xSpd, ySpd, zSpd);
             } else {
                 for (int i = 0; i < particle.count(); i++) {
                     double g = random.nextGaussian() * particle.delta().x();
@@ -259,7 +263,7 @@ public class ClientRenderingUtils {
                     double l = random.nextGaussian() * (double)particle.speed();
                     double m = random.nextGaussian() * (double)particle.speed();
 
-                    level.addParticle(particle.particleData(), particle.force(), x + g, y + h, z + j, k, l, m);
+                    level.addParticle(particle.particleData(), particle.overrideLimiter(), particle.alwaysShow(), x + g, y + h, z + j, k, l, m);
                 }
             }
         } catch (Throwable var16) {
@@ -268,17 +272,16 @@ public class ClientRenderingUtils {
     }
 
     private static void renderBlock(Minecraft client, BlockState state, @Nullable BlockEntity blockEntity, float partialTick, PoseStack poseStack, MultiBufferSource buffer, int packedLight, int packedOverlay, int color) {
-        RenderSystem.runAsFancy(() -> {
-            if (state.getRenderShape() != RenderShape.ENTITYBLOCK_ANIMATED) {
-                client.getBlockRenderer().renderSingleBlock(state, poseStack, buffer, packedLight, packedOverlay);
-            }
+        if (state.getRenderShape() != RenderShape.INVISIBLE) {
+            client.getBlockRenderer().renderSingleBlock(state, poseStack, buffer, packedLight, packedOverlay);
+        }
 
-            if (blockEntity != null) {
-                BlockEntityRenderer<BlockEntity> медведь = client.getBlockEntityRenderDispatcher().getRenderer(blockEntity);
-                if (медведь != null) {
-                    медведь.render(blockEntity, partialTick, poseStack, buffer, 15728880, OverlayTexture.NO_OVERLAY);
-                }
+        if (blockEntity != null) {
+            BlockEntityRenderer<BlockEntity> медведь = client.getBlockEntityRenderDispatcher().getRenderer(blockEntity);
+            if (медведь != null) {
+                медведь.render(blockEntity, partialTick, poseStack, buffer, 15728880, OverlayTexture.NO_OVERLAY);
             }
+        }
 
 //            if (buffer instanceof MultiBufferSource.BufferSource || buffer instanceof OutlineBufferSource) {
 //                RenderSystem.setShaderLights(new Vector3f(-1.5F, -0.5F, 0.0F), new Vector3f(0.0F, -1.0F, 0.0F));
@@ -289,7 +292,6 @@ public class ClientRenderingUtils {
 //                }
 //                Lighting.setupFor3DItems();
 //            }
-        });
     }
 
     private record ParticleTimeKey(UUID entityUUID, int uniqueKey, RenderingFunction.Particle particleData) {

@@ -12,7 +12,6 @@
     "LivingEntityMixin",
     "PlayerListMixin",
     "ServerEntityEvent",
-    "TagManagerMixin",
     "trinkets.LivingEntityTrinketComponentMixin"
   ],
   "injectors": {

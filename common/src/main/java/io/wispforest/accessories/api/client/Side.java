@@ -25,6 +25,6 @@ public enum Side {
     }
 
     public Vec3i rotationAxis() {
-        return this.direction.getNormal();
+        return this.direction.getUnitVec3i();
     }
 }

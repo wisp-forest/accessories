@@ -22,10 +22,12 @@ import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.ComponentArgument;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
@@ -74,40 +76,26 @@ public class AccessoriesCommands extends CommandBuilderHelper {
         getOrCreateNode("accessories").requires(stack -> stack.hasPermission(Commands.LEVEL_GAMEMASTERS));
 
         if (Accessories.DEBUG) {
-            base.then(
-                    Commands.literal("create-renderer-stack")
-                            .then(
-                                    Commands.argument("custom_name", ComponentArgument.textComponent(context))
-                                            .then(
-                                                    Commands.argument("renderer_id", ResourceLocationArgument.id())
-                                                            .then(
-                                                                    Commands.argument("item_model_id", ResourceLocationArgument.id())
-                                                                            .then(
-                                                                                    Commands.argument("is_bundle", BoolArgumentType.bool())
-                                                                                            .executes(AccessoriesCommands::createRenderStack)
-                                                                            )
-                                                                            .executes(AccessoriesCommands::createRenderStack)
-                                                            )
-                                            )
-                            )
-            ).then(
-                    Commands.literal("listen-to-renderer")
-                            .then(
-                                    Commands.argument("id", ResourceLocationArgument.id())
-                                            .executes(ctx -> {
-                                                var id = ctx.getArgument("id", ResourceLocation.class);
+            requiredArgExectution(
+                    "accessories/create-renderer-stack",
+                    argumentHolder("renderer_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
+                    argumentHolder("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
+                    argumentHolder("custom_name", ComponentArgument.textComponent(context), ComponentArgument::getComponent),
+                    defaultedArgumentHolder("is_bundle", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class), false),
+                    (ctx, rendererId, itemModelId, component, isBundle) -> {
+                        AccessoriesCommands.createRenderStack(ctx, rendererId, itemModelId, component, isBundle);
+                        return 0;
+                    }
+            );
 
-                                                CustomRendererLoader.constantFileResolving(ctx.getSource().getServer(), id);
+            requiredArgExectution(
+                    "accessories/listen-to-renderer",
+                    defaultedArgumentHolder("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class), null),
+                    (ctx, id) -> {
+                        CustomRendererLoader.constantFileResolving(ctx.getSource().getServer(), id);
 
-                                                return 1;
-                                            })
-                            )
-                            .executes(ctx -> {
-                                CustomRendererLoader.constantFileResolving(ctx.getSource().getServer(), null);
-
-                                return 1;
-                            })
-
+                        return 1;
+                    }
             );
         }
 
@@ -398,11 +386,7 @@ public class AccessoriesCommands extends CommandBuilderHelper {
         return 1;
     }
 
-    private static int createRenderStack(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        var rendererId = ctx.getArgument("renderer_id", ResourceLocation.class);
-        var modelId = ctx.getArgument("item_model_id", ResourceLocation.class);
-        var component = ComponentArgument.getComponent(ctx, "custom_name");
-
+    private static int createRenderStack(CommandContext<CommandSourceStack> ctx, ResourceLocation rendererId, ResourceLocation modelId, Component component, boolean isBundle) throws CommandSyntaxException {
         Item item = Items.STICK;
 
         try {
@@ -419,10 +403,7 @@ public class AccessoriesCommands extends CommandBuilderHelper {
                         new CustomDataRenderer(rendererId, Map.of(), List.of(), null)))
         );
 
-        itemStack.set(
-                AccessoriesDataComponents.ITEM_MODEL_OVERRIDE,
-                new AccessoryItemCosmeticOverride(modelId)
-        );
+        itemStack.set(DataComponents.ITEM_MODEL, modelId);
 
         itemStack.set(
                 AccessoriesDataComponents.SLOT_VALIDATION,

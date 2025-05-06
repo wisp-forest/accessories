@@ -17,7 +17,6 @@
     "client.EntityRendererMixin",
     "client.EquipmentLayerRendererAccessor",
     "client.HumanoidArmorLayerAccessor",
-    "client.ItemModelShaperMixin",
     "client.LivingEntityRendererAccessor",
     "client.LivingEntityRenderStateAccessor",
     "client.LivingEntityRenderStateMixin",
@@ -42,15 +41,10 @@
     "client.owo.ScissorStackMixin",
     "client.owo.ScrollContainerMixin",
     "sodium.MPOATVConstructingVertexConsumerMixin_SodiumImpl",
-    "client.model.EntityModelSetMixin",
-    "client.model.ModelMixin",
-    "client.model.EntityRenderersMixin",
-    "client.model.BlockEntityRenderersMixin"
+    "SimpleJsonResourceReloadListenerAccessor"
   ],
   "mixins": [
     "ApplyBonusCountMixin",
-    "ArmorSlotMixin",
-    "ConfigurableRegistryLookupAccessor",
     "CraftingMenuAccessor",
     "CriteriaTriggersAccessor",
     "DataPackContentsMixin",
@@ -82,10 +76,7 @@
     "HorseInventoryMenuAccessor",
     "owo.ConfigWrapperAccessor",
     "owo.NbtDeserializerMixin",
-    "StateHolderAccessor",
-    "ConfigurableRegistryLookupAccessor",
-    "temp_fixes.NbtCompoundMixin",
-    "temp_fixes.NbtUtilsMixin"
+    "StateHolderAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

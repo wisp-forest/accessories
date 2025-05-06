@@ -172,7 +172,7 @@ public class AccessoriesForge {
 
         AccessoriesInternalsImpl.TO_BE_LOADED.forEach((managedEndecDataLoader, setupRegistryCallback) -> {
             setupRegistryCallback.accept(event.getRegistryAccess());
-            event.addListener(managedEndecDataLoader);
+            event.addListener(managedEndecDataLoader.getLoaderId(), managedEndecDataLoader);
         });
     }
 

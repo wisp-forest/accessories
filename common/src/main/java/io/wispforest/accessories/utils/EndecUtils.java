@@ -5,10 +5,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.mixin.StateHolderAccessor;
+import io.wispforest.endec.*;
 import io.wispforest.owo.serialization.CodecUtils;
-import io.wispforest.endec.Endec;
-import io.wispforest.endec.SerializationAttributes;
-import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.BuiltInEndecs;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.endec.util.MapCarrier;
@@ -46,9 +44,9 @@ public class EndecUtils {
             (x, y) -> new Vector2i((int) (long) x, (int) (long) y)
     );
 
-    public static final StructEndec<Vector3f> VECTOR_3_F_ENDEC = BuiltInEndecs.vectorEndec("Vector3f", Endec.FLOAT, Vector3f::new, Vector3f::x, Vector3f::y, Vector3f::z);
+    public static final StructEndec<Vector3f> VECTOR_3_F_ENDEC = EndecUtils.vectorEndec("Vector3f", Endec.FLOAT, Vector3f::new, Vector3f::x, Vector3f::y, Vector3f::z);
 
-    public static final StructEndec<Quaternionf> QUATERNIONF_COMPONENTS = BuiltInEndecs.vectorEndec("QuaternionfComponents", Endec.FLOAT, Quaternionf::new, Quaternionf::x, Quaternionf::y, Quaternionf::z, Quaternionf::w);
+    public static final StructEndec<Quaternionf> QUATERNIONF_COMPONENTS = EndecUtils.vectorEndec("QuaternionfComponents", Endec.FLOAT, Quaternionf::new, Quaternionf::x, Quaternionf::y, Quaternionf::z, Quaternionf::w);
 
     public static final StructEndec<AxisAngle4f> AXISANGLE4F = StructEndecBuilder.of(
             Endec.FLOAT.xmap(degrees -> (float) Math.toRadians(degrees), (radians) -> (float) Math.toDegrees(radians)).fieldOf("angle", axisAngle4f -> axisAngle4f.angle),

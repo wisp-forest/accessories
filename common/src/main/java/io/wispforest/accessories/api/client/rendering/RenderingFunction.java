@@ -19,6 +19,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.ItemStack;
@@ -71,7 +72,7 @@ public sealed interface RenderingFunction permits CustomDataRenderer, RenderingF
     }
 
     static Entity ofEntity(EntityType<? extends net.minecraft.world.entity.Entity> entityType, Level level) {
-        var entity = entityType.create(level);
+        var entity = entityType.create(level, EntitySpawnReason.EVENT);
         if (entity == null) throw new IllegalStateException("Unable to create render function of the given entity");
 
         var compound = new CompoundTag();
@@ -89,8 +90,8 @@ public sealed interface RenderingFunction permits CustomDataRenderer, RenderingF
         return new Entity(entityType, data, true);
     }
 
-    static Particle ofParticle(ResourceLocation uniqueId, float delay, ParticleOptions particleData, Vector3f delta, float speed, int count, boolean force) {
-        return new Particle(uniqueId, delay, particleData, delta, speed, count, force);
+    static Particle ofParticle(ResourceLocation uniqueId, float delay, ParticleOptions particleData, Vector3f delta, float speed, int count, boolean overrideLimiter, boolean alwaysShow) {
+        return new Particle(uniqueId, delay, particleData, delta, speed, count, overrideLimiter, alwaysShow);
     }
 
     //--
@@ -172,7 +173,7 @@ public sealed interface RenderingFunction permits CustomDataRenderer, RenderingF
         );
     }
 
-    record Particle(ResourceLocation uniqueId, float delay, ParticleOptions particleData, Vector3f delta, float speed, int count, boolean force) implements RenderingFunction {
+    record Particle(ResourceLocation uniqueId, float delay, ParticleOptions particleData, Vector3f delta, float speed, int count, boolean overrideLimiter, boolean alwaysShow) implements RenderingFunction {
         private static final Endec<ParticleOptions> PARTICLE_OPTIONS_ENDEC = CodecUtils.toEndec(ParticleTypes.CODEC);
 
         public static final StructEndec<Particle> ENDEC = StructEndecBuilder.of(
@@ -182,7 +183,8 @@ public sealed interface RenderingFunction permits CustomDataRenderer, RenderingF
                 EndecUtils.VECTOR_3_F_ENDEC.flatFieldOf(Particle::delta),
                 Endec.FLOAT.optionalFieldOf("speed", Particle::speed, 1f),
                 Endec.INT.optionalFieldOf("count", Particle::count, 1),
-                Endec.BOOLEAN.optionalFieldOf("force", Particle::force, false),
+                Endec.BOOLEAN.optionalFieldOf("override_limiter", Particle::overrideLimiter, false),
+                Endec.BOOLEAN.optionalFieldOf("always_show", Particle::alwaysShow, false),
                 Particle::new
         );
 
@@ -199,12 +201,13 @@ public sealed interface RenderingFunction permits CustomDataRenderer, RenderingF
                     Objects.equals(this.delta, that.delta) &&
                     Float.floatToIntBits(this.speed) == Float.floatToIntBits(that.speed) &&
                     this.count == that.count &&
-                    this.force == that.force;
+                    this.overrideLimiter == that.overrideLimiter &&
+                    this.alwaysShow == that.alwaysShow;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(PARTICLE_OPTIONS_ENDEC.encodeFully(EdmSerializer::of, this.particleData), delta, speed, count, force);
+            return Objects.hash(PARTICLE_OPTIONS_ENDEC.encodeFully(EdmSerializer::of, this.particleData), delta, speed, count, overrideLimiter, alwaysShow);
         }
 
         @Override
@@ -214,7 +217,8 @@ public sealed interface RenderingFunction permits CustomDataRenderer, RenderingF
                     "delta=" + delta + ", " +
                     "speed=" + speed + ", " +
                     "count=" + count + ", " +
-                    "force=" + force + ']';
+                    "overrideLimiter=" + overrideLimiter +
+                    "alwaysShow=" + alwaysShow +']';
         }
     }
 
