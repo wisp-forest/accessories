@@ -1,49 +1,44 @@
 package io.wispforest.accessories.data;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.DropRule;
 import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
-import io.wispforest.accessories.compat.config.SlotAmountModifier;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.impl.slot.SlotTypeImpl;
 import io.wispforest.accessories.impl.slot.StrictMode;
+import io.wispforest.accessories.pond.ReplaceableJsonResourceReloadListener;
+import io.wispforest.accessories.utils.EndecUtils;
+import io.wispforest.accessories.data.api.ManagedEndecDataLoader;
+import io.wispforest.endec.Endec;
+import io.wispforest.endec.StructEndec;
+import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
 
-public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
+public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoader.RawSlotData> {
 
     private static final Logger LOGGER = LogUtils.getLogger();
-    private static final Gson GSON = new GsonBuilder().setLenient().setPrettyPrinting().create();
 
     public static final SlotTypeLoader INSTANCE = new SlotTypeLoader();
 
     protected SlotTypeLoader() {
-        super(GSON, LOGGER, "accessories/slot");
-    }
+        super(Accessories.of("slot_loader"), "accessories/slot", SlotTypeImpl.ENDEC, RawSlotData.ENDEC, PackType.SERVER_DATA);
 
-    private Map<String, SlotType> server = new HashMap<>();
-    private Map<String, SlotType> client = new HashMap<>();
+        ReplaceableJsonResourceReloadListener.toggleValue(this);
+    }
 
     private final Map<EntityType<?>, Collection<SlotType>> slotUsedByRegistryItemCache_server = new HashMap<>();
     private final Map<EntityType<?>, Collection<SlotType>> slotUsedByRegistryItemCache_client = new HashMap<>();
@@ -55,7 +50,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
      */
     @Nullable
     public static SlotType getSlotType(LivingEntity entity, String slotName){
-        return getSlotTypes(entity.level()).get(slotName);
+        return getSlotType(entity.level(), slotName);
     }
 
     /**
@@ -63,20 +58,14 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
      */
     @Nullable
     public static SlotType getSlotType(Level level, String slotName){
-        return getSlotTypes(level).get(slotName);
-    }
-
-    /**
-     * Get all SlotTypes registered
-     */
-    public static Map<String, SlotType> getSlotTypes(Level level){
-        return INSTANCE.getSlotTypes(level.isClientSide());
+        return INSTANCE.getSlotType(level.isClientSide(), slotName);
     }
 
     //--
 
-    public final Map<String, SlotType> getSlotTypes(boolean isClientSide){
-        return isClientSide ? client : server;
+    @Nullable
+    public SlotType getSlotType(boolean isClientSide, String slotName){
+        return getEntry(Accessories.parseLocationOrDefault(slotName), isClientSide);
     }
 
     private static Map<EntityType<?>, Collection<SlotType>> getUsedSlots(boolean isClientSide) {
@@ -103,15 +92,13 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         return validSlotTypes;
     }
 
-    @ApiStatus.Internal
-    public void setSlotType(Map<String, SlotType> slotTypes){
-        this.client = ImmutableMap.copyOf(slotTypes);
-
+    @Override
+    protected void onSync() {
         this.slotUsedByRegistryItemCache_client.clear();
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler) {
+    public Map<ResourceLocation, SlotType> mapFrom(Map<ResourceLocation, RawSlotData> rawData) {
         var uniqueSlots = new HashMap<String, SlotBuilder>();
 
         try {
@@ -140,11 +127,9 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
         builders.putAll(uniqueSlots);
 
-        for (var resourceEntry : data.entrySet()) {
+        for (var resourceEntry : rawData.entrySet()) {
             var location = resourceEntry.getKey();
-            var jsonObject = resourceEntry.getValue();
-
-            if(!AccessoriesInternals.isValidOnConditions(jsonObject, this.directory, location, this, null)) continue;
+            var rawSlotData = resourceEntry.getValue();
 
             var pathParts = location.getPath().split("/");
 
@@ -153,48 +138,49 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
             var slotBuilder = builders.computeIfAbsent(namespace + slotName, SlotBuilder::new);
 
-            slotBuilder.icon(safeHelper((object, s) -> ResourceLocation.tryParse(GsonHelper.getAsString(object, s)), jsonObject, "icon", location));
+            slotBuilder.icon(rawSlotData.icon());
 
-            slotBuilder.order(this.<Integer>safeHelper(GsonHelper::getAsInt, jsonObject, "order", location));
+            slotBuilder.order(rawSlotData.order());
 
             if(ExtraSlotTypeProperties.getProperty(slotBuilder.name, false).allowResizing()){
-                var amount = this.safeHelper(GsonHelper::getAsInt, jsonObject, "amount", location);
+                var amount = rawSlotData.amount;
 
                 if(amount != null) {
-                    var operation = this.safeHelper((jsonObject1, s) -> {
-                        try {
-                            return OperationType.valueOf(GsonHelper.getAsString(jsonObject1, s).toUpperCase(Locale.ROOT));
-                        } catch (IllegalArgumentException e) {
-                            return null;
-                        }
-                    }, jsonObject, "operation", null, location);
+                    var operation = rawSlotData.operationType;
+
+                    boolean operationOccured = true;
 
                     if(operation != null) {
                         switch (operation) {
                             case SET -> slotBuilder.amount(amount);
                             case ADD -> slotBuilder.addAmount(amount);
                             case SUB -> slotBuilder.subtractAmount(amount);
+                            case null, default -> {
+                                operationOccured = false;
+                            }
                         }
-                    } else {
+                    }
+
+                    if(!operationOccured) {
                         LOGGER.error("Unable to understand the passed operation for the given slot type file! [Location: {}, Operation: {}]", location, operation);
                     }
                 }
             }
 
             if(ExtraSlotTypeProperties.getProperty(slotBuilder.name, false).strictMode().equals(StrictMode.NONE)) {
-                var validators = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "validators", new JsonArray(), location);
-
-                decodeJsonArray(validators, "validator", location, element -> ResourceLocation.tryParse(element.getAsString()), slotBuilder::validator);
+                for (var validator : rawSlotData.validators()) {
+                    slotBuilder.validator(validator);
+                }
             }
 
-            slotBuilder.dropRule(this.safeHelper((object, s) -> DropRule.valueOf(GsonHelper.getAsString(object, s).toUpperCase(Locale.ROOT)), jsonObject, "drop_rule", location));
+            slotBuilder.dropRule(rawSlotData.dropRule());
 
             builders.put(slotBuilder.name, slotBuilder);
         }
 
-        var tempMap = new HashMap<String, SlotType>();
+        var tempMap = new HashMap<ResourceLocation, SlotType>();
 
-        for (SlotAmountModifier modifier : Accessories.config().modifiers()) {
+        for (var modifier : Accessories.config().modifiers()) {
             var builder = builders.getOrDefault(modifier.slotType, null);
 
             if(builder == null) continue;
@@ -202,15 +188,32 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             builder.addAmount(modifier.amount);
         }
 
-        uniqueSlots.forEach((s, slotBuilder) -> tempMap.put(s, slotBuilder.create()));
         builders.forEach((s, slotBuilder) -> {
             if(s.equals("any")) return;
 
-            tempMap.put(s, slotBuilder.create());
+            tempMap.put(Accessories.parseLocationOrDefault(s), slotBuilder.create());
         });
 
-        this.server = ImmutableMap.copyOf(tempMap);
         this.slotUsedByRegistryItemCache_server.clear();
+
+        return tempMap;
+    }
+
+    public record RawSlotData(@Nullable ResourceLocation icon,
+                              @Nullable Integer order,
+                              @Nullable Integer amount,
+                              @Nullable OperationType operationType,
+                              @Nullable Set<ResourceLocation> validators,
+                              @Nullable DropRule dropRule) {
+        public static final StructEndec<RawSlotData> ENDEC = StructEndecBuilder.of(
+                MinecraftEndecs.IDENTIFIER.optionalFieldOf("icon", RawSlotData::icon, () -> null),
+                Endec.INT.optionalFieldOf("order", RawSlotData::order, () -> null),
+                Endec.INT.optionalFieldOf("amount", RawSlotData::amount, () -> null),
+                EndecUtils.forEnum(OperationType.class).optionalFieldOf("amount", RawSlotData::operationType, () -> null),
+                MinecraftEndecs.IDENTIFIER.setOf().optionalFieldOf("validators", RawSlotData::validators, () -> null),
+                EndecUtils.forEnum(DropRule.class).optionalFieldOf("dropRule", RawSlotData::dropRule, () -> null),
+                RawSlotData::new
+        );
     }
 
     public static class SlotBuilder {

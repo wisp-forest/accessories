@@ -1,24 +1,27 @@
 package io.wispforest.accessories.data;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.impl.slot.StrictMode;
+import io.wispforest.accessories.pond.ReplaceableJsonResourceReloadListener;
+import io.wispforest.accessories.data.api.EndecDataLoader;
+import io.wispforest.accessories.data.api.SyncedDataLoader;
+import io.wispforest.endec.Endec;
+import io.wispforest.endec.StructEndec;
+import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -34,10 +37,9 @@ import java.util.stream.Collectors;
  * Resource Reload in which handles the loading of {@link SlotType}'s bindings
  * to the targeted {@link EntityType} though a {@link TagKey} or {@link ResourceLocation}
  */
-public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
+public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityBinding> implements SyncedDataLoader<Map<EntityType<?>, Set<String>>> {
 
     private static final Logger LOGGER = LogUtils.getLogger();
-    private static final Gson GSON = new GsonBuilder().setLenient().setPrettyPrinting().create();
 
     public static final EntitySlotLoader INSTANCE = new EntitySlotLoader();
 
@@ -48,7 +50,9 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
     private Map<EntityType<?>, Map<String, SlotType>> client = new HashMap<>();
 
     protected EntitySlotLoader() {
-        super(GSON, LOGGER, "accessories/entity");
+        super(Accessories.of("entity_slot_loader"), "accessories/entity", RawEnityBinding.ENDEC, PackType.SERVER_DATA, Set.of(SlotTypeLoader.INSTANCE.getLoaderId()));
+
+        ReplaceableJsonResourceReloadListener.toggleValue(this);
     }
 
     //--
@@ -81,9 +85,45 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
         return isClientSide ? this.client : this.server;
     }
 
-    @ApiStatus.Internal
-    public final void setEntitySlotData(Map<EntityType<?>, Map<String, SlotType>> data){
-        this.client = ImmutableMap.copyOf(data);
+    //--
+
+    public record RawEnityBinding(Set<String> entityTargets, Set<String> slotTypes) {
+        public static final StructEndec<RawEnityBinding> ENDEC = StructEndecBuilder.of(
+                Endec.STRING.setOf().fieldOf("entities", RawEnityBinding::entityTargets),
+                Endec.STRING.setOf().fieldOf("slots", RawEnityBinding::slotTypes),
+                RawEnityBinding::new
+        );
+    }
+
+    @Override
+    public Endec<Map<EntityType<?>, Set<String>>> syncDataEndec() {
+        return Endec.map(MinecraftEndecs.ofRegistry(BuiltInRegistries.ENTITY_TYPE), Endec.STRING.setOf());
+    }
+
+    @Override
+    public void onReceivedData(Map<EntityType<?>, Set<String>> data) {
+        Map<EntityType<?>, Map<String, SlotType>> entitySlotTypes = new HashMap<>();
+
+        for (var entry : data.entrySet()) {
+            var map = entry.getValue().stream()
+                    .map(string -> SlotTypeLoader.INSTANCE.getSlotType(true, string))
+                    .collect(Collectors.toUnmodifiableMap(SlotType::name, slotType -> slotType));
+
+            entitySlotTypes.put(entry.getKey(), map);
+        }
+
+        this.client = ImmutableMap.copyOf(entitySlotTypes);
+    }
+
+    @Override
+    public Map<EntityType<?>, Set<String>> getServerData() {
+        var entitySlots = new HashMap<EntityType<?>, Set<String>>();
+
+        for (var entry : server.entrySet()) {
+            entitySlots.put(entry.getKey(), entry.getValue().keySet());
+        }
+
+        return entitySlots;
     }
 
     public void buildEntryMap() {
@@ -121,47 +161,37 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
     //--
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler) {
-        var allSlotTypes = SlotTypeLoader.INSTANCE.getSlotTypes(false);
+    protected void apply(Map<ResourceLocation, RawEnityBinding> rawData, ResourceManager resourceManager, ProfilerFiller profiler) {
+        var allSlotTypes = SlotTypeLoader.INSTANCE.getEntries(false);
 
         this.tagToBoundSlots.clear();
         this.entityToBoundSlots.clear();
 
-        for (var resourceEntry : data.entrySet()) {
+        for (var resourceEntry : rawData.entrySet()) {
             var location = resourceEntry.getKey();
-            var jsonObject = resourceEntry.getValue();
-
-            if(!AccessoriesInternals.isValidOnConditions(jsonObject, this.directory, location, this, null)) continue;
+            var rawEnityBinding = resourceEntry.getValue();
 
             var slots = new HashMap<String, SlotType>();
 
-            var slotElements = this.safeHelper(GsonHelper::getAsJsonArray, jsonObject, "slots", new JsonArray(), location);
-
-            this.decodeJsonArray(slotElements, "slot", location, element -> {
-                var slotName = element.getAsString();
-
-                return Pair.of(slotName, allSlotTypes.get(slotName));
-            }, slotInfo -> {
+            rawEnityBinding.slotTypes().stream().map(slotName -> {
+                return Pair.of(slotName, allSlotTypes.get(Accessories.parseLocationOrDefault(slotName)));
+            }).forEach(slotInfo -> {
                 var slotType = slotInfo.right();
 
                 if(slotType != null) {
                     if(!ExtraSlotTypeProperties.getProperty(slotInfo.left(), false).strictMode().equals(StrictMode.FULL)) {
                         slots.put(slotType.name(), slotType);
                     } else {
-                        LOGGER.warn("Unable to add the given slot to the given group due to it being in strict mode! [Slot: {}]", slotInfo.left());
+                        LOGGER.warn("Unable to add the given slot [{}] to the given group due to it being in strict mode! [Location: {}]", slotInfo.left(), location);
                     }
                 } else if (slotType == null) {
-                    LOGGER.warn("Unable to locate a given slot to add to a given entity('s) as it was not registered: [Slot: {}]", slotInfo.first());
+                    LOGGER.warn("Unable to locate a given slot [{}] to add to a given entity('s) as it was not registered: [Location: {}]", slotInfo.first(), location);
                 }
             });
 
             //--
 
-            var entityElements = this.safeHelper(GsonHelper::getAsJsonArray, jsonObject, "entities", new JsonArray(), location);
-
-            this.<Object>decodeJsonArray(entityElements, "entity", location, element -> {
-                var string = element.getAsString();
-
+            rawEnityBinding.entityTargets().forEach(string -> {
                 if(string.contains("#")){
                     var entityTypeTagLocation = ResourceLocation.tryParse(string.replace("#", ""));
 
@@ -176,16 +206,14 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
                                 entityToBoundSlots.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
                                         .putAll(slots);
                             }, () -> {
-                                LOGGER.warn("[EntitySlotLoader]: Unable to locate the given EntityType within the registries for a slot entry: [Location: {}]", string);
+                                LOGGER.warn("[EntitySlotLoader]: Unable to locate the given EntityType [{}] within the registries for a slot entry: [Location: {}]", string, location);
                             });
                 }
-
-                return List.of();
-            }, unused -> {});
+            });
         }
 
         for (var entry : UniqueSlotHandling.getSlotToEntities().entrySet()) {
-            var slotType = SlotTypeLoader.INSTANCE.getSlotTypes(false).get(entry.getKey());
+            var slotType = SlotTypeLoader.INSTANCE.getEntries(false).get(Accessories.parseLocationOrDefault(entry.getKey()));
 
             for (var entityType : entry.getValue()) {
                 entityToBoundSlots.computeIfAbsent(entityType, entityType1 -> new HashMap<>())

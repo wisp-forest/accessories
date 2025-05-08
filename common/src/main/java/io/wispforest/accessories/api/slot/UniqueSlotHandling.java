@@ -133,7 +133,7 @@ public class UniqueSlotHandling {
             public SlotTypeReference build() {
                 var name = location.toString();
 
-                var slotType = SlotTypeLoader.INSTANCE.getSlotTypes(true).get(name);
+                var slotType = SlotTypeLoader.INSTANCE.getSlotType(true, name);
 
                 if(slotType == null) {
                     LOGGER.error("Unable to get the given unique slot as the slot has been not been synced to the client! [Name: {}]", name);

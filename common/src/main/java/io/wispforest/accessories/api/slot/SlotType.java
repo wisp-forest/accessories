@@ -19,6 +19,10 @@ public interface SlotType {
      */
     String name();
 
+    default ResourceLocation getId() {
+        return Accessories.parseLocationOrDefault(this.name());
+    }
+
     /**
      * @return The {@link Component} Translation key for the given slot type.
      */

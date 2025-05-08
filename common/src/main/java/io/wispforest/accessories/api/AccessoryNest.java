@@ -28,6 +28,7 @@ import java.util.function.Function;
 /**
  * An {@link Accessory} that contains and delegates to other accessories in some way
  */
+// TODO: POSSIBLY LOOK INTO METHOD OF INDICATING WHEN A SET CALL IS REQUIRED OR FROM ANOTHER MOD TO ALLOW IMMUTABLE NESTS?
 public interface AccessoryNest extends Accessory {
 
     /**

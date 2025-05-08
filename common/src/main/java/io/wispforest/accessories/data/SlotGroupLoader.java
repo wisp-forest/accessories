@@ -1,38 +1,39 @@
 package io.wispforest.accessories.data;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.gson.*;
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.impl.slot.SlotGroupImpl;
+import io.wispforest.accessories.pond.ReplaceableJsonResourceReloadListener;
+import io.wispforest.accessories.utils.EndecUtils;
+import io.wispforest.accessories.data.api.ManagedEndecDataLoader;
+import io.wispforest.endec.Endec;
+import io.wispforest.endec.StructEndec;
+import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
+public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroupLoader.RawGroupData> {
 
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().setLenient().create();
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public static final SlotGroupLoader INSTANCE = new SlotGroupLoader();
 
-    private Map<String, SlotGroup> server = new HashMap<>();
-    private Map<String, SlotGroup> client = new HashMap<>();
-
     protected SlotGroupLoader() {
-        super(GSON, LOGGER, "accessories/group");
+        super(Accessories.of("slot_group_loader"), "accessories/group", SlotGroupImpl.ENDEC, RawGroupData.ENDEC, PackType.SERVER_DATA, Set.of(SlotTypeLoader.INSTANCE.getLoaderId()));
+
+        ReplaceableJsonResourceReloadListener.toggleValue(this);
     }
 
     //--
@@ -79,13 +80,8 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
     //--
 
-    @ApiStatus.Internal
-    public final Map<String, SlotGroup> getGroupMap(boolean isClientSide) {
-        return (isClientSide ? this.client : this.server);
-    }
-
     public final List<SlotGroup> getGroups(boolean isClientSide, boolean filterUniqueGroups){
-        var groups = getGroupMap(isClientSide).values();
+        var groups = getEntries(isClientSide).values();
 
         if(filterUniqueGroups) groups = groups.stream().filter(group -> !UniqueSlotHandling.isUniqueGroup(group.name(), isClientSide)).toList();
 
@@ -93,7 +89,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
     }
 
     public final SlotGroup getGroup(boolean isClientSide, String group){
-        return getGroupMap(isClientSide).get(group);
+        return getEntry(Accessories.parseLocationOrDefault(group), isClientSide);
     }
 
     public final Optional<SlotGroup> findGroup(boolean isClientSide, String slot){
@@ -105,34 +101,35 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
     }
 
     public final SlotGroup getOrDefaultGroup(boolean isClientSide, String slot){
-        var groups = getGroupMap(isClientSide);
+        var groups = getEntries(isClientSide);
 
         for (var entry : groups.values()) {
             if(entry.slots().contains(slot)) return entry;
         }
 
-        return groups.get("any");
+        return groups.get(Accessories.parseLocationOrDefault("any"));
     }
 
-    @ApiStatus.Internal
-    public final void setGroups(Map<String, SlotGroup> groups){
-        this.client = ImmutableMap.copyOf(groups);
+    public record RawGroupData(int order, Set<String> slots, ResourceLocation icon) {
+        public static final StructEndec<RawGroupData> ENDEC = StructEndecBuilder.of(
+                Endec.INT.fieldOf("order", RawGroupData::order),
+                EndecUtils.<Set<String>, String>collectionOf(Endec.STRING, LinkedHashSet::new).fieldOf("slots", RawGroupData::slots),
+                MinecraftEndecs.IDENTIFIER.optionalFieldOf("icon", RawGroupData::icon, () -> SlotGroup.UNKNOWN),
+                RawGroupData::new
+        );
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler) {
+    public Map<ResourceLocation, SlotGroup> mapFrom(Map<ResourceLocation, RawGroupData> rawData) {
         var slotGroups = new HashMap<String, SlotGroupBuilder>();
 
         slotGroups.put("unsorted", new SlotGroupBuilder("unsorted").order(30));
 
-        var allSlots = new HashMap<>(SlotTypeLoader.INSTANCE.getSlotTypes(false));
+        var allSlots = new HashMap<>(SlotTypeLoader.INSTANCE.getEntries(false));
 
-        for (var resourceEntry : data.entrySet()) {
-            var location = resourceEntry.getKey();
-            var jsonObject = resourceEntry.getValue();
+        //--
 
-            if(!AccessoriesInternals.isValidOnConditions(jsonObject, this.directory, location, this,  null)) continue;
-
+        rawData.forEach((location, rawGroupData) -> {
             var pathParts = location.getPath().split("/");
 
             String groupName = pathParts[pathParts.length - 1];
@@ -145,9 +142,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
             var group = slotGroups.computeIfAbsent(groupName, SlotGroupBuilder::new);
 
             if(isShared) {
-                var slotElements = safeHelper(GsonHelper::getAsJsonArray, jsonObject, "slots", new JsonArray(), location);
-
-                decodeJsonArray(slotElements, "slot", location, JsonElement::getAsString, s -> {
+                for (String s : rawGroupData.slots()) {
                     for (var builderEntry : slotGroups.entrySet()) {
                         if (builderEntry.getValue().slots.contains(s)) {
                             LOGGER.error("Unable to assign a give slot [{}] to the group [{}] as it already exists within the group [{}]", s, group, builderEntry.getKey());
@@ -155,30 +150,21 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
                         }
                     }
 
-                    var slotType = allSlots.remove(s);
+                    var slotType = allSlots.remove(Accessories.parseLocationOrDefault(s));
 
                     if (slotType == null) {
-                        LOGGER.warn("SlotType added to a given group without being in the main map for slots! [Name: {}]", slotType.name());
+                        LOGGER.warn("SlotType added to a given group without being in the main map for slots! [Name: {}]", s);
                     } else {
                         group.addSlot(s);
                     }
-                });
-
-                group.order(safeHelper(GsonHelper::getAsInt, jsonObject, "order", 100, location));
-            }
-
-            var icon = safeHelper(GsonHelper::getAsString, jsonObject, "icon", location);
-
-            if(icon != null){
-                var iconLocation = ResourceLocation.tryParse(icon);
-
-                if(iconLocation != null){
-                    group.icon(iconLocation);
-                } else {
-                    LOGGER.warn("A given SlotGroup was found to have a invalid Icon Location. [Location: {}]", location);
                 }
+
+                group.order(rawGroupData.order());
+                group.icon(rawGroupData.icon());
             }
-        }
+        });
+
+        //--
 
         var remainSlots = new HashSet<String>();
 
@@ -202,11 +188,13 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
         slotGroups.get("unsorted").addSlots(remainSlots);
 
-        var tempMap = ImmutableMap.<String, SlotGroup>builder();
+        var tempMap = ImmutableMap.<ResourceLocation, SlotGroup>builder();
 
-        slotGroups.forEach((s, builder) -> tempMap.put(s, builder.build()));
+        slotGroups.forEach((s, builder) -> {
+            tempMap.put(Accessories.parseLocationOrDefault(s), builder.build());
+        });
 
-        this.server = tempMap.build();
+        return tempMap.build();
     }
 
     public static class SlotGroupBuilder {

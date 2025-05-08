@@ -88,13 +88,13 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
         if(this.modifiers().isEmpty()) return builder;
 
         var entity = slotReference.entity();
-        var slots = (entity != null) ? SlotTypeLoader.getSlotTypes(entity.level()) : Map.of();
+        var slots = (entity != null) ? SlotTypeLoader.INSTANCE.getEntries(entity.level()) : Map.of();
 
         for (var entry : this.modifiers()) {
             var attributeModifier = entry.modifier();
             var slotTarget = entry.slotName();
 
-            if(slots.containsKey(slotTarget) || slotReference.slotName().equals(slotTarget) || slotTarget.equals("any")) {
+            if(slots.containsKey(Accessories.parseLocationOrDefault(slotTarget)) || slotReference.slotName().equals(slotTarget) || slotTarget.equals("any")) {
                 if (entry.isStackable()) {
                     builder.addStackable(entry.attribute(), attributeModifier);
                 } else {

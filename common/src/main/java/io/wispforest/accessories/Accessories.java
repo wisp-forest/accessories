@@ -55,6 +55,14 @@ public class Accessories {
         return ResourceLocation.fromNamespaceAndPath(MODID, path);
     }
 
+    public static ResourceLocation parseLocationOrDefault(String s){
+        var location = ResourceLocation.tryParse(s);
+
+        if (location == null) location = Accessories.of(s);
+
+        return location;
+    }
+
     public static String translationKey(String path){
         return MODID + "." + path;
     }

@@ -76,7 +76,9 @@
     "HorseInventoryMenuAccessor",
     "owo.ConfigWrapperAccessor",
     "owo.NbtDeserializerMixin",
-    "StateHolderAccessor"
+    "StateHolderAccessor",
+    "SimpleJsonResourceReloadListenerMixin",
+    "FileToIdConverterMixin"
   ],
   "injectors": {
     "defaultRequire": 1

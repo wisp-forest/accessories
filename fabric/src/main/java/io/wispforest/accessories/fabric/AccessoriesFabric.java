@@ -2,7 +2,6 @@ package io.wispforest.accessories.fabric;
 
 import com.mojang.brigadier.arguments.ArgumentType;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.DataLoaderBase;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.commands.AccessoriesCommands;
@@ -16,8 +15,8 @@ import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.InvalidateEntityCache;
-import io.wispforest.accessories.utils.ManagedEndecDataLoader;
 import io.wispforest.accessories.utils.InstanceEndec;
+import io.wispforest.accessories.data.api.SyncedDataLoaderManager;
 import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
@@ -25,27 +24,26 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.fabricmc.fabric.api.event.player.UseItemCallback;
-import net.fabricmc.fabric.api.event.registry.RegistryEntryAddedCallback;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
 import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.impl.attachment.AttachmentTargetImpl;
-import net.fabricmc.fabric.mixin.gamerule.GameRulesAccessor;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
@@ -78,8 +76,12 @@ public class AccessoriesFabric implements ModInitializer {
 
         AccessoriesNetworking.init();
 
-        ManagedEndecDataLoader.init(AccessoriesNetworking.CHANNEL, playerConsumer -> {
-            ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register((player, joined) -> playerConsumer.accept(player));
+        SyncedDataLoaderManager.init(AccessoriesNetworking.CHANNEL, playerConsumer -> {
+            ResourceLocation beforeDefaultPhase = Accessories.of("before_default_phase");
+
+            ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(beforeDefaultPhase, Event.DEFAULT_PHASE);
+
+            ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.register(beforeDefaultPhase, (player, joined) -> playerConsumer.accept(player));
         });
 
         AccessoriesDataComponents.init();
@@ -146,15 +148,27 @@ public class AccessoriesFabric implements ModInitializer {
             AccessoriesEventHandler.entityLoad(livingEntity, world);
         });
 
+        ServerLivingEntityEvents.
+
         ExtraEntityTrackingEvents.POST_START_TRACKING.register((trackedEntity, player) -> {
             if(!(trackedEntity instanceof LivingEntity livingEntity)) return;
 
             AccessoriesEventHandler.onTracking(livingEntity, player);
         });
 
-        DataLoaderBase.INSTANCE = new DataLoaderImpl();
+        var manager = ResourceManagerHelper.get(PackType.SERVER_DATA);
 
-        DataLoaderBase.INSTANCE.registerListeners();
+        manager.registerReloadListener(new SimpleSynchronousResourceReloadListener() {
+            @Override
+            public ResourceLocation getFabricId() {
+                return Accessories.DATA_RELOAD_HOOK;
+            }
+
+            @Override
+            public void onResourceManagerReload(ResourceManager resourceManager) {
+                AccessoriesEventHandler.dataReloadOccurred = true;
+            }
+        });
 
         DefaultItemComponentEvents.MODIFY.register(context -> {
             AccessoriesEventHandler.setupItems(new AccessoriesEventHandler.AddDataComponentCallback() {

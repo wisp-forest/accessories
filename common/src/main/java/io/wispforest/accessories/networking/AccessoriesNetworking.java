@@ -40,7 +40,6 @@ public class AccessoriesNetworking {
 
         CHANNEL.registerClientboundDeferred(SyncEntireContainer.class, SyncEntireContainer.ENDEC);
         CHANNEL.registerClientboundDeferred(SyncContainerData.class, SyncContainerData.ENDEC);
-        CHANNEL.registerClientboundDeferred(SyncData.class, SyncData.ENDEC);
         CHANNEL.registerClientboundDeferred(SyncPlayerOptions.class, SyncPlayerOptions.ENDEC);
         CHANNEL.registerClientboundDeferred(AccessoryBreak.class, AccessoryBreak.ENDEC);
         CHANNEL.registerClientboundDeferred(InvalidateEntityCache.class, InvalidateEntityCache.ENDEC);
@@ -54,7 +53,6 @@ public class AccessoriesNetworking {
     public static void initClient() {
         CHANNEL.registerClientbound(SyncEntireContainer.class, SyncEntireContainer.ENDEC, clientHandler(SyncEntireContainer::handlePacket));
         CHANNEL.registerClientbound(SyncContainerData.class, SyncContainerData.ENDEC, clientHandler(SyncContainerData::handlePacket));
-        CHANNEL.registerClientbound(SyncData.class, SyncData.ENDEC, clientHandler(SyncData::handlePacket));
         CHANNEL.registerClientbound(SyncPlayerOptions.class, SyncPlayerOptions.ENDEC, clientHandler(SyncPlayerOptions::handlePacket));
         CHANNEL.registerClientbound(AccessoryBreak.class, AccessoryBreak.ENDEC, clientHandler(AccessoryBreak::handlePacket));
         CHANNEL.registerClientbound(InvalidateEntityCache.class, InvalidateEntityCache.ENDEC, clientHandler(InvalidateEntityCache::handlePacket));

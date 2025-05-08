@@ -6,7 +6,7 @@ import dev.architectury.injectables.annotations.ExpectPlatform;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
-import io.wispforest.accessories.utils.ManagedEndecDataLoader;
+import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.endec.Endec;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -30,9 +31,6 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Optional;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
@@ -100,7 +98,7 @@ public class AccessoriesInternals {
     }
 
     @ExpectPlatform
-    public static void registerLoader(ManagedEndecDataLoader<?> loader, Consumer<HolderLookup.Provider> registrySetCall) {
+    public static void registerLoader(PackType type, EndecDataLoader<?> loader, @Nullable Consumer<HolderLookup.Provider> registrySetCall) {
         throw new AssertionError();
     }
 }

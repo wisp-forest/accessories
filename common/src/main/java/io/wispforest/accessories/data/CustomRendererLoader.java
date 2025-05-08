@@ -3,12 +3,14 @@ package io.wispforest.accessories.data;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.*;
+import com.mojang.datafixers.util.Either;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.client.rendering.CustomDataRenderer;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
+import io.wispforest.accessories.api.client.renderers.AccessoryRenderer;
 import io.wispforest.accessories.api.client.rendering.RenderingFunction;
 import io.wispforest.accessories.utils.HashUtils;
-import io.wispforest.accessories.utils.ManagedEndecDataLoader;
+import io.wispforest.accessories.data.api.SimpleManagedEndecDataLoader;
 import io.wispforest.endec.format.gson.GsonDeserializer;
 import io.wispforest.owo.Owo;
 import net.fabricmc.api.EnvType;
@@ -17,9 +19,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
-import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,8 +32,10 @@ import java.io.Reader;
 import java.time.Duration;
 import java.util.*;
 
+import io.wispforest.accessories.api.client.rendering.RenderingFunction.*;
+
 @ApiStatus.Experimental
-public class CustomRendererLoader extends ManagedEndecDataLoader<CustomDataRenderer> {
+public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRenderer> {
 
     private static final Gson GSON = new GsonBuilder().setLenient().setPrettyPrinting().create();
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -39,35 +43,42 @@ public class CustomRendererLoader extends ManagedEndecDataLoader<CustomDataRende
     @Nullable
     private ResourceLocation constantResolveTarget = null;
 
-    public static final CustomRendererLoader INSTANCE = new CustomRendererLoader();
+    public static final CustomRendererLoader CLIENT_OVERRIDES = new CustomRendererLoader(PackType.CLIENT_RESOURCES);
+    public static final CustomRendererLoader PRIMARY = new CustomRendererLoader(PackType.SERVER_DATA);
 
-    private final Map<ResourceLocation, RenderingFunction.Compound> resolvedClient = new HashMap<>();
-    private final Map<ResourceLocation, RenderingFunction.Compound> resolvedServer = new HashMap<>();
+    private final Map<UUID, RenderingFunction.Compound> resolvedClient = new HashMap<>();
+    private final Map<UUID, RenderingFunction.Compound> resolvedServer = new HashMap<>();
 
-    protected CustomRendererLoader() {
-        super(Accessories.of("custom_renderer_loader"), "custom_renderer", CustomDataRenderer.ENDEC);
+    protected CustomRendererLoader(PackType packType) {
+        super(Accessories.of("rendering_renderer"), "accessories/render/renderer", RawRenderer.ENDEC, packType);
     }
 
     @Nullable
-    public static RenderingFunction getOrResolveRenderer(ResourceLocation id, Map<String, JsonElement> references, Level level) {
-        return getOrResolveRenderer(id, references, level.isClientSide());
-    }
+    public static Either<AccessoryRenderer, RenderingFunction> getOrResolveRenderer(DeferredRenderer dataRenderer, boolean isClientSide) {
+        var renderer = AccessoriesRendererRegistry.getRenderer(dataRenderer.rendererId());
+        if (renderer != null) return Either.left(renderer);
 
-    @Nullable
-    public static RenderingFunction getOrResolveRenderer(ResourceLocation id, Map<String, JsonElement> references, boolean isClientSide) {
-        return INSTANCE.getOrResolveRendererInitial(new ArrayDeque<>(), id, references, isClientSide);
-    }
-
-    // TODO: DUE TO THE DESIRE TO ALLOW FOR SOME REWORKING OF THE RENDERS BASED ON PASSED REFERENCE DATA, THIS NEEDS A DIFFERENT WAY TO CACHE CAUSE CURRENTLY CACHES ONLY BY ID
-    @Nullable
-    public static RenderingFunction getOrResolveRenderer(CustomDataRenderer dataRenderer, boolean isClientSide) {
-        if (!dataRenderer.rendererId().equals(CustomDataRenderer.NO_RENDERER_SELECTED)) {
-            return CustomRendererLoader.getOrResolveRenderer(dataRenderer.rendererId(), Map.of(), isClientSide);
-        } else if(dataRenderer.renderingFunctions() != null) {
-            return CustomRendererLoader.INSTANCE.resolveRawData(new ArrayDeque<>(), Accessories.of("generated"), dataRenderer, new HashMap<>(), isClientSide);
-        }
+        var resolvedRenderer = CustomRendererLoader.getOrResolveDeferredRenderer(dataRenderer, isClientSide);
+        if (resolvedRenderer != null) return Either.right(resolvedRenderer);
 
         return null;
+    }
+
+    public static RenderingFunction getOrResolveDeferredRenderer(DeferredRenderer deferredRenderer, boolean isClientSide) {
+        var result = CLIENT_OVERRIDES.getOrResolveRendererInitial(deferredRenderer, isClientSide);
+
+        if (result != null) return result;
+
+        return PRIMARY.getOrResolveRendererInitial(deferredRenderer, isClientSide);
+    }
+
+    @Nullable
+    public static RenderingFunction getOrResolveRawRenderer(RawRenderer dataRenderer, boolean isClientSide) {
+        var result = CLIENT_OVERRIDES.resolveRawData(new ArrayDeque<>(), Accessories.of("generated"), dataRenderer, new HashMap<>(), isClientSide);
+
+        if (result != null) return result;
+
+        return CustomRendererLoader.PRIMARY.resolveRawData(new ArrayDeque<>(), Accessories.of("generated"), dataRenderer, new HashMap<>(), isClientSide);
     }
 
     private boolean alwaysResolveFlag = false;
@@ -84,26 +95,37 @@ public class CustomRendererLoader extends ManagedEndecDataLoader<CustomDataRende
         this.resolvedServer.clear();
     }
 
+    @Override
+    public Map<ResourceLocation, RawRenderer> mapFrom(Map<ResourceLocation, RawRenderer> rawData) {
+        this.resolvedServer.clear();
+        this.missingRenderersServer.clear();
+
+        return super.mapFrom(rawData);
+    }
+
     @Nullable
-    private RenderingFunction.Compound getOrResolveRendererInitial(Deque<ResourceLocation> currentResolveTree, ResourceLocation id, Map<String, JsonElement> references, boolean isClientSide) {
-        references = new HashMap<>(references);
+    private RenderingFunction.Compound getOrResolveRendererInitial(DeferredRenderer deferredRenderer, boolean isClientSide) {
+        Deque<ResourceLocation> currentResolveTree = new ArrayDeque<>();
+        var references = new HashMap<>(deferredRenderer.references());
 
         RenderingFunction.Compound function = null;
         boolean shouldResetFlagOnResolve = false;
 
-        if (Objects.equals(constantResolveTarget, id)) {
+        var uuid = deferredRenderer.getUUID();
+
+        if (Objects.equals(constantResolveTarget, deferredRenderer.rendererId())) {
             if (!alwaysResolveFlag) {
                 alwaysResolveFlag = true;
                 shouldResetFlagOnResolve = true;
             }
         } else if(!alwaysResolveFlag) {
-            function = (isClientSide ? resolvedClient : resolvedServer).get(id);
+            function = (isClientSide ? resolvedClient : resolvedServer).get(uuid);
         }
 
         if (function == null) {
-            function = resolveRenderer(currentResolveTree, id, references, isClientSide);
+            function = resolveRenderer(currentResolveTree, deferredRenderer.rendererId(), references, isClientSide);
 
-            (isClientSide ? resolvedClient : resolvedServer).put(id, function);
+            (isClientSide ? resolvedClient : resolvedServer).put(uuid, function);
         }
 
         if (shouldResetFlagOnResolve) alwaysResolveFlag = false;
@@ -115,7 +137,7 @@ public class CustomRendererLoader extends ManagedEndecDataLoader<CustomDataRende
     private RenderingFunction.Compound resolveRenderer(Deque<ResourceLocation> currentResolveTree, ResourceLocation id, Map<String, JsonElement> references, boolean isClientSide) {
         currentResolveTree.push(id);
 
-        CustomDataRenderer rawRenderer = null;
+        RawRenderer rawRenderer = null;
 
         if (alwaysResolveFlag) rawRenderer = this.getDataFromId(id, isClientSide);
         if (rawRenderer == null) rawRenderer = getEntry(id, isClientSide);
@@ -140,58 +162,64 @@ public class CustomRendererLoader extends ManagedEndecDataLoader<CustomDataRende
     }
 
     @Nullable
-    private RenderingFunction.Compound resolveRawData(Deque<ResourceLocation> currentResolveTree, ResourceLocation id, CustomDataRenderer rawData, Map<String, JsonElement> references, boolean isClientSide) {
-        rawData.references().forEach(references::putIfAbsent);
+    private RenderingFunction.Compound resolveRawData(Deque<ResourceLocation> currentResolveTree, ResourceLocation id, RenderingFunction function, Map<String, JsonElement> references, boolean isClientSide) {
+        if (function instanceof RawRenderer data) {
+            data.references().forEach(references::putIfAbsent);
 
-        if (!rawData.rendererId().equals(CustomDataRenderer.NO_RENDERER_SELECTED)) {
-            if (currentResolveTree.contains(rawData.rendererId())) {
-                currentResolveTree.push(rawData.rendererId());
+            if(data.renderingFunctions() != null) {
+                var renderers = new ArrayList<RenderingFunction>();
 
-                LOGGER.error("Recursive loop of Renderer Referencing, unable to resolve such! [{}]", currentResolveTree);
+                for (var rawRenderingFunc : data.renderingFunctions()) {
+                    try {
+                        rawRenderingFunc = resolveReferencesForCopy(references, rawRenderingFunc);
 
-                currentResolveTree.pop();
+                        var renderingFunc = RenderingFunction.ENDEC.decodeFully(GsonDeserializer::of, rawRenderingFunc);
 
-                return null;
-            }
+                        if (renderingFunc instanceof DeferredRenderer renderer) {
+                            renderingFunc = resolveRawData(currentResolveTree, id.withPrefix("."), renderer, references, isClientSide);
 
-            var renderingFunc = resolveRenderer(currentResolveTree, rawData.rendererId(), references, isClientSide);
+                            if (renderingFunc == null) {
+                                LOGGER.warn("Unable to resolve inner renderer [{}] for [{}] as it was not found within Custom Renderer Registry!", renderer.rendererId(), id);
 
-            if (renderingFunc != null && rawData.firstPersonArmTarget() != null) {
-                renderingFunc = new RenderingFunction.Compound(renderingFunc.renderingFunctions(), rawData.firstPersonArmTarget());
-            }
-
-            return renderingFunc;
-        } else if(rawData.renderingFunctions() != null) {
-            var renderers = new ArrayList<RenderingFunction>();
-
-            for (var rawRenderingFunc : rawData.renderingFunctions()) {
-                try {
-                    rawRenderingFunc = resolveReferencesForCopy(references, rawRenderingFunc);
-
-                    var renderingFunc = RenderingFunction.ENDEC.decodeFully(GsonDeserializer::of, rawRenderingFunc);
-
-                    if (renderingFunc instanceof CustomDataRenderer renderer) {
-                        renderingFunc = resolveRawData(currentResolveTree, id.withPrefix("."), renderer, references, isClientSide);
-
-                        if (renderingFunc == null) {
-                            LOGGER.warn("Unable to resolve inner renderer [{}] for [{}] as it was not found within Custom Renderer Registry!", renderer.rendererId(), id);
-
-                            continue;
+                                continue;
+                            }
                         }
+
+                        renderers.add(renderingFunc);
+                    } catch (Exception e) {
+                        errorIfDifferent(id, e, () -> {
+                            LOGGER.error("Unable to decode the a given Render Function with [{}] due the following error: ", id);
+                            minimalErroring(e);
+                        });
                     }
-
-                    renderers.add(renderingFunc);
-                } catch (Exception e) {
-                    errorIfDifferent(id, e, () -> {
-                        LOGGER.error("Unable to decode the a given Render Function with [{}] due the following error: ", id);
-                        minimalErroring(e);
-                    });
                 }
+
+                var armTarget = data.firstPersonArmTarget();
+
+                return new RenderingFunction.Compound(Collections.unmodifiableList(renderers), armTarget != null ? armTarget : RenderingFunction.ArmTarget.NONE);
             }
+        } else if (function instanceof DeferredRenderer renderer) {
+            renderer.references().forEach(references::putIfAbsent);
 
-            var armTarget = rawData.firstPersonArmTarget();
+            if (!renderer.rendererId().equals(AccessoriesRendererRegistry.NO_RENDERER_ID)) {
+                if (currentResolveTree.contains(renderer.rendererId())) {
+                    currentResolveTree.push(renderer.rendererId());
 
-            return new RenderingFunction.Compound(Collections.unmodifiableList(renderers), armTarget != null ? armTarget : RenderingFunction.ArmTarget.NONE);
+                    LOGGER.error("Recursive loop of Renderer Referencing, unable to resolve such! [{}]", currentResolveTree);
+
+                    currentResolveTree.pop();
+
+                    return null;
+                }
+
+                var renderingFunc = resolveRenderer(currentResolveTree, renderer.rendererId(), references, isClientSide);
+
+                if (renderingFunc != null && renderer.firstPersonArmTarget() != null) {
+                    renderingFunc = new RenderingFunction.Compound(renderingFunc.renderingFunctions(), renderer.firstPersonArmTarget());
+                }
+
+                return renderingFunc;
+            }
         }
 
         return null;
@@ -250,15 +278,15 @@ public class CustomRendererLoader extends ManagedEndecDataLoader<CustomDataRende
     public static void constantFileResolving(MinecraftServer server, ResourceLocation id) {
         if (server.isDedicatedServer() && Accessories.DEBUG) return;
 
-        INSTANCE.constantResolveTarget = id;
+        PRIMARY.constantResolveTarget = id;
     }
 
     public static boolean isConstantResolveTarget() {
-        return INSTANCE.constantResolveTarget != null;
+        return PRIMARY.constantResolveTarget != null;
     }
 
     @Nullable
-    protected CustomDataRenderer getDataFromId(ResourceLocation id, boolean isClientSide) {
+    protected RenderingFunction.RawRenderer getDataFromId(ResourceLocation id, boolean isClientSide) {
         var fileId = FileToIdConverter.json(this.type).idToFile(id);
         ResourceManager resource = getResourceManager(isClientSide);
 

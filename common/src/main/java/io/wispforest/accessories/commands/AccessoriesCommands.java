@@ -41,7 +41,6 @@ import org.slf4j.Logger;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -226,7 +225,7 @@ public class AccessoriesCommands extends CommandBuilderHelper {
                         case "slots" -> {
                             LOGGER.info("All given Slots registered:");
 
-                            for (var slotType : SlotTypeLoader.getSlotTypes(ctx.getSource().getLevel()).values()) {
+                            for (var slotType : SlotTypeLoader.INSTANCE.getEntries(ctx.getSource().getLevel()).values()) {
                                 LOGGER.info(slotType.toString());
                             }
                         }

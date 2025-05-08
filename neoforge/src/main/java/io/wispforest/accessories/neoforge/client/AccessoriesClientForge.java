@@ -3,17 +3,17 @@ package io.wispforest.accessories.neoforge.client;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
-import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
+import io.wispforest.accessories.neoforge.AccessoriesInternalsImpl;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
-import io.wispforest.accessories.utils.ManagedEndecDataLoader;
+import io.wispforest.accessories.data.api.SyncedDataLoaderManager;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -27,6 +27,7 @@ import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static io.wispforest.accessories.Accessories.MODID;
 
@@ -38,9 +39,24 @@ public class AccessoriesClientForge {
         eventBus.addListener(this::onInitializeClient);
         eventBus.addListener(this::initKeybindings);
         eventBus.addListener(this::addRenderLayer);
+        eventBus.addListener(this::registerReloadListeners);
         NeoForge.EVENT_BUS.addListener(this::onJoin);
 
         AccessoriesClient.initConfigStuff();
+    }
+
+    public void registerReloadListeners(AddClientReloadListenersEvent event){
+        var loaders = AccessoriesInternalsImpl.TO_BE_LOADED.getOrDefault(PackType.CLIENT_RESOURCES, new HashMap<>());
+
+        loaders.forEach((endecDataLoader, setupRegistryCallback) -> {
+            event.addListener(endecDataLoader.getLoaderId(), endecDataLoader);
+        });
+
+        loaders.forEach((endecDataLoader, providerConsumer) -> {
+            for (var dependencyId : endecDataLoader.getDependencyIds()) {
+                event.addDependency(dependencyId, endecDataLoader.getLoaderId());
+            }
+        });
     }
 
     public void registerMenuType(RegisterMenuScreensEvent event) {
@@ -62,7 +78,7 @@ public class AccessoriesClientForge {
         AccessoriesClient.init();
 
         AccessoriesNetworking.initClient();
-        ManagedEndecDataLoader.initClient(AccessoriesNetworking.CHANNEL);
+        SyncedDataLoaderManager.initClient(AccessoriesNetworking.CHANNEL);
     }
 
     public void initKeybindings(RegisterKeyMappingsEvent event) {

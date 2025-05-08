@@ -1,18 +1,16 @@
 package io.wispforest.accessories.fabric.client;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.client.BuiltinAccessoryRenderers;
+import io.wispforest.accessories.api.client.renderers.BuiltinAccessoryRenderers;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
-import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.fabric.AccessoriesFabric;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
-import io.wispforest.accessories.networking.client.InvalidateEntityCache;
-import io.wispforest.accessories.utils.ManagedEndecDataLoader;
+import io.wispforest.accessories.data.api.SyncedDataLoaderManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
@@ -45,7 +43,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
         AccessoriesClient.init();
 
         AccessoriesNetworking.initClient();
-        ManagedEndecDataLoader.initClient(AccessoriesNetworking.CHANNEL);
+        SyncedDataLoaderManager.initClient(AccessoriesNetworking.CHANNEL);
 
         AccessoriesMenuTypes.registerClientMenuConstructors(MenuScreens::register);
 

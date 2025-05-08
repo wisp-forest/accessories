@@ -7,10 +7,9 @@ import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
 import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.mixin.ItemStackAccessor;
-import io.wispforest.accessories.utils.ManagedEndecDataLoader;
+import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.endec.Endec;
 import io.wispforest.owo.serialization.CodecUtils;
-import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
@@ -119,11 +118,15 @@ public class AccessoriesInternalsImpl {
         }
     }
 
-    public static void registerLoader(ManagedEndecDataLoader<?> loader, Consumer<HolderLookup.Provider> registrySetCall) {
-        ResourceManagerHelper.get(PackType.SERVER_DATA).registerReloadListener(loader.getLoaderId(), provider -> {
-            registrySetCall.accept(provider);
+    public static void registerLoader(PackType packType, EndecDataLoader<?> loader, @Nullable Consumer<HolderLookup.Provider> registrySetCall) {
+        if (registrySetCall != null) {
+            ResourceManagerHelper.get(packType).registerReloadListener(loader.getLoaderId(), provider -> {
+                registrySetCall.accept(provider);
 
-            return new DataLoaderImpl.IdentifiableResourceReloadListenerImpl(loader.getLoaderId(), loader);
-        });
+                return new IdentifiableResourceReloadListenerImpl(loader.getLoaderId(), loader, loader.getDependencyIds());
+            });
+        } else {
+            ResourceManagerHelper.get(packType).registerReloadListener(new IdentifiableResourceReloadListenerImpl(loader.getLoaderId(), loader, loader.getDependencyIds()));
+        }
     }
 }

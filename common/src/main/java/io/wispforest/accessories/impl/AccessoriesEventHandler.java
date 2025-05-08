@@ -20,7 +20,6 @@ import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.SyncContainerData;
-import io.wispforest.accessories.networking.client.SyncData;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.networking.client.SyncPlayerOptions;
 import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
@@ -173,15 +172,11 @@ public class AccessoriesEventHandler {
     }
 
     public static void dataSync(@Nullable PlayerList list, @Nullable ServerPlayer player) {
-        var syncPacket = SyncData.create();
-
         if (list != null && !list.getPlayers().isEmpty()) {
             revalidatePlayersOnReload(list);
 
             // TODO: OPTIMIZE THIS?
             for (var playerEntry : list.getPlayers()) {
-                AccessoriesNetworking.sendToPlayer(playerEntry, syncPacket);
-
                 var capability = AccessoriesCapability.get(playerEntry);
 
                 if (capability == null) return;
@@ -197,8 +192,6 @@ public class AccessoriesEventHandler {
                 }
             }
         } else if (player != null) {
-            AccessoriesNetworking.sendToPlayer(player, syncPacket);
-
             revalidatePlayer(player);
 
             var capability = AccessoriesCapability.get(player);
@@ -487,7 +480,7 @@ public class AccessoriesEventHandler {
                 return isUnique;
             });
 
-            var sharedSlotTypes = SlotTypeLoader.getSlotTypes(entity.level()).values()
+            var sharedSlotTypes = SlotTypeLoader.INSTANCE.getEntries(entity.level()).values()
                     .stream()
                     .filter(slotType -> !UniqueSlotHandling.isUniqueSlot(slotType.name()))
                     .collect(Collectors.toSet());

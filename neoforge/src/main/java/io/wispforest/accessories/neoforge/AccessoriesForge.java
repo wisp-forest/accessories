@@ -9,10 +9,6 @@ import io.wispforest.accessories.commands.AccessoriesCommands;
 import io.wispforest.accessories.commands.CommandBuilderHelper;
 import io.wispforest.accessories.commands.RecordArgumentTypeInfo;
 import io.wispforest.accessories.data.EntitySlotLoader;
-import io.wispforest.accessories.data.SlotGroupLoader;
-import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.utils.ManagedEndecDataLoader;
-import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
@@ -20,6 +16,7 @@ import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.utils.InstanceEndec;
+import io.wispforest.accessories.data.api.SyncedDataLoaderManager;
 import io.wispforest.owo.serialization.CodecUtils;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
 import net.minecraft.core.Registry;
@@ -28,7 +25,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.packs.resources.PreparableReloadListener;
+import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.util.Mth;
@@ -42,12 +39,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.capabilities.EntityCapability;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
@@ -64,9 +63,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.HashMap;
 import java.util.stream.Stream;
 
 @Mod(Accessories.MODID)
@@ -138,8 +135,8 @@ public class AccessoriesForge {
     public void commonInit(FMLCommonSetupEvent event) {
         AccessoriesNetworking.init();
 
-        ManagedEndecDataLoader.init(AccessoriesNetworking.CHANNEL, playerConsumer -> {
-            NeoForge.EVENT_BUS.<OnDatapackSyncEvent>addListener(syncEvent -> syncEvent.getRelevantPlayers().forEach(playerConsumer::accept));
+        SyncedDataLoaderManager.init(AccessoriesNetworking.CHANNEL, playerConsumer -> {
+            NeoForge.EVENT_BUS.<OnDatapackSyncEvent>addListener(EventPriority.HIGHEST, syncEvent -> syncEvent.getRelevantPlayers().forEach(playerConsumer::accept));
         });
 
         Accessories.RULE_KEEP_ACCESSORY_INVENTORY = GameRules.register("accessories.keepAccessoryInventory", GameRules.Category.PLAYER, GameRules.BooleanValue.create(false));
@@ -168,29 +165,25 @@ public class AccessoriesForge {
     }
 
     public void registerReloadListeners(AddServerReloadListenersEvent event){
-        intermediateRegisterListeners(event::addListener, event::addDependency);
+        var loaders = AccessoriesInternalsImpl.TO_BE_LOADED.getOrDefault(PackType.SERVER_DATA, new HashMap<>());
 
-        AccessoriesInternalsImpl.TO_BE_LOADED.forEach((managedEndecDataLoader, setupRegistryCallback) -> {
+        loaders.forEach((endecDataLoader, setupRegistryCallback) -> {
             setupRegistryCallback.accept(event.getRegistryAccess());
-            event.addListener(managedEndecDataLoader.getLoaderId(), managedEndecDataLoader);
+            event.addListener(endecDataLoader.getLoaderId(), endecDataLoader);
         });
-    }
 
-    // This exists as a way to register things within the TCLayer without depending on NeoForge to do this within a mixin
-    public void intermediateRegisterListeners(BiConsumer<ResourceLocation, PreparableReloadListener> registrationMethod, BiConsumer<ResourceLocation, ResourceLocation> dependencyRegisterCallback){
-        registrationMethod.accept(Accessories.SLOT_LOADER_LOCATION, SlotTypeLoader.INSTANCE);
-        registrationMethod.accept(Accessories.ENTITY_SLOT_LOADER_LOCATION, EntitySlotLoader.INSTANCE);
-        registrationMethod.accept(Accessories.SLOT_GROUP_LOADER_LOCATION, SlotGroupLoader.INSTANCE);
+        loaders.forEach((endecDataLoader, providerConsumer) -> {
+            for (var dependencyId : endecDataLoader.getDependencyIds()) {
+                event.addDependency(dependencyId, endecDataLoader.getLoaderId());
+            }
+        });
 
-        registrationMethod.accept(Accessories.DATA_RELOAD_HOOK, new SimplePreparableReloadListener<Void>() {
+        event.addListener(Accessories.DATA_RELOAD_HOOK, new SimplePreparableReloadListener<Void>() {
             @Override protected Void prepare(ResourceManager resourceManager, ProfilerFiller profiler) { return null; }
             @Override protected void apply(Void object, ResourceManager resourceManager, ProfilerFiller profiler) {
                 AccessoriesEventHandler.dataReloadOccurred = true;
             }
         });
-
-        dependencyRegisterCallback.accept(Accessories.SLOT_LOADER_LOCATION, Accessories.ENTITY_SLOT_LOADER_LOCATION);
-        dependencyRegisterCallback.accept(Accessories.ENTITY_SLOT_LOADER_LOCATION, Accessories.DATA_RELOAD_HOOK);
     }
 
     public void registerCapabilities(RegisterCapabilitiesEvent event){

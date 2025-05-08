@@ -11,6 +11,7 @@ import io.wispforest.endec.impl.BuiltInEndecs;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.endec.util.MapCarrier;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -170,6 +171,14 @@ public class EndecUtils {
         return wrappedEndec(fieldName, endec).xmap(MutableObject::getValue, MutableObject::new);
     }
 
+    public static <K, V> StructEndec<Pair<K, V>> ofPair(String keyName, String valueName, Endec<K> keyEndec, Endec<V> valueEndec) {
+        return StructEndecBuilder.of(
+                keyEndec.fieldOf(keyName, Pair::left),
+                valueEndec.fieldOf(valueName, Pair::second),
+                Pair::of
+        );
+    }
+
     public static <T> StructEndec<MutableObject<T>> wrappedEndec(String fieldName, Endec<T> endec) {
         return StructEndecBuilder.of(endec.fieldOf(fieldName, MutableObject::getValue), MutableObject::new);
     }
@@ -189,6 +198,30 @@ public class EndecUtils {
             return map;
 
         });
+    }
+
+    public static <C extends Collection<T>, T> Endec<C> collectionOf(Endec<T> endec, Supplier<C> supplier) {
+        return endec.listOf().xmap(ts -> {
+            var collection = supplier.get();
+
+            collection.addAll(ts);
+
+            return collection;
+        }, ArrayList::new);
+    }
+
+    public static <E extends Enum<E>> Endec<E> forEnum(Class<E> enumClass) {
+        return Endec.ifAttr(
+                SerializationAttributes.HUMAN_READABLE,
+                Endec.STRING.xmap(name -> {
+                    return Arrays.stream(enumClass.getEnumConstants())
+                            .filter(e -> e.name().toLowerCase(Locale.ROOT).equals(name.toLowerCase(Locale.ROOT)))
+                            .findFirst()
+                            .orElseThrow();
+                }, Enum::name)
+        ).orElse(
+                Endec.VAR_INT.xmap(ordinal -> enumClass.getEnumConstants()[ordinal], Enum::ordinal)
+        );
     }
 
     public static final class LazyStructEndec<T> implements StructEndec<T> {

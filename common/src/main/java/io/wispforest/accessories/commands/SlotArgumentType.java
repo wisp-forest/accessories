@@ -6,6 +6,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -30,7 +31,7 @@ public final class SlotArgumentType implements ArgumentType<String> {
 
         if (slotName.equals("any")) return "any";
 
-        var slotType = SlotTypeLoader.INSTANCE.getSlotTypes(false).getOrDefault(slotName, null);
+        var slotType = SlotTypeLoader.INSTANCE.getSlotType(false, slotName);
 
         if (slotType == null) throw AccessoriesCommands.INVALID_SLOT_TYPE.create();
 
@@ -44,7 +45,7 @@ public final class SlotArgumentType implements ArgumentType<String> {
 
             stringReader.setCursor(builder.getStart());
 
-            var validSlots = new ArrayList<>(SlotTypeLoader.INSTANCE.getSlotTypes(false).keySet());
+            var validSlots = new ArrayList<>(SlotTypeLoader.INSTANCE.getEntries(false).values().stream().map(SlotType::name).toList());
 
             validSlots.addFirst("any");
 

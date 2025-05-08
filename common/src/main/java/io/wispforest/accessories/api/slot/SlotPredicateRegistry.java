@@ -126,7 +126,7 @@ public class SlotPredicateRegistry {
     public static Collection<SlotType> getStackSlotTypes(Level level, @Nullable LivingEntity entity, ItemStack stack) {
         var validSlots = new ArrayList<SlotType>();
 
-        for (SlotType value : SlotTypeLoader.getSlotTypes(level).values()) {
+        for (SlotType value : SlotTypeLoader.INSTANCE.getEntries(level).values()) {
             if(getPredicateResults(value.validators(), level, entity, value, 0, stack)) validSlots.add(value);
         }
 

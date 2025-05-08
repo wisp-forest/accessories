@@ -74,11 +74,11 @@ public class ResourceExtendedArgument<T> implements ArgumentType<Holder<T>> {
 
             possibleSlotName = location.getPath().replace("/", ":");
 
-            var slotType = SlotTypeLoader.INSTANCE.getSlotTypes(false).get(possibleSlotName);
+            var slotType = SlotTypeLoader.INSTANCE.getSlotType(false, possibleSlotName);
 
             return (slotType != null) ? SlotAttribute.getAttributeHolder(possibleSlotName) : null;
         }, () -> {
-            return SlotTypeLoader.INSTANCE.getSlotTypes(false).values()
+            return SlotTypeLoader.INSTANCE.getEntries(false).values()
                     .stream()
                     .map(SlotType::name)
                     .map(s -> Accessories.of(s.replace(":", "/")));

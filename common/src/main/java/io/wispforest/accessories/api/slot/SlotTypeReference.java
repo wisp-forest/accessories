@@ -14,7 +14,7 @@ public record SlotTypeReference(String slotName) {
     public SlotType get(boolean isClientSide) {
         if(this.slotName == null) return null;
 
-        return SlotTypeLoader.INSTANCE.getSlotTypes(isClientSide).getOrDefault(this.slotName, null);
+        return SlotTypeLoader.INSTANCE.getSlotType(isClientSide, this.slotName);
     }
 
     @Nullable
