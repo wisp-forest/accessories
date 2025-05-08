@@ -36,6 +36,7 @@ public class AccessoriesRendererRegistry {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final Map<Item, ResourceLocation> ITEM_TO_RENDERER = new HashMap<>();
+    private static final Map<Item, ResourceLocation> DATA_LOADED_ITEM_TO_RENDERER = new HashMap<>();
 
     private static final Map<ResourceLocation, Supplier<AccessoryRenderer>> RENDERERS = new HashMap<>();
 
@@ -84,7 +85,7 @@ public class AccessoriesRendererRegistry {
     //--
 
     public static boolean hasRenderer(Item item) {
-        return ITEM_TO_RENDERER.containsKey(item);
+        return getBoundRenderer(item) != null;
     }
 
     public static boolean hasRenderer(ResourceLocation rendererId) {
@@ -153,10 +154,20 @@ public class AccessoriesRendererRegistry {
 
     @Nullable
     public static ResourceLocation getBoundRenderer(Item item) {
+        if (DATA_LOADED_ITEM_TO_RENDERER.containsKey(item)) {
+            return DATA_LOADED_ITEM_TO_RENDERER.get(item);
+        }
+
         return ITEM_TO_RENDERER.get(item);
     }
 
     //--
+
+    @ApiStatus.Internal
+    public static void setDataLoadedItemToRenderer(Map<Item, ResourceLocation> data) {
+        DATA_LOADED_ITEM_TO_RENDERER.clear();
+        DATA_LOADED_ITEM_TO_RENDERER.putAll(data);
+    }
 
     @ApiStatus.Internal
     public static void onReload() {
