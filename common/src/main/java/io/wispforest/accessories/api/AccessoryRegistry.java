@@ -1,7 +1,7 @@
 package io.wispforest.accessories.api;
 
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
-import io.wispforest.accessories.api.components.AccessoryStackSizeComponent;
+import io.wispforest.accessories.api.components.AccessoryStackSettings;
 import io.wispforest.accessories.api.events.CanEquipCallback;
 import io.wispforest.accessories.api.events.CanUnequipCallback;
 import io.wispforest.accessories.api.slot.SlotReference;
@@ -106,27 +106,9 @@ public class AccessoryRegistry {
     //--
 
     @ApiStatus.Internal
-    private static final Accessory DEFAULT = new Accessory() {
-        @Override
-        public int maxStackSize(ItemStack stack) {
-            var data = stack.getOrDefault(AccessoriesDataComponents.STACK_SIZE, AccessoryStackSizeComponent.DEFAULT);
-
-            if(data.useStackSize()) return stack.getMaxStackSize();
-
-            return Math.min(Math.max(data.sizeOverride(), 1), stack.getMaxStackSize());
-        }
-    };
+    private static final Accessory DEFAULT = new Accessory() {};
 
     @ApiStatus.Internal
-    private static final AccessoryNest DEFAULT_NEST = new AccessoryNest() {
-        @Override
-        public int maxStackSize(ItemStack stack) {
-            var data = stack.getOrDefault(AccessoriesDataComponents.STACK_SIZE, AccessoryStackSizeComponent.DEFAULT);
-
-            if(data.useStackSize()) return stack.getMaxStackSize();
-
-            return Math.min(Math.max(data.sizeOverride(), 1), stack.getMaxStackSize());
-        }
-    };
+    private static final AccessoryNest DEFAULT_NEST = new AccessoryNest() {};
 
 }

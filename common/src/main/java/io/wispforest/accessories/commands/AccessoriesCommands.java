@@ -12,8 +12,7 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.client.rendering.CustomDataRenderer;
+import io.wispforest.accessories.api.client.rendering.RenderingFunction;
 import io.wispforest.accessories.api.components.*;
 import io.wispforest.accessories.data.CustomRendererLoader;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -150,8 +149,8 @@ public class AccessoriesCommands extends CommandBuilderHelper {
                 (ctx, bl) -> {
                     var player = ctx.getSource().getPlayerOrException();
 
-                    player.getMainHandItem().update(AccessoriesDataComponents.STACK_SIZE,
-                            AccessoryStackSizeComponent.DEFAULT,
+                    player.getMainHandItem().update(AccessoriesDataComponents.STACK_SETTINGS,
+                            AccessoryStackSettings.DEFAULT,
                             component -> component.useStackSize(bl));
 
                     return 1;
@@ -164,8 +163,8 @@ public class AccessoriesCommands extends CommandBuilderHelper {
                 (ctx, size) -> {
                     var player = ctx.getSource().getPlayerOrException();
 
-                    player.getMainHandItem().update(AccessoriesDataComponents.STACK_SIZE,
-                            AccessoryStackSizeComponent.DEFAULT,
+                    player.getMainHandItem().update(AccessoriesDataComponents.STACK_SETTINGS,
+                            AccessoryStackSettings.DEFAULT,
                             component -> component.sizeOverride(size));
 
                     return 1;
@@ -398,8 +397,8 @@ public class AccessoriesCommands extends CommandBuilderHelper {
 
         itemStack.set(
                 AccessoriesDataComponents.CUSTOM_RENDERER,
-                new AccessoryCustomRendererComponent(List.of(
-                        new CustomDataRenderer(rendererId, Map.of(), List.of(), null)))
+                new AccessoryCustomRendererComponent(
+                        List.of(new RenderingFunction.DeferredRenderer(rendererId, Map.of(), RenderingFunction.ArmTarget.BOTH)), null, false)
         );
 
         itemStack.set(DataComponents.ITEM_MODEL, modelId);

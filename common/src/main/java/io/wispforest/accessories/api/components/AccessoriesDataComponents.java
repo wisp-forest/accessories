@@ -36,8 +36,8 @@ public class AccessoriesDataComponents {
             builder -> builder.endec(AccessoryItemAttributeModifiers.ENDEC, BASE_CTX)
     );
 
-    public static final DataComponentType<AccessoryStackSizeComponent> STACK_SIZE = register(Accessories.of("stack_size"),
-            builder -> builder.endec(AccessoryStackSizeComponent.ENDEC, BASE_CTX)
+    public static final DataComponentType<AccessoryStackSettings> STACK_SETTINGS = register(Accessories.of("stack_settings"),
+            builder -> builder.endec(AccessoryStackSettings.ENDEC, BASE_CTX)
     );
 
     public static final DataComponentType<AccessoryCustomRendererComponent> CUSTOM_RENDERER = register(Accessories.of("custom_renderer"),

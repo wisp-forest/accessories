@@ -3,6 +3,7 @@ package io.wispforest.accessories.api;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
+import io.wispforest.accessories.api.components.AccessoryStackSettings;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
@@ -10,6 +11,7 @@ import io.wispforest.accessories.impl.AccessoryAttributeLogic;
 import io.wispforest.accessories.mixin.LivingEntityAccessor;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
@@ -106,7 +108,8 @@ public interface Accessory {
      * @param source    The specific {@link DamageSource} that lead to the drop rule evaluation
      */
     default DropRule getDropRule(ItemStack stack, SlotReference reference, DamageSource source){
-        return DropRule.DEFAULT;
+        return stack.getOrDefault(AccessoriesDataComponents.STACK_SETTINGS, AccessoryStackSettings.DEFAULT)
+                .dropRule();
     }
 
     //--
@@ -171,7 +174,11 @@ public interface Accessory {
      * @return Return the max stack amount allowed when equipping a given stack into an accessories inventory
      */
     default int maxStackSize(ItemStack stack){
-        return stack.getMaxStackSize();
+        var data = stack.getOrDefault(AccessoriesDataComponents.STACK_SETTINGS, AccessoryStackSettings.DEFAULT);
+
+        if(data.useStackSize()) return stack.getMaxStackSize();
+
+        return Math.min(Math.max(data.sizeOverride(), 1), stack.getMaxStackSize());
     }
 
     //--
@@ -187,6 +194,14 @@ public interface Accessory {
      */
     default void getAttributesTooltip(ItemStack stack, SlotType type, List<Component> tooltips, Item.TooltipContext tooltipContext, TooltipFlag tooltipType){
         getAttributesTooltip(stack, type, tooltips);
+
+        var component = stack.getOrDefault(AccessoriesDataComponents.STACK_SETTINGS, AccessoryStackSettings.DEFAULT)
+                .slotBasedTooltips()
+                .get(type.name());
+
+        if (component != null && !component.equals(CommonComponents.EMPTY)) {
+            tooltips.add(component);
+        }
     }
 
     /**
@@ -206,6 +221,13 @@ public interface Accessory {
      */
     default void getExtraTooltip(ItemStack stack, List<Component> tooltips, Item.TooltipContext tooltipContext, TooltipFlag tooltipType){
         getExtraTooltip(stack, tooltips);
+
+        var component = stack.getOrDefault(AccessoriesDataComponents.STACK_SETTINGS, AccessoryStackSettings.DEFAULT)
+                .extraTooltip();
+
+        if (!component.equals(CommonComponents.EMPTY)) {
+            tooltips.add(component);
+        }
     }
 
     //--
