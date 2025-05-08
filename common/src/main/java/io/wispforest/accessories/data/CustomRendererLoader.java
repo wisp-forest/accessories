@@ -363,6 +363,4 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
     private ResourceManager getClientManger() {
         return Minecraft.getInstance().getResourceManager();
     }
-
-    public static void init() {}
 }

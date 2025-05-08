@@ -4,6 +4,9 @@ import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
 import io.wispforest.accessories.criteria.AccessoryChangedCriterion;
 import io.wispforest.accessories.data.CustomRendererLoader;
+import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.data.SlotGroupLoader;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.VanillaItemPredicates;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.menu.ArmorSlotTypes;
@@ -26,6 +29,8 @@ import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
+
+import java.util.List;
 
 public class Accessories {
 
@@ -121,7 +126,7 @@ public class Accessories {
     public static AccessoryChangedCriterion ACCESSORY_UNEQUIPPED;
 
     public static void init() {
-        CustomRendererLoader.init();
+        var temp = List.of(SlotTypeLoader.INSTANCE, SlotGroupLoader.INSTANCE, EntitySlotLoader.INSTANCE, CustomRendererLoader.PRIMARY);
 
         AllowEntityModificationCallback.EVENT.register((target, player, reference) -> {
             var type = target.getType();
