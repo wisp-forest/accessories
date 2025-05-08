@@ -162,7 +162,7 @@ public class AccessoriesClient {
                 if (item instanceof BannerItem || defaultStack.has(DataComponents.GLIDER)) {
                     if (!AccessoriesRendererRegistry.hasRenderer(item)) {
                         // TODO: Replace with better method of targeting only specific slots to disable default rendering
-                        AccessoriesRendererRegistry.registerNoRenderer(item);
+                        AccessoriesRendererRegistry.bindItemToEmptyRenderer(item);
                     }
                 }
             });

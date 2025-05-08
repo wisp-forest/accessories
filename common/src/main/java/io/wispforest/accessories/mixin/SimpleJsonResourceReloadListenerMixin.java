@@ -50,7 +50,7 @@ public abstract class SimpleJsonResourceReloadListenerMixin implements Replaceab
     @WrapOperation(method = "scanDirectory(Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/resources/FileToIdConverter;Lcom/mojang/serialization/DynamicOps;Lcom/mojang/serialization/Codec;Ljava/util/Map;)V",
     at = @At(value = "INVOKE", target = "Lnet/minecraft/resources/FileToIdConverter;listMatchingResources(Lnet/minecraft/server/packs/resources/ResourceManager;)Ljava/util/Map;"))
     private static Map<ResourceLocation, Resource> listReplacedResources(FileToIdConverter instance, ResourceManager resourceManager, Operation<Map<ResourceLocation, Resource>> original) {
-        if (instance instanceof ContextedFileToIdConverter ctx && ctx.<Boolean>getData(Accessories.of("allow_replacement_loading"))) {
+        if (instance instanceof ContextedFileToIdConverter ctx && ctx.<Boolean>getDataOrDefault(Accessories.of("allow_replacement_loading"), false)) {
             return JsonUtils.scanDirectoryWithReplace(resourceManager, instance);
         }
 

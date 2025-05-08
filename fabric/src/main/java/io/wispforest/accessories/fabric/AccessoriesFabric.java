@@ -148,8 +148,6 @@ public class AccessoriesFabric implements ModInitializer {
             AccessoriesEventHandler.entityLoad(livingEntity, world);
         });
 
-        ServerLivingEntityEvents.
-
         ExtraEntityTrackingEvents.POST_START_TRACKING.register((trackedEntity, player) -> {
             if(!(trackedEntity instanceof LivingEntity livingEntity)) return;
 

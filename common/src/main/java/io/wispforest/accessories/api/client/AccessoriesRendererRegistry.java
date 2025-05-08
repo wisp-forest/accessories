@@ -55,11 +55,7 @@ public class AccessoriesRendererRegistry {
     }
 
     public static void bindItemToRenderer(Item item, ResourceLocation rendererId, Supplier<AccessoryRenderer> renderer) {
-        var entry = ITEM_TO_RENDERER.putIfAbsent(item, rendererId);
-
-        if (entry != null) {
-            LOGGER.error("Unable to bind Item with the given Register as Item already has binding: [Item: {}, Renderer: {}]", item , rendererId);
-        }
+        bindItemToRenderer(item, rendererId);
 
         registerRenderer(rendererId, renderer);
     }

@@ -123,9 +123,7 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
             LOGGER.error("[SlotTypeLoader]: Error occurred when trying to gather unique slots though code!", e);
         }
 
-        var builders = new HashMap<String, SlotBuilder>();
-
-        builders.putAll(uniqueSlots);
+        var builders = new HashMap<>(uniqueSlots);
 
         for (var resourceEntry : rawData.entrySet()) {
             var location = resourceEntry.getKey();
@@ -167,7 +165,7 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
                 }
             }
 
-            if(ExtraSlotTypeProperties.getProperty(slotBuilder.name, false).strictMode().equals(StrictMode.NONE)) {
+            if(ExtraSlotTypeProperties.getProperty(slotBuilder.name, false).strictMode().equals(StrictMode.NONE) && rawSlotData.validators() != null) {
                 for (var validator : rawSlotData.validators()) {
                     slotBuilder.validator(validator);
                 }
@@ -209,7 +207,7 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
                 MinecraftEndecs.IDENTIFIER.optionalFieldOf("icon", RawSlotData::icon, () -> null),
                 Endec.INT.optionalFieldOf("order", RawSlotData::order, () -> null),
                 Endec.INT.optionalFieldOf("amount", RawSlotData::amount, () -> null),
-                EndecUtils.forEnum(OperationType.class).optionalFieldOf("amount", RawSlotData::operationType, () -> null),
+                EndecUtils.forEnum(OperationType.class).optionalFieldOf("operation", RawSlotData::operationType, () -> null),
                 MinecraftEndecs.IDENTIFIER.setOf().optionalFieldOf("validators", RawSlotData::validators, () -> null),
                 EndecUtils.forEnum(DropRule.class).optionalFieldOf("dropRule", RawSlotData::dropRule, () -> null),
                 RawSlotData::new

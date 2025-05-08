@@ -67,6 +67,7 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
         this.endec = endec;
         this.context = context;
         this.requiresRegistries = requiresRegistries;
+        this.dependencies = value;
 
         setupCodec();
 
@@ -75,8 +76,6 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
         if (packType.equals(PackType.SERVER_DATA) && this instanceof SyncedDataLoader<?> syncedDataLoader) {
             SyncedDataLoaderManager.registerLoader(syncedDataLoader);
         }
-
-        this.dependencies = value;
     }
 
     public ResourceLocation getLoaderId() {

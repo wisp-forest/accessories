@@ -24,8 +24,8 @@ public class TestccessoriesClientFabric implements ClientModInitializer {
         PointedDripstoneAccessory.clientInit();
         TntAccessory.clientInit();
 
-        AccessoriesRendererRegistry.registerNoRenderer(Items.BAMBOO);
-        AccessoriesRendererRegistry.registerNoRenderer(Items.STICK);
+        AccessoriesRendererRegistry.bindItemToEmptyRenderer(Items.BAMBOO);
+        AccessoriesRendererRegistry.bindItemToEmptyRenderer(Items.STICK);
 
         MenuScreens.register(Testccessories.TEST_MENU_TYPE, TestScreen::new);
 
@@ -40,9 +40,9 @@ public class TestccessoriesClientFabric implements ClientModInitializer {
             );
         });
 
-        BuiltInRegistries.ITEM.forEach(AccessoriesRendererRegistry::registerArmorRendering);
+        BuiltInRegistries.ITEM.forEach(AccessoriesRendererRegistry::bindItemToArmorRenderer);
 
-        RegistryEntryAddedCallback.event(BuiltInRegistries.ITEM).register((i, location, item) -> AccessoriesRendererRegistry.registerArmorRendering(item));
+        RegistryEntryAddedCallback.event(BuiltInRegistries.ITEM).register((i, location, item) -> AccessoriesRendererRegistry.bindItemToArmorRenderer(item));
 
         AccessoriesNetworking.CHANNEL.registerClientbound(TestScreenPacket.class, TestScreenPacket.ENDEC, AccessoriesNetworking.clientHandler(TestScreenPacket::handlePacket));
     }

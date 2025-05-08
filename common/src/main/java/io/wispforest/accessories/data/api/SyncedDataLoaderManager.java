@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class SyncedDataLoaderManager {
 
@@ -40,7 +41,10 @@ public class SyncedDataLoaderManager {
         channel.registerClientboundDeferred(SyncAllLoaderDataPacket.class, SyncAllLoaderDataPacket.ENDEC);
 
         hookRegistration.accept(player -> {
-            var endecDataLoaders = ALL_SYNCED_LOADERS.values().stream().map(syncedDataLoader -> (EndecDataLoader<?>) syncedDataLoader).toList();
+            var endecDataLoaders = ALL_SYNCED_LOADERS.values()
+                    .stream()
+                    .map(syncedDataLoader -> (EndecDataLoader<?>) syncedDataLoader)
+                    .collect(Collectors.toList());
 
             Set<ResourceLocation> resolvedIds = new HashSet<>();
 
@@ -121,9 +125,11 @@ public class SyncedDataLoaderManager {
         private static void handle(SyncLoaderDataPacket packet, ClientAccess access) {
             var exception = getLoader(packet.id()).onReceivedDataUnsafe(packet.data());
 
-            LOGGER.error("An error has occured when attempting to send sync data to the given SyncedDataLoader: {}", packet.id(), exception);
+            if (exception != null) {
+                LOGGER.error("An error has occured when attempting to send sync data to the given SyncedDataLoader: {}", packet.id(), exception);
 
-            throw new RuntimeException(exception);
+                throw new RuntimeException(exception);
+            }
         }
     }
 }
