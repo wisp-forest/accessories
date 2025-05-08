@@ -4,9 +4,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
-import io.wispforest.accessories.api.client.AccessoryRenderer;
-import io.wispforest.accessories.api.client.SimpleAccessoryRenderer;
+import io.wispforest.accessories.api.client.renderers.AccessoryRenderer;
+import io.wispforest.accessories.api.client.renderers.SimpleAccessoryRenderer;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.testccessories.fabric.Testccessories;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -23,7 +24,7 @@ public class TntAccessory implements Accessory {
 
     @Environment(EnvType.CLIENT)
     public static void clientInit(){
-        AccessoriesRendererRegistry.registerRenderer(Items.TNT, Renderer::new);
+        AccessoriesRendererRegistry.bindItemToRenderer(Items.TNT, Testccessories.of("tnt_head"), Renderer::new);
     }
 
     public static void init(){

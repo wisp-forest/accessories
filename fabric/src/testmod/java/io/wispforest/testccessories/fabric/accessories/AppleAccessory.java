@@ -5,10 +5,11 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
-import io.wispforest.accessories.api.client.AccessoryRenderer;
-import io.wispforest.accessories.api.client.Side;
-import io.wispforest.accessories.api.client.SimpleAccessoryRenderer;
+import io.wispforest.accessories.api.client.renderers.AccessoryRenderer;
+import io.wispforest.accessories.api.client.rendering.Side;
+import io.wispforest.accessories.api.client.renderers.SimpleAccessoryRenderer;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.testccessories.fabric.Testccessories;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -30,7 +31,7 @@ public class AppleAccessory implements Accessory {
 
     @Environment(EnvType.CLIENT)
     public static void clientInit(){
-        AccessoriesRendererRegistry.registerRenderer(Items.APPLE, Renderer::new);
+        AccessoriesRendererRegistry.bindItemToRenderer(Items.APPLE, Testccessories.of("apple_renderer"), Renderer::new);
     }
 
     public static void init(){

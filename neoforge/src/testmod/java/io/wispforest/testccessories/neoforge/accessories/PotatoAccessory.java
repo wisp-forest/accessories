@@ -4,9 +4,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
-import io.wispforest.accessories.api.client.AccessoryRenderer;
-import io.wispforest.accessories.api.client.SimpleAccessoryRenderer;
+import io.wispforest.accessories.api.client.renderers.AccessoryRenderer;
+import io.wispforest.accessories.api.client.renderers.SimpleAccessoryRenderer;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.testccessories.neoforge.Testccessories;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
@@ -20,7 +21,7 @@ public class PotatoAccessory implements Accessory {
 
     @OnlyIn(Dist.CLIENT)
     public static void clientInit(){
-        AccessoriesRendererRegistry.registerRenderer(Items.POTATO, Renderer::new);
+        AccessoriesRendererRegistry.bindItemToRenderer(Items.POTATO, Testccessories.of("potato"), Renderer::new);
     }
 
     public static void init(){

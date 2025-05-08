@@ -6,8 +6,8 @@ import io.wispforest.accessories.api.Accessory;
 import io.wispforest.accessories.api.AccessoryRegistry;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
-import io.wispforest.accessories.api.client.AccessoryRenderer;
-import io.wispforest.accessories.api.client.SimpleAccessoryRenderer;
+import io.wispforest.accessories.api.client.renderers.AccessoryRenderer;
+import io.wispforest.accessories.api.client.renderers.SimpleAccessoryRenderer;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.testccessories.neoforge.Testccessories;
 import net.minecraft.client.Minecraft;
@@ -33,7 +33,7 @@ public class PointedDripstoneAccessory implements Accessory {
 
     @OnlyIn(Dist.CLIENT)
     public static void clientInit() {
-        AccessoriesRendererRegistry.registerRenderer(Items.POINTED_DRIPSTONE, Renderer::new);
+        AccessoriesRendererRegistry.bindItemToRenderer(Items.POINTED_DRIPSTONE, Testccessories.of("dripped_gloves"), Renderer::new);
     }
 
     public static void init() {
