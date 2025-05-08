@@ -1,8 +1,9 @@
-package io.wispforest.accessories.api.client;
+package io.wispforest.accessories.api.client.renderers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.client.rendering.ModelTransformUtils;
+import io.wispforest.accessories.api.client.rendering.Side;
+import io.wispforest.accessories.api.client.rendering.ModelTransformOps;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import net.minecraft.client.Minecraft;
@@ -12,7 +13,6 @@ import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.HumanoidArm;
@@ -89,7 +89,7 @@ public interface AccessoryRenderer {
 
     @ApiStatus.NonExtendable
     default boolean isEmpty() {
-        return this instanceof EmptyRenderer;
+        return this instanceof BuiltinAccessoryRenderers.EmptyRenderer;
     }
 
     /**
@@ -180,7 +180,7 @@ public interface AccessoryRenderer {
      * @param side      The side of the ModelPart to transform to
      */
     static void transformToFace(PoseStack poseStack, ModelPart part, Side side) {
-        ModelTransformUtils.transformToFace(poseStack, part, side);
+        ModelTransformOps.transformToFace(poseStack, part, side);
     }
 
     /**
@@ -190,7 +190,7 @@ public interface AccessoryRenderer {
      * @param part      The ModelPart to transform to
      */
     static void transformToModelPart(PoseStack poseStack, ModelPart part) {
-        ModelTransformUtils.transformToModelPart(poseStack, part, 0, 0, 0);
+        ModelTransformOps.transformToModelPart(poseStack, part, 0, 0, 0);
     }
 
     /**
@@ -215,6 +215,6 @@ public interface AccessoryRenderer {
      *                  If null, will be ignored
      */
     static void transformToModelPart(PoseStack poseStack, ModelPart part, @Nullable Number xPercent, @Nullable Number yPercent, @Nullable Number zPercent) {
-        ModelTransformUtils.transformToModelPart(poseStack, part, xPercent, yPercent, zPercent);
+        ModelTransformOps.transformToModelPart(poseStack, part, xPercent, yPercent, zPercent);
     }
 }

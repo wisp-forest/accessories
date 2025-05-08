@@ -2,17 +2,22 @@ package io.wispforest.accessories.api.client.rendering;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Supplier;
+import com.google.gson.JsonElement;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.format.edm.EdmSerializer;
+import io.wispforest.endec.format.gson.GsonEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.CodecUtils;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
@@ -30,13 +35,16 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import io.wispforest.accessories.api.client.rendering.RenderingFunction.*;
 
+@Environment(EnvType.CLIENT)
 @ApiStatus.Experimental
-public sealed interface RenderingFunction permits CustomDataRenderer, RenderingFunction.Block, RenderingFunction.Compound, RenderingFunction.Conditional, RenderingFunction.Entity, RenderingFunction.Item, RenderingFunction.Model, RenderingFunction.Particle, RenderingFunction.Transformation {
+public sealed interface RenderingFunction permits DeferredRenderer, Block, Compound, Conditional, RawRenderer, Entity, Item, Model, Particle, Transformations {
 
-    static Transformation ofTransformation(List<io.wispforest.accessories.api.client.Transformation> transformations, RenderingFunction innerRendering) {
-        return new Transformation(transformations, innerRendering);
+    static Transformations ofTransformation(List<io.wispforest.accessories.api.client.rendering.Transformation> transformations, List<RenderingFunction> renderingFunctions, ArmTarget armTarget) {
+        return new Transformations(transformations, new Compound(renderingFunctions, armTarget));
     }
 
     static Model ofModel(ResourceLocation id, String variant) {
@@ -98,15 +106,16 @@ public sealed interface RenderingFunction permits CustomDataRenderer, RenderingF
 
     Endec<RenderingFunction> ENDEC = Endec.dispatchedStruct(
             key -> switch (key) {
-                case "transformation" -> RenderingFunction.Transformation.ENDEC;
-                case "model" -> RenderingFunction.Model.ENDEC;
-                case "block" -> RenderingFunction.Block.ENDEC;
-                case "item" -> RenderingFunction.Item.ENDEC;
-                case "entity" -> RenderingFunction.Entity.ENDEC;
-                case "particle" -> RenderingFunction.Particle.ENDEC;
-                case "compound" -> RenderingFunction.Compound.ENDEC;
-                case "renderer" -> CustomDataRenderer.ENDEC;
-                case "conditional" -> RenderingFunction.Conditional.ENDEC;
+                case "transformation" -> Transformations.ENDEC;
+                case "model" -> Model.ENDEC;
+                case "block" -> Block.ENDEC;
+                case "item" -> Item.ENDEC;
+                case "entity" -> Entity.ENDEC;
+                case "particle" -> Particle.ENDEC;
+                case "compound" -> Compound.ENDEC;
+                case "renderer" -> DeferredRenderer.ENDEC;
+                case "conditional" -> Conditional.ENDEC;
+                case "data" -> RawRenderer.ENDEC;
                 default -> throw new IllegalStateException("A invalid rendering function was created meaning such is unable to be decoded!");
             },
             RenderingFunction::key,
@@ -118,11 +127,11 @@ public sealed interface RenderingFunction permits CustomDataRenderer, RenderingF
         return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, this.getClass().getSimpleName());
     }
 
-    record Transformation(List<io.wispforest.accessories.api.client.Transformation> transformations, RenderingFunction renderingFunction) implements RenderingFunction {
-        public static final StructEndec<Transformation> ENDEC = StructEndecBuilder.of(
-                io.wispforest.accessories.api.client.Transformation.ENDEC.listOf().fieldOf("transformations", Transformation::transformations),
-                RenderingFunction.ENDEC.fieldOf("rendering_function", Transformation::renderingFunction),
-                Transformation::new
+    record Transformations(List<io.wispforest.accessories.api.client.rendering.Transformation> transformations, Compound renderingFunction) implements RenderingFunction {
+        public static final StructEndec<Transformations> ENDEC = StructEndecBuilder.of(
+                io.wispforest.accessories.api.client.rendering.Transformation.ENDEC.listOf().fieldOf("transformations", Transformations::transformations),
+                Compound.ENDEC.flatFieldOf(Transformations::renderingFunction),
+                Transformations::new
         );
     }
 
@@ -230,10 +239,116 @@ public sealed interface RenderingFunction permits CustomDataRenderer, RenderingF
         );
     }
 
-    record Conditional(List<RenderingFunctionPredicate> predicates, RenderingFunction renderingFunction) implements RenderingFunction {
+    final class RawRenderer implements RenderingFunction {
+        public static final StructEndec<RawRenderer> ENDEC = StructEndecBuilder.of(
+                GsonEndec.INSTANCE.mapOf().optionalFieldOf("references", RawRenderer::references, HashMap::new),
+                GsonEndec.INSTANCE.listOf().fieldOf("rendering_functions", RawRenderer::renderingFunctions),
+                Endec.forEnum(ArmTarget.class).optionalFieldOf("first_person_arm_target", RawRenderer::firstPersonArmTarget, () -> ArmTarget.NONE),
+                RawRenderer::new
+        );
+
+        private final Map<String, JsonElement> references;
+        private final List<JsonElement> renderingFunctions;
+        private final ArmTarget firstPersonArmTarget;
+
+        private final UUID uuid;
+
+        public RawRenderer(Map<String, JsonElement> references, List<JsonElement> renderingFunctions, ArmTarget firstPersonArmTarget) {
+            this.references = references;
+            this.renderingFunctions = renderingFunctions;
+            this.firstPersonArmTarget = firstPersonArmTarget;
+
+            this.uuid = UUID.nameUUIDFromBytes(this.toString().getBytes(StandardCharsets.UTF_8));
+        }
+
+        public Map<String, JsonElement> references() { return Collections.unmodifiableMap(references); }
+        public List<JsonElement> renderingFunctions() { return Collections.unmodifiableList(renderingFunctions); }
+        public ArmTarget firstPersonArmTarget() { return firstPersonArmTarget; }
+        public UUID getUUID() { return uuid; }
+
+        @Override public String key() { return "data"; }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (RawRenderer) obj;
+            return Objects.equals(this.references, that.references) &&
+                    Objects.equals(this.renderingFunctions, that.renderingFunctions) &&
+                    Objects.equals(this.firstPersonArmTarget, that.firstPersonArmTarget);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(references, renderingFunctions, firstPersonArmTarget);
+        }
+
+        @Override
+        public String toString() {
+            return "RawRenderer[" + "references=" + references + ", " + "renderingFunctions=" + renderingFunctions + ", " + "firstPersonArmTarget=" + firstPersonArmTarget + ']';
+        }
+    }
+
+    // TODO: FIRST CHANGE FROM JSON TO EDM WHEN 1.21.4 and CACHE RESULTS OF CUSTOM renderingFunctions SOME HOW?
+    @Environment(EnvType.CLIENT)
+    @ApiStatus.Experimental
+    final class DeferredRenderer implements RenderingFunction {
+        public static final StructEndec<DeferredRenderer> ENDEC = StructEndecBuilder.of(
+                MinecraftEndecs.IDENTIFIER.optionalFieldOf("renderer_id", DeferredRenderer::rendererId, () -> AccessoriesRendererRegistry.NO_RENDERER_ID),
+                GsonEndec.INSTANCE.mapOf().optionalFieldOf("references", DeferredRenderer::references, HashMap::new),
+                Endec.forEnum(ArmTarget.class).optionalFieldOf("first_person_arm_target", DeferredRenderer::firstPersonArmTarget, () -> ArmTarget.BOTH),
+                DeferredRenderer::new
+        );
+
+        private final ResourceLocation rendererId;
+        private final Map<String, JsonElement> references;
+        private final ArmTarget firstPersonArmTarget;
+
+        private final UUID uuid;
+
+        public DeferredRenderer(ResourceLocation rendererId,
+                                Map<String, JsonElement> references,
+                                ArmTarget firstPersonArmTarget) {
+            this.rendererId = rendererId;
+            this.references = references;
+            this.firstPersonArmTarget = firstPersonArmTarget;
+
+            this.uuid = UUID.nameUUIDFromBytes(this.toString().getBytes(StandardCharsets.UTF_8));
+        }
+
+        public Map<String, JsonElement> references() { return Collections.unmodifiableMap(references); }
+        public ResourceLocation rendererId() { return rendererId; }
+        public ArmTarget firstPersonArmTarget() { return firstPersonArmTarget; }
+        public UUID getUUID() { return uuid; }
+
+        @Override public String key() { return "renderer"; }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (DeferredRenderer) obj;
+            return Objects.equals(this.rendererId, that.rendererId) &&
+                    Objects.equals(this.references, that.references) &&
+                    Objects.equals(this.firstPersonArmTarget, that.firstPersonArmTarget);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(rendererId, references, firstPersonArmTarget);
+        }
+
+        @Override
+        public String toString() {
+            return "DeferredRenderer[" + "rendererId=" + rendererId + ", " + "references=" + references + ", " + "firstPersonArmTarget=" + firstPersonArmTarget + ']';
+        }
+
+    }
+
+    record Conditional(List<RenderingPredicate> predicates, Compound renderingFunction) implements RenderingFunction {
         public static final StructEndec<Conditional> ENDEC = StructEndecBuilder.of(
-                RenderingFunctionPredicate.ENDEC.listOf().fieldOf("predicates", Conditional::predicates),
-                RenderingFunction.ENDEC.fieldOf("rendering_function", Conditional::renderingFunction),
+                RenderingPredicate.ENDEC.listOf().fieldOf("predicates", Conditional::predicates),
+                Compound.ENDEC.flatFieldOf(Conditional::renderingFunction),
                 Conditional::new
         );
     }

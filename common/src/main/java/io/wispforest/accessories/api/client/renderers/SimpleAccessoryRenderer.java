@@ -1,4 +1,4 @@
-package io.wispforest.accessories.api.client;
+package io.wispforest.accessories.api.client.renderers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.slot.SlotReference;

@@ -1,44 +1,38 @@
-package io.wispforest.accessories.api.client;
+package io.wispforest.accessories.api.client.rendering;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.datafixers.util.Pair;
-import com.mojang.math.Axis;
-import io.wispforest.accessories.api.client.rendering.ModelTransformUtils;
-import io.wispforest.accessories.mixin.client.ModelPartAccessor;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
-import net.minecraft.util.Mth;
-import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.ApiStatus;
 import org.joml.Quaternionf;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Environment(EnvType.CLIENT)
+@ApiStatus.Experimental
 public class TransformOps {
 
-    public static void transformStack(List<Transformation> transformations, PoseStack poseStack, HumanoidModel<? extends LivingEntityRenderState> model, Runnable renderCall) {
+    public static void transformStack(List<Transformation> transformations, PoseStack poseStack, EntityModel<? extends LivingEntityRenderState> model, Runnable renderCall) {
         poseStack.pushPose();
 
         transformStack(transformations, poseStack, model);
 
-        renderCall.run();
-
-        poseStack.popPose();
+        try {
+            renderCall.run();
+        } finally {
+            poseStack.popPose();
+        }
     }
 
-    public static void transformStack(List<Transformation> transformations, PoseStack poseStack, HumanoidModel<? extends LivingEntityRenderState> model) {
+    public static void transformStack(List<Transformation> transformations, PoseStack poseStack, EntityModel<? extends LivingEntityRenderState> model) {
         for (var transformation : transformations) {
             transform(transformation, poseStack, model);
         }
     }
 
-    private static void transform(Transformation value, PoseStack poseStack, HumanoidModel<? extends LivingEntityRenderState> model) {
+    private static void transform(Transformation value, PoseStack poseStack, EntityModel<? extends LivingEntityRenderState> model) {
         switch (value) {
             case Transformation.Translation translation -> {
                 var translationVector = translation.translation();
@@ -55,17 +49,17 @@ public class TransformOps {
             case Transformation.TransformTo transformTo -> {
                 var modelTarget = transformTo.target();
 
-                var part = ModelTransformUtils.getPart(model, modelTarget.modelPart());
+                var part = ModelTransformOps.getPart(model, modelTarget.modelPart());
 
                 if (part != null) {
                     if (modelTarget.rawNormal() != null) {
                         var axisTranslations = modelTarget.rawNormal();
 
-                        AccessoryRenderer.transformToModelPart(poseStack, part, axisTranslations.x, axisTranslations.y, axisTranslations.z);
+                        ModelTransformOps.transformToModelPart(poseStack, part, axisTranslations.x, axisTranslations.y, axisTranslations.z);
                     } else if (modelTarget.side() != null) {
-                        AccessoryRenderer.transformToFace(poseStack, part, modelTarget.side());
+                        ModelTransformOps.transformToFace(poseStack, part, modelTarget.side());
                     } else {
-                        AccessoryRenderer.transformToModelPart(poseStack, part);
+                        ModelTransformOps.transformToModelPart(poseStack, part);
                     }
                 }
             }

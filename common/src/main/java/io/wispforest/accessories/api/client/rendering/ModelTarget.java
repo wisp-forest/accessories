@@ -1,5 +1,6 @@
-package io.wispforest.accessories.api.client;
+package io.wispforest.accessories.api.client.rendering;
 
+import io.wispforest.accessories.api.client.renderers.DefaultAccessoryRenderer;
 import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;

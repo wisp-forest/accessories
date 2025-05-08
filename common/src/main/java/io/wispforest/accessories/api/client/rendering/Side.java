@@ -1,4 +1,4 @@
-package io.wispforest.accessories.api.client;
+package io.wispforest.accessories.api.client.rendering;
 
 import io.wispforest.endec.Endec;
 import net.minecraft.core.Direction;

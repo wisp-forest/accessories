@@ -1,4 +1,4 @@
-package io.wispforest.accessories.api.client;
+package io.wispforest.accessories.api.client.rendering;
 
 import com.google.common.base.CaseFormat;
 import io.wispforest.accessories.utils.EndecUtils;
@@ -11,10 +11,7 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.util.List;
-import java.util.regex.Pattern;
-
-import static io.wispforest.accessories.api.client.Transformation.*;
+import static io.wispforest.accessories.api.client.rendering.Transformation.*;
 
 public sealed interface Transformation permits Translation, RawRotation, AxisRotation, Scale, TransformTo, Matrix {
 

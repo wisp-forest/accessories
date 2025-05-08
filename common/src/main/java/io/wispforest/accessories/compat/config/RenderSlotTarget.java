@@ -1,6 +1,6 @@
 package io.wispforest.accessories.compat.config;
 
-import io.wispforest.accessories.api.client.TargetType;
+import io.wispforest.accessories.api.client.rendering.TargetType;
 
 public class RenderSlotTarget {
     public String slotType = "";

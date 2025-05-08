@@ -2,7 +2,7 @@ package io.wispforest.accessories.client;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
-import io.wispforest.accessories.api.client.AccessoryRenderer;
+import io.wispforest.accessories.api.client.renderers.AccessoryRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;

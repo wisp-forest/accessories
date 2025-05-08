@@ -1,0 +1,372 @@
+package io.wispforest.accessories.api.client.rendering;
+
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.datafixers.util.Either;
+import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.client.ClientDelayedCache;
+import io.wispforest.accessories.data.CustomRendererLoader;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
+import org.slf4j.Logger;
+
+import java.lang.ref.SoftReference;
+import java.util.*;
+
+@Environment(EnvType.CLIENT)
+@ApiStatus.Experimental
+public class RenderingFunctionOps {
+
+    private static final ClientDelayedCache<ParticleTimeKey> PARTICLE_UPDATE_CACHE = new ClientDelayedCache<>();
+
+    public static void handleFunctions(
+            ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<? extends LivingEntityRenderState> model, LivingEntityRenderState renderState, MultiBufferSource multiBufferSource, int light, float partialTicks, @Nullable HumanoidArm arm, int packedLight, int packedOverlay, int color, List<RenderingFunction> functions) {
+        handleFunctions(ItemStack.hashItemAndComponents(stack), stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, functions);
+    }
+
+    private static final Map<EntityType, EntityData> ENTITY_CACHE = new HashMap<>();
+
+    public static void handleFunctions(int uniqueKey, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<? extends LivingEntityRenderState> model, LivingEntityRenderState renderState, MultiBufferSource multiBufferSource, int light, float partialTicks, @Nullable HumanoidArm arm, int packedLight, int packedOverlay, int color, List<RenderingFunction> functions) {
+        for (var function : functions) {
+            handleFunction(uniqueKey, stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, function);
+        }
+    }
+
+    public static void handleFunction(int uniqueKey, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<? extends LivingEntityRenderState> model, LivingEntityRenderState renderState, MultiBufferSource multiBufferSource, int light, float partialTicks, @Nullable HumanoidArm arm, int packedLight, int packedOverlay, int color, RenderingFunction renderingFunction) {
+        var client = Minecraft.getInstance();
+        var level = client.level;
+        var targetEntity = reference.entity();
+
+        switch (renderingFunction) {
+            case RenderingFunction.Transformations transformation -> {
+                TransformOps.transformStack(transformation.transformations(), matrices, model, () -> handleFunction(uniqueKey, stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, transformation.renderingFunction()));
+            }
+            case RenderingFunction.Block blockData -> {
+                var state = blockData.state();
+                var blockEntity = (blockData.type() != null) ? BlockEntity.loadStatic(BlockPos.ZERO, blockData.state(), blockData.data(), level.registryAccess()) : null;
+
+                matrices.pushPose();
+
+                matrices.translate(-0.5, 0, -0.5);
+
+                renderBlock(client, state, blockEntity, 0, matrices, multiBufferSource, packedLight, packedOverlay, color);
+
+                matrices.popPose();
+            }
+            case RenderingFunction.Entity entityData -> {
+                try {
+                    var currentEntityData = ENTITY_CACHE.computeIfAbsent(entityData.entityType(), entityType -> {
+                        var entity = entityData.entityType().create(level, EntitySpawnReason.EVENT);
+
+                        if (entity != null) {
+                            var defaultData = entity.saveWithoutId(new CompoundTag());
+
+                            return new EntityData(new SoftReference<>(entity), defaultData, true);
+                        }
+
+                        return new EntityData(null, new CompoundTag(), false);
+                    });
+
+                    if (!currentEntityData.wasSpawnable()) return;
+
+                    if (!currentEntityData.canBeGotten()) {
+                        currentEntityData.createNewReference(entityData.entityType(), level);
+                    }
+
+                    if (!currentEntityData.wasSpawnable()) return;
+
+                    Entity entity = currentEntityData.reference().get();
+
+                    if (entity == null) return;
+
+                    boolean customData = false;
+
+                    if (!entityData.data().isEmpty()) {
+                        customData = true;
+
+                        entity.load(entityData.data());
+                    }
+
+                    if (entityData.allowTicking() || entity instanceof Display) entity.tick();
+
+                    client.getEntityRenderDispatcher()
+                            .render(entity, 0, 0, 0, partialTicks, matrices, multiBufferSource, packedLight);
+
+                    if (customData) {
+                        currentEntityData.resetEntity();
+                    }
+                } catch (Exception ignored) {}
+            }
+            case RenderingFunction.Item itemData -> {
+                ItemStack renderStack = itemData.stack();
+
+                client.getItemRenderer().renderStatic(
+                        targetEntity,
+                        renderStack,
+                        ItemDisplayContext.GUI,
+                        false,
+                        matrices,
+                        multiBufferSource,
+                        level,
+                        packedLight,
+                        packedOverlay,
+                        uniqueKey // TODO: CONFIRM THIS IS CORRECT
+                );
+            }
+            case RenderingFunction.Model modelData -> {
+                var foundModel = Minecraft.getInstance().getModelManager().getModel(new ModelResourceLocation(modelData.id(), modelData.variant()));
+
+                // TODO: GET WORKING AGAIN
+//                    client.getItemRenderer().render(
+//                            Items.BEDROCK.getDefaultInstance(),
+//                            ItemDisplayContext.GROUND,
+//                            false,
+//                            matrices,
+//                            multiBufferSource,
+//                            packedLight,
+//                            packedOverlay,
+//                            foundModel
+//                    );
+            }
+            case RenderingFunction.Particle particleData -> {
+                if (!PARTICLE_UPDATE_CACHE.hasAllottedTime(new ParticleTimeKey(targetEntity.getUUID(), uniqueKey, particleData), particleData.delay())) return;
+
+                var pos = new Vector3f(0, 0, 0)
+                        .mulPosition(matrices.last().pose())
+                        .add(Minecraft.getInstance().gameRenderer.getMainCamera().getPosition().toVector3f());
+
+                renderParticle(level, particleData, pos.x(), pos.y(), pos.z());
+            }
+            case RenderingFunction.Compound compoundFunction -> {
+                if (arm != null && !compoundFunction.firstPersonArmTarget().hasArm(arm)) return;
+
+                handleFunctions(uniqueKey, stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, compoundFunction.renderingFunctions());
+            }
+            case RenderingFunction.RawRenderer data -> {
+                var renderFunction = CustomRendererLoader.getOrResolveRawRenderer(data, !CustomRendererLoader.isConstantResolveTarget());
+
+                if(renderFunction == null) return;
+
+                handleFunction(uniqueKey, stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, renderFunction);
+            }
+            case RenderingFunction.DeferredRenderer renderer -> {
+                var renderFunction = CustomRendererLoader.getOrResolveRenderer(renderer, !CustomRendererLoader.isConstantResolveTarget());
+
+                if(renderFunction == null) return;
+
+                renderFunction.ifLeft(accessoryRenderer -> {
+                    try {
+                        if (arm != null){
+                            if (accessoryRenderer.shouldRenderInFirstPerson(arm, stack, reference)){
+                                accessoryRenderer.renderOnFirstPerson(arm, stack, reference, matrices, (EntityModel<LivingEntityRenderState>) model, renderState, multiBufferSource, light, partialTicks);
+                            }
+                        } else {
+                            accessoryRenderer.render(stack, reference, matrices, (EntityModel<LivingEntityRenderState>) model, renderState, multiBufferSource, light, partialTicks);
+                        }
+                    } catch (Exception ignored) {}
+                }).ifRight(function1 -> {
+                    handleFunction(uniqueKey, stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, function1);
+                });
+            }
+            default -> throw new IllegalStateException("Unimplemented RendererFunc: " + renderingFunction.key());
+        }
+
+    }
+
+    private static final Logger LOGGER = LogUtils.getLogger();
+
+    private static void renderParticle(Level level, RenderingFunction.Particle particle, double x, double y, double z) {
+        var random = level.getRandom();
+
+        try {
+            if (particle.count() == 0) {
+                double xSpd = particle.speed() * particle.delta().x();
+                double ySpd = particle.speed() * particle.delta().y();
+                double zSpd = particle.speed() * particle.delta().z();
+
+                level.addParticle(particle.particleData(), particle.overrideLimiter(), particle.alwaysShow(), x, y, z, xSpd, ySpd, zSpd);
+            } else {
+                for (int i = 0; i < particle.count(); i++) {
+                    double g = random.nextGaussian() * particle.delta().x();
+                    double h = random.nextGaussian() * particle.delta().y();
+                    double j = random.nextGaussian() * particle.delta().z();
+
+                    double k = random.nextGaussian() * (double)particle.speed();
+                    double l = random.nextGaussian() * (double)particle.speed();
+                    double m = random.nextGaussian() * (double)particle.speed();
+
+                    level.addParticle(particle.particleData(), particle.overrideLimiter(), particle.alwaysShow(), x + g, y + h, z + j, k, l, m);
+                }
+            }
+        } catch (Throwable var16) {
+            LOGGER.warn("Could not spawn particle effect {}", particle.particleData());
+        }
+    }
+
+    private static void renderBlock(Minecraft client, BlockState state, @Nullable BlockEntity blockEntity, float partialTick, PoseStack matrices, MultiBufferSource multiBufferSource, int packedLight, int packedOverlay, int color) {
+        if (state.getRenderShape() != RenderShape.INVISIBLE) {
+            client.getBlockRenderer().renderSingleBlock(state, matrices, multiBufferSource, packedLight, packedOverlay);
+        }
+
+        if (blockEntity != null) {
+            BlockEntityRenderer<BlockEntity> медведь = client.getBlockEntityRenderDispatcher().getRenderer(blockEntity);
+            if (медведь != null) {
+                медведь.render(blockEntity, partialTick, matrices, multiBufferSource, 15728880, OverlayTexture.NO_OVERLAY);
+            }
+        }
+
+//            if (buffer instanceof MultiBufferSource.BufferSource || buffer instanceof OutlineBufferSource) {
+//                RenderSystem.setShaderLights(new Vector3f(-1.5F, -0.5F, 0.0F), new Vector3f(0.0F, -1.0F, 0.0F));
+//                if (buffer instanceof MultiBufferSource.BufferSource bufferSource) {
+//                    bufferSource.endBatch();
+//                } else if (buffer instanceof OutlineBufferSource outlineBufferSource) {
+//                    outlineBufferSource.endOutlineBatch();
+//                }
+//                Lighting.setupFor3DItems();
+//            }
+    }
+
+    private static final class EntityData {
+        private final CompoundTag defaultData;
+
+        private @Nullable SoftReference<Entity> reference;
+        private boolean wasSpawnable;
+
+        private EntityData(@Nullable SoftReference<Entity> reference, CompoundTag defaultData, boolean wasSpawnable) {
+            this.reference = reference;
+            this.defaultData = defaultData;
+            this.wasSpawnable = wasSpawnable;
+        }
+
+        private boolean canBeGotten() {
+            return reference != null && reference.get() != null;
+        }
+
+        public @Nullable SoftReference<Entity> reference() {
+            return reference;
+        }
+
+        public void resetEntity() {
+            if (this.reference == null) return;
+
+            var entity = this.reference.get();
+
+            if (entity == null) return;
+
+            try {
+                entity.load(defaultData);
+            } catch (Exception ignored) {}
+        }
+
+        public void createNewReference(EntityType type, Level level) {
+            var entity = type.create(level, EntitySpawnReason.EVENT);
+
+            if (entity == null) {
+                this.wasSpawnable = false;
+
+                return;
+            }
+
+            this.reference = new SoftReference<>(entity);
+        }
+
+        public CompoundTag defaultData() {
+            return defaultData;
+        }
+
+        public boolean wasSpawnable() {
+            return wasSpawnable;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) return true;
+            if (obj == null || obj.getClass() != this.getClass()) return false;
+            var that = (EntityData) obj;
+            return Objects.equals(this.reference, that.reference) &&
+                    Objects.equals(this.defaultData, that.defaultData) &&
+                    this.wasSpawnable == that.wasSpawnable;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(reference, defaultData, wasSpawnable);
+        }
+
+        @Override
+        public String toString() {
+            return "EntityData[" +
+                    "reference=" + reference + ", " +
+                    "defaultData=" + defaultData + ", " +
+                    "wasSpawnable=" + wasSpawnable + ']';
+        }
+    }
+
+    private record ParticleTimeKey(UUID entityUUID, int uniqueKey, RenderingFunction.Particle particleData) { }
+
+    public static boolean shouldRenderInFirstPerson(ItemStack stack, HumanoidArm arm, SlotReference slotReference, List<RenderingFunction> renderingFunctions) {
+        for (var function : renderingFunctions) {
+            var result = shouldRenderInFirstPerson(stack, arm, slotReference, function);
+
+            if (result != null && result) return true;
+        }
+
+        return false;
+    }
+
+    @Nullable
+    public static Boolean shouldRenderInFirstPerson(ItemStack stack, HumanoidArm arm, SlotReference slotReference, RenderingFunction renderingFunction) {
+        return switch (renderingFunction) {
+            case RenderingFunction.Transformations transformation -> {
+                yield shouldRenderInFirstPerson(stack, arm, slotReference, transformation.renderingFunction());
+            }
+            case RenderingFunction.Compound compoundFunction -> {
+                if (compoundFunction.firstPersonArmTarget().hasArm(arm)) yield true;
+
+                yield shouldRenderInFirstPerson(stack, arm, slotReference, compoundFunction.renderingFunctions());
+            }
+            case RenderingFunction.RawRenderer data -> {
+                if (data.firstPersonArmTarget().hasArm(arm)) yield true;
+
+                var renderFunction = CustomRendererLoader.getOrResolveRawRenderer(data, !CustomRendererLoader.isConstantResolveTarget());
+
+                if(renderFunction == null) yield null;
+
+                yield shouldRenderInFirstPerson(stack, arm, slotReference, renderFunction);
+            }
+            case RenderingFunction.DeferredRenderer renderer -> {
+                if (renderer.firstPersonArmTarget().hasArm(arm)) yield true;
+
+                var possibleRenderer = CustomRendererLoader.getOrResolveRenderer(renderer, !CustomRendererLoader.isConstantResolveTarget());
+
+                if(possibleRenderer == null) yield null;
+
+                yield Either.unwrap(
+                        possibleRenderer.mapBoth(
+                                accessoryRenderer -> accessoryRenderer.shouldRenderInFirstPerson(arm, stack, slotReference),
+                                renderFunction -> shouldRenderInFirstPerson(stack, arm, slotReference, renderFunction))
+                );
+            }
+            default -> null;
+        };
+    }
+}

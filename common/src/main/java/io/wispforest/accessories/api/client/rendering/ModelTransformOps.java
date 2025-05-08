@@ -3,8 +3,9 @@ package io.wispforest.accessories.api.client.rendering;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.math.Axis;
-import io.wispforest.accessories.api.client.Side;
 import io.wispforest.accessories.mixin.client.ModelPartAccessor;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.resources.ResourceLocation;
@@ -16,7 +17,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ModelTransformUtils {
+@Environment(EnvType.CLIENT)
+@ApiStatus.Experimental
+public class ModelTransformOps {
 
     private static final Map<ResourceLocation, ModelPartTransformer> ADDITIONAL_TRANSFORMERS = new LinkedHashMap<>();
 

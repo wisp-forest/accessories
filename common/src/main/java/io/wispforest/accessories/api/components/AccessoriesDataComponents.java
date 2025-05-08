@@ -20,14 +20,6 @@ public class AccessoriesDataComponents {
             builder -> builder.endec(AccessoryNestContainerContents.ENDEC, BASE_CTX)
     );
 
-    public static final DataComponentType<AccessoryRenderOverrideComponent> RENDER_OVERRIDE = register(Accessories.of("render_override"),
-            builder -> builder.endec(AccessoryRenderOverrideComponent.ENDEC, BASE_CTX)
-    );
-
-    public static final DataComponentType<AccessoryRenderTransformations> RENDER_TRANSFORMATIONS = register(Accessories.of("render_transformations"),
-            builder -> builder.endec(AccessoryRenderTransformations.ENDEC, BASE_CTX)
-    );
-
     public static final DataComponentType<AccessorySlotValidationComponent> SLOT_VALIDATION = register(Accessories.of("slot_validation"),
             builder -> builder.endec(AccessorySlotValidationComponent.ENDEC, BASE_CTX)
     );

@@ -1,26 +1,30 @@
 package io.wispforest.accessories.api.client.rendering;
 
 import com.google.common.base.CaseFormat;
-import io.wispforest.accessories.api.client.TransformOps;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.model.Model;
 import net.minecraft.world.entity.LivingEntity;
+import org.jetbrains.annotations.ApiStatus;
 
-public sealed interface RenderingFunctionPredicate permits RenderingFunctionPredicate.ModelTarget {
+@Environment(EnvType.CLIENT)
+@ApiStatus.Experimental
+public sealed interface RenderingPredicate permits RenderingPredicate.ModelTarget {
 
-    Endec<RenderingFunctionPredicate> ENDEC = Endec.dispatchedStruct(
+    Endec<RenderingPredicate> ENDEC = Endec.dispatchedStruct(
             key -> switch (key) {
-                case "model_target" -> RenderingFunctionPredicate.ModelTarget.ENDEC;
+                case "model_target" -> RenderingPredicate.ModelTarget.ENDEC;
                 default -> throw new IllegalStateException("A invalid rendering function was created meaning such is unable to be decoded!");
             },
-            RenderingFunctionPredicate::key,
+            RenderingPredicate::key,
             Endec.STRING,
             "type"
     );
 
-    record ModelTarget(String modelPartName) implements RenderingFunctionPredicate {
+    record ModelTarget(String modelPartName) implements RenderingPredicate {
         public static final StructEndec<ModelTarget> ENDEC = StructEndecBuilder.of(
                 Endec.STRING.fieldOf("model_part", ModelTarget::modelPartName),
                 ModelTarget::new
@@ -28,7 +32,7 @@ public sealed interface RenderingFunctionPredicate permits RenderingFunctionPred
 
         @Override
         public boolean shouldRender(LivingEntity entity, Model model) {
-            return ModelTransformUtils.getPart(model, this.modelPartName()) != null;
+            return ModelTransformOps.getPart(model, this.modelPartName()) != null;
         }
     }
 

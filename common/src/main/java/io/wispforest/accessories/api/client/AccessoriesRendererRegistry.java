@@ -2,23 +2,16 @@ package io.wispforest.accessories.api.client;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoryRegistry;
-import io.wispforest.accessories.api.client.rendering.ClientRenderingUtils;
+import io.wispforest.accessories.api.client.renderers.AccessoryRenderer;
+import io.wispforest.accessories.api.client.renderers.BuiltinAccessoryRenderers;
+import io.wispforest.accessories.api.client.renderers.DefaultAccessoryRenderer;
+import io.wispforest.accessories.api.client.renderers.WrappedAccessoryRenderer;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
-import io.wispforest.accessories.api.components.AccessoryRenderOverrideComponent;
-import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.impl.AccessoryNestUtils;
-import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -29,7 +22,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -39,21 +31,37 @@ import java.util.function.Supplier;
  */
 public class AccessoriesRendererRegistry {
 
+    public static final ResourceLocation NO_RENDERER_ID = Accessories.of("no_renderer");
+
     private static final Logger LOGGER = LogUtils.getLogger();
+
+    private static final Map<Item, ResourceLocation> ITEM_TO_RENDERER = new HashMap<>();
 
     private static final Map<ResourceLocation, Supplier<AccessoryRenderer>> RENDERERS = new HashMap<>();
 
     private static final BiMap<ResourceLocation, AccessoryRenderer> CACHED_RENDERERS = HashBiMap.create();
 
-    public static void registerRenderer(ResourceLocation location, Supplier<AccessoryRenderer> renderer) {
-        RENDERERS.put(location, renderer);
+    /**
+     * Binds the given item to use the following renderer as registered though {@link AccessoriesRendererRegistry#registerRenderer(ResourceLocation, Supplier)}
+     * @param item
+     * @param rendererId
+     */
+    public static void bindItemToRenderer(Item item, ResourceLocation rendererId) {
+        var entry = ITEM_TO_RENDERER.putIfAbsent(item, rendererId);
+
+        if (entry != null) {
+            LOGGER.error("Unable to bind Item with the given Register as Item already has binding: [Item: {}, Renderer: {}]", item , rendererId);
+        }
     }
 
-    /**
-     * Main method used to register an {@link Item} with a given {@link AccessoryRenderer}
-     */
-    public static void registerRenderer(Item item, Supplier<@NotNull AccessoryRenderer> renderer){
-        registerRenderer(getRendererId(item), renderer);
+    public static void bindItemToRenderer(Item item, ResourceLocation rendererId, Supplier<AccessoryRenderer> renderer) {
+        var entry = ITEM_TO_RENDERER.putIfAbsent(item, rendererId);
+
+        if (entry != null) {
+            LOGGER.error("Unable to bind Item with the given Register as Item already has binding: [Item: {}, Renderer: {}]", item , rendererId);
+        }
+
+        registerRenderer(rendererId, renderer);
     }
 
     /**
@@ -61,22 +69,26 @@ public class AccessoriesRendererRegistry {
      * <br/>
      * This should ONLY be used if ABSOLUTELY necessary
      */
-    public static void registerNoRenderer(Item item){
-        registerRenderer(item, EmptyRenderer::new);
+    public static void bindItemToEmptyRenderer(Item item){
+        bindItemToRenderer(item, NO_RENDERER_ID);
     }
 
     /**
-     * Registers the given item as if it should render like armor piece equipped within the targeted slot
-     * as dictated by {@link Equippable#slot()}
+     * Binds the given item to the {@link BuiltinAccessoryRenderers#ARMOR_RENDERER} meaning it will render like
+     * any armor piece equipped within the targeted slot as dictated by {@link Equippable#slot()}
      */
-    public static void registerArmorRendering(Item item) {
-        if (!AccessoriesRendererRegistry.hasRenderer(item)) {
-            AccessoriesRendererRegistry.registerRenderer(item, () -> BuiltinAccessoryRenderers.ARMOR_RENDERER);
-        }
+    public static void bindItemToArmorRenderer(Item item){
+        bindItemToRenderer(item, BuiltinAccessoryRenderers.ARMOR_RENDERER_ID);
     }
 
+    public static void registerRenderer(ResourceLocation location, Supplier<AccessoryRenderer> renderer) {
+        RENDERERS.put(location, renderer);
+    }
+
+    //--
+
     public static boolean hasRenderer(Item item) {
-        return hasRenderer(BuiltInRegistries.ITEM.getKey(item));
+        return ITEM_TO_RENDERER.containsKey(item);
     }
 
     public static boolean hasRenderer(ResourceLocation rendererId) {
@@ -90,25 +102,19 @@ public class AccessoriesRendererRegistry {
      */
     public static AccessoryRenderer getRenderer(ItemStack stack){
         if (stack.has(AccessoriesDataComponents.CUSTOM_RENDERER) && !stack.is(Items.BUNDLE)) {
-            return DataDrivenAccessoryRenderer.INSTANCE;
-        }
+            var data = stack.get(AccessoriesDataComponents.CUSTOM_RENDERER);
 
-        var renderOverrides = stack.getOrDefault(AccessoriesDataComponents.RENDER_OVERRIDE, AccessoryRenderOverrideComponent.DEFAULT);
+            if (data != null) return BuiltinAccessoryRenderers.DATA_DRIVEN;
 
-        var defaultRenderOverride = renderOverrides.defaultRenderOverride();
+            var defaultRenderOverride = data.defaultRenderOverride();
 
-        if(defaultRenderOverride != null) {
-            if(defaultRenderOverride) {
-                return DefaultAccessoryRenderer.INSTANCE;
-            } else if(AccessoryRegistry.isDefaultAccessory(stack)) {
-                return new EmptyRenderer();
+            if(defaultRenderOverride != null) {
+                if(defaultRenderOverride) {
+                    return DefaultAccessoryRenderer.INSTANCE;
+                } else if(AccessoryRegistry.isDefaultAccessory(stack)) {
+                    return new BuiltinAccessoryRenderers.EmptyRenderer();
+                }
             }
-        }
-
-        var armorRenderOverride = renderOverrides.useArmorRenderer();
-
-        if(armorRenderOverride) {
-            return BuiltinAccessoryRenderers.ARMOR_RENDERER;
         }
 
         return getRenderer(stack.getItem());
@@ -118,22 +124,29 @@ public class AccessoriesRendererRegistry {
      * @return Either the {@link AccessoryRenderer} bound to the item or the instance of the {@link DefaultAccessoryRenderer}
      */
     public static AccessoryRenderer getRenderer(Item item){
-        var id = getRendererId(item);
-        var renderer = getRenderer(id);
+        AccessoryRenderer renderer = null;
 
-        if (!CACHED_RENDERERS.containsKey(id)) {
+        var id = getBoundRenderer(item);
+
+        if (id != null) {
+            if (!CACHED_RENDERERS.containsKey(id)) {
+                renderer = DefaultAccessoryRenderer.INSTANCE;
+            } else {
+                renderer = getRenderer(id);
+            }
+        }
+
+        if(renderer instanceof BuiltinAccessoryRenderers.EmptyRenderer && Accessories.config().clientOptions.forceNullRenderReplacement()) {
             renderer = DefaultAccessoryRenderer.INSTANCE;
         }
 
-        if(renderer instanceof EmptyRenderer && Accessories.config().clientOptions.forceNullRenderReplacement()) {
-            renderer = DefaultAccessoryRenderer.INSTANCE;
-        }
-
-        return renderer == null ? new EmptyRenderer() : renderer;
+        return renderer == null ? new BuiltinAccessoryRenderers.EmptyRenderer() : renderer;
     }
 
     @Nullable
     public static AccessoryRenderer getRenderer(ResourceLocation rendererId) {
+        if (rendererId.equals(NO_RENDERER_ID)) return new BuiltinAccessoryRenderers.EmptyRenderer();
+
         return CACHED_RENDERERS.get(rendererId);
     }
 
@@ -142,11 +155,12 @@ public class AccessoriesRendererRegistry {
         return CACHED_RENDERERS.inverse().get(renderer);
     }
 
-    //--
-
-    public static ResourceLocation getRendererId(Item item) {
-        return BuiltInRegistries.ITEM.getKey(item);
+    @Nullable
+    public static ResourceLocation getBoundRenderer(Item item) {
+        return ITEM_TO_RENDERER.get(item);
     }
+
+    //--
 
     @ApiStatus.Internal
     public static void onReload() {
@@ -158,7 +172,7 @@ public class AccessoriesRendererRegistry {
             if (renderer == null) {
                 LOGGER.warn("A given renderer [{}] was found to be returning a null renderer which is not advised as method to indicate no rendering!", rendererId);
 
-                renderer = new EmptyRenderer();
+                renderer = new BuiltinAccessoryRenderers.EmptyRenderer();
             }
 
             var otherRendererId = CACHED_RENDERERS.inverse().get(renderer);
@@ -173,122 +187,42 @@ public class AccessoriesRendererRegistry {
         });
     }
 
-    @ApiStatus.Internal
-    public static class DataDrivenAccessoryRenderer implements AccessoryRenderer {
+    //--
 
-        public static final DataDrivenAccessoryRenderer INSTANCE = new DataDrivenAccessoryRenderer();
-
-        @Override
-        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
-            var data = stack.get(AccessoriesDataComponents.CUSTOM_RENDERER);
-
-            if (data == null) return;
-
-            ClientRenderingUtils.handle(stack, reference.entity(), null, model, matrices, multiBufferSource, partialTicks,15728880, OverlayTexture.NO_OVERLAY, -1, data.renderingFunctions());
-        }
-
-        @Override
-        public <S extends LivingEntityRenderState> void renderOnFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
-            var data = stack.get(AccessoriesDataComponents.CUSTOM_RENDERER);
-
-            if (data == null) return;
-
-            var targetEntity = reference.entity();
-
-            ClientRenderingUtils.handle(stack, targetEntity, arm, model, matrices, multiBufferSource, partialTicks,15728880, OverlayTexture.NO_OVERLAY, -1, data.renderingFunctions());
-        }
-
-        // TODO: ATTEMPT TO DEAL WITH ALWAYS RENDERING BY CHECKING THE TREE OF FUNCTIONS TO SEE IF SUCH EXISTS INSTAED OF ALWAYS TRUE
-        @Override
-        public boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference) {
-            return true;
-        }
-    }
-
-    @ApiStatus.Internal
-    private static class BundleAccessoryRenderer implements AccessoryRenderer {
-        @Override
-        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
-            var contents = stack.get(DataComponents.BUNDLE_CONTENTS);
-
-            if (contents == null) return;
-
-            DataDrivenAccessoryRenderer.INSTANCE.render(stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks);
-
-            if (contents.items() instanceof List<ItemStack> list) {
-                for (int i = 0; i < list.size(); i++) {
-                    var innerStack = list.get(i);
-
-                    if (innerStack.isEmpty()) continue;
-
-                    var renderer = AccessoriesRendererRegistry.getRenderer(innerStack);
-
-                    if (renderer.isEmpty()) continue;
-
-                    matrices.pushPose();
-
-                    try {
-                        renderer.render(innerStack, AccessoryNestUtils.create(reference, i), matrices, model, renderState, multiBufferSource, light, partialTicks);
-                    } catch (Throwable e) {
-                        throw new IllegalStateException("[BundleAccessoryRenderer] Unable to render a given inner item stack due the following error: ", e);
-                    }
-
-                    matrices.popPose();
-                }
-            }
-        }
-
-        @Override
-        public <S extends LivingEntityRenderState> void renderOnFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
-            var contents = stack.get(DataComponents.BUNDLE_CONTENTS);
-
-            if (contents == null) return;
-
-            DataDrivenAccessoryRenderer.INSTANCE.renderOnFirstPerson(arm, stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks);
-
-            if (contents.items() instanceof List<ItemStack> list) {
-                for (int i = 0; i < list.size(); i++) {
-                    var innerStack = list.get(i);
-
-                    if (innerStack.isEmpty()) continue;
-
-                    var renderer = AccessoriesRendererRegistry.getRenderer(innerStack);
-
-                    var ref = AccessoryNestUtils.create(reference, i);
-
-                    if (renderer.isEmpty() || !renderer.shouldRenderInFirstPerson(arm, innerStack, ref)) continue;
-
-                    matrices.pushPose();
-
-                    try {
-                        renderer.renderOnFirstPerson(arm, innerStack, ref, matrices, model, renderState, multiBufferSource, light, partialTicks);
-                    } catch (Throwable e) {
-                        throw new IllegalStateException("[BundleAccessoryRenderer] Unable to render a given inner item stack due the following error: ", e);
-                    }
-
-                    matrices.popPose();
-                }
-            }
-        }
-    }
-
-    static {
-        AccessoriesRendererRegistry.registerRenderer(Items.BUNDLE, BundleAccessoryRenderer::new);
+    @Deprecated(forRemoval = true)
+    public static ResourceLocation getRendererId(Item item) {
+        return BuiltInRegistries.ITEM.getKey(item);
     }
 
     /**
-     * @deprecated Use {@link #getRenderer(ItemStack)}
+     * Main method used to register an {@link Item} with a given {@link AccessoryRenderer}
      */
     @Deprecated(forRemoval = true)
-    public static AccessoryRenderer getRender(ItemStack stack){
-        return getRenderer(stack);
+    public static void registerRenderer(Item item, Supplier<@NotNull AccessoryRenderer> renderer){
+        var rendererId = getRendererId(item);
+
+        registerRenderer(rendererId, renderer);
+        bindItemToRenderer(item, rendererId);
     }
 
     /**
-     * @deprecated Use {@link #getRenderer(Item)}
+     * Method used to prevent default rendering for the given {@link Item}
+     * <br/>
+     * This should ONLY be used if ABSOLUTELY necessary
      */
     @Deprecated(forRemoval = true)
-    public static AccessoryRenderer getRender(Item item){
-        return getRenderer(item);
+    public static void registerNoRenderer(Item item){
+        bindItemToRenderer(item, NO_RENDERER_ID);
+    }
+
+
+    @Deprecated(forRemoval = true)
+    public static void registerArmorRendering(Item item) {
+        if (!AccessoriesRendererRegistry.hasRenderer(item)) {
+            var rendererId = getRendererId(item);
+
+            AccessoriesRendererRegistry.registerRenderer(rendererId, () -> BuiltinAccessoryRenderers.ARMOR_RENDERER);
+            AccessoriesRendererRegistry.bindItemToRenderer(item, rendererId);
+        }
     }
 }

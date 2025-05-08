@@ -1,5 +1,6 @@
-package io.wispforest.accessories.api.client;
+package io.wispforest.accessories.api.client.rendering;
 
+import io.wispforest.accessories.api.client.renderers.DefaultAccessoryRenderer;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 
