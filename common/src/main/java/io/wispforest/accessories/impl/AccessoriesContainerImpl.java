@@ -20,6 +20,7 @@ import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerListener;
@@ -382,7 +383,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
             if(!this.modifiers.isEmpty()){
                 var modifiersTag = new ArrayList<CompoundTag>();
 
-                this.modifiers.values().forEach(modifier -> modifiersTag.add(modifier.save()));
+                this.modifiers.values().forEach(modifier -> modifiersTag.add((CompoundTag) AttributeModifier.CODEC.encodeStart(NbtOps.INSTANCE, modifier).getOrThrow()));
 
                 carrier.put(MODIFIERS_KEY, modifiersTag);
             }
@@ -390,7 +391,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
             if(!this.persistentModifiers.isEmpty()){
                 var persistentTag = new ArrayList<CompoundTag>();
 
-                this.persistentModifiers.forEach(modifier -> persistentTag.add(modifier.save()));
+                this.persistentModifiers.forEach(modifier -> persistentTag.add((CompoundTag) AttributeModifier.CODEC.encodeStart(NbtOps.INSTANCE, modifier).getOrThrow()));
 
                 carrier.put(PERSISTENT_MODIFIERS_KEY, persistentTag);
             }
@@ -401,7 +402,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                 this.modifiers.values().forEach(modifier -> {
                     if(this.persistentModifiers.contains(modifier)) return;
 
-                    cachedTag.add(modifier.save());
+                    cachedTag.add((CompoundTag) AttributeModifier.CODEC.encodeStart(NbtOps.INSTANCE, modifier).getOrThrow());
                 });
 
                 carrier.put(CACHED_MODIFIERS_KEY, cachedTag);
@@ -444,7 +445,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                 var persistentTag = carrier.get(MODIFIERS_KEY);
 
                 for (var compoundTag : persistentTag) {
-                    var modifier = AttributeModifier.load(compoundTag);
+                    var modifier = AttributeModifier.CODEC.parse(NbtOps.INSTANCE, compoundTag).getOrThrow();
 
                     if (modifier != null) this.addTransientModifier(modifier);
                 }
@@ -454,7 +455,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                 var persistentTag = carrier.get(PERSISTENT_MODIFIERS_KEY);
 
                 for (var compoundTag : persistentTag) {
-                    var modifier = AttributeModifier.load(compoundTag);
+                    var modifier = AttributeModifier.CODEC.parse(NbtOps.INSTANCE, compoundTag).getOrThrow();
 
                     if (modifier != null) this.addPersistentModifier(modifier);
                 }
@@ -464,7 +465,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                 var cachedTag = carrier.get(CACHED_MODIFIERS_KEY);
 
                 for (CompoundTag compoundTag : cachedTag) {
-                    var modifier = AttributeModifier.load(compoundTag);
+                    var modifier = AttributeModifier.CODEC.parse(NbtOps.INSTANCE, compoundTag).getOrThrow();
 
                     if (modifier != null) {
                         this.cachedModifiers.add(modifier);

@@ -314,9 +314,8 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
         if (cache != null && !(predicate instanceof ItemStackPredicate)) return cache.firstEquipped(predicate, check);
 
         for (var container : this.getContainers().values()) {
-            for (var stackEntry : container.getAccessories()) {
-                var stack = stackEntry.getSecond();
-                var reference = container.createReference(stackEntry.getFirst());
+            var ref = container.getAccessories().foreach((i, stack) -> {
+                var reference = container.createReference(i);
 
                 if(check == EquipmentChecking.COSMETICALLY_OVERRIDABLE) {
                     var cosmetic = container.getCosmeticAccessories().getItem(reference.slot());
@@ -324,14 +323,14 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
                     if(!cosmetic.isEmpty() && Accessories.config().clientOptions.showCosmeticAccessories()) stack = cosmetic;
                 }
 
-                var entryReference = AccessoryNestUtils.recursiveStackHandling(stack, reference, (innerStack, ref) -> {
+                return AccessoryNestUtils.recursiveStackHandling(stack, reference, (innerStack, ref1) -> {
                     return (!innerStack.isEmpty() && predicate.test(innerStack))
                             ? new SlotEntryReference(reference, innerStack)
                             : null;
                 });
+            });
 
-                if (entryReference != null) return entryReference;
-            }
+            if (ref != null) return ref;
         }
 
         return null;
@@ -346,19 +345,17 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
         var references = new ArrayList<SlotEntryReference>();
 
         for (var container : this.getContainers().values()) {
-            for (var stackEntry : container.getAccessories()) {
-                var stack = stackEntry.getSecond();
+            container.getAccessories().foreach((i, stack) -> {
+                if (!stack.isEmpty()) {
+                    var reference = container.createReference(i);
 
-                if (stack.isEmpty()) continue;
-
-                var reference = container.createReference(stackEntry.getFirst());
-
-                if(recursiveStackLookup) {
-                    AccessoryNestUtils.recursiveStackConsumption(stack, reference, (innerStack, ref) -> references.add(new SlotEntryReference(ref, innerStack)));
-                } else {
-                    references.add(new SlotEntryReference(reference, stack));
+                    if(recursiveStackLookup) {
+                        AccessoryNestUtils.recursiveStackConsumption(stack, reference, (innerStack, ref) -> references.add(new SlotEntryReference(ref, innerStack)));
+                    } else {
+                        references.add(new SlotEntryReference(reference, stack));
+                    }
                 }
-            }
+            });
         }
 
         return references;

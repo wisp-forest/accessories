@@ -1,6 +1,6 @@
 package io.wispforest.accessories.client;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+//import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import com.mojang.logging.LogUtils;
@@ -47,7 +47,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private static final PostEffectBuffer BUFFER = new PostEffectBuffer();
+    //private static final PostEffectBuffer BUFFER = new PostEffectBuffer();
 
     private static final float increment = 0.1f;
 
@@ -216,32 +216,32 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
                         }
 
                         // TODO: [1.21.2 - Porting] Fix issues with atlas being drawn!
-                        if (colorValues != null && false) {
-                            BUFFER.beginWrite(true, GL30.GL_DEPTH_BUFFER_BIT);
-                            bufferSource.endBatch();
-                            BUFFER.endWrite();
-
-                            BUFFER.draw(colorValues);
-
-                            var frameBuffer = BUFFER.buffer();
-
-                            GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, frameBuffer.frameBufferId);
-                            GL30.glBlitFramebuffer(
-                                    0,
-                                    0,
-                                    frameBuffer.width,
-                                    frameBuffer.height,
-                                    0,
-                                    0,
-                                    frameBuffer.width,
-                                    frameBuffer.height,
-                                    GL30.GL_DEPTH_BUFFER_BIT,
-                                    GL30.GL_NEAREST
-                            );
-                            Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
-                        } else {
-                            bufferSource.endBatch();
-                        }
+//                        if (colorValues != null && false) {
+//                            BUFFER.beginWrite(true, GL30.GL_DEPTH_BUFFER_BIT);
+//                            bufferSource.endBatch();
+//                            BUFFER.endWrite();
+//
+//                            BUFFER.draw(colorValues);
+//
+//                            var frameBuffer = BUFFER.buffer();
+//
+//                            GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, frameBuffer.frameBufferId);
+//                            GL30.glBlitFramebuffer(
+//                                    0,
+//                                    0,
+//                                    frameBuffer.width,
+//                                    frameBuffer.height,
+//                                    0,
+//                                    0,
+//                                    frameBuffer.width,
+//                                    frameBuffer.height,
+//                                    GL30.GL_DEPTH_BUFFER_BIT,
+//                                    GL30.GL_NEAREST
+//                            );
+//                            Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
+//                        } else {
+//                            bufferSource.endBatch();
+//                        }
                     }
 
                     if (renderingLines && AccessoriesScreen.IS_RENDERING_LINE_TARGET.getValue()) {

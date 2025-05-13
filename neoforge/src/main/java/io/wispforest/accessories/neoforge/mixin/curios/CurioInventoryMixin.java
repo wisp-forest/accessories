@@ -19,7 +19,7 @@ public abstract class CurioInventoryMixin {
     // Prevent duplicate data if both Accessories and Curios is installed and the data was saved using CCLayer
     @Inject(method = "init", at = @At(value = "HEAD"), remap = false)
     private void accessories$preventDuplicateDataDecode(ICuriosItemHandler curiosItemHandler, CallbackInfo ci) {
-        if (this.deserialized.getBoolean("AccessoriesEncoded")) {
+        if (this.deserialized.getBooleanOr("AccessoriesEncoded", false)) {
             this.markDeserialized = false;
             this.deserialized = new CompoundTag();
         }

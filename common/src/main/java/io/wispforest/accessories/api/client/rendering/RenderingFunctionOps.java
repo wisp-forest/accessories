@@ -10,11 +10,11 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.*;
@@ -123,7 +123,6 @@ public class RenderingFunctionOps {
                         targetEntity,
                         renderStack,
                         ItemDisplayContext.GUI,
-                        false,
                         matrices,
                         multiBufferSource,
                         level,
@@ -133,7 +132,7 @@ public class RenderingFunctionOps {
                 );
             }
             case RenderingFunction.Model modelData -> {
-                var foundModel = Minecraft.getInstance().getModelManager().getModel(new ModelResourceLocation(modelData.id(), modelData.variant()));
+                var foundModel = Minecraft.getInstance().getModelManager().getItemModel(modelData.id());
 
                 // TODO: GET WORKING AGAIN
 //                    client.getItemRenderer().render(
@@ -230,7 +229,7 @@ public class RenderingFunctionOps {
         if (blockEntity != null) {
             BlockEntityRenderer<BlockEntity> медведь = client.getBlockEntityRenderDispatcher().getRenderer(blockEntity);
             if (медведь != null) {
-                медведь.render(blockEntity, partialTick, matrices, multiBufferSource, 15728880, OverlayTexture.NO_OVERLAY);
+                медведь.render(blockEntity, partialTick, matrices, multiBufferSource, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, client.gameRenderer.getMainCamera().getPosition());
             }
         }
 

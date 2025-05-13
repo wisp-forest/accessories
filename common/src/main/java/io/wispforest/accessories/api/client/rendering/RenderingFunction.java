@@ -47,8 +47,8 @@ public sealed interface RenderingFunction permits DeferredRenderer, Block, Compo
         return new Transformations(transformations, new Compound(renderingFunctions, armTarget));
     }
 
-    static Model ofModel(ResourceLocation id, String variant) {
-        return new Model(id, variant);
+    static Model ofModel(ResourceLocation id) {
+        return new Model(id);
     }
 
     static Block ofBlock(net.minecraft.world.level.block.Block block) {
@@ -135,10 +135,9 @@ public sealed interface RenderingFunction permits DeferredRenderer, Block, Compo
         );
     }
 
-    record Model(ResourceLocation id, String variant) implements RenderingFunction {
+    record Model(ResourceLocation id) implements RenderingFunction {
         public static final StructEndec<Model> ENDEC = StructEndecBuilder.of(
                 MinecraftEndecs.IDENTIFIER.fieldOf("id", Model::id),
-                Endec.STRING.optionalFieldOf("variant", Model::variant, () -> ""),
                 Model::new
         );
     }

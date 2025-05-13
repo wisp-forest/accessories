@@ -7,6 +7,7 @@ import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.AccessoriesClient;
+import io.wispforest.accessories.client.AccessoriesPipelines;
 import io.wispforest.accessories.client.gui.components.*;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -56,7 +57,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static io.wispforest.accessories.client.gui.components.ComponentUtils.BACKGROUND_SLOT_RENDERING_SURFACE;
-import static io.wispforest.accessories.client.gui.components.ComponentUtils.COLORED_GUI_TEXTURED;
 
 public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayout, AccessoriesExperimentalMenu> implements AccessoriesScreenBase<AccessoriesExperimentalMenu>, ContainerScreenExtension {
 
@@ -910,7 +910,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
                                     var color = Color.WHITE;
 
-                                    context.blit(location -> COLORED_GUI_TEXTURED.apply(color, location), Accessories.of("textures/gui/reset_icon.png"), button.x() + 3 + 3, button.y() + 3, 0, 0, 8, 8, 8, 8);
+                                    context.blit(location -> AccessoriesPipelines.COLORED_GUI_TEXTURED.apply(color, location), Accessories.of("textures/gui/reset_icon.png"), button.x() + 3 + 3, button.y() + 3, 0, 0, 8, 8, 8, 8);
                                     context.flush();
                                 }).sizing(Sizing.fixed(14))
                                 .horizontalSizing(Sizing.fixed(20))
@@ -995,9 +995,9 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                                         component1.y(),
                                                         0,
                                                         0,
-                                                        44,
+                                                        48,
                                                         88,
-                                                        44,
+                                                        48,
                                                         88
                                                 );
                                             }

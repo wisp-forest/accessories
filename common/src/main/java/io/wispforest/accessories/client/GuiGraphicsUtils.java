@@ -18,8 +18,6 @@ import java.util.function.Function;
 
 public class GuiGraphicsUtils {
 
-    //--
-
     public static void drawWithSpectrum(GuiGraphics ctx, int x, int y, int blitOffset, int width, int height, ResourceLocation texture, float alpha) {
         TextureAtlasSprite sprite = Minecraft.getInstance().getGuiSprites().getSprite(texture);
 
@@ -34,21 +32,6 @@ public class GuiGraphicsUtils {
         innerDrawWithSpectrum(ctx, sprite.atlasLocation(), x, x + width, y, y + height, blitOffset, sprite.getU0(), sprite.getU1(), sprite.getV0(), sprite.getV1(), alphaValues);
     }
 
-    private static final Function<ResourceLocation, RenderType> SPECTRUM_GUI = Util.memoize(
-            resourceLocation -> RenderType.create(
-                    "spectrum_gui",
-                    DefaultVertexFormat.POSITION_TEX_COLOR,
-                    VertexFormat.Mode.QUADS,
-                    786432,
-                    RenderType.CompositeState.builder()
-                            .setTextureState(new RenderStateShard.TextureStateShard(resourceLocation, TriState.FALSE, false))
-                            .setShaderState(AccessoriesClient.SPECTRUM_PROGRAM.renderPhaseProgram())
-                            .setTransparencyState(RenderType.TRANSLUCENT_TRANSPARENCY)
-                            .setDepthTestState(RenderType.LEQUAL_DEPTH_TEST)
-                            .createCompositeState(false)
-            )
-    );
-
     // X: Top Left
     // Y: Top Right
     // Z: Bottom Left
@@ -58,7 +41,7 @@ public class GuiGraphicsUtils {
 
         var matrix4f = ctx.pose().last().pose();
 
-        var bufferBuilder = ctx.vertexConsumers().getBuffer(SPECTRUM_GUI.apply(atlasLocation));
+        var bufferBuilder = ctx.vertexConsumers().getBuffer(AccessoriesPipelines.SPECTRUM_GUI.apply(atlasLocation));
 
         bufferBuilder.addVertex(matrix4f, (float)x1, (float)y1, (float)blitOffset).setUv(minU, minV).setColor(1.0f, 1.0f, 1.0f, alphaValues.x);
         bufferBuilder.addVertex(matrix4f, (float)x1, (float)y2, (float)blitOffset).setUv(minU, maxV).setColor(0, 1.0f, 1.0f, alphaValues.z);
@@ -78,18 +61,6 @@ public class GuiGraphicsUtils {
         innerFill(ctx, x + width - 1, y + 1, x + width, y + height - 1, 0, alpha, vertical);
     }
 
-    private static final RenderType.CompositeRenderType HSV_GUI = RenderType.create(
-            "hsv_gui",
-            DefaultVertexFormat.POSITION_COLOR,
-            VertexFormat.Mode.QUADS,
-            786432,
-            RenderType.CompositeState.builder()
-                    .setShaderState(OwoClient.HSV_PROGRAM.renderPhaseProgram())
-                    .setTransparencyState(RenderType.TRANSLUCENT_TRANSPARENCY)
-                    .setDepthTestState(RenderType.LEQUAL_DEPTH_TEST)
-                    .createCompositeState(false)
-    );
-
     private static void innerFill(GuiGraphics guiGraphics, int minX, int minY, int maxX, int maxY, int z, float alpha, boolean vertical) {
         var ctx = OwoUIDrawContext.of(guiGraphics);
 
@@ -105,7 +76,7 @@ public class GuiGraphicsUtils {
             maxY = i;
         }
 
-        var vertexConsumer = ctx.vertexConsumers().getBuffer(HSV_GUI);
+        var vertexConsumer = ctx.vertexConsumers().getBuffer(AccessoriesPipelines.HSV_GUI);
 
         var multiplier = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
 

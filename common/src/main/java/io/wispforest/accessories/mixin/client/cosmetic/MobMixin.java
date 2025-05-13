@@ -19,11 +19,6 @@ public abstract class MobMixin extends LivingEntity implements CosmeticArmorLook
         super(entityType, level);
     }
 
-    @Inject(method = "getItemBySlot", at = @At("HEAD"), cancellable = true)
-    private void accessories$getCosmeticAlternative(EquipmentSlot slot, CallbackInfoReturnable<ItemStack> cir) {
-        CosmeticArmorLookupTogglable.getAlternativeStack(this, slot, cir::setReturnValue);
-    }
-
     @Inject(method = "getBodyArmorItem", at = @At("HEAD"), cancellable = true)
     private void accessories$getCosmeticAlternative(CallbackInfoReturnable<ItemStack> cir) {
         CosmeticArmorLookupTogglable.getAlternativeStack(this, EquipmentSlot.BODY, cir::setReturnValue);

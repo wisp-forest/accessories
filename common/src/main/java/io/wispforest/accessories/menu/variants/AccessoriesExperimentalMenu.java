@@ -12,15 +12,19 @@ import io.wispforest.accessories.mixin.HorseInventoryMenuAccessor;
 import io.wispforest.owo.client.screens.SlotGenerator;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.EntityTypeTags;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ArmorSlot;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SaddleItem;
+import net.minecraft.world.ticks.ContainerSingleItem;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -82,29 +86,21 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
             }
         });
 
-        var saddleInv = SlotAccessContainer.ofSaddleSlot(accessoryTarget);
+        //--
 
-        if(saddleInv != null) {
+        if (targetEntity.canUseSlot(EquipmentSlot.SADDLE) ) {
             this.includeSaddle = true;
+            var saddleInv = createEquipmentSlotContainer(targetEntity, EquipmentSlot.SADDLE);
 
-            var iconPath = (targetEntity instanceof Llama)
-                    ? HorseInventoryMenuAccessor.accessories$LLAMA_ARMOR_SLOT_SPRITE()
-                    : HorseInventoryMenuAccessor.accessories$SADDLE_SLOT_SPRITE();
-
-            this.addSlot(
-                    new Slot(saddleInv, 0, -300, -300){
-                        @Override
-                        public boolean mayPlace(ItemStack stack) {
-                            return stack.getItem() instanceof SaddleItem && super.mayPlace(stack);
-                        }
-
-                        @Override
-                        public ResourceLocation getNoItemIcon() {
-                            return iconPath;
-                        }
-                    }
-            );
+            this.addSlot(new ArmorSlot(saddleInv, targetEntity, EquipmentSlot.SADDLE, 0, -300, -300, HorseInventoryMenuAccessor.accessories$SADDLE_SLOT_SPRITE()) {
+                @Override
+                public boolean isActive() {
+                    return targetEntity.canUseSlot(EquipmentSlot.SADDLE) && targetEntity.getType().is(EntityTypeTags.CAN_EQUIP_SADDLE);
+                }
+            });
         }
+
+        //--
 
         this.startArmorSlots = this.slots.size();
 
@@ -157,6 +153,31 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         }
 
         ToggledSlots.initMenu(this);
+    }
+
+    private static Container createEquipmentSlotContainer(LivingEntity living, EquipmentSlot equipmentSlot) {
+        return new ContainerSingleItem() {
+            @Override
+            public ItemStack getTheItem() {
+                return living.getItemBySlot(equipmentSlot);
+            }
+
+            @Override
+            public void setTheItem(ItemStack item) {
+                living.setItemSlot(equipmentSlot, item);
+                if (!item.isEmpty() && living instanceof Mob mob) {
+                    mob.setGuaranteedDrop(equipmentSlot);
+                    mob.setPersistenceRequired();
+                }
+            }
+
+            @Override
+            public boolean stillValid(Player player) {
+                return player.getVehicle() == living || player.canInteractWithEntity(living, 4.0);
+            }
+
+            @Override public void setChanged() {}
+        };
     }
 
     private boolean addArmorSlot(EquipmentSlot equipmentSlot, LivingEntity targetEntity, SlotTypeReference armorReference, Map<String, AccessoriesContainer> containers) {

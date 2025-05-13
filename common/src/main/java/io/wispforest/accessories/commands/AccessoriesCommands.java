@@ -78,7 +78,7 @@ public class AccessoriesCommands extends CommandBuilderHelper {
                     "accessories/create-renderer-stack",
                     argumentHolder("renderer_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
                     argumentHolder("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
-                    argumentHolder("custom_name", ComponentArgument.textComponent(context), ComponentArgument::getComponent),
+                    argumentHolder("custom_name", ComponentArgument.textComponent(context), ComponentArgument::getResolvedComponent),
                     defaultedArgumentHolder("is_bundle", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class), false),
                     (ctx, rendererId, itemModelId, component, isBundle) -> {
                         AccessoriesCommands.createRenderStack(ctx, rendererId, itemModelId, component, isBundle);

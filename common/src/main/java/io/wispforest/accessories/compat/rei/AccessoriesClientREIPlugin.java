@@ -99,7 +99,7 @@ public class AccessoriesClientREIPlugin implements REIClientPlugin {
             public Iterable<SlotAccessor> getInventorySlots(Context context) {
                 var player = context.getMinecraft().player;
 
-                return IntStream.range(0, player.getInventory().items.size())
+                return IntStream.range(0, player.getInventory().getNonEquipmentItems().size())
                         .mapToObj(index -> SlotAccessor.fromPlayerInventory(player, index))
                         .collect(Collectors.toList());
             }

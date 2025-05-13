@@ -11,6 +11,8 @@ import io.wispforest.owo.ui.core.Sizing;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.function.Function;
+
 public class ArrowComponent extends BaseComponent {
     protected final ResourceLocation texture = Accessories.of("textures/gui/theme/all_arrow_directions.png");
 
@@ -58,11 +60,9 @@ public class ArrowComponent extends BaseComponent {
     }
 
     public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
-        RenderSystem.enableDepthTest();
-        if (this.blend) {
-            RenderSystem.enableBlend();
-            RenderSystem.defaultBlendFunc();
-        }
+        Function<ResourceLocation, RenderType> renderTypeGetter = this.blend
+                ? RenderType::guiTextured
+                : RenderType::guiTexturedOverlay;
 
         PoseStack matrices = context.pose();
         matrices.pushPose();
@@ -74,10 +74,7 @@ public class ArrowComponent extends BaseComponent {
         PositionedRectangle visibleArea = this.visibleArea.get();
         int bottomEdge = Math.min(visibleArea.y() + visibleArea.height(), this.regionHeight());
         int rightEdge = Math.min(visibleArea.x() + visibleArea.width(), this.regionWidth());
-        context.blit(RenderType::guiTextured, this.texture, visibleArea.x(), visibleArea.y(), (float) (this.u() + visibleArea.x()), (float) (this.v() + visibleArea.y()),rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(), rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(), this.textureWidth, this.textureHeight);
-        if (this.blend) {
-            RenderSystem.disableBlend();
-        }
+        context.blit(renderTypeGetter, this.texture, visibleArea.x(), visibleArea.y(), (float) (this.u() + visibleArea.x()), (float) (this.v() + visibleArea.y()),rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(), rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(), this.textureWidth, this.textureHeight);
 
         matrices.popPose();
     }

@@ -1,5 +1,6 @@
 package io.wispforest.accessories.client.gui.components;
 
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Axis;
@@ -225,7 +226,8 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
             living.yHeadRot = living.yBodyRot;
             living.yHeadRotO = living.yBodyRotO;
 
-            RenderSystem.disableDepthTest();
+            // TODO: FIGURE OUT IF THIS IS NEEDED?
+            GlStateManager._disableDepthTest();
 
             this.renderWrapping.accept(context,this,
                     () -> this.dispatcher.render(this.entity, 0, 0, 0, 0, matrices, this.entityBuffers, LightTexture.FULL_BRIGHT)

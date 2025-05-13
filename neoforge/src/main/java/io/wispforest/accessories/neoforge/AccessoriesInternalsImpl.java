@@ -35,12 +35,13 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.neoforged.neoforge.client.event.GatherSkippedAttributeTooltipsEvent;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.common.util.AttributeTooltipContext;
 import net.neoforged.neoforge.common.util.AttributeUtil;
+import net.neoforged.neoforge.event.GatherSkippedAttributeTooltipsEvent;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
@@ -102,8 +103,8 @@ public class AccessoriesInternalsImpl {
                 });
     }
 
-    public static void addAttributeTooltips(@Nullable Player player, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, Consumer<Component> tooltipAddCallback, Item.TooltipContext context, TooltipFlag flag) {
-        var neoTooltipCtx = AttributeTooltipContext.of(player, context, flag);
+    public static void addAttributeTooltips(@Nullable Player player, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, Consumer<Component> tooltipAddCallback, TooltipDisplay display, Item.TooltipContext context, TooltipFlag flag) {
+        var neoTooltipCtx = AttributeTooltipContext.of(player, context, display, flag);
 
         var event = NeoForge.EVENT_BUS.post(new GatherSkippedAttributeTooltipsEvent(stack, neoTooltipCtx));
 

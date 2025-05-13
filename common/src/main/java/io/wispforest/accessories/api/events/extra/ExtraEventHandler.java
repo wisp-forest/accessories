@@ -34,8 +34,6 @@ public class ExtraEventHandler {
 
                     var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
-                    currentLevel += io.wispforest.accessories.api.events.extra.LootingAdjustment.EVENT.invoker().getLootingAdjustment(stack, reference, targetEntity, damageSource, currentLevel);
-
                     currentLevel += io.wispforest.accessories.api.events.extra.v2.LootingAdjustment.EVENT.invoker().getLootingAdjustment(stack, reference, targetEntity, context, damageSource, currentLevel);
 
                     //--

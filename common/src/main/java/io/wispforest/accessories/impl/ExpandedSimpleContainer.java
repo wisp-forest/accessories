@@ -20,16 +20,19 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 /**
  * An implementation of SimpleContainer with easy utilities for iterating over the stacks
  * and holding on to previous stack info
  */
-public class ExpandedSimpleContainer extends SimpleContainer implements Iterable<Pair<Integer, ItemStack>> {
+public class ExpandedSimpleContainer extends SimpleContainer implements Iterable<ItemStack> {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -214,9 +217,9 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         var decodedStacks = new ArrayList<ItemStack>();
 
         for(int i = 0; i < containerNbt.size(); ++i) {
-            var compoundTag = containerNbt.getCompound(i);
+            var compoundTag = containerNbt.getCompoundOrEmpty(i);
 
-            int j = compoundTag.getInt("Slot");
+            int j = compoundTag.getIntOr("Slot", -1);
 
             var stack = parseOptional(provider, compoundTag);
 
@@ -273,9 +276,8 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
     //--
 
-    @NotNull
     @Override
-    public Iterator<Pair<Integer, ItemStack>> iterator() {
+    public Iterator<ItemStack> iterator() {
         return new Iterator<>() {
             private int index = 0;
 
@@ -285,18 +287,46 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
             }
 
             @Override
-            public Pair<Integer, ItemStack> next() {
-                var pair = new Pair<>(index, ExpandedSimpleContainer.this.getItem(index));
+            public ItemStack next() {
+                var stack = ExpandedSimpleContainer.this.getItem(index);
 
                 index++;
 
-                return pair;
+                return stack;
             }
         };
     }
 
+    public void foreach(BiConsumer<Integer, ItemStack> consumer) {
+        var i = 0;
+
+        for (ItemStack itemStack : this) {
+            consumer.accept(i, itemStack);
+            i++;
+        }
+    }
+
+    public <T> T foreach(BiFunction<Integer, ItemStack, @Nullable T> consumer) {
+        var i = 0;
+
+        for (ItemStack itemStack : this) {
+            var result = consumer.apply(i, itemStack);
+
+            if (result != null) return null;
+
+            i++;
+        }
+
+        return null;
+    }
+
     public void setFromPrev(ExpandedSimpleContainer prevContainer) {
-        prevContainer.forEach(pair -> this.setPreviousItem(pair.getFirst(), pair.getSecond()));
+        int i = 0;
+
+        for (var itemStack : prevContainer) {
+            this.setPreviousItem(i, itemStack);
+            i++;
+        }
     }
 
     public void copyPrev(ExpandedSimpleContainer prevContainer) {

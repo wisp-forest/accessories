@@ -1,7 +1,5 @@
 package io.wispforest.accessories.mixin;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import io.wispforest.accessories.api.AccessoriesCapability;
@@ -22,7 +20,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -68,17 +65,12 @@ public abstract class InventoryMixin {
         if(bl) cir.setReturnValue(true);
     }
 
-    @WrapOperation(method = "dropAll", at = @At(value = "INVOKE", target = "Ljava/util/List;iterator()Ljava/util/Iterator;"))
-    private Iterator<List<ItemStack>> addAccessoriesToDropCall(List<List<ItemStack>> instance, Operation<Iterator<List<ItemStack>>> original) {
-        var combinedList = new ArrayList<>(instance);
-
-        combinedList.add(new ArrayList<>(((DroppedStacksExtension)this.player).toBeDroppedStacks()));
-
-        return original.call(combinedList);
-    }
-
     @Inject(method = "dropAll", at = @At(value = "TAIL"))
     private void addAccessoriesToDropCall(CallbackInfo ci) {
+        for (var itemstack : ((DroppedStacksExtension) this.player).toBeDroppedStacks()) {
+            this.player.drop(itemstack, true, false);
+        }
+
         ((DroppedStacksExtension)this.player).addToBeDroppedStacks(List.of());
     }
 }

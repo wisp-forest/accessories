@@ -55,7 +55,7 @@ public abstract class CustomHeadLayerMixin<S extends LivingEntityRenderState, M 
                         var alternativeRenderState = new ItemStackRenderState();
 
                         Minecraft.getInstance().getItemModelResolver()
-                                .updateForLiving(alternativeRenderState, stack, ItemDisplayContext.HEAD, false, entity.get());
+                                .updateForLiving(alternativeRenderState, stack, ItemDisplayContext.HEAD, entity.get());
 
                         ((LivingEntityRenderStateAccessor) livingEntityRenderState).accessories$headItem(alternativeRenderState);
                     }

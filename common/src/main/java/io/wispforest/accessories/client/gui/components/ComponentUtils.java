@@ -1,12 +1,12 @@
 package io.wispforest.accessories.client.gui.components;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.client.AccessoriesPipelines;
 import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
@@ -28,6 +28,7 @@ import net.fabricmc.fabric.api.event.Event;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
@@ -92,8 +93,6 @@ public class ComponentUtils {
     };
 
     private static final ButtonComponent.Renderer BUTTON_RENDERER = (context, button, delta) -> {
-        RenderSystem.enableDepthTest();
-
         NinePatchTexture.draw(getBtnTexture(button), context, button.getX(), button.getY(), button.width(), button.height());
     };
 
@@ -190,33 +189,6 @@ public class ComponentUtils {
                 });
     }
 
-    public static final BiFunction<Color, ResourceLocation, RenderType> COLORED_GUI_TEXTURED = Util.memoize(
-            (color, resourceLocation) -> {
-                return RenderType.create(
-                        "colored_gui_textured",
-                        DefaultVertexFormat.POSITION_TEX_COLOR,
-                        VertexFormat.Mode.QUADS,
-                        786432,
-                        RenderType.CompositeState.builder()
-                                .setTextureState(new RenderStateShard.TextureStateShard(resourceLocation, TriState.FALSE, false))
-                                .setShaderState(RenderType.POSITION_TEXTURE_COLOR_SHADER)
-                                .setWriteMaskState(RenderStateShard.COLOR_WRITE)
-                                .setTransparencyState(new RenderStateShard.TransparencyStateShard("custom_blend",
-                                        () -> {
-                                            RenderSystem.setShaderColor(color.red(), color.green(), color.blue(), 1f);
-                                            RenderSystem.enableBlend();
-                                            RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
-                                        }, () -> {
-                                            RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-                                            RenderSystem.disableBlend();
-                                            RenderSystem.defaultBlendFunc();
-                                        })
-                                )
-                                .setDepthTestState(RenderType.LEQUAL_DEPTH_TEST)
-                                .createCompositeState(false));
-            }
-    );
-
     public static ButtonComponent groupToggleBtn(AccessoriesExperimentalScreen screen, SlotGroup group) {
         var btn = toggleBtn(
                 Component.empty(),
@@ -243,17 +215,7 @@ public class ComponentUtils {
 
                     var color = Color.WHITE;
 
-                    RenderSystem.depthMask(false);
-                    RenderSystem.setShaderColor(color.red(), color.green(), color.blue(), 1f);
-                    RenderSystem.enableBlend();
-                    RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
-
-                    context.blitSprite(location -> COLORED_GUI_TEXTURED.apply(color, location), textureAtlasSprite, button.x() + 3, button.y() + 3, 8, 8, color.argb());
-
-                    RenderSystem.depthMask(true);
-                    RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-                    RenderSystem.disableBlend();
-                    RenderSystem.defaultBlendFunc();
+                    context.blitSprite(location -> AccessoriesPipelines.COLORED_GUI_TEXTURED.apply(color, location), textureAtlasSprite, button.x() + 3, button.y() + 3, 8, 8, color.argb());
                 });
 
         var tooltipData = new ArrayList<Component>();
@@ -273,7 +235,6 @@ public class ComponentUtils {
 
     public static ButtonComponent toggleBtn(net.minecraft.network.chat.Component message, Supplier<Boolean> stateSupplier, Consumer<ButtonComponent> onToggle, ButtonComponent.Renderer extraRendering) {
         ButtonComponent.Renderer texturedRenderer = (context, btn, delta) -> {
-            RenderSystem.enableDepthTest();
             var state = stateSupplier.get();
 
             ResourceLocation texture = getToggleBtnTexture(btn, state);
@@ -346,7 +307,8 @@ public class ComponentUtils {
                         .verticalAlignment(VerticalAlignment.CENTER)
         );
 
-        craftingLayout.children(childrenList).horizontalAlignment(HorizontalAlignment.CENTER)
+        craftingLayout.children(childrenList)
+                .horizontalAlignment(HorizontalAlignment.CENTER)
                 .verticalAlignment(VerticalAlignment.CENTER);
 
         return craftingLayout;

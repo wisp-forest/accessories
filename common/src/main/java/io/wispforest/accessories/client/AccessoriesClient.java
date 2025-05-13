@@ -1,10 +1,6 @@
 package io.wispforest.accessories.client;
 
-import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Window;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.screen.AccessoriesScreenTransitionHelper;
@@ -29,7 +25,6 @@ import io.wispforest.owo.config.ui.ConfigScreenProviders;
 import io.wispforest.owo.config.ui.OptionComponentFactory;
 import io.wispforest.owo.config.ui.component.OptionValueProvider;
 import io.wispforest.owo.config.ui.component.SearchAnchorComponent;
-import io.wispforest.owo.shader.GlProgram;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.container.Containers;
@@ -50,7 +45,6 @@ import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderDefines;
-import net.minecraft.client.renderer.ShaderProgram;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -72,9 +66,7 @@ public class AccessoriesClient {
 
     public static KeyMapping OPEN_SCREEN = null;
 
-    public static final ShaderProgram BLIT_SHADER_KEY = new ShaderProgram(Accessories.of("core/fish"), DefaultVertexFormat.BLIT_SCREEN, ShaderDefines.EMPTY);
-
-    public static GlProgram SPECTRUM_PROGRAM;
+    //public static final ShaderProgram BLIT_SHADER_KEY = new ShaderProgram(Accessories.of("core/fish"), DefaultVertexFormat.BLIT_SCREEN, ShaderDefines.EMPTY);
 
     public static final Event<WindowResizeCallback> WINDOW_RESIZE_CALLBACK_EVENT = EventFactory.createArrayBacked(WindowResizeCallback.class, callbacks -> (client, window) -> {
         for (var callback : callbacks) callback.onResized(client, window);
@@ -169,8 +161,6 @@ public class AccessoriesClient {
 
             AccessoriesRendererRegistry.onReload();
         });
-
-        AccessoriesClient.SPECTRUM_PROGRAM = new GlProgram(Accessories.of("spectrum_position_tex"), DefaultVertexFormat.POSITION_TEX_COLOR);
 
         initLayer();
     }
@@ -289,32 +279,6 @@ public class AccessoriesClient {
 
         return true;
     }
-
-    private static final BiFunction<Color, ResourceLocation, RenderType> GUI_TEXTURED = Util.memoize(
-            (color, resourceLocation) -> {
-                return RenderType.create(
-                        "gui_textured",
-                        DefaultVertexFormat.POSITION_TEX_COLOR,
-                        VertexFormat.Mode.QUADS,
-                        786432,
-                        RenderType.CompositeState.builder()
-                                .setTextureState(new RenderStateShard.TextureStateShard(resourceLocation, TriState.FALSE, false))
-                                .setShaderState(RenderType.POSITION_TEXTURE_COLOR_SHADER)
-                                .setWriteMaskState(RenderStateShard.COLOR_WRITE)
-                                .setTransparencyState(new RenderStateShard.TransparencyStateShard("custom_blend",
-                                        () -> {
-                                            RenderSystem.setShaderColor(color.red(), color.green(), color.blue(), 1f);
-                                            RenderSystem.enableBlend();
-                                            RenderSystem.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
-                                        }, () -> {
-                                    RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-                                    RenderSystem.disableBlend();
-                                    RenderSystem.defaultBlendFunc();
-                                }))
-                                .setDepthTestState(RenderType.LEQUAL_DEPTH_TEST)
-                                .createCompositeState(false));
-            }
-    );
 
     public static void initLayer() {
         AccessoriesScreenTransitionHelper.init();

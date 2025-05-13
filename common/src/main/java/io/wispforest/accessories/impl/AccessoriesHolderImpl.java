@@ -194,8 +194,8 @@ public class AccessoriesHolderImpl implements InstanceEndec {
 
                 var slots = EntitySlotLoader.getEntitySlots(entity);
 
-                for (var key : containersMap.getAllKeys()) {
-                    var containerElement = containersMap.getCompound(key);
+                for (var key : containersMap.keySet()) {
+                    var containerElement = containersMap.getCompoundOrEmpty(key);
 
                     if (containerElement.isEmpty()) continue; // TODO: Handle this case?
 

@@ -2,6 +2,7 @@ package io.wispforest.accessories.neoforge.client;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.AccessoriesClient;
+import io.wispforest.accessories.client.AccessoriesPipelines;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
@@ -12,11 +13,13 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -41,6 +44,7 @@ public class AccessoriesClientForge {
         eventBus.addListener(this::addRenderLayer);
         eventBus.addListener(this::registerReloadListeners);
         NeoForge.EVENT_BUS.addListener(this::onJoin);
+        eventBus.<RegisterRenderPipelinesEvent>addListener(event -> AccessoriesPipelines.registerPipelines(event::registerPipeline));
 
         AccessoriesClient.initConfigStuff();
     }
@@ -95,12 +99,13 @@ public class AccessoriesClientForge {
 
     public static void itemTooltipCallback(ItemTooltipEvent event) {
         var player = event.getEntity();
-
         var stackTooltip = event.getToolTip();
+        var stack = event.getItemStack();
+        var tooltipDisplay = stack.getOrDefault(DataComponents.TOOLTIP_DISPLAY, TooltipDisplay.DEFAULT);
 
         var tooltipData = new ArrayList<Component>();
 
-        AccessoriesEventHandler.getTooltipData(player, event.getItemStack(), tooltipData, event.getContext(), event.getFlags());
+        AccessoriesEventHandler.getTooltipData(player, stack, tooltipData, tooltipDisplay,  event.getContext(), event.getFlags());
 
         if (!tooltipData.isEmpty()) stackTooltip.addAll(1, tooltipData);
     }

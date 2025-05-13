@@ -2,8 +2,13 @@ package io.wispforest.accessories.mixin.client.cosmetic;
 
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.pond.CosmeticArmorLookupTogglable;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin implements CosmeticArmorLookupTogglable {
@@ -28,5 +33,10 @@ public abstract class LivingEntityMixin implements CosmeticArmorLookupTogglable 
         if(!((LivingEntity)(Object) this).level().isClientSide()) return false;
 
         return accessories$cosmeticArmorAlternative;
+    }
+
+    @Inject(method = "getItemBySlot", at = @At("HEAD"), cancellable = true)
+    private void accessories$getCosmeticAlternative(EquipmentSlot slot, CallbackInfoReturnable<ItemStack> cir) {
+        CosmeticArmorLookupTogglable.getAlternativeStack(((LivingEntity)(Object) this), slot, cir::setReturnValue);
     }
 }

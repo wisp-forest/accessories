@@ -43,9 +43,8 @@ public class AccessoriesContainerLookupCache extends EquipmentLookupCache {
         @Nullable var value = cache.getIfPresent(predicate);
 
         if (value == null) {
-            for (var stackEntry : this.container.getAccessories()) {
-                var stack = stackEntry.getSecond();
-                var reference = this.container.createReference(stackEntry.getFirst());
+            value = this.container.getAccessories().foreach((i, stack) -> {
+                var reference = this.container.createReference(i);
 
                 if(check == EquipmentChecking.COSMETICALLY_OVERRIDABLE) {
                     var cosmetic = this.container.getCosmeticAccessories().getItem(reference.slot());
@@ -59,12 +58,8 @@ public class AccessoriesContainerLookupCache extends EquipmentLookupCache {
                             : null;
                 });
 
-                if (entryReference != null) {
-                    value = Optional.of(entryReference);
-
-                    break;
-                }
-            }
+                return entryReference != null ? Optional.of(entryReference) : null;
+            });
 
             if (value == null) value = Optional.empty();
 
@@ -98,15 +93,13 @@ public class AccessoriesContainerLookupCache extends EquipmentLookupCache {
 
         var currentlyAllEquipped = new ArrayList<SlotEntryReference>();
 
-        for (var stackEntry : this.container.getAccessories()) {
-            var stack = stackEntry.getSecond();
+        this.container.getAccessories().foreach((i, stack) -> {
+            if (stack.isEmpty()) return;
 
-            if (stack.isEmpty()) continue;
-
-            var reference = this.container.createReference(stackEntry.getFirst());
+            var reference = this.container.createReference(i);
 
             AccessoryNestUtils.recursiveStackConsumption(stack, reference, (innerStack, ref) -> currentlyAllEquipped.add(new SlotEntryReference(ref, innerStack)));
-        }
+        });
 
         this.getAllEquipped = currentlyAllEquipped;
 

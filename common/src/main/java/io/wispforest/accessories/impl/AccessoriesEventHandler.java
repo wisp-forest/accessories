@@ -42,6 +42,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -49,6 +50,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.GameRules;
@@ -240,7 +242,7 @@ public class AccessoriesEventHandler {
                     // TODO: Move ticking below checks?
                     if (!currentStack.isEmpty()) {
                         // TODO: Document this behavior to prevent double ticking maybe!!!
-                        currentStack.inventoryTick(entity.level(), entity, -1, false);
+                        currentStack.inventoryTick(entity.level(), entity, null);
 
                         var accessory = AccessoryRegistry.getAccessoryOrDefault(currentStack);
 
@@ -450,19 +452,19 @@ public class AccessoriesEventHandler {
         AccessoryChangeCallback.EVENT.invoker().onChange(lastStack, currentStack, slotReference, stateChange);
     }
 
-    public static void getTooltipData(@Nullable LivingEntity entity, ItemStack stack, List<Component> tooltip, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
+    public static void getTooltipData(@Nullable LivingEntity entity, ItemStack stack, List<Component> tooltip,TooltipDisplay display, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
         var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
         if (accessory != null) {
             if (entity != null && AccessoriesCapability.get(entity) != null)
-                addEntityBasedTooltipData(entity, accessory, stack, tooltip, tooltipContext, tooltipType);
+                addEntityBasedTooltipData(entity, accessory, stack, tooltip, display, tooltipContext, tooltipType);
 
             accessory.getExtraTooltip(stack, tooltip, tooltipContext, tooltipType);
         }
     }
 
     // TODO: Rewrite for better handling of various odd cases
-    private static void addEntityBasedTooltipData(LivingEntity entity, Accessory accessory, ItemStack stack, List<Component> tooltip, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
+    private static void addEntityBasedTooltipData(LivingEntity entity, Accessory accessory, ItemStack stack, List<Component> tooltip, TooltipDisplay display, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
         // TODO: MAYBE DEPENDING ON ENTITY OR SOMETHING SHOW ALL VALID SLOTS BUT COLOR CODE THEM IF NOT VALID FOR ENTITY?
         // TODO: ADD BETTER HANDLING FOR POSSIBLE SLOTS THAT ARE EQUIPABLE IN BUT IS AT ZERO SIZE
         var validSlotTypes = new HashSet<>(SlotPredicateRegistry.getValidSlotTypes(entity, stack));
@@ -591,7 +593,7 @@ public class AccessoriesEventHandler {
             if (!defaultModifiers.isEmpty()) {
                 var attributeTooltip = new ArrayList<Component>();
 
-                addAttributeTooltip(entity, stack, defaultModifiers.getAttributeModifiers(false), attributeTooltip, tooltipContext, tooltipType);
+                addAttributeTooltip(entity, stack, defaultModifiers.getAttributeModifiers(false), attributeTooltip, display, tooltipContext, tooltipType);
 
                 slotTypeToTooltipInfo.put(null, attributeTooltip);
             }
@@ -604,7 +606,7 @@ public class AccessoriesEventHandler {
 
                 var attributeTooltip = new ArrayList<Component>();
 
-                addAttributeTooltip(entity, stack, modifiers.getAttributeModifiers(false), attributeTooltip, tooltipContext, tooltipType);
+                addAttributeTooltip(entity, stack, modifiers.getAttributeModifiers(false), attributeTooltip, display, tooltipContext, tooltipType);
 
                 slotTypeToTooltipInfo.put(slotType, attributeTooltip);
             }
@@ -675,10 +677,10 @@ public class AccessoriesEventHandler {
         }
     }
 
-    private static void addAttributeTooltip(LivingEntity entity, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, List<Component> tooltip, Item.TooltipContext context, TooltipFlag flag) {
+    private static void addAttributeTooltip(LivingEntity entity, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, List<Component> tooltip, TooltipDisplay display, Item.TooltipContext context, TooltipFlag flag) {
         if (multimap.isEmpty()) return;
 
-        AccessoriesInternals.addAttributeTooltips((entity instanceof Player player ? player : null), stack, multimap, tooltip::add, context, flag);
+        AccessoriesInternals.addAttributeTooltips((entity instanceof Player player ? player : null), stack, multimap, tooltip::add, display, context, flag);
     }
 
     @Nullable
