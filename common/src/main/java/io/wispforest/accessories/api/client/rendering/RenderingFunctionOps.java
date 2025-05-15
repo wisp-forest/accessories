@@ -16,10 +16,12 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -128,23 +130,24 @@ public class RenderingFunctionOps {
                         level,
                         packedLight,
                         packedOverlay,
-                        uniqueKey // TODO: CONFIRM THIS IS CORRECT
+                        Objects.hash(itemData, uniqueKey) // TODO: CONFIRM THIS IS CORRECT
                 );
             }
             case RenderingFunction.Model modelData -> {
-                var foundModel = Minecraft.getInstance().getModelManager().getItemModel(modelData.id());
+                var modelStack = Items.BEDROCK.getDefaultInstance();
 
-                // TODO: GET WORKING AGAIN
-//                    client.getItemRenderer().render(
-//                            Items.BEDROCK.getDefaultInstance(),
-//                            ItemDisplayContext.GROUND,
-//                            false,
-//                            matrices,
-//                            multiBufferSource,
-//                            packedLight,
-//                            packedOverlay,
-//                            foundModel
-//                    );
+                modelStack.set(DataComponents.ITEM_MODEL, modelData.id());
+
+                client.getItemRenderer().renderStatic(
+                        modelStack,
+                        ItemDisplayContext.GROUND,
+                        packedLight,
+                        packedOverlay,
+                        matrices,
+                        multiBufferSource,
+                        level,
+                        Objects.hash(modelData, uniqueKey)
+                );
             }
             case RenderingFunction.Particle particleData -> {
                 if (!PARTICLE_UPDATE_CACHE.hasAllottedTime(new ParticleTimeKey(targetEntity.getUUID(), uniqueKey, particleData), particleData.delay())) return;
@@ -320,7 +323,11 @@ public class RenderingFunctionOps {
         }
     }
 
-    private record ParticleTimeKey(UUID entityUUID, int uniqueKey, RenderingFunction.Particle particleData) { }
+    private record ParticleTimeKey(UUID entityUUID, int uniqueKey) {
+        private ParticleTimeKey(UUID entityUUID, int uniqueKey, RenderingFunction.Particle particleData) {
+            this(entityUUID, Objects.hash(uniqueKey, particleData));
+        }
+    }
 
     public static boolean shouldRenderInFirstPerson(ItemStack stack, HumanoidArm arm, SlotReference slotReference, List<RenderingFunction> renderingFunctions) {
         for (var function : renderingFunctions) {

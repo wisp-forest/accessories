@@ -231,11 +231,23 @@ public sealed interface RenderingFunction permits DeferredRenderer, Block, Compo
     }
 
     record Compound(List<RenderingFunction> renderingFunctions, ArmTarget firstPersonArmTarget) implements RenderingFunction {
+        private static final StructEndec<Compound> OLD_FORMAT_ENDEC = StructEndecBuilder.of(
+                RenderingFunction.ENDEC.fieldOf("rendering_function", s -> s.renderingFunctions().getFirst()),
+                Endec.forEnum(ArmTarget.class).optionalFieldOf("first_person_arm_target", Compound::firstPersonArmTarget, () -> ArmTarget.NONE),
+                (function, armTarget) -> new Compound(List.of(function), armTarget)
+        );
+
         public static final StructEndec<Compound> ENDEC = StructEndecBuilder.of(
                 RenderingFunction.ENDEC.listOf().fieldOf("rendering_functions", Compound::renderingFunctions),
                 Endec.forEnum(ArmTarget.class).optionalFieldOf("first_person_arm_target", Compound::firstPersonArmTarget, () -> ArmTarget.NONE),
                 Compound::new
-        );
+        ).structuredCatchErrors((ctx, serializer, struct, mainException) -> {
+            try {
+                return OLD_FORMAT_ENDEC.decodeStruct(ctx, serializer, struct);
+            } catch (Exception ignored) {}
+
+            throw new RuntimeException(mainException);
+        });
     }
 
     final class RawRenderer implements RenderingFunction {

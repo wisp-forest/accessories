@@ -65,11 +65,11 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
     }
 
     public static RenderingFunction getOrResolveDeferredRenderer(DeferredRenderer deferredRenderer, boolean isClientSide) {
-        var result = CLIENT_OVERRIDES.getOrResolveRendererInitial(deferredRenderer, isClientSide);
+        var result = CLIENT_OVERRIDES.getOrResolveRendererInitial(deferredRenderer, isClientSide, true);
 
         if (result != null) return result;
 
-        return PRIMARY.getOrResolveRendererInitial(deferredRenderer, isClientSide);
+        return PRIMARY.getOrResolveRendererInitial(deferredRenderer, isClientSide, false);
     }
 
     @Nullable
@@ -104,7 +104,7 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
     }
 
     @Nullable
-    private RenderingFunction.Compound getOrResolveRendererInitial(DeferredRenderer deferredRenderer, boolean isClientSide) {
+    private RenderingFunction.Compound getOrResolveRendererInitial(DeferredRenderer deferredRenderer, boolean isClientSide, boolean allowMissing) {
         Deque<ResourceLocation> currentResolveTree = new ArrayDeque<>();
         var references = new HashMap<>(deferredRenderer.references());
 
@@ -123,7 +123,7 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
         }
 
         if (function == null) {
-            function = resolveRenderer(currentResolveTree, deferredRenderer.rendererId(), references, isClientSide);
+            function = resolveRenderer(currentResolveTree, deferredRenderer.rendererId(), references, isClientSide, allowMissing);
 
             (isClientSide ? resolvedClient : resolvedServer).put(uuid, function);
         }
@@ -134,7 +134,7 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
         return function;
     }
 
-    private RenderingFunction.Compound resolveRenderer(Deque<ResourceLocation> currentResolveTree, ResourceLocation id, Map<String, JsonElement> references, boolean isClientSide) {
+    private RenderingFunction.Compound resolveRenderer(Deque<ResourceLocation> currentResolveTree, ResourceLocation id, Map<String, JsonElement> references, boolean isClientSide, boolean allowMissing) {
         currentResolveTree.push(id);
 
         RawRenderer rawRenderer = null;
@@ -143,12 +143,14 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
         if (rawRenderer == null) rawRenderer = getEntry(id, isClientSide);
 
         if (rawRenderer == null) {
-            var errorSet = (isClientSide ? missingRenderersClient : missingRenderersServer);
+            if (allowMissing) {
+                var errorSet = (isClientSide ? missingRenderersClient : missingRenderersServer);
 
-            if (!errorSet.contains(id)) {
-                LOGGER.error("Unable to resolve renderer [{}] as it was not found within Custom Renderer Registry!", id);
+                if (!errorSet.contains(id)) {
+                    LOGGER.error("Unable to resolve renderer [{}] as it was not found within Custom Renderer Registry!", id);
 
-                errorSet.add(id);
+                    errorSet.add(id);
+                }
             }
 
             return null;
