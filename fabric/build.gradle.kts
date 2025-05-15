@@ -109,6 +109,7 @@ loom {
             ideConfigGenerated(true)
             name("Testmod Client")
             source(sourceSets["testmod"])
+            vmArg("-XX:+AllowEnhancedClassRedefinition")
         }
         create("testmodClientRenderDoc") {
             client()
@@ -116,12 +117,14 @@ loom {
             name("Testmod Client - (RenderDoc)")
             source(sourceSets["testmod"])
             vmArg("-Dowo.renderdocPath=${System.getenv("renderDocPath")}")
+            vmArg("-XX:+AllowEnhancedClassRedefinition")
         }
         create("testmodServer") {
             server()
             ideConfigGenerated(true)
             name("Testmod Server")
             source(sourceSets["testmod"])
+            vmArg("-XX:+AllowEnhancedClassRedefinition")
         }
         create("clientRenderDoc") {
             client()
@@ -129,6 +132,7 @@ loom {
             name("Minecraft Client - (RenderDoc)")
             source(sourceSets["main"])
             vmArg("-Dowo.renderdocPath=${System.getenv("renderDocPath")}")
+            vmArg("-XX:+AllowEnhancedClassRedefinition")
         }
         create("clientMixinDebug") {
             client()
@@ -161,6 +165,7 @@ loom {
             vmArg("-Dlog4j.configurationFile=${file(".gradle/loom-cache/log4j.xml").toString()}")
             vmArg("-Dfabric.log.disableAnsi=false")
             vmArg("-Dmixin.debug.export=true")
+            vmArg("-XX:+AllowEnhancedClassRedefinition")
         }
     }
 
