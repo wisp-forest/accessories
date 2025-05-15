@@ -804,7 +804,7 @@ public class AccessoriesEventHandler {
 
                 var equipReference = capability.canEquipAccessory(stack, true);
 
-                if (equipReference != null && accessory.canEquipFromUse(stack)) {
+                if (equipReference != null && accessory.canEquipFromUse(stack, equipReference.left())) {
                     accessory.onEquipFromUse(stack, equipReference.left());
 
                     var newHandStack = stack.copy();
@@ -847,7 +847,7 @@ public class AccessoriesEventHandler {
 
                 var equipReference = targetCapability.canEquipAccessory(stack, true);
 
-                if (equipReference != null && accessory.canEquipFromUse(stack)) {
+                if (equipReference != null && accessory.canEquipFromUse(stack, equipReference.left())) {
                     if (!stack.isEmpty()) accessory.onEquipFromUse(stack, equipReference.left());
 
                     var newHandStack = stack.copy();

@@ -36,6 +36,10 @@ public class AccessoriesDataComponents {
             builder -> builder.endec(AccessoryCustomRendererComponent.ENDEC, BASE_CTX)
     );
 
+    public static final DataComponentType<AccessoryMobEffectsComponent> MOB_EFFECTS = register(Accessories.of("mob_effects"),
+            builder -> builder.endec(AccessoryMobEffectsComponent.ENDEC, BASE_CTX)
+    );
+
     private static <T> DataComponentType<T> register(ResourceLocation string, UnaryOperator<DataComponentType.Builder<T>> unaryOperator) {
         return Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, string, ((DataComponentType.Builder)unaryOperator.apply(DataComponentType.builder())).build());
     }

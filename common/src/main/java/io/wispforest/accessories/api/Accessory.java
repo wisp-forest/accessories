@@ -3,6 +3,7 @@ package io.wispforest.accessories.api;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
+import io.wispforest.accessories.api.components.AccessoryMobEffectsComponent;
 import io.wispforest.accessories.api.components.AccessoryStackSettings;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
@@ -23,6 +24,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.MustBeInvokedByOverriders;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -34,11 +36,20 @@ public interface Accessory {
 
     /**
      * Called on every tick of the wearing {@link LivingEntity} on both client and server.
+     * <br/><br/>
+     * Contains the code for handling {@link AccessoryMobEffectsComponent} which can be disabled
+     * by not calling override
      *
      * @param stack the stack being ticked
      * @param reference the slot the accessory is in
      */
-    default void tick(ItemStack stack, SlotReference reference){}
+    @MustBeInvokedByOverriders
+    default void tick(ItemStack stack, SlotReference reference){
+        if (stack.has(AccessoriesDataComponents.MOB_EFFECTS)) {
+            stack.get(AccessoriesDataComponents.MOB_EFFECTS)
+                    .handleReapplyingEffects(reference.entity(), reference.entity().level().getGameTime());
+        }
+    }
 
     /**
      * Called when the accessory is equipped
@@ -54,7 +65,12 @@ public interface Accessory {
      * @param stack the stack being unequipped
      * @param reference the slot the accessory is in
      */
-    default void onUnequip(ItemStack stack, SlotReference reference){}
+    default void onUnequip(ItemStack stack, SlotReference reference){
+        if (stack.has(AccessoriesDataComponents.MOB_EFFECTS)) {
+            stack.get(AccessoriesDataComponents.MOB_EFFECTS)
+                    .handleRemovingEffects(reference.entity());
+        }
+    }
 
     /**
      * @param stack the stack to be equipped
@@ -70,6 +86,7 @@ public interface Accessory {
      * @param reference the slot the accessory is in
      * @return whether the given stack can be unequipped
      */
+    @MustBeInvokedByOverriders
     default boolean canUnequip(ItemStack stack, SlotReference reference){
         if(EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) {
             return reference.entity() instanceof Player player && player.isCreative();
@@ -107,6 +124,7 @@ public interface Accessory {
      * @param reference The reference to the targeted {@link LivingEntity}, slot and index
      * @param source    The specific {@link DamageSource} that lead to the drop rule evaluation
      */
+    @MustBeInvokedByOverriders
     default DropRule getDropRule(ItemStack stack, SlotReference reference, DamageSource source){
         return stack.getOrDefault(AccessoriesDataComponents.STACK_SETTINGS, AccessoryStackSettings.DEFAULT)
                 .dropRule();
@@ -120,6 +138,7 @@ public interface Accessory {
      * @param stack The Stack being prepared for dropping
      * @param reference The reference to the targeted {@link LivingEntity}, slot and index
      */
+    @MustBeInvokedByOverriders
     default void onEquipFromUse(ItemStack stack, SlotReference reference){
         var sound = getEquipSound(stack, reference);
 
@@ -141,11 +160,7 @@ public interface Accessory {
         return new SoundEventData(equipSound, 1.0f, 1.0f);
     }
 
-    /**
-     * Returns whether the given stack can be equipped from use
-     *
-     * @param stack The Stack attempted to be equipped
-     */
+    @Deprecated(forRemoval = true)
     default boolean canEquipFromUse(ItemStack stack){
         try {
             return canEquipFromUse(stack, null);
@@ -154,8 +169,21 @@ public interface Accessory {
         }
     }
 
-    @Deprecated(forRemoval = true)
+    /**
+     * Returns whether the given stack can be equipped from use
+     *
+     * @param stack The Stack attempted to be equipped
+     */
+    @MustBeInvokedByOverriders
     default boolean canEquipFromUse(ItemStack stack, SlotReference reference){
+        if (stack.has(AccessoriesDataComponents.STACK_SETTINGS)) {
+            return stack.get(AccessoriesDataComponents.STACK_SETTINGS).canEquipFromUse();
+        }
+
+        if (stack.has(DataComponents.EQUIPPABLE)) {
+            return stack.get(DataComponents.EQUIPPABLE).swappable();
+        }
+
         return true;
     }
 
