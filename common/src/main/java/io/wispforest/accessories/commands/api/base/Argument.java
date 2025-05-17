@@ -1,12 +1,13 @@
-package io.wispforest.accessories.commands.api;
+package io.wispforest.accessories.commands.api.base;
 
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
+import io.wispforest.accessories.commands.api.core.NamedArgumentGetter;
+import io.wispforest.accessories.commands.api.core.ContextAwareLiteralArgumentBuilder;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -14,26 +15,32 @@ import java.util.function.Function;
 
 public sealed abstract class Argument<T> permits Argument.ArgumentBuilderConstructor {
 
-    static <T> Argument<T> arg(String name, ArgumentType<?> type, CommandBuilderHelper.NamedArgumentGetter<T> getter) {
+    public static <S, T> Argument<T> required(String name, ArgumentType<?> type, NamedArgumentGetter<S, T> getter) {
         return ArgumentWithType.of(name, type, getter);
     }
 
-    static <T> Argument<T> defaultedArg(String name, ArgumentType<?> type, CommandBuilderHelper.NamedArgumentGetter<T> getter, T defaultValue) {
-        return ArgumentWithType.defaulted(name, type, getter, defaultValue);
+    public static <S, T> Argument<T> defaulted(String name, ArgumentType<?> type, NamedArgumentGetter<S, T> getter, T defaultValue) {
+        return ArgumentWithType.ofDefaulted(name, type, getter, defaultValue);
     }
 
-    static Argument<String> branches(String ...branches) {
+    public static Argument<String> branches(String ...branches) {
         return branches(List.of(branches));
     }
 
-    static Argument<String> branches(List<String> branches) {
+    public static Argument<String> branches(List<String> branches) {
         return new LiteralBranches(branches);
     }
 
-    public abstract T getArgument(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException;
+    public static Argument<String> asKeyPath(String branch) {
+        return LiteralBranch.asKeyPath(branch);
+    }
+
+    public abstract <S> T getArgument(CommandContext<S> ctx) throws CommandSyntaxException;
+
+    // -- INTERNAL API BELOW... KINDA CRING ALSO --
 
     static non-sealed abstract class ArgumentBuilderConstructor<T> extends Argument<T> {
-        public abstract ArgumentBuilder<CommandSourceStack, ?> createNodeBuilder();
+        public abstract <S> ArgumentBuilder<S, ?> createNodeBuilder();
 
         public abstract String name();
 
@@ -45,11 +52,11 @@ public sealed abstract class Argument<T> permits Argument.ArgumentBuilderConstru
     static class ArgumentWithType<T> extends ArgumentBuilderConstructor<T> {
         private final String name;
         private final ArgumentType<?> type;
-        private final CommandBuilderHelper.NamedArgumentGetter<T> getter;
+        private final NamedArgumentGetter<?, T> getter;
         private final boolean defaulted;
         private final @Nullable T defaultValue;
 
-        ArgumentWithType(String name, ArgumentType<?> type, CommandBuilderHelper.NamedArgumentGetter<T> getter, boolean defaulted, @Nullable T defaultValue) {
+        ArgumentWithType(String name, ArgumentType<?> type, NamedArgumentGetter<?, T> getter, boolean defaulted, @Nullable T defaultValue) {
             this.name = name;
             this.type = type;
             this.getter = getter;
@@ -57,23 +64,23 @@ public sealed abstract class Argument<T> permits Argument.ArgumentBuilderConstru
             this.defaultValue = defaultValue;
         }
 
-        public static <T> ArgumentWithType<T> of(String name, ArgumentType<?> type, CommandBuilderHelper.NamedArgumentGetter<T> getter) {
+        public static <T> ArgumentWithType<T> of(String name, ArgumentType<?> type, NamedArgumentGetter<?, T> getter) {
             return new ArgumentWithType<>(name, type, getter, false, null);
         }
 
-        public static <T> ArgumentWithType<T> defaulted(String name, ArgumentType<?> type, CommandBuilderHelper.NamedArgumentGetter<T> getter, T defaultValue) {
+        public static <T> ArgumentWithType<T> ofDefaulted(String name, ArgumentType<?> type, NamedArgumentGetter<?, T> getter, T defaultValue) {
             return new ArgumentWithType<>(name, type, getter, true, defaultValue);
         }
 
         @Override
-        public ArgumentBuilder<CommandSourceStack, ?> createNodeBuilder() {
-            return Commands.argument(name, type);
+        public <S> ArgumentBuilder<S, ?> createNodeBuilder() {
+            return RequiredArgumentBuilder.argument(name, type);
         }
 
         @Override
-        public T getArgument(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        public <S> T getArgument(CommandContext<S> ctx) throws CommandSyntaxException {
             try {
-                return this.getter.getArgument(ctx, name);
+                return ((NamedArgumentGetter<S, T>) this.getter).getArgument(ctx, name);
             } catch (IllegalArgumentException e) {
                 if (defaulted) return defaultValue;
 
@@ -94,9 +101,9 @@ public sealed abstract class Argument<T> permits Argument.ArgumentBuilderConstru
 
     static final class LiteralBranch extends ArgumentBuilderConstructor<String> {
         private final String branch;
-        private final Function<String, ArgumentBuilder<CommandSourceStack, ?>> argumentBuilderFunction;
+        private final Function<String, ArgumentBuilder<?, ?>> argumentBuilderFunction;
 
-        LiteralBranch(String branch, Function<String, ArgumentBuilder<CommandSourceStack, ?>> argumentBuilderFunction) {
+        LiteralBranch(String branch, Function<String, ArgumentBuilder<?, ?>> argumentBuilderFunction) {
             this.branch = branch;
             this.argumentBuilderFunction = argumentBuilderFunction;
         }
@@ -105,13 +112,13 @@ public sealed abstract class Argument<T> permits Argument.ArgumentBuilderConstru
             return new LiteralBranch(branch, ContextAwareLiteralArgumentBuilder::literal);
         }
 
-        public static LiteralBranch of(String branch) {
+        public static LiteralBranch asKeyPath(String branch) {
             return new LiteralBranch(branch, LiteralArgumentBuilder::literal);
         }
 
         @Override
-        public ArgumentBuilder<CommandSourceStack, ?> createNodeBuilder() {
-            return argumentBuilderFunction.apply(branch);
+        public <S> ArgumentBuilder<S, ?> createNodeBuilder() {
+            return (ArgumentBuilder<S, ?>) argumentBuilderFunction.apply(branch);
         }
 
         @Override
@@ -120,7 +127,7 @@ public sealed abstract class Argument<T> permits Argument.ArgumentBuilderConstru
         }
 
         @Override
-        public String getArgument(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        public <S> String getArgument(CommandContext<S> ctx) throws CommandSyntaxException {
             return ContextAwareLiteralArgumentBuilder.getBranch(ctx);
         }
     }
@@ -138,12 +145,12 @@ public sealed abstract class Argument<T> permits Argument.ArgumentBuilderConstru
         }
 
         @Override
-        public String getArgument(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+        public <S> String getArgument(CommandContext<S> ctx) throws CommandSyntaxException {
             return ContextAwareLiteralArgumentBuilder.getBranch(ctx);
         }
 
         @Override
-        public ArgumentBuilder<CommandSourceStack, ?> createNodeBuilder() {
+        public <S> ArgumentBuilder<S, ?> createNodeBuilder() {
             throw new IllegalArgumentException("Unable to create node builder for LiteralBranches");
         }
 

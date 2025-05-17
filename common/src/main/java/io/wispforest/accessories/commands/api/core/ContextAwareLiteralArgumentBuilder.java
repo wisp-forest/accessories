@@ -1,4 +1,4 @@
-package io.wispforest.accessories.commands.api;
+package io.wispforest.accessories.commands.api.core;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.RedirectModifier;
@@ -13,15 +13,14 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.wispforest.accessories.mixin.CommandContextAccessor;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.network.chat.Component;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 
-class ContextAwareLiteralArgumentBuilder<S> extends LiteralArgumentBuilder<S> {
+public class ContextAwareLiteralArgumentBuilder<S> extends LiteralArgumentBuilder<S> {
     public static final String literalStackKey = "accessories:literal_stack";
 
     protected ContextAwareLiteralArgumentBuilder(String literal) {
@@ -31,6 +30,26 @@ class ContextAwareLiteralArgumentBuilder<S> extends LiteralArgumentBuilder<S> {
     public static <S> ContextAwareLiteralArgumentBuilder<S> literal(final String name) {
         return new ContextAwareLiteralArgumentBuilder<>(name);
     }
+
+    public static <S> String getBranch(CommandContext<S> ctx) throws CommandSyntaxException {
+        var argument = ((CommandContextAccessor<S>) ctx).accessories$arguments().get(literalStackKey);
+
+        if (!(argument instanceof ParsedArgumentStack<S, ?> parsedArguments)) {
+            throw INCORRECT_COMMAND_LITERAL_STACK.create(argument);
+        }
+
+        return (String) parsedArguments.pollFirst().getResult();
+    }
+
+    public static <S> Optional<LiteralArgumentBuilder<S>> builderFromNode(CommandNode<S> node) {
+        if (node instanceof ContextAwareLiteralArgumentBuilder.ContextedLiteralCommandNode<S> node1) {
+            return Optional.of(literal(node1.getLiteral()));
+        }
+
+        return Optional.empty();
+    }
+
+    //--
 
     @Override
     public LiteralCommandNode<S> build() {
@@ -46,24 +65,10 @@ class ContextAwareLiteralArgumentBuilder<S> extends LiteralArgumentBuilder<S> {
         return super.getLiteral();
     }
 
-    public static String getBranch(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
-        var argument = ((CommandContextAccessor<CommandSourceStack>) ctx).accessories$arguments().get(literalStackKey);
-
-        if (!(argument instanceof ParsedArgumentStack<CommandSourceStack,?> parsedArguments)) {
-            throw INCORRECT_COMMAND_LITERAL_STACK.create(argument);
-        }
-
-        return (String) parsedArguments.pollFirst().getResult();
-    }
-
-    public static final DynamicCommandExceptionType INCORRECT_COMMAND_LITERAL_STACK = new DynamicCommandExceptionType(
-            object -> {
-                if (object != null){
-                    return Component.literal("Invalid command literal stack argument as its currently: " + ((ParsedArgument)object).getResult().toString());
-                } else {
-                    return Component.literal("Invalid command literal stack argument as its currently empty!");
-                }
-            }
+    private static final DynamicCommandExceptionType INCORRECT_COMMAND_LITERAL_STACK = new DynamicCommandExceptionType(
+            object -> () -> (object != null)
+                    ? "Invalid command literal stack argument as its currently: " + ((ParsedArgument)object).getResult().toString()
+                    : "Invalid command literal stack argument as its currently empty!"
     );
 
     static class ContextedLiteralCommandNode<S> extends LiteralCommandNode<S> {

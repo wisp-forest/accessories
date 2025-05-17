@@ -1,4 +1,4 @@
-package io.wispforest.accessories.commands.api;
+package io.wispforest.accessories.commands.api.core;
 
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.arguments.ArgumentType;

@@ -1,81 +1,77 @@
-package io.wispforest.accessories.commands.api;
+package io.wispforest.accessories.commands.api.base;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Range;
-import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.ArgumentBuilder;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import io.wispforest.accessories.Accessories;
-import io.wispforest.endec.Endec;
-import io.wispforest.endec.impl.StructEndecBuilder;
-import net.minecraft.commands.CommandBuildContext;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.resources.ResourceLocation;
+import io.wispforest.accessories.commands.api.core.CommandAddition;
+import io.wispforest.accessories.commands.api.core.Key;
 
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
-import io.wispforest.accessories.commands.api.Argument.*;
+import io.wispforest.accessories.commands.api.base.Argument.*;
 
-public abstract class CommandBuilderHelper extends CommandExecuteBuilder {
+public abstract sealed class BaseCommandGenerator<S, B extends CommandTreeBuilder<S, B>> implements CommandTreeBuilder<S, B>, CommandNodeHandler<S> permits CommandGenerator, BranchedCommandGenerator {
 
-    public Map<String, NodeTreeHelper> baseCommandPart = new LinkedHashMap<>();
+    private final Map<String, NodeTreeHelper<S>> baseCommandPart = new LinkedHashMap<>();
 
-    public BiMap<Key, NodeTreeHelper> commandParts = HashBiMap.create();
+    private final BiMap<Key, NodeTreeHelper<S>> commandParts = HashBiMap.create();
 
-    public void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context) {
-        generateTrees(context);
-
-        // TODO: DEHARDCODE LIT ARG BUILDER CAST
-        this.baseCommandPart.forEach((string, builder) -> dispatcher.register((LiteralArgumentBuilder<CommandSourceStack>) builder.addToNode()));
+    public final void addToCommandsAndClear(BiConsumer<String, NodeTreeHelper<S>> addCallback) {
+        this.baseCommandPart.forEach(addCallback);
 
         this.baseCommandPart.clear();
         this.commandParts.clear();
     }
 
-    protected abstract void generateTrees(CommandBuildContext context);
-
-    public void registerArgumentTypes(ArgumentRegistration registration) {}
-
     //--
 
-    public static <T> Argument<T> arg(String name, ArgumentType<?> type, NamedArgumentGetter<T> getter) {
-        return Argument.arg(name, type, getter);
+    @Override
+    public void modifyNode(Key key, List<? extends Argument<?>> args, CommandAddition<S> addition) {
+        args = new ArrayList<>(args);
+
+        SequencedMap<Key, ArgumentBuilderConstructor<?>> unpackedArgs = new LinkedHashMap<>();
+
+        var branchArgs = key.path().stream()
+                .map(Argument.LiteralBranch::asKeyPath)
+                .toList();
+
+        args.addAll(0, (List) branchArgs);
+
+        var runningKey = new Key();
+
+        for (var arg : args) {
+            if (arg instanceof Argument.ArgumentBuilderConstructorList) {
+                throw new IllegalStateException("Unable to handle Branch arguments here!");
+            }
+
+            var castedArg = (Argument.ArgumentBuilderConstructor<?>) arg;
+
+            runningKey = runningKey.child(castedArg.name());
+
+            unpackedArgs.put(runningKey, castedArg);
+        }
+
+        modifyNode(unpackedArgs.lastEntry().getKey(), unpackedArgs, addition);
     }
 
-    public static <T> Argument<T> defaultedArg(String name, ArgumentType<?> type, NamedArgumentGetter<T> getter, T defaultValue) {
-        return Argument.defaultedArg(name, type, getter, defaultValue);
-    }
-
-    public static Argument<String> branches(String ...branches) {
-        return branches(List.of(branches));
-    }
-
-    public static Argument<String> branches(List<String> branches) {
-        return new Argument.LiteralBranches(branches);
-    }
-
-    protected void addToNode(Key key, SequencedMap<Key, ArgumentBuilderConstructor<?>> unpackedArgs, CommandAddition addition) {
+    private void modifyNode(Key key, SequencedMap<Key, ArgumentBuilderConstructor<?>> unpackedArgs, CommandAddition<S> addition) {
         if (commandParts.containsKey(key)) {
             commandParts.get(key).andWith(addition);
 
             return;
         }
 
-        NodeTreeHelper helper = new NodeTreeHelper(unpackedArgs.get(key).createNodeBuilder());
+        NodeTreeHelper<S> helper = new NodeTreeHelper<>(unpackedArgs.get(key).<S>createNodeBuilder());
 
         var parentKey = key.parent();
 
         if (parentKey == null) {
             this.baseCommandPart.put(key.topPath(), helper);
         } else {
-            addToNode(parentKey, unpackedArgs, builder -> builder.then(helper.addToNode()));
+            modifyNode(parentKey, unpackedArgs, builder -> builder.then(helper.addToNode()));
 
             helper.andWith(addition);
         }
@@ -85,8 +81,16 @@ public abstract class CommandBuilderHelper extends CommandExecuteBuilder {
 
     //--
 
-    protected void addWithArgsAndKey(Key key, List<Argument<?>> commandArgs, CommandAddition commandAddition) {
-        this.addToNode(key, builder -> builder);
+
+    @Override
+    public B createLeaves(Key key, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
+        createLeavesWithKeyAndArgs(key, commandArgs, commandAddition);
+
+        return getThis();
+    }
+
+    public void createLeavesWithKeyAndArgs(Key key, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
+        this.modifyNode(key, builder -> builder);
 
         var rootNodeHelper = this.commandParts.get(key);
 
@@ -99,7 +103,7 @@ public abstract class CommandBuilderHelper extends CommandExecuteBuilder {
             commandArgs = new ArrayList<>(commandArgs);
         }
 
-        SequencedMap<Key, NodeTreeHelper> baseBranchEnds = new LinkedHashMap<>(Map.of(key, rootNodeHelper));
+        SequencedMap<Key, NodeTreeHelper<S>> baseBranchEnds = new LinkedHashMap<>(Map.of(key, rootNodeHelper));
 
         // The section handles the Literal Arguments to build the nodeTreeHelper for the final set of arguments or just uses the root node
         //--
@@ -201,17 +205,17 @@ public abstract class CommandBuilderHelper extends CommandExecuteBuilder {
                     .toList();
 
             baseBranchEnds.forEach((key1, baseBranchEnd) -> {
-                NodeTreeHelper baseHelper = baseBranchEnd;
+                NodeTreeHelper<S> baseHelper = baseBranchEnd;
 
                 for (var requiredArg : requiredArgs) {
-                    var newNode = requiredArg.createNodeBuilder();
+                    var newNode = requiredArg.<S>createNodeBuilder();
 
                     var newKey = key1.child(requiredArg.name());
 
                     if (this.commandParts.containsKey(newKey)) {
                         baseHelper = this.commandParts.get(newKey);
                     } else {
-                        var newHelper = new NodeTreeHelper(newNode);
+                        var newHelper = new NodeTreeHelper<S>(newNode);
 
                         baseHelper.andWith(builder -> builder.then(newHelper.addToNode()));
 
@@ -225,14 +229,14 @@ public abstract class CommandBuilderHelper extends CommandExecuteBuilder {
                     baseHelper.andWith(commandAddition);
                 } else {
                     for (var optionalArg : optionalArgs) {
-                        var newNode = optionalArg.createNodeBuilder();
+                        var newNode = optionalArg.<S>createNodeBuilder();
 
                         var newKey = key1.child(optionalArg.name());
 
                         if (this.commandParts.containsKey(newKey)) {
                             baseHelper = this.commandParts.get(newKey);
                         } else {
-                            var newHelper = new NodeTreeHelper(newNode);
+                            var newHelper = new NodeTreeHelper<S>(newNode);
 
                             baseHelper
                                     .andWith(builder -> builder.then(newHelper.addToNode()))
@@ -250,8 +254,8 @@ public abstract class CommandBuilderHelper extends CommandExecuteBuilder {
         }
     }
 
-    private SequencedMap<Key, NodeTreeHelper> buildBranchEnds(SequencedMap<Key, NodeTreeHelper> currentBranchEnds, ArgumentBuilderConstructorList argBuilderList, List<ArgumentBuilderConstructor<?>> args) {
-        SequencedMap<Key, NodeTreeHelper> baseBranchEnds = new LinkedHashMap<>();
+    private SequencedMap<Key, NodeTreeHelper<S>> buildBranchEnds(SequencedMap<Key, NodeTreeHelper<S>> currentBranchEnds, ArgumentBuilderConstructorList argBuilderList, List<ArgumentBuilderConstructor<?>> args) {
+        SequencedMap<Key, NodeTreeHelper<S>> baseBranchEnds = new LinkedHashMap<>();
 
         currentBranchEnds.forEach((key, baseBranchEnd) -> {
             for (var arg : args) {
@@ -259,14 +263,14 @@ public abstract class CommandBuilderHelper extends CommandExecuteBuilder {
 
                 key = key.child(arg.name());
 
-                var newNode = arg.createNodeBuilder();
+                var newNode = arg.<S>createNodeBuilder();
 
-                NodeTreeHelper newHelper;
+                NodeTreeHelper<S> newHelper;
 
                 if (this.commandParts.containsKey(key)) {
                     baseBranchEnd = this.commandParts.get(key);
                 } else {
-                    newHelper = new NodeTreeHelper(newNode);
+                    newHelper = new NodeTreeHelper<>(newNode);
 
                     this.commandParts.put(key, newHelper);
 
@@ -285,23 +289,23 @@ public abstract class CommandBuilderHelper extends CommandExecuteBuilder {
             baseBranchEnds.put(key, baseBranchEnd);
         });
 
-        SequencedMap<Key, NodeTreeHelper> finalBranchEnds = new LinkedHashMap<>();
+        SequencedMap<Key, NodeTreeHelper<S>> finalBranchEnds = new LinkedHashMap<>();
 
         if (argBuilderList.builders().isEmpty()) {
             finalBranchEnds.putAll(baseBranchEnds);
         } else {
             baseBranchEnds.forEach((key, branchNode) -> {
                 for (var argBuilderConstructor : argBuilderList.builders()) {
-                    var newNode = argBuilderConstructor.createNodeBuilder();
+                    var newNode = argBuilderConstructor.<S>createNodeBuilder();
 
                     var branchKey = key.child(argBuilderConstructor.name());
 
-                    NodeTreeHelper newHelper;
+                    NodeTreeHelper<S> newHelper;
 
                     if (this.commandParts.containsKey(branchKey)) {
-                        newHelper = this.commandParts.get(branchNode);
+                        newHelper = this.commandParts.get(branchKey);
                     } else {
-                        newHelper = new NodeTreeHelper(newNode);
+                        newHelper = new NodeTreeHelper<S>(newNode);
 
                         branchNode.andWith(builder -> builder.then(newHelper.addToNode()));
                     }
@@ -314,25 +318,25 @@ public abstract class CommandBuilderHelper extends CommandExecuteBuilder {
         return finalBranchEnds;
     }
 
-    private static final class NodeTreeHelper {
-        private final ArgumentBuilder<CommandSourceStack, ?> baseNode;
-        private CommandAddition commandAddition = builder -> builder;
+    public static final class NodeTreeHelper<S> {
+        private final ArgumentBuilder<S, ?> baseNode;
+        private CommandAddition<S> commandAddition = builder -> builder;
 
-        public NodeTreeHelper(ArgumentBuilder<CommandSourceStack, ?> baseNode) {
+        public NodeTreeHelper(ArgumentBuilder<S, ?> baseNode) {
             Objects.requireNonNull(baseNode, () -> "NodeTreeHelper was attempted to be constructed with a null base node");
 
             this.baseNode = baseNode;
         }
 
-        public ArgumentBuilder<CommandSourceStack, ?> addToNode() {
+        public ArgumentBuilder<S, ?> addToNode() {
             return currentFunc().addToBuilder(baseNode);
         }
 
-        public CommandAddition currentFunc() {
+        public CommandAddition<S> currentFunc() {
             return commandAddition;
         }
 
-        public NodeTreeHelper andWith(CommandAddition func) {
+        public NodeTreeHelper<S> andWith(CommandAddition<S> func) {
             commandAddition = commandAddition.andWith(func);
 
             return this;
@@ -341,13 +345,6 @@ public abstract class CommandBuilderHelper extends CommandExecuteBuilder {
 
     //--
 
-    public interface NamedArgumentGetter<T> {
-        T getArgument(CommandContext<CommandSourceStack> ctx, String name) throws CommandSyntaxException;
-    }
-
     //--
 
-    public interface ArgumentRegistration {
-        <A extends ArgumentType<?>, T> RecordArgumentTypeInfo<A, T> register(ResourceLocation location, Class<A> clazz, RecordArgumentTypeInfo<A, T> info);
-    }
 }

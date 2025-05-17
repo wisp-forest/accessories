@@ -4,9 +4,9 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
-import io.wispforest.accessories.commands.AccessoriesCommands;
-import io.wispforest.accessories.commands.api.CommandBuilderHelper;
-import io.wispforest.accessories.commands.api.RecordArgumentTypeInfo;
+import io.wispforest.accessories.commands.api.ArgumentRegistrationCallback;
+import io.wispforest.accessories.commands.api.CommandGenerators;
+import io.wispforest.accessories.commands.api.core.RecordArgumentTypeInfo;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
@@ -86,7 +86,7 @@ public class AccessoriesFabric implements ModInitializer {
 
         AccessoriesMenuTypes.registerMenuType();
         Accessories.registerCriteria();
-        AccessoriesCommands.INSTANCE.registerArgumentTypes(new CommandBuilderHelper.ArgumentRegistration() {
+        CommandGenerators.registerAllArgumentTypes(new ArgumentRegistrationCallback() {
             @Override
             public <A extends ArgumentType<?>, T> RecordArgumentTypeInfo<A, T> register(ResourceLocation location, Class<A> clazz, RecordArgumentTypeInfo<A, T> info) {
                 ArgumentTypeRegistry.registerArgumentType(location, clazz, info);
@@ -96,7 +96,7 @@ public class AccessoriesFabric implements ModInitializer {
         });
 
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            AccessoriesCommands.INSTANCE.registerCommands(dispatcher, registryAccess);
+            CommandGenerators.registerAllGenerators(dispatcher, registryAccess);
         });
 
         UseItemCallback.EVENT.register((player, level, hand) -> {

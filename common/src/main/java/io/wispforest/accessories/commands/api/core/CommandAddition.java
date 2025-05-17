@@ -1,14 +1,14 @@
-package io.wispforest.accessories.commands.api;
+package io.wispforest.accessories.commands.api.core;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
 
 import java.util.Objects;
 
-public interface CommandAddition {
-    ArgumentBuilder<CommandSourceStack, ?> addToBuilder(ArgumentBuilder<CommandSourceStack, ?> builder);
+public interface CommandAddition<S> {
+    ArgumentBuilder<S, ?> addToBuilder(ArgumentBuilder<S, ?> builder);
 
-    default CommandAddition andWith(CommandAddition addition) {
+    default CommandAddition<S> andWith(CommandAddition<S> addition) {
         Objects.requireNonNull(addition);
         return (builder) -> addition.addToBuilder(addToBuilder(builder));
     }

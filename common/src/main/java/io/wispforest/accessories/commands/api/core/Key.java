@@ -1,6 +1,5 @@
-package io.wispforest.accessories.commands.api;
+package io.wispforest.accessories.commands.api.core;
 
-import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;

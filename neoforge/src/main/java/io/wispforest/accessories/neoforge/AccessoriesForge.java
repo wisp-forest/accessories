@@ -5,9 +5,9 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
-import io.wispforest.accessories.commands.AccessoriesCommands;
-import io.wispforest.accessories.commands.api.CommandBuilderHelper;
-import io.wispforest.accessories.commands.api.RecordArgumentTypeInfo;
+import io.wispforest.accessories.commands.api.ArgumentRegistrationCallback;
+import io.wispforest.accessories.commands.api.CommandGenerators;
+import io.wispforest.accessories.commands.api.core.RecordArgumentTypeInfo;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
@@ -142,14 +142,14 @@ public class AccessoriesForge {
     }
 
     public void registerCommands(RegisterCommandsEvent event) {
-        AccessoriesCommands.INSTANCE.registerCommands(event.getDispatcher(), event.getBuildContext());
+        CommandGenerators.registerAllGenerators(event.getDispatcher(), event.getBuildContext());
     }
 
     public void registerStuff(RegisterEvent event){
         event.register(Registries.MENU, (helper) -> AccessoriesMenuTypes.registerMenuType());
         event.register(Registries.TRIGGER_TYPE, (helper) -> Accessories.registerCriteria());
         event.register(Registries.DATA_COMPONENT_TYPE, (helper) -> AccessoriesDataComponents.init());
-        event.register(Registries.COMMAND_ARGUMENT_TYPE, (helper) -> AccessoriesCommands.INSTANCE.registerArgumentTypes(new CommandBuilderHelper.ArgumentRegistration() {
+        event.register(Registries.COMMAND_ARGUMENT_TYPE, (helper) -> CommandGenerators.registerAllArgumentTypes(new ArgumentRegistrationCallback() {
             @Override
             public <A extends ArgumentType<?>, T> RecordArgumentTypeInfo<A, T> register(ResourceLocation location, Class<A> clazz, RecordArgumentTypeInfo<A, T> info) {
                 helper.register(location, ArgumentTypeInfos.registerByClass(clazz, info));

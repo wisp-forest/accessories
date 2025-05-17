@@ -1,7 +1,9 @@
 package io.wispforest.accessories;
 
+import com.google.common.reflect.Reflection;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
+import io.wispforest.accessories.commands.AccessoriesCommands;
 import io.wispforest.accessories.criteria.AccessoryChangedCriterion;
 import io.wispforest.accessories.data.CustomRendererLoader;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -126,7 +128,9 @@ public class Accessories {
     public static AccessoryChangedCriterion ACCESSORY_UNEQUIPPED;
 
     public static void init() {
-        var temp = List.of(SlotTypeLoader.INSTANCE, SlotGroupLoader.INSTANCE, EntitySlotLoader.INSTANCE, CustomRendererLoader.PRIMARY);
+        Reflection.initialize(SlotTypeLoader.class, SlotGroupLoader.class, EntitySlotLoader.class, CustomRendererLoader.class);
+
+        AccessoriesCommands.init();
 
         AllowEntityModificationCallback.EVENT.register((target, player, reference) -> {
             var type = target.getType();

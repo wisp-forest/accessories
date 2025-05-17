@@ -4,7 +4,6 @@ import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.Dynamic3CommandExceptionType;
@@ -14,9 +13,9 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.client.rendering.RenderingFunction;
 import io.wispforest.accessories.api.components.*;
-import io.wispforest.accessories.commands.api.CommandBuilderHelper;
-import io.wispforest.accessories.commands.api.Key;
-import io.wispforest.accessories.commands.api.RecordArgumentTypeInfo;
+import io.wispforest.accessories.commands.api.CommandGenerators;
+import io.wispforest.accessories.commands.api.core.RecordArgumentTypeInfo;
+import io.wispforest.accessories.commands.api.base.BranchedCommandGenerator;
 import io.wispforest.accessories.data.CustomRendererLoader;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
@@ -49,9 +48,9 @@ import java.util.Objects;
 import java.util.Map;
 import java.util.Set;
 
-public class AccessoriesCommands extends CommandBuilderHelper {
+import static io.wispforest.accessories.commands.api.Arguments.*;
 
-    public static final AccessoriesCommands INSTANCE = new AccessoriesCommands();
+public class AccessoriesCommands {
 
     private static final SimpleCommandExceptionType NON_LIVING_ENTITY_TARGET = new SimpleCommandExceptionType(Component.translatable("argument.livingEntities.nonLiving"));
 
@@ -59,15 +58,14 @@ public class AccessoriesCommands extends CommandBuilderHelper {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    @Override
-    public void registerArgumentTypes(ArgumentRegistration registration) {
-        registration.register(Accessories.of("slot_type"), SlotArgumentType.class, RecordArgumentTypeInfo.of(ctx -> SlotArgumentType.INSTANCE));
-        registration.register(Accessories.of("resource"), ResourceExtendedArgument.class, RecordArgumentTypeInfo.of(ResourceExtendedArgument::attributes));
-    }
-
-    @Override
-    protected Key baseKey() {
-        return new Key("accessories");
+    public static void init() {
+        CommandGenerators.create(
+                "accessories",
+                AccessoriesCommands::generateTrees,
+                registration -> {
+                    registration.register(Accessories.of("slot_type"), SlotArgumentType.class, RecordArgumentTypeInfo.of(ctx -> SlotArgumentType.INSTANCE));
+                    registration.register(Accessories.of("resource"), ResourceExtendedArgument.class, RecordArgumentTypeInfo.of(ResourceExtendedArgument::attributes));
+                });
     }
 
     public static LivingEntity getOrThrowLivingEntity(CommandContext<CommandSourceStack> ctx, String name) throws CommandSyntaxException {
@@ -80,26 +78,23 @@ public class AccessoriesCommands extends CommandBuilderHelper {
         return livingEntity;
     }
 
-    @Override
-    protected void generateTrees(CommandBuildContext context) {
-        addToNode("accessories", builder -> builder.requires(stack -> stack.hasPermission(Commands.LEVEL_GAMEMASTERS)));
+    protected static void generateTrees(BranchedCommandGenerator generator, CommandBuildContext context) {
+        generator.modifyRootNode(builder -> builder.requires(stack -> stack.hasPermission(Commands.LEVEL_GAMEMASTERS)));
 
         if (Accessories.DEBUG) {
-            executeWithArgs(
+            generator.createLeaves(
                     "create-renderer-stack",
-                    arg("renderer_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
-                    arg("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
-                    arg("custom_name", ComponentArgument.textComponent(context), ComponentArgument::getResolvedComponent),
-                    defaultedArg("is_bundle", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class), false),
+                    required("renderer_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
+                    required("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
+                    required("custom_name", ComponentArgument.textComponent(context), ComponentArgument::getResolvedComponent),
+                    defaulted("is_bundle", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class), false),
                     (ctx, rendererId, itemModelId, component, isBundle) -> {
                         AccessoriesCommands.createRenderStack(ctx, rendererId, itemModelId, component, isBundle);
                         return 0;
                     }
-            );
-
-            executeWithArgs(
+            ).createLeaves(
                     "listen-to-renderer",
-                    defaultedArg("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class), null),
+                    defaulted("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class), null),
                     (ctx, id) -> {
                         CustomRendererLoader.constantFileResolving(ctx.getSource().getServer(), id);
 
@@ -108,23 +103,23 @@ public class AccessoriesCommands extends CommandBuilderHelper {
             );
         }
 
-        executeWithArgs(
+        generator.createLeaves(
                 "edit",
-                defaultedArg("entity", EntityArgument.entity(), AccessoriesCommands::getOrThrowLivingEntity, null),
+                defaulted("entity", EntityArgument.entity(), AccessoriesCommands::getOrThrowLivingEntity, null),
                 (ctx, livingEntity) -> {
                     Accessories.askPlayerForVariant(ctx.getSource().getPlayerOrException(), livingEntity);
 
                     return 1;
                 });
 
-        executeWithArgs(
+        generator.createLeaves(
                 "effect/add",
-                arg("effect", ResourceArgument.resource(context, Registries.MOB_EFFECT), ResourceArgument::getMobEffect),
-                defaultedArg("applyDelay", IntegerArgumentType.integer(1, 1000000), IntegerArgumentType::getInteger, null),
-                defaultedArg("seconds", IntegerArgumentType.integer(1, 1000000), IntegerArgumentType::getInteger, -1),
-                defaultedArg("amplifier", IntegerArgumentType.integer(0, 255), IntegerArgumentType::getInteger, 1),
-                defaultedArg("hideParticles", BoolArgumentType.bool(), BoolArgumentType::getBool, null),
-                defaultedArg("hideIcon", BoolArgumentType.bool(), BoolArgumentType::getBool, null),
+                required("effect", ResourceArgument.resource(context, Registries.MOB_EFFECT), ResourceArgument::getMobEffect),
+                defaulted("applyDelay", IntegerArgumentType.integer(1, 1000000), IntegerArgumentType::getInteger, null),
+                defaulted("seconds", IntegerArgumentType.integer(1, 1000000), IntegerArgumentType::getInteger, -1),
+                defaulted("amplifier", IntegerArgumentType.integer(0, 255), IntegerArgumentType::getInteger, 1),
+                defaulted("hideParticles", BoolArgumentType.bool(), BoolArgumentType::getBool, null),
+                defaulted("hideIcon", BoolArgumentType.bool(), BoolArgumentType::getBool, null),
                 (ctx, effect, applyDelay, seconds, amplifier, hideParticles, hideIcon) -> {
                     if (seconds == -1) {
                         if (hideParticles == null) hideParticles = true;
@@ -149,9 +144,9 @@ public class AccessoriesCommands extends CommandBuilderHelper {
 
         //--
 
-        executeWithArgs(
+        generator.createLeaves(
                 "nest",
-                arg("item", ItemArgument.item(context), (ctx, name) -> ItemArgument.getItem(ctx, name).createItemStack(1, false)),
+                required("item", ItemArgument.item(context), (ctx, name) -> ItemArgument.getItem(ctx, name).createItemStack(1, false)),
                 (ctx, innerStack) -> {
                     var player = ctx.getSource().getPlayerOrException();
 
@@ -165,20 +160,20 @@ public class AccessoriesCommands extends CommandBuilderHelper {
 
         //--
 
-        executeWithArgs(
+        generator.createLeaves(
                 "slot",
                 branches("add", "remove"),
                 branches("valid", "invalid"),
-                arg("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
+                required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
                 (ctx, operation, condition, slot) -> adjustSlotValidationOnStack(condition, Objects.equals(operation, "add"), slot, ctx)
         );
 
         //--
 
-        executeUnder("stack-sizing", builder -> {
-            builder.executeWithArgs(
+        generator.createBranch("stack-sizing", branchBuilder -> {
+            branchBuilder.createLeaves(
                     "useStackSize",
-                    arg("value", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class)),
+                    required("value", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class)),
                     (ctx, bl) -> {
                         var player = ctx.getSource().getPlayerOrException();
 
@@ -188,9 +183,8 @@ public class AccessoriesCommands extends CommandBuilderHelper {
 
                         return 1;
                     }
-            ).executeWithArgs(
-                    "",
-                    arg("size", IntegerArgumentType.integer(), (ctx, name) -> ctx.getArgument(name, Integer.class)),
+            ).createLeaves(
+                    required("size", IntegerArgumentType.integer(), (ctx, name) -> ctx.getArgument(name, Integer.class)),
                     (ctx, size) -> {
                         var player = ctx.getSource().getPlayerOrException();
 
@@ -205,36 +199,36 @@ public class AccessoriesCommands extends CommandBuilderHelper {
 
         //--
 
-        var attributeArg = arg("attribute", ResourceExtendedArgument.attributes(context), ResourceExtendedArgument::getAttribute);
-        var idArg = arg("id", ResourceLocationArgument.id(), ResourceLocationArgument::getId);
+        var attributeArg = required("attribute", ResourceExtendedArgument.attributes(context), ResourceExtendedArgument::getAttribute);
+        var idArg = required("id", ResourceLocationArgument.id(), ResourceLocationArgument::getId);
 
-        executeUnder("attribute/modifier", builder -> {
-            builder.executeWithArgs(
-                "add",
-                attributeArg,
-                idArg,
-                arg("amount", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble),
-                branches("add_value", "add_multiplied_base", "add_multiplied_total"),
-                arg("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
-                arg("isStackable", BoolArgumentType.bool(), BoolArgumentType::getBool),
-                (ctx, attribute, id, amount, operationTypeStr, slot, isStackable) -> {
-                    var operationType = Arrays.stream(AttributeModifier.Operation.values())
-                            .filter(value -> value.getSerializedName().equals(operationTypeStr))
-                            .findFirst()
-                            .orElse(null);
+        generator.createBranch("attribute/modifier", branchBuilder -> {
+            branchBuilder.createLeaves(
+                    "add",
+                    attributeArg,
+                    idArg,
+                    required("amount", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble),
+                    branches("add_value", "add_multiplied_base", "add_multiplied_total"),
+                    required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
+                    required("isStackable", BoolArgumentType.bool(), BoolArgumentType::getBool),
+                    (ctx, attribute, id, amount, operationTypeStr, slot, isStackable) -> {
+                        var operationType = Arrays.stream(AttributeModifier.Operation.values())
+                                .filter(value -> value.getSerializedName().equals(operationTypeStr))
+                                .findFirst()
+                                .orElse(null);
 
-                    return addModifier(ctx.getSource(), ctx.getSource().getPlayerOrException(), attribute, id, amount, operationType, slot, isStackable);
-                }
-            ).executeWithArgs(
+                        return addModifier(ctx.getSource(), ctx.getSource().getPlayerOrException(), attribute, id, amount, operationType, slot, isStackable);
+                    }
+            ).createLeaves(
                     "remove",
                     attributeArg,
                     idArg,
                     AccessoriesCommands::removeModifier
-            ).executeWithArgs(
+            ).createLeaves(
                     "get",
                     attributeArg,
                     idArg,
-                    defaultedArg("scale", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble, 1.0),
+                    defaulted("scale", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble, 1.0),
                     (ctx, attributeHolder, location, scale) -> getAttributeModifier(ctx, attributeArg.getArgument(ctx), idArg.getArgument(ctx), scale)
             );
         });
@@ -243,7 +237,7 @@ public class AccessoriesCommands extends CommandBuilderHelper {
 
         var logFailureType = new DynamicCommandExceptionType(branch -> Component.literal("Unable to locate the given logging for the following command branch: " + branch));
 
-        executeWithArgs(
+        generator.createLeaves(
                 "log",
                 branches("slots", "groups", "entity_bindings"),
                 (ctx, branch) -> {

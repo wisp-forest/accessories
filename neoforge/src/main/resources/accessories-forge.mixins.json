@@ -10,7 +10,8 @@
   ],
   "mixins": [
     "ContextAwareReloadListenerAccessor",
-    "curios.CurioInventoryMixin"
+    "curios.CurioInventoryMixin",
+    "CommandHelperMixin"
   ],
   "injectors": {
     "defaultRequire": 1
