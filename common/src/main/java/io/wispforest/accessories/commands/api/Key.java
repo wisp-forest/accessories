@@ -1,11 +1,9 @@
-package io.wispforest.accessories.commands;
+package io.wispforest.accessories.commands.api;
 
 import com.google.common.collect.ImmutableList;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public final class Key {
     private final List<String> path;
@@ -18,14 +16,26 @@ public final class Key {
         this(List.of(keyParts));
     }
 
-    public Key(List<String> keyParts) {
-        this.path = ImmutableList.copyOf(keyParts);
+    public Key(SequencedCollection<String> keyParts) {
+        this.path = keyParts.stream().filter(string -> !string.isBlank()).toList();
+    }
+
+    public List<String> path() {
+        return path;
+    }
+
+    public Key child(Key key) {
+        var parts = new ArrayList<>(path);
+
+        parts.addAll(key.path());
+
+        return new Key(parts);
     }
 
     public Key child(String keyPart) {
         var parts = new ArrayList<>(path);
 
-        parts.add(keyPart);
+        if(!keyPart.isBlank()) parts.add(keyPart);
 
         return new Key(parts);
     }
@@ -39,6 +49,10 @@ public final class Key {
         parts.removeLast();
 
         return new Key(parts);
+    }
+
+    public boolean isEmpty() {
+        return this.path().isEmpty();
     }
 
     public String topPath() {

@@ -14,6 +14,9 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.client.rendering.RenderingFunction;
 import io.wispforest.accessories.api.components.*;
+import io.wispforest.accessories.commands.api.CommandBuilderHelper;
+import io.wispforest.accessories.commands.api.Key;
+import io.wispforest.accessories.commands.api.RecordArgumentTypeInfo;
 import io.wispforest.accessories.data.CustomRendererLoader;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
@@ -23,12 +26,15 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.ComponentArgument;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.ResourceArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -59,6 +65,11 @@ public class AccessoriesCommands extends CommandBuilderHelper {
         registration.register(Accessories.of("resource"), ResourceExtendedArgument.class, RecordArgumentTypeInfo.of(ResourceExtendedArgument::attributes));
     }
 
+    @Override
+    protected Key baseKey() {
+        return new Key("accessories");
+    }
+
     public static LivingEntity getOrThrowLivingEntity(CommandContext<CommandSourceStack> ctx, String name) throws CommandSyntaxException {
         var entity = EntityArgument.getEntity(ctx, name);
 
@@ -71,24 +82,24 @@ public class AccessoriesCommands extends CommandBuilderHelper {
 
     @Override
     protected void generateTrees(CommandBuildContext context) {
-        getOrCreateNode("accessories").requires(stack -> stack.hasPermission(Commands.LEVEL_GAMEMASTERS));
+        addToNode("accessories", builder -> builder.requires(stack -> stack.hasPermission(Commands.LEVEL_GAMEMASTERS)));
 
         if (Accessories.DEBUG) {
-            requiredArgExectution(
-                    "accessories/create-renderer-stack",
-                    argumentHolder("renderer_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
-                    argumentHolder("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
-                    argumentHolder("custom_name", ComponentArgument.textComponent(context), ComponentArgument::getResolvedComponent),
-                    defaultedArgumentHolder("is_bundle", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class), false),
+            executeWithArgs(
+                    "create-renderer-stack",
+                    arg("renderer_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
+                    arg("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
+                    arg("custom_name", ComponentArgument.textComponent(context), ComponentArgument::getResolvedComponent),
+                    defaultedArg("is_bundle", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class), false),
                     (ctx, rendererId, itemModelId, component, isBundle) -> {
                         AccessoriesCommands.createRenderStack(ctx, rendererId, itemModelId, component, isBundle);
                         return 0;
                     }
             );
 
-            requiredArgExectution(
-                    "accessories/listen-to-renderer",
-                    defaultedArgumentHolder("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class), null),
+            executeWithArgs(
+                    "listen-to-renderer",
+                    defaultedArg("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class), null),
                     (ctx, id) -> {
                         CustomRendererLoader.constantFileResolving(ctx.getSource().getServer(), id);
 
@@ -97,20 +108,50 @@ public class AccessoriesCommands extends CommandBuilderHelper {
             );
         }
 
-        optionalArgExectution(
-                "accessories/edit",
-                argumentHolder("entity", EntityArgument.entity(), AccessoriesCommands::getOrThrowLivingEntity),
+        executeWithArgs(
+                "edit",
+                defaultedArg("entity", EntityArgument.entity(), AccessoriesCommands::getOrThrowLivingEntity, null),
                 (ctx, livingEntity) -> {
                     Accessories.askPlayerForVariant(ctx.getSource().getPlayerOrException(), livingEntity);
 
                     return 1;
                 });
 
+        executeWithArgs(
+                "effect/add",
+                arg("effect", ResourceArgument.resource(context, Registries.MOB_EFFECT), ResourceArgument::getMobEffect),
+                defaultedArg("applyDelay", IntegerArgumentType.integer(1, 1000000), IntegerArgumentType::getInteger, null),
+                defaultedArg("seconds", IntegerArgumentType.integer(1, 1000000), IntegerArgumentType::getInteger, -1),
+                defaultedArg("amplifier", IntegerArgumentType.integer(0, 255), IntegerArgumentType::getInteger, 1),
+                defaultedArg("hideParticles", BoolArgumentType.bool(), BoolArgumentType::getBool, null),
+                defaultedArg("hideIcon", BoolArgumentType.bool(), BoolArgumentType::getBool, null),
+                (ctx, effect, applyDelay, seconds, amplifier, hideParticles, hideIcon) -> {
+                    if (seconds == -1) {
+                        if (hideParticles == null) hideParticles = true;
+                    }
+
+                    if (hideIcon == null) hideIcon = false;
+
+                    var effectInstance = new MobEffectInstance(effect, seconds, amplifier, false, !hideParticles, !hideIcon);
+
+                    var player = ctx.getSource().getPlayerOrException();
+
+                    player.getMainHandItem().update(
+                            AccessoriesDataComponents.MOB_EFFECTS,
+                            AccessoryMobEffectsComponent.EMPTY,
+                            data -> applyDelay != null
+                                    ? data.addEffect(effectInstance, applyDelay)
+                                    : data.addEffect(effectInstance));
+
+                    return 1;
+                }
+        );
+
         //--
 
-        requiredArgExectution(
-                "accessories/nest",
-                argumentHolder("item", ItemArgument.item(context), (ctx, name) -> ItemArgument.getItem(ctx, name).createItemStack(1, false)),
+        executeWithArgs(
+                "nest",
+                arg("item", ItemArgument.item(context), (ctx, name) -> ItemArgument.getItem(ctx, name).createItemStack(1, false)),
                 (ctx, innerStack) -> {
                     var player = ctx.getSource().getPlayerOrException();
 
@@ -124,101 +165,87 @@ public class AccessoriesCommands extends CommandBuilderHelper {
 
         //--
 
-        var slotArgument = argumentHolder("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot);
-        var slotGroupings = List.of("valid", "invalid");
-
-        requiredArgExectutionBranched(
-                "accessories/slot/add",
-                slotGroupings,
-                slotArgument,
-                (ctx, branch, slot) -> adjustSlotValidationOnStack(Objects.equals(branch, "valid"), true, slot, ctx)
-        );
-
-        requiredArgExectutionBranched(
-                "accessories/slot/remove",
-                slotGroupings,
-                slotArgument,
-                (ctx, branch, slot) -> adjustSlotValidationOnStack(Objects.equals(branch, "valid"), false, slot, ctx)
+        executeWithArgs(
+                "slot",
+                branches("add", "remove"),
+                branches("valid", "invalid"),
+                arg("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
+                (ctx, operation, condition, slot) -> adjustSlotValidationOnStack(condition, Objects.equals(operation, "add"), slot, ctx)
         );
 
         //--
 
-        requiredArgExectution(
-                "accessories/stack-sizing/useStackSize",
-                argumentHolder("value", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class)),
-                (ctx, bl) -> {
-                    var player = ctx.getSource().getPlayerOrException();
+        executeUnder("stack-sizing", builder -> {
+            builder.executeWithArgs(
+                    "useStackSize",
+                    arg("value", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class)),
+                    (ctx, bl) -> {
+                        var player = ctx.getSource().getPlayerOrException();
 
-                    player.getMainHandItem().update(AccessoriesDataComponents.STACK_SETTINGS,
-                            AccessoryStackSettings.DEFAULT,
-                            component -> component.useStackSize(bl));
+                        player.getMainHandItem().update(AccessoriesDataComponents.STACK_SETTINGS,
+                                AccessoryStackSettings.DEFAULT,
+                                component -> component.useStackSize(bl));
 
-                    return 1;
-                }
-        );
+                        return 1;
+                    }
+            ).executeWithArgs(
+                    "",
+                    arg("size", IntegerArgumentType.integer(), (ctx, name) -> ctx.getArgument(name, Integer.class)),
+                    (ctx, size) -> {
+                        var player = ctx.getSource().getPlayerOrException();
 
-        requiredArgExectution(
-                "accessories/stack-sizing",
-                argumentHolder("size", IntegerArgumentType.integer(), (ctx, name) -> ctx.getArgument(name, Integer.class)),
-                (ctx, size) -> {
-                    var player = ctx.getSource().getPlayerOrException();
+                        player.getMainHandItem().update(AccessoriesDataComponents.STACK_SETTINGS,
+                                AccessoryStackSettings.DEFAULT,
+                                component -> component.sizeOverride(size));
 
-                    player.getMainHandItem().update(AccessoriesDataComponents.STACK_SETTINGS,
-                            AccessoryStackSettings.DEFAULT,
-                            component -> component.sizeOverride(size));
-
-                    return 1;
-                }
-        );
+                        return 1;
+                    }
+            );
+        });
 
         //--
 
-        var attributeArg = argumentHolder("attribute", ResourceExtendedArgument.attributes(context), ResourceExtendedArgument::getAttribute);
-        var idArg = argumentHolder("id", ResourceLocationArgument.id(), ResourceLocationArgument::getId);
+        var attributeArg = arg("attribute", ResourceExtendedArgument.attributes(context), ResourceExtendedArgument::getAttribute);
+        var idArg = arg("id", ResourceLocationArgument.id(), ResourceLocationArgument::getId);
 
-        var modifierAdd = getOrCreateNode(
-                "accessories/attribute/modifier/add",
+        executeUnder("attribute/modifier", builder -> {
+            builder.executeWithArgs(
+                "add",
                 attributeArg,
                 idArg,
-                argumentHolder("amount", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble)
-        );
+                arg("amount", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble),
+                branches("add_value", "add_multiplied_base", "add_multiplied_total"),
+                arg("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
+                arg("isStackable", BoolArgumentType.bool(), BoolArgumentType::getBool),
+                (ctx, attribute, id, amount, operationTypeStr, slot, isStackable) -> {
+                    var operationType = Arrays.stream(AttributeModifier.Operation.values())
+                            .filter(value -> value.getSerializedName().equals(operationTypeStr))
+                            .findFirst()
+                            .orElse(null);
 
-        modifierAdd
-                .then(createAddLiteral("add_value"))
-                .then(createAddLiteral("add_multiplied_base"))
-                .then(createAddLiteral("add_multiplied_total"));
-
-        updateParent(modifierAdd);
-
-        requiredArgExectution(
-                "accessories/attribute/modifier/remove",
-                attributeArg,
-                idArg,
-                AccessoriesCommands::removeModifier
-        );
-
-        requiredArgExectution(
-                "accessories/attribute/modifier/get",
-                attributeArg,
-                idArg,
-                (ctx, attributeHolder, location) -> getAttributeModifier(ctx, attributeArg.getArgument(ctx), idArg.getArgument(ctx), 1.0)
-        );
-
-        requiredArgExectution(
-                "accessories/attribute/modifier/get",
-                attributeArg,
-                idArg,
-                argumentHolder("scale", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble),
-                (ctx, attributeHolder, location, scale) -> getAttributeModifier(ctx, attributeArg.getArgument(ctx), idArg.getArgument(ctx), scale)
-        );
+                    return addModifier(ctx.getSource(), ctx.getSource().getPlayerOrException(), attribute, id, amount, operationType, slot, isStackable);
+                }
+            ).executeWithArgs(
+                    "remove",
+                    attributeArg,
+                    idArg,
+                    AccessoriesCommands::removeModifier
+            ).executeWithArgs(
+                    "get",
+                    attributeArg,
+                    idArg,
+                    defaultedArg("scale", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble, 1.0),
+                    (ctx, attributeHolder, location, scale) -> getAttributeModifier(ctx, attributeArg.getArgument(ctx), idArg.getArgument(ctx), scale)
+            );
+        });
 
         //--
 
         var logFailureType = new DynamicCommandExceptionType(branch -> Component.literal("Unable to locate the given logging for the following command branch: " + branch));
 
-        requiredExectutionBranched(
-                "accessories/log",
-                List.of("slots", "groups", "entity_bindings"),
+        executeWithArgs(
+                "log",
+                branches("slots", "groups", "entity_bindings"),
                 (ctx, branch) -> {
                     switch (branch) {
                         case "slots" -> {
@@ -249,35 +276,6 @@ public class AccessoriesCommands extends CommandBuilderHelper {
                     return 1;
                 }
         );
-    }
-
-    private static LiteralArgumentBuilder<CommandSourceStack> createAddLiteral(String literal) {
-        var selectedValue = Arrays.stream(AttributeModifier.Operation.values())
-                .filter(value -> value.getSerializedName().equals(literal))
-                .findFirst()
-                .orElse(null);
-
-        if(selectedValue == null) throw new IllegalStateException("Unable to handle the given literal as its not a valid AttributeModifier Operation! [Literal: " + literal + "]");
-
-        return Commands.literal(literal)
-                .then(
-                        Commands.argument("slot", SlotArgumentType.INSTANCE)
-                                .then(
-                                        Commands.argument("isStackable", BoolArgumentType.bool())
-                                                .executes(
-                                                        ctx -> addModifier(
-                                                                ctx.getSource(),
-                                                                ctx.getSource().getPlayerOrException(),
-                                                                ResourceExtendedArgument.getAttribute(ctx, "attribute"),
-                                                                ResourceLocationArgument.getId(ctx, "id"),
-                                                                DoubleArgumentType.getDouble(ctx, "amount"),
-                                                                selectedValue,
-                                                                SlotArgumentType.getSlot(ctx, "slot"),
-                                                                BoolArgumentType.getBool(ctx, "isStackable")
-                                                        )
-                                                )
-                                )
-                );
     }
 
     private static int getAttributeModifier(CommandContext<CommandSourceStack> ctx, Holder<Attribute> holder, ResourceLocation resourceLocation, double d) throws CommandSyntaxException {
@@ -372,11 +370,11 @@ public class AccessoriesCommands extends CommandBuilderHelper {
         return Component.translatable(attribute.value().getDescriptionId());
     }
 
-    private static int adjustSlotValidationOnStack(boolean validSlot, boolean addSlot, String slotName, CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+    private static int adjustSlotValidationOnStack(String branch, boolean addSlot, String slotName, CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         LivingEntity targetEntity = ctx.getSource().getPlayerOrException();
 
         targetEntity.getMainHandItem().update(AccessoriesDataComponents.SLOT_VALIDATION, AccessorySlotValidationComponent.EMPTY, component -> {
-            return (validSlot)
+            return (Objects.equals(branch, "valid"))
                     ? (addSlot ? component.addValidSlot(slotName) : component.removeValidSlot(slotName))
                     : (addSlot ? component.addInvalidSlot(slotName) : component.removeInvalidSlot(slotName));
         });

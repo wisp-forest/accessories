@@ -57,7 +57,13 @@ public interface Accessory {
      * @param stack the stack being equipped
      * @param reference the slot the accessory is in
      */
-    default void onEquip(ItemStack stack, SlotReference reference){}
+    @MustBeInvokedByOverriders
+    default void onEquip(ItemStack stack, SlotReference reference){
+        if (stack.has(AccessoriesDataComponents.MOB_EFFECTS)) {
+            stack.get(AccessoriesDataComponents.MOB_EFFECTS)
+                    .handleApplyingConstantEffects(reference.entity());
+        }
+    }
 
     /**
      * Called when the accessory is unequipped

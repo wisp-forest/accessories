@@ -74,7 +74,8 @@
     "owo.NbtDeserializerMixin",
     "StateHolderAccessor",
     "SimpleJsonResourceReloadListenerMixin",
-    "FileToIdConverterMixin"
+    "FileToIdConverterMixin",
+    "CommandContextAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

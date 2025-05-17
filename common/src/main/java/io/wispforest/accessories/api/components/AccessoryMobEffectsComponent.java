@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 
 @ApiStatus.Experimental
 public final class AccessoryMobEffectsComponent {
+    public static final AccessoryMobEffectsComponent EMPTY = new AccessoryMobEffectsComponent(new ArrayList<>(), new HashMap<>());
+
     private static final Endec<List<MobEffectInstance>> MOB_EFFECT_INSTANCES = CodecUtils.toEndecWithRegistries(MobEffectInstance.CODEC, MobEffectInstance.STREAM_CODEC).listOf();
     private static final Endec<Map<Integer, List<MobEffectInstance>>> MAP_ENDEC = StructEndecBuilder.of(
             Endec.INT.fieldOf("delay", Map.Entry::getKey),
@@ -29,28 +31,58 @@ public final class AccessoryMobEffectsComponent {
             }, kvMap -> List.copyOf(kvMap.entrySet()));
 
     public static Endec<AccessoryMobEffectsComponent> ENDEC = StructEndecBuilder.of(
-            MAP_ENDEC.fieldOf("delayed_instances", AccessoryMobEffectsComponent::mobEffects),
+            MOB_EFFECT_INSTANCES.fieldOf("constant_effects", AccessoryMobEffectsComponent::constantMobEffects),
+            MAP_ENDEC.fieldOf("delayed_effects", AccessoryMobEffectsComponent::delayedMobEffects),
             AccessoryMobEffectsComponent::new
     );
 
-    private final Map<Integer, List<MobEffectInstance>> mobEffects;
+    private final List<MobEffectInstance> constantMobEffects;
+    private final Map<Integer, List<MobEffectInstance>> delayedMobEffects;
 
     private final Map<Integer, Long> delayToTimer = new HashMap<>();
 
-    public AccessoryMobEffectsComponent(Map<Integer, List<MobEffectInstance>> mobEffects) {
-        this.mobEffects = mobEffects;
+    public AccessoryMobEffectsComponent(List<MobEffectInstance> constantMobEffects, Map<Integer, List<MobEffectInstance>> mobEffects) {
+        this.constantMobEffects = constantMobEffects;
+        this.delayedMobEffects = mobEffects;
     }
 
-    public Map<Integer, List<MobEffectInstance>> mobEffects() {
-        return mobEffects;
+    public List<MobEffectInstance> constantMobEffects() {
+        return Collections.unmodifiableList(this.constantMobEffects);
+    }
+
+    public Map<Integer, List<MobEffectInstance>> delayedMobEffects() {
+        return Collections.unmodifiableMap(this.delayedMobEffects);
+    }
+
+    public AccessoryMobEffectsComponent addEffect(MobEffectInstance instance) {
+        var effects = new ArrayList<>(this.constantMobEffects);
+
+        effects.add(instance);
+
+        return new AccessoryMobEffectsComponent(effects, this.delayedMobEffects);
+    }
+
+    public AccessoryMobEffectsComponent addEffect(MobEffectInstance instance, int applyDelay) {
+        var map = new HashMap<>(this.delayedMobEffects);
+
+        map.computeIfAbsent(applyDelay, integer -> new ArrayList<>())
+                .add(instance);
+
+        return new AccessoryMobEffectsComponent(this.constantMobEffects, map);
+    }
+
+    public void handleApplyingConstantEffects(LivingEntity livingEntity) {
+        for (MobEffectInstance constantMobEffect : this.constantMobEffects) {
+            livingEntity.addEffect(constantMobEffect);
+        }
     }
 
     public void handleReapplyingEffects(LivingEntity livingEntity, long time) {
-        for (var i : mobEffects.keySet()) {
+        for (var i : delayedMobEffects.keySet()) {
             var lastApply = delayToTimer.getOrDefault(i, null);
 
             if ((lastApply == null) || time - lastApply > i) {
-                for (var mobEffectInstance : mobEffects.get(i)) {
+                for (var mobEffectInstance : delayedMobEffects.get(i)) {
                     livingEntity.addEffect(mobEffectInstance);
                 }
             }
@@ -60,10 +92,14 @@ public final class AccessoryMobEffectsComponent {
     }
 
     public void handleRemovingEffects(LivingEntity livingEntity) {
-        for (List<MobEffectInstance> value : mobEffects.values()) {
+        for (List<MobEffectInstance> value : delayedMobEffects.values()) {
             for (MobEffectInstance mobEffectInstance : value) {
                 livingEntity.removeEffect(mobEffectInstance.getEffect());
             }
+        }
+
+        for (MobEffectInstance mobEffectInstance : this.constantMobEffects) {
+            livingEntity.removeEffect(mobEffectInstance.getEffect());
         }
 
         delayToTimer.clear();
@@ -74,17 +110,17 @@ public final class AccessoryMobEffectsComponent {
         if (obj == this) return true;
         if (obj == null || obj.getClass() != this.getClass()) return false;
         var that = (AccessoryMobEffectsComponent) obj;
-        return Objects.equals(this.mobEffects, that.mobEffects);
+        return Objects.equals(this.delayedMobEffects, that.delayedMobEffects);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(mobEffects);
+        return Objects.hash(delayedMobEffects);
     }
 
     @Override
     public String toString() {
         return "AccessoryMobEffectsComponent[" +
-                "mobEffects=" + mobEffects + ']';
+                "mobEffects=" + delayedMobEffects + ']';
     }
 }

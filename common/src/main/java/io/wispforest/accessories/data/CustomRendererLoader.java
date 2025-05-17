@@ -214,7 +214,7 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
                     return null;
                 }
 
-                var renderingFunc = resolveRenderer(currentResolveTree, renderer.rendererId(), references, isClientSide);
+                var renderingFunc = resolveRenderer(currentResolveTree, renderer.rendererId(), references, isClientSide, false);
 
                 if (renderingFunc != null && renderer.firstPersonArmTarget() != null) {
                     renderingFunc = new RenderingFunction.Compound(renderingFunc.renderingFunctions(), renderer.firstPersonArmTarget());

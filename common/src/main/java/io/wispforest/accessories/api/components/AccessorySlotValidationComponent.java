@@ -17,18 +17,22 @@ public record AccessorySlotValidationComponent(Set<String> validSlotOverrides, S
 
     public AccessorySlotValidationComponent addValidSlot(String slotName) {
         var validSlotOverrides = new HashSet<>(this.validSlotOverrides);
+        var invalidSlotOverrides = new HashSet<>(this.invalidSlotOverrides);
 
         validSlotOverrides.add(slotName);
+        invalidSlotOverrides.remove(slotName);
 
-        return new AccessorySlotValidationComponent(validSlotOverrides, this.invalidSlotOverrides);
+        return new AccessorySlotValidationComponent(validSlotOverrides, invalidSlotOverrides);
     }
 
     public AccessorySlotValidationComponent addInvalidSlot(String slotName) {
+        var validSlotOverrides = new HashSet<>(this.validSlotOverrides);
         var invalidSlotOverrides = new HashSet<>(this.invalidSlotOverrides);
 
+        validSlotOverrides.remove(slotName);
         invalidSlotOverrides.add(slotName);
 
-        return new AccessorySlotValidationComponent(this.validSlotOverrides, invalidSlotOverrides);
+        return new AccessorySlotValidationComponent(validSlotOverrides, invalidSlotOverrides);
     }
 
     public AccessorySlotValidationComponent removeValidSlot(String slotName) {
