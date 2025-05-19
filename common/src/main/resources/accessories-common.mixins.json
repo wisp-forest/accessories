@@ -38,8 +38,7 @@
     "client.owo.OwoReiPluginMixin",
     "client.owo.ScissorStackMixin",
     "client.owo.ScrollContainerMixin",
-    "sodium.MPOATVConstructingVertexConsumerMixin_SodiumImpl",
-    "SimpleJsonResourceReloadListenerAccessor"
+    "sodium.MPOATVConstructingVertexConsumerMixin_SodiumImpl"
   ],
   "mixins": [
     "ApplyBonusCountMixin",
@@ -75,7 +74,8 @@
     "StateHolderAccessor",
     "SimpleJsonResourceReloadListenerMixin",
     "FileToIdConverterMixin",
-    "CommandContextAccessor"
+    "CommandContextAccessor",
+    "SimpleJsonResourceReloadListenerAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

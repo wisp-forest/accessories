@@ -39,7 +39,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import io.wispforest.accessories.api.client.rendering.RenderingFunction.*;
 
-@Environment(EnvType.CLIENT)
 @ApiStatus.Experimental
 public sealed interface RenderingFunction permits DeferredRenderer, Block, Compound, Conditional, RawRenderer, Entity, Item, Model, Particle, Transformations {
 
