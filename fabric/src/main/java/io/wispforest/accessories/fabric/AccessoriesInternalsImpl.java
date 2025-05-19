@@ -6,6 +6,7 @@ import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
 import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
+import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import io.wispforest.accessories.mixin.ItemStackAccessor;
 import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.endec.Endec;
@@ -94,7 +95,7 @@ public class AccessoriesInternalsImpl {
         player.openMenu(new ExtendedScreenHandlerFactory<AccessoriesMenuData>() {
             @Override
             public AccessoriesMenuData getScreenOpeningData(ServerPlayer player) {
-                return AccessoriesMenuData.of(targetEntity);
+                return AccessoriesMenuData.of(targetEntity, ((AccessoriesMenuBase) player.containerMenu));
             }
 
             @Override

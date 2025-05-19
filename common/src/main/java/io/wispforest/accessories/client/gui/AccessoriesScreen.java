@@ -21,6 +21,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
+import net.minecraft.client.gui.screens.ErrorScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderType;
@@ -469,6 +470,16 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
     @Override
     protected void init() {
+        if (!menu.isValidMenu()) {
+            Minecraft.getInstance().setScreen(
+                    new ErrorScreen(
+                            Component.literal("Accessories Screen Opening Error!"),
+                            Component.literal("Unable to open Accessories Screen due to desync with the Server!")
+                    ));
+
+            return;
+        }
+
         super.init();
 
         this.currentTabPage = 1;

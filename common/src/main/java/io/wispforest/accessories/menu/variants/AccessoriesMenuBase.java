@@ -35,6 +35,9 @@ public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
 
     protected boolean sendCarriedStackToInventory = false;
 
+    protected int slotAmountAdded = -1;
+    protected boolean isValid = true;
+
     protected AccessoriesMenuBase(MenuType<? extends AccessoriesMenuBase> menuType, int containerId, Inventory inventory, int width, int height, @Nullable LivingEntity targetEntity) {
         super(menuType, containerId, width, height);
 
@@ -86,6 +89,20 @@ public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
         setupCall.run();
 
         this.player().closeContainer();
+    }
+
+    public int slotAmountAdded() {
+        return slotAmountAdded;
+    }
+
+    public AccessoriesMenuBase isSyncedWithServer(int serverSlotAmountAdded) {
+        this.isValid = slotAmountAdded == serverSlotAmountAdded;
+
+        return this;
+    }
+
+    public boolean isValidMenu() {
+        return false;
     }
 
     //--
