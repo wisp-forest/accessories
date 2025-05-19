@@ -170,7 +170,7 @@ public class AccessoriesCommands {
 
         //--
 
-        generator.createBranch("stack-sizing", branchBuilder -> {
+        generator.branch("stack-sizing", branchBuilder -> {
             branchBuilder.createLeaves(
                     "useStackSize",
                     required("value", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class)),
@@ -199,39 +199,33 @@ public class AccessoriesCommands {
 
         //--
 
-        var attributeArg = required("attribute", ResourceExtendedArgument.attributes(context), ResourceExtendedArgument::getAttribute);
-        var idArg = required("id", ResourceLocationArgument.id(), ResourceLocationArgument::getId);
+        generator.branch(
+                "attribute/modifier",
+                required("attribute", ResourceExtendedArgument.attributes(context), ResourceExtendedArgument::getAttribute),
+                required("id", ResourceLocationArgument.id(), ResourceLocationArgument::getId),
+                branchBuilder -> {
+                    branchBuilder.leaves(
+                            "add",
+                            required("amount", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble),
+                            branches(List.of("add_value", "add_multiplied_base", "add_multiplied_total"), operationTypeStr -> {
+                                return Arrays.stream(AttributeModifier.Operation.values())
+                                        .filter(value -> value.getSerializedName().equals(operationTypeStr))
+                                        .findFirst()
+                                        .orElse(null);
+                            }),
+                            required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
+                            required("isStackable", BoolArgumentType.bool(), BoolArgumentType::getBool),
+                            AccessoriesCommands::addModifier
+                    ).leaves(
+                            "remove",
+                            AccessoriesCommands::removeModifier
+                    ).leaves(
+                            "get",
+                            defaulted("scale", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble, 1.0),
+                            AccessoriesCommands::getAttributeModifier
+                    );
+                });
 
-        generator.createBranch("attribute/modifier", branchBuilder -> {
-            branchBuilder.createLeaves(
-                    "add",
-                    attributeArg,
-                    idArg,
-                    required("amount", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble),
-                    branches("add_value", "add_multiplied_base", "add_multiplied_total"),
-                    required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
-                    required("isStackable", BoolArgumentType.bool(), BoolArgumentType::getBool),
-                    (ctx, attribute, id, amount, operationTypeStr, slot, isStackable) -> {
-                        var operationType = Arrays.stream(AttributeModifier.Operation.values())
-                                .filter(value -> value.getSerializedName().equals(operationTypeStr))
-                                .findFirst()
-                                .orElse(null);
-
-                        return addModifier(ctx.getSource(), ctx.getSource().getPlayerOrException(), attribute, id, amount, operationType, slot, isStackable);
-                    }
-            ).createLeaves(
-                    "remove",
-                    attributeArg,
-                    idArg,
-                    AccessoriesCommands::removeModifier
-            ).createLeaves(
-                    "get",
-                    attributeArg,
-                    idArg,
-                    defaulted("scale", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble, 1.0),
-                    (ctx, attributeHolder, location, scale) -> getAttributeModifier(ctx, attributeArg.getArgument(ctx), idArg.getArgument(ctx), scale)
-            );
-        });
 
         //--
 
@@ -276,7 +270,6 @@ public class AccessoriesCommands {
         var commandSourceStack = ctx.getSource();
         var livingEntity = ctx.getSource().getPlayerOrException();
 
-
         var stack = livingEntity.getMainHandItem();
 
         var component = stack.getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
@@ -303,7 +296,16 @@ public class AccessoriesCommands {
             (var1, var2, var3) -> Component.translatableEscape("commands.attribute.failed.modifier_already_present_itemstack", var1, var2, var3)
     );
 
-    private static int addModifier(CommandSourceStack commandSourceStack, LivingEntity livingEntity, Holder<Attribute> holder, ResourceLocation resourceLocation, double d, AttributeModifier.Operation operation, String slotName, boolean isStackable) throws CommandSyntaxException {
+    private static int addModifier(CommandContext<CommandSourceStack> ctx, Holder<Attribute> holder, ResourceLocation resourceLocation, double d, AttributeModifier.Operation operation, String slotName, boolean isStackable) throws CommandSyntaxException {
+        var commandSourceStack = ctx.getSource();
+
+        if (operation == null) {
+            commandSourceStack.sendFailure(Component.literal("Unable to locate AttributeModifier Operation type passed to the command!"));
+
+            return -1;
+        }
+
+        var livingEntity = ctx.getSource().getPlayerOrException();
         var stack = livingEntity.getMainHandItem();
 
         var component = stack.getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);

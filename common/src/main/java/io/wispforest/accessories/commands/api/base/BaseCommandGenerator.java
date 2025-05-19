@@ -1,9 +1,8 @@
 package io.wispforest.accessories.commands.api.base;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Range;
 import com.mojang.brigadier.builder.ArgumentBuilder;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import io.wispforest.accessories.commands.api.core.CommandAddition;
 import io.wispforest.accessories.commands.api.core.Key;
 
@@ -15,12 +14,12 @@ import io.wispforest.accessories.commands.api.base.Argument.*;
 
 public abstract sealed class BaseCommandGenerator<S, B extends CommandTreeBuilder<S, B>> implements CommandTreeBuilder<S, B>, CommandNodeHandler<S> permits CommandGenerator, BranchedCommandGenerator {
 
-    private final Map<String, NodeTreeHelper<S>> baseCommandPart = new LinkedHashMap<>();
+    private final Map<String, ArgumentBuilderHolder<S>> baseCommandPart = new LinkedHashMap<>();
 
-    private final BiMap<Key, NodeTreeHelper<S>> commandParts = HashBiMap.create();
+    private final Map<Key, ArgumentBuilderHolder<S>> commandParts = new LinkedHashMap<>();
 
-    public final void addToCommandsAndClear(BiConsumer<String, NodeTreeHelper<S>> addCallback) {
-        this.baseCommandPart.forEach(addCallback);
+    public final void addToCommandsAndClear(BiConsumer<String, ArgumentBuilder<S, ?>> addCallback) {
+        this.baseCommandPart.forEach((string, holder) -> addCallback.accept(string, holder.addToNode()));
 
         this.baseCommandPart.clear();
         this.commandParts.clear();
@@ -29,16 +28,8 @@ public abstract sealed class BaseCommandGenerator<S, B extends CommandTreeBuilde
     //--
 
     @Override
-    public void modifyNode(Key key, List<? extends Argument<?>> args, CommandAddition<S> addition) {
-        args = new ArrayList<>(args);
-
+    public ArgumentBuilderHolder<S> getOrCreateHolder(List<Argument<?>> args) {
         SequencedMap<Key, ArgumentBuilderConstructor<?>> unpackedArgs = new LinkedHashMap<>();
-
-        var branchArgs = key.path().stream()
-                .map(Argument.LiteralBranch::asKeyPath)
-                .toList();
-
-        args.addAll(0, (List) branchArgs);
 
         var runningKey = new Key();
 
@@ -54,56 +45,50 @@ public abstract sealed class BaseCommandGenerator<S, B extends CommandTreeBuilde
             unpackedArgs.put(runningKey, castedArg);
         }
 
-        modifyNode(unpackedArgs.lastEntry().getKey(), unpackedArgs, addition);
+        return getNode(unpackedArgs.lastEntry().getKey(), unpackedArgs);
     }
 
-    private void modifyNode(Key key, SequencedMap<Key, ArgumentBuilderConstructor<?>> unpackedArgs, CommandAddition<S> addition) {
-        if (commandParts.containsKey(key)) {
-            commandParts.get(key).andWith(addition);
+    private ArgumentBuilderHolder<S> getNode(Key key, SequencedMap<Key, ArgumentBuilderConstructor<?>> unpackedArgs) {
+        if (this.commandParts.containsKey(key)) return this.commandParts.get(key);
 
-            return;
+        var arg = unpackedArgs.get(key);
+
+        ArgumentBuilderHolder<S> helper = new ArgumentBuilderHolder<>(this, key, arg.<S>createNodeBuilder());
+
+        if (arg instanceof ArgumentWithType argumentWithType && argumentWithType.suggestions() != null) {
+            helper.andWith(builder -> {
+                return ((RequiredArgumentBuilder) (builder)).suggests(argumentWithType.suggestions());
+            });
         }
-
-        NodeTreeHelper<S> helper = new NodeTreeHelper<>(unpackedArgs.get(key).<S>createNodeBuilder());
 
         var parentKey = key.parent();
 
         if (parentKey == null) {
             this.baseCommandPart.put(key.topPath(), helper);
         } else {
-            modifyNode(parentKey, unpackedArgs, builder -> builder.then(helper.addToNode()));
-
-            helper.andWith(addition);
+            getNode(parentKey, unpackedArgs).andWith(builder -> builder.then(helper.addToNode()));
         }
 
         this.commandParts.put(key, helper);
+
+        return helper;
     }
 
     //--
 
-
-    @Override
-    public B createLeaves(Key key, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
-        createLeavesWithKeyAndArgs(key, commandArgs, commandAddition);
-
-        return getThis();
-    }
-
-    public void createLeavesWithKeyAndArgs(Key key, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
-        this.modifyNode(key, builder -> builder);
-
-        var rootNodeHelper = this.commandParts.get(key);
+    public B createLeaves(List<Argument<?>> startingArgs, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
+        var rootNodeHelper = getOrCreateHolder(startingArgs);
 
         // If no args then we can just execute the command addition since nothing is required
         if (commandArgs.isEmpty()) {
             rootNodeHelper.andWith(commandAddition);
 
-            return;
+            return getThis();
         } else {
             commandArgs = new ArrayList<>(commandArgs);
         }
 
-        SequencedMap<Key, NodeTreeHelper<S>> baseBranchEnds = new LinkedHashMap<>(Map.of(key, rootNodeHelper));
+        SequencedMap<Key, ArgumentBuilderHolder<S>> baseBranchEnds = new LinkedHashMap<>(Map.of(rootNodeHelper.key(), rootNodeHelper));
 
         // The section handles the Literal Arguments to build the nodeTreeHelper for the final set of arguments or just uses the root node
         //--
@@ -205,146 +190,50 @@ public abstract sealed class BaseCommandGenerator<S, B extends CommandTreeBuilde
                     .toList();
 
             baseBranchEnds.forEach((key1, baseBranchEnd) -> {
-                NodeTreeHelper<S> baseHelper = baseBranchEnd;
+                ArgumentBuilderHolder<S> baseHelper = getOrCreateHolder(key1, (List<Argument<?>>) (Object) requiredArgs);
 
-                for (var requiredArg : requiredArgs) {
-                    var newNode = requiredArg.<S>createNodeBuilder();
+                if (!optionalArgs.isEmpty()) {
+                    var optionalArgStack = new ArrayList<Argument<?>>();
 
-                    var newKey = key1.child(requiredArg.name());
-
-                    if (this.commandParts.containsKey(newKey)) {
-                        baseHelper = this.commandParts.get(newKey);
-                    } else {
-                        var newHelper = new NodeTreeHelper<S>(newNode);
-
-                        baseHelper.andWith(builder -> builder.then(newHelper.addToNode()));
-
-                        this.commandParts.put(newKey, newHelper);
-
-                        baseHelper = newHelper;
-                    }
-                }
-
-                if (optionalArgs.isEmpty()) {
-                    baseHelper.andWith(commandAddition);
-                } else {
                     for (var optionalArg : optionalArgs) {
-                        var newNode = optionalArg.<S>createNodeBuilder();
+                        optionalArgStack.add(optionalArg);
 
-                        var newKey = key1.child(optionalArg.name());
-
-                        if (this.commandParts.containsKey(newKey)) {
-                            baseHelper = this.commandParts.get(newKey);
-                        } else {
-                            var newHelper = new NodeTreeHelper<S>(newNode);
-
-                            baseHelper
-                                    .andWith(builder -> builder.then(newHelper.addToNode()))
-                                    .andWith(commandAddition);
-
-                            this.commandParts.put(newKey, newHelper);
-
-                            baseHelper = newHelper;
-                        }
+                        baseHelper.getOrCreateChild(optionalArgStack)
+                                .andWith(commandAddition);
                     }
-
-                    baseHelper.andWith(commandAddition);
                 }
+
+                baseHelper.andWith(commandAddition);
             });
         }
+
+        return getThis();
     }
 
-    private SequencedMap<Key, NodeTreeHelper<S>> buildBranchEnds(SequencedMap<Key, NodeTreeHelper<S>> currentBranchEnds, ArgumentBuilderConstructorList argBuilderList, List<ArgumentBuilderConstructor<?>> args) {
-        SequencedMap<Key, NodeTreeHelper<S>> baseBranchEnds = new LinkedHashMap<>();
+    private SequencedMap<Key, ArgumentBuilderHolder<S>> buildBranchEnds(SequencedMap<Key, ArgumentBuilderHolder<S>> currentBranchEnds, ArgumentBuilderConstructorList argBuilderList, List<ArgumentBuilderConstructor<?>> args) {
+        var baseBranchEnds = new LinkedHashMap<Key, ArgumentBuilderHolder<S>>();
 
-        currentBranchEnds.forEach((key, baseBranchEnd) -> {
-            for (var arg : args) {
-                if (arg.defaulted()) continue;
+        for (var baseBranchEnd : currentBranchEnds.values()) {
+            var newBaseBranchEnd = baseBranchEnd.getOrCreateChild((List<Argument<?>>) (Object) args.stream().filter(arg -> !arg.defaulted()).toList());
 
-                key = key.child(arg.name());
+            baseBranchEnds.put(newBaseBranchEnd.key(), newBaseBranchEnd);
+        }
 
-                var newNode = arg.<S>createNodeBuilder();
-
-                NodeTreeHelper<S> newHelper;
-
-                if (this.commandParts.containsKey(key)) {
-                    baseBranchEnd = this.commandParts.get(key);
-                } else {
-                    newHelper = new NodeTreeHelper<>(newNode);
-
-                    this.commandParts.put(key, newHelper);
-
-                    baseBranchEnd.andWith(builder -> builder.then(newHelper.addToNode()));
-
-                    baseBranchEnd = newHelper;
-                }
-            }
-
-            var helper = this.commandParts.get(key);
-
-            if (helper != null) {
-                baseBranchEnd = helper;
-            }
-
-            baseBranchEnds.put(key, baseBranchEnd);
-        });
-
-        SequencedMap<Key, NodeTreeHelper<S>> finalBranchEnds = new LinkedHashMap<>();
+        var finalBranchEnds = new LinkedHashMap<Key, ArgumentBuilderHolder<S>>();
 
         if (argBuilderList.builders().isEmpty()) {
             finalBranchEnds.putAll(baseBranchEnds);
         } else {
-            baseBranchEnds.forEach((key, branchNode) -> {
-                for (var argBuilderConstructor : argBuilderList.builders()) {
-                    var newNode = argBuilderConstructor.<S>createNodeBuilder();
+            for (var baseBranchEnd : baseBranchEnds.values()) {
+                for (var arg : argBuilderList.builders()) {
+                    var newBranchEnd = baseBranchEnd.getOrCreateChild(List.of(arg));
 
-                    var branchKey = key.child(argBuilderConstructor.name());
-
-                    NodeTreeHelper<S> newHelper;
-
-                    if (this.commandParts.containsKey(branchKey)) {
-                        newHelper = this.commandParts.get(branchKey);
-                    } else {
-                        newHelper = new NodeTreeHelper<S>(newNode);
-
-                        branchNode.andWith(builder -> builder.then(newHelper.addToNode()));
-                    }
-
-                    finalBranchEnds.put(branchKey, newHelper);
+                    finalBranchEnds.put(newBranchEnd.key(), newBranchEnd);
                 }
-            });
+            }
         }
         
         return finalBranchEnds;
     }
-
-    public static final class NodeTreeHelper<S> {
-        private final ArgumentBuilder<S, ?> baseNode;
-        private CommandAddition<S> commandAddition = builder -> builder;
-
-        public NodeTreeHelper(ArgumentBuilder<S, ?> baseNode) {
-            Objects.requireNonNull(baseNode, () -> "NodeTreeHelper was attempted to be constructed with a null base node");
-
-            this.baseNode = baseNode;
-        }
-
-        public ArgumentBuilder<S, ?> addToNode() {
-            return currentFunc().addToBuilder(baseNode);
-        }
-
-        public CommandAddition<S> currentFunc() {
-            return commandAddition;
-        }
-
-        public NodeTreeHelper<S> andWith(CommandAddition<S> func) {
-            commandAddition = commandAddition.andWith(func);
-
-            return this;
-        }
-    }
-
-    //--
-
-    //--
 
 }

@@ -1,10 +1,10 @@
 package io.wispforest.accessories.commands.api.base;
 
-import io.wispforest.accessories.commands.api.core.Branch;
 import io.wispforest.accessories.commands.api.core.CommandAddition;
 import io.wispforest.accessories.commands.api.core.Key;
 import net.minecraft.commands.CommandSourceStack;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public final class BranchedCommandGenerator extends BaseCommandGenerator<CommandSourceStack, BranchedCommandGenerator> implements CommandTreeBuilder.BranchedCommandTreeBuilder<CommandSourceStack, BranchedCommandGenerator> {
@@ -12,6 +12,10 @@ public final class BranchedCommandGenerator extends BaseCommandGenerator<Command
     private final Key branchKey;
 
     public BranchedCommandGenerator(Key branchKey) {
+        if (branchKey.isEmpty()) {
+            throw new IllegalStateException("Branched Command Generators are not designed to have an empty key, use CommandGenerators.create without a key or give a valid key!");
+        }
+
         this.branchKey = branchKey;
     }
 
@@ -24,8 +28,12 @@ public final class BranchedCommandGenerator extends BaseCommandGenerator<Command
     }
 
     @Override
-    public BranchedCommandGenerator createLeaves(Key key, List<Argument<?>> commandArgs, CommandAddition<CommandSourceStack> commandAddition) {
-        super.createLeaves(branchKey().child(key), commandArgs, commandAddition);
+    public BranchedCommandGenerator createLeaves(List<Argument<?>> startingArgs, List<Argument<?>> commandArgs, CommandAddition<CommandSourceStack> commandAddition) {
+        var list = new ArrayList<>(startingArgs);
+
+        list.addAll(0, branchKey().asArgumentList());
+
+        super.createLeaves(list, commandArgs, commandAddition);
 
         return getThis();
     }

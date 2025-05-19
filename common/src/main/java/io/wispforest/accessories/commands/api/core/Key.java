@@ -1,5 +1,6 @@
 package io.wispforest.accessories.commands.api.core;
 
+import io.wispforest.accessories.commands.api.base.Argument;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -56,6 +57,12 @@ public final class Key {
 
     public String topPath() {
         return this.path.getLast();
+    }
+
+    public List<Argument<?>> asArgumentList() {
+        return (List<Argument<?>>) (Object) this.path().stream()
+                .map(Argument::asKeyPath)
+                .toList();
     }
 
     @Override

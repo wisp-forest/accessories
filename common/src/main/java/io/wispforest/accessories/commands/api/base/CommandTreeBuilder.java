@@ -6,6 +6,7 @@ import io.wispforest.accessories.commands.api.core.Branch;
 import io.wispforest.accessories.commands.api.core.CommandAddition;
 import io.wispforest.accessories.commands.api.core.Key;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public sealed interface CommandTreeBuilder<S, B extends CommandTreeBuilder<S, B>> permits BaseCommandGenerator, CommandTreeBuilder.BranchedCommandTreeBuilder, CommandTreeBuilder.CommandTreeBuilderImpl {
@@ -50,36 +51,118 @@ public sealed interface CommandTreeBuilder<S, B extends CommandTreeBuilder<S, B>
         });
     }
 
+    default <T1, T2, T3, T4, T5, T6, T7> B createLeaves(String key, Argument<T1> arg1, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, CommandFunction7<S, T1, T2, T3, T4, T5, T6, T7> commandExecution) {
+        return createLeaves(key, List.of(arg1, arg2, arg3, arg4, arg5, arg6, arg7), (node) -> {
+            return node.executes(ctx -> commandExecution.execute(ctx, arg1.getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx)));
+        });
+    }
+
+    default <T1, T2, T3, T4, T5, T6, T7, T8> B createLeaves(String key, Argument<T1> arg1, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, CommandFunction8<S, T1, T2, T3, T4, T5, T6, T7, T8> commandExecution) {
+        return createLeaves(key, List.of(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8), (node) -> {
+            return node.executes(ctx -> commandExecution.execute(ctx, arg1.getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx)));
+        });
+    }
+
+    default <T1, T2, T3, T4, T5, T6, T7, T8, T9> B createLeaves(String key, Argument<T1> arg1, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, Argument<T9> arg9, CommandFunction9<S, T1, T2, T3, T4, T5, T6, T7, T8, T9> commandExecution) {
+        return createLeaves(key, List.of(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9), (node) -> {
+            return node.executes(ctx -> commandExecution.execute(ctx, arg1.getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx), arg9.getArgument(ctx)));
+        });
+    }
+
     //--
 
-    default void createBranch(List<String> keyParts, BranchBuilder<S> builder) {
-        createBranch(new Key(keyParts), builder);
+    default <T1> CommandTreeBuilderWithArgs.Argument1TreeBuilder<S, T1> branch(String key, Argument<T1> argument1) {
+        return CommandTreeBuilderWithArgs.createArgBranch(CommandTreeBuilder.this.branch(key), argument1);
     }
 
-    default void createBranch(String key, BranchBuilder<S> builder) {
-        createBranch(new Key(key), builder);
+    default <T1, T2> CommandTreeBuilderWithArgs.Argument2TreeBuilder<S, T1, T2> branch(String key, Argument<T1> argument1, Argument<T2> argument2) {
+        return CommandTreeBuilderWithArgs.createArgBranch(CommandTreeBuilder.this.branch(key), argument1, argument2);
     }
 
-    default void createBranch(Key baseKey, BranchBuilder<S> builder) {
-        builder.addLeaves(createBranch(baseKey));
+    default <T1, T2, T3> CommandTreeBuilderWithArgs.Argument3TreeBuilder<S, T1, T2, T3> branch(String key, Argument<T1> argument1, Argument<T2> argument2, Argument<T3> argument3) {
+        return CommandTreeBuilderWithArgs.createArgBranch(CommandTreeBuilder.this.branch(key), argument1, argument2, argument3);
+    }
+
+    default <T1> B branch(String key, Argument<T1> arg1, CommandTreeBuilderWithArgs.ArgBranchBuilder<S, CommandTreeBuilderWithArgs.Argument1TreeBuilder<S, T1>> builder) {
+        builder.addLeaves(branch(key, arg1));
+
+        return getThis();
+    }
+
+    default <T1, T2> B branch(String key, Argument<T1> arg1, Argument<T2> arg2, CommandTreeBuilderWithArgs.ArgBranchBuilder<S, CommandTreeBuilderWithArgs.Argument2TreeBuilder<S, T1, T2>> builder) {
+        builder.addLeaves(branch(key, arg1, arg2));
+
+        return getThis();
+    }
+
+    default <T1, T2, T3> B branch(String key, Argument<T1> arg1, Argument<T2> arg2, Argument<T3> arg3, CommandTreeBuilderWithArgs.ArgBranchBuilder<S, CommandTreeBuilderWithArgs.Argument3TreeBuilder<S, T1, T2, T3>> builder) {
+        builder.addLeaves(branch(key, arg1, arg2, arg3));
+
+        return getThis();
+    }
+
+    //--
+
+    default <T1> CommandTreeBuilderWithArgs.Argument1TreeBuilder<S, T1> branch(Argument<T1> argument1) {
+        return CommandTreeBuilderWithArgs.createArgBranch(CommandTreeBuilder.this, argument1);
+    }
+
+    default <T1, T2> CommandTreeBuilderWithArgs.Argument2TreeBuilder<S, T1, T2> branch(Argument<T1> argument1, Argument<T2> argument2) {
+        return CommandTreeBuilderWithArgs.createArgBranch(CommandTreeBuilder.this, argument1, argument2);
+    }
+
+    default <T1, T2, T3> CommandTreeBuilderWithArgs.Argument3TreeBuilder<S, T1, T2, T3> branch(Argument<T1> argument1, Argument<T2> argument2, Argument<T3> argument3) {
+        return CommandTreeBuilderWithArgs.createArgBranch(CommandTreeBuilder.this, argument1, argument2, argument3);
+    }
+
+    default <T1> B branch(Argument<T1> arg1, CommandTreeBuilderWithArgs.ArgBranchBuilder<S, CommandTreeBuilderWithArgs.Argument1TreeBuilder<S, T1>> builder) {
+        builder.addLeaves(branch(arg1));
+
+        return getThis();
+    }
+
+    default <T1, T2> B branch(Argument<T1> arg1, Argument<T2> arg2, CommandTreeBuilderWithArgs.ArgBranchBuilder<S, CommandTreeBuilderWithArgs.Argument2TreeBuilder<S, T1, T2>> builder) {
+        builder.addLeaves(branch(arg1, arg2));
+
+        return getThis();
+    }
+
+    default <T1, T2, T3> B branch(Argument<T1> arg1, Argument<T2> arg2, Argument<T3> arg3, CommandTreeBuilderWithArgs.ArgBranchBuilder<S, CommandTreeBuilderWithArgs.Argument3TreeBuilder<S, T1, T2, T3>> builder) {
+        builder.addLeaves(branch(arg1, arg2, arg3));
+
+        return getThis();
+    }
+
+    //--
+
+    default B branch(List<String> keyParts, BranchBuilder<S> builder) {
+        return branch(new Key(keyParts), builder);
+    }
+
+    default B branch(String key, BranchBuilder<S> builder) {
+        return branch(new Key(key), builder);
+    }
+
+    default B branch(Key baseKey, BranchBuilder<S> builder) {
+        builder.addLeaves(branch(baseKey));
+
+        return getThis();
+    }
+
+    default BranchedCommandTreeBuilder<S, ?> branch(List<String> keyParts) {
+        return branch(new Key(keyParts));
+    }
+
+    default BranchedCommandTreeBuilder<S, ?> branch(String key) {
+        return branch(new Key(key));
+    }
+
+    default BranchedCommandTreeBuilder<S, ?> branch(Key baseKey) {
+        return new BranchedCommandTreeBuilderImpl<>(this, baseKey);
     }
 
     interface BranchBuilder<S>  {
-        void addLeaves(BranchedCommandTreeBuilder<S, ?> branchBuilder);
-    }
-
-    //--
-
-    default BranchedCommandTreeBuilder<S, ?> createBranch(List<String> keyParts) {
-        return createBranch(new Key(keyParts));
-    }
-
-    default BranchedCommandTreeBuilder<S, ?> createBranch(String key) {
-        return createBranch(new Key(key));
-    }
-
-    default BranchedCommandTreeBuilder<S, ?> createBranch(Key baseKey) {
-        return new BranchedCommandTreeBuilderImpl<>(baseKey, this);
+        void addLeaves(BranchedCommandTreeBuilder<S, ?> argBranchBuilder);
     }
 
     //--
@@ -88,7 +171,13 @@ public sealed interface CommandTreeBuilder<S, B extends CommandTreeBuilder<S, B>
         return createLeaves(new Key(key), commandArgs, commandAddition);
     }
 
-    B createLeaves(Key key, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition);
+    default B createLeaves(Key key, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
+        createLeaves(key.asArgumentList(), commandArgs, commandAddition);
+
+        return getThis();
+    }
+
+    B createLeaves(List<Argument<?>> startingArgs, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition);
 
     B getThis();
 
@@ -122,10 +211,39 @@ public sealed interface CommandTreeBuilder<S, B extends CommandTreeBuilder<S, B>
         int execute(CommandContext<S> ctx, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6) throws CommandSyntaxException;
     }
 
+    interface CommandFunction7<S, T1, T2, T3, T4, T5, T6, T7> {
+        int execute(CommandContext<S> ctx, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7) throws CommandSyntaxException;
+    }
+
+    interface CommandFunction8<S, T1, T2, T3, T4, T5, T6, T7, T8> {
+        int execute(CommandContext<S> ctx, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8) throws CommandSyntaxException;
+    }
+
+    interface CommandFunction9<S, T1, T2, T3, T4, T5, T6, T7, T8, T9> {
+        int execute(CommandContext<S> ctx, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9) throws CommandSyntaxException;
+    }
+
     non-sealed interface CommandTreeBuilderImpl<S> extends CommandTreeBuilder<S, CommandTreeBuilderImpl<S>> { }
 
-    non-sealed interface BranchedCommandTreeBuilder<S, B extends BranchedCommandTreeBuilder<S, B>> extends CommandTreeBuilder<S, B>, Branch {
+    record BranchedCommandTreeBuilderImpl<S>(CommandTreeBuilder<S, ?> parentBuilder, Key branchKey) implements BranchedCommandTreeBuilder<S, BranchedCommandTreeBuilderImpl<S>>{
+        @Override
+        public BranchedCommandTreeBuilderImpl<S> createLeaves(List<Argument<?>> startingArgs, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
+            var list = new ArrayList<>(startingArgs);
 
+            list.addAll(0, branchKey().asArgumentList());
+
+            parentBuilder().createLeaves(list, commandArgs, commandAddition);
+
+            return getThis();
+        }
+
+        @Override
+        public BranchedCommandTreeBuilderImpl<S> getThis() {
+            return this;
+        }
+    }
+
+    non-sealed interface BranchedCommandTreeBuilder<S, B extends BranchedCommandTreeBuilder<S, B>> extends CommandTreeBuilder<S, B>, Branch {
         default B createLeaf(CommandFunction commandExecution) {
             return createLeaves(List.of(), (node) -> node.executes(commandExecution::execute));
         }
@@ -166,10 +284,26 @@ public sealed interface CommandTreeBuilder<S, B extends CommandTreeBuilder<S, B>
             });
         }
 
-        default B createLeaves(List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
-            createLeaves(new Key(), commandArgs, commandAddition);
+        default <T1, T2, T3, T4, T5, T6, T7> B createLeaves(Argument<T1> arg1, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, CommandFunction7<S, T1, T2, T3, T4, T5, T6, T7> commandExecution) {
+            return createLeaves(List.of(arg1, arg2, arg3, arg4, arg5, arg6, arg7), (node) -> {
+                return node.executes(ctx -> commandExecution.execute(ctx, arg1.getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx)));
+            });
+        }
 
-            return getThis();
+        default <T1, T2, T3, T4, T5, T6, T7, T8> B createLeaves(Argument<T1> arg1, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, CommandFunction8<S, T1, T2, T3, T4, T5, T6, T7, T8> commandExecution) {
+            return createLeaves(List.of(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8), (node) -> {
+                return node.executes(ctx -> commandExecution.execute(ctx, arg1.getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx)));
+            });
+        }
+
+        default <T1, T2, T3, T4, T5, T6, T7, T8, T9> B createLeaves(Argument<T1> arg1, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, Argument<T9> arg9, CommandFunction9<S, T1, T2, T3, T4, T5, T6, T7, T8, T9> commandExecution) {
+            return createLeaves(List.of(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9), (node) -> {
+                return node.executes(ctx -> commandExecution.execute(ctx, arg1.getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx), arg9.getArgument(ctx)));
+            });
+        }
+
+        default B createLeaves(List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
+            return createLeaves(new Key(), commandArgs, commandAddition);
         }
 
         @Override

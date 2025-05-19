@@ -50,9 +50,7 @@ public class CommandGenerators {
         public void registerCommands(CommandDispatcher<S> dispatcher, B context) {
             treeGenerator.generateTrees(generator, context);
 
-            generator.addToCommandsAndClear((string, nodeTreeHelper) -> {
-                var builtRootNode = nodeTreeHelper.addToNode();
-
+            generator.addToCommandsAndClear((string, builtRootNode) -> {
                 if (!(builtRootNode instanceof LiteralArgumentBuilder<?> literalArgumentBuilder)) {
                     throw new IllegalArgumentException("A root command node was found not to be a valid root literal!!!!");
                 }

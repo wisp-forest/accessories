@@ -1,7 +1,9 @@
 package io.wispforest.accessories.commands.api.base;
 
+import io.wispforest.accessories.commands.api.core.Branch;
 import io.wispforest.accessories.commands.api.core.CommandAddition;
 import io.wispforest.accessories.commands.api.core.Key;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -12,18 +14,30 @@ public interface CommandNodeHandler<S> {
     }
 
     default void modifyNode(Key key, CommandAddition<S> addition) {
-        modifyNode(key.path().stream().map(Argument::asKeyPath).toList(), addition);
+        modifyNode(key.asArgumentList(), addition);
     }
 
-    default void modifyNode(String key, List<? extends Argument<?>> args, CommandAddition<S> addition) {
+    default void modifyNode(String key, List<Argument<?>> args, CommandAddition<S> addition) {
         modifyNode(new Key(key), args, addition);
     }
 
-    default void modifyNode(List<? extends Argument<?>> args, CommandAddition<S> addition) {
-        modifyNode(new Key(), args, addition);
+    default void modifyNode(Key key, List<Argument<?>> args, CommandAddition<S> addition) {
+        getOrCreateHolder(key, args).andWith(addition);
     }
 
-    void modifyNode(Key key, List<? extends Argument<?>> args, CommandAddition<S> addition);
+    default void modifyNode(List<Argument<?>> args, CommandAddition<S> addition) {
+        getOrCreateHolder(args).andWith(addition);
+    }
+
+    default ArgumentBuilderHolder<S> getOrCreateHolder(Key key, List<Argument<?>> args) {
+        var list = new ArrayList<>(args);
+
+        list.addAll(0, key.asArgumentList());
+
+        return getOrCreateHolder(list);
+    }
+
+    ArgumentBuilderHolder<S> getOrCreateHolder(List<Argument<?>> args);
 
     default BranchedCommandNodeHandler<S> modifyUnder(Key key) {
         return new BranchedCommandNodeHandler<S>() {
@@ -35,9 +49,11 @@ public interface CommandNodeHandler<S> {
             }
 
             @Override
-            public void modifyNode(Key key, List<? extends Argument<?>> args, CommandAddition<S> addition) {
-                CommandNodeHandler.this.modifyNode(branchKey().child(key), args, addition);
+            public ArgumentBuilderHolder<S> getOrCreateHolder(List<Argument<?>> args) {
+                return CommandNodeHandler.this.getOrCreateHolder(branchKey().child(key), args);
             }
         };
     }
+
+    interface BranchedCommandNodeHandler<S> extends CommandNodeHandler<S>, Branch { }
 }
