@@ -52,7 +52,10 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
                         : null
                 ).orElse(null);
 
-        return new AccessoriesExperimentalMenu(containerId, inventory, targetEntity);
+        var menu = new AccessoriesExperimentalMenu(containerId, inventory, targetEntity)
+                .isSyncedWithServer(data.slotAmountAdded());
+
+        return (AccessoriesExperimentalMenu) menu;
     }
 
     public AccessoriesExperimentalMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
@@ -161,6 +164,8 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         }
 
         ToggledSlots.initMenu(this);
+
+        this.slotAmountAdded = this.slots.size() - this.startArmorSlots;
     }
 
     private boolean addArmorSlot(EquipmentSlot equipmentSlot, LivingEntity targetEntity, SlotTypeReference armorReference, Map<String, AccessoriesContainer> containers) {
@@ -484,12 +489,12 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         return bl;
     }
 
-    //initializeContents
-
     // REQUIRED TO PREVENT THE MENU FROM RESETTING THE CACHE WITH STACKS THAT ARE ALREADY SYNCED TO THE CLIENT
     // SINCE ACCESSORIES CONTAINERS ARE FULLY SYNCED
     @Override
     public void initializeContents(int stateId, List<ItemStack> items, ItemStack carried) {
+        if (!this.isValidMenu()) return;
+
         for(int i = 0; i < items.size(); ++i) {
             var slot = this.getSlot(i);
 

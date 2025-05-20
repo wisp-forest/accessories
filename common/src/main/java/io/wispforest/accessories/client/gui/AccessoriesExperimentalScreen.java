@@ -37,6 +37,7 @@ import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.ErrorScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -76,6 +77,21 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         super(handler, inventory, title);
 
         this.inventoryLabelX = 42069;
+    }
+
+    @Override
+    protected void init() {
+        if (!menu.isValidMenu()) {
+            Minecraft.getInstance().setScreen(
+                    new ErrorScreen(
+                            Component.literal("Accessories Screen Opening Error!"),
+                            Component.literal("Unable to open Accessories Screen due to desync with the Server!")
+                    ));
+
+            return;
+        }
+
+        super.init();
     }
 
     //--

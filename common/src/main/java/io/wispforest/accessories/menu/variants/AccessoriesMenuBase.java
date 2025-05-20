@@ -19,6 +19,8 @@ import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public abstract class AccessoriesMenuBase extends RecipeBookMenu<CraftingInput, CraftingRecipe> {
 
     @Nullable protected final CraftingContainer craftSlots;
@@ -30,6 +32,9 @@ public abstract class AccessoriesMenuBase extends RecipeBookMenu<CraftingInput, 
     protected final LivingEntity targetEntity;
 
     protected boolean sendCarriedStackToInventory = false;
+
+    protected int slotAmountAdded = -1;
+    protected boolean isValid = true;
 
     protected AccessoriesMenuBase(MenuType<? extends AccessoriesMenuBase> menuType, int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
         super(menuType, containerId);
@@ -79,6 +84,27 @@ public abstract class AccessoriesMenuBase extends RecipeBookMenu<CraftingInput, 
         setupCall.run();
 
         this.player().closeContainer();
+    }
+
+    public int slotAmountAdded() {
+        return slotAmountAdded;
+    }
+
+    public AccessoriesMenuBase isSyncedWithServer(int serverSlotAmountAdded) {
+        this.isValid = slotAmountAdded == serverSlotAmountAdded;
+
+        return this;
+    }
+
+    public boolean isValidMenu() {
+        return false;
+    }
+
+    @Override
+    public void initializeContents(int stateId, List<ItemStack> items, ItemStack carried) {
+        if (!this.isValidMenu()) return;
+
+        super.initializeContents(stateId, items, carried);
     }
 
     //--
