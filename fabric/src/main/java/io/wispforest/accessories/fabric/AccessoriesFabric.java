@@ -6,6 +6,7 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.commands.AccessoriesCommands;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
@@ -14,13 +15,18 @@ import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.menu.ArmorSlotTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.InvalidateEntityCache;
+import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.utils.ManagedEndecDataLoader;
+import io.wispforest.endec.SerializationContext;
 import io.wispforest.owo.serialization.CodecUtils;
+import io.wispforest.owo.serialization.RegistriesAttribute;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -141,6 +147,15 @@ public class AccessoriesFabric implements ModInitializer {
 
         ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD.register((player, origin, destination) -> {
             AccessoriesNetworking.CHANNEL.serverHandle(player).send(new InvalidateEntityCache(player.getId()));
+        });
+
+        var afterCommonRespawnPhase = Accessories.of("after_common_respawn_phase");
+
+        ServerPlayerEvents.AFTER_RESPAWN.addPhaseOrdering(Event.DEFAULT_PHASE, afterCommonRespawnPhase);
+        ServerPlayerEvents.AFTER_RESPAWN.register(afterCommonRespawnPhase, (oldPlayer, newPlayer, alive) -> {
+            // Required due to mods possibly causing a desync between server and client as transfer of data attachments may have not occured yet
+            // as fabric dose such after respawn which is after entity load event
+            SyncEntireContainer.syncToAllTrackingAndSelf(newPlayer);
         });
 
         Accessories.RULE_KEEP_ACCESSORY_INVENTORY = GameRuleRegistry.register("accessories.keepAccessoryInventory", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(false));
