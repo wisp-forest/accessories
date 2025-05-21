@@ -33,11 +33,10 @@ public record NestedSlotReferenceImpl(LivingEntity entity, String slotName, int 
         var innerSlotIndices = this.innerSlotIndices();
 
         for (int i = 0; i < innerSlotIndices.size(); i++) {
-            var innerIndex = innerSlotIndices.get(i);
             slotPath.append("/nest_")
                     .append(i)
                     .append("_")
-                    .append(innerIndex);
+                    .append(innerSlotIndices.get(i));
         }
 
         return slotPath.toString();

@@ -28,12 +28,12 @@ public final class BranchedCommandGenerator extends BaseCommandGenerator<Command
     }
 
     @Override
-    public BranchedCommandGenerator createLeaves(List<Argument<?>> startingArgs, List<Argument<?>> commandArgs, CommandAddition<CommandSourceStack> commandAddition) {
+    public BranchedCommandGenerator leaves(List<Argument<?>> startingArgs, List<Argument<?>> commandArgs, CommandAddition<CommandSourceStack> commandAddition) {
         var list = new ArrayList<>(startingArgs);
 
         list.addAll(0, branchKey().asArgumentList());
 
-        super.createLeaves(list, commandArgs, commandAddition);
+        super.leaves(list, commandArgs, commandAddition);
 
         return getThis();
     }

@@ -30,6 +30,10 @@ public interface SlotType {
         return Accessories.translationKey("slot." + name().replace(":", "."));
     }
 
+    static String translation(String name) {
+        return Accessories.translationKey("slot." + name.replace(":", "."));
+    }
+
     /**
      * @return The location for the given icon within the Block Atlas for the given slot type.
      */

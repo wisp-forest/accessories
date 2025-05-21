@@ -8,13 +8,14 @@ import io.wispforest.accessories.commands.api.base.BranchedCommandGenerator;
 import io.wispforest.accessories.commands.api.base.CommandGenerator;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CommandGenerators {
 
-    private static final List<Holder<CommandSourceStack, CommandBuildContext, ?>> ALL_COMMAND_GENERATORS = new ArrayList<>();
+    private static final List<Holder<?>> ALL_COMMAND_GENERATORS = new ArrayList<>();
 
     public static void create(CommandTreeGenerator<CommandSourceStack, CommandBuildContext, CommandGenerator> generateTrees) {
         create(generateTrees, argumentRegistration -> {});
@@ -34,9 +35,9 @@ public class CommandGenerators {
 
     //--
 
-    public static void registerAllGenerators(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context) {
+    public static void registerAllGenerators(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context, Commands.CommandSelection environment) {
         for (var holder : ALL_COMMAND_GENERATORS) {
-            holder.registerCommands(dispatcher, context);
+            holder.registerCommands(dispatcher, context, environment);
         }
     }
 
@@ -46,16 +47,16 @@ public class CommandGenerators {
         }
     }
 
-    private record Holder<S, B, G extends BaseCommandGenerator<S, G>>(G generator, CommandTreeGenerator<S, B, G> treeGenerator, OnArgumentRegistration registration){
-        public void registerCommands(CommandDispatcher<S> dispatcher, B context) {
-            treeGenerator.generateTrees(generator, context);
+    private record Holder<G extends BaseCommandGenerator<CommandSourceStack, G>>(G generator, CommandTreeGenerator<CommandSourceStack, CommandBuildContext, G> treeGenerator, OnArgumentRegistration registration){
+        public void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context, Commands.CommandSelection environment) {
+            treeGenerator.generateTrees(generator, context, environment);
 
             generator.addToCommandsAndClear((string, builtRootNode) -> {
                 if (!(builtRootNode instanceof LiteralArgumentBuilder<?> literalArgumentBuilder)) {
                     throw new IllegalArgumentException("A root command node was found not to be a valid root literal!!!!");
                 }
 
-                dispatcher.register((LiteralArgumentBuilder<S>) literalArgumentBuilder);
+                dispatcher.register((LiteralArgumentBuilder<CommandSourceStack>) literalArgumentBuilder);
             });
         }
     }

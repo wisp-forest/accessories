@@ -258,7 +258,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
     @Override
     public Map<ResourceLocation, AttributeModifier> getModifiers() {
-        return this.modifiers;
+        return Collections.unmodifiableMap(this.modifiers);
     }
 
     public Set<AttributeModifier> getCachedModifiers(){

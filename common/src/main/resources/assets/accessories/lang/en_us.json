@@ -33,7 +33,16 @@
   "accessories.slot_group.feet": "Feet",
   "accessories.slot_group.unsorted": "Unsorted",
   "accessories.key.category.accessories": "Accessories",
-  "argument.livingEntities.nonLiving": "Only living entities may be affected by this command, but the provided selector includes non living entities",
+
+  "accessories.commands.attribute.failed.modifier_already_present_itemstack": "Modifier %s is already present on attribute %s for stack %s",
+
+  "accessories.commands.attribute.failed.no_modifier_itemstack": "Attribute %s for stack %s has no modifier %s",
+  "accessories.commands.attribute.modifier.add.success_itemstack": "Added modifier %s to attribute %s for stack %s",
+  "accessories.commands.attribute.modifier.remove.success_itemstack": "Removed modifier %s from attribute %s for stack %s",
+  "accessories.commands.attribute.modifier.value.get.success_itemstack": "Value of modifier %s on attribute %s for stack %s is %s",
+  "accessories.commands.attribute.value.get.success": "Value of attribute %s for entity %s is %s",
+  "accessories.commands.slot.value.get.success": "Value of slot %s for entity %s is %s",
+  "accessories.argument.livingEntities.nonLiving": "Only living entities may be affected by this command, but the provided selector includes non living entities",
 
   "gamerule.accessories.keepAccessoryInventory": "Keep Accessory Inventory",
 

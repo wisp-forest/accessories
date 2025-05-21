@@ -46,9 +46,10 @@ public class Accessories {
     static {
         boolean debug = AccessoriesLoaderInternals.isDevelopmentEnv();
 
-        if (System.getProperty("owo.debug") != null) {
-            debug = Boolean.getBoolean("owo.debug");
+        if (System.getProperty("accessories.debug") != null) {
+            debug = Boolean.getBoolean("accessories.debug");
         }
+
 
         DEBUG = debug;
     }

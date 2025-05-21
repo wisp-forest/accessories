@@ -18,24 +18,24 @@ public abstract class CommandTreeBuilderWithArgs<S, B extends CommandTreeBuilder
 
     //--
 
-    public B createLeaves(String key, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
-        createLeaves(new Key(key), commandArgs, commandAddition);
+    public B leaves(String key, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
+        leaves(new Key(key), commandArgs, commandAddition);
 
         return getThis();
     }
 
-    public B createLeaves(List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
-        createLeaves(new Key(), commandArgs, commandAddition);
+    public B leaves(List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
+        leaves(new Key(), commandArgs, commandAddition);
 
         return getThis();
     }
 
-    protected B createLeaves(Key key, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
+    protected B leaves(Key key, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
         var startingArgs = new ArrayList<>(this.getArgs());
 
         startingArgs.addAll(key.asArgumentList());
 
-        this.commandTreeBuilder.createLeaves(startingArgs, commandArgs, commandAddition);
+        this.commandTreeBuilder.leaves(startingArgs, commandArgs, commandAddition);
 
         return getThis();
     }
@@ -151,112 +151,112 @@ public abstract class CommandTreeBuilderWithArgs<S, B extends CommandTreeBuilder
 
         //--
 
-        public Argument1TreeBuilder<S, T1> createLeaves(String key, CommandFunction1<S, T1> commandExecution) {
-            return createLeaves(key, List.of(), (node) -> {
+        public Argument1TreeBuilder<S, T1> leaves(String key, CommandFunction1<S, T1> commandExecution) {
+            return leaves(key, List.of(), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx)));
             });
         }
 
-        public <T2> Argument1TreeBuilder<S, T1> createLeaves(String key, Argument<T2> arg2, CommandFunction2<S, T1, T2> commandExecution) {
-            return createLeaves(key, List.of(arg2), (node) -> {
+        public <T2> Argument1TreeBuilder<S, T1> leaves(String key, Argument<T2> arg2, CommandFunction2<S, T1, T2> commandExecution) {
+            return leaves(key, List.of(arg2), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx)));
             });
         }
 
-        public <T2, T3> Argument1TreeBuilder<S, T1> createLeaves(String key, Argument<T2> arg2, Argument<T3> arg3, CommandFunction3<S, T1, T2, T3> commandExecution) {
-            return createLeaves(key, List.of(arg2, arg3), (node) -> {
+        public <T2, T3> Argument1TreeBuilder<S, T1> leaves(String key, Argument<T2> arg2, Argument<T3> arg3, CommandFunction3<S, T1, T2, T3> commandExecution) {
+            return leaves(key, List.of(arg2, arg3), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx)));
             });
         }
 
-        public <T2, T3, T4> Argument1TreeBuilder<S, T1> createLeaves(String key, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, CommandFunction4<S, T1, T2, T3, T4> commandExecution) {
-            return createLeaves(key, List.of(arg2, arg3, arg4), (node) -> {
+        public <T2, T3, T4> Argument1TreeBuilder<S, T1> leaves(String key, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, CommandFunction4<S, T1, T2, T3, T4> commandExecution) {
+            return leaves(key, List.of(arg2, arg3, arg4), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx)));
             });
         }
 
-        public <T2, T3, T4, T5> Argument1TreeBuilder<S, T1> createLeaves(String key, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, CommandFunction5<S, T1, T2, T3, T4, T5> commandExecution) {
-            return createLeaves(key, List.of(arg2, arg3, arg4, arg5), (node) -> {
+        public <T2, T3, T4, T5> Argument1TreeBuilder<S, T1> leaves(String key, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, CommandFunction5<S, T1, T2, T3, T4, T5> commandExecution) {
+            return leaves(key, List.of(arg2, arg3, arg4, arg5), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx)));
             });
         }
 
-        public <T2, T3, T4, T5, T6> Argument1TreeBuilder<S, T1> createLeaves(String key, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, CommandFunction6<S, T1, T2, T3, T4, T5, T6> commandExecution) {
-            return createLeaves(key, List.of(arg2, arg3, arg4, arg5, arg6), (node) -> {
+        public <T2, T3, T4, T5, T6> Argument1TreeBuilder<S, T1> leaves(String key, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, CommandFunction6<S, T1, T2, T3, T4, T5, T6> commandExecution) {
+            return leaves(key, List.of(arg2, arg3, arg4, arg5, arg6), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx)));
             });
         }
 
-        public <T2, T3, T4, T5, T6, T7> Argument1TreeBuilder<S, T1> createLeaves(String key, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, CommandFunction7<S, T1, T2, T3, T4, T5, T6, T7> commandExecution) {
-            return createLeaves(key, List.of(arg2, arg3, arg4, arg5, arg6, arg7), (node) -> {
+        public <T2, T3, T4, T5, T6, T7> Argument1TreeBuilder<S, T1> leaves(String key, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, CommandFunction7<S, T1, T2, T3, T4, T5, T6, T7> commandExecution) {
+            return leaves(key, List.of(arg2, arg3, arg4, arg5, arg6, arg7), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx)));
             });
         }
 
-        public <T2, T3, T4, T5, T6, T7, T8> Argument1TreeBuilder<S, T1> createLeaves(String key, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, CommandFunction8<S, T1, T2, T3, T4, T5, T6, T7, T8> commandExecution) {
-            return createLeaves(key, List.of(arg2, arg3, arg4, arg5, arg6, arg7, arg8), (node) -> {
+        public <T2, T3, T4, T5, T6, T7, T8> Argument1TreeBuilder<S, T1> leaves(String key, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, CommandFunction8<S, T1, T2, T3, T4, T5, T6, T7, T8> commandExecution) {
+            return leaves(key, List.of(arg2, arg3, arg4, arg5, arg6, arg7, arg8), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx)));
             });
         }
 
-        public <T2, T3, T4, T5, T6, T7, T8, T9> Argument1TreeBuilder<S, T1> createLeaves(String key, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, Argument<T9> arg9, CommandFunction9<S, T1, T2, T3, T4, T5, T6, T7, T8, T9> commandExecution) {
-            return createLeaves(key, List.of(arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9), (node) -> {
+        public <T2, T3, T4, T5, T6, T7, T8, T9> Argument1TreeBuilder<S, T1> leaves(String key, Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, Argument<T9> arg9, CommandFunction9<S, T1, T2, T3, T4, T5, T6, T7, T8, T9> commandExecution) {
+            return leaves(key, List.of(arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx), arg9.getArgument(ctx)));
             });
         }
 
         //--
 
-        public Argument1TreeBuilder<S, T1> createLeaves(CommandFunction1<S, T1> commandExecution) {
-            return createLeaves(List.of(), (node) -> {
+        public Argument1TreeBuilder<S, T1> leaves(CommandFunction1<S, T1> commandExecution) {
+            return leaves(List.of(), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx)));
             });
         }
 
-        public <T2> Argument1TreeBuilder<S, T1> createLeaves(Argument<T2> arg2, CommandFunction2<S, T1, T2> commandExecution) {
-            return createLeaves(List.of(arg2), (node) -> {
+        public <T2> Argument1TreeBuilder<S, T1> leaves(Argument<T2> arg2, CommandFunction2<S, T1, T2> commandExecution) {
+            return leaves(List.of(arg2), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx)));
             });
         }
 
-        public <T2, T3> Argument1TreeBuilder<S, T1> createLeaves(Argument<T2> arg2, Argument<T3> arg3, CommandFunction3<S, T1, T2, T3> commandExecution) {
-            return createLeaves(List.of(arg2, arg3), (node) -> {
+        public <T2, T3> Argument1TreeBuilder<S, T1> leaves(Argument<T2> arg2, Argument<T3> arg3, CommandFunction3<S, T1, T2, T3> commandExecution) {
+            return leaves(List.of(arg2, arg3), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx)));
             });
         }
 
-        public <T2, T3, T4> Argument1TreeBuilder<S, T1> createLeaves(Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, CommandFunction4<S, T1, T2, T3, T4> commandExecution) {
-            return createLeaves(List.of(arg2, arg3, arg4), (node) -> {
+        public <T2, T3, T4> Argument1TreeBuilder<S, T1> leaves(Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, CommandFunction4<S, T1, T2, T3, T4> commandExecution) {
+            return leaves(List.of(arg2, arg3, arg4), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx)));
             });
         }
 
-        public <T2, T3, T4, T5> Argument1TreeBuilder<S, T1> createLeaves(Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, CommandFunction5<S, T1, T2, T3, T4, T5> commandExecution) {
-            return createLeaves(List.of(arg2, arg3, arg4, arg5), (node) -> {
+        public <T2, T3, T4, T5> Argument1TreeBuilder<S, T1> leaves(Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, CommandFunction5<S, T1, T2, T3, T4, T5> commandExecution) {
+            return leaves(List.of(arg2, arg3, arg4, arg5), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx)));
             });
         }
 
-        public <T2, T3, T4, T5, T6> Argument1TreeBuilder<S, T1> createLeaves(Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, CommandFunction6<S, T1, T2, T3, T4, T5, T6> commandExecution) {
-            return createLeaves(List.of(arg2, arg3, arg4, arg5, arg6), (node) -> {
+        public <T2, T3, T4, T5, T6> Argument1TreeBuilder<S, T1> leaves(Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, CommandFunction6<S, T1, T2, T3, T4, T5, T6> commandExecution) {
+            return leaves(List.of(arg2, arg3, arg4, arg5, arg6), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx)));
             });
         }
 
-        public <T2, T3, T4, T5, T6, T7> Argument1TreeBuilder<S, T1> createLeaves(Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, CommandFunction7<S, T1, T2, T3, T4, T5, T6, T7> commandExecution) {
-            return createLeaves(List.of(arg2, arg3, arg4, arg5, arg6, arg7), (node) -> {
+        public <T2, T3, T4, T5, T6, T7> Argument1TreeBuilder<S, T1> leaves(Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, CommandFunction7<S, T1, T2, T3, T4, T5, T6, T7> commandExecution) {
+            return leaves(List.of(arg2, arg3, arg4, arg5, arg6, arg7), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx)));
             });
         }
 
-        public <T2, T3, T4, T5, T6, T7, T8> Argument1TreeBuilder<S, T1> createLeaves(Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, CommandFunction8<S, T1, T2, T3, T4, T5, T6, T7, T8> commandExecution) {
-            return createLeaves(List.of(arg2, arg3, arg4, arg5, arg6, arg7, arg8), (node) -> {
+        public <T2, T3, T4, T5, T6, T7, T8> Argument1TreeBuilder<S, T1> leaves(Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, CommandFunction8<S, T1, T2, T3, T4, T5, T6, T7, T8> commandExecution) {
+            return leaves(List.of(arg2, arg3, arg4, arg5, arg6, arg7, arg8), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx)));
             });
         }
 
-        public <T2, T3, T4, T5, T6, T7, T8, T9> Argument1TreeBuilder<S, T1> createLeaves(Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, Argument<T9> arg9, CommandFunction9<S, T1, T2, T3, T4, T5, T6, T7, T8, T9> commandExecution) {
-            return createLeaves(List.of(arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9), (node) -> {
+        public <T2, T3, T4, T5, T6, T7, T8, T9> Argument1TreeBuilder<S, T1> leaves(Argument<T2> arg2, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, Argument<T9> arg9, CommandFunction9<S, T1, T2, T3, T4, T5, T6, T7, T8, T9> commandExecution) {
+            return leaves(List.of(arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2.getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx), arg9.getArgument(ctx)));
             });
         }
@@ -310,49 +310,49 @@ public abstract class CommandTreeBuilderWithArgs<S, B extends CommandTreeBuilder
         //--
 
         public Argument2TreeBuilder<S, T1, T2> leaves(String key, CommandFunction2<S, T1, T2> commandExecution) {
-            return createLeaves(key, List.of(), (node) -> {
+            return leaves(key, List.of(), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx)));
             });
         }
 
         public <T3> Argument2TreeBuilder<S, T1, T2> leaves(String key, Argument<T3> arg3, CommandFunction3<S, T1, T2, T3> commandExecution) {
-            return createLeaves(key, List.of(arg3), (node) -> {
+            return leaves(key, List.of(arg3), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3.getArgument(ctx)));
             });
         }
 
         public <T3, T4> Argument2TreeBuilder<S, T1, T2> leaves(String key, Argument<T3> arg3, Argument<T4> arg4, CommandFunction4<S, T1, T2, T3, T4> commandExecution) {
-            return createLeaves(key, List.of(arg3, arg4), (node) -> {
+            return leaves(key, List.of(arg3, arg4), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx)));
             });
         }
 
         public <T3, T4, T5> Argument2TreeBuilder<S, T1, T2> leaves(String key, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, CommandFunction5<S, T1, T2, T3, T4, T5> commandExecution) {
-            return createLeaves(key, List.of(arg3, arg4, arg5), (node) -> {
+            return leaves(key, List.of(arg3, arg4, arg5), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx)));
             });
         }
 
         public <T3, T4, T5, T6> Argument2TreeBuilder<S, T1, T2> leaves(String key, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, CommandFunction6<S, T1, T2, T3, T4, T5, T6> commandExecution) {
-            return createLeaves(key, List.of(arg3, arg4, arg5, arg6), (node) -> {
+            return leaves(key, List.of(arg3, arg4, arg5, arg6), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx)));
             });
         }
 
         public <T3, T4, T5, T6, T7> Argument2TreeBuilder<S, T1, T2> leaves(String key, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, CommandFunction7<S, T1, T2, T3, T4, T5, T6, T7> commandExecution) {
-            return createLeaves(key, List.of(arg3, arg4, arg5, arg6, arg7), (node) -> {
+            return leaves(key, List.of(arg3, arg4, arg5, arg6, arg7), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx)));
             });
         }
 
         public <T3, T4, T5, T6, T7, T8> Argument2TreeBuilder<S, T1, T2> leaves(String key, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, CommandFunction8<S, T1, T2, T3, T4, T5, T6, T7, T8> commandExecution) {
-            return createLeaves(key, List.of(arg3, arg4, arg5, arg6, arg7, arg8), (node) -> {
+            return leaves(key, List.of(arg3, arg4, arg5, arg6, arg7, arg8), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx)));
             });
         }
 
         public <T3, T4, T5, T6, T7, T8, T9> Argument2TreeBuilder<S, T1, T2> leaves(String key, Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, Argument<T9> arg9, CommandFunction9<S, T1, T2, T3, T4, T5, T6, T7, T8, T9> commandExecution) {
-            return createLeaves(key, List.of(arg3, arg4, arg5, arg6, arg7, arg8, arg9), (node) -> {
+            return leaves(key, List.of(arg3, arg4, arg5, arg6, arg7, arg8, arg9), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx), arg9.getArgument(ctx)));
             });
         }
@@ -360,49 +360,49 @@ public abstract class CommandTreeBuilderWithArgs<S, B extends CommandTreeBuilder
         //--
 
         public Argument2TreeBuilder<S, T1, T2> leaves(CommandFunction2<S, T1, T2> commandExecution) {
-            return createLeaves(List.of(), (node) -> {
+            return leaves(List.of(), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx)));
             });
         }
 
         public <T3> Argument2TreeBuilder<S, T1, T2> leaves(Argument<T3> arg3, CommandFunction3<S, T1, T2, T3> commandExecution) {
-            return createLeaves(List.of(arg3), (node) -> {
+            return leaves(List.of(arg3), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3.getArgument(ctx)));
             });
         }
 
         public <T3, T4> Argument2TreeBuilder<S, T1, T2> leaves(Argument<T3> arg3, Argument<T4> arg4, CommandFunction4<S, T1, T2, T3, T4> commandExecution) {
-            return createLeaves(List.of(arg3, arg4), (node) -> {
+            return leaves(List.of(arg3, arg4), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx)));
             });
         }
 
         public <T3, T4, T5> Argument2TreeBuilder<S, T1, T2> leaves(Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, CommandFunction5<S, T1, T2, T3, T4, T5> commandExecution) {
-            return createLeaves(List.of(arg3, arg4, arg5), (node) -> {
+            return leaves(List.of(arg3, arg4, arg5), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx)));
             });
         }
 
         public <T3, T4, T5, T6> Argument2TreeBuilder<S, T1, T2> leaves(Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, CommandFunction6<S, T1, T2, T3, T4, T5, T6> commandExecution) {
-            return createLeaves(List.of(arg3, arg4, arg5, arg6), (node) -> {
+            return leaves(List.of(arg3, arg4, arg5, arg6), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx)));
             });
         }
 
         public <T3, T4, T5, T6, T7> Argument2TreeBuilder<S, T1, T2> leaves(Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, CommandFunction7<S, T1, T2, T3, T4, T5, T6, T7> commandExecution) {
-            return createLeaves(List.of(arg3, arg4, arg5, arg6, arg7), (node) -> {
+            return leaves(List.of(arg3, arg4, arg5, arg6, arg7), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx)));
             });
         }
 
         public <T3, T4, T5, T6, T7, T8> Argument2TreeBuilder<S, T1, T2> leaves(Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, CommandFunction8<S, T1, T2, T3, T4, T5, T6, T7, T8> commandExecution) {
-            return createLeaves(List.of(arg3, arg4, arg5, arg6, arg7, arg8), (node) -> {
+            return leaves(List.of(arg3, arg4, arg5, arg6, arg7, arg8), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx)));
             });
         }
 
         public <T3, T4, T5, T6, T7, T8, T9> Argument2TreeBuilder<S, T1, T2> leaves(Argument<T3> arg3, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, Argument<T9> arg9, CommandFunction9<S, T1, T2, T3, T4, T5, T6, T7, T8, T9> commandExecution) {
-            return createLeaves(List.of(arg3, arg4, arg5, arg6, arg7, arg8, arg9), (node) -> {
+            return leaves(List.of(arg3, arg4, arg5, arg6, arg7, arg8, arg9), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3.getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx), arg9.getArgument(ctx)));
             });
         }
@@ -455,88 +455,88 @@ public abstract class CommandTreeBuilderWithArgs<S, B extends CommandTreeBuilder
 
         //--
 
-        public Argument3TreeBuilder<S, T1, T2, T3> createLeaves(Key key, CommandFunction3<S, T1, T2, T3> commandExecution) {
-            return createLeaves(key, List.of(), (node) -> {
+        public Argument3TreeBuilder<S, T1, T2, T3> leaves(String key, CommandFunction3<S, T1, T2, T3> commandExecution) {
+            return leaves(key, List.of(), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3().getArgument(ctx)));
             });
         }
 
-        public <T4> Argument3TreeBuilder<S, T1, T2, T3> createLeaves(Key key, Argument<T4> arg4, CommandFunction4<S, T1, T2, T3, T4> commandExecution) {
-            return createLeaves(key, List.of(arg4), (node) -> {
+        public <T4> Argument3TreeBuilder<S, T1, T2, T3> leaves(String key, Argument<T4> arg4, CommandFunction4<S, T1, T2, T3, T4> commandExecution) {
+            return leaves(key, List.of(arg4), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3().getArgument(ctx), arg4.getArgument(ctx)));
             });
         }
 
-        public <T4, T5> Argument3TreeBuilder<S, T1, T2, T3> createLeaves(Key key, Argument<T4> arg4, Argument<T5> arg5, CommandFunction5<S, T1, T2, T3, T4, T5> commandExecution) {
-            return createLeaves(key, List.of(arg4, arg5), (node) -> {
+        public <T4, T5> Argument3TreeBuilder<S, T1, T2, T3> leaves(String key, Argument<T4> arg4, Argument<T5> arg5, CommandFunction5<S, T1, T2, T3, T4, T5> commandExecution) {
+            return leaves(key, List.of(arg4, arg5), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3().getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx)));
             });
         }
 
-        public <T4, T5, T6> Argument3TreeBuilder<S, T1, T2, T3> createLeaves(Key key, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, CommandFunction6<S, T1, T2, T3, T4, T5, T6> commandExecution) {
-            return createLeaves(key, List.of(arg4, arg5, arg6), (node) -> {
+        public <T4, T5, T6> Argument3TreeBuilder<S, T1, T2, T3> leaves(String key, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, CommandFunction6<S, T1, T2, T3, T4, T5, T6> commandExecution) {
+            return leaves(key, List.of(arg4, arg5, arg6), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3().getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx)));
             });
         }
 
-        public <T4, T5, T6, T7> Argument3TreeBuilder<S, T1, T2, T3> createLeaves(String key, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, CommandFunction7<S, T1, T2, T3, T4, T5, T6, T7> commandExecution) {
-            return createLeaves(key, List.of(arg4, arg5, arg6, arg7), (node) -> {
+        public <T4, T5, T6, T7> Argument3TreeBuilder<S, T1, T2, T3> leaves(String key, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, CommandFunction7<S, T1, T2, T3, T4, T5, T6, T7> commandExecution) {
+            return leaves(key, List.of(arg4, arg5, arg6, arg7), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3().getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx)));
             });
         }
 
-        public <T4, T5, T6, T7, T8> Argument3TreeBuilder<S, T1, T2, T3> createLeaves(String key, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, CommandFunction8<S, T1, T2, T3, T4, T5, T6, T7, T8> commandExecution) {
-            return createLeaves(key, List.of(arg4, arg5, arg6, arg7, arg8), (node) -> {
+        public <T4, T5, T6, T7, T8> Argument3TreeBuilder<S, T1, T2, T3> leaves(String key, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, CommandFunction8<S, T1, T2, T3, T4, T5, T6, T7, T8> commandExecution) {
+            return leaves(key, List.of(arg4, arg5, arg6, arg7, arg8), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3().getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx)));
             });
         }
 
-        public <T4, T5, T6, T7, T8, T9> Argument3TreeBuilder<S, T1, T2, T3> createLeaves(String key, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, Argument<T9> arg9, CommandFunction9<S, T1, T2, T3, T4, T5, T6, T7, T8, T9> commandExecution) {
-            return createLeaves(key, List.of(arg4, arg5, arg6, arg7, arg8, arg9), (node) -> {
+        public <T4, T5, T6, T7, T8, T9> Argument3TreeBuilder<S, T1, T2, T3> leaves(String key, Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, Argument<T9> arg9, CommandFunction9<S, T1, T2, T3, T4, T5, T6, T7, T8, T9> commandExecution) {
+            return leaves(key, List.of(arg4, arg5, arg6, arg7, arg8, arg9), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3().getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx), arg9.getArgument(ctx)));
             });
         }
 
         //--
 
-        public Argument3TreeBuilder<S, T1, T2, T3> createLeaves(CommandFunction3<S, T1, T2, T3> commandExecution) {
-            return createLeaves(List.of(), (node) -> {
+        public Argument3TreeBuilder<S, T1, T2, T3> leaves(CommandFunction3<S, T1, T2, T3> commandExecution) {
+            return leaves(List.of(), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3().getArgument(ctx)));
             });
         }
 
-        public <T4> Argument3TreeBuilder<S, T1, T2, T3> createLeaves(Argument<T4> arg4, CommandFunction4<S, T1, T2, T3, T4> commandExecution) {
-            return createLeaves(List.of(arg4), (node) -> {
+        public <T4> Argument3TreeBuilder<S, T1, T2, T3> leaves(Argument<T4> arg4, CommandFunction4<S, T1, T2, T3, T4> commandExecution) {
+            return leaves(List.of(arg4), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3().getArgument(ctx), arg4.getArgument(ctx)));
             });
         }
 
-        public <T4, T5> Argument3TreeBuilder<S, T1, T2, T3> createLeaves(Argument<T4> arg4, Argument<T5> arg5, CommandFunction5<S, T1, T2, T3, T4, T5> commandExecution) {
-            return createLeaves(List.of(arg4, arg5), (node) -> {
+        public <T4, T5> Argument3TreeBuilder<S, T1, T2, T3> leaves(Argument<T4> arg4, Argument<T5> arg5, CommandFunction5<S, T1, T2, T3, T4, T5> commandExecution) {
+            return leaves(List.of(arg4, arg5), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3().getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx)));
             });
         }
 
-        public <T4, T5, T6> Argument3TreeBuilder<S, T1, T2, T3> createLeaves(Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, CommandFunction6<S, T1, T2, T3, T4, T5, T6> commandExecution) {
-            return createLeaves(List.of(arg4, arg5, arg6), (node) -> {
+        public <T4, T5, T6> Argument3TreeBuilder<S, T1, T2, T3> leaves(Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, CommandFunction6<S, T1, T2, T3, T4, T5, T6> commandExecution) {
+            return leaves(List.of(arg4, arg5, arg6), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3().getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx)));
             });
         }
 
-        public <T4, T5, T6, T7> Argument3TreeBuilder<S, T1, T2, T3> createLeaves(Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, CommandFunction7<S, T1, T2, T3, T4, T5, T6, T7> commandExecution) {
-            return createLeaves(List.of(arg4, arg5, arg6, arg7), (node) -> {
+        public <T4, T5, T6, T7> Argument3TreeBuilder<S, T1, T2, T3> leaves(Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, CommandFunction7<S, T1, T2, T3, T4, T5, T6, T7> commandExecution) {
+            return leaves(List.of(arg4, arg5, arg6, arg7), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3().getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx)));
             });
         }
 
-        public <T4, T5, T6, T7, T8> Argument3TreeBuilder<S, T1, T2, T3> createLeaves(Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, CommandFunction8<S, T1, T2, T3, T4, T5, T6, T7, T8> commandExecution) {
-            return createLeaves(List.of(arg4, arg5, arg6, arg7, arg8), (node) -> {
+        public <T4, T5, T6, T7, T8> Argument3TreeBuilder<S, T1, T2, T3> leaves(Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, CommandFunction8<S, T1, T2, T3, T4, T5, T6, T7, T8> commandExecution) {
+            return leaves(List.of(arg4, arg5, arg6, arg7, arg8), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3().getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx)));
             });
         }
 
-        public <T4, T5, T6, T7, T8, T9> Argument3TreeBuilder<S, T1, T2, T3> createLeaves(Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, Argument<T9> arg9, CommandFunction9<S, T1, T2, T3, T4, T5, T6, T7, T8, T9> commandExecution) {
-            return createLeaves(List.of(arg4, arg5, arg6, arg7, arg8, arg9), (node) -> {
+        public <T4, T5, T6, T7, T8, T9> Argument3TreeBuilder<S, T1, T2, T3> leaves(Argument<T4> arg4, Argument<T5> arg5, Argument<T6> arg6, Argument<T7> arg7, Argument<T8> arg8, Argument<T9> arg9, CommandFunction9<S, T1, T2, T3, T4, T5, T6, T7, T8, T9> commandExecution) {
+            return leaves(List.of(arg4, arg5, arg6, arg7, arg8, arg9), (node) -> {
                 return node.executes(ctx -> commandExecution.execute(ctx, arg1().getArgument(ctx), arg2().getArgument(ctx), arg3().getArgument(ctx), arg4.getArgument(ctx), arg5.getArgument(ctx), arg6.getArgument(ctx), arg7.getArgument(ctx), arg8.getArgument(ctx), arg9.getArgument(ctx)));
             });
         }

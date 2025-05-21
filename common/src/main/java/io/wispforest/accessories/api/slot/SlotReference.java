@@ -10,6 +10,7 @@ import io.wispforest.accessories.impl.slot.SlotReferenceImpl;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
 import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
+import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -75,7 +76,7 @@ public interface SlotReference {
     }
 
     default String createSlotPath() {
-        return this.slotName().replace(":", "-") + "/" + this.slot();
+        return createBaseSlotPath(this.slotName(), this.slot());
     }
 
     @Nullable
@@ -120,5 +121,27 @@ public interface SlotReference {
         container.getAccessories().setItem(slot(), stack);
 
         return true;
+    }
+
+    //--
+
+    static String createBaseSlotPath(SlotType slotType, int index) {
+        return createBaseSlotPath(slotType.name(), index);
+    }
+
+    static String createBaseSlotPath(String name, int index) {
+        return name.replace(":", "-") + "/" + index;
+    }
+
+    @Nullable
+    static Pair<String, Integer> parseBaseSlotPath(String path) {
+        var parts = path.split("/");
+
+        if (parts.length < 1) return null;
+
+        var baseSlotName = parts[0].replace("-", ":");
+        var index = Integer.parseInt(parts[1]);
+
+        return Pair.of(baseSlotName, index);
     }
 }

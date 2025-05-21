@@ -95,9 +95,7 @@ public class AccessoriesFabric implements ModInitializer {
             }
         });
 
-        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            CommandGenerators.registerAllGenerators(dispatcher, registryAccess);
-        });
+        CommandRegistrationCallback.EVENT.register(CommandGenerators::registerAllGenerators);
 
         UseItemCallback.EVENT.register((player, level, hand) -> {
             var holder = AccessoriesEventHandler.attemptEquipFromUse(player, hand);

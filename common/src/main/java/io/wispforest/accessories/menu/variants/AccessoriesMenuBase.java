@@ -102,7 +102,7 @@ public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
     }
 
     public boolean isValidMenu() {
-        return false;
+        return this.isValid;
     }
 
     //--

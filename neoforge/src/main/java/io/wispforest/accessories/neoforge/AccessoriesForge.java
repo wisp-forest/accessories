@@ -142,7 +142,7 @@ public class AccessoriesForge {
     }
 
     public void registerCommands(RegisterCommandsEvent event) {
-        CommandGenerators.registerAllGenerators(event.getDispatcher(), event.getBuildContext());
+        CommandGenerators.registerAllGenerators(event.getDispatcher(), event.getBuildContext(), event.getCommandSelection());
     }
 
     public void registerStuff(RegisterEvent event){

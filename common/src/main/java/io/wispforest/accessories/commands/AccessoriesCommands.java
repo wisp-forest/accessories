@@ -11,8 +11,12 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.AccessoriesCapability;
+import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.attributes.SlotAttribute;
 import io.wispforest.accessories.api.client.rendering.RenderingFunction;
 import io.wispforest.accessories.api.components.*;
+import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.commands.api.CommandGenerators;
 import io.wispforest.accessories.commands.api.core.RecordArgumentTypeInfo;
 import io.wispforest.accessories.commands.api.base.BranchedCommandGenerator;
@@ -20,6 +24,7 @@ import io.wispforest.accessories.data.CustomRendererLoader;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.endec.Endec;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -34,8 +39,10 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -52,9 +59,13 @@ import static io.wispforest.accessories.commands.api.Arguments.*;
 
 public class AccessoriesCommands {
 
-    private static final SimpleCommandExceptionType NON_LIVING_ENTITY_TARGET = new SimpleCommandExceptionType(Component.translatable("argument.livingEntities.nonLiving"));
+    public static final SimpleCommandExceptionType NON_LIVING_ENTITY_TARGET = new SimpleCommandExceptionType(Component.translatable("accessories.argument.livingEntities.nonLiving"));
 
     public static final SimpleCommandExceptionType INVALID_SLOT_TYPE = new SimpleCommandExceptionType(new LiteralMessage("Invalid Slot Type"));
+
+    public static final SimpleCommandExceptionType ERROR_CAPABILITY_MISSING = new SimpleCommandExceptionType(Component.literal("Unable to get the needed capability from the given target!"));
+
+    public static final DynamicCommandExceptionType ERROR_CONTAINER_MISSING = new DynamicCommandExceptionType((obj) -> Component.literal("Unable to get the needed Container from the given target! [Container: " + obj + "]"));
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -65,6 +76,7 @@ public class AccessoriesCommands {
                 registration -> {
                     registration.register(Accessories.of("slot_type"), SlotArgumentType.class, RecordArgumentTypeInfo.of(ctx -> SlotArgumentType.INSTANCE));
                     registration.register(Accessories.of("resource"), ResourceExtendedArgument.class, RecordArgumentTypeInfo.of(ResourceExtendedArgument::attributes));
+                    registration.register(Accessories.of("slot_path"), AccessoriesSlotArgument.class, RecordArgumentTypeInfo.of(Endec.STRING, "entity_argument_name", AccessoriesSlotArgument::entityArgumentName, AccessoriesSlotArgument::new));
                 });
     }
 
@@ -78,32 +90,54 @@ public class AccessoriesCommands {
         return livingEntity;
     }
 
-    protected static void generateTrees(BranchedCommandGenerator generator, CommandBuildContext context) {
+    public static AccessoriesCapability getCapability(Entity entity) throws CommandSyntaxException {
+        if(!(entity instanceof LivingEntity livingEntity)) throw AccessoriesCommands.NON_LIVING_ENTITY_TARGET.create();
+
+        var capability = livingEntity.accessoriesCapability();
+
+        if (capability == null) throw AccessoriesCommands.ERROR_CAPABILITY_MISSING.create();
+
+        return capability;
+    }
+
+    public static AccessoriesContainer getContainer(Entity entity, String slot) throws CommandSyntaxException {
+        var capability = getCapability(entity);
+
+        var container = capability.getContainers().get(slot);
+
+        if (container == null) throw AccessoriesCommands.ERROR_CONTAINER_MISSING.create(slot);
+
+        return container;
+    }
+
+    protected static void generateTrees(BranchedCommandGenerator generator, CommandBuildContext context, Commands.CommandSelection environment) {
         generator.modifyRootNode(builder -> builder.requires(stack -> stack.hasPermission(Commands.LEVEL_GAMEMASTERS)));
 
-        if (Accessories.DEBUG) {
-            generator.createLeaves(
-                    "create-renderer-stack",
-                    required("renderer_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
-                    required("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
-                    required("custom_name", ComponentArgument.textComponent(context), ComponentArgument::getResolvedComponent),
-                    defaulted("is_bundle", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class), false),
-                    (ctx, rendererId, itemModelId, component, isBundle) -> {
-                        AccessoriesCommands.createRenderStack(ctx, rendererId, itemModelId, component, isBundle);
-                        return 0;
-                    }
-            ).createLeaves(
-                    "listen-to-renderer",
-                    defaulted("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class), null),
-                    (ctx, id) -> {
-                        CustomRendererLoader.constantFileResolving(ctx.getSource().getServer(), id);
+        if (environment.includeIntegrated) {
+            generator.branch("rendering", renderingBranch -> {
+                renderingBranch.leaves(
+                        "create-renderer-stack",
+                        required("renderer_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
+                        required("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
+                        required("custom_name", ComponentArgument.textComponent(context), ComponentArgument::getResolvedComponent),
+                        defaulted("is_bundle", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class), false),
+                        (ctx, rendererId, itemModelId, component, isBundle) -> {
+                            AccessoriesCommands.createRenderStack(ctx, rendererId, itemModelId, component, isBundle);
+                            return 0;
+                        }
+                ).leaves(
+                        "listen-to-renderer",
+                        defaulted("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class), null),
+                        (ctx, id) -> {
+                            CustomRendererLoader.constantFileResolving(ctx.getSource().getServer(), id);
 
-                        return 1;
-                    }
-            );
+                            return 1;
+                        }
+                );
+            });
         }
 
-        generator.createLeaves(
+        generator.leaves(
                 "edit",
                 defaulted("entity", EntityArgument.entity(), AccessoriesCommands::getOrThrowLivingEntity, null),
                 (ctx, livingEntity) -> {
@@ -112,127 +146,10 @@ public class AccessoriesCommands {
                     return 1;
                 });
 
-        generator.createLeaves(
-                "effect/add",
-                required("effect", ResourceArgument.resource(context, Registries.MOB_EFFECT), ResourceArgument::getMobEffect),
-                defaulted("applyDelay", IntegerArgumentType.integer(1, 1000000), IntegerArgumentType::getInteger, null),
-                defaulted("seconds", IntegerArgumentType.integer(1, 1000000), IntegerArgumentType::getInteger, -1),
-                defaulted("amplifier", IntegerArgumentType.integer(0, 255), IntegerArgumentType::getInteger, 1),
-                defaulted("hideParticles", BoolArgumentType.bool(), BoolArgumentType::getBool, null),
-                defaulted("hideIcon", BoolArgumentType.bool(), BoolArgumentType::getBool, null),
-                (ctx, effect, applyDelay, seconds, amplifier, hideParticles, hideIcon) -> {
-                    if (seconds == -1) {
-                        if (hideParticles == null) hideParticles = true;
-                    }
-
-                    if (hideIcon == null) hideIcon = false;
-
-                    var effectInstance = new MobEffectInstance(effect, seconds, amplifier, false, !hideParticles, !hideIcon);
-
-                    var player = ctx.getSource().getPlayerOrException();
-
-                    player.getMainHandItem().update(
-                            AccessoriesDataComponents.MOB_EFFECTS,
-                            AccessoryMobEffectsComponent.EMPTY,
-                            data -> applyDelay != null
-                                    ? data.addEffect(effectInstance, applyDelay)
-                                    : data.addEffect(effectInstance));
-
-                    return 1;
-                }
-        );
-
-        //--
-
-        generator.createLeaves(
-                "nest",
-                required("item", ItemArgument.item(context), (ctx, name) -> ItemArgument.getItem(ctx, name).createItemStack(1, false)),
-                (ctx, innerStack) -> {
-                    var player = ctx.getSource().getPlayerOrException();
-
-                    player.getMainHandItem().update(
-                            AccessoriesDataComponents.NESTED_ACCESSORIES,
-                            AccessoryNestContainerContents.EMPTY,
-                            data -> data.addStack(innerStack));
-
-                    return 1;
-                });
-
-        //--
-
-        generator.createLeaves(
-                "slot",
-                branches("add", "remove"),
-                branches("valid", "invalid"),
-                required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
-                (ctx, operation, condition, slot) -> adjustSlotValidationOnStack(condition, Objects.equals(operation, "add"), slot, ctx)
-        );
-
-        //--
-
-        generator.branch("stack-sizing", branchBuilder -> {
-            branchBuilder.createLeaves(
-                    "useStackSize",
-                    required("value", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class)),
-                    (ctx, bl) -> {
-                        var player = ctx.getSource().getPlayerOrException();
-
-                        player.getMainHandItem().update(AccessoriesDataComponents.STACK_SETTINGS,
-                                AccessoryStackSettings.DEFAULT,
-                                component -> component.useStackSize(bl));
-
-                        return 1;
-                    }
-            ).createLeaves(
-                    required("size", IntegerArgumentType.integer(), (ctx, name) -> ctx.getArgument(name, Integer.class)),
-                    (ctx, size) -> {
-                        var player = ctx.getSource().getPlayerOrException();
-
-                        player.getMainHandItem().update(AccessoriesDataComponents.STACK_SETTINGS,
-                                AccessoryStackSettings.DEFAULT,
-                                component -> component.sizeOverride(size));
-
-                        return 1;
-                    }
-            );
-        });
-
-        //--
-
-        generator.branch(
-                "attribute/modifier",
-                required("attribute", ResourceExtendedArgument.attributes(context), ResourceExtendedArgument::getAttribute),
-                required("id", ResourceLocationArgument.id(), ResourceLocationArgument::getId),
-                branchBuilder -> {
-                    branchBuilder.leaves(
-                            "add",
-                            required("amount", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble),
-                            branches(List.of("add_value", "add_multiplied_base", "add_multiplied_total"), operationTypeStr -> {
-                                return Arrays.stream(AttributeModifier.Operation.values())
-                                        .filter(value -> value.getSerializedName().equals(operationTypeStr))
-                                        .findFirst()
-                                        .orElse(null);
-                            }),
-                            required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
-                            required("isStackable", BoolArgumentType.bool(), BoolArgumentType::getBool),
-                            AccessoriesCommands::addModifier
-                    ).leaves(
-                            "remove",
-                            AccessoriesCommands::removeModifier
-                    ).leaves(
-                            "get",
-                            defaulted("scale", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble, 1.0),
-                            AccessoriesCommands::getAttributeModifier
-                    );
-                });
-
-
-        //--
-
         var logFailureType = new DynamicCommandExceptionType(branch -> Component.literal("Unable to locate the given logging for the following command branch: " + branch));
 
-        generator.createLeaves(
-                "log",
+        generator.leaves(
+                "dump",
                 branches("slots", "groups", "entity_bindings"),
                 (ctx, branch) -> {
                     switch (branch) {
@@ -264,6 +181,207 @@ public class AccessoriesCommands {
                     return 1;
                 }
         );
+
+        AccessoriesItemCommands.generateTrees(generator, context);
+
+        generator.branch("slot", slotBranch -> {
+            slotBranch
+                    .leaves(
+                            "get",
+                            required("entity", EntityArgument.entity(), EntityArgument::getEntity),
+                            required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
+                            defaulted("scale", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble, 1.0),
+                            (ctx, entity, slot, scale) -> {
+                                var container = getContainer(entity, slot);
+
+                                var size = container.getSize();
+
+                                ctx.getSource().sendSuccess(
+                                        () -> Component.translatable("accessories.commands.slot.value.get.success", Component.translatable(SlotType.translation(slot)), entity.getName(), size),
+                                        false
+                                );
+
+                                return (int)(size * scale);
+                            }
+                    )
+                    .branch(
+                            "modifier",
+                            required("entity", EntityArgument.entity(), EntityArgument::getEntity),
+                            required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
+                            required("id", ResourceLocationArgument.id(), ResourceLocationArgument::getId),
+                            branchBuilder -> {
+                                branchBuilder.leaves(
+                                        "add",
+                                        required("amount", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble),
+                                        branches(List.of("add_value", "add_multiplied_base", "add_multiplied_total"), operationTypeStr -> {
+                                            return Arrays.stream(AttributeModifier.Operation.values())
+                                                    .filter(value -> value.getSerializedName().equals(operationTypeStr))
+                                                    .findFirst()
+                                                    .orElse(null);
+                                        }),
+                                        defaulted("is_persistent", BoolArgumentType.bool(), BoolArgumentType::getBool, true),
+                                        (ctx, entity, slot, id, amount, operation, isPersistent) -> {
+                                            var container = getContainer(entity, slot);
+
+                                            var modifier = new AttributeModifier(id, amount, operation);
+
+                                            if (isPersistent) {
+                                                container.addPersistentModifier(modifier);
+                                            } else {
+                                                container.addTransientModifier(modifier);
+                                            }
+
+                                            return 1;
+                                        }
+                                ).leaves(
+                                        "remove",
+                                        (ctx, entity, slot, id) -> {
+                                            var container = getContainer(entity, slot);
+
+                                            container.removeModifier(id);
+
+                                            return 1;
+                                        }
+                                ).leaves(
+                                        "get",
+                                        defaulted("scale", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble, 1.0),
+                                        (ctx, entity, slot, id, scale) -> {
+                                            var container = getContainer(entity, slot);
+                                            var modifiers = container.getModifiers();
+                                            var attribute = SlotAttribute.getAttributeHolder(container.slotType());
+
+                                            if (!modifiers.containsKey(id)) {
+                                                throw ERROR_NO_SUCH_MODIFIER.create(entity.getName(), getAttributeDescription(attribute), id);
+                                            }
+
+                                            double d = modifiers.get(id).amount();
+                                            ctx.getSource().sendSuccess(
+                                                    () -> Component.translatable(
+                                                            "commands.attribute.modifier.value.get.success", Component.translationArg(id), getAttributeDescription(attribute), entity.getName(), d
+                                                    ),
+                                                    false
+                                            );
+                                            return (int)(d * scale);
+                                        }
+                                );
+                            });
+        });
+
+        generator.branch("components", itemComponentBranch -> {
+            itemComponentBranch.leaves(
+                    "effect/add",
+                    required("effect", ResourceArgument.resource(context, Registries.MOB_EFFECT), ResourceArgument::getMobEffect),
+                    defaulted("applyDelay", IntegerArgumentType.integer(1, 1000000), IntegerArgumentType::getInteger, null),
+                    defaulted("seconds", IntegerArgumentType.integer(1, 1000000), IntegerArgumentType::getInteger, -1),
+                    defaulted("amplifier", IntegerArgumentType.integer(0, 255), IntegerArgumentType::getInteger, 1),
+                    defaulted("hideParticles", BoolArgumentType.bool(), BoolArgumentType::getBool, null),
+                    defaulted("hideIcon", BoolArgumentType.bool(), BoolArgumentType::getBool, null),
+                    (ctx, effect, applyDelay, seconds, amplifier, hideParticles, hideIcon) -> {
+                        if (seconds == -1) {
+                            if (hideParticles == null) hideParticles = true;
+                        }
+
+                        if (hideIcon == null) hideIcon = false;
+
+                        var effectInstance = new MobEffectInstance(effect, seconds, amplifier, false, !hideParticles, !hideIcon);
+
+                        var player = ctx.getSource().getPlayerOrException();
+
+                        player.getMainHandItem().update(
+                                AccessoriesDataComponents.MOB_EFFECTS,
+                                AccessoryMobEffectsComponent.EMPTY,
+                                data -> applyDelay != null
+                                        ? data.addEffect(effectInstance, applyDelay)
+                                        : data.addEffect(effectInstance));
+
+                        return 1;
+                    }
+            );
+
+            //--
+
+            itemComponentBranch.leaves(
+                    "nest",
+                    required("item", ItemArgument.item(context), (ctx, name) -> ItemArgument.getItem(ctx, name).createItemStack(1, false)),
+                    (ctx, innerStack) -> {
+                        var player = ctx.getSource().getPlayerOrException();
+
+                        player.getMainHandItem().update(
+                                AccessoriesDataComponents.NESTED_ACCESSORIES,
+                                AccessoryNestContainerContents.EMPTY,
+                                data -> data.addStack(innerStack));
+
+                        return 1;
+                    });
+
+            //--
+
+            itemComponentBranch.leaves(
+                    "slot",
+                    branches("add", "remove"),
+                    branches("valid", "invalid"),
+                    required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
+                    (ctx, operation, condition, slot) -> adjustSlotValidationOnStack(condition, Objects.equals(operation, "add"), slot, ctx)
+            );
+
+            //--
+
+            itemComponentBranch.branch("stack-sizing", branchBuilder -> {
+                branchBuilder.leaves(
+                        "useStackSize",
+                        required("value", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class)),
+                        (ctx, bl) -> {
+                            var player = ctx.getSource().getPlayerOrException();
+
+                            player.getMainHandItem().update(AccessoriesDataComponents.STACK_SETTINGS,
+                                    AccessoryStackSettings.DEFAULT,
+                                    component -> component.useStackSize(bl));
+
+                            return 1;
+                        }
+                ).leaves(
+                        required("size", IntegerArgumentType.integer(), (ctx, name) -> ctx.getArgument(name, Integer.class)),
+                        (ctx, size) -> {
+                            var player = ctx.getSource().getPlayerOrException();
+
+                            player.getMainHandItem().update(AccessoriesDataComponents.STACK_SETTINGS,
+                                    AccessoryStackSettings.DEFAULT,
+                                    component -> component.sizeOverride(size));
+
+                            return 1;
+                        }
+                );
+            });
+
+            //--
+
+            itemComponentBranch.branch(
+                    "attribute",
+                    required("attribute", ResourceExtendedArgument.attributes(context), ResourceExtendedArgument::getAttribute),
+                    required("id", ResourceLocationArgument.id(), ResourceLocationArgument::getId),
+                    branchBuilder -> {
+                        branchBuilder.leaves(
+                                "add",
+                                required("amount", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble),
+                                branches(List.of("add_value", "add_multiplied_base", "add_multiplied_total"), operationTypeStr -> {
+                                    return Arrays.stream(AttributeModifier.Operation.values())
+                                            .filter(value -> value.getSerializedName().equals(operationTypeStr))
+                                            .findFirst()
+                                            .orElse(null);
+                                }),
+                                required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
+                                required("isStackable", BoolArgumentType.bool(), BoolArgumentType::getBool),
+                                AccessoriesCommands::addModifier
+                        ).leaves(
+                                "remove",
+                                AccessoriesCommands::removeModifier
+                        ).leaves(
+                                "get",
+                                defaulted("scale", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble, 1.0),
+                                AccessoriesCommands::getAttributeModifier
+                        );
+                    });
+        });
     }
 
     private static int getAttributeModifier(CommandContext<CommandSourceStack> ctx, Holder<Attribute> holder, ResourceLocation resourceLocation, double d) throws CommandSyntaxException {
@@ -284,7 +402,7 @@ public class AccessoriesCommands {
 
         commandSourceStack.sendSuccess(
                 () -> Component.translatable(
-                        "commands.attribute.modifier.value.get.success_itemstack", Component.translationArg(resourceLocation), getAttributeDescription(holder), stack.getDisplayName(), e
+                        "accessories.commands.attribute.modifier.value.get.success_itemstack", Component.translationArg(resourceLocation), getAttributeDescription(holder), stack.getDisplayName(), e
                 ),
                 false
         );
@@ -293,7 +411,7 @@ public class AccessoriesCommands {
     }
 
     private static final Dynamic3CommandExceptionType ERROR_MODIFIER_ALREADY_PRESENT = new Dynamic3CommandExceptionType(
-            (var1, var2, var3) -> Component.translatableEscape("commands.attribute.failed.modifier_already_present_itemstack", var1, var2, var3)
+            (var1, var2, var3) -> Component.translatableEscape("accessories.commands.attribute.failed.modifier_already_present_itemstack", var1, var2, var3)
     );
 
     private static int addModifier(CommandContext<CommandSourceStack> ctx, Holder<Attribute> holder, ResourceLocation resourceLocation, double d, AttributeModifier.Operation operation, String slotName, boolean isStackable) throws CommandSyntaxException {
@@ -318,7 +436,7 @@ public class AccessoriesCommands {
 
         commandSourceStack.sendSuccess(
                 () -> Component.translatable(
-                        "commands.attribute.modifier.add.success_itemstack", Component.translationArg(resourceLocation), getAttributeDescription(holder), stack.getDisplayName()
+                        "accessories.commands.attribute.modifier.add.success_itemstack", Component.translationArg(resourceLocation), getAttributeDescription(holder), stack.getDisplayName()
                 ),
                 false
         );
@@ -327,7 +445,7 @@ public class AccessoriesCommands {
     }
 
     private static final Dynamic3CommandExceptionType ERROR_NO_SUCH_MODIFIER = new Dynamic3CommandExceptionType(
-            (var1, var2, var3) -> Component.translatableEscape("commands.attribute.failed.no_modifier_itemstack", var1, var2, var3)
+            (var1, var2, var3) -> Component.translatableEscape("accessories.commands.attribute.failed.no_modifier_itemstack", var1, var2, var3)
     );
 
     private static int removeModifier(CommandContext<CommandSourceStack> ctx, Holder<Attribute> holder, ResourceLocation location) throws CommandSyntaxException {
@@ -349,12 +467,12 @@ public class AccessoriesCommands {
         });
 
         if(!removedModifier.getValue()) {
-            throw ERROR_NO_SUCH_MODIFIER.create(location, getAttributeDescription(holder), stack.getDisplayName());
+            throw ERROR_NO_SUCH_MODIFIER.create(location, stack.getDisplayName(), getAttributeDescription(holder));
         }
 
         commandSourceStack.sendSuccess(
                 () -> Component.translatable(
-                        "commands.attribute.modifier.remove.success_itemstack", Component.translationArg(location), getAttributeDescription(holder), stack.getDisplayName()
+                        "accessories.commands.attribute.modifier.remove.success_itemstack", Component.translationArg(location), getAttributeDescription(holder), stack.getDisplayName()
                 ),
                 false
         );

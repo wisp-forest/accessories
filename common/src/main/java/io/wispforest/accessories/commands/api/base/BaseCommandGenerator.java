@@ -76,7 +76,7 @@ public abstract sealed class BaseCommandGenerator<S, B extends CommandTreeBuilde
 
     //--
 
-    public B createLeaves(List<Argument<?>> startingArgs, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
+    public B leaves(List<Argument<?>> startingArgs, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
         var rootNodeHelper = getOrCreateHolder(startingArgs);
 
         // If no args then we can just execute the command addition since nothing is required
