@@ -97,7 +97,7 @@ public abstract class AccessoriesMenuBase extends RecipeBookMenu<CraftingInput, 
     }
 
     public boolean isValidMenu() {
-        return false;
+        return this.isValid;
     }
 
     @Override
