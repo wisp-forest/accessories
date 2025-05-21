@@ -105,5 +105,4 @@ public class AccessoriesNetworking {
 
         CHANNEL.serverHandle(targets).send(packet);
     }
-
 }
