@@ -1,11 +1,13 @@
 package io.wispforest.accessories.data;
 
+import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.data.api.SyncedDataLoaderExtended;
 import io.wispforest.accessories.impl.slot.SlotGroupImpl;
 import io.wispforest.accessories.pond.ReplaceableJsonResourceReloadListener;
 import io.wispforest.accessories.utils.EndecUtils;
@@ -16,6 +18,7 @@ import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.util.parsing.packrat.commands.UnquotedStringParseRule;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
@@ -24,7 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroupLoader.RawGroupData> {
+public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroupLoader.RawGroupData> implements SyncedDataLoaderExtended<BiMap<ResourceLocation, SlotGroup>, Set<String>> {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -34,6 +37,23 @@ public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroup
         super(Accessories.of("slot_group_loader"), "accessories/group", SlotGroupImpl.ENDEC, RawGroupData.ENDEC, PackType.SERVER_DATA, Set.of(SlotTypeLoader.INSTANCE.getLoaderId()));
 
         ReplaceableJsonResourceReloadListener.toggleValue(this);
+    }
+
+    //--
+
+    @Override
+    public Endec<Set<String>> extraDataEndec() {
+        return Endec.STRING.setOf();
+    }
+
+    @Override
+    public void onReceivedExtraData(Set<String> data) {
+        UniqueSlotHandling.setClientGroups(data);
+    }
+
+    @Override
+    public Set<String> getServerExtraData() {
+        return UniqueSlotHandling.getGroups(false);
     }
 
     //--

@@ -1,22 +1,21 @@
 package io.wispforest.accessories.data.api;
 
 import io.wispforest.endec.Endec;
-import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-public interface SyncedDataLoader<D> {
+public interface SyncedDataLoaderExtended<D, E> extends SyncedDataLoader<D> {
 
-    Endec<D> syncDataEndec();
+    Endec<E> extraDataEndec();
 
     @ApiStatus.OverrideOnly
-    void onReceivedData(D data);
+    void onReceivedExtraData(E data);
 
     @ApiStatus.Internal
     @Nullable
-    default Exception onReceivedDataUnsafe(Object data) {
+    default Exception onReceivedExtraDataUnsafe(Object data) {
         try {
-            onReceivedData((D) data);
+            onReceivedExtraData((E) data);
         } catch (Exception e) {
             return e;
         }
@@ -24,8 +23,6 @@ public interface SyncedDataLoader<D> {
         return null;
     }
 
-    ResourceLocation getLoaderId();
-
     @ApiStatus.OverrideOnly
-    D getServerData();
+    E getServerExtraData();
 }

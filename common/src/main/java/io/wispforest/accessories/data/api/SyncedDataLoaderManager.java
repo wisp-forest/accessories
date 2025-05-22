@@ -73,7 +73,16 @@ public class SyncedDataLoaderManager {
             }
 
             var packets = dataLoaders.stream()
-                    .map(dataLoader -> new SyncLoaderDataPacket(dataLoader.getLoaderId(), dataLoader.getServerData()))
+                    .map(dataLoader -> {
+                        var id = dataLoader.getLoaderId();
+                        var data = dataLoader.getServerData();
+
+                        var extraData = dataLoader instanceof SyncedDataLoaderExtended<?,?> extended
+                                ? extended.getServerExtraData()
+                                : null;
+
+                        return new SyncLoaderDataPacket(id, data, extraData);
+                    })
                     .toList();
 
             channel.serverHandle(player).send(new SyncAllLoaderDataPacket(packets));
@@ -100,7 +109,7 @@ public class SyncedDataLoaderManager {
     }
 
     @ApiStatus.Internal
-    private record SyncLoaderDataPacket(ResourceLocation id, Object data) {
+    private static final class SyncLoaderDataPacket {
         private static final Map<ResourceLocation, StructEndec<SyncLoaderDataPacket>> CACHED_ENDECS = new HashMap<>();
 
         private static final StructEndec<SyncLoaderDataPacket> ENDEC = Endec.dispatched(
@@ -111,10 +120,15 @@ public class SyncedDataLoaderManager {
                         throw new IllegalStateException("Unable to get following Data Loader to handle the given sync packet: " + id);
                     }
 
+                    Endec<Object> extraDataEndec = (loader instanceof SyncedDataLoaderExtended<?,?> extended)
+                            ? (Endec<Object>) extended.extraDataEndec()
+                            :  Endec.unit(() -> null);
+
                     return CACHED_ENDECS.computeIfAbsent(id, identifier -> {
                         return StructEndecBuilder.of(
                                 MinecraftEndecs.IDENTIFIER.fieldOf("id", SyncLoaderDataPacket::id),
                                 ((Endec<Object>) loader.syncDataEndec()).fieldOf("data", SyncLoaderDataPacket::data),
+                                extraDataEndec.fieldOf("extra_data", SyncLoaderDataPacket::extraData),
                                 SyncLoaderDataPacket::new
                         );
                     });
@@ -122,14 +136,49 @@ public class SyncedDataLoaderManager {
                 SyncLoaderDataPacket::id,
                 MinecraftEndecs.IDENTIFIER);
 
+        private final ResourceLocation id;
+        private final Object data;
+
+        private final @Nullable Object extraData;
+
+        private SyncLoaderDataPacket(ResourceLocation id, Object data, @Nullable Object extraData) {
+            this.id = id;
+            this.data = data;
+            this.extraData = extraData;
+        }
+
         private static void handle(SyncLoaderDataPacket packet, ClientAccess access) {
-            var exception = getLoader(packet.id()).onReceivedDataUnsafe(packet.data());
+            var loader = getLoader(packet.id());
+
+            var exception = loader.onReceivedDataUnsafe(packet.data());
 
             if (exception != null) {
                 LOGGER.error("An error has occured when attempting to send sync data to the given SyncedDataLoader: {}", packet.id(), exception);
 
                 throw new RuntimeException(exception);
             }
+
+            if (loader instanceof SyncedDataLoaderExtended<?,?> extended) {
+                exception = extended.onReceivedExtraDataUnsafe(packet.extraData());
+
+                if (exception != null) {
+                    LOGGER.error("An error has occured when attempting to send sync extra data to the given SyncedDataLoader: {}", packet.id(), exception);
+
+                    throw new RuntimeException(exception);
+                }
+            }
+        }
+
+        public ResourceLocation id() {
+            return id;
+        }
+
+        public Object data() {
+            return data;
+        }
+
+        public Object extraData() {
+            return extraData;
         }
     }
 }
