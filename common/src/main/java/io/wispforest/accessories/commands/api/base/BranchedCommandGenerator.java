@@ -4,7 +4,6 @@ import io.wispforest.accessories.commands.api.core.CommandAddition;
 import io.wispforest.accessories.commands.api.core.Key;
 import net.minecraft.commands.CommandSourceStack;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public final class BranchedCommandGenerator extends BaseCommandGenerator<CommandSourceStack, BranchedCommandGenerator> implements CommandTreeBuilder.BranchedCommandTreeBuilder<CommandSourceStack, BranchedCommandGenerator> {
@@ -29,11 +28,7 @@ public final class BranchedCommandGenerator extends BaseCommandGenerator<Command
 
     @Override
     public BranchedCommandGenerator leaves(List<Argument<?>> startingArgs, List<Argument<?>> commandArgs, CommandAddition<CommandSourceStack> commandAddition) {
-        var list = new ArrayList<>(startingArgs);
-
-        list.addAll(0, branchKey().asArgumentList());
-
-        super.leaves(list, commandArgs, commandAddition);
+        super.leaves(addStartingToArgs(startingArgs), commandArgs, commandAddition);
 
         return getThis();
     }

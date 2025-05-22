@@ -137,7 +137,7 @@ public interface SlotReference {
     static Pair<String, Integer> parseBaseSlotPath(String path) {
         var parts = path.split("/");
 
-        if (parts.length < 1) return null;
+        if (parts.length <= 1) return null;
 
         var baseSlotName = parts[0].replace("-", ":");
         var index = Integer.parseInt(parts[1]);

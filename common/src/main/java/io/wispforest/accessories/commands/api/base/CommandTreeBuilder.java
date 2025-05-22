@@ -6,10 +6,9 @@ import io.wispforest.accessories.commands.api.core.Branch;
 import io.wispforest.accessories.commands.api.core.CommandAddition;
 import io.wispforest.accessories.commands.api.core.Key;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public sealed interface CommandTreeBuilder<S, B extends CommandTreeBuilder<S, B>> permits BaseCommandGenerator, CommandTreeBuilder.BranchedCommandTreeBuilder, CommandTreeBuilder.CommandTreeBuilderImpl {
+public interface CommandTreeBuilder<S, B extends CommandTreeBuilder<S, B>> extends CommandLeafBuilder<S, B, CommandTreeBuilder.BranchedCommandTreeBuilder<S, ?>> {
 
     default B leaf(String key, CommandFunction<S> commandExecution) {
         return leaves(key, List.of(), (node) -> node.executes(commandExecution::execute));
@@ -83,19 +82,19 @@ public sealed interface CommandTreeBuilder<S, B extends CommandTreeBuilder<S, B>
         return CommandTreeBuilderWithArgs.createArgBranch(CommandTreeBuilder.this.branch(key), argument1, argument2, argument3);
     }
 
-    default <T1> B branch(String key, Argument<T1> arg1, CommandTreeBuilderWithArgs.ArgBranchBuilder<S, CommandTreeBuilderWithArgs.Argument1TreeBuilder<S, T1>> builder) {
+    default <T1> B branch(String key, Argument<T1> arg1, LeafBuilder<S, CommandTreeBuilderWithArgs.Argument1TreeBuilder<S, T1>> builder) {
         builder.addLeaves(branch(key, arg1));
 
         return getThis();
     }
 
-    default <T1, T2> B branch(String key, Argument<T1> arg1, Argument<T2> arg2, CommandTreeBuilderWithArgs.ArgBranchBuilder<S, CommandTreeBuilderWithArgs.Argument2TreeBuilder<S, T1, T2>> builder) {
+    default <T1, T2> B branch(String key, Argument<T1> arg1, Argument<T2> arg2, LeafBuilder<S, CommandTreeBuilderWithArgs.Argument2TreeBuilder<S, T1, T2>> builder) {
         builder.addLeaves(branch(key, arg1, arg2));
 
         return getThis();
     }
 
-    default <T1, T2, T3> B branch(String key, Argument<T1> arg1, Argument<T2> arg2, Argument<T3> arg3, CommandTreeBuilderWithArgs.ArgBranchBuilder<S, CommandTreeBuilderWithArgs.Argument3TreeBuilder<S, T1, T2, T3>> builder) {
+    default <T1, T2, T3> B branch(String key, Argument<T1> arg1, Argument<T2> arg2, Argument<T3> arg3, LeafBuilder<S, CommandTreeBuilderWithArgs.Argument3TreeBuilder<S, T1, T2, T3>> builder) {
         builder.addLeaves(branch(key, arg1, arg2, arg3));
 
         return getThis();
@@ -115,19 +114,19 @@ public sealed interface CommandTreeBuilder<S, B extends CommandTreeBuilder<S, B>
         return CommandTreeBuilderWithArgs.createArgBranch(CommandTreeBuilder.this, argument1, argument2, argument3);
     }
 
-    default <T1> B branch(Argument<T1> arg1, CommandTreeBuilderWithArgs.ArgBranchBuilder<S, CommandTreeBuilderWithArgs.Argument1TreeBuilder<S, T1>> builder) {
+    default <T1> B branch(Argument<T1> arg1, LeafBuilder<S, CommandTreeBuilderWithArgs.Argument1TreeBuilder<S, T1>> builder) {
         builder.addLeaves(branch(arg1));
 
         return getThis();
     }
 
-    default <T1, T2> B branch(Argument<T1> arg1, Argument<T2> arg2, CommandTreeBuilderWithArgs.ArgBranchBuilder<S, CommandTreeBuilderWithArgs.Argument2TreeBuilder<S, T1, T2>> builder) {
+    default <T1, T2> B branch(Argument<T1> arg1, Argument<T2> arg2, LeafBuilder<S, CommandTreeBuilderWithArgs.Argument2TreeBuilder<S, T1, T2>> builder) {
         builder.addLeaves(branch(arg1, arg2));
 
         return getThis();
     }
 
-    default <T1, T2, T3> B branch(Argument<T1> arg1, Argument<T2> arg2, Argument<T3> arg3, CommandTreeBuilderWithArgs.ArgBranchBuilder<S, CommandTreeBuilderWithArgs.Argument3TreeBuilder<S, T1, T2, T3>> builder) {
+    default <T1, T2, T3> B branch(Argument<T1> arg1, Argument<T2> arg2, Argument<T3> arg3, LeafBuilder<S, CommandTreeBuilderWithArgs.Argument3TreeBuilder<S, T1, T2, T3>> builder) {
         builder.addLeaves(branch(arg1, arg2, arg3));
 
         return getThis();
@@ -135,34 +134,8 @@ public sealed interface CommandTreeBuilder<S, B extends CommandTreeBuilder<S, B>
 
     //--
 
-    default B branch(List<String> keyParts, BranchBuilder<S> builder) {
-        return branch(new Key(keyParts), builder);
-    }
-
-    default B branch(String key, BranchBuilder<S> builder) {
-        return branch(new Key(key), builder);
-    }
-
-    default B branch(Key baseKey, BranchBuilder<S> builder) {
-        builder.addLeaves(branch(baseKey));
-
-        return getThis();
-    }
-
-    default BranchedCommandTreeBuilder<S, ?> branch(List<String> keyParts) {
-        return branch(new Key(keyParts));
-    }
-
-    default BranchedCommandTreeBuilder<S, ?> branch(String key) {
-        return branch(new Key(key));
-    }
-
-    default BranchedCommandTreeBuilder<S, ?> branch(Key baseKey) {
+    default CommandTreeBuilder.BranchedCommandTreeBuilder<S, ?> branch(Key baseKey) {
         return new BranchedCommandTreeBuilderImpl<>(this, baseKey);
-    }
-
-    interface BranchBuilder<S>  {
-        void addLeaves(BranchedCommandTreeBuilder<S, ?> argBranchBuilder);
     }
 
     //--
@@ -223,16 +196,12 @@ public sealed interface CommandTreeBuilder<S, B extends CommandTreeBuilder<S, B>
         int execute(CommandContext<S> ctx, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9) throws CommandSyntaxException;
     }
 
-    non-sealed interface CommandTreeBuilderImpl<S> extends CommandTreeBuilder<S, CommandTreeBuilderImpl<S>> { }
+    interface CommandTreeBuilderImpl<S> extends CommandTreeBuilder<S, CommandTreeBuilderImpl<S>> { }
 
     record BranchedCommandTreeBuilderImpl<S>(CommandTreeBuilder<S, ?> parentBuilder, Key branchKey) implements BranchedCommandTreeBuilder<S, BranchedCommandTreeBuilderImpl<S>>{
         @Override
         public BranchedCommandTreeBuilderImpl<S> leaves(List<Argument<?>> startingArgs, List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
-            var list = new ArrayList<>(startingArgs);
-
-            list.addAll(0, branchKey().asArgumentList());
-
-            parentBuilder().leaves(list, commandArgs, commandAddition);
+            parentBuilder().leaves(addStartingToArgs(startingArgs), commandArgs, commandAddition);
 
             return getThis();
         }
@@ -243,8 +212,9 @@ public sealed interface CommandTreeBuilder<S, B extends CommandTreeBuilder<S, B>
         }
     }
 
-    non-sealed interface BranchedCommandTreeBuilder<S, B extends BranchedCommandTreeBuilder<S, B>> extends CommandTreeBuilder<S, B>, Branch {
-        default B createLeaf(CommandFunction commandExecution) {
+    interface BranchedCommandTreeBuilder<S, B extends BranchedCommandTreeBuilder<S, B>> extends CommandTreeBuilder<S, B>, Branch {
+
+        default B leaf(CommandTreeBuilder.CommandFunction<S> commandExecution){
             return leaves(List.of(), (node) -> node.executes(commandExecution::execute));
         }
 
@@ -303,7 +273,7 @@ public sealed interface CommandTreeBuilder<S, B extends CommandTreeBuilder<S, B>
         }
 
         default B leaves(List<Argument<?>> commandArgs, CommandAddition<S> commandAddition) {
-            return leaves(new Key(), commandArgs, commandAddition);
+            return leaves(List.of(), commandArgs, commandAddition);
         }
 
         @Override
