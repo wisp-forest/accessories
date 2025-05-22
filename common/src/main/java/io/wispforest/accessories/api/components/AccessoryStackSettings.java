@@ -13,16 +13,18 @@ import java.util.Map;
 
 public record AccessoryStackSettings(
         DropRule dropRule,
+        boolean canEquipFromDispenser,
         boolean canEquipFromUse,
         boolean useStackSize,
         int sizeOverride,
         Map<String, Component> slotBasedTooltips,
         Component extraTooltip
 ) {
-    public static final AccessoryStackSettings DEFAULT = new AccessoryStackSettings(DropRule.DEFAULT, false, false, 1, new HashMap<>(), Component.empty());
+    public static final AccessoryStackSettings DEFAULT = new AccessoryStackSettings(DropRule.DEFAULT, true, false, true, 1, new HashMap<>(), Component.empty());
 
     public static final StructEndec<AccessoryStackSettings> ENDEC = StructEndecBuilder.of(
             Endec.forEnum(DropRule.class).optionalFieldOf("drop_rule", AccessoryStackSettings::dropRule, () -> DropRule.DEFAULT),
+            Endec.BOOLEAN.optionalFieldOf("can_equip_from_dispenser", AccessoryStackSettings::canEquipFromDispenser, false),
             Endec.BOOLEAN.optionalFieldOf("can_equip_from_use", AccessoryStackSettings::canEquipFromUse, false),
             Endec.BOOLEAN.optionalFieldOf("use_stack_size", AccessoryStackSettings::useStackSize, false),
             Endec.INT.optionalFieldOf("size_override", AccessoryStackSettings::sizeOverride, 1),
@@ -32,11 +34,15 @@ public record AccessoryStackSettings(
     );
 
     public AccessoryStackSettings useStackSize(boolean value) {
-        return new AccessoryStackSettings(this.dropRule, this.canEquipFromUse, value, 1, this.slotBasedTooltips, this.extraTooltip);
+        return new AccessoryStackSettings(this.dropRule, this.canEquipFromDispenser, this.canEquipFromUse, value, 1, this.slotBasedTooltips, this.extraTooltip);
     }
 
     public AccessoryStackSettings sizeOverride(int value) {
-        return new AccessoryStackSettings(this.dropRule, this.canEquipFromUse, false, value, this.slotBasedTooltips, this.extraTooltip);
+        return new AccessoryStackSettings(this.dropRule, this.canEquipFromDispenser, this.canEquipFromUse, false, value, this.slotBasedTooltips, this.extraTooltip);
+    }
+
+    public Builder builderFrom() {
+        return new Builder(this.dropRule, this.canEquipFromDispenser, this.canEquipFromUse, this.useStackSize, this.sizeOverride, this.slotBasedTooltips, this.extraTooltip);
     }
 
     public static Builder builder() {
@@ -45,6 +51,7 @@ public record AccessoryStackSettings(
 
     public static class Builder {
         private DropRule dropRule = DropRule.DEFAULT;
+        private boolean canEquipFromDispenser;
         private boolean canEquipFromUse = false;
         private boolean useStackSize = false;
         private int sizeOverride = 1;
@@ -52,6 +59,16 @@ public record AccessoryStackSettings(
         private Component extraTooltip = Component.empty();
 
         private Builder() {}
+
+        public Builder(DropRule dropRule, boolean canEquipFromDispenser, boolean canEquipFromUse, boolean useStackSize, int sizeOverride, Map<String, Component> slotBasedTooltips, Component extraTooltip) {
+            this.dropRule = dropRule;
+            this.canEquipFromDispenser = canEquipFromDispenser;
+            this.canEquipFromUse = canEquipFromUse;
+            this.useStackSize = useStackSize;
+            this.sizeOverride = sizeOverride;
+            this.slotBasedTooltips = slotBasedTooltips;
+            this.extraTooltip = extraTooltip;
+        }
 
         public Builder dropRule(DropRule dropRule) {
             this.dropRule = dropRule;
@@ -91,6 +108,7 @@ public record AccessoryStackSettings(
         public AccessoryStackSettings build() {
             return new AccessoryStackSettings(
                     dropRule,
+                    canEquipFromDispenser,
                     canEquipFromUse,
                     useStackSize,
                     sizeOverride,

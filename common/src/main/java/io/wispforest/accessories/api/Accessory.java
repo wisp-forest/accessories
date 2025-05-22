@@ -193,6 +193,18 @@ public interface Accessory {
         return true;
     }
 
+    default boolean canEquipFromDispenser(ItemStack stack, SlotReference reference){
+        if (stack.has(AccessoriesDataComponents.STACK_SETTINGS)) {
+            return stack.get(AccessoriesDataComponents.STACK_SETTINGS).canEquipFromDispenser();
+        }
+
+        if (stack.has(DataComponents.EQUIPPABLE)) {
+            return stack.get(DataComponents.EQUIPPABLE).dispensable();
+        }
+
+        return true;
+    }
+
     /**
      * Method used to render client based particles when {@link SlotReference#breakStack()} is
      * called on the server and the {@link AccessoryBreak} packet is received

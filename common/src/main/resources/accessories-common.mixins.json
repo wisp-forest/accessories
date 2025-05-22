@@ -75,7 +75,9 @@
     "SimpleJsonResourceReloadListenerMixin",
     "FileToIdConverterMixin",
     "CommandContextAccessor",
-    "SimpleJsonResourceReloadListenerAccessor"
+    "SimpleJsonResourceReloadListenerAccessor",
+    "DispenserBlockMixin",
+    "DefaultDispenseItemBehaviorAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
