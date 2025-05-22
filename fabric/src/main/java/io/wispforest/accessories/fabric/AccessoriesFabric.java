@@ -8,7 +8,7 @@ import io.wispforest.accessories.commands.api.ArgumentRegistrationCallback;
 import io.wispforest.accessories.commands.api.CommandGenerators;
 import io.wispforest.accessories.commands.api.core.RecordArgumentTypeInfo;
 import io.wispforest.accessories.data.EntitySlotLoader;
-import io.wispforest.accessories.endec.NbtMapCarrier;
+import io.wispforest.accessories.data.api.SyncedDataHelperManager;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
@@ -16,13 +16,9 @@ import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.InvalidateEntityCache;
-import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.utils.InstanceEndec;
-import io.wispforest.accessories.data.api.SyncedDataLoaderManager;
-import io.wispforest.endec.SerializationContext;
 import io.wispforest.owo.serialization.CodecUtils;
-import io.wispforest.owo.serialization.RegistriesAttribute;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
@@ -79,7 +75,7 @@ public class AccessoriesFabric implements ModInitializer {
 
         AccessoriesNetworking.init();
 
-        SyncedDataLoaderManager.init(AccessoriesNetworking.CHANNEL, playerConsumer -> {
+        SyncedDataHelperManager.init(AccessoriesNetworking.CHANNEL, playerConsumer -> {
             ResourceLocation beforeDefaultPhase = Accessories.of("before_default_phase");
 
             ServerLifecycleEvents.SYNC_DATA_PACK_CONTENTS.addPhaseOrdering(beforeDefaultPhase, Event.DEFAULT_PHASE);

@@ -16,7 +16,7 @@ import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.utils.InstanceEndec;
-import io.wispforest.accessories.data.api.SyncedDataLoaderManager;
+import io.wispforest.accessories.data.api.SyncedDataHelperManager;
 import io.wispforest.owo.serialization.CodecUtils;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
 import net.minecraft.core.Registry;
@@ -134,7 +134,7 @@ public class AccessoriesForge {
     public void commonInit(FMLCommonSetupEvent event) {
         AccessoriesNetworking.init();
 
-        SyncedDataLoaderManager.init(AccessoriesNetworking.CHANNEL, playerConsumer -> {
+        SyncedDataHelperManager.init(AccessoriesNetworking.CHANNEL, playerConsumer -> {
             NeoForge.EVENT_BUS.<OnDatapackSyncEvent>addListener(EventPriority.HIGHEST, syncEvent -> syncEvent.getRelevantPlayers().forEach(playerConsumer::accept));
         });
 
@@ -168,12 +168,12 @@ public class AccessoriesForge {
 
         loaders.forEach((endecDataLoader, setupRegistryCallback) -> {
             setupRegistryCallback.accept(event.getRegistryAccess());
-            event.addListener(endecDataLoader.getLoaderId(), endecDataLoader);
+            event.addListener(endecDataLoader.getId(), endecDataLoader);
         });
 
         loaders.forEach((endecDataLoader, providerConsumer) -> {
             for (var dependencyId : endecDataLoader.getDependencyIds()) {
-                event.addDependency(dependencyId, endecDataLoader.getLoaderId());
+                event.addDependency(dependencyId, endecDataLoader.getId());
             }
         });
 

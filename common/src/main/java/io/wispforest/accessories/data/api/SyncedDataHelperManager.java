@@ -17,22 +17,22 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class SyncedDataLoaderManager {
+public class SyncedDataHelperManager {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private static final Map<ResourceLocation, SyncedDataLoader<?>> ALL_SYNCED_LOADERS = new LinkedHashMap<>();
+    private static final Map<ResourceLocation, SyncedDataHelper<?>> ALL_SYNCED_LOADERS = new LinkedHashMap<>();
 
-    public static void registerLoader(SyncedDataLoader<?> loader) {
-        if (!(loader instanceof EndecDataLoader<?>)) {
-            throw new IllegalStateException("Unable to handle the given SyncedDataLoader [" + loader.getLoaderId() + "] as it is not also a EndecDataLoader which is required.");
+    public static void registerLoader(SyncedDataHelper<?> loader) {
+        if (ALL_SYNCED_LOADERS.containsKey(loader.getId())) {
+            throw new IllegalStateException("An already existing SyncedDataLoader has been registered! [Id: " + loader.getId() + "]");
         }
 
-        ALL_SYNCED_LOADERS.put(loader.getLoaderId(), loader);
+        ALL_SYNCED_LOADERS.put(loader.getId(), loader);
     }
 
     @Nullable
-    public static SyncedDataLoader<?> getLoader(ResourceLocation id) {
+    public static SyncedDataHelper<?> getLoader(ResourceLocation id) {
         return ALL_SYNCED_LOADERS.get(id);
     }
 
@@ -43,16 +43,15 @@ public class SyncedDataLoaderManager {
         hookRegistration.accept(player -> {
             var endecDataLoaders = ALL_SYNCED_LOADERS.values()
                     .stream()
-                    .map(syncedDataLoader -> (EndecDataLoader<?>) syncedDataLoader)
                     .collect(Collectors.toList());
 
             Set<ResourceLocation> resolvedIds = new HashSet<>();
 
-            for (EndecDataLoader<?> dataLoader : endecDataLoaders) {
-                resolvedIds.add(dataLoader.getLoaderId());
+            for (SyncedDataHelper<?> dataLoader : endecDataLoaders) {
+                resolvedIds.add(dataLoader.getId());
             }
 
-            List<SyncedDataLoader<?>> dataLoaders = new ArrayList<>();
+            List<SyncedDataHelper<?>> dataLoaders = new ArrayList<>();
 
             int lastSize = -1;
 
@@ -62,11 +61,11 @@ public class SyncedDataLoaderManager {
                 var it = endecDataLoaders.iterator();
 
                 while (it.hasNext()) {
-                    EndecDataLoader<?> dataLoader = it.next();
+                    SyncedDataHelper<?> dataLoader = it.next();
 
                     if (resolvedIds.containsAll(dataLoader.getDependencyIds())) {
-                        resolvedIds.add(dataLoader.getLoaderId());
-                        dataLoaders.add((SyncedDataLoader<?>) dataLoader);
+                        resolvedIds.add(dataLoader.getId());
+                        dataLoaders.add(dataLoader);
                         it.remove();
                     }
                 }
@@ -74,14 +73,10 @@ public class SyncedDataLoaderManager {
 
             var packets = dataLoaders.stream()
                     .map(dataLoader -> {
-                        var id = dataLoader.getLoaderId();
+                        var id = dataLoader.getId();
                         var data = dataLoader.getServerData();
 
-                        var extraData = dataLoader instanceof SyncedDataLoaderExtended<?,?> extended
-                                ? extended.getServerExtraData()
-                                : null;
-
-                        return new SyncLoaderDataPacket(id, data, extraData);
+                        return new SyncLoaderDataPacket(id, data);
                     })
                     .toList();
 
@@ -120,15 +115,10 @@ public class SyncedDataLoaderManager {
                         throw new IllegalStateException("Unable to get following Data Loader to handle the given sync packet: " + id);
                     }
 
-                    Endec<Object> extraDataEndec = (loader instanceof SyncedDataLoaderExtended<?,?> extended)
-                            ? (Endec<Object>) extended.extraDataEndec()
-                            :  Endec.unit(() -> null);
-
                     return CACHED_ENDECS.computeIfAbsent(id, identifier -> {
                         return StructEndecBuilder.of(
                                 MinecraftEndecs.IDENTIFIER.fieldOf("id", SyncLoaderDataPacket::id),
                                 ((Endec<Object>) loader.syncDataEndec()).fieldOf("data", SyncLoaderDataPacket::data),
-                                extraDataEndec.fieldOf("extra_data", SyncLoaderDataPacket::extraData),
                                 SyncLoaderDataPacket::new
                         );
                     });
@@ -139,12 +129,9 @@ public class SyncedDataLoaderManager {
         private final ResourceLocation id;
         private final Object data;
 
-        private final @Nullable Object extraData;
-
-        private SyncLoaderDataPacket(ResourceLocation id, Object data, @Nullable Object extraData) {
+        private SyncLoaderDataPacket(ResourceLocation id, Object data) {
             this.id = id;
             this.data = data;
-            this.extraData = extraData;
         }
 
         private static void handle(SyncLoaderDataPacket packet, ClientAccess access) {
@@ -157,16 +144,6 @@ public class SyncedDataLoaderManager {
 
                 throw new RuntimeException(exception);
             }
-
-            if (loader instanceof SyncedDataLoaderExtended<?,?> extended) {
-                exception = extended.onReceivedExtraDataUnsafe(packet.extraData());
-
-                if (exception != null) {
-                    LOGGER.error("An error has occured when attempting to send sync extra data to the given SyncedDataLoader: {}", packet.id(), exception);
-
-                    throw new RuntimeException(exception);
-                }
-            }
         }
 
         public ResourceLocation id() {
@@ -175,10 +152,6 @@ public class SyncedDataLoaderManager {
 
         public Object data() {
             return data;
-        }
-
-        public Object extraData() {
-            return extraData;
         }
     }
 }

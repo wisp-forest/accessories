@@ -5,11 +5,11 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.data.api.SyncedDataHelper;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.impl.slot.StrictMode;
 import io.wispforest.accessories.pond.ReplaceableJsonResourceReloadListener;
 import io.wispforest.accessories.data.api.EndecDataLoader;
-import io.wispforest.accessories.data.api.SyncedDataLoader;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * Resource Reload in which handles the loading of {@link SlotType}'s bindings
  * to the targeted {@link EntityType} though a {@link TagKey} or {@link ResourceLocation}
  */
-public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityBinding> implements SyncedDataLoader<Map<EntityType<?>, Set<String>>> {
+public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityBinding> implements SyncedDataHelper<Map<EntityType<?>, Set<String>>> {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -50,7 +50,7 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
     private Map<EntityType<?>, Map<String, SlotType>> client = new HashMap<>();
 
     protected EntitySlotLoader() {
-        super(Accessories.of("entity_slot_loader"), "accessories/entity", RawEnityBinding.ENDEC, PackType.SERVER_DATA, Set.of(SlotTypeLoader.INSTANCE.getLoaderId()));
+        super(Accessories.of("entity_slot_loader"), "accessories/entity", RawEnityBinding.ENDEC, PackType.SERVER_DATA, Set.of(SlotTypeLoader.INSTANCE.getId()));
 
         ReplaceableJsonResourceReloadListener.toggleValue(this);
     }

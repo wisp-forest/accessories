@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Function;
 
-public abstract class ManagedEndecDataLoader<V, D> extends EndecDataLoader<D> implements SyncedDataLoader<BiMap<ResourceLocation, V>>, LookupDataLoader<V> {
+public abstract class ManagedEndecDataLoader<V, D> extends EndecDataLoader<D> implements SyncedDataHelper<BiMap<ResourceLocation, V>>, LookupDataLoader<V> {
 
     private final BiMap<ResourceLocation, V> server = HashBiMap.create();
     private final BiMap<ResourceLocation, V> client = HashBiMap.create();

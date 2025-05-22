@@ -6,14 +6,13 @@ import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesPipelines;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.data.api.SyncedDataHelperManager;
 import io.wispforest.accessories.fabric.AccessoriesFabric;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
-import io.wispforest.accessories.data.api.SyncedDataLoaderManager;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -48,7 +47,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
         AccessoriesClient.init();
 
         AccessoriesNetworking.initClient();
-        SyncedDataLoaderManager.initClient(AccessoriesNetworking.CHANNEL);
+        SyncedDataHelperManager.initClient(AccessoriesNetworking.CHANNEL);
 
         AccessoriesMenuTypes.registerClientMenuConstructors(MenuScreens::register);
 

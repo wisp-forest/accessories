@@ -4,11 +4,11 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesPipelines;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
+import io.wispforest.accessories.data.api.SyncedDataHelperManager;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.neoforge.AccessoriesInternalsImpl;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
-import io.wispforest.accessories.data.api.SyncedDataLoaderManager;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
@@ -24,7 +24,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.ClientCommandSourceStack;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
@@ -54,12 +53,12 @@ public class AccessoriesClientForge {
         var loaders = AccessoriesInternalsImpl.TO_BE_LOADED.getOrDefault(PackType.CLIENT_RESOURCES, new HashMap<>());
 
         loaders.forEach((endecDataLoader, setupRegistryCallback) -> {
-            event.addListener(endecDataLoader.getLoaderId(), endecDataLoader);
+            event.addListener(endecDataLoader.getId(), endecDataLoader);
         });
 
         loaders.forEach((endecDataLoader, providerConsumer) -> {
             for (var dependencyId : endecDataLoader.getDependencyIds()) {
-                event.addDependency(dependencyId, endecDataLoader.getLoaderId());
+                event.addDependency(dependencyId, endecDataLoader.getId());
             }
         });
     }
@@ -83,7 +82,7 @@ public class AccessoriesClientForge {
         AccessoriesClient.init();
 
         AccessoriesNetworking.initClient();
-        SyncedDataLoaderManager.initClient(AccessoriesNetworking.CHANNEL);
+        SyncedDataHelperManager.initClient(AccessoriesNetworking.CHANNEL);
     }
 
     public void initKeybindings(RegisterKeyMappingsEvent event) {

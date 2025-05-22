@@ -73,12 +73,12 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
 
         AccessoriesInternals.registerLoader(packType, this, (packType.equals(PackType.SERVER_DATA) ? this::setupOps : null));
 
-        if (packType.equals(PackType.SERVER_DATA) && this instanceof SyncedDataLoader<?> syncedDataLoader) {
-            SyncedDataLoaderManager.registerLoader(syncedDataLoader);
+        if (packType.equals(PackType.SERVER_DATA) && this instanceof SyncedDataHelper<?> syncedDataLoader) {
+            SyncedDataHelperManager.registerLoader(syncedDataLoader);
         }
     }
 
-    public ResourceLocation getLoaderId() {
+    public ResourceLocation getId() {
         return id;
     }
 
@@ -106,7 +106,7 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
 
     private SerializationContext getContext() {
         if (requiresRegistries) {
-            Objects.requireNonNull(registries, "Can not build the needed context for the ManagedEndecDataLoader: " + this.getLoaderId());
+            Objects.requireNonNull(registries, "Can not build the needed context for the ManagedEndecDataLoader: " + this.getId());
 
             return this.context.withAttributes(RegistriesAttribute.fromInfoGetter(new RegistryOps.HolderLookupAdapter(registries)));
         }
@@ -118,7 +118,7 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
     @ApiStatus.Internal
     protected Map<ResourceLocation, T> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
         if (requiresRegistries && registries == null) {
-            throw new IllegalStateException("Unable to prepare files as the given Registry access has not been setup on the server! [Id: " + this.getLoaderId() + "]");
+            throw new IllegalStateException("Unable to prepare files as the given Registry access has not been setup on the server! [Id: " + this.getId() + "]");
         }
 
         var entries = super.prepare(resourceManager, profiler);

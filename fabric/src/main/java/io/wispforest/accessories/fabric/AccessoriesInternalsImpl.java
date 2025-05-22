@@ -122,13 +122,13 @@ public class AccessoriesInternalsImpl {
 
     public static void registerLoader(PackType packType, EndecDataLoader<?> loader, @Nullable Consumer<HolderLookup.Provider> registrySetCall) {
         if (registrySetCall != null) {
-            ResourceManagerHelper.get(packType).registerReloadListener(loader.getLoaderId(), provider -> {
+            ResourceManagerHelper.get(packType).registerReloadListener(loader.getId(), provider -> {
                 registrySetCall.accept(provider);
 
-                return new IdentifiableResourceReloadListenerImpl(loader.getLoaderId(), loader, loader.getDependencyIds());
+                return new IdentifiableResourceReloadListenerImpl(loader.getId(), loader, loader.getDependencyIds());
             });
         } else {
-            ResourceManagerHelper.get(packType).registerReloadListener(new IdentifiableResourceReloadListenerImpl(loader.getLoaderId(), loader, loader.getDependencyIds()));
+            ResourceManagerHelper.get(packType).registerReloadListener(new IdentifiableResourceReloadListenerImpl(loader.getId(), loader, loader.getDependencyIds()));
         }
     }
 }

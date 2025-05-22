@@ -49,7 +49,7 @@ public final class AccessoryEquipmentDispenseItemBehavior extends DefaultDispens
         if (!stack.isEmpty()) {
             accessory.onEquipFromUse(stack, equipReference.left());
 
-            equipReference.second().equipStack(stack.copy());
+            equipReference.second().equipStack(stack);
         }
 
         return true;
