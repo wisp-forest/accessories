@@ -42,14 +42,10 @@ public enum AccessoriesMenuVariant {
     }
 
     public static AbstractContainerMenu openMenu(int i, Inventory inv, AccessoriesMenuVariant variant, @Nullable LivingEntity target, @Nullable ItemStack carriedStack) {
-        var menu = switch (variant) {
-            case AccessoriesMenuVariant.EXPERIMENTAL_V1 -> new AccessoriesExperimentalMenu(i, inv, target);
-            case ORIGINAL -> new AccessoriesMenu(i, inv, target);
+        return switch (variant) {
+            case AccessoriesMenuVariant.EXPERIMENTAL_V1 -> new AccessoriesExperimentalMenu(i, inv, target, carriedStack);
+            case ORIGINAL -> new AccessoriesMenu(i, inv, target, carriedStack);
             default -> throw new IllegalArgumentException("Unknown AccessoriesMenuVariant passed to construct Menu! [Variant: " + variant.name() + "]");
         };
-
-        if(carriedStack != null) menu.setCarried(carriedStack);
-
-        return menu;
     }
 }

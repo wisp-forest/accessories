@@ -52,14 +52,20 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
                         : null
                 ).orElse(null);
 
-        var menu = new AccessoriesExperimentalMenu(containerId, inventory, targetEntity)
+        var menu = new AccessoriesExperimentalMenu(containerId, inventory, targetEntity, data.carriedStack())
                 .isSyncedWithServer(data.slotAmountAdded());
 
         return (AccessoriesExperimentalMenu) menu;
     }
 
     public AccessoriesExperimentalMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
+        this(containerId, inventory, targetEntity, null);
+    }
+
+    public AccessoriesExperimentalMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         super(AccessoriesMenuTypes.EXPERIMENTAL_MENU, containerId, inventory, 2, 2, targetEntity);
+
+        if(carriedStack != null) this.setCarried(carriedStack);
 
         var accessoryTarget = targetEntity != null ? targetEntity : owner;
 
@@ -91,7 +97,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
         //--
 
-        if (targetEntity.canUseSlot(EquipmentSlot.SADDLE) ) {
+        if (targetEntity.canUseSlot(EquipmentSlot.SADDLE) && targetEntity.getType().is(EntityTypeTags.CAN_EQUIP_SADDLE)) {
             this.includeSaddle = true;
             var saddleInv = createEquipmentSlotContainer(targetEntity, EquipmentSlot.SADDLE);
 
@@ -271,7 +277,11 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         this.usedSlots.clear();
 
         if(!this.areUnusedSlotsShown()) {
-            var currentlyUsedSlots = AccessoriesCapability.getUsedSlotsFor(this.targetEntity != null ? this.targetEntity : this.owner, this.owner.getInventory());
+            var entity = this.targetEntity != null ? this.targetEntity : this.owner;
+
+            var currentlyUsedSlots = AccessoriesCapability.getUsedSlotsFor(entity, this.owner.getInventory());
+
+            currentlyUsedSlots.addAll(SlotPredicateRegistry.getValidSlotTypes(entity, this.getCarried()));
 
             if(!currentlyUsedSlots.isEmpty()) {
                 this.usedSlots.addAll(currentlyUsedSlots);
@@ -344,6 +354,11 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
     }
 
     @Override
+    public void removed(Player player) {
+        super.removed(player);
+    }
+
+    @Override
     public ItemStack quickMoveStack(Player player, int index) {
         var slot = this.slots.get(index);
 
@@ -353,8 +368,8 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         var itemStack = itemStack2.copy();
 
         // 0 1 2 3 : 6 - 7 / 4 - 5 / 2 - 3 / 0 - 1
-        var equipmentSlot = player.getEquipmentSlotForItem(itemStack);
-        int bottomArmorIndex = 42 + (8 - ((equipmentSlot.getIndex() + 1) * 2));
+        var equipmentSlot = targetEntity.getEquipmentSlotForItem(itemStack);
+        int bottomArmorIndex = 42 + (includeSaddle ? 1 : 0) + (this.addedArmorSlots - ((equipmentSlot.getIndex() + 1) * 2));
         int topArmorIndex = bottomArmorIndex + 1;
 
         var upperInventorySize = this.startingAccessoriesSlot;
@@ -373,14 +388,13 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
             if (!this.moveItemStackTo(itemStack2, 5, 41, true)) return ItemStack.EMPTY;
 
             slot.onQuickCraft(itemStack2, itemStack);
-        }
-        else if ((index >= 1 && index < 5) || (index >= upperInventorySize) || Objects.equals(41, index) || (index >= 43)) { // If from Crafting Grid move to player inventory
+        } else if ((index >= 1 && index < 5) || (index >= upperInventorySize) || Objects.equals(41, index) || (index >= 42)) { // If from Crafting Grid move to player inventory
             if (!this.moveItemStackTo(itemStack2, 5, 41, false)) return ItemStack.EMPTY;
-        }
-        else if (equipmentSlot.isArmor() && !this.slots.get(bottomArmorIndex).hasItem()) {
+        } else if (equipmentSlot.isArmor() && !this.slots.get(bottomArmorIndex).hasItem()) {
             if(!this.moveItemStackTo(itemStack2, bottomArmorIndex, topArmorIndex, false)) return ItemStack.EMPTY;
-        }
-        else if (equipmentSlot == EquipmentSlot.OFFHAND && !this.slots.get(41).hasItem()) {
+        } else if (this.includeSaddle && equipmentSlot.equals(EquipmentSlot.SADDLE) && !this.slots.get(42).hasItem()) {
+            if(!this.moveItemStackTo(itemStack2, 42, 43, false)) return ItemStack.EMPTY;
+        } else if (equipmentSlot == EquipmentSlot.OFFHAND && !this.slots.get(41).hasItem()) {
             if(!this.moveItemStackTo(itemStack2, 41, 42, false)) return ItemStack.EMPTY;
         }
         else {

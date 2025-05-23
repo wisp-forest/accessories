@@ -4,6 +4,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
 import io.wispforest.accessories.data.api.EndecDataLoader;
+import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
@@ -18,12 +19,14 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -95,11 +98,22 @@ public class AccessoriesInternalsImpl {
 
     public static void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         player.openMenu(
-                new SimpleMenuProvider((i, inventory, arg2) -> {
-                    return AccessoriesMenuVariant.openMenu(i, inventory, variant, targetEntity, carriedStack);
-                }, Component.empty()),
-                buf -> {
-                    AccessoriesMenuData.ENDEC.encode(SerializationContext.attributes(RegistriesAttribute.of(buf.registryAccess())), ByteBufSerializer.of(buf), AccessoriesMenuData.of(targetEntity));
+                new MenuProvider() {
+                    @Override
+                    public Component getDisplayName() {
+                        return Component.empty();
+                    }
+
+                    @Override
+                    @Nullable
+                    public AbstractContainerMenu createMenu(int i, Inventory inventory, Player arg2) {
+                        return AccessoriesMenuVariant.openMenu(i, inventory, variant, targetEntity, carriedStack);
+                    }
+
+                    @Override
+                    public void writeClientSideData(AbstractContainerMenu menu, RegistryFriendlyByteBuf buf) {
+                        AccessoriesMenuData.ENDEC.encode(SerializationContext.attributes(RegistriesAttribute.of(buf.registryAccess())), ByteBufSerializer.of(buf), AccessoriesMenuData.of(targetEntity, ((AccessoriesMenuBase) menu)));
+                    }
                 });
     }
 

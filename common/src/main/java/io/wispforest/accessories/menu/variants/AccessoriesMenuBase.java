@@ -7,6 +7,10 @@ import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import it.unimi.dsi.fastutil.Pair;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
 import net.minecraft.world.Container;
@@ -152,11 +156,19 @@ public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
         CraftingMenuAccessor.accessories$slotChangedCraftingGrid(this, serverLevel, this.owner, this.craftSlots, this.resultSlots, (RecipeHolder) null);
     }
 
+    private ItemStack tempCarriedStack = ItemStack.EMPTY;
+
+    public ItemStack getTempCarriedStack() {
+        var stack = tempCarriedStack;
+
+        this.tempCarriedStack = ItemStack.EMPTY;
+
+        return stack;
+    }
+
     public void removed(Player player) {
-        if (player.inventoryMenu.getCarried().isEmpty() && this.sendCarriedStackToInventory) {
-            player.inventoryMenu.setCarried(this.getCarried());
-            this.setCarried(ItemStack.EMPTY);
-        }
+        this.tempCarriedStack = this.getCarried();
+        this.setCarried(ItemStack.EMPTY);
 
         super.removed(player);
         this.resultSlots.clearContent();
@@ -164,6 +176,14 @@ public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
             this.clearContainer(player, this.craftSlots);
         }
     }
+
+    @Environment(EnvType.CLIENT)
+    public void removedClientSide(Player player) {
+        if (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen screen) {
+            screen.getMenu().setCarried(this.getCarried());
+        }
+    }
+
 
     public boolean canTakeItemForPickAll(ItemStack stack, Slot slot) {
         return slot.container != this.resultSlots && super.canTakeItemForPickAll(stack, slot);

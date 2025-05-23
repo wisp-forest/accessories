@@ -56,6 +56,7 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 
 import java.util.List;
@@ -269,11 +270,15 @@ public class AccessoriesClient {
 
         var selectedVariant = AccessoriesMenuVariant.getVariant(screenType);
 
+        ItemStack creativeCarriedStack = (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen screen)
+                ? screen.getMenu().getCarried()
+                : null;
+
         if(selectedVariant != null) {
-            AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingEntity, selectedVariant));
+            AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingEntity, selectedVariant, creativeCarriedStack));
         } else {
             Minecraft.getInstance().setScreen(new ScreenVariantSelectionScreen(variant -> {
-                AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingEntity, variant));
+                AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingEntity, variant, creativeCarriedStack));
             }));
         }
 

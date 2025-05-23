@@ -3,6 +3,8 @@ package io.wispforest.accessories.client.gui;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.menu.variants.AccessoriesMenu;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
+import io.wispforest.accessories.networking.server.ContainerClose;
 import io.wispforest.accessories.pond.CloseContainerTransfer;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.client.Minecraft;
@@ -55,6 +57,8 @@ public interface AccessoriesScreenBase<M extends AccessoriesMenuBase> extends Me
             var player = Minecraft.getInstance().player;
 
             ((CloseContainerTransfer) player).accessories$setScreenTransfer(new InventoryScreen(player));
+            player.closeContainer();
+            AccessoriesNetworking.sendToServer(new ContainerClose());
         });
     }
 }

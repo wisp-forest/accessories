@@ -11,8 +11,10 @@ import io.wispforest.endec.impl.StructEndecBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
@@ -37,8 +39,12 @@ public record ScreenVariantPing(int entityId, boolean targetLookEntity) {
     public static void handlePacket(ScreenVariantPing packet, Player player) {
         var selectedVariant = AccessoriesMenuVariant.getVariant(Accessories.config().screenOptions.selectedScreenType());
 
+        ItemStack creativeCarriedStack = (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen screen)
+                ? screen.getMenu().getCarried()
+                : null;
+
         Function<AccessoriesMenuVariant, ScreenOpen> packetBuilder = (menuVariant) -> {
-            return new ScreenOpen(packet.targetLookEntity() ? -1 : packet.entityId(), packet.targetLookEntity(), menuVariant);
+            return new ScreenOpen(packet.targetLookEntity() ? -1 : packet.entityId(), packet.targetLookEntity(), menuVariant, creativeCarriedStack);
         };
 
         if(selectedVariant != null) {

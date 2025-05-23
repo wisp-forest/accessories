@@ -4,10 +4,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.mixin.ServerChunkLoadingManagerAccessor;
 import io.wispforest.accessories.networking.client.*;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
-import io.wispforest.accessories.networking.server.MenuScroll;
-import io.wispforest.accessories.networking.server.NukeAccessories;
-import io.wispforest.accessories.networking.server.ScreenOpen;
-import io.wispforest.accessories.networking.server.SyncCosmeticToggle;
+import io.wispforest.accessories.networking.server.*;
 import io.wispforest.owo.network.ClientAccess;
 import io.wispforest.owo.network.OwoNetChannel;
 import io.wispforest.owo.network.ServerAccess;
@@ -35,6 +32,8 @@ public class AccessoriesNetworking {
 
         CHANNEL.registerServerbound(MenuScroll.class, MenuScroll.ENDEC, serverHandler(MenuScroll::handlePacket));
         CHANNEL.registerServerbound(SyncOptionChange.class, SyncOptionChange.ENDEC, serverHandler(SyncOptionChange::handlePacket));
+
+        CHANNEL.registerServerbound(ContainerClose.class, ContainerClose.ENDEC, serverHandler(ContainerClose::handlePacket));
 
         //--
 

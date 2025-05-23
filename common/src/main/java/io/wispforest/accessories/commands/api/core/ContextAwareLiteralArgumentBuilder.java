@@ -32,13 +32,17 @@ public class ContextAwareLiteralArgumentBuilder<S> extends LiteralArgumentBuilde
     }
 
     public static <S> String getBranch(CommandContext<S> ctx) throws CommandSyntaxException {
-        var argument = ((CommandContextAccessor<S>) ctx).accessories$arguments().get(literalStackKey);
+        try {
+            var argument = ctx.getArgument(literalStackKey, ParsedArgument.class);
 
-        if (!(argument instanceof ParsedArgumentStack<S, ?> parsedArguments)) {
-            throw INCORRECT_COMMAND_LITERAL_STACK.create(argument);
+            if (!(argument instanceof ParsedArgument)) {
+                throw INCORRECT_COMMAND_LITERAL_STACK.create(argument);
+            }
+
+            return (String) argument.getResult();
+        } catch (Exception e) {
+            throw INCORRECT_COMMAND_LITERAL_STACK.create(null);
         }
-
-        return (String) parsedArguments.pollFirst().getResult();
     }
 
     public static <S> Optional<LiteralArgumentBuilder<S>> builderFromNode(CommandNode<S> node) {
@@ -91,7 +95,7 @@ public class ContextAwareLiteralArgumentBuilder<S> extends LiteralArgumentBuilde
 
             if (parsedArg == null) {
                 parsedArg = new ParsedArgumentStack<>();
-            } else if (!(parsedArg instanceof ParsedArgumentStack<S, ?>)) {
+            } else if (!(parsedArg instanceof ParsedArgumentStack)) {
                 throw INCORRECT_COMMAND_LITERAL_STACK.create(parsedArg);
             }
 
@@ -112,7 +116,7 @@ public class ContextAwareLiteralArgumentBuilder<S> extends LiteralArgumentBuilde
         }
     }
 
-    static class ParsedArgumentStack<S, T> extends ParsedArgument<S, T> {
+    static class ParsedArgumentStack<S, T> extends ParsedArgument<S, ParsedArgument<S, T>> {
 
         public final Deque<ParsedArgument<S, T>> argumentStack = new ArrayDeque<>();
 
@@ -128,10 +132,10 @@ public class ContextAwareLiteralArgumentBuilder<S> extends LiteralArgumentBuilde
         }
 
         @Override
-        public T getResult() {
+        public ParsedArgument<S, T> getResult() {
             if (argumentStack.isEmpty()) return null;
 
-            return argumentStack.peek().getResult();
+            return this.pollFirst();
         }
 
         public void add(ParsedArgument<S, T> argument) {

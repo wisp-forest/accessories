@@ -58,7 +58,13 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
     private Map<AccessoriesInternalSlot, Integer> slotToPageIndex = new HashMap<>();
 
     public AccessoriesMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
+        this(containerId, inventory, targetEntity, null);
+    }
+
+    public AccessoriesMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         super(AccessoriesMenuTypes.ORIGINAL_MENU, containerId, inventory, 0, 0, targetEntity);
+
+        if(carriedStack != null) this.setCarried(carriedStack);
 
         var accessoryTarget = targetEntity != null ? targetEntity : owner;
 
@@ -242,7 +248,7 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
             return null;
         }).orElse(null);
 
-        var menu = new AccessoriesMenu(containerId, inventory, targetEntity)
+        var menu = new AccessoriesMenu(containerId, inventory, targetEntity, data.carriedStack())
                 .isSyncedWithServer(data.slotAmountAdded());
 
         return (AccessoriesMenu) menu;

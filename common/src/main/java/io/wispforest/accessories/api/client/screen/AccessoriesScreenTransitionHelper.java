@@ -3,6 +3,8 @@ package io.wispforest.accessories.api.client.screen;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.compat.config.MenuButtonInjection;
 import io.wispforest.accessories.mixin.HorseInventoryMenuAccessor;
+import io.wispforest.accessories.networking.AccessoriesNetworking;
+import io.wispforest.accessories.networking.server.ContainerClose;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.Minecraft;
@@ -174,7 +176,11 @@ public class AccessoriesScreenTransitionHelper {
             }
         }
 
-        Minecraft.getInstance().setScreen(new InventoryScreen(Minecraft.getInstance().player));
+        Minecraft.getInstance().setScreen(new InventoryScreen(player));
+
+        player.containerMenu = player.inventoryMenu;
+
+        AccessoriesNetworking.sendToServer(new ContainerClose());
     }
 
     @ApiStatus.Internal

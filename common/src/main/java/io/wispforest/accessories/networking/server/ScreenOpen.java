@@ -5,6 +5,7 @@ import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -12,17 +13,22 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-public record ScreenOpen(int entityId, boolean targetLookEntity, AccessoriesMenuVariant variant) {
+public record ScreenOpen(int entityId, boolean targetLookEntity, AccessoriesMenuVariant variant, @Nullable ItemStack creativeCarriedStack) {
 
     public static final StructEndec<ScreenOpen> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", ScreenOpen::entityId),
             Endec.BOOLEAN.fieldOf("targetLookEntity", ScreenOpen::targetLookEntity),
             Endec.forEnum(AccessoriesMenuVariant.class).fieldOf("screenType", ScreenOpen::variant),
+            MinecraftEndecs.ITEM_STACK.nullableOf().fieldOf("creativeCarriedStack", ScreenOpen::creativeCarriedStack),
             ScreenOpen::new
     );
 
     public static ScreenOpen of(@Nullable LivingEntity livingEntity, AccessoriesMenuVariant variant){
-        return new ScreenOpen(livingEntity != null ? livingEntity.getId() : -1, false, variant);
+        return of(livingEntity, variant, null);
+    }
+
+    public static ScreenOpen of(@Nullable LivingEntity livingEntity, AccessoriesMenuVariant variant, @Nullable ItemStack creativeCarriedStack){
+        return new ScreenOpen(livingEntity != null ? livingEntity.getId() : -1, false, variant, creativeCarriedStack);
     }
 
     public static void handlePacket(ScreenOpen packet, Player player) {
@@ -49,7 +55,9 @@ public record ScreenOpen(int entityId, boolean targetLookEntity, AccessoriesMenu
 
         ItemStack carriedStack = null;
 
-        if(player.containerMenu instanceof AbstractContainerMenu oldMenu) {
+        if (packet.creativeCarriedStack != null && player.isCreative()) {
+            carriedStack = packet.creativeCarriedStack;
+        } else if(player.containerMenu instanceof AbstractContainerMenu oldMenu) {
             var currentCarriedStack = oldMenu.getCarried();
 
             if(!currentCarriedStack.isEmpty()) {
