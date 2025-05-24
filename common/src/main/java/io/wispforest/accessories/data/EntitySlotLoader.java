@@ -127,7 +127,7 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
     }
 
     public void buildEntryMap() {
-        var tempMap = new HashMap<EntityType<?>, ImmutableMap.Builder<String, SlotType>>();
+        var tempMap = new HashMap<EntityType<?>, Map<String, SlotType>>();
 
         this.tagToBoundSlots.forEach((entityTag, slots) -> {
             var entityTypes = BuiltInRegistries.ENTITY_TYPE.get(entityTag)
@@ -138,19 +138,19 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
                     });
 
             entityTypes.forEach(entityType -> {
-                tempMap.computeIfAbsent(entityType, entityType1 -> ImmutableMap.builder())
+                tempMap.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
                         .putAll(slots);
             });
         });
 
         this.entityToBoundSlots.forEach((entityType, slots) -> {
-            tempMap.computeIfAbsent(entityType, entityType1 -> ImmutableMap.builder())
+            tempMap.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
                     .putAll(slots);
         });
 
         var finishMap = new ImmutableMap.Builder<EntityType<?>, Map<String, SlotType>>();
 
-        tempMap.forEach((entityType, slotsBuilder) -> finishMap.put(entityType, slotsBuilder.build()));
+        tempMap.forEach((entityType, slotsBuilder) -> finishMap.put(entityType, Collections.unmodifiableMap(slotsBuilder)));
 
         this.server = finishMap.build();
 

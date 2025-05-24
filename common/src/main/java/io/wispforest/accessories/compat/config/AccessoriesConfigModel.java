@@ -12,12 +12,13 @@ import java.util.List;
 @Config(name = Accessories.MODID, wrapperName = "AccessoriesConfig")
 public class AccessoriesConfigModel {
 
+    /*
     @RestartRequired
     @Sync(Option.SyncMode.OVERRIDE_CLIENT)
     public boolean useExperimentalCaching = false;
+    */
 
     @Nest
-    @Expanded
     public ContentFocusedOptions contentOptions = new ContentFocusedOptions();
     
     public static class ContentFocusedOptions {
@@ -41,7 +42,6 @@ public class AccessoriesConfigModel {
     }
     
     @Nest
-    @Expanded
     public GeneralClientOptions clientOptions = new GeneralClientOptions();
 
     public static class GeneralClientOptions {
@@ -59,7 +59,6 @@ public class AccessoriesConfigModel {
     }
 
     @Nest
-    @Expanded
     public ScreenOptions screenOptions = new ScreenOptions();
 
     public static class ScreenOptions {

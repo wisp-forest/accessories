@@ -585,32 +585,27 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                     .zIndex(200) // 140
                     )
                     .child(
-                            Components.button(Component.literal(""), (btn) -> {
-                                        AccessoriesScreenTransitionHelper.openPrevScreen(Minecraft.getInstance().player, this.menu.targetEntityDefaulted(), prevScreen);
-                            }).renderer((context, btn, delta) -> {
-                                        ComponentUtils.getButtonRenderer().draw(context, btn, delta);
+                            Containers.verticalFlow(Sizing.content(), Sizing.content())
+                                    .child(
+                                            Components.button(Component.literal(""), (btn) -> {
+                                                AccessoriesScreenTransitionHelper.openPrevScreen(Minecraft.getInstance().player, this.menu.targetEntityDefaulted(), prevScreen);
+                                            }).configure((ButtonComponent component) -> {
+                                                component.renderer((context, btn, delta) -> {
+                                                            context.push();
 
-                                        context.push();
+                                                            context.blit(
+                                                                    RenderType::guiTextured,
+                                                                    Accessories.of("textures/gui/accessories_back_icon" + (btn.isHovered() ? "_hovered" : "") + ".png"),
+                                                                    btn.x(), btn.y(), 0, 0, 10, 10, 10, 10
+                                                            );
 
-                                        var BACK_ICON = Accessories.config().screenOptions.isDarkMode()
-                                                ? Accessories.of("widget/back_dark")
-                                                : Accessories.of("widget/back");
-
-                                        var sprites = minecraft.getGuiSprites();
-
-                                        TextureAtlasSprite textureAtlasSprite = sprites.getSprite(BACK_ICON);
-
-                                        var width = Math.min(textureAtlasSprite.contents().width(), 8);
-                                        var height = Math.min(textureAtlasSprite.contents().height(), 8);
-
-                                        context.blitSprite(RenderType::guiTextured, BACK_ICON, btn.x() + 1, btn.y() + 1, width, height);
-
-                                        context.pop();
-                                    })
-                                    .tooltip(Component.translatable(Accessories.translationKey("back.screen")))
-                                    .positioning(Positioning.relative(100, 0))
-                                    .margins(Insets.of(1, 0, 0, 1))
-                                    .sizing(Sizing.fixed(10))
+                                                            context.pop();
+                                                        })
+                                                        .tooltip(Component.translatable(Accessories.translationKey("back.screen")))
+                                                        .margins(Insets.of(2, 0, 0, 2))
+                                                        .sizing(Sizing.fixed(10));
+                                            })
+                                    ).positioning(Positioning.relative(100, 0))
                     )
                     .padding(Insets.of(6))
                     .surface((ctx, component) -> {
