@@ -2,6 +2,7 @@
   "replace": false,
   "values": [
     "minecraft:wolf",
-    "minecraft:horse"
+    "minecraft:horse",
+    "minecraft:llama"
   ]
 }

@@ -238,6 +238,13 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
     }
 
     @Override
+    protected void drawComponentTooltip(GuiGraphics drawContext, int mouseX, int mouseY, float tickDelta) {
+        drawContext.push().translate(0,0, 300);
+        super.drawComponentTooltip(drawContext, mouseX, mouseY, tickDelta);
+        drawContext.pop();
+    }
+
+    @Override
     protected List<Component> getTooltipFromContainerItem(ItemStack itemStack) {
         var tooltipData = getTooltipFromItem(this.minecraft, itemStack);
 
@@ -413,7 +420,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         this.showAdvancedOptions(false);
 
-        var offHandIndex = this.getMenu().startingAccessoriesSlot() - (this.getMenu().includeSaddle() ? 2 : 1);
+        var offHandIndex = this.getMenu().startingAccessoriesSlot() - 1;
 
         this.enableSlot(offHandIndex);
 
@@ -609,7 +616,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                     )
                     .padding(Insets.of(6))
                     .surface((ctx, component) -> {
-                        var surfaceType = this.getMenu().addedArmorSlots() > 4 ? "full_armor" : "single_armor" + (this.getMenu().includeSaddle() ? "_saddled" : "");
+                        var surfaceType = Math.min((this.getMenu().addedArmorSlots() / 2), 4) + "_slots";
 
                         ctx.blit(
                                 RenderType::guiTextured,
@@ -624,27 +631,6 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                 138
                                 );
                     });
-
-            if(this.getMenu().includeSaddle()) {
-                var saddleIndex = this.getMenu().startingAccessoriesSlot() - 1;
-
-                this.enableSlot(saddleIndex);
-
-                ((StackLayout) entityContainer).child(
-                        Containers.verticalFlow(Sizing.content(), Sizing.content())
-                                .child(
-                                        Containers.verticalFlow(Sizing.content(), Sizing.content())
-                                                .child(
-                                                        this.slotAsComponent(saddleIndex)
-                                                                .margins(Insets.of(1))
-                                                )
-                                )
-                                .padding(Insets.of(6))
-                                .positioning(Positioning.relative(0, 100))
-                                .margins(Insets.of(0, -6, -6, 0))
-                                .zIndex(10)
-                        );
-            }
 
             armorAndEntityLayout.child(entityContainer);
         }
@@ -938,7 +924,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         holder.clearChildren();
 
         if(this.showAdvancedOptions()) {
-            for (int i = 0; i < menu.startingAccessoriesSlot() - (this.getMenu().includeSaddle() ? 2 : 1); i++) this.disableSlot(i);
+            for (int i = 0; i < menu.startingAccessoriesSlot() - 1; i++) this.disableSlot(i);
 
             holder.child(createOptionsComponent());
         } else {

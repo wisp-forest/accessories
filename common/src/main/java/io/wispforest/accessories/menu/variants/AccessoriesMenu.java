@@ -57,10 +57,6 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
 
     private Map<AccessoriesInternalSlot, Integer> slotToPageIndex = new HashMap<>();
 
-    public AccessoriesMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
-        this(containerId, inventory, targetEntity, null);
-    }
-
     public AccessoriesMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         super(AccessoriesMenuTypes.ORIGINAL_MENU, containerId, inventory, 0, 0, targetEntity);
 

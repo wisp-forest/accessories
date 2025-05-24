@@ -43,8 +43,6 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
     private int startArmorSlots = 0;
     private int startingAccessoriesSlot = 0;
 
-    private boolean includeSaddle = false;
-
     public static AccessoriesExperimentalMenu of(int containerId, Inventory inventory, AccessoriesMenuData data) {
         var targetEntity = data.targetEntityId()
                 .map(i -> (inventory.player.level().getEntity(i) instanceof LivingEntity livingEntity)
@@ -56,10 +54,6 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
                 .isSyncedWithServer(data.slotAmountAdded());
 
         return (AccessoriesExperimentalMenu) menu;
-    }
-
-    public AccessoriesExperimentalMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity) {
-        this(containerId, inventory, targetEntity, null);
     }
 
     public AccessoriesExperimentalMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
@@ -94,20 +88,6 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
                 return InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD;
             }
         });
-
-        //--
-
-        if (targetEntity.canUseSlot(EquipmentSlot.SADDLE) && targetEntity.getType().is(EntityTypeTags.CAN_EQUIP_SADDLE)) {
-            this.includeSaddle = true;
-            var saddleInv = createEquipmentSlotContainer(targetEntity, EquipmentSlot.SADDLE);
-
-            this.addSlot(new ArmorSlot(saddleInv, targetEntity, EquipmentSlot.SADDLE, 0, -300, -300, HorseInventoryMenuAccessor.accessories$SADDLE_SLOT_SPRITE()) {
-                @Override
-                public boolean isActive() {
-                    return targetEntity.canUseSlot(EquipmentSlot.SADDLE) && targetEntity.getType().is(EntityTypeTags.CAN_EQUIP_SADDLE);
-                }
-            });
-        }
 
         //--
 
@@ -345,10 +325,6 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         return this.addedArmorSlots;
     }
 
-    public boolean includeSaddle() {
-        return this.includeSaddle;
-    }
-
     public boolean areUnusedSlotsShown() {
         return AccessoriesPlayerOptions.getOptions(owner).showUnusedSlots();
     }
@@ -369,7 +345,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
 
         // 0 1 2 3 : 6 - 7 / 4 - 5 / 2 - 3 / 0 - 1
         var equipmentSlot = targetEntity.getEquipmentSlotForItem(itemStack);
-        int bottomArmorIndex = 42 + (includeSaddle ? 1 : 0) + (this.addedArmorSlots - ((equipmentSlot.getIndex() + 1) * 2));
+        int bottomArmorIndex = 42 + (this.addedArmorSlots - ((equipmentSlot.getIndex() + 1) * 2));
         int topArmorIndex = bottomArmorIndex + 1;
 
         var upperInventorySize = this.startingAccessoriesSlot;
@@ -380,8 +356,8 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
          *  1 -  5: Crafting Grid
          *  5 - 41: Player Inv
          *      41: Offhand Slot
-         * 41 - 49: Armor Slots
-         * 49 -   : Accessories Slots
+         * 41 - (41 - 51): Armor Slots
+         * (41 - 51) -   : Accessories Slots
          */
 
         if (index == 0) { // If from Crafting Result move to player inventory
@@ -392,8 +368,6 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
             if (!this.moveItemStackTo(itemStack2, 5, 41, false)) return ItemStack.EMPTY;
         } else if (equipmentSlot.isArmor() && !this.slots.get(bottomArmorIndex).hasItem()) {
             if(!this.moveItemStackTo(itemStack2, bottomArmorIndex, topArmorIndex, false)) return ItemStack.EMPTY;
-        } else if (this.includeSaddle && equipmentSlot.equals(EquipmentSlot.SADDLE) && !this.slots.get(42).hasItem()) {
-            if(!this.moveItemStackTo(itemStack2, 42, 43, false)) return ItemStack.EMPTY;
         } else if (equipmentSlot == EquipmentSlot.OFFHAND && !this.slots.get(41).hasItem()) {
             if(!this.moveItemStackTo(itemStack2, 41, 42, false)) return ItemStack.EMPTY;
         }

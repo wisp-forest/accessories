@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "entities": [
+    "#accessories:cosmetic_saddle_targets"
+  ],
+  "slots": [
+    "accessories:saddle"
+  ]
+}

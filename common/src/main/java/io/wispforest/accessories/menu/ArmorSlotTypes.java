@@ -24,13 +24,19 @@ import java.util.Map;
 
 public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
 
+    private static final ResourceLocation SADDLE_SLOT_SPRITE = ResourceLocation.withDefaultNamespace("container/slot/saddle");
+
+    private static final ResourceLocation LLAMA_ARMOR_SLOT_SPRITE = ResourceLocation.withDefaultNamespace("container/slot/llama_armor");
+    private static final ResourceLocation HORSE_ARMOR_SLOT_SPRITE = ResourceLocation.withDefaultNamespace("container/slot/horse_armor");
+
     private static final Accessory armorAccessory = new Accessory() {};
 
     public static final Map<EquipmentSlot, ResourceLocation> TEXTURE_EMPTY_SLOTS = Map.of(
             EquipmentSlot.FEET, InventoryMenu.EMPTY_ARMOR_SLOT_BOOTS,
             EquipmentSlot.LEGS, InventoryMenu.EMPTY_ARMOR_SLOT_LEGGINGS,
             EquipmentSlot.CHEST, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE,
-            EquipmentSlot.HEAD, InventoryMenu.EMPTY_ARMOR_SLOT_HELMET
+            EquipmentSlot.HEAD, InventoryMenu.EMPTY_ARMOR_SLOT_HELMET,
+            EquipmentSlot.SADDLE, SADDLE_SLOT_SPRITE
     );
 
     public static final EquipmentSlot[] SLOT_IDS = new EquipmentSlot[]{EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
@@ -42,12 +48,14 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
     private static final ResourceLocation LEGS_PREDICATE_LOCATION = Accessories.of("legs");
     private static final ResourceLocation FEET_PREDICATE_LOCATION = Accessories.of("feet");
     private static final ResourceLocation ANIMAL_BODY_PREDICATE_LOCATION  = Accessories.of("animal_body");
+    private static final ResourceLocation SADDLE_PREDICATE_LOCATION  = Accessories.of("saddle");
 
     private SlotTypeReference headSlotReference = null;
     private SlotTypeReference chestSlotReference = null;
     private SlotTypeReference legsSlotReference = null;
     private SlotTypeReference feetSlotReference = null;
     private SlotTypeReference animalBodySlotReference = null;
+    private SlotTypeReference saddleSlotReference = null;
 
     private ArmorSlotTypes() {}
 
@@ -78,14 +86,13 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
         return ArmorSlotTypes.INSTANCE.animalBodySlotReference;
     }
 
+    public static SlotTypeReference saddleSlot() {
+        return ArmorSlotTypes.INSTANCE.saddleSlotReference;
+    }
+
     public static List<SlotTypeReference> getArmorReferences() {
         return List.of(headSlot(), chestSlot(), legsSlot(), feetSlot());
     }
-
-    public static final ResourceLocation SPRITE_ATLAS_LOCATION = ResourceLocation.withDefaultNamespace("textures/atlas/gui.png");
-
-    private static final ResourceLocation LLAMA_ARMOR_SLOT_SPRITE = ResourceLocation.withDefaultNamespace("container/slot/llama_armor");
-    private static final ResourceLocation HORSE_ARMOR_SLOT_SPRITE = ResourceLocation.withDefaultNamespace("container/slot/horse_armor");
 
     @Nullable
     public static ResourceLocation getEmptyTexture(EquipmentSlot slot, LivingEntity living) {
@@ -110,13 +117,14 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
             case LEGS -> legsSlot();
             case FEET -> feetSlot();
             case BODY -> animalBody();
+            case SADDLE -> saddleSlot();
             default -> null;
         };
     }
 
     public static boolean isValidEquipable(EquipmentSlot equipmentSlot) {
         return switch (equipmentSlot) {
-            case HEAD, LEGS, CHEST, FEET, BODY -> true;
+            case HEAD, LEGS, CHEST, FEET, BODY, SADDLE -> true;
             default -> false;
         };
     }
@@ -129,6 +137,7 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
         SlotPredicateRegistry.register(LEGS_PREDICATE_LOCATION,  (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.LEGS)));
         SlotPredicateRegistry.register(FEET_PREDICATE_LOCATION,  (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.FEET)));
         SlotPredicateRegistry.register(ANIMAL_BODY_PREDICATE_LOCATION,  (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.BODY)));
+        SlotPredicateRegistry.register(SADDLE_PREDICATE_LOCATION,  (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.SADDLE)));
     }
 
     @Override
@@ -168,6 +177,14 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
         animalBodySlotReference = factory.create(Accessories.of("animal_body"), 1)
                 .allowTooltipInfo(false)
                 .slotPredicates(ANIMAL_BODY_PREDICATE_LOCATION)
+                .strictMode(StrictMode.PARTIAL)
+                .allowResizing(false)
+                .allowEquipFromUse(false)
+                .build();
+
+        saddleSlotReference = factory.create(Accessories.of("saddle"), 1)
+                .allowTooltipInfo(false)
+                .slotPredicates(SADDLE_PREDICATE_LOCATION)
                 .strictMode(StrictMode.PARTIAL)
                 .allowResizing(false)
                 .allowEquipFromUse(false)
