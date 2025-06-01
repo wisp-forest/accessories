@@ -21,6 +21,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @Mixin(PatchedDataComponentMap.class)
@@ -29,15 +30,23 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
     @Unique
     private boolean changeCheckStack = false;
 
-    private ItemStack itemStack;
+    @Nullable
+    private ItemStack itemStack = null;
 
-    private EventStream<ItemStackMutation> mutationEvent = new EventStream<>(invokers -> (stack, types) -> {
-        invokers.forEach(itemStackMutation -> itemStackMutation.onMutation(stack, types));
-    });
+    @Nullable
+    private EventStream<ItemStackMutation> mutationEvent = null;
 
     @Override
-    public EventStream<ItemStackMutation> accessories$getMutationEvent(ItemStack stack) {
-        this.itemStack = stack;
+    public EventStream<ItemStackMutation> accessories$getMutationEvent(ItemStack itemStack) {
+        Objects.requireNonNull(itemStack);
+
+        this.itemStack = itemStack;
+
+        if (mutationEvent == null) {
+            mutationEvent = new EventStream<>(invokers -> (stack, types) -> {
+                invokers.forEach(itemStackMutation -> itemStackMutation.onMutation(stack, types));
+            });
+        }
 
         return mutationEvent;
     }
@@ -55,14 +64,14 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
     private <T> void accessories$updateChangeValue_set(DataComponentType<? super T> component, @Nullable T value, CallbackInfoReturnable<T> cir){
         this.changeCheckStack = true;
 
-        this.mutationEvent.sink().onMutation(this.itemStack, List.of(component));
+        this.accessories$handleMutationEvent(List.of(component));
     }
 
     @Inject(method = "remove", at = @At("HEAD"))
     private <T> void accessories$updateChangeValue_remove(DataComponentType<? super T> component, CallbackInfoReturnable<T> cir){
         this.changeCheckStack = true;
 
-        this.mutationEvent.sink().onMutation(this.itemStack, List.of(component));
+        this.accessories$handleMutationEvent(List.of(component));
     }
 
     @Unique
@@ -81,7 +90,7 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
 
         var changedDataTypes = (List<DataComponentType<?>>) (List) patch.entrySet().stream().map(Map.Entry::getKey).toList();
 
-        this.mutationEvent.sink().onMutation(this.itemStack, changedDataTypes);
+        this.accessories$handleMutationEvent(changedDataTypes);
     }
 
     @Inject(method = "applyPatch(Lnet/minecraft/core/component/DataComponentType;Ljava/util/Optional;)V", at = @At("HEAD"))
@@ -89,7 +98,7 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
         this.changeCheckStack = true;
 
         if (!this.inApplyPatchLock) {
-            this.mutationEvent.sink().onMutation(this.itemStack, List.of(component));
+            this.accessories$handleMutationEvent(List.of(component));
         }
     }
 
@@ -98,6 +107,13 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
         this.changeCheckStack = true;
 
         var changedDataTypes = (List<DataComponentType<?>>) (List) patch.entrySet().stream().map(Map.Entry::getKey).toList();
+
+        this.accessories$handleMutationEvent(changedDataTypes);
+    }
+
+    @Unique
+    private void accessories$handleMutationEvent(List<DataComponentType<?>> changedDataTypes) {
+        if(this.mutationEvent == null) return;
 
         this.mutationEvent.sink().onMutation(this.itemStack, changedDataTypes);
     }

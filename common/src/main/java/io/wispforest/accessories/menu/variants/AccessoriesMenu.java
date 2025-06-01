@@ -199,6 +199,8 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
         this.totalSlots = yIndex;
 
         this.maxScrollableIndex = this.totalSlots - 8;
+
+        this.slotAmountAdded = this.slots.size() - this.accessoriesSlotStartIndex;
     }
 
     public void setScrollEvent(Runnable event) {
@@ -244,7 +246,10 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
             return null;
         }).orElse(null);
 
-        return new AccessoriesMenu(containerId, inventory, targetEntity);
+        var menu = new AccessoriesMenu(containerId, inventory, targetEntity)
+                .isSyncedWithServer(data.slotAmountAdded());
+
+        return (AccessoriesMenu) menu;
     }
 
     public boolean showingSlots() {

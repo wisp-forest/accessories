@@ -16,6 +16,7 @@ import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
+import io.wispforest.owo.network.OwoNetChannel;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
@@ -24,6 +25,7 @@ import io.wispforest.accessories.networking.client.SyncData;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.SerializationContext;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -54,6 +56,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static io.wispforest.accessories.Accessories.ACCESSORY_EQUIPPED;
@@ -145,27 +149,11 @@ public class AccessoriesEventHandler {
     public static void entityLoad(LivingEntity entity, Level level) {
         if (!level.isClientSide() || !(entity instanceof ServerPlayer serverPlayer)) return;
 
-        var capability = AccessoriesCapability.get(serverPlayer);
-
-        if (capability == null) return;
-
-        var carrier = NbtMapCarrier.of();
-
-        ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(level.registryAccess())));
-
-        AccessoriesNetworking.sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
+        SyncEntireContainer.syncToAllTrackingAndSelf(serverPlayer);
     }
 
     public static void onTracking(LivingEntity entity, ServerPlayer serverPlayer) {
-        var capability = AccessoriesCapability.get(entity);
-
-        if (capability == null) return;
-
-        var carrier = NbtMapCarrier.of();
-
-        ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(entity.level().registryAccess())));
-
-        AccessoriesNetworking.sendToPlayer(serverPlayer, new SyncEntireContainer(capability.entity().getId(), carrier));
+        SyncEntireContainer.syncTo(entity, (channel) -> channel.serverHandle(serverPlayer));
     }
 
     public static void dataSync(@Nullable PlayerList list, @Nullable ServerPlayer player) {
@@ -695,6 +683,9 @@ public class AccessoriesEventHandler {
     @Nullable
     private static ItemStack dropStack(DropRule dropRule, LivingEntity entity, ExpandedSimpleContainer container, SlotReference reference, DamageSource source, boolean keepInvEnabled) {
         var stack = container.getItem(reference.slot());
+
+        if (stack.isEmpty()) return null;
+
         var accessory = AccessoriesAPI.getOrDefaultAccessory(stack);
 
         if (accessory != null && dropRule == DropRule.DEFAULT) {
@@ -726,6 +717,7 @@ public class AccessoriesEventHandler {
         var result = OnDropCallback.getAlternativeRule(dropRule, stack, reference, source);
 
         boolean dropStack = true;
+        boolean keepingStack = false;
 
         if (result == DropRule.DESTROY) {
             container.setItem(reference.slot(), ItemStack.EMPTY);
@@ -733,9 +725,12 @@ public class AccessoriesEventHandler {
             // TODO: Do we call break here for the accessory?
         } else if (result == DropRule.KEEP) {
             dropStack = false;
+            keepingStack = true;
         } else if (result == DropRule.DEFAULT) {
             if (keepInvEnabled) {
                 dropStack = false;
+
+                keepingStack = true;
             } else if (EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
                 container.setItem(reference.slot(), ItemStack.EMPTY);
                 dropStack = false;
@@ -743,7 +738,11 @@ public class AccessoriesEventHandler {
             }
         }
 
-        container.setPreviousItem(reference.slot(), ItemStack.EMPTY);
+        // Used to indicate within the Accessories system when the player becomes alive that we need to
+        // equip the accessory again to trigger equip call and properly add back Attributes
+        if (keepingStack) {
+            container.setPreviousItem(reference.slot(), ItemStack.EMPTY);
+        }
 
         if (!dropStack) return null;
 

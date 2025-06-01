@@ -7,4 +7,6 @@ extendable class net/minecraft/world/item/enchantment/EnchantmentHelper$Enchantm
 accessible class net/minecraft/world/inventory/ArmorSlot
 extendable class net/minecraft/world/inventory/ArmorSlot
 
+accessible method net/minecraft/world/entity/player/Player closeContainer ()V
+
 accessible class net/minecraft/server/ReloadableServerResources$ConfigurableRegistryLookup

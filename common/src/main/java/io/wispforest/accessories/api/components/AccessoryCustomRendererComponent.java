@@ -1,6 +1,6 @@
 package io.wispforest.accessories.api.components;
 
-import io.wispforest.accessories.api.client.RenderingFunction;
+import io.wispforest.accessories.api.client.rendering.RenderingFunction;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import org.jetbrains.annotations.ApiStatus;

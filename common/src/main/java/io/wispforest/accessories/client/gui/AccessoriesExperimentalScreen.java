@@ -37,6 +37,7 @@ import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.ErrorScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -68,7 +69,7 @@ import java.util.stream.Stream;
 
 import static io.wispforest.accessories.client.gui.components.ComponentUtils.BACKGROUND_SLOT_RENDERING_SURFACE;
 
-public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayout, AccessoriesExperimentalMenu> implements AccessoriesScreenBase, ContainerScreenExtension {
+public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayout, AccessoriesExperimentalMenu> implements AccessoriesScreenBase<AccessoriesExperimentalMenu>, ContainerScreenExtension {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -76,6 +77,21 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         super(handler, inventory, title);
 
         this.inventoryLabelX = 42069;
+    }
+
+    @Override
+    protected void init() {
+        if (!menu.isValidMenu()) {
+            Minecraft.getInstance().setScreen(
+                    new ErrorScreen(
+                            Component.literal("Accessories Screen Opening Error!"),
+                            Component.literal("Unable to open Accessories Screen due to desync with the Server!")
+                    ));
+
+            return;
+        }
+
+        super.init();
     }
 
     //--
@@ -585,9 +601,8 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                     .zIndex(200) // 140
                     )
                     .child(
-                            Components.button(Component.literal(""), (btn) -> {
-                                this.minecraft.setScreen(new InventoryScreen(minecraft.player));
-                            }).renderer((context, btn, delta) -> {
+                            Components.button(Component.literal(""), (btn) -> this.switchToBaseInventory())
+                                    .renderer((context, btn, delta) -> {
                                         ComponentUtils.getButtonRenderer().draw(context, btn, delta);
 
                                         context.push();

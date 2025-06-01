@@ -13,7 +13,7 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
-import io.wispforest.accessories.api.client.CustomDataRenderer;
+import io.wispforest.accessories.api.client.rendering.CustomDataRenderer;
 import io.wispforest.accessories.api.components.*;
 import io.wispforest.accessories.data.CustomRendererLoader;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -42,8 +42,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class AccessoriesCommands {
 

@@ -5,8 +5,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.gson.*;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.client.CustomDataRenderer;
-import io.wispforest.accessories.api.client.RenderingFunction;
+import io.wispforest.accessories.api.client.rendering.CustomDataRenderer;
+import io.wispforest.accessories.api.client.rendering.RenderingFunction;
 import io.wispforest.accessories.utils.HashUtils;
 import io.wispforest.accessories.utils.ManagedEndecDataLoader;
 import io.wispforest.endec.format.gson.GsonDeserializer;
@@ -63,7 +63,7 @@ public class CustomRendererLoader extends ManagedEndecDataLoader<CustomDataRende
         if (!dataRenderer.rendererId().equals(CustomDataRenderer.NO_RENDERER_SELECTED)) {
             return CustomRendererLoader.getOrResolveRenderer(dataRenderer.rendererId(), Map.of(), isClientSide);
         } else if(dataRenderer.renderingFunctions() != null) {
-            return CustomRendererLoader.INSTANCE.resolveRenderer(new ArrayDeque<>(), Accessories.of("generated"), dataRenderer, new HashMap<>(), isClientSide);
+            return CustomRendererLoader.INSTANCE.resolveRawData(new ArrayDeque<>(), Accessories.of("generated"), dataRenderer, new HashMap<>(), isClientSide);
         }
 
         return null;
@@ -100,30 +100,9 @@ public class CustomRendererLoader extends ManagedEndecDataLoader<CustomDataRende
         }
 
         if (function == null) {
-            currentResolveTree.push(id);
-
-            CustomDataRenderer rawRenderer = null;
-
-            if (alwaysResolveFlag) rawRenderer = this.getDataFromId(id, isClientSide);
-            if (rawRenderer == null) rawRenderer = getEntry(id, isClientSide);
-
-            if (rawRenderer == null) {
-                var errorSet = (isClientSide ? missingRenderersClient : missingRenderersServer);
-
-                if (!errorSet.contains(id)) {
-                    LOGGER.error("Unable to resolve renderer [{}] as it was not found within Custom Renderer Registry!", id);
-
-                    errorSet.add(id);
-                }
-
-                return null;
-            }
-
-            function = resolveRenderer(currentResolveTree, id, rawRenderer, references, isClientSide);
+            function = resolveRenderer(currentResolveTree, id, references, isClientSide);
 
             (isClientSide ? resolvedClient : resolvedServer).put(id, function);
-
-            currentResolveTree.pop();
         }
 
         if (shouldResetFlagOnResolve) alwaysResolveFlag = false;
@@ -132,8 +111,35 @@ public class CustomRendererLoader extends ManagedEndecDataLoader<CustomDataRende
         return function;
     }
 
+    private RenderingFunction.Compound resolveRenderer(Deque<ResourceLocation> currentResolveTree, ResourceLocation id, Map<String, JsonElement> references, boolean isClientSide) {
+        currentResolveTree.push(id);
+
+        CustomDataRenderer rawRenderer = null;
+
+        if (alwaysResolveFlag) rawRenderer = this.getDataFromId(id, isClientSide);
+        if (rawRenderer == null) rawRenderer = getEntry(id, isClientSide);
+
+        if (rawRenderer == null) {
+            var errorSet = (isClientSide ? missingRenderersClient : missingRenderersServer);
+
+            if (!errorSet.contains(id)) {
+                LOGGER.error("Unable to resolve renderer [{}] as it was not found within Custom Renderer Registry!", id);
+
+                errorSet.add(id);
+            }
+
+            return null;
+        }
+
+        var function = resolveRawData(currentResolveTree, id, rawRenderer, references, isClientSide);
+
+        currentResolveTree.pop();
+
+        return function;
+    }
+
     @Nullable
-    private RenderingFunction.Compound resolveRenderer(Deque<ResourceLocation> currentResolveTree, ResourceLocation id, CustomDataRenderer rawData, Map<String, JsonElement> references, boolean isClientSide) {
+    private RenderingFunction.Compound resolveRawData(Deque<ResourceLocation> currentResolveTree, ResourceLocation id, CustomDataRenderer rawData, Map<String, JsonElement> references, boolean isClientSide) {
         rawData.references().forEach(references::putIfAbsent);
 
         if (!rawData.rendererId().equals(CustomDataRenderer.NO_RENDERER_SELECTED)) {
@@ -147,7 +153,7 @@ public class CustomRendererLoader extends ManagedEndecDataLoader<CustomDataRende
                 return null;
             }
 
-            var renderingFunc = getOrResolveRendererInitial(currentResolveTree, rawData.rendererId(), references, isClientSide);
+            var renderingFunc = resolveRenderer(currentResolveTree, rawData.rendererId(), references, isClientSide);
 
             if (renderingFunc != null && rawData.firstPersonArmTarget() != null) {
                 renderingFunc = new RenderingFunction.Compound(renderingFunc.renderingFunctions(), rawData.firstPersonArmTarget());
@@ -159,12 +165,12 @@ public class CustomRendererLoader extends ManagedEndecDataLoader<CustomDataRende
 
             for (var rawRenderingFunc : rawData.renderingFunctions()) {
                 try {
-                    resolveReferences(references, rawRenderingFunc);
+                    rawRenderingFunc = resolveReferencesForCopy(references, rawRenderingFunc);
 
                     var renderingFunc = RenderingFunction.ENDEC.decodeFully(GsonDeserializer::of, rawRenderingFunc);
 
                     if (renderingFunc instanceof CustomDataRenderer renderer) {
-                        renderingFunc = resolveRenderer(currentResolveTree, id.withPrefix("$"), renderer, references, isClientSide);
+                        renderingFunc = resolveRawData(currentResolveTree, id.withPrefix("."), renderer, references, isClientSide);
 
                         if (renderingFunc == null) {
                             LOGGER.warn("Unable to resolve inner renderer [{}] for [{}] as it was not found within Custom Renderer Registry!", renderer.rendererId(), id);
@@ -188,6 +194,14 @@ public class CustomRendererLoader extends ManagedEndecDataLoader<CustomDataRende
         }
 
         return null;
+    }
+
+    private static JsonElement resolveReferencesForCopy(Map<String, JsonElement> references, JsonElement jsonElement) {
+        var copy = jsonElement.deepCopy();
+
+        resolveReferences(references, copy);
+
+        return copy;
     }
 
     private static void resolveReferences(Map<String, JsonElement> references, JsonElement jsonElement) {

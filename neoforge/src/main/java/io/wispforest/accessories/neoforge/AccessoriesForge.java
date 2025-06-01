@@ -29,14 +29,16 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.util.Mth;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -61,6 +63,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -229,30 +232,51 @@ public class AccessoriesForge {
         if (droppedStacks == null) return;
 
         event.getDrops().addAll(
-                droppedStacks.stream().flatMap(itemStack -> {
-                    var pos = event.getEntity().position();
-
-                    return getItemEntities(event.getEntity().level(), pos.x, pos.y, pos.z, itemStack);
-                }).toList()
+                droppedStacks.stream()
+                        .flatMap(stack -> createDroppedEntity(event.getEntity(), stack))
+                        .toList()
         );
     }
 
-    private static Stream<ItemEntity> getItemEntities(Level level, double x, double y, double z, ItemStack stack) {
-        double d = EntityType.ITEM.getWidth();
-
-        double e = 1.0 - d;
-        double f = d / 2.0;
-
-        double g = Math.floor(x) + level.random.nextDouble() * e + f;
-        double h = Math.floor(y) + level.random.nextDouble() * e;
-        double i = Math.floor(z) + level.random.nextDouble() * e + f;
-
+    private static Stream<ItemEntity> createDroppedEntity(Entity entity, ItemStack stack) {
         var itemEntities = new ArrayList<ItemEntity>();
 
-        while(!stack.isEmpty()) {
-            ItemEntity itemEntity = new ItemEntity(level, g, h, i, stack.split(level.random.nextInt(21) + 10));
-            itemEntity.setDeltaMovement(level.random.triangle(0.0, 0.11485000171139836), level.random.triangle(0.2, 0.11485000171139836), level.random.triangle(0.0, 0.11485000171139836));
-            itemEntities.add(itemEntity);
+        if (!stack.isEmpty()) {
+            var random = entity.getRandom();
+
+            if (entity instanceof Player player) {
+                double d = player.getEyeY() - 0.3F;
+
+                var itemEntity = new ItemEntity(player.level(), player.getX(), d, player.getZ(), stack);
+
+                itemEntity.setPickUpDelay(40);
+
+                float f = random.nextFloat() * 0.5F;
+                float g = random.nextFloat() * (float) (Math.PI * 2);
+
+                itemEntity.setDeltaMovement((-Mth.sin(g) * f), 0.2F, (Mth.cos(g) * f));
+
+                itemEntities.add(itemEntity);
+            } else {
+                double itemWidth = EntityType.ITEM.getWidth();
+
+                double e = 1.0 - itemWidth;
+                double f = itemWidth / 2.0;
+
+                double itemX = Math.floor(entity.getX()) + random.nextDouble() * e + f;
+                double itemY = Math.floor(entity.getY()) + random.nextDouble() * e;
+                double itemZ = Math.floor(entity.getZ()) + random.nextDouble() * e + f;
+
+                while(!stack.isEmpty()) {
+                    var itemEntity = new ItemEntity(entity.level(), itemX, itemY, itemZ, stack.split(random.nextInt(21) + 10));
+
+                    var max = 0.11485000171139836;
+
+                    itemEntity.setDeltaMovement(random.triangle(0.0, max), random.triangle(0.2, max), random.triangle(0.0, max));
+
+                    itemEntities.add(itemEntity);
+                }
+            }
         }
 
         return itemEntities.stream();
