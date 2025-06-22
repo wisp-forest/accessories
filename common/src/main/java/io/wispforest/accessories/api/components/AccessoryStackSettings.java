@@ -1,6 +1,6 @@
 package io.wispforest.accessories.api.components;
 
-import io.wispforest.accessories.api.DropRule;
+import io.wispforest.accessories.api.events.DropRule;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;

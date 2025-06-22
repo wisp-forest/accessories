@@ -2,14 +2,18 @@ package io.wispforest.accessories.mixin.client;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import io.wispforest.accessories.api.AccessoriesStorage;
+import io.wispforest.accessories.pond.AccessoriesRenderStateExtension;
 import io.wispforest.accessories.pond.CosmeticArmorLookupTogglable;
-import io.wispforest.accessories.pond.LivingEntityRenderStateExtension;
+import io.wispforest.accessories.pond.AccessoriesRenderStateAPI;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
+
+import java.util.LinkedHashMap;
 
 @Mixin(value = EntityRenderer.class)
 public abstract class EntityRendererMixin<T extends Entity, S extends EntityRenderState>{
@@ -28,7 +32,26 @@ public abstract class EntityRendererMixin<T extends Entity, S extends EntityRend
 
         if (bl) ((CosmeticArmorLookupTogglable) entity).setLookupToggle(false);
 
-        if (state instanceof LivingEntityRenderState) ((LivingEntityRenderStateExtension) state).accessories$setEntity((LivingEntity) entity);
+        if (state instanceof LivingEntityRenderState) {
+            if (entity instanceof LivingEntity livingEntity) {
+                var extension = ((AccessoriesRenderStateExtension) state);
+
+                extension.accessories$setEntity(livingEntity); // TODO: REMOVE WITHIN FUTURE UPDATE
+                extension.accessoreis$setEntityUUID(livingEntity.getUUID());
+
+                var capability = livingEntity.accessoriesCapability();
+
+                if (capability != null) {
+                    var map = new LinkedHashMap<String, AccessoriesStorage>();
+
+                    for (var entry : capability.getContainers().entrySet()) {
+                        map.put(entry.getKey(), entry.getValue().copy());
+                    }
+
+                    extension.accessories$storageLookup(map);
+                }
+            }
+        }
 
         return state;
     }

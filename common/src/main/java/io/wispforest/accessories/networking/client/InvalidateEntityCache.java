@@ -2,7 +2,7 @@ package io.wispforest.accessories.networking.client;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;

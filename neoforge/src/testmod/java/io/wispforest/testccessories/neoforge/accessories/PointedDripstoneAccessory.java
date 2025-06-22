@@ -2,12 +2,13 @@ package io.wispforest.testccessories.neoforge.accessories;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.Accessory;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.client.renderers.AccessoryRenderer;
 import io.wispforest.accessories.api.client.renderers.SimpleAccessoryRenderer;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.testccessories.neoforge.Testccessories;
 import net.minecraft.client.Minecraft;
@@ -51,10 +52,10 @@ public class PointedDripstoneAccessory implements Accessory {
     public static class Renderer implements SimpleAccessoryRenderer {
 
         @Override
-        public <S extends LivingEntityRenderState> void align(ItemStack stack, SlotReference reference, EntityModel<S> model, S renderState, PoseStack matrices) {
+        public <S extends LivingEntityRenderState> void align(ItemStack stack, SlotPath path, EntityModel<S> model, S renderState, PoseStack matrices) {
             if (!(model instanceof HumanoidModel<? extends HumanoidRenderState> humanoidModel)) return;
 
-            var armModelPart = (reference.slot() % 2 == 0) ? humanoidModel.rightArm : humanoidModel.leftArm;
+            var armModelPart = (path.index() % 2 == 0) ? humanoidModel.rightArm : humanoidModel.leftArm;
 
             AccessoryRenderer.transformToModelPart(matrices, armModelPart, 0, -1, 0);
 
@@ -62,21 +63,21 @@ public class PointedDripstoneAccessory implements Accessory {
         }
 
         @Override
-        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
-            align(stack, reference, model, renderState, matrices);
+        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
+            align(stack, path, model, renderState, matrices);
 
             for (int i = 0; i < stack.getCount(); i++) {
                 if (i > 0) matrices.mulPose(Axis.YP.rotationDegrees(Math.min(90, 360f / stack.getCount())));
                 matrices.pushPose();
                 matrices.translate(Math.max(0,stack.getCount() - 8)*0.01, 0, 0);
-                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, matrices, multiBufferSource, reference.entity().level(), 0);
+                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, matrices, multiBufferSource, null, 0);
                 matrices.popPose();
             }
         }
 
         @Override
-        public boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference) {
-            return reference.slot() % 2 == 0 ? arm == HumanoidArm.RIGHT : arm == HumanoidArm.LEFT;
+        public <S extends LivingEntityRenderState> boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotPath path, S renderState) {
+            return path.index() % 2 == 0 ? arm == HumanoidArm.RIGHT : arm == HumanoidArm.LEFT;
         }
     }
 }

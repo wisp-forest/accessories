@@ -2,8 +2,8 @@ package io.wispforest.testccessories.neoforge.accessories;
 
 import com.google.common.collect.HashMultimap;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.Accessory;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;

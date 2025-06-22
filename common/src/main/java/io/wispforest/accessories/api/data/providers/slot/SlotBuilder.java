@@ -1,7 +1,7 @@
 package io.wispforest.accessories.api.data.providers.slot;
 
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.api.DropRule;
+import io.wispforest.accessories.api.events.DropRule;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.impl.slot.StrictMode;

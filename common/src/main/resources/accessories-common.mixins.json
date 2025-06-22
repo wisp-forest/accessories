@@ -80,7 +80,8 @@
     "DispenserBlockMixin",
     "DefaultDispenseItemBehaviorAccessor",
     "ServerGamePacketListenerImplMixin",
-    "AbstractContainerMenuMixin"
+    "AbstractContainerMenuMixin",
+    "ItemStackMixin"
   ],
   "injectors": {
     "defaultRequire": 1

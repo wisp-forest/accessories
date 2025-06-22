@@ -5,7 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
-import io.wispforest.accessories.pond.LivingEntityRenderStateExtension;
+import io.wispforest.accessories.pond.AccessoriesRenderStateAPI;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HeadedModel;
@@ -35,30 +35,26 @@ public abstract class CustomHeadLayerMixin<S extends LivingEntityRenderState, M 
     private void accessories$adjustHeadItem(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S livingEntityRenderState, float f, float g, Operation<Void> original) {
         ItemStackRenderState prevState = null;
 
-        if (livingEntityRenderState instanceof LivingEntityRenderStateExtension extension) {
-            var entity = extension.accessories$getEntity();
+        if (livingEntityRenderState instanceof AccessoriesRenderStateAPI extension) {
+            var lookup = extension.getStorageLookup();
 
-            if (entity.isPresent()) {
-                var capability = entity.get().accessoriesCapability();
+            if (lookup != null) {
+                var ref = lookup.getEquipped(ItemStackBasedPredicate.ofClass(BannerItem.class))
+                        .stream()
+                        .filter(entry -> entry.path().slotName().equals("hat"))
+                        .findFirst()
+                        .orElse(null);
 
-                if (capability != null) {
-                    var ref = capability.getEquipped(ItemStackBasedPredicate.ofClass(BannerItem.class))
-                            .stream()
-                            .filter(slotEntryReference -> slotEntryReference.reference().slotName().equals("hat"))
-                            .findFirst()
-                            .orElse(null);
+                if (ref != null) {
+                    var stack = ref.stack();
+                    prevState = livingEntityRenderState.headItem;
 
-                    if (ref != null) {
-                        var stack = ref.stack();
-                        prevState = livingEntityRenderState.headItem;
+                    var alternativeRenderState = new ItemStackRenderState();
 
-                        var alternativeRenderState = new ItemStackRenderState();
+                    Minecraft.getInstance().getItemModelResolver()
+                            .updateForTopItem(alternativeRenderState, stack, ItemDisplayContext.HEAD, Minecraft.getInstance().level, null, extension.getEntityUUIDForState().hashCode() + 5);
 
-                        Minecraft.getInstance().getItemModelResolver()
-                                .updateForLiving(alternativeRenderState, stack, ItemDisplayContext.HEAD, entity.get());
-
-                        ((LivingEntityRenderStateAccessor) livingEntityRenderState).accessories$headItem(alternativeRenderState);
-                    }
+                    ((LivingEntityRenderStateAccessor) livingEntityRenderState).accessories$headItem(alternativeRenderState);
                 }
             } else {
                 if (!hasPrintedError) {

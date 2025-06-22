@@ -2,17 +2,20 @@ package io.wispforest.testccessories.neoforge.accessories;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.Accessory;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.client.renderers.AccessoryRenderer;
 import io.wispforest.accessories.api.client.renderers.SimpleAccessoryRenderer;
+import io.wispforest.accessories.api.client.rendering.Side;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.testccessories.neoforge.Testccessories;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.HeadedModel;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.component.DataComponents;
@@ -54,19 +57,20 @@ public class AppleAccessory implements Accessory {
 
     @OnlyIn(Dist.CLIENT)
     public static class Renderer implements SimpleAccessoryRenderer {
-        @Override
-        public <S extends LivingEntityRenderState> void align(ItemStack stack, SlotReference reference, EntityModel<S> model, S renderState, PoseStack matrices) {
-            if(!(model instanceof HeadedModel headedModel)) return;
 
-            AccessoryRenderer.transformToModelPart(matrices, headedModel.getHead(), null, 0, 1);
+        @Override
+        public <S extends LivingEntityRenderState> void align(ItemStack stack, SlotPath path, EntityModel<S> model, S renderState, PoseStack matrices) {
+            if (!(model instanceof HumanoidModel<? extends HumanoidRenderState> humanoidModel)) return;
+
+            AccessoryRenderer.transformToFace(matrices, humanoidModel.head, Side.FRONT);
         }
 
         @Override
-        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
-            align(stack, reference, model, renderState, matrices);
+        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
+            align(stack, path, model, renderState, matrices);
 
             for (int i = 0; i < stack.getCount(); i++) {
-                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, matrices, multiBufferSource, reference.entity().level(), 0);
+                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, matrices, multiBufferSource, Minecraft.getInstance().level, 0);
                 matrices.translate(0, 0, 1/16f);
             }
         }

@@ -1,10 +1,12 @@
-package io.wispforest.accessories.api;
+package io.wispforest.accessories.api.core;
 
+import io.wispforest.accessories.api.events.DropRule;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
 import io.wispforest.accessories.api.events.SlotStateChange;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
@@ -65,6 +67,7 @@ public interface AccessoryNest extends Accessory {
      * @return Whether this implementation of the Accessory nest allows for further nesting of other Nests
      */
     default boolean allowDeepRecursion() {
+        // TODO: MAKE DATA ADJUSTABLE?
         return false;
     }
 
@@ -76,7 +79,7 @@ public interface AccessoryNest extends Accessory {
         for (int i = 0; i < innerStacks.size(); i++) {
             var innerStack = innerStacks.get(i);
 
-            var rule = AccessoryRegistry.getAccessoryOrDefault(innerStack).getDropRule(innerStack, reference, source);
+            var rule = AccessoryRegistry.getAccessoryOrDefault(innerStack).getDropRule(innerStack, SlotPath.cloneWithInnerIndex(reference, i), source);
 
             innerRules.add(Pair.of(rule, innerStack));
         }

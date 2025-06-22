@@ -9,7 +9,7 @@ import io.wispforest.accessories.data.CustomRendererLoader;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.impl.VanillaItemPredicates;
+import io.wispforest.accessories.impl.event.VanillaItemPredicates;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.menu.ArmorSlotTypes;
 import io.wispforest.accessories.mixin.CriteriaTriggersAccessor;
@@ -17,7 +17,6 @@ import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.ScreenVariantPing;
 import io.wispforest.accessories.utils.EndecUtils;
 import net.fabricmc.fabric.api.util.TriState;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -31,8 +30,6 @@ import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
-
-import java.util.List;
 
 public class Accessories {
 

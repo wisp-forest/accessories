@@ -7,7 +7,7 @@ import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.equip.EquipmentChecking;
-import io.wispforest.accessories.pond.LivingEntityRenderStateExtension;
+import io.wispforest.accessories.pond.AccessoriesRenderStateAPI;
 import io.wispforest.accessories.pond.WingsLayerExtension;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -51,32 +51,28 @@ public abstract class WingsLayerMixin<S extends HumanoidRenderState, M extends E
     @WrapOperation(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;get(Lnet/minecraft/core/component/DataComponentType;)Ljava/lang/Object;"))
     private Object accessories$adjustGliderItemstack(ItemStack instance, DataComponentType dataComponentType, Operation<Object> original, @Local(argsOnly = true) S humanoidRenderState, @Local(ordinal = 0) LocalRef<ItemStack> stack) {
-        if (humanoidRenderState instanceof LivingEntityRenderStateExtension extension) {
-            var entity = extension.accessories$getEntity();
+        if (humanoidRenderState instanceof AccessoriesRenderStateAPI extension) {
+            var lookup = extension.getStorageLookup();
 
-            if (entity.isPresent()) {
-                var capability = entity.get().accessoriesCapability();
+            if (lookup != null) {
+                var gliderItem = lookup.getFirstEquipped(stack1 -> {
+                    var equippable = stack1.get(DataComponents.EQUIPPABLE);
 
-                if (capability != null) {
-                    var gliderItem = capability.getFirstEquipped(stack1 -> {
-                        var equippable = stack1.get(DataComponents.EQUIPPABLE);
+                    if (equippable != null && equippable.assetId().isPresent()) {
+                        var list = ((EquipmentLayerRendererAccessor) this.equipmentRenderer).accessories$equipmentAssetManager()
+                                .get(equippable.assetId().get())
+                                .getLayers(EquipmentClientInfo.LayerType.WINGS);
 
-                        if (equippable != null && equippable.assetId().isPresent()) {
-                            var list = ((EquipmentLayerRendererAccessor) this.equipmentRenderer).accessories$equipmentAssetManager()
-                                    .get(equippable.assetId().get())
-                                    .getLayers(EquipmentClientInfo.LayerType.WINGS);
-
-                            return !list.isEmpty();
-                        }
-
-                        return false;
-                    }, EquipmentChecking.COSMETICALLY_OVERRIDABLE);
-
-                    if (gliderItem != null) {
-                        stack.set(gliderItem.stack());
-
-                        instance = gliderItem.stack();
+                        return !list.isEmpty();
                     }
+
+                    return false;
+                }, EquipmentChecking.COSMETICALLY_OVERRIDABLE);
+
+                if (gliderItem != null) {
+                    stack.set(gliderItem.stack());
+
+                    instance = gliderItem.stack();
                 }
             } else {
                 if (!hasPrintedError) {

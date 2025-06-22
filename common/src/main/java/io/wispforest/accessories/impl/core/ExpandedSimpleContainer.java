@@ -1,10 +1,11 @@
-package io.wispforest.accessories.impl;
+package io.wispforest.accessories.impl.core;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.utils.ImmutableContainer;
 import io.wispforest.accessories.utils.ItemStackMutation;
+import io.wispforest.accessories.utils.ItemStackResize;
 import io.wispforest.owo.util.EventSource;
 import it.unimi.dsi.fastutil.ints.Int2BooleanArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
@@ -17,9 +18,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -39,12 +41,19 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     private final AccessoriesContainerImpl container;
 
     private final String name;
+
     private final NonNullList<ItemStack> previousItems;
+
     private final Int2BooleanMap setFlags = new Int2BooleanArrayMap();
+
+    private boolean canFlagSetCalls = true;
 
     private boolean newlyConstructed;
 
-    private final Int2ObjectMap<EventSource<ItemStackMutation>.Subscription> currentSubscriptions = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<EventSource.Subscription> currentMutationSubscriptions = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<EventSource.Subscription> currentResizeSubscriptions = new Int2ObjectOpenHashMap<>();
+
+    private final Int2ObjectMap<EventSource.Subscription> currentPrevResizeSubscriptions = new Int2ObjectOpenHashMap<>();
 
     public ExpandedSimpleContainer(AccessoriesContainerImpl container, int size, String name) {
         this(container, size, name, true);
@@ -60,11 +69,16 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         if(toggleNewlyConstructed) this.newlyConstructed = true;
 
         this.name = name;
+
         this.previousItems = NonNullList.withSize(size, ItemStack.EMPTY);
     }
 
     public String name() {
         return this.name;
+    }
+
+    public Container toImmutable() {
+        return new ImmutableContainer(this.items);
     }
 
     //--
@@ -85,11 +99,59 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         return bl;
     }
 
+    void toggleFlagablity() {
+        canFlagSetCalls = !canFlagSetCalls;
+    }
+
+    private void removeAllSlotSubscription(int slot) {
+        removeMutationSubscription(slot);
+        removeResizeSubscription(slot);
+
+        removePrevResizeSubscription(slot);
+    }
+
+    private void removePrevResizeSubscription(int slot) {
+        var subscription = currentPrevResizeSubscriptions.remove(slot);
+
+        if (subscription != null) subscription.cancel();
+    }
+
+    private void removeResizeSubscription(int slot) {
+        var subscription = currentResizeSubscriptions.remove(slot);
+
+        if (subscription != null) subscription.cancel();
+    }
+
+    private void removeMutationSubscription(int slot) {
+        var subscription = currentMutationSubscriptions.remove(slot);
+
+        if (subscription != null) subscription.cancel();
+    }
+
     public void setPreviousItem(int slot, ItemStack stack) {
         if(slot >= 0 && slot < this.previousItems.size()) {
             this.previousItems.set(slot, stack);
-            if (!stack.isEmpty() && stack.getCount() > this.getMaxStackSize()) {
-                stack.setCount(this.getMaxStackSize());
+
+            removePrevResizeSubscription(slot);
+
+            if (!stack.isEmpty()) {
+                /*
+                    TODO: MAY NEED TO DEAL WITH THIS BETTER I.E. CALLING UNEQUIP BEFORE OR SOMETHING BUT IDK
+                    LIKE THIS ISSUE IS DOWN TO THE FACT THAT THE COUNT CAN BE ADJUSTED WITHOUT NOTIFYING THE CONTAINER OF THE CHANGE
+                    MEANING THE REFERENCE WILL BE EMPTY LEADING TO NO UNEQUIP CALL BUT IT MEANS THE STACK DOSE
+                    NOT HAVE THE CORRECT STACK IF IT WAS TRANSFERRED TO ANOTHER STACK
+                 */
+                var stackCopy = stack.copy();
+
+                this.currentPrevResizeSubscriptions.put(slot, ItemStackResize.getEvent(stack).source().subscribe((stack1, prevSize) -> {
+                    var isEmpty = stack1.getCount() <= 0;
+
+                    if (isEmpty) {
+                        this.previousItems.set(slot, stackCopy);
+
+                        removePrevResizeSubscription(slot);
+                    }
+                }));
             }
         }
     }
@@ -123,15 +185,16 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         var stack = super.removeItem(slot, amount);
 
         if (!stack.isEmpty()) {
-            this.setFlags.put(slot, true);
+            if (canFlagSetCalls) setFlags.put(slot, true);
 
             var prevStack = this.getItem(slot);
 
             if (prevStack.isEmpty()) {
-                var subscription = this.currentSubscriptions.remove(slot);
-
-                if (subscription != null) subscription.cancel();
+                removeMutationSubscription(slot);
+                removeResizeSubscription(slot);
             }
+
+            this.setPreviousItem(slot, stack);
         }
 
         return stack;
@@ -143,49 +206,57 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
         // TODO: Concerning the flagging system, should this work for it?
 
-        var subscription = this.currentSubscriptions.remove(slot);
+        var stack = super.removeItemNoUpdate(slot);
 
-        if (subscription != null) subscription.cancel();
+        removeMutationSubscription(slot);
+        removeResizeSubscription(slot);
 
-        return super.removeItemNoUpdate(slot);
+        return stack;
     }
 
     @Override
     public void setItem(int slot, ItemStack stack) {
         if(!validIndex(slot)) return;
 
-        var subscription = this.currentSubscriptions.remove(slot);
-
-        if (subscription != null) subscription.cancel();
+        removeMutationSubscription(slot);
+        removeResizeSubscription(slot);
 
         super.setItem(slot, stack);
 
         if (!stack.isEmpty()) {
-            this.currentSubscriptions.put(slot,
+            this.currentMutationSubscriptions.put(slot,
                     ItemStackMutation.getEvent(stack).source().subscribe((stack1, types) -> {
                         if (types.contains(AccessoriesDataComponents.ATTRIBUTES) || types.contains(AccessoriesDataComponents.NESTED_ACCESSORIES)) {
                             this.setChanged();
                         }
 
-                        if (!this.container.capability.entity().level().isClientSide()) {
-                            var cache = AccessoriesHolderImpl.getHolder(this.container.capability).getLookupCache();
+                        if (!this.container.capability().entity().level().isClientSide()) {
+                            var cache = AccessoriesHolderImpl.getHolder(this.container.capability()).getLookupCache();
 
                             if (cache != null) cache.invalidateLookupData(this.container.getSlotName(), stack1, types);
                         }
                     })
             );
+
+            this.currentResizeSubscriptions.put(slot,
+                    ItemStackResize.getEvent(stack).source().subscribe((stack1, prevSize) -> {
+                        if (stack1.isEmpty()) {
+                            this.setItem(slot, ItemStack.EMPTY);
+                        }
+                    })
+            );
         }
 
-        setFlags.put(slot, true);
+        if (canFlagSetCalls) setFlags.put(slot, true);
     }
 
     // Simple validation method to make sure that the given access is valid before attempting an operation
     public boolean validIndex(int slot){
         var isValid = slot >= 0 && slot < this.getContainerSize();
 
-        var nameInfo = (this.name != null ? "Container: " + this.name + ", " : "");
-
         if(!isValid && FabricLoader.getInstance().isDevelopmentEnvironment()){
+            var nameInfo = (this.name != null ? "Container: " + this.name + ", " : "");
+
             try {
                 throw new IllegalStateException("Access to a given Inventory was found to be out of the range valid for the container! [Name: " + nameInfo + " Index: " + slot + "]");
             } catch (Exception e) {
@@ -202,7 +273,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     public void fromTag(ListTag containerNbt, HolderLookup.Provider provider) {
         this.container.containerListenerLock = true;
 
-        var capability = this.container.capability;
+        var capability = this.container.capability();
 
         var prevStacks = new ArrayList<ItemStack>();
         for(int i = 0; i < this.getContainerSize(); ++i) {
@@ -324,6 +395,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         int i = 0;
 
         for (var itemStack : prevContainer) {
+            prevContainer.removeMutationSubscription(i);
             this.setPreviousItem(i, itemStack);
             i++;
         }
@@ -334,6 +406,8 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
             if(i >= this.getContainerSize()) continue;
 
             var prevItem = prevContainer.getPreviousItem(i);
+
+            prevContainer.removeAllSlotSubscription(i);
 
             if(!prevItem.isEmpty()) this.setPreviousItem(i, prevItem);
         }

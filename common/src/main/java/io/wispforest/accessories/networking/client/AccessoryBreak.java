@@ -1,6 +1,6 @@
 package io.wispforest.accessories.networking.client;
 
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;

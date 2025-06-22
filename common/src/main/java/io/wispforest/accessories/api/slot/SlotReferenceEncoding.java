@@ -1,7 +1,6 @@
 package io.wispforest.accessories.api.slot;
 
 import io.netty.buffer.ByteBuf;
-import io.wispforest.accessories.impl.slot.NestedSlotReferenceImpl;
 import io.wispforest.accessories.impl.slot.SlotReferenceImpl;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationAttribute;
@@ -56,35 +55,16 @@ public class SlotReferenceEncoding {
             },
             (context, entity) -> entity.getId());
 
-    private static final StructEndec<NestedSlotReferenceImpl> NESTED_SLOT_REFERENCE_ENDEC = StructEndecBuilder.of(
-            LIVING_ENTITY_ENDEC.fieldOf("entity", NestedSlotReferenceImpl::entity),
-            Endec.STRING.fieldOf("slotName", NestedSlotReferenceImpl::slotName),
-            Endec.VAR_INT.fieldOf("initialHolderSlot", NestedSlotReferenceImpl::initialHolderSlot),
-            Endec.VAR_INT.listOf().fieldOf("innerSlotIndices", NestedSlotReferenceImpl::innerSlotIndices),
-            NestedSlotReferenceImpl::new);
-
-    private static final StructEndec<SlotReferenceImpl> BASE_SLOT_REFERENCE_ENDEC = StructEndecBuilder.of(
-            LIVING_ENTITY_ENDEC.fieldOf("entity", SlotReferenceImpl::entity),
-            Endec.STRING.fieldOf("slotName", SlotReferenceImpl::slotName),
-            Endec.VAR_INT.fieldOf("slot", SlotReferenceImpl::slot),
-            SlotReferenceImpl::new);
-
     /**
      * An {@link Endec} for {@link SlotReference} that requires during {@link Endec#encode} or {@link Endec#decode}  that
      * the given {@link SerializationContext} passed within the given method calls requires a
      * {@link LevelAttribute} to properly en(de)code the given reference data
      */
     @ApiStatus.Experimental
-    public static final Endec<SlotReference> ENDEC = Endec.dispatchedStruct(
-            key -> switch (key) {
-                case "nested" -> NESTED_SLOT_REFERENCE_ENDEC;
-                case "base" -> BASE_SLOT_REFERENCE_ENDEC;
-                default -> throw new IllegalStateException("Unable to find endec for the given SlotReference type: " + key);
-            }, slotReference -> switch (slotReference) {
-                case NestedSlotReferenceImpl ignored -> "nested";
-                case SlotReferenceImpl ignored -> "base";
-                default -> throw new IllegalStateException("Unable to handle the given SlotReference type: " + slotReference.getClass().getSimpleName());
-            }, Endec.STRING);
+    public static final StructEndec<SlotReference> ENDEC = StructEndecBuilder.of(
+            LIVING_ENTITY_ENDEC.fieldOf("entity", SlotReference::entity),
+            SlotPath.ENDEC.flatFieldOf(SlotReference::slotPath),
+            SlotReference::of);
 
     @ApiStatus.Experimental
     public record LevelAttribute(Level level) implements SerializationAttribute.Instance {

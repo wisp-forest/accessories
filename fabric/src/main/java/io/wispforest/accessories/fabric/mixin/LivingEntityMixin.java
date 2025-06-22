@@ -1,6 +1,6 @@
 package io.wispforest.accessories.fabric.mixin;
 
-import io.wispforest.accessories.impl.AccessoriesEventHandler;
+import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
 import io.wispforest.accessories.pond.DroppedStacksExtension;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;

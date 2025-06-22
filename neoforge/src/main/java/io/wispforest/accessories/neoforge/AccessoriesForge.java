@@ -9,9 +9,9 @@ import io.wispforest.accessories.commands.api.ArgumentRegistrationCallback;
 import io.wispforest.accessories.commands.api.CommandGenerators;
 import io.wispforest.accessories.commands.api.core.RecordArgumentTypeInfo;
 import io.wispforest.accessories.data.EntitySlotLoader;
-import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
-import io.wispforest.accessories.impl.AccessoriesEventHandler;
-import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.accessories.impl.core.AccessoriesCapabilityImpl;
+import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
+import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
@@ -206,14 +206,19 @@ public class AccessoriesForge {
     public void attemptEquipFromUse(PlayerInteractEvent.RightClickItem event){
         var resultHolder = AccessoriesEventHandler.attemptEquipFromUse(event.getEntity(), event.getHand());
 
-        if(!(resultHolder instanceof InteractionResult.Success success)) return;
+        if(!(resultHolder instanceof InteractionResult.Success)) return;
 
-        event.getEntity().setItemInHand(event.getHand(), success.heldItemTransformedTo());
         event.setCancellationResult(resultHolder);
+        event.setCanceled(true);
     }
 
     public void attemptEquipOnEntity(PlayerInteractEvent.EntityInteract event) {
-        AccessoriesEventHandler.attemptEquipOnEntity(event.getEntity(), event.getHand(), event.getTarget());
+        var resultHolder = AccessoriesEventHandler.attemptEquipOnEntity(event.getEntity(), event.getHand(), event.getTarget());
+
+        if(!(resultHolder instanceof InteractionResult.Success)) return;
+
+        event.setCancellationResult(resultHolder);
+        event.setCanceled(true);
     }
 
     public void onEntityDeath(LivingDropsEvent event){

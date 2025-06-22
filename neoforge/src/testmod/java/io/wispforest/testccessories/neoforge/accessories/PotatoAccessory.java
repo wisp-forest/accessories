@@ -1,12 +1,12 @@
 package io.wispforest.testccessories.neoforge.accessories;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.Accessory;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.client.renderers.AccessoryRenderer;
 import io.wispforest.accessories.api.client.renderers.SimpleAccessoryRenderer;
-import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.testccessories.neoforge.Testccessories;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -30,8 +30,9 @@ public class PotatoAccessory implements Accessory {
 
     @OnlyIn(Dist.CLIENT)
     public static class Renderer implements SimpleAccessoryRenderer {
+
         @Override
-        public <S extends LivingEntityRenderState> void align(ItemStack stack, SlotReference reference, EntityModel<S> model, S renderState, PoseStack matrices) {
+        public <S extends LivingEntityRenderState> void align(ItemStack stack, SlotPath path, EntityModel<S> model, S renderState, PoseStack matrices) {
             if(!(model instanceof HumanoidModel<? extends HumanoidRenderState> humanoidModel)) return;
 
             AccessoryRenderer.transformToModelPart(matrices, humanoidModel.body, 0, 0, -1);

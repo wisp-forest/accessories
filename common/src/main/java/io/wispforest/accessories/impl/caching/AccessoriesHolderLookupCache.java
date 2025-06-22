@@ -4,7 +4,7 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
 import io.wispforest.accessories.api.equip.EquipmentChecking;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
-import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;

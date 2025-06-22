@@ -80,6 +80,9 @@
       ],
       "net/minecraft/class_4264": [
         "io/wispforest/accessories/client/gui/AbstractButtonExtension"
+      ],
+      "net/minecraft/class_10042": [
+        "io/wispforest/accessories/pond/AccessoriesRenderStateAPI"
       ]
     }
   }

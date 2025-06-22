@@ -1,5 +1,6 @@
 package io.wispforest.accessories.mixin;
 
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
 import io.wispforest.accessories.api.AccessoriesCapability;
@@ -14,12 +15,12 @@ import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -43,26 +44,28 @@ public abstract class InventoryMixin {
         });
     }
 
-    @Inject(method = "contains(Lnet/minecraft/world/item/ItemStack;)Z", at = @At("TAIL"))
-    private void extendContainsCheck(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
-        var capability = AccessoriesCapability.get(player);
-
-        if (capability == null) return;
-
-        var bl = capability.isEquipped(stack1 -> stack1.isEmpty() && ItemStack.isSameItemSameComponents(stack1, stack));
-
-        if (bl) cir.setReturnValue(true);
+    @ModifyReturnValue(method = "contains(Lnet/minecraft/world/item/ItemStack;)Z", at = @At("TAIL"))
+    private boolean extendContainsCheck(boolean original, @Local(argsOnly = true) ItemStack stack) {
+        return original || checkAccessoriesContainers(stack1 -> stack1.isEmpty() && ItemStack.isSameItemSameComponents(stack1, stack));
     }
 
-    @Inject(method = "contains(Lnet/minecraft/tags/TagKey;)Z", at = @At("TAIL"))
-    private void extendContainsCheck(TagKey<Item> tag, CallbackInfoReturnable<Boolean> cir){
+    @ModifyReturnValue(method = "contains(Lnet/minecraft/tags/TagKey;)Z", at = @At("TAIL"))
+    private boolean extendContainsCheck(boolean original, @Local(argsOnly = true) TagKey<Item> tag){
+        return original || checkAccessoriesContainers(stack -> !stack.isEmpty() && stack.is(tag));
+    }
+
+    @ModifyReturnValue(method = "contains(Ljava/util/function/Predicate;)Z", at = @At("TAIL"))
+    private boolean extendContainsCheck(boolean original, Predicate<ItemStack> predicate){
+        return original || checkAccessoriesContainers(predicate);
+    }
+
+    @Unique
+    private boolean checkAccessoriesContainers(Predicate<ItemStack> predicate){
         var capability = AccessoriesCapability.get(player);
 
-        if(capability == null) return;
+        if(capability == null) return false;
 
-        var bl = capability.isEquipped(stack1 -> !stack1.isEmpty() && stack1.is(tag));
-
-        if(bl) cir.setReturnValue(true);
+        return capability.isEquipped(predicate);
     }
 
     @Inject(method = "dropAll", at = @At(value = "TAIL"))

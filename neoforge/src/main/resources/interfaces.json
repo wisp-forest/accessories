@@ -1,5 +1,8 @@
 {
   "net/minecraft/world/entity/LivingEntity": [
     "io/wispforest/accessories/pond/AccessoriesAPIAccess"
+  ],
+  "net/minecraft/client/renderer/entity/state/LivingEntityRenderState": [
+    "io/wispforest/accessories/pond/AccessoriesRenderStateAPI"
   ]
 }

@@ -1,6 +1,6 @@
 package io.wispforest.accessories.fabric.mixin;
 
-import io.wispforest.accessories.impl.AccessoriesEventHandler;
+import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
 import net.minecraft.server.players.PlayerList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

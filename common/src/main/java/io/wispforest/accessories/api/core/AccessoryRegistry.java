@@ -1,7 +1,6 @@
-package io.wispforest.accessories.api;
+package io.wispforest.accessories.api.core;
 
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
-import io.wispforest.accessories.api.components.AccessoryStackSettings;
 import io.wispforest.accessories.api.events.CanEquipCallback;
 import io.wispforest.accessories.api.events.CanUnequipCallback;
 import io.wispforest.accessories.api.slot.SlotReference;

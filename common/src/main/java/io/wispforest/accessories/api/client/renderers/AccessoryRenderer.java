@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.client.rendering.Side;
 import io.wispforest.accessories.api.client.rendering.ModelTransformOps;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import net.minecraft.client.Minecraft;
@@ -43,7 +44,7 @@ public interface AccessoryRenderer {
      */
     <S extends LivingEntityRenderState> void render(
             ItemStack stack,
-            SlotReference reference,
+            SlotPath slotPath,
             PoseStack matrices,
             EntityModel<S> model,
             S renderState,
@@ -63,7 +64,7 @@ public interface AccessoryRenderer {
      * Determines if this accessory should render in first person
      * Override to return true for whichever arm this accessory renders on
      */
-    default boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference) {
+    default <S extends LivingEntityRenderState> boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotPath reference, S renderState) {
         return false;
     }
 
@@ -74,7 +75,7 @@ public interface AccessoryRenderer {
     default <S extends LivingEntityRenderState> void renderOnFirstPerson(
             HumanoidArm arm,
             ItemStack stack,
-            SlotReference reference,
+            SlotPath path,
             PoseStack matrices,
             EntityModel<S> model,
             S renderState,
@@ -82,9 +83,9 @@ public interface AccessoryRenderer {
             int light,
             float partialTicks
     ) {
-        if (!shouldRenderInFirstPerson(arm, stack, reference)) return;
+        if (!shouldRenderInFirstPerson(arm, stack, path, renderState)) return;
 
-        this.render(stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks);
+        this.render(stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks);
     }
 
     @ApiStatus.NonExtendable

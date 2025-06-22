@@ -8,6 +8,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
@@ -33,23 +34,23 @@ public class ModelTransformOps {
     }
 
     @ApiStatus.Experimental
-    public static boolean transformToFace(PoseStack poseStack, LivingEntity livingEntity, Model model, String modelPartName, Side side) {
+    public static boolean transformToFace(PoseStack poseStack, LivingEntityRenderState renderState, Model model, String modelPartName, Side side) {
         var vec = side.direction.getUnitVec3i();
 
-        return transformToModelPart(poseStack, livingEntity, model, modelPartName, vec.getX(), vec.getY(), vec.getZ());
+        return transformToModelPart(poseStack, renderState, model, modelPartName, vec.getX(), vec.getY(), vec.getZ());
     }
 
     @ApiStatus.Experimental
-    public static boolean transformToModelPart(PoseStack poseStack, LivingEntity livingEntity, Model model, String modelPartName) {
-        return transformToModelPart(poseStack, livingEntity, model, modelPartName, 0, 0, 0);
+    public static boolean transformToModelPart(PoseStack poseStack, LivingEntityRenderState renderState, Model model, String modelPartName) {
+        return transformToModelPart(poseStack, renderState, model, modelPartName, 0, 0, 0);
     }
 
     @ApiStatus.Experimental
-    public static boolean transformToModelPart(PoseStack poseStack, LivingEntity livingEntity, Model model, String modelPartName, @Nullable Number xPercent, @Nullable Number yPercent, @Nullable Number zPercent) {
+    public static boolean transformToModelPart(PoseStack poseStack, LivingEntityRenderState renderState, Model model, String modelPartName, @Nullable Number xPercent, @Nullable Number yPercent, @Nullable Number zPercent) {
         // TODO: ADD ERRORING FOR IF IT OCCURED
 
         for (var entry : ADDITIONAL_TRANSFORMERS.entrySet()) {
-            var result = entry.getValue().transformToPart(poseStack, livingEntity, model, modelPartName, xPercent, yPercent, zPercent);
+            var result = entry.getValue().transformToPart(poseStack, renderState, model, modelPartName, xPercent, yPercent, zPercent);
 
             if (result) return true;
         }
@@ -197,6 +198,6 @@ public class ModelTransformOps {
 
     @ApiStatus.Experimental
     public interface ModelPartTransformer {
-        boolean transformToPart(PoseStack poseStack, LivingEntity livingEntity, Model model, String modelPartName, @Nullable Number xPercent, @Nullable Number yPercent, @Nullable Number zPercent);
+        boolean transformToPart(PoseStack poseStack, LivingEntityRenderState renderState, Model model, String modelPartName, @Nullable Number xPercent, @Nullable Number yPercent, @Nullable Number zPercent);
     }
 }

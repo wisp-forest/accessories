@@ -40,7 +40,11 @@ public class TestccessoriesClientFabric implements ClientModInitializer {
             );
         });
 
-        BuiltInRegistries.ITEM.forEach(AccessoriesRendererRegistry::bindItemToArmorRenderer);
+        BuiltInRegistries.ITEM.forEach(item -> {
+            if (item.equals(Items.DIAMOND_BLOCK) || item.equals(Items.GOLD_BLOCK)) {
+                AccessoriesRendererRegistry.bindItemToArmorRenderer(item);
+            }
+        });
 
         RegistryEntryAddedCallback.event(BuiltInRegistries.ITEM).register((i, location, item) -> AccessoriesRendererRegistry.bindItemToArmorRenderer(item));
 

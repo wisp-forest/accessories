@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import io.wispforest.accessories.pond.stack.PatchedDataComponentMapExtension;
 import io.wispforest.accessories.utils.ItemStackMutation;
+import io.wispforest.accessories.utils.EnhancedEventStream;
 import io.wispforest.owo.util.EventStream;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponentType;
@@ -30,9 +31,11 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
     private boolean changeCheckStack = false;
 
     @Nullable
+    @Unique
     private ItemStack itemStack = null;
 
     @Nullable
+    @Unique
     private EventStream<ItemStackMutation> mutationEvent = null;
 
     @Override
@@ -42,9 +45,11 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
         this.itemStack = itemStack;
 
         if (mutationEvent == null) {
-            mutationEvent = new EventStream<>(invokers -> (stack, types) -> {
-                invokers.forEach(itemStackMutation -> itemStackMutation.onMutation(stack, types));
-            });
+            mutationEvent = EnhancedEventStream.of((invokers, barrier) -> (stack, types) -> {
+                try (barrier) {
+                    invokers.forEach(itemStackMutation -> itemStackMutation.onMutation(stack, types));
+                }
+            }, () -> mutationEvent = null);
         }
 
         return mutationEvent;

@@ -6,6 +6,7 @@ import com.mojang.serialization.MapCodec;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.mixin.StateHolderAccessor;
 import io.wispforest.endec.*;
+import io.wispforest.endec.impl.StructField;
 import io.wispforest.owo.serialization.CodecUtils;
 import io.wispforest.endec.impl.BuiltInEndecs;
 import io.wispforest.endec.impl.StructEndecBuilder;
@@ -31,6 +32,7 @@ import java.util.Map;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.IntFunction;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class EndecUtils {
@@ -247,5 +249,13 @@ public class EndecUtils {
             return "LazyStructEndec[" +
                     "supplier=" + supplier + ']';
         }
+    }
+
+    public static <S, T> StructField<S, T> optionalFieldOf(Endec<T> endec, String name, Function<S, T> getter, Supplier<@Nullable T> defaultValue, Predicate<T> isEmpty) {
+        return new StructField<>(name, endec.optionalOf().xmap(optional -> optional.orElseGet(defaultValue), t -> {
+            if (t == null || isEmpty.test(t)) return Optional.empty();
+
+            return Optional.of(t);
+        }), getter, defaultValue);
     }
 }

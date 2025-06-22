@@ -1,5 +1,6 @@
 package io.wispforest.accessories.api;
 
+import io.wispforest.accessories.api.core.Accessory;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.core.Holder;
 import net.minecraft.sounds.SoundEvent;

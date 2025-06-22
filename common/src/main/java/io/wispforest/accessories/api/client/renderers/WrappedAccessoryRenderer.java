@@ -1,6 +1,7 @@
 package io.wispforest.accessories.api.client.renderers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -17,8 +18,8 @@ public class WrappedAccessoryRenderer implements AccessoryRenderer {
     }
 
     @Override
-    public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
-        delegate.render(stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks);
+    public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
+        delegate.render(stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks);
     }
 
     @Override
@@ -27,12 +28,12 @@ public class WrappedAccessoryRenderer implements AccessoryRenderer {
     }
 
     @Override
-    public boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference) {
-        return delegate.shouldRenderInFirstPerson(arm, stack, reference);
+    public <S extends LivingEntityRenderState> boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotPath path, S renderState) {
+        return delegate.shouldRenderInFirstPerson(arm, stack, path, renderState);
     }
 
     @Override
-    public <S extends LivingEntityRenderState> void renderOnFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
-        delegate.renderOnFirstPerson(arm, stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks);
+    public <S extends LivingEntityRenderState> void renderOnFirstPerson(HumanoidArm arm, ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
+        delegate.renderOnFirstPerson(arm, stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks);
     }
 }

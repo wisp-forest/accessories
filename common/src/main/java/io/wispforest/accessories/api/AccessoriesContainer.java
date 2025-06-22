@@ -2,21 +2,16 @@ package io.wispforest.accessories.api;
 
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.impl.ExpandedSimpleContainer;
-import net.minecraft.core.Holder;
+import io.wispforest.accessories.impl.core.ExpandedSimpleContainer;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public interface AccessoriesContainer {
+public interface AccessoriesContainer extends AccessoriesStorage {
 
     /**
      * @return The bound {@link AccessoriesCapability} this belongs to
@@ -29,18 +24,10 @@ public interface AccessoriesContainer {
     String getSlotName();
 
     /**
-     * @return The given {@link SlotType} of the given container or null if not found
-     */
-    @Nullable
-    default SlotType slotType() {
-        return SlotTypeLoader.getSlotType(this.capability().entity(), this.getSlotName());
-    }
-
-    /**
      * @return A SlotReference based on the containers linked entity and slot name with the given index
      */
     default SlotReference createReference(int index){
-        return SlotReference.of(this.capability().entity(), this.getSlotName(), index);
+        return SlotReference.of(this.capability().entity(), this.createPath(index));
     }
 
     /**

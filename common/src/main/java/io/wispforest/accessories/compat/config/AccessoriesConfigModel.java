@@ -97,6 +97,7 @@ public class AccessoriesConfigModel {
         public boolean entityLooksAtMouseCursor = false;
 
         @Hook
+        public boolean alwaysShowCraftingGrid = false;
 
         // Legacy Screen
 

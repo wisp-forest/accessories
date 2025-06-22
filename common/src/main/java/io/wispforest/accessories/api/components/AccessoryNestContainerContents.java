@@ -1,11 +1,9 @@
 package io.wispforest.accessories.api.components;
 
-import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.Accessory;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.events.SlotStateChange;
-import io.wispforest.accessories.api.slot.SlotEntryReference;
-import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.impl.AccessoryNestUtils;
+import io.wispforest.accessories.api.slot.*;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.CodecUtils;
@@ -81,7 +79,23 @@ public final class AccessoryNestContainerContents {
 
             if (innerStack.isEmpty()) continue;
 
-            map.put(new SlotEntryReference(AccessoryNestUtils.create(slotReference, i), innerStack), AccessoryRegistry.getAccessoryOrDefault(innerStack));
+            map.put(new SlotEntryReference(SlotPath.cloneWithInnerIndex(slotReference, i), innerStack), AccessoryRegistry.getAccessoryOrDefault(innerStack));
+        }
+
+        return map;
+    }
+
+    public Map<SlotPathWithStack, Accessory> getMapWithPaths(SlotPath slotPath) {
+        var map = new LinkedHashMap<SlotPathWithStack, Accessory>();
+
+        var innerStacks = this.accessories();
+
+        for (int i = 0; i < innerStacks.size(); i++) {
+            var innerStack = innerStacks.get(i);
+
+            if (innerStack.isEmpty()) continue;
+
+            map.put(SlotPathWithStack.of(SlotPath.cloneWithInnerIndex(slotPath, i), innerStack), AccessoryRegistry.getAccessoryOrDefault(innerStack));
         }
 
         return map;

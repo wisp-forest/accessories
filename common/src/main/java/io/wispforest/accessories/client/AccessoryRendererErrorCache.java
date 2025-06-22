@@ -15,12 +15,12 @@ public class AccessoryRendererErrorCache {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public static void logIfTimeAllotted(Entity entity, ItemStack stack, AccessoryRenderer renderer, Throwable e) {
-        var key = new Key(entity.getUUID(), ItemStack.hashItemAndComponents(stack), AccessoriesRendererRegistry.getRendererId(renderer));
+    public static void logIfTimeAllotted(UUID uuid, ItemStack stack, AccessoryRenderer renderer, Throwable e) {
+        var key = new Key(uuid, ItemStack.hashItemAndComponents(stack), AccessoriesRendererRegistry.getRendererId(renderer));
 
         // TODO: Maybe also send a toast???
         if (ERROR_CACHE.hasAllottedTime(key, 10)) {
-            LOGGER.error("[AccessoryRendererError] Unable to use the given Renderer [{}] to render the given item [{}] for [{}] due to the given error: ", key.rendererId(), stack, entity, e);
+            LOGGER.error("[AccessoryRendererError] Unable to use the given Renderer [{}] to render the given item [{}] for UUID [{}] due to the given error: ", key.rendererId(), stack, uuid, e);
         }
     }
 

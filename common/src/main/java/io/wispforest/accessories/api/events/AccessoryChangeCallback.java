@@ -1,7 +1,7 @@
 package io.wispforest.accessories.api.events;
 
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.impl.AccessoriesEventHandler;
+import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.world.entity.LivingEntity;

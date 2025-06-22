@@ -5,7 +5,7 @@ import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesPipelines;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.accessories.data.api.SyncedDataHelperManager;
-import io.wispforest.accessories.impl.AccessoriesEventHandler;
+import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.neoforge.AccessoriesInternalsImpl;
 import io.wispforest.accessories.networking.AccessoriesNetworking;

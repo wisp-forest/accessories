@@ -1,6 +1,6 @@
 package io.wispforest.accessories.api.events;
 
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
 import net.fabricmc.fabric.api.event.Event;

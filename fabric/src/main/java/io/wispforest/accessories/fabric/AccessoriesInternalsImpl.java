@@ -2,7 +2,7 @@ package io.wispforest.accessories.fabric;
 
 import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
-import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;

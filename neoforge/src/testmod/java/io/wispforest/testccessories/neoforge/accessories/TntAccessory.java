@@ -1,12 +1,12 @@
 package io.wispforest.testccessories.neoforge.accessories;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.Accessory;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.client.renderers.AccessoryRenderer;
 import io.wispforest.accessories.api.client.renderers.SimpleAccessoryRenderer;
-import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.testccessories.neoforge.Testccessories;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
@@ -33,20 +33,21 @@ public class TntAccessory implements Accessory {
 
     @OnlyIn(Dist.CLIENT)
     public static class Renderer implements SimpleAccessoryRenderer {
+
         @Override
-        public <S extends LivingEntityRenderState> void align(ItemStack stack, SlotReference reference, EntityModel<S> model, S renderState, PoseStack matrices) {
+        public <S extends LivingEntityRenderState> void align(ItemStack stack, SlotPath path, EntityModel<S> model, S renderState, PoseStack matrices) {
             if(!(model instanceof HeadedModel headedModel)) return;
 
             AccessoryRenderer.transformToModelPart(matrices, headedModel.getHead(), null, 1, null);
         }
 
         @Override
-        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
-            align(stack, reference, model, renderState, matrices);
+        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
+            align(stack, path, model, renderState, matrices);
             matrices.scale(2, 2, 2);
             matrices.translate(0, 1/4f, 0);
             for (int i = 0; i < stack.getCount(); i++) {
-                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, matrices, multiBufferSource, reference.entity().level(), 0);
+                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, matrices, multiBufferSource, Minecraft.getInstance().level, 0);
                 matrices.translate(0, 1/2f, 0);
             }
         }

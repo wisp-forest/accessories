@@ -1,13 +1,14 @@
-package io.wispforest.accessories.impl;
+package io.wispforest.accessories.impl.core;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.datafixers.util.Pair;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.impl.AccessoryAttributeLogic;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.accessories.utils.EndecUtils;
@@ -54,6 +55,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
     private boolean update = false;
     private boolean resizingUpdate = false;
+    private boolean trackedForUpdate = false;
 
     public AccessoriesContainerImpl(AccessoriesCapability capability, SlotType slotType){
         this.capability = capability;
@@ -65,6 +67,11 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         this.cosmeticAccessories = new ExpandedSimpleContainer(this, this.baseSize, "cosmetic_accessories", false);
 
         this.renderOptions = getWithSize(baseSize, new ArrayList<>(), true);
+    }
+
+    @Override
+    public boolean isClientSide() {
+        return this.capability().entity().level().isClientSide();
     }
 
     protected boolean containerListenerLock = false;
@@ -95,10 +102,13 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
         if(this.capability.entity().level().isClientSide) return;
 
-        var inv = AccessoriesHolderImpl.getHolder(this.capability).containersRequiringUpdates;
+        var inv = AccessoriesHolderImpl.getHolder(this.capability).containersRequiringUpdates();
 
-        inv.remove(this);
-        inv.put(this, resizingUpdate);
+        var entry = inv.remove(this);
+
+        this.trackedForUpdate = entry != null;
+
+        inv.put(this, (this.trackedForUpdate ? entry : false) || resizingUpdate);
     }
 
     @Override
@@ -107,6 +117,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     public void update(){
+        var holder = AccessoriesHolderImpl.getHolder(this.capability());
+
         var hasChangeOccurred = !this.resizingUpdate;
 
         if(!update) return;
@@ -149,8 +161,6 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
         //--
 
-        var holder = AccessoriesHolderImpl.getHolder(this.capability());
-
         var currentSize = (int) Math.round(size);
 
         if(currentSize != this.accessories.getContainerSize()) {
@@ -165,6 +175,9 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
             var newAccessories = new ExpandedSimpleContainer(this, currentSize, "accessories");
             var newCosmetics = new ExpandedSimpleContainer(this, currentSize, "cosmetic_accessories");
 
+            newAccessories.toggleFlagablity();
+            newCosmetics.toggleFlagablity();
+
             for (int i = 0; i < this.accessories.getContainerSize(); i++) {
                 if (i < newAccessories.getContainerSize()) {
                     newAccessories.setItem(i, this.accessories.getItem(i));
@@ -174,6 +187,9 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
                     invalidStacks.add(this.cosmeticAccessories.getItem(i));
                 }
             }
+
+            newAccessories.toggleFlagablity();
+            newCosmetics.toggleFlagablity();
 
             this.containerListenerLock = false;
 
@@ -212,9 +228,13 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         }
 
         if(!hasChangeOccurred) {
-            var inv = holder.containersRequiringUpdates;
+            if (!trackedForUpdate) {
+                var inv = holder.containersRequiringUpdates();
 
-            inv.remove(this);
+                inv.remove(this);
+            } else {
+                trackedForUpdate = false;
+            }
         } else {
             var cache = holder.getLookupCache();
 

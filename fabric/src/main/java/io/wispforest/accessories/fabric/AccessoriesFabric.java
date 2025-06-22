@@ -9,9 +9,9 @@ import io.wispforest.accessories.commands.api.CommandGenerators;
 import io.wispforest.accessories.commands.api.core.RecordArgumentTypeInfo;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.api.SyncedDataHelperManager;
-import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
-import io.wispforest.accessories.impl.AccessoriesEventHandler;
-import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.accessories.impl.core.AccessoriesCapabilityImpl;
+import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
+import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
@@ -63,9 +63,9 @@ public class AccessoriesFabric implements ModInitializer {
                 .copyOnDeath()
                 .buildAndRegister(Accessories.of("inventory_holder"));
 
-        PLAYER_OPTIONS_ATTACHMENT_TYPE = AttachmentRegistry.<AccessoriesPlayerOptions>builder()
-                .initializer(AccessoriesPlayerOptions::new)
-                .persistent(CodecUtils.toCodec(InstanceEndec.constructed(AccessoriesPlayerOptions::new)))
+        PLAYER_OPTIONS_ATTACHMENT_TYPE = AttachmentRegistry.<AccessoriesPlayerOptionsHolder>builder()
+                .initializer(AccessoriesPlayerOptionsHolder::new)
+                .persistent(CodecUtils.toCodec(InstanceEndec.constructed(AccessoriesPlayerOptionsHolder::new)))
                 .copyOnDeath()
                 .buildAndRegister(Accessories.of("player_options"));
     }

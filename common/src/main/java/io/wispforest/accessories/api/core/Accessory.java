@@ -1,5 +1,7 @@
-package io.wispforest.accessories.api;
+package io.wispforest.accessories.api.core;
 
+import io.wispforest.accessories.api.events.DropRule;
+import io.wispforest.accessories.api.SoundEventData;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
@@ -7,7 +9,7 @@ import io.wispforest.accessories.api.components.AccessoryMobEffectsComponent;
 import io.wispforest.accessories.api.components.AccessoryStackSettings;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.impl.AccessoriesEventHandler;
+import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoryAttributeLogic;
 import io.wispforest.accessories.mixin.LivingEntityAccessor;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
@@ -67,10 +69,15 @@ public interface Accessory {
 
     /**
      * Called when the accessory is unequipped
+     * <br><br>
+     * Note: Due to how stack transfer can occur from more than just {@link net.minecraft.world.Container} interface,
+     * the stack maybe a defensive copy, or only one of the stacks found to be unequipped meaning issues could arise in
+     * cases that you need to remove data from the stack.
      *
      * @param stack the stack being unequipped
      * @param reference the slot the accessory is in
      */
+    @MustBeInvokedByOverriders
     default void onUnequip(ItemStack stack, SlotReference reference){
         if (stack.has(AccessoriesDataComponents.MOB_EFFECTS)) {
             stack.get(AccessoriesDataComponents.MOB_EFFECTS)

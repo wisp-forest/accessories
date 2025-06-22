@@ -3,9 +3,10 @@ package io.wispforest.accessories.api.client.rendering;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Either;
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.client.ClientDelayedCache;
 import io.wispforest.accessories.data.CustomRendererLoader;
+import io.wispforest.accessories.pond.AccessoriesRenderStateAPI;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -41,26 +42,26 @@ public class RenderingFunctionOps {
     private static final ClientDelayedCache<ParticleTimeKey> PARTICLE_UPDATE_CACHE = new ClientDelayedCache<>();
 
     public static void handleFunctions(
-            ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<? extends LivingEntityRenderState> model, LivingEntityRenderState renderState, MultiBufferSource multiBufferSource, int light, float partialTicks, @Nullable HumanoidArm arm, int packedLight, int packedOverlay, int color, List<RenderingFunction> functions) {
-        handleFunctions(ItemStack.hashItemAndComponents(stack), stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, functions);
+            ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<? extends LivingEntityRenderState> model, LivingEntityRenderState renderState, MultiBufferSource multiBufferSource, int light, float partialTicks, @Nullable HumanoidArm arm, int packedLight, int packedOverlay, int color, List<RenderingFunction> functions) {
+        handleFunctions(ItemStack.hashItemAndComponents(stack), stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, functions);
     }
 
     private static final Map<EntityType, EntityData> ENTITY_CACHE = new HashMap<>();
 
-    public static void handleFunctions(int uniqueKey, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<? extends LivingEntityRenderState> model, LivingEntityRenderState renderState, MultiBufferSource multiBufferSource, int light, float partialTicks, @Nullable HumanoidArm arm, int packedLight, int packedOverlay, int color, List<RenderingFunction> functions) {
+    public static void handleFunctions(int uniqueKey, ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<? extends LivingEntityRenderState> model, LivingEntityRenderState renderState, MultiBufferSource multiBufferSource, int light, float partialTicks, @Nullable HumanoidArm arm, int packedLight, int packedOverlay, int color, List<RenderingFunction> functions) {
         for (var function : functions) {
-            handleFunction(uniqueKey, stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, function);
+            handleFunction(uniqueKey, stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, function);
         }
     }
 
-    public static void handleFunction(int uniqueKey, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<? extends LivingEntityRenderState> model, LivingEntityRenderState renderState, MultiBufferSource multiBufferSource, int light, float partialTicks, @Nullable HumanoidArm arm, int packedLight, int packedOverlay, int color, RenderingFunction renderingFunction) {
+    public static void handleFunction(int uniqueKey, ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<? extends LivingEntityRenderState> model, LivingEntityRenderState renderState, MultiBufferSource multiBufferSource, int light, float partialTicks, @Nullable HumanoidArm arm, int packedLight, int packedOverlay, int color, RenderingFunction renderingFunction) {
         var client = Minecraft.getInstance();
         var level = client.level;
-        var targetEntity = reference.entity();
+//        var targetEntity = reference.entity();
 
         switch (renderingFunction) {
             case RenderingFunction.Transformations transformation -> {
-                TransformOps.transformStack(transformation.transformations(), matrices, model, () -> handleFunction(uniqueKey, stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, transformation.renderingFunction()));
+                TransformOps.transformStack(transformation.transformations(), matrices, model, () -> handleFunction(uniqueKey, stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, transformation.renderingFunction()));
             }
             case RenderingFunction.Block blockData -> {
                 var state = blockData.state();
@@ -122,7 +123,7 @@ public class RenderingFunctionOps {
                 ItemStack renderStack = itemData.stack();
 
                 client.getItemRenderer().renderStatic(
-                        targetEntity,
+                        null,
                         renderStack,
                         ItemDisplayContext.GUI,
                         matrices,
@@ -150,7 +151,7 @@ public class RenderingFunctionOps {
                 );
             }
             case RenderingFunction.Particle particleData -> {
-                if (!PARTICLE_UPDATE_CACHE.hasAllottedTime(new ParticleTimeKey(targetEntity.getUUID(), uniqueKey, particleData), particleData.delay())) return;
+                if (!PARTICLE_UPDATE_CACHE.hasAllottedTime(new ParticleTimeKey(((AccessoriesRenderStateAPI) renderState).getEntityUUIDForState(), uniqueKey, particleData), particleData.delay())) return;
 
                 var pos = new Vector3f(0, 0, 0)
                         .mulPosition(matrices.last().pose())
@@ -161,14 +162,14 @@ public class RenderingFunctionOps {
             case RenderingFunction.Compound compoundFunction -> {
                 if (arm != null && !compoundFunction.firstPersonArmTarget().hasArm(arm)) return;
 
-                handleFunctions(uniqueKey, stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, compoundFunction.renderingFunctions());
+                handleFunctions(uniqueKey, stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, compoundFunction.renderingFunctions());
             }
             case RenderingFunction.RawRenderer data -> {
                 var renderFunction = CustomRendererLoader.getOrResolveRawRenderer(data, !CustomRendererLoader.isConstantResolveTarget());
 
                 if(renderFunction == null) return;
 
-                handleFunction(uniqueKey, stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, renderFunction);
+                handleFunction(uniqueKey, stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, renderFunction);
             }
             case RenderingFunction.DeferredRenderer renderer -> {
                 var renderFunction = CustomRendererLoader.getOrResolveRenderer(renderer, !CustomRendererLoader.isConstantResolveTarget());
@@ -178,15 +179,15 @@ public class RenderingFunctionOps {
                 renderFunction.ifLeft(accessoryRenderer -> {
                     try {
                         if (arm != null){
-                            if (accessoryRenderer.shouldRenderInFirstPerson(arm, stack, reference)){
-                                accessoryRenderer.renderOnFirstPerson(arm, stack, reference, matrices, (EntityModel<LivingEntityRenderState>) model, renderState, multiBufferSource, light, partialTicks);
+                            if (accessoryRenderer.shouldRenderInFirstPerson(arm, stack, path, renderState)){
+                                accessoryRenderer.renderOnFirstPerson(arm, stack, path, matrices, (EntityModel<LivingEntityRenderState>) model, renderState, multiBufferSource, light, partialTicks);
                             }
                         } else {
-                            accessoryRenderer.render(stack, reference, matrices, (EntityModel<LivingEntityRenderState>) model, renderState, multiBufferSource, light, partialTicks);
+                            accessoryRenderer.render(stack, path, matrices, (EntityModel<LivingEntityRenderState>) model, renderState, multiBufferSource, light, partialTicks);
                         }
                     } catch (Exception ignored) {}
                 }).ifRight(function1 -> {
-                    handleFunction(uniqueKey, stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, function1);
+                    handleFunction(uniqueKey, stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, function1);
                 });
             }
             default -> throw new IllegalStateException("Unimplemented RendererFunc: " + renderingFunction.key());
@@ -329,9 +330,9 @@ public class RenderingFunctionOps {
         }
     }
 
-    public static boolean shouldRenderInFirstPerson(ItemStack stack, HumanoidArm arm, SlotReference slotReference, List<RenderingFunction> renderingFunctions) {
+    public static boolean shouldRenderInFirstPerson(ItemStack stack, HumanoidArm arm, SlotPath path, List<RenderingFunction> renderingFunctions, LivingEntityRenderState renderState) {
         for (var function : renderingFunctions) {
-            var result = shouldRenderInFirstPerson(stack, arm, slotReference, function);
+            var result = shouldRenderInFirstPerson(stack, arm, path, function, renderState);
 
             if (result != null && result) return true;
         }
@@ -340,15 +341,15 @@ public class RenderingFunctionOps {
     }
 
     @Nullable
-    public static Boolean shouldRenderInFirstPerson(ItemStack stack, HumanoidArm arm, SlotReference slotReference, RenderingFunction renderingFunction) {
+    public static Boolean shouldRenderInFirstPerson(ItemStack stack, HumanoidArm arm, SlotPath path, RenderingFunction renderingFunction, LivingEntityRenderState renderState) {
         return switch (renderingFunction) {
             case RenderingFunction.Transformations transformation -> {
-                yield shouldRenderInFirstPerson(stack, arm, slotReference, transformation.renderingFunction());
+                yield shouldRenderInFirstPerson(stack, arm, path, transformation.renderingFunction(), renderState);
             }
             case RenderingFunction.Compound compoundFunction -> {
                 if (compoundFunction.firstPersonArmTarget().hasArm(arm)) yield true;
 
-                yield shouldRenderInFirstPerson(stack, arm, slotReference, compoundFunction.renderingFunctions());
+                yield shouldRenderInFirstPerson(stack, arm, path, compoundFunction.renderingFunctions(), renderState);
             }
             case RenderingFunction.RawRenderer data -> {
                 if (data.firstPersonArmTarget().hasArm(arm)) yield true;
@@ -357,7 +358,7 @@ public class RenderingFunctionOps {
 
                 if(renderFunction == null) yield null;
 
-                yield shouldRenderInFirstPerson(stack, arm, slotReference, renderFunction);
+                yield shouldRenderInFirstPerson(stack, arm, path, renderFunction, renderState);
             }
             case RenderingFunction.DeferredRenderer renderer -> {
                 if (renderer.firstPersonArmTarget().hasArm(arm)) yield true;
@@ -368,8 +369,8 @@ public class RenderingFunctionOps {
 
                 yield Either.unwrap(
                         possibleRenderer.mapBoth(
-                                accessoryRenderer -> accessoryRenderer.shouldRenderInFirstPerson(arm, stack, slotReference),
-                                renderFunction -> shouldRenderInFirstPerson(stack, arm, slotReference, renderFunction))
+                                accessoryRenderer -> accessoryRenderer.shouldRenderInFirstPerson(arm, stack, path, renderState),
+                                renderFunction -> shouldRenderInFirstPerson(stack, arm, path, renderFunction, renderState))
                 );
             }
             default -> null;

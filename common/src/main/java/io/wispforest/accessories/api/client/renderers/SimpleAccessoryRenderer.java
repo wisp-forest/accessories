@@ -1,6 +1,7 @@
 package io.wispforest.accessories.api.client.renderers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
@@ -19,10 +20,10 @@ import net.minecraft.world.item.ItemStack;
 public interface SimpleAccessoryRenderer extends AccessoryRenderer {
 
     @Override
-    default <S extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks){
-        align(stack, reference, model, renderState, matrices);
+    default <S extends LivingEntityRenderState> void render(ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks){
+        align(stack, path, model, renderState, matrices);
 
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, matrices, multiBufferSource, reference.entity().level(), 0);
+        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, matrices, multiBufferSource, null, 0);
     }
 
     /**
@@ -30,11 +31,11 @@ public interface SimpleAccessoryRenderer extends AccessoryRenderer {
      * passed within the {@link #render} method.
      *
      * @param stack
-     * @param reference
+     * @param path
      * @param model
      * @param matrices
      * @param <S>
      */
-    <S extends LivingEntityRenderState> void align(ItemStack stack, SlotReference reference, EntityModel<S> model, S renderState, PoseStack matrices);
+    <S extends LivingEntityRenderState> void align(ItemStack stack, SlotPath path, EntityModel<S> model, S renderState, PoseStack matrices);
 
 }

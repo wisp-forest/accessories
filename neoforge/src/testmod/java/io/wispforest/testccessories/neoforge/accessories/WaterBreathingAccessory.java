@@ -1,7 +1,7 @@
 package io.wispforest.testccessories.neoforge.accessories;
 
-import io.wispforest.accessories.api.Accessory;
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.Accessory;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.testccessories.neoforge.TestItems;
 import net.minecraft.core.component.DataComponents;

@@ -6,6 +6,7 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.AccessoriesLoaderInternals;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
@@ -28,21 +29,21 @@ public final class AccessoryAttributeBuilder {
     private final Map<Holder<Attribute>, Map<ResourceLocation, AttributeModificationData>> exclusiveAttributes = new HashMap<>();
     private final Multimap<Holder<Attribute>, AttributeModificationData> stackedAttributes = LinkedHashMultimap.create();
 
-    private final SlotReference slotReference;
+    private final SlotPath slotPath;
 
     @ApiStatus.Internal
-    public AccessoryAttributeBuilder(SlotReference slotReference) {
-        this.slotReference = slotReference;
+    public AccessoryAttributeBuilder(SlotPath slotPath) {
+        this.slotPath = slotPath;
     }
 
     @ApiStatus.Internal
     public AccessoryAttributeBuilder(String slotName, int slot) {
-        this.slotReference = SlotReference.of(null, slotName, slot);
+        this.slotPath = SlotPath.of(slotName, slot);
     }
 
     @ApiStatus.Internal
     public AccessoryAttributeBuilder() {
-        this.slotReference = SlotReference.of(null, "", 0);
+        this.slotPath = SlotPath.of("", 0);
     }
 
     /**
@@ -90,7 +91,7 @@ public final class AccessoryAttributeBuilder {
      * step of appending slot information when adding to the living entity
      */
     public AccessoryAttributeBuilder addStackable(Holder<Attribute> attribute, AttributeModifier modifier) {
-        this.stackedAttributes.put(attribute, new AttributeModificationData(this.slotReference.createSlotPath(), attribute, modifier));
+        this.stackedAttributes.put(attribute, new AttributeModificationData(this.slotPath.createString(), attribute, modifier));
 
         return this;
     }
@@ -214,11 +215,11 @@ public final class AccessoryAttributeBuilder {
     // nested_layer_info = /nest_{layer_index}_{slot_index}
     @Deprecated
     public static String createSlotPath(SlotReference ref) {
-        return ref.createSlotPath();
+        return ref.createString();
     }
 
     @Deprecated
     public static String createSlotPath(String slotname, int slot) {
-        return slotname.replace(":", "-") + "/" + slot;
+        return SlotReference.createBaseSlotPath(slotname, slot);
     }
 }

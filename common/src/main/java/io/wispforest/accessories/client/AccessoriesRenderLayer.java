@@ -7,12 +7,10 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
-import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
-import io.wispforest.accessories.pond.LivingEntityRenderStateExtension;
-import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import io.wispforest.accessories.pond.AccessoriesRenderStateAPI;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -21,12 +19,9 @@ import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.lwjgl.opengl.GL30;
 import org.slf4j.Logger;
 
 import java.awt.*;
@@ -34,7 +29,6 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 
 /**
@@ -59,32 +53,18 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
         super(renderLayerParent);
     }
 
-    private boolean hasPrintedError = false;
-
     @Override
     public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, S entityRenderState, float f, float g) {
-        var possibleEntity = (Optional<T>) ((LivingEntityRenderStateExtension) entityRenderState).accessories$getEntity();
+        var storageLookup = ((AccessoriesRenderStateAPI) entityRenderState).getStorageLookup();
+        var entity = ((AccessoriesRenderStateAPI) entityRenderState).getEntityForState();
+        var uuid = ((AccessoriesRenderStateAPI) entityRenderState).getEntityUUIDForState();
 
-        if (possibleEntity.isEmpty()) {
-            // TODO: FIGURE OUT SOLUTION FOR ERRORING IF UNABLE TO RENDER
-            if (!hasPrintedError) {
-                LOGGER.error("Unable to get the required Living Entity instance from the given LivingEntityRenderState meaning Accessories may not render!");
-                hasPrintedError = true;
-            }
-
-            return;
-        }
-
-        var entity = possibleEntity.get();
+        if (storageLookup == null) return;
 
         var partialTicks = Minecraft.getInstance().getDeltaTracker()
-                .getGameTimeDeltaPartialTick(!possibleEntity.get().level().tickRateManager().isEntityFrozen(entity));
+                .getGameTimeDeltaPartialTick(!entity.map(entity1 -> entity1.level().tickRateManager().isEntityFrozen(entity1)).orElse(true));
 
-        var capability = AccessoriesCapability.get(possibleEntity.get());
-
-        if (capability == null) return;
-
-        var containers = capability.getContainers();
+        var containers = storageLookup.getContainers();
 
         if (containers.isEmpty()) return;
 
@@ -178,16 +158,17 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
 
                     try {
                         renderer.render(
-                                stack,
-                                SlotReference.of(entity, container.getSlotName(), i),
-                                poseStack,
-                                getParentModel(),
-                                entityRenderState,
+                            stack,
+                            SlotPath.of(container.getSlotName(), i),
+                            poseStack,
+                            getParentModel(),
+                            entityRenderState,
                             innerBufferSource,
                             light,
-                                partialTicks
-                    );} catch (Throwable e) {
-                        AccessoryRendererErrorCache.logIfTimeAllotted(entity, stack, renderer, e);
+                            partialTicks
+                        );
+                    } catch (Throwable e) {
+                        AccessoryRendererErrorCache.logIfTimeAllotted(uuid, stack, renderer, e);
                     }
 
                     poseStack.popPose();

@@ -42,7 +42,6 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
@@ -76,7 +75,7 @@ public class AccessoriesCommands {
                 registration -> {
                     registration.register(Accessories.of("slot_type"), SlotArgumentType.class, RecordArgumentTypeInfo.of(ctx -> SlotArgumentType.INSTANCE));
                     registration.register(Accessories.of("resource"), ResourceExtendedArgument.class, RecordArgumentTypeInfo.of(ResourceExtendedArgument::attributes));
-                    registration.register(Accessories.of("slot_path"), AccessoriesSlotArgument.class, RecordArgumentTypeInfo.of(Endec.STRING, "entity_argument_name", AccessoriesSlotArgument::entityArgumentName, AccessoriesSlotArgument::new));
+                    registration.register(Accessories.of("slot_path"), AccessoriesMixedSlotArgument.class, RecordArgumentTypeInfo.of(Endec.STRING, "entity_argument_name", AccessoriesMixedSlotArgument::entityArgumentName, AccessoriesMixedSlotArgument::new));
                 });
     }
 

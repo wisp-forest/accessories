@@ -1,7 +1,7 @@
-package io.wispforest.accessories.impl;
+package io.wispforest.accessories.impl.event;
 
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.mixin.DefaultDispenseItemBehaviorAccessor;
 import net.minecraft.core.dispenser.BlockSource;
@@ -12,8 +12,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.minecraft.world.phys.AABB;
-
-import java.util.Objects;
 
 public final class AccessoryEquipmentDispenseItemBehavior extends DefaultDispenseItemBehavior {
     public static final EquipmentDispenseItemBehavior INSTANCE = new EquipmentDispenseItemBehavior();

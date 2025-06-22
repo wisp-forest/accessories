@@ -1,7 +1,7 @@
 package io.wispforest.accessories.api.events;
 
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.impl.AccessoriesEventHandler;
+import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.fabricmc.fabric.api.util.TriState;

@@ -2,10 +2,9 @@ package io.wispforest.accessories.data;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.DropRule;
+import io.wispforest.accessories.api.events.DropRule;
 import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.impl.slot.SlotTypeImpl;
@@ -117,7 +116,7 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
 
                 slotPredicates.forEach(builder::validator);
 
-                return new SlotTypeReference(name);
+                return () -> name;
             });
         } catch (Exception e) {
             LOGGER.error("[SlotTypeLoader]: Error occurred when trying to gather unique slots though code!", e);

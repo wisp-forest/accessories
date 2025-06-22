@@ -2,17 +2,14 @@ package io.wispforest.accessories.networking.client;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
-import io.wispforest.owo.network.OwoNetChannel;
 import io.wispforest.owo.serialization.RegistriesAttribute;
-import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
-import io.wispforest.owo.serialization.RegistriesAttribute;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,10 +17,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.slf4j.Logger;
 
-import java.util.HashSet;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) {
 

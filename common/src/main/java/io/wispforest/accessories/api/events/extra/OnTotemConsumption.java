@@ -1,4 +1,4 @@
-package io.wispforest.accessories.api.totem;
+package io.wispforest.accessories.api.events.extra;
 
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.world.damagesource.DamageSource;

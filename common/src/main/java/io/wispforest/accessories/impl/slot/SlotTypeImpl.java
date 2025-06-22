@@ -1,7 +1,7 @@
 package io.wispforest.accessories.impl.slot;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.DropRule;
+import io.wispforest.accessories.api.events.DropRule;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;

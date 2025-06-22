@@ -1,4 +1,4 @@
-package io.wispforest.accessories.impl;
+package io.wispforest.accessories.impl.event;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
@@ -10,14 +10,23 @@ import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
+import io.wispforest.accessories.api.core.Accessory;
+import io.wispforest.accessories.api.core.AccessoryNest;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.*;
 import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
+import io.wispforest.accessories.impl.*;
+import io.wispforest.accessories.impl.core.AccessoriesCapabilityImpl;
+import io.wispforest.accessories.impl.core.AccessoriesContainerImpl;
+import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
+import io.wispforest.accessories.impl.core.ExpandedSimpleContainer;
+import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
+import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
-import io.wispforest.owo.network.OwoNetChannel;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
@@ -37,13 +46,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.util.StringUtil;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -60,8 +67,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static io.wispforest.accessories.Accessories.ACCESSORY_EQUIPPED;
@@ -193,7 +198,7 @@ public class AccessoriesEventHandler {
 
             AccessoriesNetworking.sendToPlayer(player, new SyncEntireContainer(capability.entity().getId(), carrier));
 
-            AccessoriesNetworking.sendToPlayer(player, new SyncPlayerOptions(AccessoriesPlayerOptions.getOptions(player)));
+            AccessoriesNetworking.sendToPlayer(player, new SyncPlayerOptions(AccessoriesPlayerOptionsHolder.getOptions(player)));
 
             if (player.containerMenu instanceof AccessoriesMenuBase base) {
                 Accessories.openAccessoriesMenu(player, base.menuVariant(), base.targetEntity());
@@ -237,16 +242,14 @@ public class AccessoriesEventHandler {
                     }
 
                     var lastStack = accessories.getPreviousItem(i);
+                    var flagged = accessories.isSlotFlagged(i);
 
                     // Prevent attribute related logic on the client and if the entity
                     // is dead as such data should not be updated. Though we allow for
                     // ticking to occur at least for vanilla parity I guess.
                     if (entity.level().isClientSide() || entity.isDeadOrDying()) continue;
 
-                    if (!ItemStack.matches(currentStack, lastStack)) {
-                        container.getAccessories().setPreviousItem(i, currentStack.copy());
-                        dirtyStacks.put(slotId, currentStack.copy());
-
+                    if (!ItemStack.matches(currentStack, lastStack) || flagged) {
                         if (!lastStack.isEmpty()) {
                             var removedEnchantmentBuilder = new AccessoryAttributeBuilder(slotReference);
 
@@ -291,7 +294,7 @@ public class AccessoriesEventHandler {
                         /*
                          * TODO: Does item check need to exist anymore?
                          */
-                        if (!ItemStack.isSameItem(currentStack, lastStack) || accessories.isSlotFlagged(i)) {
+                        if (!ItemStack.isSameItem(currentStack, lastStack) || flagged) {
                             AccessoryRegistry.getAccessoryOrDefault(lastStack).onUnequip(lastStack, slotReference);
                             AccessoryRegistry.getAccessoryOrDefault(currentStack).onEquip(currentStack, slotReference);
 
@@ -310,6 +313,9 @@ public class AccessoriesEventHandler {
 
                         AccessoryChangeCallback.EVENT.invoker().onChange(lastStack, currentStack, slotReference, equipmentChange ? SlotStateChange.REPLACEMENT : SlotStateChange.MUTATION);
 
+                        container.getAccessories().setPreviousItem(i, currentStack);
+                        dirtyStacks.put(slotId, currentStack.copy());
+
                         recursiveStackChange(slotReference, AccessoryNestUtils.getData(lastStack), AccessoryNestUtils.getData(currentStack));
                     }
 
@@ -317,7 +323,7 @@ public class AccessoriesEventHandler {
                     var lastCosmeticStack = container.getCosmeticAccessories().getPreviousItem(i);
 
                     if (!ItemStack.matches(currentCosmeticStack, lastCosmeticStack)) {
-                        cosmetics.setPreviousItem(i, currentCosmeticStack.copy());
+                        cosmetics.setPreviousItem(i, currentCosmeticStack);
                         dirtyCosmeticStacks.put(slotId, currentCosmeticStack.copy());
 
                         if (entity instanceof ServerPlayer serverPlayer) {
@@ -338,7 +344,7 @@ public class AccessoriesEventHandler {
             AttributeUtils.addTransientAttributeModifiers(entity, addedAttributesBuilder);
 
             //--
-            var updatedContainers = AccessoriesHolderImpl.getHolder(capability).containersRequiringUpdates;
+            var updatedContainers = AccessoriesHolderImpl.getHolder(capability).containersRequiringUpdates();
 
             capability.updateContainers();
 
@@ -358,7 +364,7 @@ public class AccessoriesEventHandler {
         var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
 
         // Fix for holder data not being loaded so invalid stacks can be collected
-        if (holder.loadedFromTag && capability == null) {
+        if (holder.loadedFromTag() && capability == null) {
             var tempCapability = new AccessoriesCapabilityImpl(entity);
         }
 
@@ -787,7 +793,7 @@ public class AccessoriesEventHandler {
         var capability = AccessoriesCapability.get(player);
 
         if (capability != null && !player.isSpectator() && !stack.isEmpty()) {
-            var equipControl = AccessoriesPlayerOptions.getOptions(player).equipControl();
+            var equipControl = AccessoriesPlayerOptionsHolder.getOptions(player).getData(PlayerOptions.EQUIP_CONTROL);
 
             var shouldAttemptEquip = false;
 
@@ -864,9 +870,7 @@ public class AccessoriesEventHandler {
                         }
                     }
 
-                    player.setItemInHand(hand, newHandStack);
-
-                    return InteractionResult.SUCCESS;
+                    return InteractionResult.SUCCESS.heldItemTransformedTo(newHandStack);
                 }
             }
         }

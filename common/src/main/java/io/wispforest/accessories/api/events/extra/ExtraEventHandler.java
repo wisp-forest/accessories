@@ -4,7 +4,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.Accessory;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.tags.ItemTags;
@@ -17,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Choice Events implemented for use on {@link io.wispforest.accessories.api.Accessory} when needed
+ * Choice Events implemented for use on {@link Accessory} when needed
  */
 public class ExtraEventHandler {
 

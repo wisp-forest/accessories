@@ -1,11 +1,9 @@
 package io.wispforest.accessories.api.slot;
 
-import com.google.common.collect.ImmutableList;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.impl.slot.NestedSlotReferenceImpl;
 import io.wispforest.accessories.impl.slot.SlotReferenceImpl;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
@@ -16,25 +14,26 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * A reference to a specific accessory slot of a {@link LivingEntity}.
  */
-public interface SlotReference {
+public non-sealed interface SlotReference extends DelegatingSlotPath {
 
-    static SlotReference of(LivingEntity livingEntity, String slotName, int slot) {
-        return new SlotReferenceImpl(livingEntity, slotName, slot);
+    static SlotReference of(LivingEntity livingEntity, String slotName, int index) {
+        return of(livingEntity, SlotPath.of(slotName, index));
     }
 
+    static SlotReference of(LivingEntity livingEntity, SlotPath slotPath) {
+        return new SlotReferenceImpl(livingEntity, slotPath);
+    }
+
+    @Deprecated
     static SlotReference ofNest(LivingEntity livingEntity, String slotName, int initialHolderSlot, List<Integer> innerSlotIndices) {
-        return new NestedSlotReferenceImpl(livingEntity, slotName, initialHolderSlot, ImmutableList.copyOf(innerSlotIndices));
+        return of(livingEntity, SlotPath.of(slotName, initialHolderSlot, innerSlotIndices));
     }
-
-    /**
-     * @return the referenced slot name
-     */
-    String slotName();
 
     /**
      * @return the referenced entity
@@ -42,9 +41,20 @@ public interface SlotReference {
     LivingEntity entity();
 
     /**
+     * @return the referenced slot name
+     */
+    default String slotName() {
+        return slotPath().slotName();
+    }
+
+    /**
      * @return the referenced slot index
      */
-    int slot();
+    default int index() {
+        return slotPath().index();
+    }
+
+    SlotPath slotPath();
 
     //--
 
@@ -58,26 +68,14 @@ public interface SlotReference {
 
         var currentStack = this.getStack();
 
-        ((AccessoriesLivingEntityExtension) entity).pushEnchantmentContext(currentStack, this);
+        if (currentStack != null) {
+            ((AccessoriesLivingEntityExtension) entity).pushEnchantmentContext(currentStack, this);
 
-        EnchantmentHelper.stopLocationBasedEffects(currentStack, entity, AccessoriesInternals.INTERNAL_SLOT);
+            EnchantmentHelper.stopLocationBasedEffects(currentStack, entity, AccessoriesInternals.INTERNAL_SLOT);
+        }
     }
 
-    default boolean isValid() {
-        var capability = this.capability();
-
-        if(capability == null) return false;
-
-        var container = capability.getContainers().get(this.slotName());
-
-        if(container == null) return false;
-
-        return slot() < container.getSize();
-    }
-
-    default String createSlotPath() {
-        return createBaseSlotPath(this.slotName(), this.slot());
-    }
+    //--
 
     @Nullable
     default SlotType type(){
@@ -98,30 +96,18 @@ public interface SlotReference {
         return capability.getContainers().get(slotName());
     }
 
+    boolean isValid();
+
     /**
      * @return the current referenced stack
      */
     @Nullable
-    default ItemStack getStack() {
-        var container = this.slotContainer();
-
-        if(container == null) return null;
-
-        return container.getAccessories().getItem(slot());
-    }
+    ItemStack getStack();
 
     /**
      * @return {@code true} if the stack was successfully set, {@code false} otherwise
      */
-    default boolean setStack(ItemStack stack) {
-        var container = this.slotContainer();
-
-        if(container == null) return false;
-
-        container.getAccessories().setItem(slot(), stack);
-
-        return true;
-    }
+    boolean setStack(ItemStack stack);
 
     //--
 
@@ -130,7 +116,7 @@ public interface SlotReference {
     }
 
     static String createBaseSlotPath(String name, int index) {
-        return name.replace(":", "-") + "/" + index;
+        return SlotPath.of(name, index).createString();
     }
 
     @Nullable
@@ -143,5 +129,17 @@ public interface SlotReference {
         var index = Integer.parseInt(parts[1]);
 
         return Pair.of(baseSlotName, index);
+    }
+
+    //--
+
+    @Deprecated
+    default String createSlotPath() {
+        return createString();
+    }
+
+    @Deprecated
+    default int slot() {
+        return index();
     }
 }

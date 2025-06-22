@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.client.Minecraft;
 import io.wispforest.accessories.client.AccessoryRendererErrorCache;
@@ -72,19 +73,21 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
 
                 poseStack.pushPose();
 
-                try {renderer.renderOnFirstPerson(
-                    currentArm,
-                    stack,
-                    SlotReference.of(player, container.getSlotName(), i),
-                    poseStack,
-                    playerModel,
-                    state,
-                    buffer,
-                    combinedLight,
+                try {
+                    renderer.renderOnFirstPerson(
+                        currentArm,
+                        stack,
+                        container.createPath(i),
+                        poseStack,
+                        playerModel,
+                        state,
+                        buffer,
+                        combinedLight,
                         partialTicks
-                );} catch (Throwable e) {
-                        AccessoryRendererErrorCache.logIfTimeAllotted(player, stack, renderer, e);
-                    }
+                    );
+                } catch (Throwable e) {
+                    AccessoryRendererErrorCache.logIfTimeAllotted(player.getUUID(), stack, renderer, e);
+                }
 
                 poseStack.popPose();
             }

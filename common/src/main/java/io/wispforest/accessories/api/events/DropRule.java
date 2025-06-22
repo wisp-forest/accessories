@@ -1,4 +1,4 @@
-package io.wispforest.accessories.api;
+package io.wispforest.accessories.api.events;
 
 /**
  * Represents what happens to an accessory after death.

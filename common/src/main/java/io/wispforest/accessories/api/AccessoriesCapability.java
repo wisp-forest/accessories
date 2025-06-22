@@ -3,12 +3,13 @@ package io.wispforest.accessories.api;
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
 import io.wispforest.accessories.api.caching.ItemStackPredicate;
+import io.wispforest.accessories.api.core.Accessory;
 import io.wispforest.accessories.api.equip.EquipAction;
 import io.wispforest.accessories.api.equip.EquipCheck;
 import io.wispforest.accessories.api.equip.EquipmentChecking;
 import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.impl.AccessoriesHolderImpl;
+import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.world.Container;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Predicate;
 
-public interface AccessoriesCapability {
+public interface AccessoriesCapability extends AccessoriesStorageLookup {
 
     /**
      * @return The {@link AccessoriesCapability} Bound to the given living entity if present
@@ -151,73 +152,6 @@ public interface AccessoriesCapability {
     @Nullable
     Pair<SlotReference, EquipAction> canEquipAccessory(ItemStack stack, boolean allowSwapping, EquipCheck extraCheck);
 
-    //--
-
-    /**
-     * @return If any {@link ItemStack} is equipped based on the given {@link Item} entry
-     */
-    default boolean isEquipped(Item item){
-        return isEquipped(item, EquipmentChecking.ACCESSORIES_ONLY);
-    }
-
-    /**
-     * @return If any {@link ItemStack} is equipped based on the given {@link Item} entry with
-     * the given {@link EquipmentChecking} useful for detecting Cosmetic overrides for rendering.
-     */
-    default boolean isEquipped(Item item, EquipmentChecking check){
-        return isEquipped(ItemStackBasedPredicate.ofItem(item), check);
-    }
-
-    /**
-     * @return If any {@link ItemStack} is equipped based on the passed predicate
-     */
-    default boolean isEquipped(Predicate<ItemStack> predicate) {
-        return isEquipped(predicate, EquipmentChecking.ACCESSORIES_ONLY);
-    }
-
-    /**
-     * @return If any {@link ItemStack} is equipped based on the passed {@link Predicate} with
-     * the given {@link EquipmentChecking} useful for detecting Cosmetic overrides for rendering.
-     */
-    default boolean isEquipped(Predicate<ItemStack> predicate, EquipmentChecking check) {
-        return isEquipped(ItemStackBasedPredicate.ofPredicate(predicate), check);
-    }
-
-    default boolean isEquipped(ItemStackBasedPredicate predicate, EquipmentChecking check) {
-        return getFirstEquipped(predicate, check) != null;
-    }
-
-    default boolean isAnotherEquipped(ItemStack stack, SlotReference slotReference, Item item) {
-        return isAnotherEquipped(stack, slotReference, ItemStackBasedPredicate.ofItem(item));
-    }
-
-    default boolean isAnotherEquipped(ItemStack stack, SlotReference slotReference, Predicate<ItemStack> predicate) {
-        return isAnotherEquipped(stack, slotReference, ItemStackBasedPredicate.ofPredicate(predicate));
-    }
-
-    /**
-     * @return If any {@link ItemStack} is equipped based on the passed predicate while deduplicating
-     * using the current {@link SlotReference} and the given {@link ItemStack}
-     */
-    default boolean isAnotherEquipped(ItemStack stack, SlotReference slotReference, ItemStackBasedPredicate predicate) {
-        List<SlotEntryReference> equippedStacks = getEquipped(predicate);
-
-        if (equippedStacks.size() > 2) {
-            for (var otherEntryRef : equippedStacks) {
-                if (!otherEntryRef.reference().equals(slotReference)) return true;
-                if (!otherEntryRef.stack().equals(stack)) return true;
-            }
-        } else if(equippedStacks.size() == 1) {
-            var otherEntryRef = equippedStacks.getFirst();
-
-            if (!otherEntryRef.reference().equals(slotReference)) return true;
-
-            return !otherEntryRef.stack().equals(stack);
-        }
-
-        return false;
-    }
-
     /**
      * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given {@link Item}.
      */
@@ -252,11 +186,17 @@ public interface AccessoriesCapability {
         return getFirstEquipped(ItemStackBasedPredicate.ofPredicate(predicate), check);
     }
 
-    /**
-     * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given predicate
-     */
     @Nullable
-    SlotEntryReference getFirstEquipped(ItemStackBasedPredicate predicate, EquipmentChecking check);
+    default SlotEntryReference getFirstEquipped(ItemStackBasedPredicate predicate, EquipmentChecking check) {
+        var cache = AccessoriesHolderImpl.getHolder(this).getLookupCache();
+
+        if (cache != null && !(predicate instanceof ItemStackPredicate)) return cache.firstEquipped(predicate, check);
+
+        return AccessoriesStorageLookupUtils.getFirstEquipped(this.getContainers(), (path, stack) -> new SlotEntryReference(this.entity(), path, stack),
+                predicate,
+                check
+        );
+    }
 
     /**
      * @return A list of all {@link ItemStack}'s formatted within {@link SlotEntryReference} matching the given {@link Item}
@@ -273,21 +213,17 @@ public interface AccessoriesCapability {
     }
 
     default List<SlotEntryReference> getEquipped(ItemStackBasedPredicate predicate) {
-        var cache = AccessoriesHolderImpl.getHolder(this).getLookupCache();
-
-        if (cache != null && !(predicate instanceof ItemStackPredicate)) return cache.getEquipped(predicate);
-
         return getAllEquipped().stream().filter(reference -> predicate.test(reference.stack())).toList();
     }
 
-    /**
-     * @return A list of all {@link ItemStack}'s formatted within {@link SlotEntryReference}
-     */
+    @Override
     default List<SlotEntryReference> getAllEquipped() {
-        return getAllEquipped(true);
-    }
+        var cache = AccessoriesHolderImpl.getHolder(this).getLookupCache();
 
-    List<SlotEntryReference> getAllEquipped(boolean recursiveStackLookup);
+        if (cache != null) return cache.getAllEquipped();
+
+        return AccessoriesStorageLookupUtils.getAllEquipped(this.getContainers(), (path, stack) -> new SlotEntryReference(this.entity(), path, stack));
+    }
 
     //--
 

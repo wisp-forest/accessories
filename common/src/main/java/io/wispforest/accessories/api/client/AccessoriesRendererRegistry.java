@@ -4,7 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.client.renderers.AccessoryRenderer;
 import io.wispforest.accessories.api.client.renderers.BuiltinAccessoryRenderers;
 import io.wispforest.accessories.api.client.renderers.DefaultAccessoryRenderer;
@@ -131,6 +131,8 @@ public class AccessoriesRendererRegistry {
             } else {
                 renderer = getRenderer(id);
             }
+        } else {
+            renderer = DefaultAccessoryRenderer.INSTANCE;
         }
 
         if(renderer instanceof BuiltinAccessoryRenderers.EmptyRenderer && Accessories.config().clientOptions.forceNullRenderReplacement()) {

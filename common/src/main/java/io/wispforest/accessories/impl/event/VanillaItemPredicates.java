@@ -1,4 +1,4 @@
-package io.wispforest.accessories.impl;
+package io.wispforest.accessories.impl.event;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.data.AccessoriesTags;

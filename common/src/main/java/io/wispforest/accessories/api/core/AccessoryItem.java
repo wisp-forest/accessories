@@ -1,4 +1,4 @@
-package io.wispforest.accessories.api;
+package io.wispforest.accessories.api.core;
 
 import net.minecraft.world.item.Item;
 

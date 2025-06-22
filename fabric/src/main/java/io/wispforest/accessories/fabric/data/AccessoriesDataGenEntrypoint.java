@@ -1,18 +1,16 @@
 package io.wispforest.accessories.fabric.data;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.DropRule;
+import io.wispforest.accessories.api.events.DropRule;
 import io.wispforest.accessories.api.data.AccessoriesBaseData;
 import io.wispforest.accessories.api.data.providers.entity.EntityBindingProvider;
 import io.wispforest.accessories.api.data.providers.group.GroupDataProvider;
 import io.wispforest.accessories.api.data.providers.slot.SlotDataProvider;
-import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistrySetBuilder;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 
@@ -81,8 +79,6 @@ public class AccessoriesDataGenEntrypoint implements DataGeneratorEntrypoint {
     public void buildRegistry(RegistrySetBuilder registryBuilder) {
         DataGeneratorEntrypoint.super.buildRegistry(registryBuilder);
 
-        registryBuilder.add(ResourceKey.createRegistryKey(Accessories.of("fake_registry")), bootstrapContext -> {
-            UniqueSlotHandling.gatherUniqueSlots((location, integer, resourceLocations) -> new SlotTypeReference(location.toString()));
-        });
+        UniqueSlotHandling.bootStrapDataGen(registryBuilder);
     }
 }

@@ -1,23 +1,19 @@
-package io.wispforest.accessories.impl;
+package io.wispforest.accessories.impl.core;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.AccessoryRegistry;
-import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
-import io.wispforest.accessories.api.caching.ItemStackPredicate;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.equip.EquipAction;
 import io.wispforest.accessories.api.equip.EquipCheck;
-import io.wispforest.accessories.api.equip.EquipmentChecking;
-import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
+import io.wispforest.accessories.impl.AccessoryAttributeLogic;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
@@ -283,7 +279,14 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     }
 
     private Optional<ItemStack> setStack(SlotReference reference, ItemStack newStack, boolean shouldSwapStacks) {
-        var oldStack = reference.getStack().copy();
+        var oldStack = reference.getStack();
+
+        if (oldStack == null) {
+            oldStack = ItemStack.EMPTY;
+        } else {
+            oldStack = oldStack.copy();
+        }
+
         var accessory = AccessoryRegistry.getAccessoryOrDefault(oldStack);
 
         if(shouldSwapStacks) {
@@ -306,60 +309,6 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     }
 
     //--
-
-    @Nullable
-    public SlotEntryReference getFirstEquipped(ItemStackBasedPredicate predicate, EquipmentChecking check) {
-        var cache = AccessoriesHolderImpl.getHolder(this).getLookupCache();
-
-        if (cache != null && !(predicate instanceof ItemStackPredicate)) return cache.firstEquipped(predicate, check);
-
-        for (var container : this.getContainers().values()) {
-            var ref = container.getAccessories().foreach((i, stack) -> {
-                var reference = container.createReference(i);
-
-                if(check == EquipmentChecking.COSMETICALLY_OVERRIDABLE) {
-                    var cosmetic = container.getCosmeticAccessories().getItem(reference.slot());
-
-                    if(!cosmetic.isEmpty() && Accessories.config().clientOptions.showCosmeticAccessories()) stack = cosmetic;
-                }
-
-                return AccessoryNestUtils.recursiveStackHandling(stack, reference, (innerStack, ref1) -> {
-                    return (!innerStack.isEmpty() && predicate.test(innerStack))
-                            ? new SlotEntryReference(reference, innerStack)
-                            : null;
-                });
-            });
-
-            if (ref != null) return ref;
-        }
-
-        return null;
-    }
-
-    @Override
-    public List<SlotEntryReference> getAllEquipped(boolean recursiveStackLookup) {
-        var cache = AccessoriesHolderImpl.getHolder(this).getLookupCache();
-
-        if (cache != null) return cache.getAllEquipped();
-
-        var references = new ArrayList<SlotEntryReference>();
-
-        for (var container : this.getContainers().values()) {
-            container.getAccessories().foreach((i, stack) -> {
-                if (!stack.isEmpty()) {
-                    var reference = container.createReference(i);
-
-                    if(recursiveStackLookup) {
-                        AccessoryNestUtils.recursiveStackConsumption(stack, reference, (innerStack, ref) -> references.add(new SlotEntryReference(ref, innerStack)));
-                    } else {
-                        references.add(new SlotEntryReference(reference, stack));
-                    }
-                }
-            });
-        }
-
-        return references;
-    }
 
     @Override
     public void write(MapCarrier carrier, SerializationContext ctx) {

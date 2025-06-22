@@ -10,6 +10,11 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
 
+///
+/// Utility class for handling the adding or removal of
+/// attributes from a given [ItemStack] using the
+/// [AccessoryItemAttributeModifiers] data component
+///
 public class AccessoryAttributeUtils {
 
     public static void addAttribute(ItemStack stack, String slotName, Holder<Attribute> attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation, boolean isStackable) {

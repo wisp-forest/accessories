@@ -3,6 +3,8 @@ package io.wispforest.accessories.api;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeUtils;
+import io.wispforest.accessories.api.core.Accessory;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.slot.SlotBasedPredicate;
 import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;

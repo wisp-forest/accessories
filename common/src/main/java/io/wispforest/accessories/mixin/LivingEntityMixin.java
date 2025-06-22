@@ -8,15 +8,15 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
 import io.wispforest.accessories.api.events.extra.ExtraEventHandler;
 import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.api.totem.OnTotemActivate;
-import io.wispforest.accessories.api.totem.OnTotemConsumption;
+import io.wispforest.accessories.api.events.extra.OnTotemActivate;
+import io.wispforest.accessories.api.events.extra.OnTotemConsumption;
 import io.wispforest.accessories.data.EntitySlotLoader;
-import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
+import io.wispforest.accessories.impl.core.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
@@ -94,7 +94,7 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
 
     @Override
     public Map<Enchantment, Set<EnchantmentLocationBasedEffect>> activeLocationDependentEnchantmentsFromSlotReference(SlotReference slotReference) {
-        return accessories$activeLocationDependentEnchantments.computeIfAbsent(slotReference.createSlotPath(), equipmentSlot -> new Reference2ObjectArrayMap());
+        return accessories$activeLocationDependentEnchantments.computeIfAbsent(slotReference.createString(), equipmentSlot -> new Reference2ObjectArrayMap());
     }
 
     //--
@@ -224,9 +224,11 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
 
     @WrapOperation(method = "updateFallFlying", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getItemBySlot(Lnet/minecraft/world/entity/EquipmentSlot;)Lnet/minecraft/world/item/ItemStack;"))
     private ItemStack accessories$adjustGottenStack(LivingEntity instance, EquipmentSlot equipmentSlot, Operation<ItemStack> original, @Share("slotReference") LocalRef<@Nullable SlotReference> slotReference) {
-        return (equipmentSlot == AccessoriesInternals.INTERNAL_SLOT)
-                ? slotReference.get().getStack()
-                : original.call(instance, equipmentSlot);
+        if (equipmentSlot != AccessoriesInternals.INTERNAL_SLOT) return original.call(instance, equipmentSlot);
+
+        var stack = slotReference.get().getStack();
+
+        return stack != null ? stack : ItemStack.EMPTY;
     }
 
     @WrapOperation(method = "updateFallFlying", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;hurtAndBreak(ILnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/EquipmentSlot;)V"))

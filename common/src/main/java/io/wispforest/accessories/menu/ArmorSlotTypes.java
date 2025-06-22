@@ -1,7 +1,7 @@
 package io.wispforest.accessories.menu;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.core.Accessory;
 import io.wispforest.accessories.api.slot.EntityBasedPredicate;
 import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
@@ -10,7 +10,6 @@ import io.wispforest.accessories.impl.slot.StrictMode;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.horse.AbstractHorse;

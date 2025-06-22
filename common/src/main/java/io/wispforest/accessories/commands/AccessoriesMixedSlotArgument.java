@@ -7,6 +7,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.mojang.datafixers.util.Either;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import it.unimi.dsi.fastutil.Pair;
@@ -26,7 +28,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public record AccessoriesSlotArgument(String entityArgumentName) implements ArgumentType<Pair<@Nullable String, Integer>> {
+public record AccessoriesMixedSlotArgument(String entityArgumentName) implements ArgumentType<Either<SlotPath, Integer>> {
 
     private static final Collection<String> EXAMPLES = Arrays.asList("back/1", "charm/1", "feet.1", "weapon");
 
@@ -38,24 +40,24 @@ public record AccessoriesSlotArgument(String entityArgumentName) implements Argu
             object -> Component.translatableEscape("slot.only_single_allowed", object)
     );
 
-    public static AccessoriesSlotArgument slot(String entityArgumentName) {
-        return new AccessoriesSlotArgument(entityArgumentName);
+    public static AccessoriesMixedSlotArgument slot(String entityArgumentName) {
+        return new AccessoriesMixedSlotArgument(entityArgumentName);
     }
 
-    public static Pair<@Nullable String, Integer> getSlot(CommandContext<CommandSourceStack> context, String name) {
-        return context.getArgument(name, Pair.class);
+    public static Either<SlotPath, Integer> getSlot(CommandContext<CommandSourceStack> context, String name) {
+        return context.getArgument(name, Either.class);
     }
 
     @Override
-    public Pair<@Nullable String, Integer> parse(StringReader reader) throws CommandSyntaxException {
+    public Either<SlotPath, Integer> parse(StringReader reader) throws CommandSyntaxException {
         String string = ParserUtils.readWhile(reader, c -> c != ' ');
-        var slotPath = SlotReference.parseBaseSlotPath(string);
+        var slotPath = SlotPath.fromString(string);
 
-        if (slotPath != null) return slotPath;
+        if (slotPath != null) return Either.left(slotPath);
 
         var vanillaSlot = parseVanillaSlot(reader, string);
 
-        if (vanillaSlot != null) return Pair.of(null, vanillaSlot);
+        if (vanillaSlot != null) return Either.right(vanillaSlot);
 
         throw ERROR_UNKNOWN_SLOT.createWithContext(reader, string);
     }

@@ -3,12 +3,14 @@ package io.wispforest.accessories.api.slot;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.Accessory;
+import io.wispforest.accessories.api.core.Accessory;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.impl.slot.StrictMode;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
+import net.minecraft.core.RegistrySetBuilder;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
@@ -107,6 +109,12 @@ public class UniqueSlotHandling {
         SlotTypeReference build();
     }
 
+    public static void bootStrapDataGen(RegistrySetBuilder registryBuilder) {
+        registryBuilder.add(ResourceKey.createRegistryKey(Accessories.of("unique_slots_registry_bootstrap")), bootstrapContext -> {
+            UniqueSlotHandling.gatherUniqueSlots((location, integer, resourceLocations) -> location::toString);
+        });
+    }
+
     //--
 
     @ApiStatus.Internal
@@ -139,7 +147,7 @@ public class UniqueSlotHandling {
                     LOGGER.error("Unable to get the given unique slot as the slot has been not been synced to the client! [Name: {}]", name);
                 }
 
-                return new SlotTypeReference(name);
+                return () -> name;
             }
         };
 

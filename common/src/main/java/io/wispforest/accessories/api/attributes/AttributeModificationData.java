@@ -3,8 +3,13 @@ package io.wispforest.accessories.api.attributes;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+///
+/// Helper record to hold data on a Attribute Modification made within the [AccessoryAttributeBuilder]
+///
+@ApiStatus.Internal
 public record AttributeModificationData(@Nullable String slotPath, Holder<Attribute> attribute, AttributeModifier modifier) {
 
     public AttributeModificationData(Holder<Attribute> attribute, AttributeModifier modifier) {

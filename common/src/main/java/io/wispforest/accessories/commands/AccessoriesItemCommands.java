@@ -4,6 +4,9 @@ package io.wispforest.accessories.commands;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.exceptions.*;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.datafixers.util.Either;
+import io.wispforest.accessories.api.slot.SlotPath;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.commands.api.base.BranchedCommandGenerator;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.commands.CommandBuildContext;
@@ -81,7 +84,7 @@ public class AccessoriesItemCommands {
 											fromBranch.leaves(
 													"entity",
 													required("source_entity", EntityArgument.entity(), EntityArgument::getEntity),
-													required("source_path", AccessoriesSlotArgument.slot("source_entity"), AccessoriesSlotArgument::getSlot),
+													required("source_path", AccessoriesMixedSlotArgument.slot("source_entity"), AccessoriesMixedSlotArgument::getSlot),
 													modifierArg,
 													(ctx, targetPos, targetSlot, sourceEntity, sourceSlot, modifier) -> {
 														return (modifier == null)
@@ -95,7 +98,7 @@ public class AccessoriesItemCommands {
 							.branch(
 									"entity",
 									required("entity", EntityArgument.entity(), EntityArgument::getEntity),
-									required("path", AccessoriesSlotArgument.slot("entity"), AccessoriesSlotArgument::getSlot),
+									required("path", AccessoriesMixedSlotArgument.slot("entity"), AccessoriesMixedSlotArgument::getSlot),
 									entityBranch -> {
 										entityBranch
 												.leaves(
@@ -122,7 +125,7 @@ public class AccessoriesItemCommands {
 													).leaves(
 															"entity",
 															required("source_entity", EntityArgument.entity(), EntityArgument::getEntity),
-															required("source_path", AccessoriesSlotArgument.slot("source_entity"), AccessoriesSlotArgument::getSlot),
+															required("source_path", AccessoriesMixedSlotArgument.slot("source_entity"), AccessoriesMixedSlotArgument::getSlot),
 															modifierArg,
 															(ctx, targetEntity, targetPath, sourceEntity, sourcePath, modifier) -> {
 																return (modifier == null)
@@ -138,34 +141,34 @@ public class AccessoriesItemCommands {
 					modifyBranch.leaves(
 							"entity",
 							required("entity", EntityArgument.entity(), EntityArgument::getEntity),
-							required("path", AccessoriesSlotArgument.slot("entity"), AccessoriesSlotArgument::getSlot),
+							required("path", AccessoriesMixedSlotArgument.slot("entity"), AccessoriesMixedSlotArgument::getSlot),
 							modifierArg,
 							(ctx, entity, path, modifier) -> modifyEntityItem(ctx.getSource(), entity, path, modifier)
 					);
 				});
 	}
 
-	private static int blockToEntity(CommandSourceStack source, BlockPos pos, int sourceSlot, Entity target, Pair<@Nullable String, Integer> slot) throws CommandSyntaxException {
+	private static int blockToEntity(CommandSourceStack source, BlockPos pos, int sourceSlot, Entity target, Either<SlotPath, Integer> slot) throws CommandSyntaxException {
 		return setEntityItem(source, target, slot, getBlockItem(source, pos, sourceSlot));
 	}
 
-	private static int blockToEntity(CommandSourceStack source, BlockPos pos, int sourceSlot, Entity target, Pair<@Nullable String, Integer> slot, Holder<LootItemFunction> modifier) throws CommandSyntaxException {
+	private static int blockToEntity(CommandSourceStack source, BlockPos pos, int sourceSlot, Entity target, Either<SlotPath, Integer> slot, Holder<LootItemFunction> modifier) throws CommandSyntaxException {
 		return setEntityItem(source, target, slot, applyModifier(source, modifier, getBlockItem(source, pos, sourceSlot)));
 	}
 
-	private static int entityToBlock(CommandSourceStack source, Entity sourceEntity, Pair<String, Integer> sourceSlot, BlockPos pos, int slot) throws CommandSyntaxException {
+	private static int entityToBlock(CommandSourceStack source, Entity sourceEntity, Either<SlotPath, Integer> sourceSlot, BlockPos pos, int slot) throws CommandSyntaxException {
 		return setBlockItem(source, pos, slot, getEntityItem(sourceEntity, sourceSlot));
 	}
 
-	private static int entityToBlock(CommandSourceStack source, Entity sourceEntity, Pair<String, Integer> sourceSlot, BlockPos pos, int slot, Holder<LootItemFunction> modifier) throws CommandSyntaxException {
+	private static int entityToBlock(CommandSourceStack source, Entity sourceEntity, Either<SlotPath, Integer> sourceSlot, BlockPos pos, int slot, Holder<LootItemFunction> modifier) throws CommandSyntaxException {
 		return setBlockItem(source, pos, slot, applyModifier(source, modifier, getEntityItem(sourceEntity, sourceSlot)));
 	}
 
-	private static int entityToEntity(CommandSourceStack source, Entity sourceEntity, Pair<@Nullable String, Integer> sourceSlot, Entity targetEntity, Pair<@Nullable String, Integer> targetSlot) throws CommandSyntaxException {
+	private static int entityToEntity(CommandSourceStack source, Entity sourceEntity, Either<SlotPath, Integer> sourceSlot, Entity targetEntity, Either<SlotPath, Integer> targetSlot) throws CommandSyntaxException {
 		return setEntityItem(source, targetEntity, targetSlot, getEntityItem(sourceEntity, sourceSlot));
 	}
 
-	private static int entityToEntity(CommandSourceStack source, Entity sourceEntity, Pair<@Nullable String, Integer> sourceSlot, Entity targetEntity, Pair<@Nullable String, Integer> targetSlot, Holder<LootItemFunction> modifier) throws CommandSyntaxException {
+	private static int entityToEntity(CommandSourceStack source, Entity sourceEntity, Either<SlotPath, Integer> sourceSlot, Entity targetEntity, Either<SlotPath, Integer> targetSlot, Holder<LootItemFunction> modifier) throws CommandSyntaxException {
 		return setEntityItem(source, targetEntity, targetSlot, applyModifier(source, modifier, getEntityItem(sourceEntity, sourceSlot)));
 	}
 
@@ -186,56 +189,58 @@ public class AccessoriesItemCommands {
 		return modifiedStack;
 	}
 
-	public static final Dynamic2CommandExceptionType ERROR_INVALID_SLOT_INDEX = new Dynamic2CommandExceptionType((ob1, ob2) -> Component.literal("The given index for [" + ob1 + "] container is invalid: [Index: " + ob2 +  "]"));
+	public static final Dynamic2CommandExceptionType ERROR_INVALID_SLOT_INDEX = new Dynamic2CommandExceptionType((ob1, ob2) -> Component.literal("The given path for [" + ob1 + "] container is invalid: [Path: " + ob2 +  "]"));
 
 	//--
 
-	private static ItemStack getEntityItem(Entity entity, Pair<@Nullable String, Integer> slot) throws CommandSyntaxException {
-		var path = slot.first();
-		var index = slot.second();
+	private static ItemStack getEntityItem(Entity entity, Either<SlotPath, Integer> slot) throws CommandSyntaxException {
+		if (slot.right().isPresent()) {
+			var index = slot.right().get();
 
-		if (path == null) {
 			SlotAccess slotAccess = entity.getSlot(index);
 
 			if (slotAccess == SlotAccess.NULL) throw ERROR_SOURCE_INAPPLICABLE_SLOT.create(slot);
 
 			return slotAccess.get().copy();
+		} else {
+			if(!(entity instanceof LivingEntity livingEntity)) throw AccessoriesCommands.NON_LIVING_ENTITY_TARGET.create();
+			if (livingEntity.accessoriesCapability() == null) throw AccessoriesCommands.ERROR_CAPABILITY_MISSING.create();
+
+			var slotPath = slot.left().get();
+			var reference = SlotReference.of(livingEntity, slotPath);
+
+			var container = reference.slotContainer();
+
+			if (container == null) throw AccessoriesCommands.ERROR_CONTAINER_MISSING.create(reference.slotName());
+
+			var stack = reference.getStack();
+
+			if (stack == null) throw ERROR_INVALID_SLOT_INDEX.create(slotPath.slotName(), slotPath);
+
+			return stack.copy();
 		}
-
-		if(!(entity instanceof LivingEntity livingEntity)) throw AccessoriesCommands.NON_LIVING_ENTITY_TARGET.create();
-
-		var capability = livingEntity.accessoriesCapability();
-
-		if (capability == null) throw AccessoriesCommands.ERROR_CAPABILITY_MISSING.create();
-
-		var container = capability.getContainers().get(path);
-
-		if (container == null) throw AccessoriesCommands.ERROR_CONTAINER_MISSING.create(path);
-		if (!container.getAccessories().validIndex(index)) throw ERROR_INVALID_SLOT_INDEX.create(path, index);
-
-		return container.getAccessories().getItem(index).copy();
 	}
 
-	private static int setEntityItem(CommandSourceStack source, Entity entity, Pair<@Nullable String, Integer> slot, ItemStack item) throws CommandSyntaxException {
-		var path = slot.first();
-		var index = slot.second();
+	private static int setEntityItem(CommandSourceStack source, Entity entity, Either<SlotPath, Integer> slot, ItemStack stack) throws CommandSyntaxException {
+		if (slot.right().isPresent()) {
+			var index = slot.right().get();
 
-		if (path == null) {
 			SlotAccess slotAccess = entity.getSlot(index);
 
 			if (slotAccess == SlotAccess.NULL) throw ERROR_SOURCE_INAPPLICABLE_SLOT.create(slot);
 
-			slotAccess.set(item);
+			slotAccess.set(stack);
+		} else {
+			if(!(entity instanceof LivingEntity livingEntity)) throw AccessoriesCommands.NON_LIVING_ENTITY_TARGET.create();
+			var slotPath = slot.left().get();
+			var reference = SlotReference.of(livingEntity, slotPath);
+
+			var container = reference.slotContainer();
+
+			if (container == null) throw AccessoriesCommands.ERROR_CONTAINER_MISSING.create(reference.slotName());
+
+			if (reference.setStack(stack)) throw ERROR_INVALID_SLOT_INDEX.create(slotPath.slotName(), slotPath);
 		}
-
-		var capability = AccessoriesCommands.getCapability(entity);
-
-		var container = capability.getContainers().get(path);
-
-		if (container == null) throw AccessoriesCommands.ERROR_CONTAINER_MISSING.create(path);
-		if (!container.getAccessories().validIndex(index)) throw ERROR_INVALID_SLOT_INDEX.create(path, index);
-
-		container.getAccessories().setItem(index, item);
 
 		return 1;
 	}
@@ -270,7 +275,7 @@ public class AccessoriesItemCommands {
 
 	//--
 
-	private static int modifyEntityItem(CommandSourceStack source, Entity target, Pair<@Nullable String, Integer> slot, Holder<LootItemFunction> modifer) throws CommandSyntaxException {
+	private static int modifyEntityItem(CommandSourceStack source, Entity target, Either<SlotPath, Integer> slot, Holder<LootItemFunction> modifer) throws CommandSyntaxException {
 		ItemStack modifiedStack = applyModifier(source, modifer, getEntityItem(target, slot).copy());
 
 		setEntityItem(source, target, slot, modifiedStack);

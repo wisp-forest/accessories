@@ -6,9 +6,8 @@ import io.wispforest.accessories.AccessoriesLoaderInternals;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.client.rendering.RenderingFunctionOps;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
-import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.compat.GeckoLibCompat;
-import io.wispforest.accessories.impl.AccessoryNestUtils;
 import io.wispforest.accessories.mixin.client.HumanoidArmorLayerAccessor;
 import io.wispforest.accessories.mixin.client.LivingEntityRendererAccessor;
 import io.wispforest.accessories.pond.WingsLayerExtension;
@@ -37,11 +36,12 @@ public class BuiltinAccessoryRenderers {
 
     public static final AccessoryRenderer ARMOR_RENDERER = new AccessoryRenderer() {
         @Override
-        public <STATE extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<STATE> model, STATE renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
-            var entityRender = Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(reference.entity());
+        public <STATE extends LivingEntityRenderState> void render(ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<STATE> model, STATE renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
+            if (!(renderState instanceof HumanoidRenderState humanoidRenderState)) return;
+
+            var entityRender = Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(renderState);
 
             if (!(entityRender instanceof LivingEntityRendererAccessor<?, ?, ?> accessor)) return;
-            if (!(renderState instanceof HumanoidRenderState humanoidRenderState)) return;
             if (!(stack.has(DataComponents.EQUIPPABLE))) return;
 
             var equipmentSlot = stack.get(DataComponents.EQUIPPABLE).slot();
@@ -76,11 +76,12 @@ public class BuiltinAccessoryRenderers {
 
     public static final AccessoryRenderer ELYTRA_RENDERER = new AccessoryRenderer() {
         @Override
-        public <STATE extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<STATE> model, STATE renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
-            var entityRender = Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(reference.entity());
+        public <STATE extends LivingEntityRenderState> void render(ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<STATE> model, STATE renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
+            if (!(renderState instanceof HumanoidRenderState humanoidRenderState)) return;
+
+            var entityRender = Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(renderState);
 
             if (!(entityRender instanceof LivingEntityRendererAccessor<?, ?, ?> accessor)) return;
-            if (!(renderState instanceof HumanoidRenderState humanoidRenderState)) return;
             if (!(stack.has(DataComponents.GLIDER))) return;
 
             var possibleLayer = accessor.getLayers().stream()
@@ -97,42 +98,42 @@ public class BuiltinAccessoryRenderers {
     public static class DataDrivenAccessoryRenderer implements AccessoryRenderer {
 
         @Override
-        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
+        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
             var data = stack.get(AccessoriesDataComponents.CUSTOM_RENDERER);
 
             if (data == null || data.renderingFunctions() == null) return;
 
-            RenderingFunctionOps.handleFunctions(stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks, null, 15728880, OverlayTexture.NO_OVERLAY, -1, data.renderingFunctions());
+            RenderingFunctionOps.handleFunctions(stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks, null, 15728880, OverlayTexture.NO_OVERLAY, -1, data.renderingFunctions());
         }
 
         @Override
-        public <S extends LivingEntityRenderState> void renderOnFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
+        public <S extends LivingEntityRenderState> void renderOnFirstPerson(HumanoidArm arm, ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
             var data = stack.get(AccessoriesDataComponents.CUSTOM_RENDERER);
 
             if (data == null || data.renderingFunctions() == null) return;
 
-            RenderingFunctionOps.handleFunctions(stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, 15728880, OverlayTexture.NO_OVERLAY, -1, data.renderingFunctions());
+            RenderingFunctionOps.handleFunctions(stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, 15728880, OverlayTexture.NO_OVERLAY, -1, data.renderingFunctions());
         }
 
         @Override
-        public boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference) {
+        public <S extends LivingEntityRenderState> boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotPath path, S renderState) {
             var data = stack.get(AccessoriesDataComponents.CUSTOM_RENDERER);
 
             if (data == null || data.renderingFunctions() == null) return false;
 
-            return RenderingFunctionOps.shouldRenderInFirstPerson(stack, arm, reference, data.renderingFunctions());
+            return RenderingFunctionOps.shouldRenderInFirstPerson(stack, arm, path, data.renderingFunctions(), renderState);
         }
     }
 
     @ApiStatus.Internal
     public static class BundleAccessoryRenderer implements AccessoryRenderer {
         @Override
-        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
+        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
             var contents = stack.get(DataComponents.BUNDLE_CONTENTS);
 
             if (contents == null) return;
 
-            DATA_DRIVEN.render(stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks);
+            DATA_DRIVEN.render(stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks);
 
             if (contents.items() instanceof List<ItemStack> list) {
                 for (int i = 0; i < list.size(); i++) {
@@ -147,7 +148,7 @@ public class BuiltinAccessoryRenderers {
                     matrices.pushPose();
 
                     try {
-                        renderer.render(innerStack, AccessoryNestUtils.create(reference, i), matrices, model, renderState, multiBufferSource, light, partialTicks);
+                        renderer.render(innerStack, SlotPath.withInnerIndex(path, i), matrices, model, renderState, multiBufferSource, light, partialTicks);
                     } catch (Throwable e) {
                         throw new IllegalStateException("[BundleAccessoryRenderer] Unable to render a given inner item stack due the following error: ", e);
                     }
@@ -158,12 +159,12 @@ public class BuiltinAccessoryRenderers {
         }
 
         @Override
-        public <S extends LivingEntityRenderState> void renderOnFirstPerson(HumanoidArm arm, ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
+        public <S extends LivingEntityRenderState> void renderOnFirstPerson(HumanoidArm arm, ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
             var contents = stack.get(DataComponents.BUNDLE_CONTENTS);
 
             if (contents == null) return;
 
-            DATA_DRIVEN.renderOnFirstPerson(arm, stack, reference, matrices, model, renderState, multiBufferSource, light, partialTicks);
+            DATA_DRIVEN.renderOnFirstPerson(arm, stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks);
 
             if (contents.items() instanceof List<ItemStack> list) {
                 for (int i = 0; i < list.size(); i++) {
@@ -173,14 +174,14 @@ public class BuiltinAccessoryRenderers {
 
                     var renderer = AccessoriesRendererRegistry.getRenderer(innerStack);
 
-                    var ref = AccessoryNestUtils.create(reference, i);
+                    var innerPath = SlotPath.withInnerIndex(path, i);
 
-                    if (renderer.isEmpty() || !renderer.shouldRenderInFirstPerson(arm, innerStack, ref)) continue;
+                    if (renderer.isEmpty() || !renderer.shouldRenderInFirstPerson(arm, innerStack, innerPath, renderState)) continue;
 
                     matrices.pushPose();
 
                     try {
-                        renderer.renderOnFirstPerson(arm, innerStack, ref, matrices, model, renderState, multiBufferSource, light, partialTicks);
+                        renderer.renderOnFirstPerson(arm, innerStack, innerPath, matrices, model, renderState, multiBufferSource, light, partialTicks);
                     } catch (Throwable e) {
                         throw new IllegalStateException("[BundleAccessoryRenderer] Unable to render a given inner item stack due the following error: ", e);
                     }
@@ -211,6 +212,6 @@ public class BuiltinAccessoryRenderers {
     }
 
     public static final class EmptyRenderer implements AccessoryRenderer {
-        @Override public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotReference reference, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {}
+        @Override public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {}
     }
 }

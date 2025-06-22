@@ -1,15 +1,13 @@
 package io.wispforest.accessories.impl;
 
-import io.wispforest.accessories.api.AccessoryNest;
-import io.wispforest.accessories.api.AccessoryRegistry;
+import io.wispforest.accessories.api.core.AccessoryNest;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
-import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.impl.slot.NestedSlotReferenceImpl;
+import io.wispforest.accessories.api.slot.SlotPath;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
@@ -24,7 +22,7 @@ public class AccessoryNestUtils {
         return stack.get(AccessoriesDataComponents.NESTED_ACCESSORIES);
     }
 
-    public static <T> @Nullable T recursiveStackHandling(ItemStack stack, SlotReference reference, BiFunction<ItemStack, SlotReference, @Nullable T> function) {
+    public static <T, S extends SlotPath> @Nullable T recursiveStackHandling(ItemStack stack, S reference, BiFunction<ItemStack, S, @Nullable T> function) {
         var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
         var value = function.apply(stack, reference);
@@ -37,7 +35,7 @@ public class AccessoryNestUtils {
 
                 if (innerStack.isEmpty()) continue;
 
-                value = recursiveStackHandling(innerStack, create(reference, i), function);
+                value = recursiveStackHandling(innerStack, SlotPath.cloneWithInnerIndex(reference, i), function);
 
                 if(value != null) return value;
             }
@@ -46,7 +44,7 @@ public class AccessoryNestUtils {
         return value;
     }
 
-    public static void recursiveStackConsumption(ItemStack stack, SlotReference reference, BiConsumer<ItemStack, SlotReference> consumer) {
+    public static <S extends SlotPath> void recursiveStackConsumption(ItemStack stack, S reference, BiConsumer<ItemStack, S> consumer) {
         var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
         consumer.accept(stack, reference);
@@ -60,19 +58,8 @@ public class AccessoryNestUtils {
 
             if (innerStack.isEmpty()) continue;
 
-            recursiveStackConsumption(innerStack, create(reference, i), consumer);
+            recursiveStackConsumption(innerStack, SlotPath.cloneWithInnerIndex(reference, i), consumer);
         }
     }
 
-    public static SlotReference create(SlotReference reference, int innerIndex) {
-        var innerSlotIndices = new ArrayList<Integer>();
-
-        if(reference instanceof NestedSlotReferenceImpl nestedSlotReference) {
-            innerSlotIndices.addAll(nestedSlotReference.innerSlotIndices());
-        }
-
-        innerSlotIndices.add(innerIndex);
-
-        return SlotReference.ofNest(reference.entity(), reference.slotName(), reference.slot(), innerSlotIndices);
-    }
 }

@@ -2,7 +2,7 @@ package io.wispforest.accessories.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import io.wispforest.accessories.impl.AccessoryEquipmentDispenseItemBehavior;
+import io.wispforest.accessories.impl.event.AccessoryEquipmentDispenseItemBehavior;
 import net.minecraft.core.dispenser.DispenseItemBehavior;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.DispenserBlock;

@@ -2,6 +2,7 @@ package io.wispforest.accessories.criteria;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
@@ -17,12 +18,12 @@ import java.util.Optional;
 
 public class AccessoryChangedCriterion extends SimpleCriterionTrigger<AccessoryChangedCriterion.Conditions> {
 
-    public void trigger(ServerPlayer player, ItemStack accessory, SlotReference reference, Boolean cosmetic) {
+    public void trigger(ServerPlayer player, ItemStack accessory, SlotPath path, Boolean cosmetic) {
         this.trigger(player, conditions -> {
             return conditions.itemPredicates().map(predicates -> predicates.stream().allMatch(predicate -> predicate.test(accessory))).orElse(true)
-                    && conditions.groups().flatMap(groups -> SlotGroupLoader.INSTANCE.findGroup(false, reference.slotName()).map(group -> groups.stream().noneMatch(s -> s.equals(group.name())))).orElse(true)
-                    && conditions.slots().map(slots -> slots.stream().noneMatch(reference.slotName()::equals)).orElse(true)
-                    && conditions.indices().map(indices -> indices.stream().noneMatch(index -> index == reference.slot())).orElse(true)
+                    && conditions.groups().flatMap(groups -> SlotGroupLoader.INSTANCE.findGroup(false, path.slotName()).map(group -> groups.stream().noneMatch(s -> s.equals(group.name())))).orElse(true)
+                    && conditions.slots().map(slots -> slots.stream().noneMatch(path.slotName()::equals)).orElse(true)
+                    && conditions.indices().map(indices -> indices.stream().noneMatch(index -> index == path.index())).orElse(true)
                     && conditions.cosmetic().map(isCosmetic -> isCosmetic && cosmetic).orElse(true);
         });
     }
