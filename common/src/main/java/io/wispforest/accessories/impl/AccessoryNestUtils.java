@@ -1,13 +1,17 @@
 package io.wispforest.accessories.impl;
 
+import io.wispforest.accessories.api.core.Accessory;
 import io.wispforest.accessories.api.core.AccessoryNest;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
 import io.wispforest.accessories.api.slot.SlotPath;
+import io.wispforest.accessories.api.slot.SlotReference;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -28,17 +32,25 @@ public class AccessoryNestUtils {
 
         var value = function.apply(stack, reference);
 
-        if (accessory instanceof AccessoryNest holdable && value == null) {
-            var innerStacks = holdable.getInnerStacks(stack);
+        if (accessory instanceof AccessoryNest && value == null) {
+            var data = getData(stack);
 
-            for (int i = 0; i < innerStacks.size(); i++) {
-                var innerStack = innerStacks.get(i);
+            if (data != null) {
+                var innerStacks = data.accessories();
 
-                if (innerStack.isEmpty()) continue;
+                for (int i = 0; i < innerStacks.size(); i++) {
+                    var innerStack = innerStacks.get(i);
 
-                value = recursiveStackHandling(innerStack, SlotPath.cloneWithInnerIndex(reference, i), function);
+                    if (innerStack.isEmpty()) continue;
 
-                if(value != null) return value;
+                    value = recursiveStackHandling(innerStack, SlotPath.cloneWithInnerIndex(reference, i), function);
+
+                    if(value != null) break;
+                }
+
+                if (reference instanceof SlotReference ref) {
+                    AccessoryNest.checkIfChangesOccurred(stack, ref.entity(), data);
+                }
             }
         }
 
@@ -50,16 +62,24 @@ public class AccessoryNestUtils {
 
         consumer.accept(stack, reference);
 
-        if (!(accessory instanceof AccessoryNest holdable)) return;
+        if (!(accessory instanceof AccessoryNest)) return;
 
-        var innerStacks = holdable.getInnerStacks(stack);
+        var data = getData(stack);
 
-        for (int i = 0; i < innerStacks.size(); i++) {
-            var innerStack = innerStacks.get(i);
+        if (data != null) {
+            var innerStacks = data.accessories();
 
-            if (innerStack.isEmpty()) continue;
+            for (int i = 0; i < innerStacks.size(); i++) {
+                var innerStack = innerStacks.get(i);
 
-            recursiveStackConsumption(innerStack, SlotPath.cloneWithInnerIndex(reference, i), consumer);
+                if (innerStack.isEmpty()) continue;
+
+                recursiveStackConsumption(innerStack, SlotPath.cloneWithInnerIndex(reference, i), consumer);
+            }
+
+            if (reference instanceof SlotReference ref) {
+                AccessoryNest.checkIfChangesOccurred(stack, ref.entity(), data);
+            }
         }
     }
 
@@ -68,14 +88,18 @@ public class AccessoryNestUtils {
 
         consumer.accept(stack);
 
-        if (!(accessory instanceof AccessoryNest holdable)) return;
+        if (!(accessory instanceof AccessoryNest)) return;
 
-        var innerStacks = holdable.getInnerStacks(stack);
+        var data = getData(stack);
 
-        for (ItemStack innerStack : innerStacks) {
-            if (innerStack.isEmpty()) continue;
+        if (data != null) {
+            var innerStacks = data.accessories();
 
-            recursiveStackConsumption(innerStack, consumer);
+            for (var innerStack : innerStacks) {
+                if (innerStack.isEmpty()) continue;
+
+                recursiveStackConsumption(innerStack, consumer);
+            }
         }
     }
 

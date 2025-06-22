@@ -238,7 +238,17 @@ public class AccessoriesEventHandler {
 
                         var accessory = AccessoryRegistry.getAccessoryOrDefault(currentStack);
 
-                        if (accessory != null) accessory.tick(currentStack, slotReference);
+                        if (accessory != null) {
+                            accessory.tick(currentStack, slotReference);
+
+                            AccessoryNestUtils.recursiveStackConsumption(currentStack, stack -> {
+                                var effects = stack.get(AccessoriesDataComponents.MOB_EFFECTS);
+
+                                if (effects != null) {
+                                    effects.handleReapplyingEffects(entity, entity.level().getGameTime());
+                                }
+                            });
+                        }
                     }
 
                     var lastStack = accessories.getPreviousItem(i);
@@ -288,6 +298,20 @@ public class AccessoriesEventHandler {
                             ((AccessoriesLivingEntityExtension) entity).pushEnchantmentContext(currentStack, slotReference);
                             EnchantmentHelper.runLocationChangedEffects((ServerLevel) entity.level(), currentStack, entity, AccessoriesInternals.INTERNAL_SLOT);
                         }
+
+                        AccessoryNestUtils.recursiveStackConsumption(lastStack, stack -> {
+                            if (stack.has(AccessoriesDataComponents.MOB_EFFECTS)) {
+                                stack.get(AccessoriesDataComponents.MOB_EFFECTS)
+                                    .handleRemovingEffects(entity);
+                            }
+                        });
+
+                        AccessoryNestUtils.recursiveStackConsumption(currentStack, stack -> {
+                            if (stack.has(AccessoriesDataComponents.MOB_EFFECTS)) {
+                                stack.get(AccessoriesDataComponents.MOB_EFFECTS)
+                                    .handleApplyingConstantEffects(entity);
+                            }
+                        });
 
                         boolean equipmentChange = false;
 

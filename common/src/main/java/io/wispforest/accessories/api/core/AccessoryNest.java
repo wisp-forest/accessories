@@ -163,7 +163,7 @@ public interface AccessoryNest extends Accessory {
         checkIfChangesOccurred(holderStack, livingEntity, data);
     }
 
-    private static boolean checkIfChangesOccurred(ItemStack holderStack, @Nullable LivingEntity livingEntity, AccessoryNestContainerContents data) {
+    static boolean checkIfChangesOccurred(ItemStack holderStack, @Nullable LivingEntity livingEntity, AccessoryNestContainerContents data) {
         boolean hasChangeOccurred = false;
 
         var accessories = data.accessories();

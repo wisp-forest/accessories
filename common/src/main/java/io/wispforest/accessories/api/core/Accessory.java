@@ -45,13 +45,7 @@ public interface Accessory {
      * @param stack the stack being ticked
      * @param reference the slot the accessory is in
      */
-    @MustBeInvokedByOverriders
-    default void tick(ItemStack stack, SlotReference reference){
-        if (stack.has(AccessoriesDataComponents.MOB_EFFECTS)) {
-            stack.get(AccessoriesDataComponents.MOB_EFFECTS)
-                    .handleReapplyingEffects(reference.entity(), reference.entity().level().getGameTime());
-        }
-    }
+    default void tick(ItemStack stack, SlotReference reference){}
 
     /**
      * Called when the accessory is equipped
@@ -59,13 +53,7 @@ public interface Accessory {
      * @param stack the stack being equipped
      * @param reference the slot the accessory is in
      */
-    @MustBeInvokedByOverriders
-    default void onEquip(ItemStack stack, SlotReference reference){
-        if (stack.has(AccessoriesDataComponents.MOB_EFFECTS)) {
-            stack.get(AccessoriesDataComponents.MOB_EFFECTS)
-                    .handleApplyingConstantEffects(reference.entity());
-        }
-    }
+    default void onEquip(ItemStack stack, SlotReference reference){}
 
     /**
      * Called when the accessory is unequipped
@@ -77,13 +65,7 @@ public interface Accessory {
      * @param stack the stack being unequipped
      * @param reference the slot the accessory is in
      */
-    @MustBeInvokedByOverriders
-    default void onUnequip(ItemStack stack, SlotReference reference){
-        if (stack.has(AccessoriesDataComponents.MOB_EFFECTS)) {
-            stack.get(AccessoriesDataComponents.MOB_EFFECTS)
-                    .handleRemovingEffects(reference.entity());
-        }
-    }
+    default void onUnequip(ItemStack stack, SlotReference reference){}
 
     /**
      * @param stack the stack to be equipped
