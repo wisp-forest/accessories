@@ -5,26 +5,25 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.SlotGroupLoader;
-import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
+import io.wispforest.accessories.impl.core.ExpandedSimpleContainer;
+import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
+import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.menu.*;
 import io.wispforest.accessories.menu.networking.ToggledSlots;
-import io.wispforest.accessories.mixin.HorseInventoryMenuAccessor;
 import io.wispforest.owo.client.screens.SlotGenerator;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.animal.horse.Llama;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ArmorSlot;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.ticks.ContainerSingleItem;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -271,10 +270,8 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         }
     }
 
-    public Set<SlotGroup> usedGroups() {
-        var groups = SlotGroupLoader.getValidGroups(this.targetEntityDefaulted()).entrySet().stream();
-
-        var usedSlots = this.getUsedSlots();
+    private static Set<SlotGroup> usedGroups(LivingEntity targetEntity, Set<SlotType> usedSlots) {
+        var groups = SlotGroupLoader.getValidGroups(targetEntity).entrySet().stream();
 
         groups = groups
                 .filter(entry -> {
@@ -283,7 +280,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
                             .filter(slotType -> {
                                 if (UniqueSlotHandling.isUniqueSlot(slotType.name())) return false;
 
-                                var capability = this.targetEntityDefaulted().accessoriesCapability();
+                                var capability = targetEntity.accessoriesCapability();
 
                                 if (capability == null) return false;
 
@@ -305,28 +302,38 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         return this.selectedGroups;
     }
 
-    public boolean isGroupSelected(SlotGroup slotGroup) {
-        return this.selectedGroups.contains(slotGroup);
+    public boolean isGroupSelected(SlotGroup group) {
+        return this.selectedGroups.contains(group);
     }
 
-    public void addSelectedGroup(SlotGroup slotGroup) {
-        this.selectedGroups.add(slotGroup);
+    public void toggleSelectedGroup(SlotGroup group) {
+        if(isGroupSelected(group)) {
+            removeSelectedGroup(group);
+        } else {
+            addSelectedGroup(group);
+        }
+    }
 
-        if (this.selectedGroups.containsAll(usedGroups())) {
+    public void addSelectedGroup(SlotGroup group) {
+        this.selectedGroups.add(group);
+
+        if (this.selectedGroups.containsAll(usedGroups(this.targetEntityDefaulted(), this.getUsedSlots()))) {
             this.selectedGroups.clear();
         }
     }
 
-    public void removeSelectedGroup(SlotGroup slotGroup) {
-        this.selectedGroups.remove(slotGroup);
+    public void removeSelectedGroup(SlotGroup group) {
+        this.selectedGroups.remove(group);
     }
+
+    //--
 
     public int addedArmorSlots() {
         return this.addedArmorSlots;
     }
 
     public boolean areUnusedSlotsShown() {
-        return AccessoriesPlayerOptions.getOptions(owner).showUnusedSlots();
+        return AccessoriesPlayerOptionsHolder.getOptions(owner).getData(PlayerOptions.SHOW_UNUSED_SLOTS);
     }
 
     @Override
@@ -334,8 +341,20 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
         super.removed(player);
     }
 
+    private int stackIndex = -1;
+
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
+        this.stackIndex = index;
+
+        var stack = quickMoveStackInternal(player, index);
+
+        this.stackIndex = -1;
+
+        return stack;
+    }
+
+    private ItemStack quickMoveStackInternal(Player player, int index) {
         var slot = this.slots.get(index);
 
         if(!slot.hasItem()) return ItemStack.EMPTY;
@@ -447,6 +466,15 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
                             itemStack.setCount(j);
                             slot.setChanged();
                             bl = true;
+
+                            // PATCH TO ATTEMPT TO PRESERVE THE INDEX
+                            if (stack.isEmpty() && this.stackIndex != -1) {
+                                var prevSlot = this.slots.get(this.stackIndex);
+
+                                if (prevSlot.container instanceof ExpandedSimpleContainer simpleContainer) {
+                                    simpleContainer.setPreviousItem(prevSlot.index, itemStack);
+                                }
+                            }
                         } else if (itemStack.getCount() < k) {
                             stack.shrink(k - itemStack.getCount());
                             itemStack.setCount(k);
@@ -472,8 +500,19 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
                     if (itemStack.isEmpty() && slot.mayPlace(stack)) {
                         int j = slot.getMaxStackSize(stack);
 
-                        slot.setByPlayer(stack.split(Math.min(stack.getCount(), j)));
+                        var newStack = stack.split(Math.min(stack.getCount(), j));
+
+                        slot.setByPlayer(newStack);
                         slot.setChanged();
+
+                        // PATCH TO ATTEMPT TO PRESERVE THE INDEX
+                        if (stack.isEmpty() && this.stackIndex != -1) {
+                            var prevSlot = this.slots.get(this.stackIndex);
+
+                            if (prevSlot.container instanceof ExpandedSimpleContainer simpleContainer) {
+                                simpleContainer.setPreviousItem(prevSlot.getContainerSlot(), newStack);
+                            }
+                        }
 
                         bl = true;
                         break;

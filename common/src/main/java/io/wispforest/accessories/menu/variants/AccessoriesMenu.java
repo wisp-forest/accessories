@@ -8,7 +8,8 @@ import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
+import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
+import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
@@ -264,11 +265,11 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
     }
 
     public boolean isCosmeticsOpen() {
-        return AccessoriesPlayerOptions.getOptions(owner).showCosmetics();
+        return AccessoriesPlayerOptionsHolder.getOptions(owner).getData(PlayerOptions.SHOW_COSMETIC_SLOTS);
     }
 
     public boolean areUnusedSlotsShown() {
-        return AccessoriesPlayerOptions.getOptions(owner).showUnusedSlots();
+        return AccessoriesPlayerOptionsHolder.getOptions(owner).getData(PlayerOptions.SHOW_UNUSED_SLOTS);
     }
 
     //--

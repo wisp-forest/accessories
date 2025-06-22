@@ -14,11 +14,11 @@ import io.wispforest.accessories.compat.config.client.Structured;
 import io.wispforest.accessories.compat.config.client.components.StructListOptionContainer;
 import io.wispforest.accessories.compat.config.client.components.StructOptionContainer;
 import io.wispforest.accessories.data.EntitySlotLoader;
-import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
+import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
+import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.mixin.owo.ConfigWrapperAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
-import io.wispforest.accessories.networking.holder.PlayerOption;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.owo.config.ui.ConfigScreenProviders;
@@ -28,7 +28,6 @@ import io.wispforest.owo.config.ui.component.SearchAnchorComponent;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.container.Containers;
-import io.wispforest.owo.ui.core.Color;
 import io.wispforest.owo.ui.core.Insets;
 import io.wispforest.owo.ui.core.Sizing;
 import io.wispforest.owo.ui.layers.Layers;
@@ -37,20 +36,14 @@ import io.wispforest.owo.util.ReflectionUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.ShaderDefines;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.TriState;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -60,7 +53,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 public class AccessoriesClient {
@@ -130,17 +122,25 @@ public class AccessoriesClient {
 
         Accessories.config().clientOptions.subscribeToEquipControl(value -> {
             attemptAction(holder -> {
-                if(holder.equipControl() == value) return;
+                if(holder.getData(PlayerOptions.EQUIP_CONTROL) == value) return;
 
-                AccessoriesNetworking.sendToServer(SyncOptionChange.of(PlayerOption.EQUIP_CONTROL, value));
+                AccessoriesNetworking.sendToServer(SyncOptionChange.of(PlayerOptions.EQUIP_CONTROL, value));
             });
         });
 
         Accessories.config().screenOptions.subscribeToShowUnusedSlots(value -> {
             attemptAction(holder -> {
-                if(holder.showUnusedSlots() == value) return;
+                if(holder.getData(PlayerOptions.SHOW_UNUSED_SLOTS) == value) return;
 
-                AccessoriesNetworking.sendToServer(SyncOptionChange.of(PlayerOption.UNUSED_PROP, value));
+                AccessoriesNetworking.sendToServer(SyncOptionChange.of(PlayerOptions.SHOW_UNUSED_SLOTS, value));
+            });
+        });
+
+        Accessories.config().screenOptions.subscribeToAlwaysShowCraftingGrid(value -> {
+            attemptAction(holder -> {
+                if(holder.getData(PlayerOptions.SHOW_CRAFTING_GRID) == value) return;
+
+                AccessoriesNetworking.sendToServer(SyncOptionChange.of(PlayerOptions.SHOW_CRAFTING_GRID, value));
             });
         });
     }
@@ -187,12 +187,12 @@ public class AccessoriesClient {
         }
     }
 
-    private static void attemptAction(Consumer<AccessoriesPlayerOptions> consumer) {
+    private static void attemptAction(Consumer<AccessoriesPlayerOptionsHolder> consumer) {
         var currentPlayer = Minecraft.getInstance().player;
 
         if (currentPlayer == null || Minecraft.getInstance().level == null) return;
 
-        var options = AccessoriesPlayerOptions.getOptions(currentPlayer);
+        var options = AccessoriesPlayerOptionsHolder.getOptions(currentPlayer);
 
         if (options != null) consumer.accept(options);
     }
@@ -202,20 +202,26 @@ public class AccessoriesClient {
 
         if(currentPlayer == null || Minecraft.getInstance().level == null) return;
 
-        var options = AccessoriesPlayerOptions.getOptions(currentPlayer);
+        var options = AccessoriesPlayerOptionsHolder.getOptions(currentPlayer);
 
         if(options == null) return;
 
         var equipControl = Accessories.config().clientOptions.equipControl();
 
-        if(options.equipControl() != equipControl) {
-            AccessoriesNetworking.sendToServer(SyncOptionChange.of(PlayerOption.EQUIP_CONTROL, equipControl));
+        if(options.getData(PlayerOptions.EQUIP_CONTROL) != equipControl) {
+            AccessoriesNetworking.sendToServer(PlayerOptions.EQUIP_CONTROL.toPacket(equipControl));
         }
 
         var showUnusedSlots = Accessories.config().screenOptions.showUnusedSlots();
 
-        if(options.showUnusedSlots() != showUnusedSlots) {
-            AccessoriesNetworking.sendToServer(SyncOptionChange.of(PlayerOption.UNUSED_PROP, showUnusedSlots));
+        if(options.getData(PlayerOptions.SHOW_UNUSED_SLOTS) != showUnusedSlots) {
+            AccessoriesNetworking.sendToServer(PlayerOptions.SHOW_UNUSED_SLOTS.toPacket(showUnusedSlots));
+        }
+
+        var alwaysShowCraftingGrid = Accessories.config().screenOptions.alwaysShowCraftingGrid();
+
+        if(options.getData(PlayerOptions.SHOW_CRAFTING_GRID) != alwaysShowCraftingGrid) {
+            AccessoriesNetworking.sendToServer(PlayerOptions.SHOW_CRAFTING_GRID.toPacket(true));
         }
     }
 
@@ -259,9 +265,9 @@ public class AccessoriesClient {
         if(targetingEntity.equals(player)) {
             var slots = AccessoriesCapability.getUsedSlotsFor(player);
 
-            var options = AccessoriesPlayerOptions.getOptions(player);
+            var options = AccessoriesPlayerOptionsHolder.getOptions(player);
 
-            if(slots.isEmpty() && !options.showUnusedSlots() && !displayUnusedSlotWarning && !Accessories.config().clientOptions.disableEmptySlotScreenError()) {
+            if(slots.isEmpty() && !options.getData(PlayerOptions.SHOW_UNUSED_SLOTS) && !displayUnusedSlotWarning && !Accessories.config().clientOptions.disableEmptySlotScreenError()) {
                 player.displayClientMessage(Component.literal("[Accessories]: No Used Slots found by any mod directly, the screen will show empty unless a item is found to implement slots!"), false);
 
                 displayUnusedSlotWarning = true;
@@ -306,16 +312,10 @@ public class AccessoriesClient {
                         AccessoriesClient.attemptToOpenScreenFromEntity(target);
                     })
                     .renderer((context, btn, delta) -> {
-
-                        context.push();
-
-                        context.blit(
-                                RenderType::guiTextured,
+                        DrawUtils.blit(context,
                                 Accessories.of("textures/gui/accessories_open_icon" + (btn.isHovered() ? "_hovered" : "") + ".png"),
                                 btn.x(), btn.y(), 0, 0, 8, 8, 8, 8
                         );
-
-                        context.pop();
                     })
                     .tooltip(Component.translatable(Accessories.translationKey("open.screen")))
                     .margins(Insets.of(1, 0, 0, 1))

@@ -3,6 +3,7 @@ package io.wispforest.accessories.client.gui.components;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.client.DrawUtils;
 import io.wispforest.owo.ui.base.BaseComponent;
 import io.wispforest.owo.ui.core.AnimatableProperty;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
@@ -60,23 +61,18 @@ public class ArrowComponent extends BaseComponent {
     }
 
     public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
-        Function<ResourceLocation, RenderType> renderTypeGetter = this.blend
-                ? RenderType::guiTextured
-                : RenderType::guiTexturedOverlay;
+        context.push();
+        context.translate((float) this.x, (float) this.y, 0.0F);
 
-        PoseStack matrices = context.pose();
-        matrices.pushPose();
-        matrices.translate((float) this.x, (float) this.y, 0.0F);
+        if(this.centered) context.translate(this.direction.getXOffset(), this.direction.getYOffset(), 0.0f);
 
-        if(this.centered) matrices.translate(this.direction.getXOffset(), this.direction.getYOffset(), 0.0f);
-
-        matrices.scale((float) this.width / (float) this.regionWidth(), (float) this.height / (float) this.regionHeight(), 0.0F);
+        context.scale((float) this.width / (float) this.regionWidth(), (float) this.height / (float) this.regionHeight(), 0.0F);
         PositionedRectangle visibleArea = this.visibleArea.get();
         int bottomEdge = Math.min(visibleArea.y() + visibleArea.height(), this.regionHeight());
         int rightEdge = Math.min(visibleArea.x() + visibleArea.width(), this.regionWidth());
-        context.blit(renderTypeGetter, this.texture, visibleArea.x(), visibleArea.y(), (float) (this.u() + visibleArea.x()), (float) (this.v() + visibleArea.y()),rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(), rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(), this.textureWidth, this.textureHeight);
+        DrawUtils.blit(context, this.blend, this.texture, visibleArea.x(), visibleArea.y(), (float) (this.u() + visibleArea.x()), (float) (this.v() + visibleArea.y()), rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(), rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(), this.textureWidth, this.textureHeight);
 
-        matrices.popPose();
+        context.pop();
     }
 
     public ArrowComponent changeDirection(Direction direction) {

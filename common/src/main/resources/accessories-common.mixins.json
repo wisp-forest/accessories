@@ -8,6 +8,7 @@
     "client.AbstractButtonMixin",
     "client.AbstractContainerScreenAccessor",
     "client.AbstractContainerScreenMixin",
+    "client.AbstractSliderButtonAccessor",
     "client.AbstractRecipeBookScreenMixin",
     "client.CapeLayerMixin",
     "client.ClientPacketListenerMixin",

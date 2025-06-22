@@ -89,12 +89,14 @@ public class AccessoriesConfigModel {
         // Experimental Screen
 
         @SectionHeader("experimental")
+        @Hook
         public boolean isDarkMode = false;
+
         public boolean showEquippedStackSlotType = true;
 
         public boolean entityLooksAtMouseCursor = false;
 
-        public boolean allowSideBarCraftingGrid = true;
+        @Hook
 
         // Legacy Screen
 

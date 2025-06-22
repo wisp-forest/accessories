@@ -3,18 +3,21 @@ package io.wispforest.accessories.client.gui;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.client.AccessoriesFunkyRenderingState;
+import io.wispforest.accessories.client.DrawUtils;
+import io.wispforest.accessories.client.gui.utils.Line3d;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
-import io.wispforest.accessories.impl.ExpandedSimpleContainer;
+import io.wispforest.accessories.impl.core.ExpandedSimpleContainer;
+import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.impl.slot.SlotGroupImpl;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import io.wispforest.accessories.menu.variants.AccessoriesMenu;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
-import io.wispforest.accessories.networking.holder.PlayerOption;
+import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
 import io.wispforest.accessories.networking.server.MenuScroll;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
-import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -25,14 +28,12 @@ import net.minecraft.client.gui.screens.ErrorScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import org.apache.commons.lang3.Range;
@@ -118,12 +119,6 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         return this.topPos;
     }
 
-    public final LivingEntity targetEntityDefaulted() {
-        var targetEntity = this.menu.targetEntity();
-
-        return (targetEntity != null) ? targetEntity : this.minecraft.player;
-    }
-
     protected boolean insideScrollbar(double mouseX, double mouseY) {
         int x = getStartingPanelX() + 13;
         int y = this.topPos + 7 + upperPadding;
@@ -178,6 +173,9 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
+    private final List<Vector3d> hoveredAccessoryPositons = new ArrayList<>();
+    private final List<Line3d> linesToAccessoryPositions = new ArrayList<>();
+
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         int leftPos = this.leftPos;
@@ -197,25 +195,15 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         var scissorEnd = new Vector2i(leftPos + 26 + 124, topPos + 8 + 70);
         var size = new Vector2i((scissorEnd.x - scissorStart.x) / 2, scissorEnd.y - scissorStart.y);
 
-        SCISSOR_BOX.set(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y);
-
         // --
 
-        AccessoriesScreenBase.togglePositionCollection();
+        AccessoriesFunkyRenderingState.wrapEntityRendering(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y, primaryEntityWrapCall -> {
+            primaryEntityWrapCall.accept(() -> {
+                renderEntityInInventoryFollowingMouseRotated(guiGraphics, scissorStart, size, scissorStart, scissorEnd, mouseX, mouseY, 0);
+            });
 
-        AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.setValue(true);
-
-        IS_RENDERING_LINE_TARGET.setValue(true);
-
-        renderEntityInInventoryFollowingMouseRotated(guiGraphics, scissorStart, size, scissorStart, scissorEnd, mouseX, mouseY, 0);
-
-        IS_RENDERING_LINE_TARGET.setValue(false);
-
-        renderEntityInInventoryFollowingMouseRotated(guiGraphics, new Vector2i(scissorStart).add(size.x, 0), size, scissorStart, scissorEnd, mouseX, mouseY, 180);
-
-        AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.setValue(false);
-
-        COLLECT_ACCESSORY_POSITIONS.setValue(false);
+            renderEntityInInventoryFollowingMouseRotated(guiGraphics, new Vector2i(scissorStart).add(size.x, 0), size, scissorStart, scissorEnd, mouseX, mouseY, 180);
+        });
 
 
 //        HOVERED_SLOT_TYPE = null;
@@ -270,17 +258,19 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         });
 
         if (getHoveredSlot() != null && getHoveredSlot() instanceof AccessoriesInternalSlot slot && slot.isActive() && !slot.getItem().isEmpty()) {
-            if (NOT_VERY_NICE_POSITIONS.containsKey(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot())) {
-                ACCESSORY_POSITIONS.add(NOT_VERY_NICE_POSITIONS.get(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot()));
+            var positions = AccessoriesFunkyRenderingState.getNotVeryNicePositions();
+
+            if (positions.containsKey(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot())) {
+                hoveredAccessoryPositons.add(positions.get(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot()));
 
                 var positionKey = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
-                var vec = NOT_VERY_NICE_POSITIONS.getOrDefault(positionKey, null);
+                var vec = positions.getOrDefault(positionKey, null);
 
                 if (!slot.isCosmetic && vec != null && (Accessories.config().screenOptions.hoveredOptions.line())) {
                     var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
                     var vec3 = vec.add(0, 0, 5000);
 
-                    ACCESSORY_LINES.add(Pair.of(start, vec3));
+                    linesToAccessoryPositions.add(new Line3d(start, vec3));
                 }
             }
         }
@@ -375,95 +365,57 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         //--
 
         if (Accessories.config().screenOptions.hoveredOptions.clickbait()) {
-            ACCESSORY_POSITIONS.forEach(pos -> guiGraphics.blitSprite(RenderType::guiTextured, Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 100, 256, 256));
-            ACCESSORY_POSITIONS.clear();
+            hoveredAccessoryPositons.forEach(pos -> guiGraphics.blitSprite(RenderType::guiTextured, Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 100, 256, 256));
+            hoveredAccessoryPositons.clear();
         }
 
         this.renderTooltip(guiGraphics, mouseX, mouseY);
 
 
 
-        if (!ACCESSORY_LINES.isEmpty() && Accessories.config().screenOptions.hoveredOptions.line()) {
+        if (!linesToAccessoryPositions.isEmpty() && Accessories.config().screenOptions.hoveredOptions.line()) {
             guiGraphics.drawSpecial(multiBufferSource -> {
                 var buf = multiBufferSource.getBuffer(RenderType.LINES);
                 var lastPose = guiGraphics.pose().last();
 
-                for (Pair<Vector3d, Vector3d> line : ACCESSORY_LINES) {
-                    var normalVec = line.second().sub(line.first(), new Vector3d()).normalize().get(new Vector3f());
+                for (Line3d line : linesToAccessoryPositions) {
+                    var normalVec = line.p2().sub(line.p1(), new Vector3d()).normalize().get(new Vector3f());
 
-                    double segments = Math.max(10, ((int) (line.first().distance(line.second()) * 10)) / 100);
+                    double segments = Math.max(10, ((int) (line.p1().distance(line.p2()) * 10)) / 100);
                     segments *= 2;
 
                     var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
                     var delta = movement % (2 / (segments)) % segments;
 
-                    var firstVec = line.first().get(new Vector3f());
+                    var firstVec = line.p1().get(new Vector3f());
 
                     if (delta > 0.05) {
-                        buf.addVertex(firstVec)
-                                .setColor(255, 255, 255, 255)
-                                .setOverlay(OverlayTexture.NO_OVERLAY)
-                                //.uv2(LightTexture.FULL_BLOCK)
-                                .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                        //.endVertex();
-
-                        var pos = new Vector3d(
-                                Mth.lerp(delta - 0.05, line.first().x, line.second().x),
-                                Mth.lerp(delta - 0.05, line.first().y, line.second().y),
-                                Mth.lerp(delta - 0.05, line.first().z, line.second().z)
-                        ).get(new Vector3f());
-
-                        buf.addVertex(pos)
-                                .setColor(255, 255, 255, 255)
-                                .setOverlay(OverlayTexture.NO_OVERLAY)
-                                //.uv2(LightTexture.FULL_BLOCK)
-                                .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                        //.endVertex();
+                        DrawUtils.addToVertexBuffer(buf, firstVec, lastPose, normalVec);
+                        DrawUtils.addToVertexBuffer(buf, line.lerpPoint(delta - 0.05), lastPose, normalVec);
                     }
+
                     for (int i = 0; i < segments / 2; i++) {
                         var delta1 = ((i * 2) / segments + movement) % 1;
                         var delta2 = ((i * 2 + 1) / segments + movement) % 1;
 
-                        var pos1 = new Vector3d(
-                                Mth.lerp(delta1, line.first().x, line.second().x),
-                                Mth.lerp(delta1, line.first().y, line.second().y),
-                                Mth.lerp(delta1, line.first().z, line.second().z)
-                        ).get(new Vector3f());
-                        var pos2 = (delta2 > delta1 ? new Vector3d(
-                                Mth.lerp(delta2, line.first().x, line.second().x),
-                                Mth.lerp(delta2, line.first().y, line.second().y),
-                                Mth.lerp(delta2, line.first().z, line.second().z)
-                        ) : line.second()).get(new Vector3f());
+                        var pos1 = line.lerpPoint(delta1);
+                        var pos2 = (delta2 > delta1 ? line.lerpPoint(delta2) : line.p2().get(new Vector3f()));
 
-                        buf.addVertex(pos1)
-                                .setColor(255, 255, 255, 255)
-                                .setOverlay(OverlayTexture.NO_OVERLAY)
-                                //.setUv2(LightTexture.FULL_BLOCK)
-                                .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                        //.endVertex();
-                        buf.addVertex(pos2)
-                                .setColor(255, 255, 255, 255)
-                                .setOverlay(OverlayTexture.NO_OVERLAY)
-                                //.setUv2(LightTexture.FULL_BLOCK)
-                                .setNormal(lastPose, normalVec.x, normalVec.y, normalVec.z);
-                        //.endVertex();
+                        DrawUtils.addToVertexBuffer(buf, pos1, lastPose, normalVec);
+                        DrawUtils.addToVertexBuffer(buf, pos2, lastPose, normalVec);
                     }
                 }
 
                 minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
 
-                ACCESSORY_LINES.clear();
+                linesToAccessoryPositions.clear();
             });
         }
     }
 
-    private Button backButton = null;
-
     private Button cosmeticToggleButton = null;
-    private Button linesToggleButton = null;
 
     private Button unusedSlotsToggleButton = null;
-    private Button uniqueSlotsToggleButton = null;
 
     private Button tabUpButton = null;
     private Button tabDownButton = null;
@@ -486,7 +438,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         this.cosmeticButtons.clear();
 
-        this.backButton = this.addRenderableWidget(
+        this.addRenderableWidget(
                 Button.builder(Component.empty(), (btn) -> this.switchToBaseInventory())
                         .bounds(this.leftPos + 141, this.topPos + 9, 8, 8)
                         .tooltip(Tooltip.create(Component.translatable(Accessories.translationKey("back.screen"))))
@@ -510,7 +462,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         this.cosmeticToggleButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), (btn) -> {
                             AccessoriesNetworking
-                                    .sendToServer(SyncOptionChange.of(PlayerOption.COSMETIC_PROP, this.getMenu().owner(), bl -> !bl));
+                                    .sendToServer(SyncOptionChange.of(PlayerOptions.SHOW_COSMETIC_SLOTS, this.getMenu().owner(), bl -> !bl));
                         })
                         .tooltip(cosmeticsToggleTooltip(cosmeticsOpen))
                         .bounds(this.leftPos - 27 + (cosmeticsOpen ? -20 : 0), this.topPos + 7, (cosmeticsOpen ? 38 : 18), 6)
@@ -521,7 +473,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         this.unusedSlotsToggleButton = this.addRenderableWidget(
                 Button.builder(Component.empty(), (btn) -> {
                             AccessoriesNetworking
-                                    .sendToServer(SyncOptionChange.of(PlayerOption.UNUSED_PROP, this.getMenu().owner(), bl -> !bl));
+                                    .sendToServer(SyncOptionChange.of(PlayerOptions.SHOW_UNUSED_SLOTS, this.getMenu().owner(), bl -> !bl));
                         })
                         .tooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()))
                         .bounds(this.leftPos + 154, btnOffset, 12, 12)
@@ -622,8 +574,8 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
     }
 
     @Override
-    public void onHolderChange(String key) {
-        switch (key) {
+    public void onHolderChange(PlayerOption<?> option) {
+        switch (option.name()) {
             case "lines" -> updateLinesButton();
             case "cosmetic" -> updateCosmeticToggleButton();
             case "unused_slots" -> updateUnusedSlotToggleButton();

@@ -6,15 +6,17 @@ import java.util.List;
 
 public record CollectedPositionedRectangle(PositionedRectangle primaryCheck, PositionedRectangle[] secondaryChecks) implements PositionedRectangle {
 
-    public static PositionedRectangle of(PositionedRectangle primaryCheck, List<PositionedRectangle> secondaryChecks) {
+    public static CollectedPositionedRectangle of(PositionedRectangle primaryCheck, List<PositionedRectangle> secondaryChecks) {
         if(secondaryChecks.size() == 1) {
             primaryCheck = secondaryChecks.getFirst();
             secondaryChecks = List.of();
         }
 
-        if(secondaryChecks.isEmpty()) return primaryCheck;
-
         return new CollectedPositionedRectangle(primaryCheck, secondaryChecks.toArray(PositionedRectangle[]::new));
+    }
+
+    public boolean isEmpty() {
+        return secondaryChecks.length == 0;
     }
 
     @Override
@@ -40,6 +42,8 @@ public record CollectedPositionedRectangle(PositionedRectangle primaryCheck, Pos
     @Override
     public boolean isInBoundingBox(double x, double y) {
         if(isInBoundingBox(primaryCheck, x, y)) {
+            if (secondaryChecks.length == 0) return true;
+
             for (var secondaryCheck : secondaryChecks) {
                 if (secondaryCheck.isInBoundingBox(x, y)) return true;
             }

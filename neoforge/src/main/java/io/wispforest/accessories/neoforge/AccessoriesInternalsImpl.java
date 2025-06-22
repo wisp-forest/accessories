@@ -7,7 +7,7 @@ import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
-import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
+import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.neoforge.mixin.ContextAwareReloadListenerAccessor;
@@ -68,11 +68,11 @@ public class AccessoriesInternalsImpl {
         livingEntity.setData(AccessoriesForge.HOLDER_ATTACHMENT_TYPE, holder);
     }
 
-    public static AccessoriesPlayerOptions getPlayerOptions(Player player) {
+    public static AccessoriesPlayerOptionsHolder getPlayerOptions(Player player) {
         return player.getData(AccessoriesForge.PLAYER_OPTIONS_ATTACHMENT_TYPE);
     }
 
-    public static void modifyPlayerOptions(Player player, UnaryOperator<AccessoriesPlayerOptions> modifier) {
+    public static void modifyPlayerOptions(Player player, UnaryOperator<AccessoriesPlayerOptionsHolder> modifier) {
         var options = getPlayerOptions(player);
 
         options = modifier.apply(options);

@@ -12,7 +12,7 @@ import io.wispforest.accessories.data.api.SyncedDataHelperManager;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
-import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
+import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.InvalidateEntityCache;
@@ -43,6 +43,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
@@ -51,7 +52,7 @@ import net.minecraft.world.level.GameRules;
 public class AccessoriesFabric implements ModInitializer {
 
     public static final AttachmentType<AccessoriesHolderImpl> HOLDER_ATTACHMENT_TYPE;
-    public static final AttachmentType<AccessoriesPlayerOptions> PLAYER_OPTIONS_ATTACHMENT_TYPE;
+    public static final AttachmentType<AccessoriesPlayerOptionsHolder> PLAYER_OPTIONS_ATTACHMENT_TYPE;
 
     public static final EntityApiLookup<AccessoriesCapability, Void> CAPABILITY = EntityApiLookup.get(Accessories.of("capability"), AccessoriesCapability.class, Void.class);
 
@@ -99,7 +100,13 @@ public class AccessoriesFabric implements ModInitializer {
         CommandRegistrationCallback.EVENT.register(CommandGenerators::registerAllGenerators);
 
         UseItemCallback.EVENT.register((player, level, hand) -> {
+            //if (level.isClientSide) return InteractionResult.PASS;
+
             var holder = AccessoriesEventHandler.attemptEquipFromUse(player, hand);
+
+            if (holder instanceof InteractionResult.Success && level.isClientSide()) {
+                return InteractionResult.SUCCESS;
+            }
 
             //TODO: CONFIRM IF THIS IS CORRECT!
 //            if(holder instanceof InteractionResult.Success success) {

@@ -3,6 +3,7 @@ package io.wispforest.accessories.compat.rei;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.client.gui.components.ArrowComponent;
+import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.mixin.client.AbstractContainerScreenAccessor;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import me.shedaniel.math.Rectangle;
@@ -51,7 +52,7 @@ public class AccessoriesClientREIPlugin implements REIClientPlugin {
                 screen -> {
                     var accessor = ((AbstractContainerScreenAccessor) (screen));
 
-                    if(screen.showCraftingGrid()) {
+                    if(screen.getOption(PlayerOptions.SHOW_CRAFTING_GRID)) {
                         var component = screen.component(ArrowComponent.class, "crafting_arrow");
 
                         if (component != null) {
@@ -76,8 +77,8 @@ public class AccessoriesClientREIPlugin implements REIClientPlugin {
                 if (categoryIdentifier.equals(context.getDisplay().getCategoryIdentifier())
                         && context.getContainerScreen() instanceof AccessoriesExperimentalScreen screen) {
 
-                    if (!screen.showCraftingGrid() && context.isActuallyCrafting()) {
-                        var component = screen.component(ButtonComponent.class, "crafting_grid_button");
+                    if (!screen.getOption(PlayerOptions.SHOW_CRAFTING_GRID) && context.isActuallyCrafting()) {
+                        var component = screen.component(ButtonComponent.class, "crafting_grid_btn");
 
                         component.onPress();
                     }

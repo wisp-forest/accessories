@@ -1,56 +1,34 @@
 package io.wispforest.accessories.client.gui;
 
-import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.menu.variants.AccessoriesMenu;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
+import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.accessories.networking.server.ContainerClose;
 import io.wispforest.accessories.pond.CloseContainerTransfer;
-import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.inventory.Slot;
 import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.joml.Vector3d;
-import org.joml.Vector4i;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public interface AccessoriesScreenBase<M extends AccessoriesMenuBase> extends MenuAccess<M> {
-    // are we currently rendering an entity in a screen
-    MutableBoolean IS_RENDERING_UI_ENTITY = new MutableBoolean(false);
 
-    // are we currently rendering the entity that lines should be drawn to
-    MutableBoolean IS_RENDERING_LINE_TARGET = new MutableBoolean(false);
-
-    MutableBoolean COLLECT_ACCESSORY_POSITIONS = new MutableBoolean(false);
-
-    static void togglePositionCollection() {
-        var hoverOptions = Accessories.config().screenOptions.hoveredOptions;
-
-        COLLECT_ACCESSORY_POSITIONS.setValue(hoverOptions.line() || hoverOptions.clickbait());
-    }
+    //--
 
     MutableBoolean FORCE_TOOLTIP_LEFT = new MutableBoolean(false);
 
-    Map<String, Vector3d> NOT_VERY_NICE_POSITIONS = new HashMap<>();
+    //--
 
-    List<Pair<Vector3d, Vector3d>> ACCESSORY_LINES = new ArrayList<>();
-
-    List<Vector3d> ACCESSORY_POSITIONS = new ArrayList<>();
-
-    Vector4i SCISSOR_BOX = new Vector4i();
-
-    void onHolderChange(String key);
-
-    LivingEntity targetEntityDefaulted();
+    void onHolderChange(PlayerOption<?> option);
 
     Slot getHoveredSlot();
+
+    default LivingEntity targetEntityDefaulted() {
+        var targetEntity = this.getMenu().targetEntity();
+
+        return (targetEntity != null) ? targetEntity : Minecraft.getInstance().player;
+    }
 
     default void switchToBaseInventory() {
         this.getMenu().transferAndClose(() -> {

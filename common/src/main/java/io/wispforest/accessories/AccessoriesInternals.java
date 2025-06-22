@@ -4,7 +4,7 @@ import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
-import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
+import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.endec.Endec;
@@ -68,6 +68,7 @@ public class AccessoriesInternals {
 
     @ExpectPlatform
     public static void modifyPlayerOptions(Player player, UnaryOperator<AccessoriesPlayerOptions> modifier) {
+    public static void modifyPlayerOptions(Player player, UnaryOperator<AccessoriesPlayerOptionsHolder> modifier) {
         throw new AssertionError();
     }
 

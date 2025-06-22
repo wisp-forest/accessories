@@ -2,7 +2,9 @@ package io.wispforest.accessories.mixin.client;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -52,5 +54,10 @@ public abstract class AbstractContainerScreenMixin implements ContainerScreenExt
         }
 
         original.call(instance, function, texture, x, y, width, height);
+    }
+
+    @WrapOperation(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;matches(II)Z"))
+    private boolean accessories$adjustCloseCheck(KeyMapping instance, int keysym, int scancode, Operation<Boolean> original) {
+        return original.call(instance, keysym, scancode) || original.call(AccessoriesClient.OPEN_SCREEN, keysym, scancode);
     }
 }

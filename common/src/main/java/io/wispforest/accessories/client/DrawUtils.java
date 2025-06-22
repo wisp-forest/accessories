@@ -1,22 +1,22 @@
 package io.wispforest.accessories.client;
 
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
-import io.wispforest.owo.client.OwoClient;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import io.wispforest.owo.ui.core.Color;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.TriState;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import java.util.function.Function;
 
-public class GuiGraphicsUtils {
+public class DrawUtils {
 
     public static void drawWithSpectrum(GuiGraphics ctx, int x, int y, int blitOffset, int width, int height, ResourceLocation texture, float alpha) {
         TextureAtlasSprite sprite = Minecraft.getInstance().getGuiSprites().getSprite(texture);
@@ -89,5 +89,58 @@ public class GuiGraphicsUtils {
         vertexConsumer.addVertex(matrix4f, (float)minX, (float)maxY, (float)z).setColor(vertical ? bottomValue : topValue, 1f, 1f, alpha);
         vertexConsumer.addVertex(matrix4f, (float)maxX, (float)maxY, (float)z).setColor(bottomValue, 1f, 1f, alpha);
         vertexConsumer.addVertex(matrix4f, (float)maxX, (float)minY, (float)z).setColor(vertical ? topValue : bottomValue, 1f, 1f, alpha);
+    }
+
+    public static void blitSprite(GuiGraphics context, ResourceLocation atlasLocation, int x, int y, int width, int height) {
+        blitSprite(context, atlasLocation, x, y, width, height, -1);
+    }
+
+    public static void blitSprite(GuiGraphics context, ResourceLocation atlasLocation, int x, int y, int width, int height, int blitOffset) {
+        context.blitSprite(RenderType::guiTextured, atlasLocation, x, y, width, height, blitOffset);
+    }
+
+    public static void blit(GuiGraphics context, ResourceLocation atlasLocation, int x, int y, int width, int height) {
+        blit(context, atlasLocation, x, y, 0, 0, width, height, width, height);
+    }
+
+    public static void blit(GuiGraphics context, ResourceLocation atlasLocation, int x, int y, int uWidth, int vHeight, int textureWidth, int textureHeight) {
+        blit(context, atlasLocation, x, y, 0, 0, uWidth, vHeight, textureWidth, textureHeight);
+    }
+
+    public static void blit(GuiGraphics context, ResourceLocation atlasLocation, int x, int y, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight) {
+        context.blit(RenderType::guiTextured, atlasLocation, x, y, uOffset, vOffset, uWidth, vHeight, uWidth, vHeight, textureWidth, textureHeight);
+    }
+
+    public static void blit(GuiGraphics context, boolean blend, ResourceLocation atlasLocation, int x, int y, float uOffset, float vOffset, int uWidth, int vHeight, int width, int height, int textureWidth, int textureHeight) {
+        Function<ResourceLocation, RenderType> renderTypeGetter = blend
+                ? RenderType::guiTextured
+                : RenderType::guiTexturedOverlay;
+
+        context.blit(renderTypeGetter, atlasLocation, x, y, uOffset, vOffset, uWidth, vHeight, width, height, textureWidth, textureHeight, -1);
+    }
+
+    public static void blitWithColor(GuiGraphics context, Color color, ResourceLocation atlasLocation, int x, int y, int width, int height) {
+        context.blit(location -> AccessoriesPipelines.COLORED_GUI_TEXTURED.apply(color, location), atlasLocation, x, y, 0, 0, width, height, width, height, width, height);
+
+        context.flush();
+    }
+
+    public static void blitSpriteWithColor(GuiGraphics context, TextureAtlasSprite sprite, int x, int y, int width, int height, Color color) {
+        context.blitSprite(location -> AccessoriesPipelines.COLORED_GUI_TEXTURED.apply(color, location), sprite, x, y, width, height, color.argb());
+    }
+
+    public static void addToVertexBuffer(VertexConsumer buf, Vector3f pos, PoseStack.Pose pose, Vector3f normalVec) {
+        buf.addVertex(pos)
+                .setColor(255, 255, 255, 255)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                //.uv2(LightTexture.FULL_BLOCK)
+                .setNormal(pose, normalVec.x, normalVec.y, normalVec.z);
+                //.endVertex();
+    }
+
+    public static void addToVertexBuffer(VertexConsumer buf, Matrix4f pose, float x, float y, float z, int u, int v) {
+        buf.addVertex(pose, x, y, z)
+                .setColor(255, 255, 255, 255)
+                .setUv(u, v);
     }
 }

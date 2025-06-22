@@ -2,6 +2,7 @@ package io.wispforest.testccessories.neoforge.client;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
+import io.wispforest.accessories.client.DrawUtils;
 import io.wispforest.testccessories.neoforge.TestMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -51,16 +52,15 @@ public class TestScreen extends AbstractContainerScreen<TestMenu> implements Men
         var startX = minX - padding;
         var startY = minY - padding;
 
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate((float)leftPos, (float)topPos, 0.0F);
+        guiGraphics.push().translate((float)leftPos, (float)topPos, 0.0F);
 
-        guiGraphics.blitSprite(RenderType::guiTextured, BACKGROUND_PATCH, startX - 1, startY - 1, width + 1, height + 1);
+        DrawUtils.blitSprite(guiGraphics, BACKGROUND_PATCH, startX - 1, startY - 1, width + 1, height + 1);
 
         for (Slot slot : this.menu.slots) {
-            guiGraphics.blit(RenderType::guiTextured, SLOT_FRAME, slot.x - 1, slot.y - 1, 0, 0, 18, 18, 18, 18);
+            DrawUtils.blit(guiGraphics, SLOT_FRAME, slot.x - 1, slot.y - 1, 18, 18);
         }
 
-        guiGraphics.pose().popPose();
+        guiGraphics.pop();
     }
 
     @Override

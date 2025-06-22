@@ -1,19 +1,16 @@
 package io.wispforest.accessories.client.gui.components;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.AccessoriesPipelines;
-import io.wispforest.accessories.client.GuiGraphicsUtils;
+import io.wispforest.accessories.client.DrawUtils;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.server.SyncCosmeticToggle;
 import io.wispforest.accessories.pond.owo.ComponentExtension;
-import io.wispforest.accessories.pond.owo.MutableBoundingArea;
+import io.wispforest.owo.Owo;
 import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.Components;
@@ -26,23 +23,17 @@ import io.wispforest.owo.ui.util.ScissorStack;
 import it.unimi.dsi.fastutil.Pair;
 import net.fabricmc.fabric.api.event.Event;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.TriState;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.CreativeModeTab;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.*;
+import java.util.function.*;
+
+import static io.wispforest.owo.ui.container.Containers.*;
 
 public class ComponentUtils {
 
@@ -52,25 +43,48 @@ public class ComponentUtils {
     public static final Surface BACKGROUND_SLOT_RENDERING_SURFACE = (context, component) -> {
         var slotComponents = new ArrayList<AccessoriesExperimentalScreen.ExtendedSlotComponent>();
 
-        recursiveSearch(component, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponents::add);
+        recursiveSearchSlots(component, slotComponents::add);
 
-        context.push();
-        context.translate(component.x(), component.y(), 0);
+        context.push()
+                .translate(component.x(), component.y(), 0);
 
         for (var slotComponent : slotComponents) {
-            context.blit(RenderType::guiTextured, getSlotTexture(), slotComponent.x() - component.x() - 1, slotComponent.y() - component.y() - 1, 0, 0, 18, 18, 18, 18);
+            DrawUtils.blit(
+                    context,
+                    getSlotTexture(),
+                    slotComponent.x() - component.x() - 1,
+                    slotComponent.y() - component.y() - 1,
+                    18, 18
+            );
         }
 
+        renderSpectrumOutlines(context, component, slotComponents);
+
+        context.pop();
+    };
+
+    public static final Surface SPECTRUM_SLOT_OUTLINE = (context, component) -> {
+        var slotComponents = new ArrayList<AccessoriesExperimentalScreen.ExtendedSlotComponent>();
+
+        recursiveSearchSlots(component, slotComponents::add);
+
+        context.push()
+                .translate(component.x(), component.y(), 0);
+
+        renderSpectrumOutlines(context, component, slotComponents);
+
+        context.pop();
+    };
+
+    public static void renderSpectrumOutlines(OwoUIDrawContext context, io.wispforest.owo.ui.core.Component component, List<AccessoriesExperimentalScreen.ExtendedSlotComponent> slotComponents) {
         for (var slotComponent : slotComponents) {
             var slot = slotComponent.slot();
 
             if (!(slot instanceof SlotTypeAccessible slotTypeAccessible) || !slotTypeAccessible.isCosmeticSlot()) continue;
 
-            GuiGraphicsUtils.drawRectOutlineWithSpectrum(context, slotComponent.x() - component.x(), slotComponent.y() - component.y(), 0, 16, 16, 0.35f, true);
+            DrawUtils.drawRectOutlineWithSpectrum(context, slotComponent.x() - component.x(), slotComponent.y() - component.y(), 0, 16, 16, 0.35f, true);
         }
-
-        context.pop();
-    };
+    }
 
     public static final ScrollContainer.Scrollbar VANILLA = (context, x, y, width, height, trackX, trackY, trackWidth, trackHeight, lastInteractTime, direction, active) -> {
         NinePatchTexture.draw(Accessories.of(("theme/" + checkMode("light", "dark") + "/scrollbar/track")), context, trackX, trackY, trackWidth, trackHeight);
@@ -107,6 +121,45 @@ public class ComponentUtils {
         return Accessories.config().screenOptions.isDarkMode() ? darkMode : lightMode;
     }
 
+    private record ThemeHook<O, T>(Predicate<O> isValidStill, BiConsumer<O, T> setCallback) {
+        private boolean isHookValid(Object hookedObject) {
+            return this.isValidStill.test((O) hookedObject);
+        }
+
+        private void setValue(Object hookedObject, Object themeResult) {
+            setCallback.accept((O) hookedObject, (T) themeResult);
+        }
+    }
+
+    private static final Map<Object, ThemeHook<?, ?>> activeHooks = new WeakHashMap<>();
+    private static boolean hookSetup = false;
+
+    public static <O, T> void addModeCheckHook(T lightMode, T darkMode, O o, Predicate<O> isValidStill, BiConsumer<O, T> setCallback) {
+        Function<Boolean, T> getterFunc = isDarkMode -> isDarkMode ? darkMode : lightMode;
+
+        activeHooks.put(o, new ThemeHook<O, T>(isValidStill, setCallback));
+
+        if (!hookSetup) {
+            hookSetup = true;
+
+            Accessories.config().screenOptions.subscribeToIsDarkMode(isDarkMode -> {
+                for (var object : activeHooks.keySet()) {
+                    var hook = activeHooks.get(object);
+
+                    if (!hook.isHookValid(object)) {
+                        activeHooks.remove(object);
+
+                        continue;
+                    }
+
+                    hook.setValue(object, getterFunc.apply(isDarkMode));
+                }
+            });
+        }
+
+        setCallback.accept(o, getterFunc.apply(Accessories.config().screenOptions.isDarkMode()));
+    }
+
     public static ResourceLocation getSlotTexture() {
         return checkMode(SLOT, DARK_SLOT);
     }
@@ -135,6 +188,10 @@ public class ComponentUtils {
         return VANILLA;
     }
 
+    public static void recursiveSearchSlots(ParentComponent parentComponent, Consumer<AccessoriesExperimentalScreen.ExtendedSlotComponent> action) {
+        recursiveSearch(parentComponent, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, action);
+    }
+
     public static <C extends io.wispforest.owo.ui.core.Component> void recursiveSearch(ParentComponent parentComponent, Class<C> target, Consumer<C> action) {
         if(parentComponent == null) return;
 
@@ -144,68 +201,62 @@ public class ComponentUtils {
         }
     }
 
-    public static <S extends Slot & SlotTypeAccessible> Pair<io.wispforest.owo.ui.core.Component, PositionedRectangle> slotAndToggle(S slot, Function<Integer, AccessoriesExperimentalScreen.ExtendedSlotComponent> slotBuilder) {
-        return slotAndToggle(slot, true, slotBuilder);
+    public static <S extends Slot & SlotTypeAccessible> Pair<io.wispforest.owo.ui.core.Component, PositionedRectangle> createSlotWithToggle(S slot, Function<Integer, AccessoriesExperimentalScreen.ExtendedSlotComponent> slotBuilder) {
+        return createSlotWithToggle(slot, slotBuilder, true);
     }
 
-    public static <S extends Slot & SlotTypeAccessible> Pair<io.wispforest.owo.ui.core.Component, PositionedRectangle> slotAndToggle(S slot, boolean isBatched, Function<Integer, AccessoriesExperimentalScreen.ExtendedSlotComponent> slotBuilder) {
+    public static <S extends Slot & SlotTypeAccessible> Pair<io.wispforest.owo.ui.core.Component, @Nullable PositionedRectangle> createSlotWithToggle(S slot, Function<Integer, AccessoriesExperimentalScreen.ExtendedSlotComponent> slotBuilder, boolean createButton) {
         var btnPosition = Positioning.absolute(14, -1); //15, -1
 
-        var toggleBtn = ComponentUtils.slotToggleBtn(slot)
-                .configure(component -> {
-                    component.zIndex(600) //900
-                            .sizing(Sizing.fixed(5))
-                            .positioning(btnPosition);
-                });
+        @Nullable ButtonComponent toggleBtn = null;
 
-        ((ComponentExtension)(toggleBtn)).allowIndividualOverdraw(true);
+        if (createButton) {
+            toggleBtn = ComponentUtils.createSlotToggle(slot)
+                    .configure(component -> {
+                        component.zIndex(600) //900
+                                .sizing(Sizing.fixed(5))
+                                .positioning(btnPosition);
 
-        var combinedLayout = Containers.verticalFlow(Sizing.fixed(18), Sizing.fixed(18))
+                        ((ComponentExtension) component).allowIndividualOverdraw(true);
+                    });
+        }
+
+        var combinedLayout = verticalFlow(Sizing.fixed(18), Sizing.fixed(18))
                 .child(
                         slotBuilder.apply(slot.index)
                                 .margins(Insets.of(1))
-                )
-                .child(toggleBtn);
+                );
 
-        var combinedArea = ((MutableBoundingArea) combinedLayout);
+        if (toggleBtn != null) combinedLayout.child(toggleBtn);
 
-        //combinedArea.addInclusionZone(toggleBtn);
-        //combinedArea.deepRecursiveChecking(true);
-
-        return Pair.of(
-                combinedLayout,
-                toggleBtn
-        );
+        return Pair.of(combinedLayout, toggleBtn);
     }
 
-    public static <S extends Slot & SlotTypeAccessible> ButtonComponent slotToggleBtn(S slot) {
-        return toggleBtn(Component.literal(""),
+    public static <S extends Slot & SlotTypeAccessible> ButtonComponent createSlotToggle(S slot) {
+        return createToggle(
                 () -> slot.getContainer().shouldRender(slot.getContainerSlot()),
                 (btn) -> {
                     var entity = slot.getContainer().capability().entity();
 
                     AccessoriesNetworking
                             .sendToServer(SyncCosmeticToggle.of(entity.equals(Minecraft.getInstance().player) ? null : entity, slot.slotType(), slot.getContainerSlot()));
-                });
+                },
+                (context, button, delta) -> {});
     }
 
-    public static ButtonComponent groupToggleBtn(AccessoriesExperimentalScreen screen, SlotGroup group) {
-        var btn = toggleBtn(
-                Component.empty(),
-                () -> {
-                    var menu = screen.getMenu();
+    public static io.wispforest.owo.ui.core.Component createGroupToggle(AccessoriesExperimentalScreen screen, SlotGroup group) {
+        var tooltipData = new ArrayList<Component>();
 
-                    return menu.isGroupSelected(group);
-                },
+        tooltipData.add(Component.translatable(group.translation()));
+
+        if (UniqueSlotHandling.isUniqueGroup(group.name(), true)) {
+            tooltipData.add(Component.literal(group.name()).withStyle(ChatFormatting.BLUE, ChatFormatting.ITALIC));
+        }
+
+        return createToggle(
+                () -> screen.getMenu().isGroupSelected(group),
                 buttonComponent -> {
-                    var menu = screen.getMenu();
-
-                    if(menu.isGroupSelected(group)) {
-                        menu.removeSelectedGroup(group);
-                    } else {
-                        menu.addSelectedGroup(group);
-                    }
-
+                    screen.getMenu().toggleSelectedGroup(group);
                     screen.rebuildAccessoriesComponent();
                 },
                 (context, button, delta) -> {
@@ -213,31 +264,20 @@ public class ComponentUtils {
                             .getTextureAtlas(ResourceLocation.withDefaultNamespace("textures/atlas/gui.png"))
                             .apply(group.icon());
 
-                    var color = Color.WHITE;
-
-                    context.blitSprite(location -> AccessoriesPipelines.COLORED_GUI_TEXTURED.apply(color, location), textureAtlasSprite, button.x() + 3, button.y() + 3, 8, 8, color.argb());
-                });
-
-        var tooltipData = new ArrayList<Component>();
-
-        tooltipData.add(Component.translatable(group.translation()));
-        if (UniqueSlotHandling.isUniqueGroup(group.name(), true)) tooltipData.add(Component.literal(group.name()).withStyle(ChatFormatting.BLUE, ChatFormatting.ITALIC));
-
-        btn.sizing(Sizing.fixed(14))
+                    DrawUtils.blitSpriteWithColor(context, textureAtlasSprite, button.x() + 3, button.y() + 3, 8, 8, Color.WHITE);
+                })
+                .sizing(Sizing.fixed(14))
                 .tooltip(tooltipData);
-
-        return btn;
     }
 
-    public static ButtonComponent toggleBtn(net.minecraft.network.chat.Component message, Supplier<Boolean> stateSupplier, Consumer<ButtonComponent> onToggle) {
-        return toggleBtn(message, stateSupplier, onToggle, (context, button, delta) -> {});
-    }
-
-    public static ButtonComponent toggleBtn(net.minecraft.network.chat.Component message, Supplier<Boolean> stateSupplier, Consumer<ButtonComponent> onToggle, ButtonComponent.Renderer extraRendering) {
+    public static ButtonComponent createToggle(Supplier<Boolean> stateSupplier, Consumer<ButtonComponent> onToggle, ButtonComponent.Renderer extraRendering) {
         ButtonComponent.Renderer texturedRenderer = (context, btn, delta) -> {
             var state = stateSupplier.get();
 
-            ResourceLocation texture = getToggleBtnTexture(btn, state);
+            var btnType = (state ? "enabled" : "disabled") + (btn.isHovered() ? "_hovered" : "");
+            var themeType = checkMode("light", "dark");
+
+            var texture = Accessories.of("theme/" + themeType + "/button/toggle/rounded/" + btnType);
 
             context.push();
 
@@ -256,74 +296,71 @@ public class ComponentUtils {
             context.pop();
         };
 
-        return Components.button(message, onToggle)
+        return Components.button(Component.empty(), onToggle)
                 .renderer(texturedRenderer);
     }
 
-    private static ResourceLocation getToggleBtnTexture(ButtonComponent btn, Boolean state) {
-        var btnType = (state ? "enabled" : "disabled") + (btn.isHovered() ? "_hovered" : "");
-        var themeType = checkMode("light", "dark");
-
-        return Accessories.of("theme/" + themeType + "/button/toggle/rounded/" + btnType);
+    public static io.wispforest.owo.ui.core.Component createIconButton(Consumer<ButtonComponent> action, int size, Consumer<ButtonComponent> builder, Function<ButtonComponent, ResourceLocation> textureGetter) {
+        return createIconButton(action, size, null, builder, (context, buttonComponent) -> textureGetter.apply(buttonComponent));
     }
 
-    public static <C extends BaseOwoHandledScreen.SlotComponent> io.wispforest.owo.ui.core.Component createCraftingComponent(int start, int end, Function<Integer, C> componentFactory, Consumer<Integer> slotEnabler, boolean isVertical) {
-        var craftingLayout = isVertical ? Containers.verticalFlow(Sizing.fixed(18 * 2), Sizing.content()) : Containers.horizontalFlow(Sizing.content(), Sizing.fixed(18 * 2));
+    public static io.wispforest.owo.ui.core.Component createIconButton(Consumer<ButtonComponent> action, int size, Consumer<ButtonComponent> builder, BiFunction<OwoUIDrawContext, ButtonComponent, ResourceLocation> textureGetter) {
+        return createIconButton(action, size, null, builder, textureGetter);
+    }
 
-        slotEnabler.accept(0);
-        slotEnabler.accept(1);
-        slotEnabler.accept(2);
-        slotEnabler.accept(3);
-        slotEnabler.accept(4);
+    public static io.wispforest.owo.ui.core.Component createIconButton(Consumer<ButtonComponent> action, int size, String id, Consumer<ButtonComponent> builder, BiFunction<OwoUIDrawContext, ButtonComponent, ResourceLocation> textureGetter) {
+        return verticalFlow(Sizing.content(), Sizing.content())
+                .child(
+                        Components.button(Component.empty(), action)
+                                .sizing(Sizing.fixed(size))
+                                .configure(builder)
+                                .renderer((ctx, btn, delta) -> {
+                                    ctx.push();
+                                    DrawUtils.blit(ctx, textureGetter.apply(ctx, btn), btn.getX(), btn.getY(), btn.width(), btn.height());
+                                    ctx.pop();
+                                }).id(id)
+                );
+    }
 
-        craftingLayout.configure((FlowLayout layout) -> {
-            layout/*.surface(BACKGROUND_SLOT_RENDERING_SURFACE)*/
-                    .allowOverflow(true);
-        });
+    public static <C extends BaseOwoHandledScreen.SlotComponent> io.wispforest.owo.ui.core.Component createCraftingComponent(int start, Function<Integer, C> componentFactory, Consumer<Integer> slotEnabler, boolean isVertical) {
+        for (int i = start; i < 5 + start; i++) slotEnabler.accept(i);
 
-        var childrenList = new ArrayList<io.wispforest.owo.ui.core.Component>();
+        var craftingLayout = isVertical ? verticalFlow(Sizing.fixed(18 * 2), Sizing.content()) : horizontalFlow(Sizing.content(), Sizing.fixed(18 * 2));
 
-        childrenList.add(
-                (!isVertical ? Containers.verticalFlow(Sizing.content(), Sizing.content()) : Containers.horizontalFlow(Sizing.content(), Sizing.content()))
+        craftingLayout.child(
+                (!isVertical ? verticalFlow(Sizing.content(), Sizing.content()) : horizontalFlow(Sizing.content(), Sizing.content()))
                         .child(componentFactory.apply(start + 1).margins(Insets.of(1)))
                         .child(componentFactory.apply(start + 2).margins(Insets.of(1)))
-        );
-        childrenList.add(
-                (!isVertical ? Containers.verticalFlow(Sizing.content(), Sizing.content()) : Containers.horizontalFlow(Sizing.content(), Sizing.content()))
+        ).child(
+                (!isVertical ? verticalFlow(Sizing.content(), Sizing.content()) : horizontalFlow(Sizing.content(), Sizing.content()))
                         .child(componentFactory.apply(start + 3).margins(Insets.of(1)))
                         .child(componentFactory.apply(start + 4).margins(Insets.of(1)))
-        );
-        childrenList.add(
+        ).child(
                 new ArrowComponent((isVertical) ? ArrowComponent.Direction.DOWN : ArrowComponent.Direction.RIGHT)
                         .centered(true)
                         .margins(Insets.of(3, 3, 1, 1))
                         .id("crafting_arrow")
-                //Components.spacer().sizing(Sizing.fixed(4))
-        );
-        childrenList.add(
-                (!isVertical ? Containers.verticalFlow(Sizing.content(), Sizing.expand()) : Containers.horizontalFlow(Sizing.expand(), Sizing.content()))
+        ).child(
+                (!isVertical ? verticalFlow(Sizing.content(), Sizing.expand()) : horizontalFlow(Sizing.expand(), Sizing.content()))
                         .child(componentFactory.apply(start).margins(Insets.of(1)))
                         .horizontalAlignment(HorizontalAlignment.CENTER)
                         .verticalAlignment(VerticalAlignment.CENTER)
-        );
-
-        craftingLayout.children(childrenList)
+        ).allowOverflow(true)
                 .horizontalAlignment(HorizontalAlignment.CENTER)
                 .verticalAlignment(VerticalAlignment.CENTER);
 
-        return craftingLayout;
+        return Containers.verticalFlow(Sizing.content(), Sizing.content())
+                .child(craftingLayout)
+                .padding(Insets.of(7, 7, 4, 7));
     }
 
     public static <C extends BaseOwoHandledScreen.SlotComponent> io.wispforest.owo.ui.core.Component createPlayerInv(int start, int end, Function<Integer, C> componentFactory, Consumer<Integer> slotEnabler) {
-        var playerLayout = Containers.verticalFlow(Sizing.content(), Sizing.content());
+        var playerLayout = verticalFlow(Sizing.content(), Sizing.content());
 
         int row = 0;
 
-        var rowLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content())
-                .configure((FlowLayout layout) -> {
-                    layout/*.surface(BACKGROUND_SLOT_RENDERING_SURFACE)*/
-                            .allowOverflow(true);
-                });
+        var rowLayout = horizontalFlow(Sizing.content(), Sizing.content())
+                .configure((FlowLayout layout) -> layout.allowOverflow(true));
 
         int rowCount = 0;
 
@@ -337,11 +374,8 @@ public class ComponentUtils {
             if(row >= 8) {
                 playerLayout.child(rowLayout);
 
-                rowLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content())
-                        .configure((FlowLayout layout) -> {
-                            layout/*.surface(BACKGROUND_SLOT_RENDERING_SURFACE)*/
-                                    .allowOverflow(true);
-                        });
+                rowLayout = horizontalFlow(Sizing.content(), Sizing.content())
+                        .configure((FlowLayout layout) -> layout.allowOverflow(true));
 
                 rowCount++;
 

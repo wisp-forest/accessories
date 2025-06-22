@@ -1,0 +1,45 @@
+package io.wispforest.accessories.impl.option;
+
+import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.utils.InstanceEndec;
+import io.wispforest.endec.SerializationContext;
+import io.wispforest.endec.util.MapCarrier;
+import net.minecraft.world.entity.player.Player;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+public class AccessoriesPlayerOptionsHolder implements InstanceEndec {
+
+    private Map<PlayerOption<?>, Object> optionToValue = new LinkedHashMap<>();
+
+    public AccessoriesPlayerOptionsHolder() {}
+
+    public static AccessoriesPlayerOptionsHolder getOptions(Player player) {
+        return AccessoriesInternals.getPlayerOptions(player);
+    }
+
+    public <T> T getData(PlayerOption<T> option) {
+        return (this.optionToValue.containsKey(option))
+                ? (T) this.optionToValue.get(option)
+                : option.defaultValue();
+    }
+
+    public <T> void setData(PlayerOption<T> option, T data) {
+        this.optionToValue.put(option, data);
+    }
+
+    @Override
+    public void write(MapCarrier carrier, SerializationContext ctx) {
+        optionToValue.forEach((playerOption, object) -> playerOption.writeToCarrier(carrier, object));
+    }
+
+    @Override
+    public void read(MapCarrier carrier, SerializationContext ctx) {
+        this.optionToValue.clear();
+
+        for (PlayerOption<?> option : PlayerOption.getAllOptions()) {
+            this.optionToValue.put(option, carrier.get(option.toKey()));
+        }
+    }
+}

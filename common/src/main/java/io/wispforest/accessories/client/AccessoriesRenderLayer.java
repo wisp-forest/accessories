@@ -8,7 +8,6 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import io.wispforest.accessories.pond.LivingEntityRenderStateExtension;
@@ -89,13 +88,13 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
 
         if (containers.isEmpty()) return;
 
-        var renderingLines = AccessoriesScreen.COLLECT_ACCESSORY_POSITIONS.getValue();
+        var renderingLines = AccessoriesFunkyRenderingState.isCollectAccessoryPositions();
 
-        if (!renderingLines && !AccessoriesScreen.NOT_VERY_NICE_POSITIONS.isEmpty()) {
-            AccessoriesScreen.NOT_VERY_NICE_POSITIONS.clear();
+        if (!renderingLines && !AccessoriesFunkyRenderingState.getNotVeryNicePositions().isEmpty()) {
+            AccessoriesFunkyRenderingState.getNotVeryNicePositions().clear();
         }
 
-        var useCustomerBuffer = AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.getValue();
+        var useCustomerBuffer = AccessoriesFunkyRenderingState.isIsRenderingUiEntity();
 
         if (useCustomerBuffer && multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
             bufferSource.endBatch();
@@ -174,7 +173,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
                             multiBufferSource.getBuffer(renderType);
                 };
 
-                if (!AccessoriesScreenBase.IS_RENDERING_UI_ENTITY.getValue() || isSelected || selected == null || unHoveredOptions.renderUnHovered()) {
+                if (!AccessoriesFunkyRenderingState.isIsRenderingUiEntity() || isSelected || selected == null || unHoveredOptions.renderUnHovered()) {
                     poseStack.pushPose();
 
                     try {
@@ -244,8 +243,8 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
 //                        }
                     }
 
-                    if (renderingLines && AccessoriesScreen.IS_RENDERING_LINE_TARGET.getValue()) {
-                        AccessoriesScreen.NOT_VERY_NICE_POSITIONS.put(container.getSlotName() + i, mpoatv.meanPos());
+                    if (renderingLines && AccessoriesFunkyRenderingState.isIsRenderingLineTarget()) {
+                        AccessoriesFunkyRenderingState.getNotVeryNicePositions().put(container.getSlotName() + i, mpoatv.meanPos());
                     }
                 }
             }

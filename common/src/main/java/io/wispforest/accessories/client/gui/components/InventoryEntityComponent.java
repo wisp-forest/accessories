@@ -2,12 +2,12 @@ package io.wispforest.accessories.client.gui.components;
 
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.platform.Lighting;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Axis;
 import io.wispforest.owo.ui.component.EntityComponent;
 import io.wispforest.owo.ui.core.Component;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
 import io.wispforest.owo.ui.core.Sizing;
+import io.wispforest.owo.ui.util.MatrixStackTransformer;
 import io.wispforest.owo.util.pond.OwoEntityRenderDispatcherExtension;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.nbt.CompoundTag;
@@ -18,6 +18,9 @@ import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class InventoryEntityComponent<E extends Entity> extends EntityComponent<E> {
 
     private float startingRotation = -45;
@@ -27,23 +30,51 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
 
     private ScaleFitType type = ScaleFitType.NONE;
 
-    public InventoryEntityComponent(Sizing sizing, E entity) {
-        super(sizing, entity);
+    private boolean sideBySideMode = false;
+    private int additionalOffset = 0;
+
+    public InventoryEntityComponent(Sizing horizontalSizing, Sizing verticalSizing, E entity) {
+        super(Sizing.fixed(0), entity);
+
+        this.horizontalSizing(horizontalSizing)
+                .verticalSizing(verticalSizing);
 
         this.lastBbWidth = entity.getBbWidth();
         this.lastBbHeight = entity.getBbHeight();
     }
 
-    public InventoryEntityComponent(Sizing sizing, EntityType<E> type, @Nullable CompoundTag nbt) {
-        super(sizing, type, nbt);
+    public InventoryEntityComponent(Sizing horizontalSizing, Sizing verticalSizing, EntityType<E> type, @Nullable CompoundTag nbt) {
+        super(Sizing.fixed(0), type, nbt);
+
+        this.horizontalSizing(horizontalSizing)
+                .verticalSizing(verticalSizing);
+
+        this.lastBbWidth = entity.getBbWidth();
+        this.lastBbHeight = entity.getBbHeight();
     }
 
-    public static <E extends Entity> InventoryEntityComponent<E> of(Sizing verticalSizing, Sizing horizontalSizing, E entity) {
-        var component = new InventoryEntityComponent<E>(verticalSizing, entity);
+    public static <E extends Entity> InventoryEntityComponent<E> of(Sizing horizontalSizing, Sizing verticalSizing, E entity) {
+        return new InventoryEntityComponent<E>(horizontalSizing, verticalSizing, entity);
+    }
 
-        component.horizontalSizing(horizontalSizing);
+    public boolean sideBySideMode() {
+        return this.sideBySideMode;
+    }
 
-        return component;
+    public InventoryEntityComponent<E> sideBySideMode(boolean sideBySideMode) {
+        this.sideBySideMode = sideBySideMode;
+
+        return this;
+    }
+
+    public int additionalOffset() {
+        return this.additionalOffset;
+    }
+
+    public InventoryEntityComponent<E> additionalOffset(int value) {
+        this.additionalOffset = value;
+
+        return this;
     }
 
     private float getEntityScale() {
@@ -53,18 +84,22 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
     public float xOffset = 0.0f;
     public float yOffset = 0.0f;
 
-    private TriConsumer<OwoUIDrawContext, Component, Runnable> renderWrapping = (ctx, component, runnable) -> runnable.run();
+    private TriConsumer<OwoUIDrawContext, Component, List<Runnable>> renderWrapping = (ctx, component, runnables) -> runnables.forEach(Runnable::run);
 
-    public InventoryEntityComponent<E> renderWrapping(TriConsumer<OwoUIDrawContext, Component, Runnable> renderWrapping) {
+    public InventoryEntityComponent<E> renderWrapping(TriConsumer<OwoUIDrawContext, Component, List<Runnable>> renderWrapping) {
         this.renderWrapping = renderWrapping;
 
         return this;
     }
 
+    public float getSingleInstanceWidth() {
+        return (this.horizontalSizing().get().value / (sideBySideMode ? 2f : 1f)) - (sideBySideMode ? 25 : 40);
+    }
+
     public InventoryEntityComponent<E> scaleToFit(boolean scaleToFit) {
         if(scaleToFit) {
             var componentHeight = (float) this.verticalSizing().get().value;
-            var componentWidth = (float) this.horizontalSizing().get().value - 40;
+            var componentWidth = getSingleInstanceWidth();
 
             var entityHeight = entity.getBbHeight() * (Math.min(componentWidth, componentHeight) / Math.max(componentWidth, componentHeight));
             var entityWidth = entity.getBbWidth()* (Math.max(componentWidth, componentHeight) / Math.min(componentWidth, componentHeight));
@@ -127,52 +162,37 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
             this.lastBbHeight = entity.getBbHeight();
         }
 
-//        var GL_ZERO     = 0x0000;
-//        var GL_KEEP     = 0x1E00;
-//        var GL_REPLACE  = 0x1E01;
-//        var GL_INCR     = 0x1E02;
-//        var GL_DECR     = 0x1E03;
-//        var GL_INVERT   = 0x150A;
-//        var GL_NOTEQUAL = 0x0205;
-//        var GL_ALWAYS   = 0x0207;
-//
-//        var GL_STENCIL_BUFFER_BIT = 0x00000400;
-//
-//        var GL_STENCIL_TEST = 0x0B90;
-//
-//        context.flush();
-//
-//        RenderSystem.enableDepthTest();
-//        GL11.glEnable(GL11.GL_STENCIL_TEST);
-//
-//        RenderSystem.clear(GL11.GL_COLOR_BUFFER_BIT, Minecraft.ON_OSX);
-//        RenderSystem.clear(GL11.GL_DEPTH_BUFFER_BIT, Minecraft.ON_OSX);
-//        RenderSystem.clear(GL11.GL_STENCIL_BUFFER_BIT, Minecraft.ON_OSX);
-//        RenderSystem.clearStencil(0);
-//
-//        RenderSystem.stencilMask(0xFF);
-//        RenderSystem.stencilFunc(GL11.GL_EQUAL, 1, 0xFF);
-//        RenderSystem.stencilOp(GL11.GL_KEEP, GL11.GL_KEEP, GL11.GL_REPLACE);
-//
-//        context.fill(0, 0, Minecraft.getInstance().getWindow().getGuiScaledWidth(), Minecraft.getInstance().getWindow().getGuiScaledHeight(), Color.BLUE.argb());
-//        context.fill(this.x, this.y, this.x + 50, this.y + 50, Color.WHITE.argb());
-//
-//        context.flush();
-//
-//        //RenderSystem.stencilMask(0x00);
-//        RenderSystem.stencilFunc(GL11.GL_NOTEQUAL, 1, 0xFF);
+        var renderQueue = new ArrayList<Runnable>();
 
-        var matrices = context.pose();
-        matrices.pushPose();
+        renderQueue.add(
+                () -> {
+                    context.push();
+                    renderLiving(context, living, mouseX, mouseY, true);
+                    context.pop();
+                }
+        );
 
-        var maxLength = Math.max(this.width, this.height);
+        if (sideBySideMode) {
+            renderQueue.add(
+                    () -> {
+                        context.push();
+                        renderLiving(context, living, mouseX, mouseY, false);
+                        context.pop();
+                    }
+            );
+        }
 
-        matrices.translate(x + this.width / 2f, y + this.height / 2f, 60);
-        matrices.scale(75 * this.scale * maxLength / 64f, -75 * this.scale * maxLength / 64f, 75 * this.scale);
+        this.renderWrapping.accept(
+                context,
+                this,
+                renderQueue
+        );
+    }
 
-        matrices.translate(0, entity.getBbHeight() / -2f, 0);
+    private void renderLiving(OwoUIDrawContext context, LivingEntity living, int mouseX, int mouseY, boolean isLeftSide) {
+        var matrices = context.getMatrixStack();
 
-        matrices.translate(this.xOffset, this.yOffset, 0);
+        transformMatrixStack(context, isLeftSide);
 
         this.transform.accept(matrices);
 
@@ -187,30 +207,7 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
 
         var dispatcher = (OwoEntityRenderDispatcherExtension) this.dispatcher;
 
-        if (this.lookAtCursor) {
-            float xRotation = (float) Math.toDegrees(Math.atan((mouseY - this.y - this.height / 2f) / 40f));
-            float yRotation = (float) Math.toDegrees(Math.atan((mouseX - this.x - this.width / 2f) / 40f));
-
-            living.yHeadRotO = -yRotation;
-
-            this.entity.yRotO = -yRotation;
-            this.entity.xRotO = xRotation * .65f;
-
-            // We make sure the xRotation never becomes 0, as the lighting otherwise becomes very unhappy
-            if (xRotation == 0) xRotation = .1f;
-            matrices.mulPose(Axis.XP.rotationDegrees(xRotation * .35f));
-            matrices.mulPose(Axis.YP.rotationDegrees(yRotation * .555f));
-        } else {
-            float xRotation = (float) Math.toDegrees(Math.atan((mouseY - this.y - this.height / 2f) / 40f));
-
-            this.entity.xRotO = xRotation * .35f;
-
-            if (xRotation == 0) xRotation = .1f;
-            matrices.mulPose(Axis.XP.rotationDegrees(xRotation * .15f));
-
-            matrices.mulPose(Axis.XP.rotationDegrees(15));
-            matrices.mulPose(Axis.YP.rotationDegrees(startingRotation + this.mouseRotation));
-        }
+        rotateMatrixStack(context, living, mouseX, mouseY, isLeftSide);
 
         {
             dispatcher.owo$setCounterRotate(true);
@@ -229,17 +226,7 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
             // TODO: FIGURE OUT IF THIS IS NEEDED?
             GlStateManager._disableDepthTest();
 
-            this.renderWrapping.accept(context,this,
-                    () -> this.dispatcher.render(this.entity, 0, 0, 0, 0, matrices, this.entityBuffers, LightTexture.FULL_BRIGHT)
-            );
-
-//            this.entityBuffers.endBatch();
-//
-//            RenderSystem.stencilMask(0xFF);
-//            RenderSystem.stencilFunc(GL11.GL_ALWAYS, 1, 0xFF);
-//            RenderSystem.enableDepthTest();
-//
-//            GL11.glDisable(GL_STENCIL_TEST);
+            this.dispatcher.render(this.entity, 0, 0, 0, 0, matrices, this.entityBuffers, LightTexture.FULL_BRIGHT);
 
             this.dispatcher.setRenderShadow(true);
         }
@@ -257,10 +244,61 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
         this.entityBuffers.endBatch();
         Lighting.setupFor3DItems();
 
-        matrices.popPose();
-
         dispatcher.owo$setCounterRotate(false);
         dispatcher.owo$setShowNametag(true);
+    }
+
+    private void transformMatrixStack(MatrixStackTransformer matrix, boolean isLeftSide) {
+        var trueWidth = this.width / (sideBySideMode ? 2f : 1f);
+
+        var maxLength = Math.max(trueWidth, this.height);
+
+        float xPos;
+
+        if (isLeftSide) {
+            xPos = x + (trueWidth / 2);
+        } else{
+            xPos = x + ((trueWidth / 2) * 3);
+        }
+
+        var yPos = y + this.height / 2f;
+
+        matrix.translate(xPos + (additionalOffset * (isLeftSide ? 1 : -1)), yPos, 60);
+        matrix.scale(75 * this.scale * maxLength / 64f, -75 * this.scale * maxLength / 64f, 75 * this.scale);
+
+        matrix.translate(0, entity.getBbHeight() / -2f, 0);
+
+        matrix.translate(this.xOffset * (isLeftSide ? 1 : -1), this.yOffset, 0);
+    }
+
+    private void rotateMatrixStack(MatrixStackTransformer matrix, LivingEntity living, int mouseX, int mouseY, boolean isLeftSide) {
+        var trueWidth = this.width / (sideBySideMode ? 2f : 1f);
+
+        float xRotation = (float) Math.toDegrees(Math.atan((mouseY - this.y - this.height / 2f) / 40f));
+
+        var rotationOffset = (!isLeftSide ? 180f : 0);
+
+        if (this.lookAtCursor) {
+            float yRotation = (float) Math.toDegrees(Math.atan((mouseX - this.x - (trueWidth / 2f)) / 40f));
+
+            living.yHeadRotO = -yRotation;
+
+            this.entity.yRotO = -yRotation;
+            this.entity.xRotO = xRotation * .65f;
+
+            // We make sure the xRotation never becomes 0, as the lighting otherwise becomes very unhappy
+            if (xRotation == 0) xRotation = .1f;
+            matrix.multiply(Axis.XP.rotationDegrees(xRotation * .35f));
+            matrix.multiply(Axis.YP.rotationDegrees(yRotation * .555f + rotationOffset));
+        } else {
+            this.entity.xRotO = xRotation * .35f;
+
+            if (xRotation == 0) xRotation = .1f;
+            matrix.multiply(Axis.XP.rotationDegrees(xRotation * .15f));
+
+            matrix.multiply(Axis.XP.rotationDegrees(15));
+            matrix.multiply(Axis.YP.rotationDegrees(startingRotation + this.mouseRotation + rotationOffset));
+        }
     }
 
     @Override

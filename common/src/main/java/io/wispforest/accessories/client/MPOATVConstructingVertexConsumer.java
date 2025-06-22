@@ -26,9 +26,9 @@ public final class MPOATVConstructingVertexConsumer implements VertexConsumer {
     public VertexConsumer addVertex(float x, float y, float z) {
         var leeway = 10;
 
-        var box = AccessoriesScreen.SCISSOR_BOX;
+        var box = AccessoriesFunkyRenderingState.getScissorBox();
 
-        if ((x >= box.x - leeway && x <= box.z + leeway) && (y >= box.y - leeway && y <= box.w + leeway)) {
+        if ((x >= box.x() - leeway && x <= box.z() + leeway) && (y >= box.y() - leeway && y <= box.w() + leeway)) {
             this.minX = Math.min(this.minX, x);
             this.maxX = Math.max(this.maxX, x);
 

@@ -1,13 +1,17 @@
 {
   "accessories.slot.tooltip.singular": "Slot: ",
   "accessories.slot.tooltip.plural": "Slots: ",
+
   "accessories.cosmetic_slot.tooltip.singular": "Cosmetic Slot: ",
   "accessories.cosmetic_slot.tooltip.plural": "Cosmetic Slots: ",
+
   "accessories.slot.any": "Any",
   "accessories.slot.except": " except ",
+
   "accessories.tooltip.attributes.any": "When Equipped:",
   "accessories.tooltip.attributes.slot": "When Equipped in %s:",
   "accessories.tooltip.currently_equipped_in": "Equipped in: ",
+
   "accessories.slot.hat": "Hat",
   "accessories.slot.face": "Face",
   "accessories.slot.cape": "Cape",
@@ -25,6 +29,7 @@
   "accessories.slot.accessories.legs": "Legs",
   "accessories.slot.accessories.feet": "Feet",
   "accessories.slot.accessories.animal_body": "Body",
+
   "accessories.slot_group.misc": "Misc",
   "accessories.slot_group.head": "Head",
   "accessories.slot_group.chest": "Chest",
@@ -32,7 +37,9 @@
   "accessories.slot_group.leg": "Legs",
   "accessories.slot_group.feet": "Feet",
   "accessories.slot_group.unsorted": "Unsorted",
+
   "accessories.key.category.accessories": "Accessories",
+  "accessories.key.open_accessories_screen": "Open Accessories Screen",
 
   "accessories.commands.attribute.failed.modifier_already_present_itemstack": "Modifier %s is already present on attribute %s for stack %s",
 
@@ -42,28 +49,32 @@
   "accessories.commands.attribute.modifier.value.get.success_itemstack": "Value of modifier %s on attribute %s for stack %s is %s",
   "accessories.commands.attribute.value.get.success": "Value of attribute %s for entity %s is %s",
   "accessories.commands.slot.value.get.success": "Value of slot %s for entity %s is %s",
+
   "accessories.argument.livingEntities.nonLiving": "Only living entities may be affected by this command, but the provided selector includes non living entities",
 
   "gamerule.accessories.keepAccessoryInventory": "Keep Accessory Inventory",
 
   "#comment": "GUI Related Below",
 
-  "accessories.key.open_accessories_screen": "Open Accessories Screen",
   "accessories.slot.cosmetics.toggle.show": "Show Cosmetic Slots",
   "accessories.slot.cosmetics.toggle.hide": "Hide Cosmetic Slots",
+
   "accessories.display.toggle.show": "Show Accessory",
   "accessories.display.toggle.hide": "Hide Accessory",
+
   "accessories.lines.toggle.show": "Show All Lines",
   "accessories.lines.toggle.hide": "Hide All Lines",
+
   "accessories.unused_slots.toggle.show": "Show Unused Slots",
   "accessories.unused_slots.toggle.hide": "Hide Unused Slots",
+
   "accessories.slot_cosmetics.toggle.enabled": "Show Accessories Slots",
   "accessories.slot_cosmetics.toggle.disabled": "Show Cosmetic Slots",
-  "accessories.advanced_options.toggle.enabled": "❤",
-  "accessories.advanced_options.toggle.disabled": "⚗",
-  "accessories.advanced_options.toggle.enabled.tooltip": "Hide Extra Screen configuration options",
-  "accessories.advanced_options.toggle.disabled.tooltip": "Show Extra Screen configuration options",
-  "accessories.unused_slots.label": "Unused Slots:",
+
+  "accessories.advanced_options.toggle.enabled.tooltip": "Hide Screen options",
+  "accessories.advanced_options.toggle.disabled.tooltip": "Show Screen options",
+
+  "accessories.unused_slots.label": "Show unused slots:",
   "accessories.unused_slots.toggle.enabled": [
     "",
     {"text": "[", "color": "gray"},
@@ -80,9 +91,65 @@
   ],
   "accessories.unused_slots.toggle.enabled.tooltip": "Hide all Unused Slots",
   "accessories.unused_slots.toggle.disabled.tooltip": "Show all Unused Slots",
-  "accessories.column_amount_slider.label": "Column Amount:",
-  "accessories.column_amount_slider.tooltip": "Slider used to adjust Column amount for Accessories Layout",
-  "accessories.widget_type.label": "Widget Variant:",
+
+  "accessories.column_amount.label": "Accessory Column Amount:",
+  "accessories.column_amount.tooltip": "Adjusts the amount of columns for the Accessory Module",
+
+  "accessories.side_by_side_slots.label": "Cosmetic Slot Viewing Mode:",
+  "accessories.side_by_side_slots.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "O", "color": "#eab676"},
+    {"text": "]", "color": "gray"},
+    " Toggle"
+  ],
+  "accessories.side_by_side_slots.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "/", "color": "#1e81b0"},
+    {"text": "]", "color": "gray"},
+    " Switch"
+  ],
+  "accessories.side_by_side_slots.toggle.enabled.tooltip": "Switch to toggle between slots",
+  "accessories.side_by_side_slots.toggle.disabled.tooltip": "Switch to showing or hiding Cosmetic slots",
+
+  "accessories.side_by_side_entity.label": "Amount of Entity Views:",
+  "accessories.side_by_side_entity.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "||", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Double"
+  ],
+  "accessories.side_by_side_entity.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "|", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Single"
+  ],
+  "accessories.side_by_side_entity.toggle.enabled.tooltip": "Switch to toggle single entity view",
+  "accessories.side_by_side_entity.toggle.disabled.tooltip": "Switch to toggle double entity view",
+
+  "accessories.entity_centered.label": "Entity panel centering:",
+  "accessories.entity_centered.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Enabled"
+  ],
+  "accessories.entity_centered.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Disabled"
+  ],
+  "accessories.entity_centered.toggle.enabled.tooltip": "Allow entity to be offset from the center",
+  "accessories.entity_centered.toggle.disabled.tooltip": "Make entity ALWAYS be close or in the center of the screen",
+
+  "accessories.widget_type.label": "Accessory widget variant:",
   "accessories.widget_type.paginated": [
     "",
     {"text": "[", "color": "gray"},
@@ -90,7 +157,6 @@
     {"text": "]", "color": "gray"},
     " Paginated"
   ],
-  "accessories.widget_type.paginated.tooltip": "A Paginated Layout for Accessories Slots",
   "accessories.widget_type.scrollable": [
     "",
     {"text": "[", "color": "gray"},
@@ -98,7 +164,10 @@
     {"text": "]", "color": "gray"},
     " Scrollable"
   ],
-  "accessories.main_widget_position.label": "Widget Position:",
+  "accessories.widget_type.paginated.tooltip": "Uses Pages for navigating the Accessories Slots",
+  "accessories.widget_type.scrollable.tooltip": "Uses Scrolling for navigating the Accessories Slots",
+
+  "accessories.main_widget_position.label": "Accessories widget position:",
   "accessories.main_widget_position.toggle.enabled": [
     "",
     {"text": "[", "color": "gray"},
@@ -115,7 +184,8 @@
   ],
   "accessories.main_widget_position.toggle.enabled.tooltip": "Move Accessories Widget to the Right",
   "accessories.main_widget_position.toggle.disabled.tooltip": "Move Accessories Widget to the Left",
-  "accessories.group_filter.label": "Group Filters:",
+
+  "accessories.group_filter.label": "Group filter widget:",
   "accessories.group_filter.toggle.enabled": [
     "",
     {"text": "[", "color": "gray"},
@@ -132,7 +202,8 @@
   ],
   "accessories.group_filter.toggle.enabled.tooltip": "Hide group filter widget",
   "accessories.group_filter.toggle.disabled.tooltip": "Show group filter widget",
-  "accessories.side_widget_position.label": "Side Position:",
+
+  "accessories.side_widget_position.label": "Side widget position:",
   "accessories.side_widget_position.toggle.enabled": [
     "",
     {"text": "[", "color": "gray"},
@@ -149,7 +220,8 @@
   ],
   "accessories.side_widget_position.toggle.enabled.tooltip": "Move Side Widget to be with the Accessories Widget",
   "accessories.side_widget_position.toggle.disabled.tooltip": "Move Side widget to be opposite to Accessories Widget",
-  "accessories.dark_mode_toggle.label": "Theme Mode:",
+
+  "accessories.dark_mode_toggle.label": "Screen theme mode:",
   "accessories.dark_mode_toggle.toggle.enabled": [
     "",
     {"text": "[", "color": "gray"},
@@ -166,7 +238,8 @@
   ],
   "accessories.dark_mode_toggle.toggle.enabled.tooltip": "Change theme to Light Mode",
   "accessories.dark_mode_toggle.toggle.disabled.tooltip": "Change theme to Dark Mode",
-  "accessories.show_equipped_stack_slot_type.label": "Equipped Type:",
+
+  "accessories.show_equipped_stack_slot_type.label": "Show equipped Type:",
   "accessories.show_equipped_stack_slot_type.toggle.enabled": [
     "",
     {"text": "[", "color": "gray"},
@@ -183,7 +256,8 @@
   ],
   "accessories.show_equipped_stack_slot_type.toggle.enabled.tooltip": "Hide equipped stack Slot type",
   "accessories.show_equipped_stack_slot_type.toggle.disabled.tooltip": "Show equipped stack Slot type",
-  "accessories.entity_look_at_cursor.label": "Look at Mouse:",
+
+  "accessories.entity_look_at_cursor.label": "Entity looks at Mouse:",
   "accessories.entity_look_at_cursor.toggle.enabled": [
     "",
     {"text": "[", "color": "gray"},
@@ -200,13 +274,10 @@
   ],
   "accessories.entity_look_at_cursor.toggle.enabled.tooltip": "Disable looking at cursor",
   "accessories.entity_look_at_cursor.toggle.disabled.tooltip": "Enable looking at cursor",
-  "accessories.lines.toggle.enabled.tooltip": "Hide all Line Rendering",
-  "accessories.lines.toggle.disabled.tooltip": "Show all Line Rendering",
-  "accessories.crafting_grid.toggle.enabled": "☒",
-  "accessories.crafting_grid.toggle.disabled": "☐",
-  "accessories.crafting_grid.toggle.enabled.tooltip": "Hide the small crafting grid",
-  "accessories.crafting_grid.toggle.disabled.tooltip": "Show the small crafting grid",
-  "accessories.widget_type.scrollable.tooltip": "A Scrollable Layout for Accessories Slots",
+
+  "accessories.crafting_grid.toggle.enabled.tooltip": "Hide crafting grid",
+  "accessories.crafting_grid.toggle.disabled.tooltip": "Show crafting grid",
+
   "accessories.selection_screen.message": [
     "Below is a set of screen options that you \n",
     "can choose from depending on the style of \n",
@@ -215,10 +286,10 @@
     "Accessories Config if the given option is not \n",
     "to your liking."
   ],
-  "accessories.unique_slots.toggle.show": "Show Unique Slots",
-  "accessories.unique_slots.toggle.hide": "Hide Unique Slots",
+
   "accessories.back.screen": "To Previous Screen",
   "accessories.open.screen": "Open Accessories Screen",
+
   "accessories.reset.group_filter": "Reset Group Filters",
 
   "#comment": "Config Related Below",
@@ -373,6 +444,11 @@
   "text.config.accessories.option.screenOptions.isDarkMode": "Use Dark mode theme",
   "text.config.accessories.option.screenOptions.isDarkMode.tooltip": [
     "Changes the theming for the experimental screen to be dark mode."
+  ],
+
+  "text.config.accessories.option.screenOptions.alwaysShowCraftingGrid": "Always show Crafting grid",
+  "text.config.accessories.option.screenOptions.alwaysShowCraftingGrid.tooltip": [
+    "Will remove the toggle button for the crafting grid and always show it within the experimental screen."
   ],
 
   "text.config.accessories.section.legacy": "Original Screen",

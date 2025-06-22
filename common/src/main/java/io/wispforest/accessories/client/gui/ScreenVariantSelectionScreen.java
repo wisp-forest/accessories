@@ -67,8 +67,7 @@ public class ScreenVariantSelectionScreen extends BaseOwoScreen<FlowLayout> {
                                                                                                 Accessories.of("textures/gui/original_gui_image_crop.png"),
                                                                                                 1185,
                                                                                                 1373,
-                                                                                                Sizing.fixed(1185 / 16),
-                                                                                                Sizing.fixed(1373 / 16)
+                                                                                                1/16
                                                                                         )
                                                                                 )
                                                                                 .margins(Insets.of(3))
@@ -91,8 +90,7 @@ public class ScreenVariantSelectionScreen extends BaseOwoScreen<FlowLayout> {
                                                                                                 Accessories.of("textures/gui/new_gui_image_crop.png"),
                                                                                                 1185,
                                                                                                 1373,
-                                                                                                Sizing.fixed(1185 / 16),
-                                                                                                Sizing.fixed(1373 / 16)
+                                                                                                1/16
                                                                                         )
                                                                                 )
                                                                                 .margins(Insets.of(3))

@@ -3,7 +3,7 @@ package io.wispforest.accessories.fabric;
 import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
-import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
+import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
@@ -60,11 +60,11 @@ public class AccessoriesInternalsImpl {
         livingEntity.setAttached(AccessoriesFabric.HOLDER_ATTACHMENT_TYPE, holder);
     }
 
-    public static AccessoriesPlayerOptions getPlayerOptions(Player player) {
+    public static AccessoriesPlayerOptionsHolder getPlayerOptions(Player player) {
         return player.getAttachedOrCreate(AccessoriesFabric.PLAYER_OPTIONS_ATTACHMENT_TYPE);
     }
 
-    public static void modifyPlayerOptions(Player player, UnaryOperator<AccessoriesPlayerOptions> modifier) {
+    public static void modifyPlayerOptions(Player player, UnaryOperator<AccessoriesPlayerOptionsHolder> modifier) {
         var options = getPlayerOptions(player);
 
         options = modifier.apply(options);

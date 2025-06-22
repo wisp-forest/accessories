@@ -12,7 +12,7 @@ import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
-import io.wispforest.accessories.impl.AccessoriesPlayerOptions;
+import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.utils.InstanceEndec;
@@ -75,8 +75,8 @@ public class AccessoriesForge {
             .copyOnDeath()
             .build();
 
-    public static final AttachmentType<AccessoriesPlayerOptions> PLAYER_OPTIONS_ATTACHMENT_TYPE = AttachmentType.builder(AccessoriesPlayerOptions::new)
-            .serialize(CodecUtils.toCodec(InstanceEndec.constructed(AccessoriesPlayerOptions::new)))
+    public static final AttachmentType<AccessoriesPlayerOptionsHolder> PLAYER_OPTIONS_ATTACHMENT_TYPE = AttachmentType.builder(AccessoriesPlayerOptionsHolder::new)
+            .serialize(CodecUtils.toCodec(InstanceEndec.constructed(AccessoriesPlayerOptionsHolder::new)))
             .copyOnDeath()
             .build();
 
