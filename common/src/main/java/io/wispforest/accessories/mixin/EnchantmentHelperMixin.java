@@ -1,13 +1,16 @@
 package io.wispforest.accessories.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.api.core.AccessoryNest;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
+import io.wispforest.accessories.impl.AccessoryNestUtils;
 import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
 import io.wispforest.accessories.pond.EnchantedItemInUseExtension;
 import io.wispforest.owo.Owo;
@@ -118,6 +121,20 @@ public abstract class EnchantmentHelperMixin {
                         runIterationOnItem(itemStack, AccessoriesInternals.INTERNAL_SLOT, livingEntity, enchantmentInSlotVisitor);
                     });
         }
+    }
+
+    @WrapMethod(method = "runIterationOnItem(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/item/enchantment/EnchantmentHelper$EnchantmentVisitor;)V")
+    private static void unpackAccessoryNest1(ItemStack stack, EnchantmentHelper.EnchantmentVisitor visitor, Operation<Void> original) {
+        original.call(stack, visitor);
+
+        AccessoryNestUtils.recursiveStackConsumption(stack, innerStack -> original.call(innerStack, visitor));
+    }
+
+    @WrapMethod(method = "runIterationOnItem(Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/EquipmentSlot;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/enchantment/EnchantmentHelper$EnchantmentInSlotVisitor;)V")
+    private static void unpackAccessoryNest2(ItemStack stack, EquipmentSlot slot, LivingEntity entity, EnchantmentHelper.EnchantmentInSlotVisitor visitor, Operation<Void> original) {
+        original.call(stack, slot, entity, visitor);
+
+        AccessoryNestUtils.recursiveStackConsumption(stack, innerStack -> original.call(stack, slot, entity, visitor));
     }
 
     @ModifyExpressionValue(

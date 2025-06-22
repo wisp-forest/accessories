@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 public class AccessoryNestUtils {
 
@@ -59,6 +60,22 @@ public class AccessoryNestUtils {
             if (innerStack.isEmpty()) continue;
 
             recursiveStackConsumption(innerStack, SlotPath.cloneWithInnerIndex(reference, i), consumer);
+        }
+    }
+
+    public static <S extends SlotPath> void recursiveStackConsumption(ItemStack stack, Consumer<ItemStack> consumer) {
+        var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
+
+        consumer.accept(stack);
+
+        if (!(accessory instanceof AccessoryNest holdable)) return;
+
+        var innerStacks = holdable.getInnerStacks(stack);
+
+        for (ItemStack innerStack : innerStacks) {
+            if (innerStack.isEmpty()) continue;
+
+            recursiveStackConsumption(innerStack, consumer);
         }
     }
 
