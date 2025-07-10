@@ -2,7 +2,10 @@ package io.wispforest.accessories.mixin.client;
 
 import com.mojang.blaze3d.platform.Window;
 import io.wispforest.accessories.client.AccessoriesClient;
+import io.wispforest.accessories.client.AccessoriesRenderLayer;
+import io.wispforest.owo.shader.OwoBlurRenderer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.main.GameConfig;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Final;
@@ -33,5 +36,10 @@ public abstract class MinecraftMixin {
         if(location.equals(SPRITE_ATLAS_LOCATION)) {
             cir.setReturnValue(Minecraft.getInstance().getGuiSprites()::getSprite);
         }
+    }
+
+    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;initRenderer(JIZLjava/util/function/BiFunction;Z)V", shift = At.Shift.AFTER))
+    private void initBlurRenderer(GameConfig args, CallbackInfo ci) {
+        AccessoriesRenderLayer.initialize((Minecraft) (Object) this);
     }
 }

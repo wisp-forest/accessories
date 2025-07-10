@@ -1,34 +1,39 @@
 package io.wispforest.accessories.client;
 
-//import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.pipeline.TextureTarget;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
-import io.wispforest.accessories.pond.AccessoriesRenderStateAPI;
+import io.wispforest.owo.ui.core.Color;
+import io.wispforest.owo.ui.event.WindowResizeCallback;
+import io.wispforest.owo.ui.util.ScissorStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.RenderStateShard;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
-import java.awt.*;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 
 /**
@@ -40,12 +45,31 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    //private static final PostEffectBuffer BUFFER = new PostEffectBuffer();
+    public static TextureTarget BUFFER;
+    public static boolean overrideRenderTarget = false;
+    private static Color shaderColor = null;
+    private static final RenderType RENDER_TYPE = RenderType.create(
+        "dawg",
+        786432,
+        RenderPipelines.GUI_TEXTURED_OVERLAY,
+        RenderType.CompositeState.builder().setTextureState(new RenderStateShard.EmptyTextureStateShard(
+            () -> {
+                RenderSystem.setShaderTexture(0, BUFFER.getColorTexture());
+                if (shaderColor != null) RenderSystem.setShaderColor(shaderColor.red(), shaderColor.green(), shaderColor.blue(), shaderColor.alpha());
+            },
+            () -> {
+                if (shaderColor != null) {
+                    RenderSystem.setShaderColor(1, 1, 1, 1);
+                    shaderColor = null;
+                }
+            }
+        )).createCompositeState(false)
+    );
 
     private static final float increment = 0.1f;
 
-    private static Map<String, Float> brightnessMap = new HashMap<>();
-    private static Map<String, Float> opacityMap = new HashMap<>();
+    private static final Map<String, Float> brightnessMap = new HashMap<>();
+    private static final Map<String, Float> opacityMap = new HashMap<>();
 
     private static long lastUpdated20th = 0;
 
@@ -53,16 +77,36 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
         super(renderLayerParent);
     }
 
+    @ApiStatus.Internal
+    public static void initialize(Minecraft client) {
+        var window = client.getWindow();
+        BUFFER = new TextureTarget("accessories_buffer_thingy", window.getWidth(), window.getHeight(), true);
+        WindowResizeCallback.EVENT.register((innerClient, innerWindow) -> {
+            if (BUFFER == null) return;
+            BUFFER.resize(innerWindow.getWidth(), innerWindow.getHeight());
+        });
+    }
+
+    @SuppressWarnings("DataFlowIssue")
     @Override
-    public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int light, S entityRenderState, float f, float g) {
-        var storageLookup = ((AccessoriesRenderStateAPI) entityRenderState).getStorageLookup();
-        var entity = ((AccessoriesRenderStateAPI) entityRenderState).getEntityForState();
-        var uuid = ((AccessoriesRenderStateAPI) entityRenderState).getEntityUUIDForState();
+    public void render(
+        @NotNull PoseStack poseStack,
+        @NotNull MultiBufferSource multiBufferSource,
+        int light,
+        S entityRenderState,
+        float f,
+        float g
+    ) {
+        var client = Minecraft.getInstance();
+
+        var storageLookup = entityRenderState.getStorageLookup();
+        var entity = entityRenderState.getEntityForState();
+        var uuid = entityRenderState.getEntityUUIDForState();
 
         if (storageLookup == null) return;
 
-        var partialTicks = Minecraft.getInstance().getDeltaTracker()
-                .getGameTimeDeltaPartialTick(!entity.map(entity1 -> entity1.level().tickRateManager().isEntityFrozen(entity1)).orElse(true));
+        var partialTicks = client.getDeltaTracker()
+            .getGameTimeDeltaPartialTick(!entity.map(entity1 -> entity1.level().tickRateManager().isEntityFrozen(entity1)).orElse(true));
 
         var containers = storageLookup.getContainers();
 
@@ -91,7 +135,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
 
         AccessoriesInternalSlot selected = null;
 
-        if (Minecraft.getInstance().screen instanceof AccessoriesScreenBase screenBase && screenBase.getHoveredSlot() instanceof AccessoriesInternalSlot slot) {
+        if (client.screen instanceof AccessoriesScreenBase<?> screenBase && screenBase.getHoveredSlot() instanceof AccessoriesInternalSlot slot) {
             selected = slot;
         }
 
@@ -149,8 +193,8 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
                     bufferedGrabbedFlag.setValue(true);
 
                     return useCustomerBuffer ?
-                            VertexMultiConsumer.create(multiBufferSource.getBuffer(renderType), mpoatv) :
-                            multiBufferSource.getBuffer(renderType);
+                        VertexMultiConsumer.create(multiBufferSource.getBuffer(renderType), mpoatv) :
+                        multiBufferSource.getBuffer(renderType);
                 };
 
                 if (!AccessoriesFunkyRenderingState.isIsRenderingUiEntity() || isSelected || selected == null || unHoveredOptions.renderUnHovered()) {
@@ -174,61 +218,57 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
                     poseStack.popPose();
                 }
 
-                float[] colorValues = null;
 
                 if (useCustomerBuffer && bufferedGrabbedFlag.getValue()) {
                     if (multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
                         if (hoveredOptions.brightenHovered() && isSelected) {
                             if (isFunnyDate) {
                                 var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
-                                var color = new Color(Mth.hsvToRgb(hue, 1, 1));
-
-                                colorValues = new float[]{color.getRed() / 128f, color.getGreen() / 128f, color.getBlue() / 128f, 1};
+                                shaderColor = Color.ofHsv(hue, 1, 1);
                             } else {
                                 var mul = hoveredOptions.cycleBrightness() ? scale : 1.5f;
-
-                                colorValues = new float[]{mul, mul, mul, 1};
+                                shaderColor = new Color(mul, mul, mul, 1);
                             }
                         } else if (unHoveredOptions.darkenUnHovered()) {
                             var darkness = brightnessMap.getOrDefault(mapKey, 1f);
 
-                            colorValues = new float[]{darkness, darkness, darkness, opacityMap.getOrDefault(mapKey, 1f)};
+                            shaderColor = new Color(darkness, darkness, darkness, opacityMap.getOrDefault(mapKey, 1f));
                         }
 
-                        // TODO: [1.21.2 - Porting] Fix issues with atlas being drawn!
-//                        if (colorValues != null && false) {
-//                            BUFFER.beginWrite(true, GL30.GL_DEPTH_BUFFER_BIT);
-//                            bufferSource.endBatch();
-//                            BUFFER.endWrite();
-//
-//                            BUFFER.draw(colorValues);
-//
-//                            var frameBuffer = BUFFER.buffer();
-//
-//                            GlStateManager._glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, frameBuffer.frameBufferId);
-//                            GL30.glBlitFramebuffer(
-//                                    0,
-//                                    0,
-//                                    frameBuffer.width,
-//                                    frameBuffer.height,
-//                                    0,
-//                                    0,
-//                                    frameBuffer.width,
-//                                    frameBuffer.height,
-//                                    GL30.GL_DEPTH_BUFFER_BIT,
-//                                    GL30.GL_NEAREST
-//                            );
-//                            Minecraft.getInstance().getMainRenderTarget().bindWrite(false);
-//                        } else {
-//                            bufferSource.endBatch();
-//                        }
-                    }
+                        if (shaderColor != null) {
+                            var encoder = RenderSystem.getDevice().createCommandEncoder();
+                            var main = client.getMainRenderTarget();
+                            encoder.copyTextureToTexture(main.getDepthTexture(), BUFFER.getDepthTexture(), 0, 0, 0, 0, 0, BUFFER.width, BUFFER.height);
+                            encoder.clearColorTexture(BUFFER.getColorTexture(), 0);
+                            overrideRenderTarget = true;
+                            try {
+                                bufferSource.endBatch();
+                            } finally {
+                                overrideRenderTarget = false;
+                            }
 
-                    if (renderingLines && AccessoriesFunkyRenderingState.isIsRenderingLineTarget()) {
-                        AccessoriesFunkyRenderingState.getNotVeryNicePositions().put(container.getSlotName() + i, mpoatv.meanPos());
+                            blit(bufferSource);
+                        }
+                        bufferSource.endBatch();
                     }
+                }
+
+                if (renderingLines && AccessoriesFunkyRenderingState.isIsRenderingLineTarget()) {
+                    AccessoriesFunkyRenderingState.getNotVeryNicePositions().put(container.getSlotName() + i, mpoatv.meanPos());
                 }
             }
         }
+    }
+
+    private void blit(MultiBufferSource bufferSource) {
+        var client = Minecraft.getInstance();
+        var window = client.getWindow();
+        var x2 = window.getGuiScaledWidth();
+        var y2 = window.getGuiScaledHeight();
+        VertexConsumer vertexConsumer = bufferSource.getBuffer(RENDER_TYPE);
+        vertexConsumer.addVertex(0, 0, 0).setUv(0, 1).setColor(0xffffffff);
+        vertexConsumer.addVertex(0, y2, 0).setUv(0, 0).setColor(0xffffffff);
+        vertexConsumer.addVertex(x2, y2, 0).setUv(1, 0).setColor(0xffffffff);
+        vertexConsumer.addVertex(x2, 0, 0).setUv(1, 1).setColor(0xffffffff);
     }
 }
