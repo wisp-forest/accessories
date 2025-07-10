@@ -557,7 +557,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             accessoriesSlots++;
         }
 
-        if (tabPageCount() > 1) {
+        if (this.validTabPageCount() > 1) {
             this.tabDownButton = this.addRenderableWidget(
                     Button.builder(Component.literal("⬆"), button -> this.onTabPageChange(true))
                             .bounds(this.leftPos - 56, this.topPos - 11, 10, 10)
@@ -574,7 +574,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
             this.tabUpButton.setTooltip(Tooltip.create(Component.literal("Page 2")));
 
-            this.tabUpButton.active = tabPageCount() != 1;
+            this.tabUpButton.active = true;
         }
 
         this.menu.setScrollEvent(this::updateAccessoryToggleButtons);
@@ -585,7 +585,10 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
     }
 
     private void onTabPageChange(boolean isDown) {
-        if ((this.currentTabPage <= 1 && isDown) || (this.currentTabPage > tabPageCount() && !isDown)) {
+        if (this.currentTabPage <= 1 && isDown) return;
+
+        int tabPageCount = this.validTabPageCount();
+        if (this.currentTabPage > tabPageCount && !isDown) {
             return;
         }
 
@@ -606,7 +609,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             this.tabDownButton.active = true;
         }
 
-        if (this.currentTabPage >= tabPageCount()) {
+        if (this.currentTabPage >= tabPageCount) {
             this.tabUpButton.active = false;
         } else if (!this.tabUpButton.active) {
             this.tabUpButton.active = true;
@@ -767,13 +770,17 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         return (int) Math.ceil(groups.size() / 9f);
     }
 
+    public int validTabPageCount() {
+        return (int) Math.ceil(this.getMenu().validGroups().size() / 9f);
+    }
+
     // MAX 9
     private Map<SlotGroup, SlotGroupData> getGroups(int x, int y) {
         var groups = this.getMenu().validGroups().stream()
                 .sorted(Comparator.comparingInt(SlotGroup::order).reversed())
                 .toList();
 
-        if (tabPageCount() > 1) {
+        if (Math.ceil(groups.size() / 9f) > 1) {
             var lowerBound = (this.currentTabPage - 1) * 9;
             var upperBound = lowerBound + 9;
 
