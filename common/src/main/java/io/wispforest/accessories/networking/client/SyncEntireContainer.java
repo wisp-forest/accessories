@@ -15,13 +15,13 @@ import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.slf4j.Logger;
 
 import java.util.HashSet;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -36,16 +36,10 @@ public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public static void syncToAllTrackingAndSelf(ServerPlayer player) {
-        syncTo(player, channel -> {
-            var set = new HashSet<>(PlayerLookup.tracking(player));
-
-            set.add(player);
-
-            return channel.serverHandle(set);
-        });
+        syncTo(player, packet -> AccessoriesNetworking.sendToTrackingAndSelf(player, packet));
     }
 
-    public static void syncTo(LivingEntity entity, Function<OwoNetChannel, OwoNetChannel.ServerHandle> handleCreator) {
+    public static void syncTo(LivingEntity entity, Consumer<Record> handleCreator) {
         var capability = AccessoriesCapability.get(entity);
 
         if (capability == null) return;
@@ -54,8 +48,7 @@ public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) {
 
         ((AccessoriesHolderImpl) capability.getHolder()).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(entity.level().registryAccess())));
 
-        handleCreator.apply(AccessoriesNetworking.CHANNEL)
-                .send(new SyncEntireContainer(capability.entity().getId(), carrier));
+        handleCreator.accept(new SyncEntireContainer(capability.entity().getId(), carrier));
     }
 
     @Environment(EnvType.CLIENT)

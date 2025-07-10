@@ -16,7 +16,6 @@ import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
-import io.wispforest.owo.network.OwoNetChannel;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
@@ -25,7 +24,6 @@ import io.wispforest.accessories.networking.client.SyncData;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.SerializationContext;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -153,7 +151,7 @@ public class AccessoriesEventHandler {
     }
 
     public static void onTracking(LivingEntity entity, ServerPlayer serverPlayer) {
-        SyncEntireContainer.syncTo(entity, (channel) -> channel.serverHandle(serverPlayer));
+        SyncEntireContainer.syncTo(entity, (packet) -> AccessoriesNetworking.sendToPlayer(serverPlayer, packet));
     }
 
     public static void dataSync(@Nullable PlayerList list, @Nullable ServerPlayer player) {

@@ -8,6 +8,7 @@ import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import io.wispforest.accessories.api.AccessoriesHolder;
+import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import io.wispforest.accessories.utils.ManagedEndecDataLoader;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.accessories.impl.AccessoriesHolderImpl;
@@ -114,10 +115,15 @@ public class AccessoriesInternalsImpl {
     public static void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         player.openMenu(
                 new SimpleMenuProvider((i, inventory, arg2) -> {
-                    return AccessoriesMenuVariant.openMenu(i, inventory, variant, targetEntity, carriedStack);
+                    var menu = AccessoriesMenuVariant.openMenu(i, inventory, variant, targetEntity, carriedStack);
+
+                    // Hacky work around for getting menu info in encoding
+                    inventory.player.containerMenu = menu;
+
+                    return menu;
                 }, Component.empty()),
                 buf -> {
-                    AccessoriesMenuData.ENDEC.encode(SerializationContext.attributes(RegistriesAttribute.of(buf.registryAccess())), ByteBufSerializer.of(buf), AccessoriesMenuData.of(targetEntity));
+                    AccessoriesMenuData.ENDEC.encode(SerializationContext.attributes(RegistriesAttribute.of(buf.registryAccess())), ByteBufSerializer.of(buf), AccessoriesMenuData.of(targetEntity, ((AccessoriesMenuBase) player.containerMenu)));
                 });
     }
 

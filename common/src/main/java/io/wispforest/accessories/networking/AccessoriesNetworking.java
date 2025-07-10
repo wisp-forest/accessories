@@ -1,6 +1,7 @@
 package io.wispforest.accessories.networking;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.mixin.ServerChunkLoadingManagerAccessor;
 import io.wispforest.accessories.networking.client.*;
 import io.wispforest.accessories.networking.holder.SyncHolderChange;
 import io.wispforest.accessories.networking.server.MenuScroll;
@@ -12,14 +13,16 @@ import io.wispforest.owo.network.OwoNetChannel;
 import io.wispforest.owo.network.ServerAccess;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.ServerPlayerConnection;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.ArrayList;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 
 public class AccessoriesNetworking {
 
@@ -84,7 +87,21 @@ public class AccessoriesNetworking {
     }
 
     public static <R extends Record> void sendToTrackingAndSelf(Entity entity, R packet) {
-        var targets = new ArrayList<>(PlayerLookup.tracking(entity));
+        var targets = new ArrayList<ServerPlayer>();
+
+        if (entity.level().getChunkSource() instanceof ServerChunkCache chunkCache) {
+            var chunkLoadingManager = chunkCache.chunkMap;
+            var tracker = ((ServerChunkLoadingManagerAccessor) chunkLoadingManager).accessories$getEntityMap().get(entity.getId());
+
+            // return an immutable collection to guard against accidental removals.
+            if (tracker != null) {
+                targets.addAll(
+                    tracker.accessories$getSeenBy().stream()
+                        .map(ServerPlayerConnection::getPlayer)
+                        .collect(Collectors.toUnmodifiableSet())
+                );
+            }
+        }
 
         if (entity instanceof ServerPlayer serverPlayer) targets.add(serverPlayer);
 

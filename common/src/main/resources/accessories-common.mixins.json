@@ -65,6 +65,8 @@
     "StateHolderAccessor",
     "StriderMixin",
     "owo.ConfigWrapperAccessor",
+    "ServerChunkLoadingManagerAccessor",
+    "EntityTrackerAccessor",
     "temp_fixes.NbtCompoundMixin",
     "temp_fixes.NbtUtilsMixin"
   ],
