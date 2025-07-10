@@ -780,13 +780,18 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
                 .sorted(Comparator.comparingInt(SlotGroup::order).reversed())
                 .toList();
 
+        List<SlotGroup> visibleGroups;
         if (Math.ceil(groups.size() / 9f) > 1) {
             var lowerBound = (this.currentTabPage - 1) * 9;
             var upperBound = lowerBound + 9;
 
             if (upperBound > groups.size()) upperBound = groups.size();
 
-            groups = groups.subList(lowerBound, upperBound);
+            // Don't need to look at groups that won't affect visible group indices
+            groups = groups.subList(0, upperBound);
+            visibleGroups = groups.subList(lowerBound, groups.size());
+        } else {
+            visibleGroups = groups;
         }
 
         var bottomIndex = this.menu.scrolledIndex;
@@ -848,7 +853,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         var groupValues = new HashMap<SlotGroup, SlotGroupData>();
 
-        for (var group : groups) {
+        for (var group : visibleGroups) {
             if ((yOffset + height) > maxHeight) break;
 
             var selected = selectedGroup.contains(group.name());
