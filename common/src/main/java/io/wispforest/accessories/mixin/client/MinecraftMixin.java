@@ -39,9 +39,4 @@ public abstract class MinecraftMixin {
             cir.setReturnValue(Minecraft.getInstance().getGuiSprites()::getSprite);
         }
     }
-
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;initRenderer(JIZLjava/util/function/BiFunction;Z)V", shift = At.Shift.AFTER))
-    private void initBlurRenderer(GameConfig args, CallbackInfo ci) {
-        AccessoriesPipelines.initialize((Minecraft) (Object) this);
-    }
 }

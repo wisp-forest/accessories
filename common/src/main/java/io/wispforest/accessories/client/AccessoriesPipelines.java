@@ -20,13 +20,10 @@ import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.TriState;
-import org.jetbrains.annotations.ApiStatus;
 
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
-import static io.wispforest.accessories.client.AccessoriesRenderLayer.shaderColor;
 
 public class AccessoriesPipelines {
 
@@ -36,17 +33,6 @@ public class AccessoriesPipelines {
             OwoUIPipelines.GUI_HSV,
             RenderType.CompositeState.builder().createCompositeState(false)
     );
-//            RenderType.create(
-//            "accessories:hsv_gui",
-//            DefaultVertexFormat.POSITION_COLOR,
-//            VertexFormat.Mode.QUADS,
-//            786432,
-//            RenderType.CompositeState.builder()
-//                    .setShaderState(OwoClient.HSV_PROGRAM.renderPhaseProgram())
-//                    .setTransparencyState(RenderType.TRANSLUCENT_TRANSPARENCY)
-//                    .setDepthTestState(RenderType.LEQUAL_DEPTH_TEST)
-//                    .createCompositeState(false)
-//    );
 
     public static final RenderPipeline.Snippet SPECTRUM_SNIPPET = RenderPipeline.builder(RenderPipelines.MATRICES_COLOR_SNIPPET)
             .withFragmentShader(Accessories.of("core/spectrum_position_tex"))
@@ -101,17 +87,19 @@ public class AccessoriesPipelines {
         pipelineRegister.accept(COLORED_GUI_TEXTURED_PIPE);
     }
 
-    public static TextureTarget BUFFER;
-    public static boolean OVERRIDE_RENDER_TARGET = false;
-    public static Color SHADER_COLOR = null;
-    public static final RenderType RENDER_TYPE = RenderType.create(
-        "dawg",
+    private static TextureTarget BUFFER = null;
+
+    private static Color SHADER_COLOR = null;
+    private static final RenderType HOVER_EFFECT = RenderType.create(
+        "accessories_hover_effect",
         786432,
         RenderPipelines.GUI_TEXTURED_OVERLAY,
         RenderType.CompositeState.builder().setTextureState(new RenderStateShard.EmptyTextureStateShard(
             () -> {
-                RenderSystem.setShaderTexture(0, BUFFER.getColorTexture());
-                if (SHADER_COLOR != null) RenderSystem.setShaderColor(SHADER_COLOR.red(), SHADER_COLOR.green(), SHADER_COLOR.blue(), SHADER_COLOR.alpha());
+                RenderSystem.setShaderTexture(0, getOrCreateBuffer().getColorTexture());
+                if (SHADER_COLOR != null) {
+                    RenderSystem.setShaderColor(SHADER_COLOR.red(), SHADER_COLOR.green(), SHADER_COLOR.blue(), SHADER_COLOR.alpha());
+                }
             },
             () -> {
                 if (SHADER_COLOR != null) {
@@ -122,13 +110,28 @@ public class AccessoriesPipelines {
         )).createCompositeState(false)
     );
 
-    @ApiStatus.Internal
-    public static void initialize(Minecraft client) {
-        var window = client.getWindow();
-        BUFFER = new TextureTarget("accessories_buffer_thingy", window.getWidth(), window.getHeight(), true);
-        WindowResizeCallback.EVENT.register((innerClient, innerWindow) -> {
-            if (BUFFER == null) return;
-            BUFFER.resize(innerWindow.getWidth(), innerWindow.getHeight());
-        });
+    public static RenderType setupHoverEffect(Color color) {
+        SHADER_COLOR = color;
+
+        return HOVER_EFFECT;
+    }
+
+    public static TextureTarget getOrCreateBuffer() {
+        try {
+            if (BUFFER == null) {
+                var window = Minecraft.getInstance().getWindow();
+
+                BUFFER = new TextureTarget("accessories_buffer_thingy", window.getWidth(), window.getHeight(), true);
+
+                WindowResizeCallback.EVENT.register((innerClient, innerWindow) -> {
+                    if (BUFFER == null) return;
+                    BUFFER.resize(innerWindow.getWidth(), innerWindow.getHeight());
+                });
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Unable to create the buffer for Accessories Hover Rendering due to an error!", e);
+        }
+
+        return BUFFER;
     }
 }

@@ -2,7 +2,8 @@ package io.wispforest.accessories.mixin.client;
 
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import io.wispforest.accessories.client.AccessoriesRenderLayer;
+import io.wispforest.accessories.client.AccessoriesFunkyRenderingState;
+import io.wispforest.accessories.client.AccessoriesPipelines;
 import net.minecraft.client.renderer.RenderStateShard;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -12,7 +13,8 @@ public class RenderPhaseMixin {
 
     @ModifyExpressionValue(method = "method_68490", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;getMainRenderTarget()Lcom/mojang/blaze3d/pipeline/RenderTarget;"))
     private static RenderTarget injectProperRenderTarget(RenderTarget original) {
-        if (AccessoriesRenderLayer.overrideRenderTarget && AccessoriesRenderLayer.BUFFER != null) return AccessoriesRenderLayer.BUFFER;
-        return original;
+        return (AccessoriesFunkyRenderingState.isOverrideRenderTarget())
+            ? AccessoriesPipelines.getOrCreateBuffer()
+            : original;
     }
 }

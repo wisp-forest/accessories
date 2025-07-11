@@ -1,41 +1,29 @@
 package io.wispforest.accessories.client;
 
-import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
-import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import io.wispforest.owo.ui.core.Color;
-import io.wispforest.owo.ui.event.WindowResizeCallback;
-import io.wispforest.owo.ui.util.ScissorStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.LivingEntity;
 import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
 
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-
-import static io.wispforest.accessories.client.AccessoriesPipelines.BUFFER;
 
 
 /**
@@ -187,37 +175,47 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
                     poseStack.popPose();
                 }
 
-
+                // Code area for handling the hovering effect that makes such items on the entity glow if within a screen for such
                 if (useCustomerBuffer && bufferedGrabbedFlag.getValue()) {
                     if (multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
+                        Color shaderColor = null;
+
                         if (hoveredOptions.brightenHovered() && isSelected) {
                             if (isFunnyDate) {
                                 var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
-                                AccessoriesPipelines.SHADER_COLOR = Color.ofHsv(hue, 1, 1);
+                                shaderColor = Color.ofHsv(hue, 1, 1);
                             } else {
                                 var mul = hoveredOptions.cycleBrightness() ? scale : 1.5f;
-                                AccessoriesPipelines.SHADER_COLOR = new Color(mul, mul, mul, 1);
+                                shaderColor = new Color(mul, mul, mul, 1);
                             }
                         } else if (unHoveredOptions.darkenUnHovered()) {
                             var darkness = brightnessMap.getOrDefault(mapKey, 1f);
 
-                            AccessoriesPipelines.SHADER_COLOR = new Color(darkness, darkness, darkness, opacityMap.getOrDefault(mapKey, 1f));
+                            shaderColor = new Color(darkness, darkness, darkness, opacityMap.getOrDefault(mapKey, 1f));
                         }
 
-                        if (AccessoriesPipelines.SHADER_COLOR != null) {
+                        if (shaderColor != null) {
                             var encoder = RenderSystem.getDevice().createCommandEncoder();
                             var main = client.getMainRenderTarget();
-                            encoder.copyTextureToTexture(main.getDepthTexture(), BUFFER.getDepthTexture(), 0, 0, 0, 0, 0, BUFFER.width, BUFFER.height);
-                            encoder.clearColorTexture(BUFFER.getColorTexture(), 0);
-                            AccessoriesPipelines.OVERRIDE_RENDER_TARGET = true;
-                            try {
-                                bufferSource.endBatch();
-                            } finally {
-                                AccessoriesPipelines.OVERRIDE_RENDER_TARGET = false;
-                            }
+                            var buffer = AccessoriesPipelines.getOrCreateBuffer();
 
-                            blit(bufferSource);
+                            encoder.copyTextureToTexture(main.getDepthTexture(), buffer.getDepthTexture(), 0, 0, 0, 0, 0, buffer.width, buffer.height);
+                            encoder.clearColorTexture(buffer.getColorTexture(), 0);
+
+                            AccessoriesFunkyRenderingState.wrapBufferManipulation(bufferSource::endBatch);
+
+                            var window = client.getWindow();
+
+                            var x2 = window.getGuiScaledWidth();
+                            var y2 = window.getGuiScaledHeight();
+
+                            bufferSource.getBuffer(AccessoriesPipelines.setupHoverEffect(shaderColor))
+                                .addVertex(0, 0, 0).setUv(0, 1).setColor(0xffffffff)
+                                .addVertex(0, y2, 0).setUv(0, 0).setColor(0xffffffff)
+                                .addVertex(x2, y2, 0).setUv(1, 0).setColor(0xffffffff)
+                                .addVertex(x2, 0, 0).setUv(1, 1).setColor(0xffffffff);
                         }
+
                         bufferSource.endBatch();
                     }
                 }
@@ -229,15 +227,4 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
         }
     }
 
-    private void blit(MultiBufferSource bufferSource) {
-        var client = Minecraft.getInstance();
-        var window = client.getWindow();
-        var x2 = window.getGuiScaledWidth();
-        var y2 = window.getGuiScaledHeight();
-        VertexConsumer vertexConsumer = bufferSource.getBuffer(AccessoriesPipelines.RENDER_TYPE);
-        vertexConsumer.addVertex(0, 0, 0).setUv(0, 1).setColor(0xffffffff);
-        vertexConsumer.addVertex(0, y2, 0).setUv(0, 0).setColor(0xffffffff);
-        vertexConsumer.addVertex(x2, y2, 0).setUv(1, 0).setColor(0xffffffff);
-        vertexConsumer.addVertex(x2, 0, 0).setUv(1, 1).setColor(0xffffffff);
-    }
 }

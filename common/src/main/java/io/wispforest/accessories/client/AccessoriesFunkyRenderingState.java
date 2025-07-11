@@ -17,7 +17,11 @@ import java.util.function.Consumer;
 ///
 /// An internal class for getting some extra context to various areas of rendering to assist some fancy shit
 ///
+@ApiStatus.Internal
 public class AccessoriesFunkyRenderingState {
+    // Used with the AccessoryRenderLayer to set if the buffer should be the hover buffer instead
+    public static boolean OVERRIDE_RENDER_TARGET = false;
+
     // are we currently rendering an entity in a screen
     private static boolean IS_RENDERING_UI_ENTITY = false;
 
@@ -27,7 +31,6 @@ public class AccessoriesFunkyRenderingState {
     // are we collecting positions for hover i.e. line drawing or clickbait
     private static boolean COLLECT_ACCESSORY_POSITIONS = false;
 
-    @ApiStatus.Internal
     public static void wrapEntityRendering(int x1, int y1, int x2, int y2, Consumer<Consumer<Runnable>> renderingCall) {
         SCISSOR_BOX.set(x1, y1, x2, y2);
 
@@ -52,9 +55,22 @@ public class AccessoriesFunkyRenderingState {
         SCISSOR_BOX.set(0, 0,0, 0);
     }
 
+    public static void wrapBufferManipulation(Runnable runnable) {
+        OVERRIDE_RENDER_TARGET = true;
+        try {
+            runnable.run();
+        } finally {
+            OVERRIDE_RENDER_TARGET = false;
+        }
+    }
+
     private static Map<String, Vector3d> NOT_VERY_NICE_POSITIONS = new HashMap<>();
 
     private static Vector4i SCISSOR_BOX = new Vector4i();
+
+    public static boolean isOverrideRenderTarget() {
+        return OVERRIDE_RENDER_TARGET;
+    }
 
     public static boolean isIsRenderingUiEntity() {
         return IS_RENDERING_UI_ENTITY;
