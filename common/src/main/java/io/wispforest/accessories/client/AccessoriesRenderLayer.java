@@ -35,6 +35,8 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import static io.wispforest.accessories.client.AccessoriesPipelines.BUFFER;
+
 
 /**
  * Render layer used to render equipped Accessories for a given {@link LivingEntity}.
@@ -42,29 +44,6 @@ import java.util.Map;
  * extends {@link HumanoidModel}
  */
 public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<S>> extends RenderLayer<S, M> {
-
-    private static final Logger LOGGER = LogUtils.getLogger();
-
-    public static TextureTarget BUFFER;
-    public static boolean overrideRenderTarget = false;
-    private static Color shaderColor = null;
-    private static final RenderType RENDER_TYPE = RenderType.create(
-        "dawg",
-        786432,
-        RenderPipelines.GUI_TEXTURED_OVERLAY,
-        RenderType.CompositeState.builder().setTextureState(new RenderStateShard.EmptyTextureStateShard(
-            () -> {
-                RenderSystem.setShaderTexture(0, BUFFER.getColorTexture());
-                if (shaderColor != null) RenderSystem.setShaderColor(shaderColor.red(), shaderColor.green(), shaderColor.blue(), shaderColor.alpha());
-            },
-            () -> {
-                if (shaderColor != null) {
-                    RenderSystem.setShaderColor(1, 1, 1, 1);
-                    shaderColor = null;
-                }
-            }
-        )).createCompositeState(false)
-    );
 
     private static final float increment = 0.1f;
 
@@ -75,16 +54,6 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
 
     public AccessoriesRenderLayer(RenderLayerParent<S, M> renderLayerParent) {
         super(renderLayerParent);
-    }
-
-    @ApiStatus.Internal
-    public static void initialize(Minecraft client) {
-        var window = client.getWindow();
-        BUFFER = new TextureTarget("accessories_buffer_thingy", window.getWidth(), window.getHeight(), true);
-        WindowResizeCallback.EVENT.register((innerClient, innerWindow) -> {
-            if (BUFFER == null) return;
-            BUFFER.resize(innerWindow.getWidth(), innerWindow.getHeight());
-        });
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -224,27 +193,27 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
                         if (hoveredOptions.brightenHovered() && isSelected) {
                             if (isFunnyDate) {
                                 var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
-                                shaderColor = Color.ofHsv(hue, 1, 1);
+                                AccessoriesPipelines.SHADER_COLOR = Color.ofHsv(hue, 1, 1);
                             } else {
                                 var mul = hoveredOptions.cycleBrightness() ? scale : 1.5f;
-                                shaderColor = new Color(mul, mul, mul, 1);
+                                AccessoriesPipelines.SHADER_COLOR = new Color(mul, mul, mul, 1);
                             }
                         } else if (unHoveredOptions.darkenUnHovered()) {
                             var darkness = brightnessMap.getOrDefault(mapKey, 1f);
 
-                            shaderColor = new Color(darkness, darkness, darkness, opacityMap.getOrDefault(mapKey, 1f));
+                            AccessoriesPipelines.SHADER_COLOR = new Color(darkness, darkness, darkness, opacityMap.getOrDefault(mapKey, 1f));
                         }
 
-                        if (shaderColor != null) {
+                        if (AccessoriesPipelines.SHADER_COLOR != null) {
                             var encoder = RenderSystem.getDevice().createCommandEncoder();
                             var main = client.getMainRenderTarget();
                             encoder.copyTextureToTexture(main.getDepthTexture(), BUFFER.getDepthTexture(), 0, 0, 0, 0, 0, BUFFER.width, BUFFER.height);
                             encoder.clearColorTexture(BUFFER.getColorTexture(), 0);
-                            overrideRenderTarget = true;
+                            AccessoriesPipelines.OVERRIDE_RENDER_TARGET = true;
                             try {
                                 bufferSource.endBatch();
                             } finally {
-                                overrideRenderTarget = false;
+                                AccessoriesPipelines.OVERRIDE_RENDER_TARGET = false;
                             }
 
                             blit(bufferSource);
@@ -265,7 +234,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
         var window = client.getWindow();
         var x2 = window.getGuiScaledWidth();
         var y2 = window.getGuiScaledHeight();
-        VertexConsumer vertexConsumer = bufferSource.getBuffer(RENDER_TYPE);
+        VertexConsumer vertexConsumer = bufferSource.getBuffer(AccessoriesPipelines.RENDER_TYPE);
         vertexConsumer.addVertex(0, 0, 0).setUv(0, 1).setColor(0xffffffff);
         vertexConsumer.addVertex(0, y2, 0).setUv(0, 0).setColor(0xffffffff);
         vertexConsumer.addVertex(x2, y2, 0).setUv(1, 0).setColor(0xffffffff);

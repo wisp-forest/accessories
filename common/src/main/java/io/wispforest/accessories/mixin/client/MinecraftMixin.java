@@ -1,7 +1,9 @@
 package io.wispforest.accessories.mixin.client;
 
 import com.mojang.blaze3d.platform.Window;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.AccessoriesClient;
+import io.wispforest.accessories.client.AccessoriesPipelines;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.owo.shader.OwoBlurRenderer;
 import net.minecraft.client.Minecraft;
@@ -40,6 +42,6 @@ public abstract class MinecraftMixin {
 
     @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/systems/RenderSystem;initRenderer(JIZLjava/util/function/BiFunction;Z)V", shift = At.Shift.AFTER))
     private void initBlurRenderer(GameConfig args, CallbackInfo ci) {
-        AccessoriesRenderLayer.initialize((Minecraft) (Object) this);
+        AccessoriesPipelines.initialize((Minecraft) (Object) this);
     }
 }

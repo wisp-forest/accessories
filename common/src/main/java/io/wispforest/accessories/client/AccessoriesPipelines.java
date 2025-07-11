@@ -2,6 +2,7 @@ package io.wispforest.accessories.client;
 
 import com.mojang.blaze3d.pipeline.BlendFunction;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.pipeline.TextureTarget;
 import com.mojang.blaze3d.platform.DepthTestFunction;
 import com.mojang.blaze3d.platform.DestFactor;
 import com.mojang.blaze3d.platform.SourceFactor;
@@ -9,19 +10,23 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.owo.client.OwoClient;
 import io.wispforest.owo.ui.core.Color;
 import io.wispforest.owo.ui.core.OwoUIPipelines;
+import io.wispforest.owo.ui.event.WindowResizeCallback;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderStateShard;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.TriState;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import static io.wispforest.accessories.client.AccessoriesRenderLayer.shaderColor;
 
 public class AccessoriesPipelines {
 
@@ -94,5 +99,36 @@ public class AccessoriesPipelines {
     public static void registerPipelines(Consumer<RenderPipeline> pipelineRegister) {
         pipelineRegister.accept(SPECTRUM);
         pipelineRegister.accept(COLORED_GUI_TEXTURED_PIPE);
+    }
+
+    public static TextureTarget BUFFER;
+    public static boolean OVERRIDE_RENDER_TARGET = false;
+    public static Color SHADER_COLOR = null;
+    public static final RenderType RENDER_TYPE = RenderType.create(
+        "dawg",
+        786432,
+        RenderPipelines.GUI_TEXTURED_OVERLAY,
+        RenderType.CompositeState.builder().setTextureState(new RenderStateShard.EmptyTextureStateShard(
+            () -> {
+                RenderSystem.setShaderTexture(0, BUFFER.getColorTexture());
+                if (SHADER_COLOR != null) RenderSystem.setShaderColor(SHADER_COLOR.red(), SHADER_COLOR.green(), SHADER_COLOR.blue(), SHADER_COLOR.alpha());
+            },
+            () -> {
+                if (SHADER_COLOR != null) {
+                    RenderSystem.setShaderColor(1, 1, 1, 1);
+                    SHADER_COLOR = null;
+                }
+            }
+        )).createCompositeState(false)
+    );
+
+    @ApiStatus.Internal
+    public static void initialize(Minecraft client) {
+        var window = client.getWindow();
+        BUFFER = new TextureTarget("accessories_buffer_thingy", window.getWidth(), window.getHeight(), true);
+        WindowResizeCallback.EVENT.register((innerClient, innerWindow) -> {
+            if (BUFFER == null) return;
+            BUFFER.resize(innerWindow.getWidth(), innerWindow.getHeight());
+        });
     }
 }
