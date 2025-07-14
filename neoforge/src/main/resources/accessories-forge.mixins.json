@@ -6,7 +6,8 @@
   "minVersion": "0.8",
   "client": [
     "NeoForgeLoadingOverlayMixin",
-    "client.AbstractContainerScreenMixin"
+    "client.AbstractContainerScreenMixin",
+    "client.AccessoriesPipelinesMixin"
   ],
   "mixins": [
     "ContextAwareReloadListenerAccessor",
