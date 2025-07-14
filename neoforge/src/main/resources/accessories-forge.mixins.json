@@ -8,7 +8,8 @@
     "NeoForgeLoadingOverlayMixin",
     "client.AbstractContainerScreenMixin",
     "client.HumanoidArmorLayerMixin",
-    "client.LivingEntityRendererMixin"
+    "client.LivingEntityRendererMixin",
+    "client.PostEffectBufferMixin"
   ],
   "mixins": [
     "curios.CurioInventoryMixin"
