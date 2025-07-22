@@ -2,7 +2,10 @@ package io.wispforest.accessories.client;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
+
+import java.util.Objects;
 
 /**
  * Mean Position of all the Vertices™ (MPOATV)
@@ -16,8 +19,10 @@ public final class MPOATVConstructingVertexConsumer implements VertexConsumer {
     private double maxY = -Double.MAX_VALUE;
     private double maxZ = -Double.MAX_VALUE;
 
+    @Nullable
     private Vector3d meanPos = null;
 
+    @Nullable
     public Vector3d meanPos(){
         return this.meanPos;
     }
@@ -26,7 +31,7 @@ public final class MPOATVConstructingVertexConsumer implements VertexConsumer {
     public VertexConsumer addVertex(float x, float y, float z) {
         var leeway = 10;
 
-        var box = AccessoriesFunkyRenderingState.getScissorBox();
+        var box = AccessoriesFunkyRenderingState.INSTANCE.getScissorBox();
 
         if ((x >= box.x() - leeway && x <= box.z() + leeway) && (y >= box.y() - leeway && y <= box.w() + leeway)) {
             this.minX = Math.min(this.minX, x);

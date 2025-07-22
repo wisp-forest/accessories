@@ -7,46 +7,22 @@ import java.util.Set;
 
 public class PlayerOptions {
 
-    public static PlayerOption<PlayerEquipControl> EQUIP_CONTROL;
-    public static PlayerOption<Boolean> SHOW_UNUSED_SLOTS;
-    public static PlayerOption<Boolean> SHOW_COSMETIC_SLOTS;
-    public static PlayerOption<Integer> COLUMN_AMOUNT;
-    public static PlayerOption<Boolean> SIDE_BY_SIDE_SLOTS;
-    public static PlayerOption<Integer> WIDGET_TYPE;
-    public static PlayerOption<Boolean> SHOW_GROUP_FILTER;
-    public static PlayerOption<Set<String>> FILTERED_GROUPS;
-    public static PlayerOption<Boolean> ENTITY_CENTERED;
-    public static PlayerOption<Boolean> SIDE_BY_SIDE_ENTITY;
-    public static PlayerOption<Boolean> MAIN_WIDGET_POSITION;
-    public static PlayerOption<Boolean> SIDE_WIDGET_POSITION;
-    public static PlayerOption<Boolean> SHOW_CRAFTING_GRID;
-    public static PlayerOption<Boolean> ADVANCED_SETTINGS;
+    public static PlayerOption<PlayerEquipControl> EQUIP_CONTROL = new PlayerOption<>("equip_control", Endec.forEnum(PlayerEquipControl.class), PlayerEquipControl.MUST_NOT_CROUCH);
+    public static PlayerOption<Boolean> SHOW_UNUSED_SLOTS = new PlayerOption<>("unused_slots", Endec.BOOLEAN, false);
+    public static PlayerOption<Boolean> SHOW_COSMETIC_SLOTS = new PlayerOption<>("cosmetic", Endec.BOOLEAN, false);
 
-    static void init() {
-        if(!PlayerOption.getAllOptions().isEmpty()) return;
+    public static PlayerOption<Boolean> SIDE_BY_SIDE_SLOTS = new PlayerOption<>("side_by_side_slots", Endec.BOOLEAN, false);
+    public static PlayerOption<Integer> COLUMN_AMOUNT = new PlayerOption<>("column_amount", Endec.VAR_INT, 1);
+    public static PlayerOption<Integer> WIDGET_TYPE = new PlayerOption<>("widget_type", Endec.VAR_INT, 1);
 
-        EQUIP_CONTROL = new PlayerOption<>("equip_control", Endec.forEnum(PlayerEquipControl.class), PlayerEquipControl.MUST_NOT_CROUCH);
+    public static PlayerOption<Boolean> SHOW_GROUP_FILTER = new PlayerOption<>("group_filter", Endec.BOOLEAN, false);
+    public static PlayerOption<Set<String>> FILTERED_GROUPS = new PlayerOption<>("filtered_groups", Endec.STRING.setOf(), Set.of());
 
-        COLUMN_AMOUNT = new PlayerOption<>("column_amount", Endec.VAR_INT, 1);
+    public static PlayerOption<Boolean> ENTITY_CENTERED = new PlayerOption<>("entity_centered", Endec.BOOLEAN, false);
+    public static PlayerOption<Boolean> SIDE_BY_SIDE_ENTITY = new PlayerOption<>("side_by_side_entity", Endec.BOOLEAN, false);
+    public static PlayerOption<Boolean> MAIN_WIDGET_POSITION = new PlayerOption<>("main_widget_position", Endec.BOOLEAN, false);
+    public static PlayerOption<Boolean> SIDE_WIDGET_POSITION = new PlayerOption<>("side_widget_position", Endec.BOOLEAN, false);
 
-        SIDE_BY_SIDE_SLOTS = new PlayerOption<>("side_by_side_slots", Endec.BOOLEAN, false);
-        WIDGET_TYPE = new PlayerOption<>("widget_type", Endec.VAR_INT, 1);
-
-        ENTITY_CENTERED = new PlayerOption<>("entity_centered", Endec.BOOLEAN, false);
-        SIDE_BY_SIDE_ENTITY = new PlayerOption<>("side_by_side_entity", Endec.BOOLEAN, false);
-
-        MAIN_WIDGET_POSITION = new PlayerOption<>("main_widget_position", Endec.BOOLEAN, false);
-        SIDE_WIDGET_POSITION = new PlayerOption<>("side_widget_position", Endec.BOOLEAN, false);
-
-        SHOW_UNUSED_SLOTS = new PlayerOption<>("unused_slots", Endec.BOOLEAN, false);
-
-        SHOW_COSMETIC_SLOTS = new PlayerOption<>("cosmetic", Endec.BOOLEAN, false);
-
-        SHOW_GROUP_FILTER = new PlayerOption<>("group_filter", Endec.BOOLEAN, false);
-        FILTERED_GROUPS = new PlayerOption<>("filtered_groups", Endec.STRING.setOf(), Set.of());
-
-        SHOW_CRAFTING_GRID = new PlayerOption<>("show_crafting_grid", Endec.BOOLEAN, false);
-
-        ADVANCED_SETTINGS = new PlayerOption<>("advanced_settings", Endec.BOOLEAN, false);
-    }
+    public static PlayerOption<Boolean> SHOW_CRAFTING_GRID = new PlayerOption<>("show_crafting_grid", Endec.BOOLEAN, false);
+    public static PlayerOption<Boolean> ADVANCED_SETTINGS = new PlayerOption<>("advanced_settings", Endec.BOOLEAN, false);
 }

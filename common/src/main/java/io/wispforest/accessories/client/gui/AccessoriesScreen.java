@@ -197,7 +197,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         // --
 
-        AccessoriesFunkyRenderingState.wrapEntityRendering(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y, primaryEntityWrapCall -> {
+        AccessoriesFunkyRenderingState.INSTANCE.wrapEntityRendering(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y, primaryEntityWrapCall -> {
             primaryEntityWrapCall.accept(() -> {
                 renderEntityInInventoryFollowingMouseRotated(guiGraphics, scissorStart, size, scissorStart, scissorEnd, mouseX, mouseY, 0);
             });
@@ -258,7 +258,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         });
 
         if (getHoveredSlot() != null && getHoveredSlot() instanceof AccessoriesInternalSlot slot && slot.isActive() && !slot.getItem().isEmpty()) {
-            var positions = AccessoriesFunkyRenderingState.getNotVeryNicePositions();
+            var positions = AccessoriesFunkyRenderingState.INSTANCE.getNotVeryNicePositions();
 
             if (positions.containsKey(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot())) {
                 hoveredAccessoryPositons.add(positions.get(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot()));

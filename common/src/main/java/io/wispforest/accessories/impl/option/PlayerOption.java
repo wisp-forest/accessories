@@ -1,5 +1,6 @@
 package io.wispforest.accessories.impl.option;
 
+import com.google.common.reflect.Reflection;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
@@ -14,11 +15,15 @@ import java.util.function.Supplier;
 
 public final class PlayerOption<T> {
 
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     public static final Endec<PlayerOption<?>> ENDEC = Endec.STRING.xmap(PlayerOption::getProperty, PlayerOption::name);
 
     private static final SequencedMap<String, PlayerOption<?>> ALL_PROPERTIES = new LinkedHashMap<>();
 
-    private static final Logger LOGGER = LogUtils.getLogger();
+    static {
+        Reflection.initialize(PlayerOptions.class);
+    }
 
     private final String name;
     private final Endec<T> endec;
@@ -29,14 +34,12 @@ public final class PlayerOption<T> {
     }
 
     PlayerOption(String name, Endec<T> endec, Supplier<T> defaultValue) {
+        if (ALL_PROPERTIES.containsKey(name)) throw new IllegalStateException("Unable to create the given PlayerOption [" + name + "] as it is already contained within ALL_PROPERTIES! ");
+
         ALL_PROPERTIES.put(name, this);
         this.name = name;
         this.endec = endec;
         this.defaultValue = defaultValue;
-    }
-
-    static {
-        PlayerOptions.init();
     }
 
     public static SequencedCollection<PlayerOption<?>> getAllOptions() {
@@ -44,8 +47,6 @@ public final class PlayerOption<T> {
     }
 
     public static PlayerOption<?> getProperty(String name) {
-        PlayerOptions.init();
-
         var prop = ALL_PROPERTIES.get(name);
 
         if (prop == null) {

@@ -349,13 +349,14 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         //--
 
         if (getHoveredSlot() != null && getHoveredSlot() instanceof AccessoriesInternalSlot slot && slot.isActive() && !slot.getItem().isEmpty()) {
-            var positions = AccessoriesFunkyRenderingState.getNotVeryNicePositions();
+            var positions = AccessoriesFunkyRenderingState.INSTANCE.getNotVeryNicePositions();
 
-            if (positions.containsKey(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot())) {
-                hoveredAccessoryPositons.add(positions.get(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot()));
+            var positionKey = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
 
-                var positionKey = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
-                var vec = positions.getOrDefault(positionKey, null);
+            if (positions.containsKey(positionKey)) {
+                hoveredAccessoryPositons.add(positions.get(positionKey));
+
+                var vec = positions.get(positionKey);
 
                 if (!slot.isCosmetic && vec != null && (Accessories.config().screenOptions.hoveredOptions.line())) {
                     var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
@@ -789,7 +790,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 .renderWrapping((ctx, component, renderCall) -> {
                     //ScissorStack.push(component.x() + 24, component.y(), component.width() - 48, component.height(), ctx);
 
-                    AccessoriesFunkyRenderingState.wrapEntityRendering(
+                    AccessoriesFunkyRenderingState.INSTANCE.wrapEntityRendering(
                             component.x() + 24, component.y(), component.x() + component.width() - 24, component.y() + component.height(),
                             primaryEntityWrapCall -> {
                                 primaryEntityWrapCall.accept(() -> {

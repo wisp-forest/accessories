@@ -13,7 +13,7 @@ public class RenderPhaseMixin {
 
     @ModifyExpressionValue(method = "method_68490", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;getMainRenderTarget()Lcom/mojang/blaze3d/pipeline/RenderTarget;"))
     private static RenderTarget injectProperRenderTarget(RenderTarget original) {
-        return (AccessoriesFunkyRenderingState.isOverrideRenderTarget())
+        return (AccessoriesFunkyRenderingState.INSTANCE.isOverrideRenderTarget())
             ? AccessoriesPipelines.getOrCreateBuffer()
             : original;
     }

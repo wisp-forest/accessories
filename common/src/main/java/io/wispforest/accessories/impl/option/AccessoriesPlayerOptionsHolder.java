@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class AccessoriesPlayerOptionsHolder implements InstanceEndec {
 
@@ -26,6 +27,8 @@ public class AccessoriesPlayerOptionsHolder implements InstanceEndec {
     }
 
     public <T> void setData(PlayerOption<T> option, T data) {
+        Objects.requireNonNull(option, "Unable to set data as the given PlayerOption instance is null!");
+
         this.optionToValue.put(option, data);
     }
 

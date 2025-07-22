@@ -69,13 +69,18 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
 
         if (containers.isEmpty()) return;
 
-        var renderingLines = AccessoriesFunkyRenderingState.isCollectAccessoryPositions();
+        var funkyRenderState = AccessoriesFunkyRenderingState.INSTANCE;
+        
+        var isRenderingLineTarget = funkyRenderState.isIsRenderingLineTarget();
 
-        if (!renderingLines && !AccessoriesFunkyRenderingState.getNotVeryNicePositions().isEmpty()) {
-            AccessoriesFunkyRenderingState.getNotVeryNicePositions().clear();
+        var renderingLines = funkyRenderState.isCollectAccessoryPositions();
+        var positions = funkyRenderState.getNotVeryNicePositions();
+
+        if (!renderingLines && !positions.isEmpty()) {
+            positions.clear();
         }
-
-        var useCustomerBuffer = AccessoriesFunkyRenderingState.isIsRenderingUiEntity();
+        
+        var useCustomerBuffer = funkyRenderState.isIsRenderingUiEntity();
 
         if (useCustomerBuffer && multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
             bufferSource.endBatch();
@@ -154,7 +159,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
                         multiBufferSource.getBuffer(renderType);
                 };
 
-                if (!AccessoriesFunkyRenderingState.isIsRenderingUiEntity() || isSelected || selected == null || unHoveredOptions.renderUnHovered()) {
+                if (!useCustomerBuffer || isSelected || selected == null || unHoveredOptions.renderUnHovered()) {
                     poseStack.pushPose();
 
                     try {
@@ -202,7 +207,7 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
                             encoder.copyTextureToTexture(main.getDepthTexture(), buffer.getDepthTexture(), 0, 0, 0, 0, 0, buffer.width, buffer.height);
                             encoder.clearColorTexture(buffer.getColorTexture(), 0);
 
-                            AccessoriesFunkyRenderingState.wrapBufferManipulation(bufferSource::endBatch);
+                            funkyRenderState.wrapBufferManipulation(bufferSource::endBatch);
 
                             var window = client.getWindow();
 
@@ -220,8 +225,10 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
                     }
                 }
 
-                if (renderingLines && AccessoriesFunkyRenderingState.isIsRenderingLineTarget()) {
-                    AccessoriesFunkyRenderingState.getNotVeryNicePositions().put(container.getSlotName() + i, mpoatv.meanPos());
+                if (renderingLines && isRenderingLineTarget) {
+                    var pos = mpoatv.meanPos();
+
+                    if (pos != null) positions.put(container.getSlotName() + i, pos);
                 }
             }
         }
