@@ -594,6 +594,8 @@ public class AccessoriesEventHandler {
 
             var builder = AccessoryAttributeLogic.getAttributeModifiers(stack, reference, true);
 
+            if (builder.isEmpty()) continue;
+
             slotSpecificModifiers.put(slotType, builder);
 
             if (defaultModifiers == null) {
@@ -618,8 +620,6 @@ public class AccessoriesEventHandler {
             for (var slotModifiers : slotSpecificModifiers.entrySet()) {
                 var slotType = slotModifiers.getKey();
                 var modifiers = slotModifiers.getValue();
-
-                if (modifiers.isEmpty()) continue;
 
                 var attributeTooltip = new ArrayList<Component>();
 

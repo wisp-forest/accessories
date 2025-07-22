@@ -170,7 +170,8 @@ public class SlotPredicateRegistry {
             return (stack.is(getSlotTag(slotType)) || stack.is(AccessoriesTags.ANY_TAG)) ? TriState.TRUE : TriState.DEFAULT;
         });
         register(AccessoriesBaseData.ATTRIBUTE_PREDICATE_ID, SlotBasedPredicate.withEntity((level, entity, slotType, index, stack) -> {
-            var bl = !AccessoryAttributeLogic.getAttributeModifiers(stack, entity, slotType.name(), index).getAttributeModifiers(false).isEmpty();
+            var bl = !AccessoryAttributeLogic.getAttributeModifiers(stack, entity, slotType.name(), index)
+                .getAttributeModifiers(false, true).isEmpty();
 
             return bl ? TriState.TRUE : TriState.DEFAULT;
         }));

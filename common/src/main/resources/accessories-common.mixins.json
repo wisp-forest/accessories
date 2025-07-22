@@ -80,7 +80,8 @@
     "SlotAccessor",
     "StateHolderAccessor",
     "owo.ConfigWrapperAccessor",
-    "owo.NbtDeserializerMixin"
+    "owo.NbtDeserializerMixin",
+    "owo.DumpdataCommandMixin"
   ],
   "injectors": {
     "defaultRequire": 1

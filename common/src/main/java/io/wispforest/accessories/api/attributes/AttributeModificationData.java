@@ -10,10 +10,32 @@ import org.jetbrains.annotations.Nullable;
 /// Helper record to hold data on a Attribute Modification made within the [AccessoryAttributeBuilder]
 ///
 @ApiStatus.Internal
-public record AttributeModificationData(@Nullable String slotPath, Holder<Attribute> attribute, AttributeModifier modifier) {
+public record AttributeModificationData(@Nullable String slotPath, Holder<Attribute> attribute, AttributeModifier modifier, boolean usedInSlotValidation) {
+
+    public AttributeModificationData(@Nullable String slotPath, Holder<Attribute> attribute, AttributeModifier modifier) {
+        this(slotPath, attribute, modifier, false);
+    }
+
+    public AttributeModificationData(Holder<Attribute> attribute, AttributeModifier modifier, boolean usedInSlotValidation) {
+        this(null, attribute, modifier, usedInSlotValidation);
+    }
 
     public AttributeModificationData(Holder<Attribute> attribute, AttributeModifier modifier) {
-        this(null, attribute, modifier);
+        this(attribute, modifier, false);
+    }
+
+    public boolean isValid(boolean filterSlotBasedPredicates, boolean isSlotValidation) {
+        return isValid(filterSlotBasedPredicates ? AllowedType.BASE : AllowedType.ALL, isSlotValidation);
+    }
+
+    public boolean isValid(AllowedType mode, boolean isSlotValidation) {
+        if (!mode.equals(AllowedType.ALL)) {
+            if (mode.equals(AllowedType.SLOT) != (attribute().value() instanceof SlotAttribute)) return false;
+        }
+
+        if (isSlotValidation) return this.usedInSlotValidation();
+
+        return true;
     }
 
     @Override
@@ -30,5 +52,11 @@ public record AttributeModificationData(@Nullable String slotPath, Holder<Attrib
                 "modifier=" + this.modifier +
                 "slotPath=" + (this.slotPath != null ? this.slotPath : "none") +
                 ']';
+    }
+
+    public enum AllowedType {
+        BASE,
+        SLOT,
+        ALL
     }
 }

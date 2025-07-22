@@ -58,13 +58,17 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
     }
 
     public AccessoryItemAttributeModifiers withModifierAdded(Holder<Attribute> holder, AttributeModifier attributeModifier, String slotName, boolean isStackable) {
+        return withModifierAdded(holder, attributeModifier, slotName, isStackable, false);
+    }
+
+    public AccessoryItemAttributeModifiers withModifierAdded(Holder<Attribute> holder, AttributeModifier attributeModifier, String slotName, boolean isStackable, boolean usedInSlotValidation) {
         var builder = ImmutableList.<AccessoryItemAttributeModifiers.Entry>builderWithExpectedSize(this.modifiers.size() + 1);
 
         this.modifiers.forEach(entry -> {
-            if (!entry.modifier.id().equals(attributeModifier.id())) builder.add(entry);
+            if (!entry.matches(holder, attributeModifier.id())) builder.add(entry);
         });
 
-        builder.add(new AccessoryItemAttributeModifiers.Entry(holder, attributeModifier, slotName, isStackable));
+        builder.add(new AccessoryItemAttributeModifiers.Entry(holder, attributeModifier, slotName, isStackable, usedInSlotValidation));
 
         return new AccessoryItemAttributeModifiers(builder.build(), this.showInTooltip());
     }
@@ -73,7 +77,7 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
         var builder = ImmutableList.<AccessoryItemAttributeModifiers.Entry>builderWithExpectedSize(this.modifiers.size() + 1);
 
         this.modifiers.forEach(entry -> {
-            if (entry.modifier.id().equals(location) && entry.attribute().equals(holder)) return;
+            if (entry.matches(holder, location)) return;
 
             builder.add(entry);
         });
@@ -94,11 +98,15 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
             var attributeModifier = entry.modifier();
             var slotTarget = entry.slotName();
 
-            if(slots.containsKey(Accessories.parseLocationOrDefault(slotTarget)) || slotReference.slotName().equals(slotTarget) || slotTarget.equals("any")) {
+            // TODO: THIS CHECK IS NOT HELPFUL IF THE ATTRIBUTE PERTAINS TO SOMETHING NOT DIRECTLY APART OF THE GIVEN ENTITY SLOTS
+            // OVERALL SHOULD BE BETTER INDICATE THAT THE USER DOSE NOT HAVE THE SLOT OR SOMETHING
+            // if (slots.isEmpty() && !slots.containsKey(Accessories.parseLocationOrDefault(slotTarget))) continue;
+
+            if(slotReference.slotName().equals(slotTarget) || slotTarget.equals("any")) {
                 if (entry.isStackable()) {
-                    builder.addStackable(entry.attribute(), attributeModifier);
+                    builder.addStackable(entry.attribute(), attributeModifier, entry.usedInSlotValidation());
                 } else {
-                    builder.addExclusive(entry.attribute(), attributeModifier);
+                    builder.addExclusive(entry.attribute(), attributeModifier, entry.usedInSlotValidation());
                 }
             }
         }
@@ -118,13 +126,12 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
             return this.addForSlot(holder, attributeModifier, slotName, isStackable);
         }
 
-        public AccessoryItemAttributeModifiers.Builder addForSlot(Holder<Attribute> holder, AttributeModifier attributeModifier, String slotName, boolean isStackable) {
-            this.entries.add(new AccessoryItemAttributeModifiers.Entry(holder, attributeModifier, slotName, isStackable));
-            return this;
+        public AccessoryItemAttributeModifiers.Builder addForAny(Holder<Attribute> holder, AttributeModifier attributeModifier, boolean isStackable) {
+            return addForSlot(holder, attributeModifier, "any", isStackable);
         }
 
-        public AccessoryItemAttributeModifiers.Builder addForAny(Holder<Attribute> holder, AttributeModifier attributeModifier, boolean isStackable) {
-            this.entries.add(new AccessoryItemAttributeModifiers.Entry(holder, attributeModifier, "any", isStackable));
+        public AccessoryItemAttributeModifiers.Builder addForSlot(Holder<Attribute> holder, AttributeModifier attributeModifier, String slotName, boolean isStackable) {
+            this.entries.add(new AccessoryItemAttributeModifiers.Entry(holder, attributeModifier, slotName, isStackable, false));
             return this;
         }
 
@@ -142,7 +149,7 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
         }
     }
 
-    public record Entry(Holder<Attribute> attribute, AttributeModifier modifier, String slotName, boolean isStackable) {
+    public record Entry(Holder<Attribute> attribute, AttributeModifier modifier, String slotName, boolean isStackable, boolean usedInSlotValidation) {
         private static final Endec<Holder<Attribute>> ATTRIBUTE_ENDEC = MinecraftEndecs.IDENTIFIER.xmapWithContext(
                 (context, attributeType) -> {
                     if(attributeType.getNamespace().equals(Accessories.MODID)) {
@@ -182,11 +189,16 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
                 }
         );
 
+        public boolean matches(Holder<Attribute> attribute, ResourceLocation id) {
+            return attribute.equals(this.attribute) && this.modifier.is(id);
+        }
+
         public static final Endec<Entry> ENDEC = StructEndecBuilder.of(
                 ATTRIBUTE_ENDEC.fieldOf("type", AccessoryItemAttributeModifiers.Entry::attribute),
                 AttributeUtils.ATTRIBUTE_MODIFIER_ENDEC.flatFieldOf(AccessoryItemAttributeModifiers.Entry::modifier),
                 Endec.STRING.fieldOf("slot_name", AccessoryItemAttributeModifiers.Entry::slotName),
                 Endec.BOOLEAN.optionalFieldOf("is_stackable", AccessoryItemAttributeModifiers.Entry::isStackable, false),
+                Endec.BOOLEAN.optionalFieldOf("used_in_slot_validation", AccessoryItemAttributeModifiers.Entry::usedInSlotValidation, false),
                 AccessoryItemAttributeModifiers.Entry::new
         );
     }

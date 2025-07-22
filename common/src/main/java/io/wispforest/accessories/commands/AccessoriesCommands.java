@@ -370,6 +370,7 @@ public class AccessoriesCommands {
                                 }),
                                 required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
                                 required("isStackable", BoolArgumentType.bool(), BoolArgumentType::getBool),
+                                defaulted("usedInSlotValidation", BoolArgumentType.bool(), BoolArgumentType::getBool, false),
                                 AccessoriesCommands::addModifier
                         ).leaves(
                                 "remove",
@@ -413,7 +414,7 @@ public class AccessoriesCommands {
             (var1, var2, var3) -> Component.translatableEscape("accessories.commands.attribute.failed.modifier_already_present_itemstack", var1, var2, var3)
     );
 
-    private static int addModifier(CommandContext<CommandSourceStack> ctx, Holder<Attribute> holder, ResourceLocation resourceLocation, double d, AttributeModifier.Operation operation, String slotName, boolean isStackable) throws CommandSyntaxException {
+    private static int addModifier(CommandContext<CommandSourceStack> ctx, Holder<Attribute> holder, ResourceLocation resourceLocation, double d, AttributeModifier.Operation operation, String slotName, boolean isStackable, boolean usedInSlotValidation) throws CommandSyntaxException {
         var commandSourceStack = ctx.getSource();
 
         if (operation == null) {
@@ -431,7 +432,7 @@ public class AccessoriesCommands {
             throw ERROR_MODIFIER_ALREADY_PRESENT.create(resourceLocation, getAttributeDescription(holder), stack.getDisplayName());
         }
 
-        stack.set(AccessoriesDataComponents.ATTRIBUTES, component.withModifierAdded(holder, new AttributeModifier(resourceLocation, d, operation), slotName, isStackable));
+        stack.set(AccessoriesDataComponents.ATTRIBUTES, component.withModifierAdded(holder, new AttributeModifier(resourceLocation, d, operation), slotName, isStackable, usedInSlotValidation));
 
         commandSourceStack.sendSuccess(
                 () -> Component.translatable(
