@@ -31,6 +31,8 @@ public abstract class InventoryMixin {
 
     @Shadow @Final public Player player;
 
+    @Shadow public int selected;
+
     @Inject(method = "clearOrCountMatchingItems", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z", shift = At.Shift.AFTER))
     private void clearAccessories(Predicate<ItemStack> stackPredicate, int maxCount, Container inventory, CallbackInfoReturnable<Integer> cir, @Local(ordinal = 1) LocalIntRef i) {
         var capability = AccessoriesCapability.get(player);
@@ -46,7 +48,7 @@ public abstract class InventoryMixin {
         });
     }
 
-    @Inject(method = "contains(Lnet/minecraft/world/item/ItemStack;)Z", at = @At("TAIL"))
+    @Inject(method = "contains(Lnet/minecraft/world/item/ItemStack;)Z", at = @At("TAIL"), cancellable = true)
     private void extendContainsCheck(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
         var capability = AccessoriesCapability.get(player);
 
@@ -57,13 +59,24 @@ public abstract class InventoryMixin {
         if (bl) cir.setReturnValue(true);
     }
 
-    @Inject(method = "contains(Lnet/minecraft/tags/TagKey;)Z", at = @At("TAIL"))
+    @Inject(method = "contains(Lnet/minecraft/tags/TagKey;)Z", at = @At("TAIL"), cancellable = true)
     private void extendContainsCheck(TagKey<Item> tag, CallbackInfoReturnable<Boolean> cir){
         var capability = AccessoriesCapability.get(player);
 
         if(capability == null) return;
 
         var bl = capability.isEquipped(stack1 -> !stack1.isEmpty() && stack1.is(tag));
+
+        if(bl) cir.setReturnValue(true);
+    }
+
+    @Inject(method = "contains(Ljava/util/function/Predicate;)Z", at = @At("TAIL"), cancellable = true)
+    private void extendContainsCheck(Predicate<ItemStack> predicate, CallbackInfoReturnable<Boolean> cir){
+        var capability = AccessoriesCapability.get(player);
+
+        if(capability == null) return;
+
+        var bl = capability.isEquipped(predicate);
 
         if(bl) cir.setReturnValue(true);
     }
