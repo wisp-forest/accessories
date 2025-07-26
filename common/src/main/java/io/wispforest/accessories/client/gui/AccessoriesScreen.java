@@ -557,25 +557,25 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             accessoriesSlots++;
         }
 
-        if (tabPageCount() > 1) {
-            this.tabDownButton = this.addRenderableWidget(
-                    Button.builder(Component.literal("⬆"), button -> this.onTabPageChange(true))
-                            .bounds(this.leftPos - 56, this.topPos - 11, 10, 10)
-                            .build());
-
-            this.tabDownButton.active = false;
-
-            var height = getPanelHeight();
-
-            this.tabUpButton = this.addRenderableWidget(
-                    Button.builder(Component.literal("⬇"), button -> this.onTabPageChange(false))
-                            .bounds(this.leftPos - 56, this.topPos + height + 0, 10, 10)
-                            .build());
-
-            this.tabUpButton.setTooltip(Tooltip.create(Component.literal("Page 2")));
-
-            this.tabUpButton.active = tabPageCount() != 1;
-        }
+//        if (tabPageCount() > 1) {
+//            this.tabDownButton = this.addRenderableWidget(
+//                    Button.builder(Component.literal("⬆"), button -> this.onTabPageChange(true))
+//                            .bounds(this.leftPos - 56, this.topPos - 11, 10, 10)
+//                            .build());
+//
+//            this.tabDownButton.active = false;
+//
+//            var height = getPanelHeight();
+//
+//            this.tabUpButton = this.addRenderableWidget(
+//                    Button.builder(Component.literal("⬇"), button -> this.onTabPageChange(false))
+//                            .bounds(this.leftPos - 56, this.topPos + height + 0, 10, 10)
+//                            .build());
+//
+//            this.tabUpButton.setTooltip(Tooltip.create(Component.literal("Page 2")));
+//
+//            this.tabUpButton.active = tabPageCount() != 1;
+//        }
 
         this.menu.setScrollEvent(this::updateAccessoryToggleButtons);
 
@@ -585,32 +585,32 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
     }
 
     private void onTabPageChange(boolean isDown) {
-        if ((this.currentTabPage <= 1 && isDown) || (this.currentTabPage > tabPageCount() && !isDown)) {
-            return;
-        }
-
-        this.currentTabPage += (isDown) ? -1 : 1;
-
-        var lowerLabel = "Page " + (this.currentTabPage - 1);
-        var upperLabel = "Page " + (this.currentTabPage + 1);
-
-        this.tabDownButton.setTooltip(Tooltip.create(Component.literal(lowerLabel)));
-        this.tabUpButton.setTooltip(Tooltip.create(Component.literal(upperLabel)));
-
-//        this.tabDownButton.setMessage(Component.literal(lowerLabel));
-//        this.tabUpButton.setMessage(Component.literal(upperLabel));
-
-        if (this.currentTabPage <= 1) {
-            this.tabDownButton.active = false;
-        } else if (!this.tabDownButton.active) {
-            this.tabDownButton.active = true;
-        }
-
-        if (this.currentTabPage >= tabPageCount()) {
-            this.tabUpButton.active = false;
-        } else if (!this.tabUpButton.active) {
-            this.tabUpButton.active = true;
-        }
+//        if ((this.currentTabPage <= 1 && isDown) || (this.currentTabPage > tabPageCount() && !isDown)) {
+//            return;
+//        }
+//
+//        this.currentTabPage += (isDown) ? -1 : 1;
+//
+//        var lowerLabel = "Page " + (this.currentTabPage - 1);
+//        var upperLabel = "Page " + (this.currentTabPage + 1);
+//
+//        this.tabDownButton.setTooltip(Tooltip.create(Component.literal(lowerLabel)));
+//        this.tabUpButton.setTooltip(Tooltip.create(Component.literal(upperLabel)));
+//
+////        this.tabDownButton.setMessage(Component.literal(lowerLabel));
+////        this.tabUpButton.setMessage(Component.literal(upperLabel));
+//
+//        if (this.currentTabPage <= 1) {
+//            this.tabDownButton.active = false;
+//        } else if (!this.tabDownButton.active) {
+//            this.tabDownButton.active = true;
+//        }
+//
+//        if (this.currentTabPage >= tabPageCount()) {
+//            this.tabUpButton.active = false;
+//        } else if (!this.tabUpButton.active) {
+//            this.tabUpButton.active = true;
+//        }
     }
 
     @Override
