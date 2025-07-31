@@ -39,9 +39,6 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     public AccessoriesCapabilityImpl(LivingEntity entity) {
         this.entity = entity;
-
-        // Runs various Init calls to properly setup holder
-        getHolder();
     }
 
     @Override
@@ -53,11 +50,13 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     public AccessoriesHolder getHolder() {
         var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
 
-        // Attempts to reset the container when loaded from tag on the server
-        if (holder.loadedFromTag) this.reset(true);
-
-        // Prevents containers from not existing even if a given entity will have such slots but have yet to be synced to the client
-        if (holder.getSlotContainers().size() != EntitySlotLoader.getEntitySlots(entity).size()) holder.init(this);
+        if (holder.loadedFromTag) {
+            // Attempts to reset the container when loaded from tag on the server
+            this.reset(true);
+        } else if (holder.getSlotContainers().size() != EntitySlotLoader.getEntitySlots(entity).size()) {
+            // Prevents containers from not existing even if a given entity will have such slots but have yet to be synced to the client
+            holder.init(this);
+        }
 
         return holder;
     }

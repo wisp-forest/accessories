@@ -26,6 +26,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -35,8 +36,20 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity implements AccessoriesAPIAccess, AccessoriesLivingEntityExtension {
 
+    @Unique
+    private AccessoriesCapabilityImpl capability = null;
+
     protected LivingEntityMixin(EntityType<?> entityType, Level level) {
         super(entityType, level);
+    }
+
+    @Unique
+    private AccessoriesCapability getOrCreateAccessoriesCapability() {
+        if (capability == null) {
+            this.capability = new AccessoriesCapabilityImpl((LivingEntity) (Object) this);
+        }
+
+        return capability;
     }
 
     @Override
@@ -46,13 +59,18 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
 
         if(slots.isEmpty()) return null;
 
-        return new AccessoriesCapabilityImpl((LivingEntity) (Object) this);
+        var capability = getOrCreateAccessoriesCapability();
+
+        // Used to init some functions behind the scene
+        capability.getHolder();
+
+        return capability;
     }
 
     @Override
     @Nullable
     public AccessoriesHolder accessoriesHolder() {
-        var capability = accessoriesCapability();
+        var capability = getOrCreateAccessoriesCapability();
 
         return capability != null ? capability.getHolder() : null;
     }
