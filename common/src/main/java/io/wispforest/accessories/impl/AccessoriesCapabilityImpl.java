@@ -50,10 +50,10 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     public AccessoriesHolder getHolder() {
         var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
 
-        if (holder.loadedFromTag) {
+        if (holder.loadedFromTag && !this.entity.level().isClientSide()) {
             // Attempts to reset the container when loaded from tag on the server
             this.reset(true);
-        } else if (holder.getSlotContainers().size() != EntitySlotLoader.getEntitySlots(entity).size()) {
+        } else if (holder.loadedFromTag || holder.getSlotContainers().size() != EntitySlotLoader.getEntitySlots(entity).size()) {
             // Prevents containers from not existing even if a given entity will have such slots but have yet to be synced to the client
             holder.init(this);
         }
