@@ -51,7 +51,7 @@ dependencies {
 
     modImplementation("io.wispforest:owo-lib-neoforge:${rootProject.owo_neo_version}")
 
-    implementation("org.sinytra:forgified-fabric-loader:${project.ffloader_version}")
+    //implementation("org.sinytra:forgified-fabric-loader:${project.ffloader_version}")
 
     modApi("org.sinytra.forgified-fabric-api:fabric-api-base:0.4.42+d1308dedd1") { exclude group: "fabric-api" }
 
