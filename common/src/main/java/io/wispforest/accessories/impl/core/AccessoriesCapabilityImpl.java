@@ -41,9 +41,6 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
     public AccessoriesCapabilityImpl(LivingEntity entity) {
         this.entity = entity;
-
-        // Runs various Init calls to properly setup holder
-        AccessoriesHolderImpl.getHolder(this);
     }
 
     @Override

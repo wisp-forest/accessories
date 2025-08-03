@@ -17,6 +17,7 @@ import io.wispforest.accessories.api.events.extra.OnTotemActivate;
 import io.wispforest.accessories.api.events.extra.OnTotemConsumption;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.core.AccessoriesCapabilityImpl;
+import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
 import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
@@ -63,12 +64,25 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
     @Shadow public abstract void swing(InteractionHand hand, boolean updateSelf);
 
     @Unique
+    private AccessoriesCapabilityImpl accessories$capability = null;
+
+    @Unique
     private final Map<ItemStack, SlotReference> accessories$enchantmentLocationContext = new Reference2ObjectOpenHashMap<>();
 
+    @Unique
     private final Map<String, Reference2ObjectMap<Enchantment, Set<EnchantmentLocationBasedEffect>>> accessories$activeLocationDependentEnchantments = new HashMap<>();
 
     protected LivingEntityMixin(EntityType<?> entityType, Level level) {
         super(entityType, level);
+    }
+
+    @Override
+    public AccessoriesCapability getOrCreateAccessoriesCapability() {
+        if (accessories$capability == null) {
+            this.accessories$capability = new AccessoriesCapabilityImpl((LivingEntity) (Object) this);
+        }
+
+        return accessories$capability;
     }
 
     @Override
@@ -78,7 +92,12 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
 
         if(slots.isEmpty()) return null;
 
-        return new AccessoriesCapabilityImpl((LivingEntity) (Object) this);
+        var capability = getOrCreateAccessoriesCapability();
+
+        // Used to init some functions behind the scene
+        AccessoriesHolderImpl.getHolder(capability);
+
+        return capability;
     }
 
     @Override

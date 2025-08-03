@@ -13,6 +13,7 @@ import io.wispforest.accessories.impl.caching.AccessoriesHolderLookupCache;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.accessories.impl.option.PlayerOptions;
+import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
 import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.endec.Endec;
@@ -75,7 +76,7 @@ public class AccessoriesHolderImpl implements InstanceEndec {
 
     @Nullable
     public static AccessoriesHolderImpl getHolder(LivingEntity livingEntity) {
-        var capability = livingEntity.accessoriesCapability();
+        var capability = ((AccessoriesLivingEntityExtension)livingEntity).getOrCreateAccessoriesCapability();
 
         if (capability == null) return null;
 
@@ -85,13 +86,15 @@ public class AccessoriesHolderImpl implements InstanceEndec {
     public static AccessoriesHolderImpl getHolder(AccessoriesCapability capability) {
         var entity = capability.entity();
 
-        var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
+        var holder = AccessoriesInternals.getHolder(entity);
 
-        // Attempts to reset the container when loaded from tag on the server
-        if (holder.loadedFromTag) capability.reset(true);
-
-        // Prevents containers from not existing even if a given entity will have such slots but have yet to be synced to the client
-        if (holder.getSlotContainers().size() != EntitySlotLoader.getEntitySlots(entity).size()) holder.init(capability);
+        if (holder.loadedFromTag && !entity.level().isClientSide()) {
+            // Attempts to reset the container when loaded from tag on the server
+            capability.reset(true);
+        } else if (holder.getSlotContainers().size() != EntitySlotLoader.getEntitySlots(entity).size()) {
+            // Prevents containers from not existing even if a given entity will have such slots but have yet to be synced to the client
+            holder.init(capability);
+        }
 
         return holder;
     }
