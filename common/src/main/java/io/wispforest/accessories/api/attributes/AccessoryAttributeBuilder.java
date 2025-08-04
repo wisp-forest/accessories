@@ -253,6 +253,6 @@ public final class AccessoryAttributeBuilder {
 
     @Deprecated
     public static String createSlotPath(String slotname, int slot) {
-        return SlotReference.createBaseSlotPath(slotname, slot);
+        return SlotPath.createBaseSlotPath(slotname, slot);
     }
 }

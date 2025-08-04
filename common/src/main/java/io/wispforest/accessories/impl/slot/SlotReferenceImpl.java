@@ -34,13 +34,13 @@ public record SlotReferenceImpl(LivingEntity entity, SlotPath slotPath) implemen
 
         var invContainer = container.getAccessories();
 
-        var validIndex = invContainer.validIndex(slot());
+        var validIndex = invContainer.validIndex(index());
 
         // If Valid index and not NestedSlotPath then we can just use the result
         // or if invalid index and is nested then just return the false result
         if (!(slotPath.isNested()) || !validIndex) return validIndex;
 
-        var selectedStack = container.getAccessories().getItem(slot());
+        var selectedStack = container.getAccessories().getItem(index());
 
         for (var innerSlotIndex : slotPath.innerIndices()) {
             var nestLayer = tryAndGet(selectedStack, innerSlotIndex);
@@ -62,9 +62,9 @@ public record SlotReferenceImpl(LivingEntity entity, SlotPath slotPath) implemen
 
         var invContainer = container.getAccessories();
 
-        if (!invContainer.validIndex(slot())) return null;
+        if (!invContainer.validIndex(index())) return null;
 
-        var selectedStack = invContainer.getItem(slot());
+        var selectedStack = invContainer.getItem(index());
 
         // If not a NestedSlotPath then return the stack
         // but if we are then we will need to go though the paths inner indices
@@ -98,15 +98,15 @@ public record SlotReferenceImpl(LivingEntity entity, SlotPath slotPath) implemen
 
         var invContainer = container.getAccessories();
 
-        if (!invContainer.validIndex(slot())) return false;
+        if (!invContainer.validIndex(index())) return false;
 
         if (!(slotPath.isNested())) {
-            invContainer.setItem(slot(), stack);
+            invContainer.setItem(index(), stack);
 
             return true;
         }
 
-        var baseStack = invContainer.getItem(slot());
+        var baseStack = invContainer.getItem(index());
 
         var layerStack = new ArrayList<NestLayer>();
 
@@ -132,7 +132,7 @@ public record SlotReferenceImpl(LivingEntity entity, SlotPath slotPath) implemen
 
         // Finally we set the base innerStack as the new stack in invContainer which is just a mutation of the stack but
         // better to set to properly update everything
-        invContainer.setItem(slot(), innerStack);
+        invContainer.setItem(index(), innerStack);
 
         return true;
     }

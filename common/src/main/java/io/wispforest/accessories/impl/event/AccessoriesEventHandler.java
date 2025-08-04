@@ -138,7 +138,7 @@ public class AccessoriesEventHandler {
     }
 
     private static void handleInvalidStacks(Container container, SlotReference reference, ServerPlayer player) {
-        var stack = container.getItem(reference.slot());
+        var stack = container.getItem(reference.index());
 
         if (stack.isEmpty()) return;
 
@@ -148,9 +148,9 @@ public class AccessoriesEventHandler {
     }
 
     private static void dropAndRemoveStack(Container container, SlotReference reference, ServerPlayer player) {
-        var stack = container.getItem(reference.slot());
+        var stack = container.getItem(reference.index());
 
-        container.setItem(reference.slot(), ItemStack.EMPTY);
+        container.setItem(reference.index(), ItemStack.EMPTY);
 
         AccessoriesInternals.giveItemToPlayer(player, stack);
     }
@@ -742,7 +742,7 @@ public class AccessoriesEventHandler {
 
     @Nullable
     private static ItemStack dropStack(DropRule dropRule, LivingEntity entity, ExpandedSimpleContainer container, SlotReference reference, DamageSource source, boolean keepInvEnabled) {
-        var stack = container.getItem(reference.slot());
+        var stack = container.getItem(reference.index());
 
         if (stack.isEmpty()) return null;
 
@@ -769,7 +769,7 @@ public class AccessoriesEventHandler {
                     holdable.setInnerStack(stack, i, ItemStack.EMPTY);
                     // TODO: Do we call break here for the accessory?
 
-                    container.setItem(reference.slot(), stack);
+                    container.setItem(reference.index(), stack);
                 }
             }
         }
@@ -780,7 +780,7 @@ public class AccessoriesEventHandler {
         boolean keepingStack = false;
 
         if (result == DropRule.DESTROY) {
-            container.setItem(reference.slot(), ItemStack.EMPTY);
+            container.setItem(reference.index(), ItemStack.EMPTY);
             dropStack = false;
             // TODO: Do we call break here for the accessory?
         } else if (result == DropRule.KEEP) {
@@ -792,7 +792,7 @@ public class AccessoriesEventHandler {
 
                 keepingStack = true;
             } else if (EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_EQUIPMENT_DROP)) {
-                container.setItem(reference.slot(), ItemStack.EMPTY);
+                container.setItem(reference.index(), ItemStack.EMPTY);
                 dropStack = false;
                 // TODO: Do we call break here for the accessory?
             }
@@ -801,12 +801,12 @@ public class AccessoriesEventHandler {
         // Used to indicate within the Accessories system when the player becomes alive that we need to
         // equip the accessory again to trigger equip call and properly add back Attributes
         if (keepingStack) {
-            container.setPreviousItem(reference.slot(), ItemStack.EMPTY);
+            container.setPreviousItem(reference.index(), ItemStack.EMPTY);
         }
 
         if (!dropStack) return null;
 
-        container.setItem(reference.slot(), ItemStack.EMPTY);
+        container.setItem(reference.index(), ItemStack.EMPTY);
 
         return stack;
     }

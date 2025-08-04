@@ -47,7 +47,7 @@ public class AccessoriesContainerLookupCache extends EquipmentLookupCache {
                 var reference = this.container.createReference(i);
 
                 if(check == EquipmentChecking.COSMETICALLY_OVERRIDABLE) {
-                    var cosmetic = this.container.getCosmeticAccessories().getItem(reference.slot());
+                    var cosmetic = this.container.getCosmeticAccessories().getItem(reference.index());
 
                     if(!cosmetic.isEmpty() && Accessories.config().clientOptions.showCosmeticAccessories()) stack = cosmetic;
                 }

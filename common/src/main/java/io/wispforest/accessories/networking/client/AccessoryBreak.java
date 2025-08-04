@@ -20,7 +20,7 @@ public record AccessoryBreak(int entityId, String slotName, int slotIndex) {
     );
 
     public static AccessoryBreak of(SlotReference slotReference) {
-        return new AccessoryBreak(slotReference.entity().getId(), slotReference.slotName(), slotReference.slot());
+        return new AccessoryBreak(slotReference.entity().getId(), slotReference.slotName(), slotReference.index());
     }
 
     @Environment(EnvType.CLIENT)
@@ -37,7 +37,7 @@ public record AccessoryBreak(int entityId, String slotName, int slotIndex) {
 
         var container = capability.getContainer(slotReference.type());
 
-        var stack = container.getAccessories().getItem(slotReference.slot());
+        var stack = container.getAccessories().getItem(slotReference.index());
 
         var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 

@@ -110,7 +110,7 @@ public class AccessoriesAPI {
 
     @Deprecated(forRemoval = true)
     public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, SlotReference slotReference, boolean useTooltipCheck){
-        return AccessoryAttributeLogic.getAttributeModifiers(stack, slotReference.entity(), slotReference.slotName(), slotReference.slot(), useTooltipCheck);
+        return AccessoryAttributeLogic.getAttributeModifiers(stack, slotReference.entity(), slotReference.slotName(), slotReference.index(), useTooltipCheck);
     }
 
     @Deprecated(forRemoval = true)

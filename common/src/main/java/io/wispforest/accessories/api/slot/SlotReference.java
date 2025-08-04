@@ -3,6 +3,7 @@ package io.wispforest.accessories.api.slot;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.AccessoriesStorage;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.slot.SlotReferenceImpl;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
@@ -17,9 +18,18 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A reference to a specific accessory slot of a {@link LivingEntity}.
- */
+///
+/// An extension of [SlotPath] which contains a reference to the specific [LivingEntity] that this
+/// path is valid for.
+///
+/// Typically, it is safe to assume that such is valid for any methods that take such as a parameter.
+///
+/// It is not recommend to hold onto such objects due to the lifespan of [LivingEntity] being unknown
+/// combined with the fact of [SlotType]'s being reloadable and resizable meaning that such main not
+/// be present depending on the amount of time that has elapsed.
+///
+/// You can confirm that this is still valid by using the references[isValid][#isValid()]
+///
 public non-sealed interface SlotReference extends DelegatingSlotPath {
 
     static SlotReference of(LivingEntity livingEntity, String slotName, int index) {
@@ -35,32 +45,22 @@ public non-sealed interface SlotReference extends DelegatingSlotPath {
         return of(livingEntity, SlotPath.of(slotName, initialHolderSlot, innerSlotIndices));
     }
 
-    /**
-     * @return the referenced entity
-     */
+    ///
+    /// @return the [LivingEntity] that has the given path to such accessory slot
+    ///
     LivingEntity entity();
 
-    /**
-     * @return the referenced slot name
-     */
-    default String slotName() {
-        return slotPath().slotName();
-    }
-
-    /**
-     * @return the referenced slot index
-     */
-    default int index() {
-        return slotPath().index();
-    }
-
+    ///
+    /// @return the referenced [SlotPath] to the given accessory slot
+    ///
     SlotPath slotPath();
 
     //--
 
-    /**
-     * Helper method to trigger effects of a given accessory being broken on any tracking clients for the given entity
-     */
+    ///
+    /// A Helper method similar to [LivingEntity#onEquippedItemBroken] to trigger effects of a given accessory to
+    /// be broken on any tracking clients for the given entity.
+    ///
     default void breakStack() {
         var entity = this.entity();
 
@@ -77,16 +77,25 @@ public non-sealed interface SlotReference extends DelegatingSlotPath {
 
     //--
 
+    ///
+    /// @return the given paths current registered [SlotType]
+    ///
     @Nullable
     default SlotType type(){
         return SlotTypeLoader.getSlotType(entity().level(), slotName());
     }
 
+    ///
+    /// @return the given entity's [AccessoriesCapability]
+    ///
     @Nullable
     default AccessoriesCapability capability() {
         return this.entity().accessoriesCapability();
     }
 
+    ///
+    /// @return the given [AccessoriesContainer] if present from the entity's slot storage
+    ///
     @Nullable
     default AccessoriesContainer slotContainer() {
         var capability = this.capability();
@@ -96,30 +105,36 @@ public non-sealed interface SlotReference extends DelegatingSlotPath {
         return capability.getContainers().get(slotName());
     }
 
+    ///
+    /// @return whether the given reference is still valid for the given [LivingEntity]
+    ///
     boolean isValid();
 
-    /**
-     * @return the current referenced stack
-     */
+    ///
+    /// @return the current referenced stack at the [SlotPath] for the given [LivingEntity]
+    ///
     @Nullable
     ItemStack getStack();
 
-    /**
-     * @return {@code true} if the stack was successfully set, {@code false} otherwise
-     */
+    ///
+    /// @return `true` if the given stack was successfully set, other wise `false` if failed
+    ///
     boolean setStack(ItemStack stack);
 
     //--
 
+    @Deprecated
     static String createBaseSlotPath(SlotType slotType, int index) {
         return createBaseSlotPath(slotType.name(), index);
     }
 
+    @Deprecated
     static String createBaseSlotPath(String name, int index) {
-        return SlotPath.of(name, index).createString();
+        return SlotPath.createBaseSlotPath(name, index);
     }
 
     @Nullable
+    @Deprecated
     static Pair<String, Integer> parseBaseSlotPath(String path) {
         var parts = path.split("/");
 
@@ -130,8 +145,6 @@ public non-sealed interface SlotReference extends DelegatingSlotPath {
 
         return Pair.of(baseSlotName, index);
     }
-
-    //--
 
     @Deprecated
     default String createSlotPath() {

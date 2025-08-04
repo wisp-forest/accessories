@@ -19,29 +19,10 @@ public interface AccessoriesContainer extends AccessoriesStorage {
     AccessoriesCapability capability();
 
     /**
-     * @return The containers {@link SlotType} name
-     */
-    String getSlotName();
-
-    /**
      * @return A SlotReference based on the containers linked entity and slot name with the given index
      */
     default SlotReference createReference(int index){
         return SlotReference.of(this.capability().entity(), this.createPath(index));
-    }
-
-    /**
-     * @return List containing toggle values for if a given Accessory Slot should be rendered on the entity or not
-     */
-    List<Boolean> renderOptions();
-
-    /**
-     * @return If the given index for the container should render on the entity
-     */
-    default boolean shouldRender(int index){
-        var options = this.renderOptions();
-
-        return (index < options.size()) ? options.get(index) : true;
     }
 
     //--
@@ -49,17 +30,16 @@ public interface AccessoriesContainer extends AccessoriesStorage {
     /**
      * @return The main container holding the primary Accessory Stacks
      */
+    @Override
     ExpandedSimpleContainer getAccessories();
 
     /**
      * @return The main container holding the cosmetic Accessory Stacks
      */
+    @Override
     ExpandedSimpleContainer getCosmeticAccessories();
 
-    /**
-     * @return The max size of the given Container
-     */
-    int getSize();
+    //--
 
     /**
      * Used to mark the container dirty for any call made to {@link #update}

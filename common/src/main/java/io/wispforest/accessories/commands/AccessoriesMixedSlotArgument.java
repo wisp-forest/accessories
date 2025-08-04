@@ -92,17 +92,17 @@ public record AccessoriesMixedSlotArgument(String entityArgumentName) implements
                     if (capability != null) {
                         suggestions.addAll(
                                 EntitySlotLoader.getEntitySlots(livingEntity).values().stream().flatMap(slotType -> {
-                                    var slotReferences = new ArrayList<String>();
+                                    var slotPaths = new ArrayList<String>();
 
                                     var container = capability.getContainer(slotType);
 
                                     if (container != null) {
                                         for (int i = 0; i < container.getSize(); i++) {
-                                            slotReferences.add(SlotReference.createBaseSlotPath(slotType, i));
+                                            slotPaths.add(SlotPath.createBaseSlotPath(slotType, i));
                                         }
                                     }
 
-                                    return slotReferences.stream();
+                                    return slotPaths.stream();
                                 }).toList()
                         );
                     }

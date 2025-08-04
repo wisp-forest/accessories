@@ -196,7 +196,7 @@ public class AccessoriesCommands {
                                 var size = container.getSize();
 
                                 ctx.getSource().sendSuccess(
-                                        () -> Component.translatable("accessories.commands.slot.value.get.success", Component.translatable(SlotType.translation(slot)), entity.getName(), size),
+                                        () -> Component.translatable("accessories.commands.slot.value.get.success", Component.translatable(Accessories.translationKey("slot." + slot.replace(":", "."))), entity.getName(), size),
                                         false
                                 );
 

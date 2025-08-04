@@ -1,10 +1,17 @@
 package io.wispforest.accessories.api.slot;
 
+import com.mojang.serialization.Codec;
+import io.wispforest.accessories.api.AccessoriesStorage;
+import io.wispforest.accessories.api.core.AccessoryNest;
 import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import io.wispforest.owo.serialization.CodecUtils;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,6 +20,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+///
+/// A Path Representation for where a given [ItemStack] is equipped within the Accessories API, which may
+/// point to a specific spot within a [AccessoriesStorage] and possible [AccessoryNest]s.
+///
+/// Typically, it is safe to assume that such is valid for any methods that take such as a parameter.
+///
+/// It is **not recommend** to hold onto such objects due to the fact of [SlotType]'s being reloadable
+/// and resizable meaning that such may not be present depending on the amount of time that has elapsed.
+///
 public sealed interface SlotPath permits SlotPathImpl, DelegatingSlotPath {
 
     StructEndec<SlotPath> ENDEC = StructEndecBuilder.of(
@@ -22,18 +38,28 @@ public sealed interface SlotPath permits SlotPathImpl, DelegatingSlotPath {
             SlotPath::of
     );
 
-    /**
-     * @return the referenced slot name
-     */
+    Codec<SlotPath> CODEC = CodecUtils.toCodec(ENDEC);
+
+    StreamCodec<? extends FriendlyByteBuf, SlotPath> STREAM_CODEC = CodecUtils.toPacketCodec(ENDEC);
+
+    ///
+    /// @return the referenced slot name referring to a [SlotType]
+    ///
     String slotName();
 
-    /**
-     * @return the referenced slot index
-     */
+    ///
+    /// @return the referenced slot index for a given [AccessoriesStorage]
+    ///
     int index();
 
+    ///
+    /// @return the referenced inner nesting indexes for [AccessoryNest] levels
+    ///
     List<Integer> innerIndices();
 
+    ///
+    /// @return if the given path traverses though any amount of [AccessoryNest]s
+    ///
     boolean isNested();
 
     //--
@@ -122,6 +148,14 @@ public sealed interface SlotPath permits SlotPathImpl, DelegatingSlotPath {
     }
 
     //--
+
+    static String createBaseSlotPath(SlotType slotType, int index) {
+        return createBaseSlotPath(slotType.name(), index);
+    }
+
+    static String createBaseSlotPath(String name, int index) {
+        return SlotPath.of(name, index).createString();
+    }
 
 }
 

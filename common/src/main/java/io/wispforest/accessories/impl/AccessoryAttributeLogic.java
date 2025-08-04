@@ -18,7 +18,7 @@ public class AccessoryAttributeLogic {
     }
 
     public static AccessoryAttributeBuilder getAttributeModifiers(ItemStack stack, SlotReference slotReference, boolean useTooltipCheck){
-        return getAttributeModifiers(stack, slotReference.entity(), slotReference.slotName(), slotReference.slot(), useTooltipCheck);
+        return getAttributeModifiers(stack, slotReference.entity(), slotReference.slotName(), slotReference.index(), useTooltipCheck);
     }
 
     @ApiStatus.ScheduledForRemoval(inVersion = "1.22")

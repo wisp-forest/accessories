@@ -2,8 +2,10 @@ package io.wispforest.accessories.api.client.renderers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.AccessoriesStorage;
 import io.wispforest.accessories.api.client.rendering.Side;
 import io.wispforest.accessories.api.client.rendering.ModelTransformOps;
+import io.wispforest.accessories.api.core.Accessory;
 import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
@@ -22,29 +24,24 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * Main Render Interface used to render Accessories
- * <p>
- * All Translation code is based on <a href="https://github.com/emilyploszaj/trinkets/blob/main/src/main/java/dev/emi/trinkets/api/client/TrinketRenderer.java">TrinketRenderer</a>
- * with adjustments to allow for any {@link LivingEntity} extending {@link HumanoidModel} in which
- * credit goes to <a href="https://github.com/TheIllusiveC4">TheIllusiveC4</a>, <a href="https://github.com/florensie">florensie</a>, and <a href="https://github.com/emilyploszaj">Emi</a>
- */
+///
+/// A renderer implementation used to render [ItemStack]s equipped within a [LivingEntity]'s [AccessoriesStorage].
+///
 public interface AccessoryRenderer {
 
-    /**
-     * Render method called within the {@link AccessoriesRenderLayer#render} when rendering a given Accessory on a given {@link LivingEntity}.
-     * The given {@link SlotReference} refers to the slot based on its type, entity and index within the {@link AccessoriesContainer}.
-     * </br></br>
-     * <pre>  [1.21 and below -> 1.21.2]
-     * limbSwing       -> {@link LivingEntityRenderState#walkAnimationPos}
-     * limbSwingAmount -> {@link LivingEntityRenderState#walkAnimationSpeed}
-     * ageInTicks      -> {@link LivingEntityRenderState#ageInTicks}
-     * netHeadYaw      -> {@link LivingEntityRenderState#yRot}
-     * headPitch       -> {@link LivingEntityRenderState#xRot}</pre>
-     */
+    ///
+    /// Primary render function used to render an equipped [ItemStack] on a given [LivingEntity]. The [SlotPath] parameter referees
+    /// to where the given passed [ItemStack] is currently equipped into.
+    ///
+    /// \[1.21 and below -> 1.21.2]
+    /// - limbSwing       -> {@link LivingEntityRenderState#walkAnimationPos}
+    /// - limbSwingAmount -> {@link LivingEntityRenderState#walkAnimationSpeed}
+    /// - ageInTicks      -> {@link LivingEntityRenderState#ageInTicks}
+    /// - netHeadYaw      -> {@link LivingEntityRenderState#yRot}
+    /// - headPitch       -> {@link LivingEntityRenderState#xRot}
     <S extends LivingEntityRenderState> void render(
             ItemStack stack,
-            SlotPath slotPath,
+            SlotPath path,
             PoseStack matrices,
             EntityModel<S> model,
             S renderState,
@@ -64,7 +61,7 @@ public interface AccessoryRenderer {
      * Determines if this accessory should render in first person
      * Override to return true for whichever arm this accessory renders on
      */
-    default <S extends LivingEntityRenderState> boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotPath reference, S renderState) {
+    default <S extends LivingEntityRenderState> boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotPath path, S renderState) {
         return false;
     }
 
@@ -91,26 +88,6 @@ public interface AccessoryRenderer {
     @ApiStatus.NonExtendable
     default boolean isEmpty() {
         return this instanceof BuiltinAccessoryRenderers.EmptyRenderer;
-    }
-
-    /**
-     * Rotates the rendering for the models based on the entity's poses and movements. This will do
-     * nothing if the entity render object does not implement {@link LivingEntityRenderer} or if the
-     * model does not implement {@link HumanoidModel}).
-     *
-     * @param entity The wearer of the trinket
-     * @param model  The model to align to the body movement
-     *
-     * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
-     */
-    @SuppressWarnings("unchecked")
-    @Deprecated(forRemoval = true)
-    static void followBodyRotations(final LivingEntity entity, final HumanoidModel<HumanoidRenderState> model) {
-        EntityRenderer<? super LivingEntity, ?> render = Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(entity);
-
-        if (render instanceof LivingEntityRenderer renderer && renderer.getModel() instanceof HumanoidModel entityModel) {
-            entityModel.copyPropertiesTo(model);
-        }
     }
 
     /**

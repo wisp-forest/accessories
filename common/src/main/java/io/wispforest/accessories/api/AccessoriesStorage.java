@@ -9,15 +9,23 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-/**
- * Lightweight access to the underlining API without any context for entity or its capability
- */
+///
+/// Lightweight storage access for a given [SlotType] typically bound to a
+/// given [LivingEntity][net.minecraft.world.entity.LivingEntity] unless in
+/// areas where not permitted direct entity access resulting in a [SimpleAccessoriesStorage]
+/// instead.
+///
+/// Designed for use within [io.wispforest.accessories.pond.AccessoriesRenderStateExtension].
+///
 public interface AccessoriesStorage {
     /**
      * @return The containers {@link SlotType} name
      */
     String getSlotName();
 
+    ///
+    /// The [SlotType] located from using the stored [SlotType#name()].
+    ///
     @Nullable
     default SlotType slotType() {
         return SlotTypeLoader.INSTANCE.getSlotType(isClientSide(), this.getSlotName());
