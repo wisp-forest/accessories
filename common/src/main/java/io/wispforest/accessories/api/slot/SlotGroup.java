@@ -34,7 +34,7 @@ public interface SlotGroup {
     /// @return A {@link Component} Translation key for the given group
     ///
     default String translation(){
-        return Accessories.translationKey("slot_group." + getId().toLanguageKey());
+        return Accessories.translationKey("slot_group." + name().replace(":", "."));
     }
 
     ///
