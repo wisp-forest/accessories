@@ -177,7 +177,7 @@ public class AccessoriesEventHandler {
 
                 var carrier = NbtMapCarrier.of();
 
-                AccessoriesHolderImpl.getHolder(capability).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(playerEntry.level().registryAccess())));
+                AccessoriesHolderImpl.getHolder(capability).encode(carrier, SerializationContext.attributes(RegistriesAttribute.of(playerEntry.level().registryAccess())));
 
                 AccessoriesNetworking.sendToTrackingAndSelf(playerEntry, new SyncEntireContainer(capability.entity().getId(), carrier));
 
@@ -194,7 +194,7 @@ public class AccessoriesEventHandler {
 
             var carrier = NbtMapCarrier.of();
 
-            AccessoriesHolderImpl.getHolder(capability).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(player.level().registryAccess())));
+            AccessoriesHolderImpl.getHolder(capability).encode(carrier, SerializationContext.attributes(RegistriesAttribute.of(player.level().registryAccess())));
 
             AccessoriesNetworking.sendToPlayer(player, new SyncEntireContainer(capability.entity().getId(), carrier));
 
@@ -609,7 +609,7 @@ public class AccessoriesEventHandler {
         var slotTypeToTooltipInfo = new HashMap<SlotType, List<Component>>();
 
         if (allDuplicates) {
-            if (!defaultModifiers.isEmpty()) {
+            if (defaultModifiers != null && !defaultModifiers.isEmpty()) {
                 var attributeTooltip = new ArrayList<Component>();
 
                 addAttributeTooltip(entity, stack, defaultModifiers.getAttributeModifiers(false), attributeTooltip, display, tooltipContext, tooltipType);
@@ -648,8 +648,10 @@ public class AccessoriesEventHandler {
         }
 
         if (allDuplicatesExtras) {
-            slotTypeToTooltipInfo.computeIfAbsent(null, s -> new ArrayList<>())
+            if (defaultExtraAttributeTooltip != null) {
+                slotTypeToTooltipInfo.computeIfAbsent(null, s -> new ArrayList<>())
                     .addAll(defaultExtraAttributeTooltip);
+            }
         } else {
             extraAttributeTooltips.forEach((slotType, components) -> {
                 slotTypeToTooltipInfo.computeIfAbsent(slotType, s -> new ArrayList<>())
@@ -660,7 +662,7 @@ public class AccessoriesEventHandler {
         if (slotTypeToTooltipInfo.containsKey(null)) {
             var anyTooltipInfo = slotTypeToTooltipInfo.get(null);
 
-            if (anyTooltipInfo.size() > 0) {
+            if (!anyTooltipInfo.isEmpty()) {
                 tooltip.add(CommonComponents.EMPTY);
 
                 tooltip.add(
@@ -678,7 +680,7 @@ public class AccessoriesEventHandler {
             for (var entry : slotTypeToTooltipInfo.entrySet()) {
                 var tooltipData = entry.getValue();
 
-                if (tooltipData.size() == 0) continue;
+                if (tooltipData.isEmpty()) continue;
 
                 tooltip.add(CommonComponents.EMPTY);
 

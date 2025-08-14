@@ -28,11 +28,6 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(WingsLayer.class)
 public abstract class WingsLayerMixin<S extends HumanoidRenderState, M extends EntityModel<S>> implements WingsLayerExtension<S> {
 
-    @Unique
-    private static final Logger LOGGER = LogUtils.getLogger();
-
-    @Unique private boolean hasPrintedError = false;
-
     @Shadow public abstract void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S humanoidRenderState, float f, float g);
 
     @Shadow @Final private EquipmentLayerRenderer equipmentRenderer;
@@ -73,11 +68,6 @@ public abstract class WingsLayerMixin<S extends HumanoidRenderState, M extends E
                     stack.set(gliderItem.stack());
 
                     instance = gliderItem.stack();
-                }
-            } else {
-                if (!hasPrintedError) {
-                    LOGGER.error("Unable to get the required Living Entity instance from the given LivingEntityRenderState meaning Accessories may not render!");
-                    hasPrintedError = true;
                 }
             }
         }

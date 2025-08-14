@@ -22,21 +22,23 @@ public abstract class LivingEntityRenderStateMixin implements AccessoriesRenderS
     private LivingEntity livingEntity = null;
 
     @Unique
-    private UUID entityUUID = UUID.randomUUID();
-
-    @Unique
     @Nullable
     private AccessoriesStorageLookup storageLookup = null;
 
-    @Override
-    public Optional<LivingEntity> getEntityForState() {
-        return Optional.ofNullable(this.livingEntity);
-    }
+    @Unique
+    private UUID entityUUID = UUID.randomUUID();
+
+    @Unique
+    private float partialTicks = 0;
 
     @Override
     public void accessories$setEntity(LivingEntity livingEntity) {
         this.livingEntity = livingEntity;
+    }
 
+    @Override
+    public void accessories$setPartialTicks(float value) {
+        this.partialTicks = value;
     }
 
     @Override
@@ -50,13 +52,23 @@ public abstract class LivingEntityRenderStateMixin implements AccessoriesRenderS
     }
 
     @Override
+    public Optional<LivingEntity> getEntityForState() {
+        return Optional.ofNullable(this.livingEntity);
+    }
+
+    @Override
     @Nullable
     public AccessoriesStorageLookup getStorageLookup() {
-        return storageLookup;
+        return this.storageLookup;
     }
 
     @Override
     public UUID getEntityUUIDForState() {
         return this.entityUUID;
+    }
+
+    @Override
+    public float getEntityPartialTicksForState() {
+        return this.partialTicks;
     }
 }

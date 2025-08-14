@@ -4,8 +4,10 @@
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
   "client": [
+    "client.AccessoriesNetworkingMixin"
   ],
   "mixins": [
+    "AccessoriesNetworkingMixin"
   ],
   "injectors": {
     "defaultRequire": 1

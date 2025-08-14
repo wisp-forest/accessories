@@ -15,9 +15,10 @@ import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
-import io.wispforest.accessories.utils.InstanceEndec;
+import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.accessories.data.api.SyncedDataHelperManager;
-import io.wispforest.owo.serialization.CodecUtils;
+import io.wispforest.endec.SerializationContext;
+import io.wispforest.accessories.utils.InstanceEndec;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
@@ -39,11 +40,15 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.attachment.IAttachmentHolder;
+import net.neoforged.neoforge.attachment.IAttachmentSerializer;
 import net.neoforged.neoforge.capabilities.EntityCapability;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -63,6 +68,7 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 @Mod(Accessories.MODID)
@@ -71,14 +77,34 @@ public class AccessoriesForge {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public static final AttachmentType<AccessoriesHolderImpl> HOLDER_ATTACHMENT_TYPE = AttachmentType.builder(AccessoriesHolderImpl::of)
-            .serialize(CodecUtils.toCodec(InstanceEndec.constructed(AccessoriesHolderImpl::new)))
+            .serialize(createSerializerFor(AccessoriesHolderImpl::new))
             .copyOnDeath()
             .build();
 
     public static final AttachmentType<AccessoriesPlayerOptionsHolder> PLAYER_OPTIONS_ATTACHMENT_TYPE = AttachmentType.builder(AccessoriesPlayerOptionsHolder::new)
-            .serialize(CodecUtils.toCodec(InstanceEndec.constructed(AccessoriesPlayerOptionsHolder::new)))
+            .serialize(createSerializerFor(AccessoriesPlayerOptionsHolder::new))
             .copyOnDeath()
             .build();
+
+    private static <T extends InstanceEndec> IAttachmentSerializer<T> createSerializerFor(Supplier<T> supplier) {
+        return new IAttachmentSerializer<T>() {
+            @Override
+            public T read(IAttachmentHolder iAttachmentHolder, ValueInput arg) {
+                var holder = supplier.get();
+
+                holder.decode(EndecUtils.createCarrierDecoder(arg), SerializationContext.empty());
+
+                return holder;
+            }
+
+            @Override
+            public boolean write(T object, ValueOutput arg) {
+                object.encode(EndecUtils.createCarrierEncoder(arg), SerializationContext.empty());
+
+                return true;
+            }
+        };
+    }
 
     public static final EntityCapability<AccessoriesCapability, Void> CAPABILITY = EntityCapability.createVoid(Accessories.of("capability"), AccessoriesCapability.class);
 

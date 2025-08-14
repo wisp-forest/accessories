@@ -203,67 +203,103 @@ public class AccessoriesCommands {
                                 return (int)(size * scale);
                             }
                     )
-                    .branch(
-                            "modifier",
+                    .branch("modifier", builder -> {
+
+                        builder
+                            .leaves(
+                                "clear",
+                                required("entity", EntityArgument.entity(), EntityArgument::getEntity),
+                                defaulted("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot, ""),
+                                (ctx, entity, s) -> {
+                                    if (s.isBlank()) {
+                                        var capability = getCapability(entity);
+
+                                        capability.clearSlotModifiers();
+
+                                        ctx.getSource().sendSuccess(
+                                            () -> Component.translatable(
+                                                "accessories.commands.slot.modifier.clear.all.success", entity.getName()
+                                            ),
+                                            false
+                                        );
+                                    } else {
+                                        var container = getContainer(entity, s);
+
+                                        container.clearModifiers();
+
+                                        ctx.getSource().sendSuccess(
+                                            () -> Component.translatable(
+                                                "accessories.commands.slot.modifier.clear.container.success", s, entity.getName()
+                                            ),
+                                            false
+                                        );
+                                    }
+
+                                    return 1;
+                                }
+                            )
+                            .branch(
                             required("entity", EntityArgument.entity(), EntityArgument::getEntity),
                             required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
                             required("id", ResourceLocationArgument.id(), ResourceLocationArgument::getId),
                             branchBuilder -> {
                                 branchBuilder.leaves(
-                                        "add",
-                                        required("amount", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble),
-                                        branches(List.of("add_value", "add_multiplied_base", "add_multiplied_total"), operationTypeStr -> {
-                                            return Arrays.stream(AttributeModifier.Operation.values())
-                                                    .filter(value -> value.getSerializedName().equals(operationTypeStr))
-                                                    .findFirst()
-                                                    .orElse(null);
-                                        }),
-                                        defaulted("is_persistent", BoolArgumentType.bool(), BoolArgumentType::getBool, true),
-                                        (ctx, entity, slot, id, amount, operation, isPersistent) -> {
-                                            var container = getContainer(entity, slot);
+                                    "add",
+                                    required("amount", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble),
+                                    branches(List.of("add_value", "add_multiplied_base", "add_multiplied_total"), operationTypeStr -> {
+                                        return Arrays.stream(AttributeModifier.Operation.values())
+                                            .filter(value -> value.getSerializedName().equals(operationTypeStr))
+                                            .findFirst()
+                                            .orElse(null);
+                                    }),
+                                    defaulted("is_persistent", BoolArgumentType.bool(), BoolArgumentType::getBool, true),
+                                    (ctx, entity, slot, id, amount, operation, isPersistent) -> {
+                                        var container = getContainer(entity, slot);
 
-                                            var modifier = new AttributeModifier(id, amount, operation);
+                                        var modifier = new AttributeModifier(id, amount, operation);
 
-                                            if (isPersistent) {
-                                                container.addPersistentModifier(modifier);
-                                            } else {
-                                                container.addTransientModifier(modifier);
-                                            }
-
-                                            return 1;
+                                        if (isPersistent) {
+                                            container.addPersistentModifier(modifier);
+                                        } else {
+                                            container.addTransientModifier(modifier);
                                         }
+
+                                        return 1;
+                                    }
                                 ).leaves(
-                                        "remove",
-                                        (ctx, entity, slot, id) -> {
-                                            var container = getContainer(entity, slot);
+                                    "remove",
+                                    (ctx, entity, slot, id) -> {
+                                        var container = getContainer(entity, slot);
 
-                                            container.removeModifier(id);
+                                        container.removeModifier(id);
 
-                                            return 1;
-                                        }
+                                        return 1;
+                                    }
                                 ).leaves(
-                                        "get",
-                                        defaulted("scale", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble, 1.0),
-                                        (ctx, entity, slot, id, scale) -> {
-                                            var container = getContainer(entity, slot);
-                                            var modifiers = container.getModifiers();
-                                            var attribute = SlotAttribute.getAttributeHolder(container.slotType());
+                                    "get",
+                                    defaulted("scale", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble, 1.0),
+                                    (ctx, entity, slot, id, scale) -> {
+                                        var container = getContainer(entity, slot);
+                                        var modifiers = container.getModifiers();
+                                        var attribute = SlotAttribute.getAttributeHolder(container.slotType());
 
-                                            if (!modifiers.containsKey(id)) {
-                                                throw ERROR_NO_SUCH_MODIFIER.create(entity.getName(), getAttributeDescription(attribute), id);
-                                            }
-
-                                            double d = modifiers.get(id).amount();
-                                            ctx.getSource().sendSuccess(
-                                                    () -> Component.translatable(
-                                                            "commands.attribute.modifier.value.get.success", Component.translationArg(id), getAttributeDescription(attribute), entity.getName(), d
-                                                    ),
-                                                    false
-                                            );
-                                            return (int)(d * scale);
+                                        if (!modifiers.containsKey(id)) {
+                                            throw ERROR_NO_SUCH_MODIFIER.create(entity.getName(), getAttributeDescription(attribute), id);
                                         }
+
+                                        double d = modifiers.get(id).amount();
+                                        ctx.getSource().sendSuccess(
+                                            () -> Component.translatable(
+                                                "commands.attribute.modifier.value.get.success", Component.translationArg(id), getAttributeDescription(attribute), entity.getName(), d
+                                            ),
+                                            false
+                                        );
+                                        return (int)(d * scale);
+                                    }
                                 );
                             });
+                    });
+
         });
 
         generator.branch("components", itemComponentBranch -> {

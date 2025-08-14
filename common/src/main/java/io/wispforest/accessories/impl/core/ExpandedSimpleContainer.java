@@ -3,6 +3,7 @@ package io.wispforest.accessories.impl.core;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.utils.BaseContainer;
 import io.wispforest.accessories.utils.ImmutableContainer;
 import io.wispforest.accessories.utils.ItemStackMutation;
 import io.wispforest.accessories.utils.ItemStackResize;
@@ -19,13 +20,15 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.Container;
-import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.ItemStackWithSlot;
 import net.minecraft.world.item.ItemStack;
-import org.apache.commons.lang3.mutable.MutableObject;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -34,7 +37,7 @@ import java.util.function.BiFunction;
  * An implementation of SimpleContainer with easy utilities for iterating over the stacks
  * and holding on to previous stack info
  */
-public class ExpandedSimpleContainer extends SimpleContainer implements Iterable<ItemStack> {
+public class ExpandedSimpleContainer extends BaseContainer implements Iterable<ItemStack> {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -78,7 +81,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     }
 
     public Container toImmutable() {
-        return new ImmutableContainer(this.items);
+        return new ImmutableContainer(this.getItems());
     }
 
     //--
@@ -269,8 +272,9 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
     //--
 
+
     @Override
-    public void fromTag(ListTag containerNbt, HolderLookup.Provider provider) {
+    public void loadItemsFromList(Collection<ItemStackWithSlot> slottedStacks) {
         this.container.containerListenerLock = true;
 
         var capability = this.container.capability();
@@ -287,17 +291,13 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
         var invalidStacks = new ArrayList<ItemStack>();
         var decodedStacks = new ArrayList<ItemStack>();
 
-        for(int i = 0; i < containerNbt.size(); ++i) {
-            var compoundTag = containerNbt.getCompoundOrEmpty(i);
-
-            int j = compoundTag.getIntOr("Slot", -1);
-
-            var stack = parseOptional(provider, compoundTag);
+        for (var slottedStack : slottedStacks) {
+            var stack = slottedStack.stack();
 
             decodedStacks.add(stack);
 
-            if (j >= 0 && j < this.getContainerSize()) {
-                this.setItem(j, stack);
+            if (slottedStack.isValidInContainer(this.getContainerSize())) {
+                this.setItem(slottedStack.slot(), stack);
             } else {
                 invalidStacks.add(stack);
             }
@@ -312,37 +312,6 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
             AccessoriesHolderImpl.getHolder(capability).invalidStacks.addAll(invalidStacks);
         }
-    }
-
-    public ItemStack parseOptional(HolderLookup.Provider lookupProvider, Tag tag) {
-        return ItemStack.CODEC.parse(lookupProvider.createSerializationContext(NbtOps.INSTANCE), tag)
-                .resultOrPartial(string -> {
-                    LOGGER.error("[ExpandedSimpleContainer] An error has occured while decoding stack!");
-                    LOGGER.error(" - Entity Effected: '{}'", this.container.capability.entity().toString());
-                    LOGGER.error(" - Container Name: '{}'", this.container.getSlotName());
-                    LOGGER.error(" - Tried to load invalid item: '{}'", string);
-                    LOGGER.error(" - Stack Data: '{}'", tag.toString());
-                })
-                .orElse(ItemStack.EMPTY);
-    }
-
-    @Override
-    public ListTag createTag(HolderLookup.Provider provider) {
-        ListTag listTag = new ListTag();
-
-        for(int i = 0; i < this.getContainerSize(); ++i) {
-            ItemStack itemStack = this.getItem(i);
-
-            if (!itemStack.isEmpty()) {
-                var compoundTag = new CompoundTag();
-
-                compoundTag.putInt("Slot", i);
-
-                listTag.add(itemStack.save(provider, compoundTag));
-            }
-        }
-
-        return listTag;
     }
 
     //--

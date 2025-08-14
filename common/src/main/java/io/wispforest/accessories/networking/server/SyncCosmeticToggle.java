@@ -50,9 +50,7 @@ public record SyncCosmeticToggle(@Nullable Integer entityId, String slotName, in
 
         var container = capability.getContainer(slotType);
 
-        var renderOptions = container.renderOptions();
-
-        renderOptions.set(packet.slotIndex(), !container.shouldRender(packet.slotIndex()));
+        container.setShouldRender(packet.slotIndex(), !container.shouldRender(packet.slotIndex()));
 
         container.markChanged(false);
     }

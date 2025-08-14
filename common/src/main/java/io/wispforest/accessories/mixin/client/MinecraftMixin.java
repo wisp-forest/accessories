@@ -1,13 +1,8 @@
 package io.wispforest.accessories.mixin.client;
 
 import com.mojang.blaze3d.platform.Window;
-import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.AccessoriesClient;
-import io.wispforest.accessories.client.AccessoriesPipelines;
-import io.wispforest.accessories.client.AccessoriesRenderLayer;
-import io.wispforest.owo.shader.OwoBlurRenderer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.main.GameConfig;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Final;

@@ -1,11 +1,9 @@
 package io.wispforest.accessories.pond;
 
-import io.wispforest.accessories.api.AccessoriesStorage;
 import io.wispforest.accessories.api.AccessoriesStorageLookup;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -20,6 +18,10 @@ public interface AccessoriesRenderStateAPI {
     }
 
     default UUID getEntityUUIDForState() {
+        throw new IllegalStateException("Injected Interface method not implemented!");
+    }
+
+    default float getEntityPartialTicksForState() {
         throw new IllegalStateException("Injected Interface method not implemented!");
     }
 }

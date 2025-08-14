@@ -480,8 +480,14 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 .padding(Insets.of(7, 7, 7, 4))
                 .allowOverflow(true);
 
-        var bottomInvComponent = Containers.horizontalFlow(Sizing.content(), Sizing.content())//Sizing.fixed(195 + 39), Sizing.fixed(88) : [39, 60]
-                .child(
+        var bottomInvComponent = new FlowLayout(Sizing.content(), Sizing.content(), FlowLayout.Algorithm.HORIZONTAL){
+            @Override
+            public boolean isInBoundingBox(double x, double y) {
+                return super.isInBoundingBox(x, y)
+                    || offhandComponent.isInBoundingBox(x, y);
+            }
+        }
+                 .child(
                         Containers.verticalFlow(Sizing.content(), Sizing.content()) // Sizing.expand()
                                 .child(offhandComponent)
                                 .allowOverflow(true)
@@ -521,8 +527,6 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 })
                 .allowOverflow(true)
                 .id("bottom_inventory_section");
-
-        ((InclusiveBoundingArea<?>) bottomInvComponent).addInclusionZone(offhandComponent);
 
         baseChildren.add(bottomInvComponent);
 
@@ -1135,7 +1139,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
 
         if (option.equals(PlayerOptions.SHOW_CRAFTING_GRID)) {
-            var buttonPanel = component(FlowLayout.class, "entity_button_panel");
+            var buttonPanel = component(StackLayout.class, "entity_button_panel");
 
             var craftingBtn = buttonPanel.childById(io.wispforest.owo.ui.core.Component.class, "crafting_grid_btn");
 

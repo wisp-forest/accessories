@@ -1,11 +1,24 @@
 package io.wispforest.accessories.api;
 
+import io.wispforest.accessories.impl.core.ExpandedSimpleContainer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 
 import java.util.List;
+import java.util.Map;
 
-public record SimpleAccessoriesStorage(boolean isClientSide, String slotName, int size, List<Boolean> renderOptions, Container accessories, Container cosmeticAccessories) implements AccessoriesStorage {
+public record SimpleAccessoriesStorage(boolean isClientSide, String slotName, int size, Map<Integer, Boolean> renderOptions, Container accessories, Container cosmeticAccessories) implements AccessoriesStorage {
+
+    public static AccessoriesStorage copy(AccessoriesStorage storage) {
+        return new SimpleAccessoriesStorage(
+            storage.isClientSide(),
+            storage.getSlotName(),
+            storage.getSize(),
+            storage.renderOptions(),
+            copyContainer(storage.getAccessories()),
+            copyContainer(storage.getCosmeticAccessories())
+        );
+    }
 
     @Override
     public String getSlotName() {
@@ -25,5 +38,13 @@ public record SimpleAccessoriesStorage(boolean isClientSide, String slotName, in
     @Override
     public int getSize() {
         return size;
+    }
+
+    private static Container copyContainer(Container container) {
+        if (container instanceof ExpandedSimpleContainer expandedContainer) {
+            return expandedContainer.toImmutable();
+        }
+
+        return container;
     }
 }

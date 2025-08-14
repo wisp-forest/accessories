@@ -1,8 +1,12 @@
 package io.wispforest.accessories.impl.core;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
+import com.mojang.datafixers.util.Either;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.logging.LogUtils;
+import com.mojang.serialization.MapCodec;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
@@ -11,25 +15,32 @@ import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.AccessoryAttributeLogic;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.utils.AttributeUtils;
+import io.wispforest.accessories.utils.BaseContainer;
 import io.wispforest.accessories.utils.EndecUtils;
-import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.endec.Endec;
+import io.wispforest.endec.SerializationAttribute;
 import io.wispforest.endec.SerializationContext;
+import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
-import io.wispforest.owo.serialization.RegistriesAttribute;
+import io.wispforest.endec.util.MapCarrierDecodable;
+import io.wispforest.endec.util.MapCarrierEncodable;
+import io.wispforest.accessories.utils.InstanceEndec;
+import io.wispforest.owo.serialization.CodecUtils;
+import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
+import it.unimi.dsi.fastutil.ints.Int2BooleanLinkedOpenHashMap;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerListener;
-import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.ItemStackWithSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 
 import java.util.*;
 
@@ -48,7 +59,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     @Nullable
     private Integer baseSize;
 
-    private List<Boolean> renderOptions;
+    private Map<Integer, Boolean> renderOptions;
 
     private ExpandedSimpleContainer accessories;
     private ExpandedSimpleContainer cosmeticAccessories;
@@ -66,7 +77,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         this.accessories = new ExpandedSimpleContainer(this, this.baseSize, "accessories", false);
         this.cosmeticAccessories = new ExpandedSimpleContainer(this, this.baseSize, "cosmetic_accessories", false);
 
-        this.renderOptions = getWithSize(baseSize, new ArrayList<>(), true);
+        this.renderOptions = new Int2BooleanLinkedOpenHashMap(baseSize);
     }
 
     @Override
@@ -199,7 +210,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
             this.accessories = newAccessories;
             this.cosmeticAccessories = newCosmetics;
 
-            this.renderOptions = getWithSize(currentSize, this.renderOptions, true);
+            this.renderOptions = getWithSize(currentSize, this.renderOptions);
 
             var livingEntity = this.capability.entity();
 
@@ -259,9 +270,18 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     @Override
-    public List<Boolean> renderOptions() {
+    public Map<Integer, Boolean> renderOptions() {
         this.update();
-        return this.renderOptions;
+        return Collections.unmodifiableMap(this.renderOptions);
+    }
+
+    @Override
+    public void setShouldRender(int index, boolean value) {
+        var size = getSize();
+
+        if (index > 0 && index < size) {
+            this.renderOptions.put(index, value);
+        }
     }
 
     @Override
@@ -369,23 +389,51 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
     public static final KeyedEndec<Integer> CURRENT_SIZE_KEY = Endec.INT.keyed("current_size", 0);
 
-    public static final KeyedEndec<List<Boolean>> RENDER_OPTIONS_KEY = Endec.BOOLEAN.listOf().keyed("render_options", ArrayList::new);
+    public static final KeyedEndec<Map<Integer, Boolean>> RENDER_OPTIONS_KEY = CodecUtils.eitherEndec(Endec.BOOLEAN.listOf(), Endec.map(Endec.INT, Endec.BOOLEAN))
+        .xmap(either -> {
+            return Either.unwrap(either.mapLeft(booleans -> {
+                var map = new HashMap<Integer, Boolean>();
+
+                for (int i = 0; i < booleans.size(); i++) {
+                    var bl = booleans.get(i);
+
+                    if (!bl) map.put(i, false);
+                }
+
+                return map;
+            }));
+        }, Either::right)
+        .keyed("render_options", HashMap::new);
 
     public static final KeyedEndec<List<CompoundTag>> MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("modifiers", ArrayList::new);
     public static final KeyedEndec<List<CompoundTag>> PERSISTENT_MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("persistent_modifiers", ArrayList::new);
     public static final KeyedEndec<List<CompoundTag>> CACHED_MODIFIERS_KEY = NbtEndec.COMPOUND.listOf().keyed("cached_modifiers", ArrayList::new);
 
-    public static final KeyedEndec<ListTag> ITEMS_KEY = EndecUtils.NBT_LIST.keyed("items", ListTag::new);
-    public static final KeyedEndec<ListTag> COSMETICS_KEY = EndecUtils.NBT_LIST.keyed("cosmetics", ListTag::new);
+    private static final Logger LOGGER = LogUtils.getLogger();
+
+    private static final StructEndec<ItemStackWithSlot> SLOTTED_ITEMSTACK_ENDEC = CodecUtils.toStructEndec(((MapCodec.MapCodecCodec<ItemStackWithSlot>) ItemStackWithSlot.CODEC).codec())
+        .structuredCatchErrors((ctx, serializer, struct, exception) -> {
+            var container = ctx.getAttributeValue(ContainerAttribute.CONTAINER).container();
+
+            // TODO: MAYBE BETTER ERROR?
+
+            LOGGER.error("[ExpandedSimpleContainer] An error has occured while decoding stack!");
+            LOGGER.error(" - Entity Effected: '{}'", container.capability().entity().toString());
+            LOGGER.error(" - Container Name: '{}'", container.getSlotName());
+            LOGGER.error(" - Tried to load invalid ItemStack: ", exception);
+
+            return new ItemStackWithSlot(-1, ItemStack.EMPTY);
+        });
+
+    public static final KeyedEndec<List<ItemStackWithSlot>> ITEMS_KEY = SLOTTED_ITEMSTACK_ENDEC.listOf().keyed("items", ArrayList::new);
+    public static final KeyedEndec<List<ItemStackWithSlot>> COSMETICS_KEY = SLOTTED_ITEMSTACK_ENDEC.listOf().keyed("cosmetics", ArrayList::new);
 
     @Override
-    public void write(MapCarrier carrier, SerializationContext ctx) {
+    public void encode(MapCarrierEncodable carrier, SerializationContext ctx) {
         write(carrier, ctx, false);
     }
 
-    public void write(MapCarrier carrier, SerializationContext ctx, boolean sync){
-        var registryAccess = ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager();
-
+    public void write(MapCarrierEncodable carrier, SerializationContext ctx, boolean sync){
         carrier.put(SLOT_NAME_KEY, this.slotName);
 
         carrier.putIfNotNull(ctx, BASE_SIZE_KEY, this.baseSize);
@@ -395,8 +443,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         if(!sync || this.accessories.wasNewlyConstructed()) {
             carrier.put(CURRENT_SIZE_KEY, accessories.getContainerSize());
 
-            carrier.put(ITEMS_KEY, accessories.createTag(registryAccess));
-            carrier.put(COSMETICS_KEY, cosmeticAccessories.createTag(registryAccess));
+            carrier.put(ctx, ITEMS_KEY, accessories.saveItemsToList());
+            carrier.put(ctx, COSMETICS_KEY, cosmeticAccessories.saveItemsToList());
         }
 
         if(sync){
@@ -431,13 +479,11 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     @Override
-    public void read(MapCarrier carrier, SerializationContext ctx) {
+    public void decode(MapCarrierDecodable carrier, SerializationContext ctx) {
         read(carrier, ctx, false);
     }
 
-    public void read(MapCarrier carrier, SerializationContext ctx, boolean sync){
-        var registryAccess = ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager();
-
+    public void read(MapCarrierDecodable carrier, SerializationContext ctx, boolean sync){
         EndecUtils.dfuKeysCarrier(
                 carrier,
                 Map.of(
@@ -498,50 +544,49 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         }
 
         if(carrier.has(CURRENT_SIZE_KEY)) {
+            ctx = ctx.withAttributes(ContainerAttribute.CONTAINER.instance(new ContainerAttribute(this)));
             var currentSize = carrier.get(CURRENT_SIZE_KEY);
 
             var sentOptions = carrier.get(RENDER_OPTIONS_KEY);
 
-            this.renderOptions = getWithSize(currentSize, sentOptions, true);
+            this.renderOptions = getWithSize(currentSize, sentOptions);
 
             if(this.accessories.getContainerSize() != currentSize) {
                 this.accessories = new ExpandedSimpleContainer(this, currentSize, "accessories");
                 this.cosmeticAccessories = new ExpandedSimpleContainer(this, currentSize, "cosmetic_accessories");
             }
 
-            this.accessories.fromTag(carrier.get(ITEMS_KEY), registryAccess);
-            this.cosmeticAccessories.fromTag(carrier.get(COSMETICS_KEY), registryAccess);
+            this.accessories.loadItemsFromList(carrier.get(ctx, ITEMS_KEY));
+            this.cosmeticAccessories.loadItemsFromList(carrier.get(ctx, COSMETICS_KEY));
         } else {
             this.renderOptions = carrier.get(RENDER_OPTIONS_KEY);
         }
     }
 
-    private <T> List<T> getWithSize(int size, List<T> list, T defaultValue) {
-        var sizedList = new ArrayList<T>(size);
+    private Map<Integer, Boolean> getWithSize(int size, Map<Integer, Boolean> map) {
+        var sizedList = new Int2BooleanLinkedOpenHashMap(size);
 
         for (int i = 0; i < size; i++) {
-            var value = (i < list.size()) ? list.get(i) : defaultValue;
+            var value = (i < map.size()) ? map.get(i) : null;
 
-            sizedList.add(value);
+            if (value != null) sizedList.put(i, (boolean) value);
         }
 
         return sizedList;
     }
 
-    public static SimpleContainer readContainer(MapCarrier carrier, SerializationContext ctx, KeyedEndec<ListTag> key){
+    public static BaseContainer readContainer(MapCarrier carrier, SerializationContext ctx, KeyedEndec<List<ItemStackWithSlot>> key){
         return readContainers(carrier, ctx, key).get(0);
     }
 
     @SafeVarargs
-    public static List<SimpleContainer> readContainers(MapCarrier carrier, SerializationContext ctx, KeyedEndec<ListTag> ...keys){
-        var containers = new ArrayList<SimpleContainer>();
-
-        var registryAccess = ctx.requireAttributeValue(RegistriesAttribute.REGISTRIES).registryManager();
+    public static List<BaseContainer> readContainers(MapCarrier carrier, SerializationContext ctx, KeyedEndec<List<ItemStackWithSlot>> ...keys){
+        var containers = new ArrayList<BaseContainer>();
 
         for (var key : keys) {
-            var stacks = new SimpleContainer();
+            var stacks = new BaseContainer();
 
-            if(carrier.has(key)) stacks.fromTag(carrier.get(key), registryAccess);
+            if(carrier.has(key)) stacks.loadItemsFromList(carrier.get(ctx, key));
 
             containers.add(stacks);
         }
@@ -549,7 +594,60 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         return containers;
     }
 
-    public static SimpleContainer copyContainerList(SimpleContainer container){
-        return new SimpleContainer(container.getItems().toArray(ItemStack[]::new));
+    public static BaseContainer copyContainerList(BaseContainer container){
+        return new BaseContainer(container.getItems().toArray(ItemStack[]::new));
+    }
+
+    private record ContainerAttribute(AccessoriesContainer container) implements SerializationAttribute.Instance{
+        public static final SerializationAttribute.WithValue<ContainerAttribute> CONTAINER = SerializationAttribute.withValue("accessories_container");
+
+        @Override public SerializationAttribute attribute() { return CONTAINER; }
+        @Override public Object value() { return this;}
+    }
+
+    private static final class ListFromMap<T> extends AbstractList<T> {
+        private final Map<Integer, T> map;
+
+        private ListFromMap(Map<Integer, T> map) {
+            this.map = map;
+        }
+
+        public Map<Integer, T> map() {
+            return map;
+        }
+
+        @Override
+        public T get(int index) {
+            return null;
+        }
+
+
+
+        @Override
+        public int size() {
+            return 0;
+        }
+
+
+//        @Override
+//        public boolean equals(Object obj) {
+//            if (obj == this) return true;
+//            if (obj == null || obj.getClass() != this.getClass()) return false;
+//            var that = (ListFromMap) obj;
+//            return Objects.equals(this.map, that.map);
+//        }
+//
+//        @Override
+//        public int hashCode() {
+//            return Objects.hash(map);
+//        }
+//
+//        @Override
+//        public String toString() {
+//            return "ListFromMap[" +
+//                "map=" + map + ']';
+//        }
+
+
     }
 }

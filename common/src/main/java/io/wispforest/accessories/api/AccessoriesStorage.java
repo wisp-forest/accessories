@@ -3,11 +3,10 @@ package io.wispforest.accessories.api;
 import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
-import io.wispforest.accessories.impl.core.ExpandedSimpleContainer;
 import net.minecraft.world.Container;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.Map;
 
 ///
 /// Lightweight storage access for a given [SlotType] typically bound to a
@@ -18,9 +17,9 @@ import java.util.List;
 /// Designed for use within [io.wispforest.accessories.pond.AccessoriesRenderStateExtension].
 ///
 public interface AccessoriesStorage {
-    /**
-     * @return The containers {@link SlotType} name
-     */
+    ///
+    /// @return The containers [SlotType] name
+    ///
     String getSlotName();
 
     ///
@@ -31,57 +30,43 @@ public interface AccessoriesStorage {
         return SlotTypeLoader.INSTANCE.getSlotType(isClientSide(), this.getSlotName());
     }
 
+    ///
+    /// Returns the [SlotPath] based on the containers slot name with the given `index`
+    ///
     default SlotPath createPath(int index){
         return SlotPath.of(this.getSlotName(), index);
     }
 
-    /**
-     * @return List containing toggle values for if a given Accessory Slot should be rendered on the entity or not
-     */
-    List<Boolean> renderOptions();
+    ///
+    /// Returns a [Map] containing if the renderer has been disabled, if such index is not found within map
+    /// then such is enabled. Recommend to use [#shouldRender(int)] instead of direct map access
+    ///
+    Map<Integer, Boolean> renderOptions();
 
-    /**
-     * @return If the given index for the container should render on the entity
-     */
-    default boolean shouldRender(int index){
-        var options = this.renderOptions();
-
-        return (index < options.size()) ? options.get(index) : true;
+    ///
+    /// @return If the given index for the container should render on the entity
+    ///
+    default boolean shouldRender(int index) {
+        return renderOptions().getOrDefault(index, true);
     }
 
-    /**
-     * @return The main container holding the primary Accessory Stacks
-     */
+    ///
+    /// Returns the Vanilla [Container] that holds primary Accessories
+    ///
     Container getAccessories();
 
-    /**
-     * @return The main container holding the cosmetic Accessory Stacks
-     */
+    ///
+    /// Returns the Vanilla [Container] that holds cosmetic Accessories
+    ///
     Container getCosmeticAccessories();
 
-    /**
-     * @return The max size of the given Container
-     */
+    ///
+    /// @return The max size of the given storage
+    ///
     int getSize();
 
+    ///
+    /// @return weather the current storage is from the client or server
+    ///
     boolean isClientSide();
-
-    default AccessoriesStorage copy() {
-        return new SimpleAccessoriesStorage(
-                this.isClientSide(),
-                this.getSlotName(),
-                this.getSize(),
-                List.copyOf(this.renderOptions()),
-                copyContainer(this.getAccessories()),
-                copyContainer(this.getCosmeticAccessories())
-        );
-    }
-
-    private static Container copyContainer(Container container) {
-        if (container instanceof ExpandedSimpleContainer expandedContainer) {
-            return expandedContainer.toImmutable();
-        }
-
-        return container;
-    }
 }

@@ -40,7 +40,7 @@ public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) {
 
         var carrier = NbtMapCarrier.of();
 
-        AccessoriesHolderImpl.getHolder(entity).write(carrier, SerializationContext.attributes(RegistriesAttribute.of(entity.level().registryAccess())));
+        AccessoriesHolderImpl.getHolder(entity).encode(carrier, SerializationContext.attributes(RegistriesAttribute.of(entity.level().registryAccess())));
 
         handleCreator.accept(new SyncEntireContainer(entity.getId(), carrier));
     }
@@ -73,7 +73,7 @@ public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) {
 //            LOGGER.info("[SyncEntireContainer] {}", containerMap);
 //        }
 
-        holder.read(packet.containerMap(), SerializationContext.attributes(RegistriesAttribute.of(level.registryAccess())));
+        holder.decode(packet.containerMap(), SerializationContext.attributes(RegistriesAttribute.of(level.registryAccess())));
         holder.init(capability);
     }
 }

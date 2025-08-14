@@ -22,10 +22,6 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(CustomHeadLayer.class)
 public abstract class CustomHeadLayerMixin<S extends LivingEntityRenderState, M extends EntityModel<S> & HeadedModel> {
 
-    @Unique private static final Logger LOGGER = LogUtils.getLogger();
-
-    @Unique private boolean hasPrintedError = false;
-
     //TODO: FIGURE OUT WHY ARCH LOOM DON'T REMAP WRAP METHOD
     @WrapMethod(method = {
             "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",        // Mojmap
@@ -55,11 +51,6 @@ public abstract class CustomHeadLayerMixin<S extends LivingEntityRenderState, M 
                             .updateForTopItem(alternativeRenderState, stack, ItemDisplayContext.HEAD, Minecraft.getInstance().level, null, extension.getEntityUUIDForState().hashCode() + 5);
 
                     ((LivingEntityRenderStateAccessor) livingEntityRenderState).accessories$headItem(alternativeRenderState);
-                }
-            } else {
-                if (!hasPrintedError) {
-                    LOGGER.error("Unable to get the required Living Entity instance from the given LivingEntityRenderState meaning Accessories may not render!");
-                    hasPrintedError = true;
                 }
             }
         }
