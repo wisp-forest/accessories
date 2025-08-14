@@ -255,7 +255,7 @@ public class PaginatedAccessoriesLayout extends AccessoriesContainingLayout<Pagi
 
         var titleBarComponent = this.childById(FlowLayout.class, "page_title_bar");
 
-        titleBarComponent.horizontalSizing(Sizing.fixed(currentPage.width(showCosmeticState, sideBySide)));
+        if (titleBarComponent != null) titleBarComponent.horizontalSizing(Sizing.fixed(currentPage.width(showCosmeticState, sideBySide)));
 
         gridContainer.clearChildren();
 

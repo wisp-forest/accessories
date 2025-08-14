@@ -50,6 +50,10 @@
   "accessories.commands.attribute.value.get.success": "Value of attribute %s for entity %s is %s",
   "accessories.commands.slot.value.get.success": "Value of slot %s for entity %s is %s",
 
+  "accessories.commands.slot.modifier.clear.all.success": "Slot Attributes for all containers has been removed for entity %s",
+
+  "accessories.commands.slot.modifier.clear.container.success": "Slot Attributes for %s has been removed for entity %s",
+
   "accessories.argument.livingEntities.nonLiving": "Only living entities may be affected by this command, but the provided selector includes non living entities",
 
   "gamerule.accessories.keepAccessoryInventory": "Keep Accessory Inventory",

@@ -17,7 +17,7 @@ import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.InvalidateEntityCache;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
-import io.wispforest.accessories.utils.InstanceEndec;
+import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
@@ -59,13 +59,13 @@ public class AccessoriesFabric implements ModInitializer {
     static {
         HOLDER_ATTACHMENT_TYPE = AttachmentRegistry.<AccessoriesHolderImpl>builder()
                 .initializer(AccessoriesHolderImpl::of)
-                .persistent(CodecUtils.toCodec(InstanceEndec.constructed(AccessoriesHolderImpl::new)))
+                .persistent(CodecUtils.toCodec(EndecUtils.createMapCarrierEndec(AccessoriesHolderImpl::new)))
                 .copyOnDeath()
                 .buildAndRegister(Accessories.of("inventory_holder"));
 
         PLAYER_OPTIONS_ATTACHMENT_TYPE = AttachmentRegistry.<AccessoriesPlayerOptionsHolder>builder()
                 .initializer(AccessoriesPlayerOptionsHolder::new)
-                .persistent(CodecUtils.toCodec(InstanceEndec.constructed(AccessoriesPlayerOptionsHolder::new)))
+                .persistent(CodecUtils.toCodec(EndecUtils.createMapCarrierEndec(AccessoriesPlayerOptionsHolder::new)))
                 .copyOnDeath()
                 .buildAndRegister(Accessories.of("player_options"));
     }

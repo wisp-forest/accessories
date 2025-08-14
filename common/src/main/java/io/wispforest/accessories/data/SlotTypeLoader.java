@@ -94,6 +94,8 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
     @Override
     protected void onSync() {
         this.slotUsedByRegistryItemCache_client.clear();
+
+        UniqueSlotHandling.buildClientSlotReferences();
     }
 
     @Override

@@ -17,9 +17,10 @@ import io.wispforest.accessories.impl.AccessoryAttributeLogic;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
-import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.endec.SerializationContext;
-import io.wispforest.endec.util.MapCarrier;
+import io.wispforest.endec.util.MapCarrierDecodable;
+import io.wispforest.endec.util.MapCarrierEncodable;
+import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.server.level.ServerPlayer;
@@ -91,7 +92,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
         var carrier = NbtMapCarrier.of();
 
-        holder.write(carrier, SerializationContext.attributes(RegistriesAttribute.of(this.entity.level().registryAccess())));
+        holder.encode(carrier, SerializationContext.attributes(RegistriesAttribute.of(this.entity.level().registryAccess())));
 
         AccessoriesNetworking.sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(serverPlayer.getId(), carrier));
     }
@@ -308,12 +309,12 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     //--
 
     @Override
-    public void write(MapCarrier carrier, SerializationContext ctx) {
-        AccessoriesHolderImpl.getHolder(this).write(carrier, ctx);
+    public void encode(MapCarrierEncodable carrier, SerializationContext ctx) {
+        AccessoriesHolderImpl.getHolder(this).encode(carrier, ctx);
     }
 
     @Override
-    public void read(MapCarrier carrier, SerializationContext ctx) {
-        AccessoriesHolderImpl.getHolder(this).read(carrier, ctx);
+    public void decode(MapCarrierDecodable carrier, SerializationContext ctx) {
+        AccessoriesHolderImpl.getHolder(this).decode(carrier, ctx);
     }
 }

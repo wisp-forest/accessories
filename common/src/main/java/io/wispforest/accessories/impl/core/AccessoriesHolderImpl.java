@@ -15,12 +15,14 @@ import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
 import io.wispforest.accessories.utils.EndecUtils;
-import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationAttribute;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
+import io.wispforest.endec.util.MapCarrierDecodable;
+import io.wispforest.endec.util.MapCarrierEncodable;
+import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import net.minecraft.Util;
@@ -52,7 +54,7 @@ public class AccessoriesHolderImpl implements InstanceEndec {
 
     // --
 
-    private MapCarrier carrier;
+    private MapCarrierDecodable carrier;
     protected boolean loadedFromTag = false;
 
     public AccessoriesHolderImpl(){}
@@ -218,7 +220,7 @@ public class AccessoriesHolderImpl implements InstanceEndec {
                         var prevAccessories = AccessoriesContainerImpl.copyContainerList(container.getAccessories());
                         var prevCosmetics = AccessoriesContainerImpl.copyContainerList(container.getCosmeticAccessories());
 
-                        ((AccessoriesContainerImpl) container).read(new NbtMapCarrier(containerElement), ctx);
+                        ((AccessoriesContainerImpl) container).decode(new NbtMapCarrier(containerElement), ctx);
 
                         if (prevAccessories.getContainerSize() > container.getSize()) {
                             for (int i = container.getSize() - 1; i < prevAccessories.getContainerSize(); i++) {
@@ -232,7 +234,10 @@ public class AccessoriesHolderImpl implements InstanceEndec {
                             }
                         }
                     } else {
-                        var containers = AccessoriesContainerImpl.readContainers(new NbtMapCarrier(containerElement), ctx, AccessoriesContainerImpl.COSMETICS_KEY, AccessoriesContainerImpl.ITEMS_KEY);
+                        var containers = AccessoriesContainerImpl.readContainers(
+                            new NbtMapCarrier(containerElement),
+                            ctx,
+                            AccessoriesContainerImpl.COSMETICS_KEY, AccessoriesContainerImpl.ITEMS_KEY);
 
                         for (var simpleContainer : containers) {
                             for (int i = 0; i < simpleContainer.getContainerSize(); i++) {
@@ -249,14 +254,14 @@ public class AccessoriesHolderImpl implements InstanceEndec {
                 var containerMap = new CompoundTag();
 
                 containers.forEach((s, container) -> {
-                    containerMap.put(s, Util.make(NbtMapCarrier.of(), innerCarrier -> ((AccessoriesContainerImpl) container).write(innerCarrier, ctx)).compoundTag());
+                    containerMap.put(s, Util.make(NbtMapCarrier.of(), innerCarrier -> ((AccessoriesContainerImpl) container).encode(innerCarrier, ctx)).compoundTag());
                 });
 
                 return containerMap;
             }).keyed("accessories_containers", HashMap::new);
 
     @Override
-    public void write(MapCarrier carrier, SerializationContext ctx) {
+    public void encode(MapCarrierEncodable carrier, SerializationContext ctx) {
         if(slotContainers.isEmpty()) return;
 
         carrier.put(ctx, CONTAINERS_KEY, this.slotContainers);
@@ -281,7 +286,7 @@ public class AccessoriesHolderImpl implements InstanceEndec {
 
     private static final KeyedEndec<Boolean> SHOW_CRAFTING_GRID = Endec.BOOLEAN.keyed("cosmetics_shown", false);
 
-    public void read(AccessoriesCapability capability, LivingEntity entity, MapCarrier carrier, SerializationContext ctx) {
+    public void read(AccessoriesCapability capability, LivingEntity entity, MapCarrierDecodable carrier, SerializationContext ctx) {
         this.loadedFromTag = false;
 
         EndecUtils.dfuKeysCarrier(
@@ -325,14 +330,14 @@ public class AccessoriesHolderImpl implements InstanceEndec {
         if (cache != null) cache.clearCache();
     }
 
-    private static <F> void setIfPresent(MapCarrier carrier, AccessoriesPlayerOptionsHolder options, KeyedEndec<F> keyedEndec, PlayerOption<F> option) {
+    private static <F> void setIfPresent(MapCarrierDecodable carrier, AccessoriesPlayerOptionsHolder options, KeyedEndec<F> keyedEndec, PlayerOption<F> option) {
         if (carrier.has(keyedEndec)) {
             options.setData(option, carrier.get(keyedEndec));
         }
     }
 
     @Override
-    public void read(MapCarrier carrier, SerializationContext context) {
+    public void decode(MapCarrierDecodable carrier, SerializationContext context) {
         this.loadedFromTag = true;
 
         this.carrier = carrier;

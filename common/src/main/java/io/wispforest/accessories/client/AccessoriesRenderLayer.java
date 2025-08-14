@@ -57,17 +57,15 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
         var client = Minecraft.getInstance();
 
         var storageLookup = entityRenderState.getStorageLookup();
-        var entity = entityRenderState.getEntityForState();
-        var uuid = entityRenderState.getEntityUUIDForState();
 
         if (storageLookup == null) return;
-
-        var partialTicks = client.getDeltaTracker()
-            .getGameTimeDeltaPartialTick(!entity.map(entity1 -> entity1.level().tickRateManager().isEntityFrozen(entity1)).orElse(true));
 
         var containers = storageLookup.getContainers();
 
         if (containers.isEmpty()) return;
+
+        var uuid = entityRenderState.getEntityUUIDForState();
+        var partialTicks = entityRenderState.getEntityPartialTicksForState();
 
         var funkyRenderState = AccessoriesFunkyRenderingState.INSTANCE;
         

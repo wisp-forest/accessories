@@ -22,10 +22,6 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(CapeLayer.class)
 public abstract class CapeLayerMixin {
 
-    @Unique private static final Logger LOGGER = LogUtils.getLogger();
-
-    @Unique private boolean hasPrintedError = false;
-
     @Shadow @Final private EquipmentAssetManager equipmentAssets;
 
     @WrapOperation(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/PlayerRenderState;FF)V",
@@ -50,11 +46,6 @@ public abstract class CapeLayerMixin {
 
                 if (gliderItem != null) {
                     itemStack = gliderItem.stack();
-                }
-            } else {
-                if (!hasPrintedError) {
-                    LOGGER.error("Unable to get the required Living Entity instance from the given LivingEntityRenderState meaning Accessories may not render!");
-                    hasPrintedError = true;
                 }
             }
         }

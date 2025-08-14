@@ -91,7 +91,7 @@ public interface AccessoriesStorageLookup {
     }
 
     /**
-     * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given {@link Item}.
+     * @return The first {@link ItemStack} formatted within {@link SlotPathWithStack} that matches the given {@link Item}.
      */
     @Nullable
     default SlotPathWithStack getFirstEquipped(Item item){
@@ -99,7 +99,7 @@ public interface AccessoriesStorageLookup {
     }
 
     /**
-     * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given {@link Item}
+     * @return The first {@link ItemStack} formatted within {@link SlotPathWithStack} that matches the given {@link Item}
      * with the given {@link EquipmentChecking} useful for detecting Cosmetic overrides for rendering.
      */
     @Nullable
@@ -108,7 +108,7 @@ public interface AccessoriesStorageLookup {
     }
 
     /**
-     * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given {@link Predicate}.
+     * @return The first {@link ItemStack} formatted within {@link SlotPathWithStack} that matches the given {@link Predicate}.
      */
     @Nullable
     default SlotPathWithStack getFirstEquipped(Predicate<ItemStack> predicate) {
@@ -116,7 +116,7 @@ public interface AccessoriesStorageLookup {
     }
 
     /**
-     * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given {@link Predicate}
+     * @return The first {@link ItemStack} formatted within {@link SlotPathWithStack} that matches the given {@link Predicate}
      * with the given {@link EquipmentChecking} useful for detecting Cosmetic overrides for rendering.
      */
     @Nullable
@@ -125,7 +125,7 @@ public interface AccessoriesStorageLookup {
     }
 
     /**
-     * @return The first {@link ItemStack} formatted within {@link SlotEntryReference} that matches the given predicate
+     * @return The first {@link ItemStack} formatted within {@link SlotPathWithStack} that matches the given predicate
      */
     @Nullable
     default SlotPathWithStack getFirstEquipped(ItemStackBasedPredicate predicate, EquipmentChecking check) {
@@ -133,14 +133,14 @@ public interface AccessoriesStorageLookup {
     }
 
     /**
-     * @return A list of all {@link ItemStack}'s formatted within {@link SlotEntryReference} matching the given {@link Item}
+     * @return A list of all {@link ItemStack}'s formatted within {@link SlotPathWithStack} matching the given {@link Item}
      */
     default List<? extends SlotPathWithStack> getEquipped(Item item){
         return getEquipped(ItemStackBasedPredicate.ofItem(item));
     }
 
     /**
-     * @return A list of all {@link SlotEntryReference}'s formatted within {@link SlotEntryReference} matching the passed predicate
+     * @return A list of all {@link SlotPathWithStack}'s formatted within {@link SlotPathWithStack} matching the passed predicate
      */
     default List<? extends SlotPathWithStack> getEquipped(Predicate<ItemStack> predicate){
         return getEquipped(ItemStackBasedPredicate.ofPredicate(predicate));
@@ -151,7 +151,7 @@ public interface AccessoriesStorageLookup {
     }
 
     /**
-     * @return A list of all {@link ItemStack}'s formatted within {@link SlotEntryReference}
+     * @return A list of all {@link ItemStack}'s formatted within {@link SlotPathWithStack}
      */
     default List<? extends SlotPathWithStack> getAllEquipped() {
         return AccessoriesStorageLookupUtils.getAllEquipped(getContainers(), SlotPathWithStack::of);

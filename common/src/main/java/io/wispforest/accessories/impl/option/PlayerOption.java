@@ -6,7 +6,7 @@ import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.KeyedEndec;
-import io.wispforest.endec.util.MapCarrier;
+import io.wispforest.endec.util.MapCarrierEncodable;
 import net.minecraft.world.entity.player.Player;
 import org.slf4j.Logger;
 
@@ -27,6 +27,7 @@ public final class PlayerOption<T> {
 
     private final String name;
     private final Endec<T> endec;
+    private final KeyedEndec<T> keyEndec;
     private final Supplier<T> defaultValue;
 
     PlayerOption(String name, Endec<T> endec, T defaultValue) {
@@ -37,8 +38,10 @@ public final class PlayerOption<T> {
         if (ALL_PROPERTIES.containsKey(name)) throw new IllegalStateException("Unable to create the given PlayerOption [" + name + "] as it is already contained within ALL_PROPERTIES! ");
 
         ALL_PROPERTIES.put(name, this);
+
         this.name = name;
         this.endec = endec;
+        this.keyEndec = endec.keyed(name, defaultValue);
         this.defaultValue = defaultValue;
     }
 
@@ -74,8 +77,8 @@ public final class PlayerOption<T> {
         });
     }
 
-    public KeyedEndec<T> toKey() {
-        return endec.keyed(name, defaultValue);
+    public KeyedEndec<T> keyEndec() {
+        return keyEndec;
     }
 
     public String name() {
@@ -109,7 +112,7 @@ public final class PlayerOption<T> {
     }
 
     public void writeToCarrier(MapCarrier carrier, Object value) {
-        carrier.put(this.toKey(), (T) value);
+        carrier.put(this.keyEndec(), (T) value);
     }
 
     @Override

@@ -33,8 +33,6 @@ public class Testccessories {
         TestItems.REGISTER.register(bus);
         bus.addListener(Testccessories::registerStuff);
         bus.addListener(TestItems::addToItemGroup);
-
-        AccessoriesNetworking.CHANNEL.registerClientboundDeferred(TestScreenPacket.class, TestScreenPacket.ENDEC);
     }
 
     public static void registerStuff(RegisterEvent event) {
@@ -58,5 +56,9 @@ public class Testccessories {
 
     public static ResourceLocation of(String path) {
         return ResourceLocation.fromNamespaceAndPath(MODID, path);
+    }
+
+    public static void initNetworkPackets() {
+        AccessoriesNetworking.CHANNEL.registerClientboundDeferred(TestScreenPacket.class, TestScreenPacket.ENDEC);
     }
 }
