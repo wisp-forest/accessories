@@ -6,7 +6,7 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.Minecraft;
 
-@Environment(EnvType.CLIENT)
+//@Environment(EnvType.CLIENT)
 public class ClientLifecycleEvents {
 
     public static final Event<EndDataPackReload> END_DATA_PACK_RELOAD = EventFactory.createArrayBacked(EndDataPackReload.class, callbacks -> (client, success) -> {

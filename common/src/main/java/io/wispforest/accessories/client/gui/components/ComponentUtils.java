@@ -3,14 +3,12 @@ package io.wispforest.accessories.client.gui.components;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
-import io.wispforest.accessories.client.AccessoriesPipelines;
 import io.wispforest.accessories.client.DrawUtils;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.server.SyncCosmeticToggle;
-import io.wispforest.accessories.pond.owo.ComponentExtension;
-import io.wispforest.owo.Owo;
+import io.wispforest.accessories.pond.ScissorStackManipulation;
 import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.Components;
@@ -19,7 +17,6 @@ import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.container.ScrollContainer;
 import io.wispforest.owo.ui.core.*;
 import io.wispforest.owo.ui.util.NinePatchTexture;
-import io.wispforest.owo.ui.util.ScissorStack;
 import it.unimi.dsi.fastutil.Pair;
 import net.fabricmc.fabric.api.event.Event;
 import net.minecraft.ChatFormatting;
@@ -46,21 +43,24 @@ public class ComponentUtils {
         recursiveSearchSlots(component, slotComponents::add);
 
         context.push()
-                .translate(component.x(), component.y(), 0);
+            .translate(component.x(), component.y());
+
+        var texture = getSlotTexture();
 
         for (var slotComponent : slotComponents) {
             DrawUtils.blit(
-                    context,
-                    getSlotTexture(),
-                    slotComponent.x() - component.x() - 1,
-                    slotComponent.y() - component.y() - 1,
-                    18, 18
+                context,
+                texture,
+                slotComponent.x() - component.x() - 1,
+                slotComponent.y() - component.y() - 1,
+                18, 18
             );
         }
 
-        renderSpectrumOutlines(context, component, slotComponents);
-
         context.pop();
+
+        // TODO: UNKNOWN WHY THIS MUST BE OUTSIDE OF THE MATRIX TRANSLATION TBH so....
+        renderSpectrumOutlines(context, slotComponents);
     };
 
     public static final Surface SPECTRUM_SLOT_OUTLINE = (context, component) -> {
@@ -68,21 +68,16 @@ public class ComponentUtils {
 
         recursiveSearchSlots(component, slotComponents::add);
 
-        context.push()
-                .translate(component.x(), component.y(), 0);
-
-        renderSpectrumOutlines(context, component, slotComponents);
-
-        context.pop();
+        renderSpectrumOutlines(context, slotComponents);
     };
 
-    public static void renderSpectrumOutlines(OwoUIDrawContext context, io.wispforest.owo.ui.core.Component component, List<AccessoriesExperimentalScreen.ExtendedSlotComponent> slotComponents) {
+    public static void renderSpectrumOutlines(OwoUIDrawContext context, List<AccessoriesExperimentalScreen.ExtendedSlotComponent> slotComponents) {
         for (var slotComponent : slotComponents) {
             var slot = slotComponent.slot();
 
             if (!(slot instanceof SlotTypeAccessible slotTypeAccessible) || !slotTypeAccessible.isCosmeticSlot()) continue;
 
-            DrawUtils.drawRectOutlineWithSpectrum(context, slotComponent.x() - component.x(), slotComponent.y() - component.y(), 0, 16, 16, 0.35f, true);
+            DrawUtils.drawRectOutlineWithSpectrum(context, slotComponent.x(), slotComponent.y(), 16, 16, 0.35f, false);
         }
     }
 
@@ -217,7 +212,7 @@ public class ComponentUtils {
                                 .sizing(Sizing.fixed(5))
                                 .positioning(btnPosition);
 
-                        ((ComponentExtension) component).allowIndividualOverdraw(true);
+//                        ((ComponentExtension) component).allowIndividualOverdraw(true);
                     });
         }
 
@@ -284,14 +279,9 @@ public class ComponentUtils {
             Runnable drawCall = () -> {
                 NinePatchTexture.draw(texture, context, btn.getX(), btn.getY(), btn.width(), btn.height());
                 extraRendering.draw(context, btn, delta);
-                context.flush();
             };
 
-            if(btn instanceof ComponentExtension<?> extension && extension.allowIndividualOverdraw()) {
-                ScissorStack.popFramesAndDraw(7, drawCall);
-            } else {
-                drawCall.run();
-            }
+            ((ScissorStackManipulation) context).accessories$renderWithoutAny(drawCall);
 
             context.pop();
         };

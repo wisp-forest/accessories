@@ -58,8 +58,7 @@ public class AccessoriesItemCommands {
 	);
 
 	private static final SuggestionProvider<CommandSourceStack> SUGGEST_MODIFIER = (commandContext, suggestionsBuilder) -> {
-		ReloadableServerRegistries.Holder holder = commandContext.getSource().getServer().reloadableRegistries();
-		return SharedSuggestionProvider.suggestResource(holder.getKeys(Registries.ITEM_MODIFIER), suggestionsBuilder);
+		return SharedSuggestionProvider.listSuggestions(commandContext, suggestionsBuilder, Registries.ITEM_MODIFIER, SharedSuggestionProvider.ElementSuggestionType.ELEMENTS);
 	};
 
 	protected static void generateTrees(BranchedCommandGenerator generator, CommandBuildContext context) {

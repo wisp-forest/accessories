@@ -21,6 +21,7 @@ repositories {
     maven("https://modmaven.dev") // location of a maven mirror for JEI files, as a fallback
     maven("https://api.modrinth.com/maven")
     maven("https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/") { content { includeGroup("software.bernie.geckolib") } }
+    mavenLocal()
 }
 
 dependencies {
@@ -28,7 +29,7 @@ dependencies {
 
     //--
 
-    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.4.1")!!)
+    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.0")!!)
 
     modApi(annotationProcessor("io.wispforest:owo-lib:${project.property("owo_version")}")!!)
 

@@ -24,7 +24,7 @@ public abstract class ServerGamePacketListenerImplMixin {
             }
     )
     private void accessories$transferStack(ServerboundPlayerCommandPacket packet, Operation<Void> original) {
-        PacketUtils.ensureRunningOnSameThread(packet, (ServerGamePacketListenerImpl) (Object) this, this.getPlayer().serverLevel());
+        PacketUtils.ensureRunningOnSameThread(packet, (ServerGamePacketListenerImpl) (Object) this, this.getPlayer().level());
 
         var currentContainerMenu = this.getPlayer().containerMenu;
 

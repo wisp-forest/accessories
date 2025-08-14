@@ -1,5 +1,6 @@
 package io.wispforest.accessories.client.gui.components;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
@@ -13,6 +14,7 @@ import io.wispforest.owo.util.Observable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -171,9 +173,9 @@ public class PaginatedAccessoriesLayout extends AccessoriesContainingLayout<Pagi
                                     });
                                 },
                                 (ctx, btn) -> {
-                                    ctx.multiply(Axis.YP.rotationDegrees(180), btn.getX() + (btn.width() / 2f), btn.getY() + (btn.height() / 2f), 0);
-                                    ctx.multiply(Axis.XP.rotationDegrees(180), btn.getX() + (btn.width() / 2f), btn.getY() + (btn.height() / 2f), 0);
-//                                    ctx.translate(btn.width(), -btn.height(), 0);
+                                    ctx.getMatrixStack()
+                                        .rotateAbout((float) Math.toRadians(180), btn.getX() + (btn.width() / 2f), btn.getY() + (btn.height() / 2f));
+
                                     return Accessories.of("textures/gui/accessories_back_icon" + (btn.isHovered() ? "_hovered" : "") + ".png");
                                 }).margins(Insets.of(0, 0, 0, 0))
                 )

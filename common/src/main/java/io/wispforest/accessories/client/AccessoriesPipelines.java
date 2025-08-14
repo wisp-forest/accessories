@@ -34,7 +34,7 @@ public class AccessoriesPipelines {
             RenderType.CompositeState.builder().createCompositeState(false)
     );
 
-    public static final RenderPipeline.Snippet SPECTRUM_SNIPPET = RenderPipeline.builder(RenderPipelines.MATRICES_COLOR_SNIPPET)
+    public static final RenderPipeline.Snippet SPECTRUM_SNIPPET = RenderPipeline.builder(RenderPipelines.MATRICES_PROJECTION_SNIPPET)
             .withFragmentShader(Accessories.of("core/spectrum_position_tex"))
             .withVertexShader(Accessories.of("core/spectrum_position_tex"))
             .withVertexFormat(DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS)
@@ -53,7 +53,7 @@ public class AccessoriesPipelines {
                     786432,
                     SPECTRUM,
                     RenderType.CompositeState.builder()
-                            .setTextureState(new RenderStateShard.TextureStateShard(resourceLocation, TriState.FALSE, false))
+                            .setTextureState(new RenderStateShard.TextureStateShard(resourceLocation, false))
                             .createCompositeState(false)
             )
     );
@@ -72,12 +72,12 @@ public class AccessoriesPipelines {
                         786432,
                         COLORED_GUI_TEXTURED_PIPE,
                         RenderType.CompositeState.builder()
-                                .setTextureState(new RenderStateShard.TextureStateShard(resourceLocation, TriState.FALSE, false))
-                                .setTexturingState(new RenderStateShard.TexturingStateShard("setting_shader_color", () -> {
+                                .setTextureState(new RenderStateShard.TextureStateShard(resourceLocation, false))
+                                /*.setTexturingState(new RenderStateShard.TexturingStateShard("setting_shader_color", () -> {
                                     RenderSystem.setShaderColor(color.red(), color.green(), color.blue(), 1f);
                                 }, () -> {
                                     RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-                                }))
+                                }))*/
                                 .createCompositeState(false));
             }
     );
@@ -90,31 +90,32 @@ public class AccessoriesPipelines {
     private static TextureTarget BUFFER = null;
 
     private static Color SHADER_COLOR = null;
-    private static final RenderType HOVER_EFFECT = RenderType.create(
-        "accessories_hover_effect",
-        786432,
-        RenderPipelines.GUI_TEXTURED_OVERLAY,
-        RenderType.CompositeState.builder().setTextureState(new RenderStateShard.EmptyTextureStateShard(
-            () -> {
-                RenderSystem.setShaderTexture(0, getOrCreateBuffer().getColorTexture());
-                if (SHADER_COLOR != null) {
-                    RenderSystem.setShaderColor(SHADER_COLOR.red(), SHADER_COLOR.green(), SHADER_COLOR.blue(), SHADER_COLOR.alpha());
-                }
-            },
-            () -> {
-                if (SHADER_COLOR != null) {
-                    RenderSystem.setShaderColor(1, 1, 1, 1);
-                    SHADER_COLOR = null;
-                }
-            }
-        )).createCompositeState(false)
-    );
+    // TODO: FIX THIS WHEN WE CARE ENOUGH TO RESOLVE ISSUES
+//    private static final RenderType HOVER_EFFECT = RenderType.create(
+//        "accessories_hover_effect",
+//        786432,
+//        RenderPipelines.GUI_TEXTURED_OVERLAY,
+//        RenderType.CompositeState.builder().setTextureState(new RenderStateShard.EmptyTextureStateShard(
+//            () -> {
+//                RenderSystem.setShaderTexture(0, getOrCreateBuffer().getColorTexture());
+//                if (SHADER_COLOR != null) {
+//                    RenderSystem.setShaderColor(SHADER_COLOR.red(), SHADER_COLOR.green(), SHADER_COLOR.blue(), SHADER_COLOR.alpha());
+//                }
+//            },
+//            () -> {
+//                if (SHADER_COLOR != null) {
+//                    RenderSystem.setShaderColor(1, 1, 1, 1);
+//                    SHADER_COLOR = null;
+//                }
+//            }
+//        )).createCompositeState(false)
+//    );
 
-    public static RenderType setupHoverEffect(Color color) {
-        SHADER_COLOR = color;
-
-        return HOVER_EFFECT;
-    }
+//    public static RenderType setupHoverEffect(Color color) {
+//        SHADER_COLOR = color;
+//
+//        return HOVER_EFFECT;
+//    }
 
     public static TextureTarget getOrCreateBuffer() {
         try {

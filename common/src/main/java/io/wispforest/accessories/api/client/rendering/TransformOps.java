@@ -10,7 +10,7 @@ import org.joml.Quaternionf;
 
 import java.util.List;
 
-@Environment(EnvType.CLIENT)
+//@Environment(EnvType.CLIENT)
 @ApiStatus.Experimental
 public class TransformOps {
 

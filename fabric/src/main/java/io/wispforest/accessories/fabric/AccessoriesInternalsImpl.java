@@ -7,7 +7,6 @@ import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
-import io.wispforest.accessories.mixin.ItemStackAccessor;
 import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.endec.Endec;
 import io.wispforest.owo.serialization.CodecUtils;
@@ -38,6 +37,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.TooltipDisplay;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
@@ -115,8 +115,10 @@ public class AccessoriesInternalsImpl {
     }
 
     public static void addAttributeTooltips(@Nullable Player player, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, Consumer<Component> tooltipAddCallback, TooltipDisplay display, Item.TooltipContext context, TooltipFlag flag) {
+        var itemAttributeDisplay = new ItemAttributeModifiers.Display.Default();
+
         for (Map.Entry<Holder<Attribute>, AttributeModifier> entry : multimap.entries()) {
-            ((ItemStackAccessor) (Object) ItemStack.EMPTY).accessories$addModifierTooltip(tooltipAddCallback, player, entry.getKey(), entry.getValue());
+            itemAttributeDisplay.apply(tooltipAddCallback, player, entry.getKey(), entry.getValue());
         }
     }
 

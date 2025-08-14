@@ -52,7 +52,7 @@ public class TestScreen extends AbstractContainerScreen<TestMenu> implements Men
         var startX = minX - padding;
         var startY = minY - padding;
 
-        guiGraphics.push().translate((float)leftPos, (float)topPos, 0.0F);
+        guiGraphics.push().translate((float)leftPos, (float)topPos);
 
         DrawUtils.blitSprite(guiGraphics, BACKGROUND_PATCH, startX - 1, startY - 1, width + 1, height + 1);
 
@@ -70,7 +70,7 @@ public class TestScreen extends AbstractContainerScreen<TestMenu> implements Men
         if (this.hoveredSlot instanceof AccessoriesBasedSlot slot && slot.getItem().isEmpty() && slot.accessoriesContainer.slotType() != null) {
             var tooltipData = slot.getTooltipData();
 
-            guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), mouseX, mouseY);
+            guiGraphics.setTooltipForNextFrame(Minecraft.getInstance().font, tooltipData, Optional.empty(), mouseX, mouseY);
 
             return;
         }

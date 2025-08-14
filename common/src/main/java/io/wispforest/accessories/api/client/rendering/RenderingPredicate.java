@@ -10,7 +10,7 @@ import net.minecraft.client.model.Model;
 import net.minecraft.world.entity.LivingEntity;
 import org.jetbrains.annotations.ApiStatus;
 
-@Environment(EnvType.CLIENT)
+//@Environment(EnvType.CLIENT)
 @ApiStatus.Experimental
 public sealed interface RenderingPredicate permits RenderingPredicate.ModelTarget {
 

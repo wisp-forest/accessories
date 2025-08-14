@@ -23,7 +23,6 @@ import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
-import io.wispforest.accessories.pond.owo.InclusiveBoundingArea;
 import io.wispforest.owo.mixin.ui.SlotAccessor;
 import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
 import io.wispforest.owo.ui.component.ButtonComponent;
@@ -275,14 +274,14 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
     //--
 
-    @Override
-    protected int getLayerZOffset(HandledScreenLayer layer) {
-        if(layer == HandledScreenLayer.CURSOR_ITEM || layer == HandledScreenLayer.ITEM_TOOLTIP) {
-            return 600;
-        }
-
-        return super.getLayerZOffset(layer);
-    }
+//    @Override
+//    protected int getLayerZOffset(HandledScreenLayer layer) {
+//        if(layer == HandledScreenLayer.CURSOR_ITEM || layer == HandledScreenLayer.ITEM_TOOLTIP) {
+//            return 600;
+//        }
+//
+//        return super.getLayerZOffset(layer);
+//    }
 
     @Override
     protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
@@ -307,9 +306,9 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
     @Override
     protected void drawComponentTooltip(GuiGraphics drawContext, int mouseX, int mouseY, float tickDelta) {
-        drawContext.push().translate(0,0, 300);
+        //drawContext.push().translate(0,0, 300);
         super.drawComponentTooltip(drawContext, mouseX, mouseY, tickDelta);
-        drawContext.pop();
+        //drawContext.pop();
     }
 
     @Override
@@ -384,43 +383,43 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
         }
 
         if (!linesToAccessoryPositions.isEmpty() || Accessories.config().screenOptions.hoveredOptions.line()) {
-            guiGraphics.drawSpecial(multiBufferSource -> {
-                var buf = multiBufferSource.getBuffer(RenderType.LINES);
-
-                var lastPose = guiGraphics.pose().last();
-
-                for (Line3d line : linesToAccessoryPositions) {
-                    var endPoint = line.p2();
-
-                    if (endPoint.x == 0 || endPoint.y == 0) continue;
-
-                    var normalVec = endPoint.sub(line.p1(), new Vector3d()).normalize().get(new Vector3f());
-
-                    double segments = Math.max(10, ((int) (line.p1().distance(line.p2()) * 10)) / 100);
-                    segments *= 2;
-
-                    var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
-                    var delta = movement % (2 / (segments)) % segments;
-
-                    var firstVec = line.p1().get(new Vector3f());
-
-                    if (delta > 0.05) {
-                        DrawUtils.addToVertexBuffer(buf, firstVec, lastPose, normalVec);
-                        DrawUtils.addToVertexBuffer(buf, line.lerpPoint(delta - 0.05), lastPose, normalVec);
-                    }
-
-                    for (int i = 0; i < segments / 2; i++) {
-                        var delta1 = ((i * 2) / segments + movement) % 1;
-                        var delta2 = ((i * 2 + 1) / segments + movement) % 1;
-
-                        var pos1 = line.lerpPoint(delta1);
-                        var pos2 = (delta2 > delta1 ? line.lerpPoint(delta2) : line.p2().get(new Vector3f()));
-
-                        DrawUtils.addToVertexBuffer(buf, pos1, lastPose, normalVec);
-                        DrawUtils.addToVertexBuffer(buf, pos2, lastPose, normalVec);
-                    }
-                }
-            });
+//            guiGraphics.drawSpecial(multiBufferSource -> {
+//                var buf = multiBufferSource.getBuffer(RenderType.LINES);
+//
+//                var lastPose = guiGraphics.pose().last();
+//
+//                for (Line3d line : linesToAccessoryPositions) {
+//                    var endPoint = line.p2();
+//
+//                    if (endPoint.x == 0 || endPoint.y == 0) continue;
+//
+//                    var normalVec = endPoint.sub(line.p1(), new Vector3d()).normalize().get(new Vector3f());
+//
+//                    double segments = Math.max(10, ((int) (line.p1().distance(line.p2()) * 10)) / 100);
+//                    segments *= 2;
+//
+//                    var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
+//                    var delta = movement % (2 / (segments)) % segments;
+//
+//                    var firstVec = line.p1().get(new Vector3f());
+//
+//                    if (delta > 0.05) {
+//                        DrawUtils.addToVertexBuffer(buf, firstVec, lastPose, normalVec);
+//                        DrawUtils.addToVertexBuffer(buf, line.lerpPoint(delta - 0.05), lastPose, normalVec);
+//                    }
+//
+//                    for (int i = 0; i < segments / 2; i++) {
+//                        var delta1 = ((i * 2) / segments + movement) % 1;
+//                        var delta2 = ((i * 2 + 1) / segments + movement) % 1;
+//
+//                        var pos1 = line.lerpPoint(delta1);
+//                        var pos2 = (delta2 > delta1 ? line.lerpPoint(delta2) : line.p2().get(new Vector3f()));
+//
+//                        DrawUtils.addToVertexBuffer(buf, pos1, lastPose, normalVec);
+//                        DrawUtils.addToVertexBuffer(buf, pos2, lastPose, normalVec);
+//                    }
+//                }
+//            });
 
             minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
 
@@ -581,14 +580,6 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                                     .id("entity_renderer_holder")
                     )
                     .child(
-                            new SpacerComponent(0){
-                                @Override
-                                public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
-                                    context.push().translate(0,0,250);
-                                }
-                            }
-                    )
-                    .child(
                             Containers.verticalFlow(Sizing.fixed(0), Sizing.fixed(0))
                                     .surface((ctx, component) -> {
                                         var surfaceType = Math.min((this.getMenu().addedArmorSlots() / 2), 4) + "_slots";
@@ -673,16 +664,6 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                     createCraftingToggleButton()
                 );
             }
-
-            entityContainer
-                .child(
-                    new SpacerComponent(0){
-                        @Override
-                        public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
-                            context.pop();
-                        }
-                    }
-                );
 
             primaryLayout.child(
                 entityContainer
@@ -792,6 +773,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         return InventoryEntityComponent.of(Sizing.fixed(sideBySideView ? 162 : 108), Sizing.fixed(126), this.getMenu().targetEntityDefaulted())
                 .renderWrapping((ctx, component, renderCall) -> {
+                    //ctx.enableScissor(component.x() + 24, component.y(), component.x() + component.width()  - 48, component.y() + component.height());
                     //ScissorStack.push(component.x() + 24, component.y(), component.width() - 48, component.height(), ctx);
 
                     AccessoriesFunkyRenderingState.INSTANCE.wrapEntityRendering(
@@ -807,6 +789,7 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                             });
 
                     //ScissorStack.pop();
+                    //ctx.disableScissor();
                 })
                 .sideBySideMode(sideBySideView)
                 .additionalOffset(sideBySideView ? 12 : 0)
@@ -1136,8 +1119,6 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
 
         settingsLayout.onHolderChange(option);
 
-
-
         if (option.equals(PlayerOptions.SHOW_CRAFTING_GRID)) {
             var buttonPanel = component(StackLayout.class, "entity_button_panel");
 
@@ -1228,9 +1209,9 @@ public class AccessoriesExperimentalScreen extends BaseOwoHandledScreen<FlowLayo
                 }
             }
 
-            context.translate(0, 0, 600);
+            //context.translate(0, 0, 600);
             super.drawTooltip(context, mouseX, mouseY, partialTicks, delta);
-            context.translate(0, 0, -600);
+            //context.translate(0, 0, -600);
             AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(false);
         }
     }

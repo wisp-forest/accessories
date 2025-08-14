@@ -23,7 +23,7 @@ public record AccessoryBreak(int entityId, String slotName, int slotIndex) {
         return new AccessoryBreak(slotReference.entity().getId(), slotReference.slotName(), slotReference.index());
     }
 
-    @Environment(EnvType.CLIENT)
+    //@Environment(EnvType.CLIENT)
     public static void handlePacket(AccessoryBreak packet, Player player) {
         var entity = player.level().getEntity(packet.entityId());
 

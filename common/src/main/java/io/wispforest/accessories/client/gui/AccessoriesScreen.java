@@ -27,6 +27,7 @@ import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.ErrorScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
@@ -182,7 +183,8 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         int topPos = this.topPos;
 
         guiGraphics.blit(
-                RenderType::guiTextured, ACCESSORIES_INVENTORY_LOCATION,
+                RenderPipelines.GUI_TEXTURED,
+                ACCESSORIES_INVENTORY_LOCATION,
                 leftPos, topPos,
                 0f, 0f,
                 this.imageWidth, this.imageHeight,
@@ -210,10 +212,8 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
         //--
 
-        var pose = guiGraphics.pose();
-
-        pose.pushPose();
-        pose.translate(0.0F, 0.0F, 0);
+        guiGraphics.push()
+            .translate(0.0F, 0.0F);
 
         int x = getStartingPanelX();
         int y = this.topPos;
@@ -221,19 +221,19 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         int height = getPanelHeight();
         int width = getPanelWidth();
 
-        guiGraphics.blitSprite(RenderType::guiTextured, AccessoriesScreen.BACKGROUND_PATCH, x + 6, y, width, height); //147
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, AccessoriesScreen.BACKGROUND_PATCH, x + 6, y, width, height); //147
 
         if (menu.overMaxVisibleSlots) {
             //guiGraphics.blitSprite(AccessoriesScreen.SCROLL_BAR_PATCH, x + 13, y + 7 + upperPadding, 8, height - 22);
-            guiGraphics.blitSprite(RenderType::guiTextured, AccessoriesScreen.SCROLL_BAR_PATCH, x + 13, y + 7 + upperPadding, 8, height - 22);
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, AccessoriesScreen.SCROLL_BAR_PATCH, x + 13, y + 7 + upperPadding, 8, height - 22);
         }
 
-        pose.popPose();
+        guiGraphics.pop();
 
         //--
 
-        pose.pushPose();
-        pose.translate(-1, -1, 0);
+        guiGraphics.push()
+            .translate(-1, -1);
 
 //        for (Slot slot : this.menu.slots) {
 //            if (!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) continue;
@@ -254,7 +254,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         this.menu.slots.forEach(slot -> {
             if (!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) return;
 
-            guiGraphics.blit(RenderType::guiTextured, SLOT, slot.x + this.leftPos, slot.y + this.topPos, 0f, 0f,18, 18, 18, 18);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, SLOT, slot.x + this.leftPos, slot.y + this.topPos, 0f, 0f,18, 18, 18, 18);
         });
 
         if (getHoveredSlot() != null && getHoveredSlot() instanceof AccessoriesInternalSlot slot && slot.isActive() && !slot.getItem().isEmpty()) {
@@ -275,7 +275,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             }
         }
 
-        pose.popPose();
+        guiGraphics.pop();
     }
 
     @Override
@@ -331,12 +331,10 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
             startingY += this.menu.smoothScroll * (panelHeight - 24 - this.scrollBarHeight);
 
-            guiGraphics.blitSprite(RenderType::guiTextured, AccessoriesScreen.SCROLL_BAR, x + 14, startingY, 6, this.scrollBarHeight);
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, AccessoriesScreen.SCROLL_BAR, x + 14, startingY, 6, this.scrollBarHeight);
         }
 
         //--
-
-        var pose = guiGraphics.pose();
 
         if (Accessories.config().screenOptions.showGroupTabs()) {
             for (var entry : getGroups(x, y).entrySet()) {
@@ -347,25 +345,24 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
                 int v = (pair.isSelected()) ? vector.w : vector.w * 3;
 
-                guiGraphics.blit(RenderType::guiTextured, HORIZONTAL_TABS, vector.x, vector.y, 0, v, vector.z, vector.w, 19, vector.w * 4); //32,128
+                guiGraphics.blit(RenderPipelines.GUI_TEXTURED, HORIZONTAL_TABS, vector.x, vector.y, 0, v, vector.z, vector.w, 19, vector.w * 4); //32,128
 
-                pose.pushPose();
+                guiGraphics.push()
+                    .translate(vector.x + 3, vector.y + 3)
+                    .translate(1, 1);
 
-                pose.translate(vector.x + 3, vector.y + 3, 0);
-                pose.translate(1, 1, 0);
+                if (pair.isSelected) guiGraphics.translate(2, 0);
 
-                if (pair.isSelected) pose.translate(2, 0, 0);
+                guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, group.icon(), 0, 0, 8, 8);
 
-                guiGraphics.blitSprite(RenderType::guiTextured, group.icon(), 0, 0, 8, 8);
-
-                pose.popPose();
+                guiGraphics.pop();
             }
         }
 
         //--
 
         if (Accessories.config().screenOptions.hoveredOptions.clickbait()) {
-            hoveredAccessoryPositons.forEach(pos -> guiGraphics.blitSprite(RenderType::guiTextured, Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 100, 256, 256));
+            hoveredAccessoryPositons.forEach(pos -> guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 100, 256, 256));
             hoveredAccessoryPositons.clear();
         }
 
@@ -374,42 +371,42 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 
 
         if (!linesToAccessoryPositions.isEmpty() && Accessories.config().screenOptions.hoveredOptions.line()) {
-            guiGraphics.drawSpecial(multiBufferSource -> {
-                var buf = multiBufferSource.getBuffer(RenderType.LINES);
-                var lastPose = guiGraphics.pose().last();
-
-                for (Line3d line : linesToAccessoryPositions) {
-                    var normalVec = line.p2().sub(line.p1(), new Vector3d()).normalize().get(new Vector3f());
-
-                    double segments = Math.max(10, ((int) (line.p1().distance(line.p2()) * 10)) / 100);
-                    segments *= 2;
-
-                    var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
-                    var delta = movement % (2 / (segments)) % segments;
-
-                    var firstVec = line.p1().get(new Vector3f());
-
-                    if (delta > 0.05) {
-                        DrawUtils.addToVertexBuffer(buf, firstVec, lastPose, normalVec);
-                        DrawUtils.addToVertexBuffer(buf, line.lerpPoint(delta - 0.05), lastPose, normalVec);
-                    }
-
-                    for (int i = 0; i < segments / 2; i++) {
-                        var delta1 = ((i * 2) / segments + movement) % 1;
-                        var delta2 = ((i * 2 + 1) / segments + movement) % 1;
-
-                        var pos1 = line.lerpPoint(delta1);
-                        var pos2 = (delta2 > delta1 ? line.lerpPoint(delta2) : line.p2().get(new Vector3f()));
-
-                        DrawUtils.addToVertexBuffer(buf, pos1, lastPose, normalVec);
-                        DrawUtils.addToVertexBuffer(buf, pos2, lastPose, normalVec);
-                    }
-                }
-
-                minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
-
-                linesToAccessoryPositions.clear();
-            });
+//            guiGraphics.drawSpecial(multiBufferSource -> {
+//                var buf = multiBufferSource.getBuffer(RenderType.LINES);
+//                var lastPose = guiGraphics.pose().last();
+//
+//                for (Line3d line : linesToAccessoryPositions) {
+//                    var normalVec = line.p2().sub(line.p1(), new Vector3d()).normalize().get(new Vector3f());
+//
+//                    double segments = Math.max(10, ((int) (line.p1().distance(line.p2()) * 10)) / 100);
+//                    segments *= 2;
+//
+//                    var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
+//                    var delta = movement % (2 / (segments)) % segments;
+//
+//                    var firstVec = line.p1().get(new Vector3f());
+//
+//                    if (delta > 0.05) {
+//                        DrawUtils.addToVertexBuffer(buf, firstVec, lastPose, normalVec);
+//                        DrawUtils.addToVertexBuffer(buf, line.lerpPoint(delta - 0.05), lastPose, normalVec);
+//                    }
+//
+//                    for (int i = 0; i < segments / 2; i++) {
+//                        var delta1 = ((i * 2) / segments + movement) % 1;
+//                        var delta2 = ((i * 2 + 1) / segments + movement) % 1;
+//
+//                        var pos1 = line.lerpPoint(delta1);
+//                        var pos2 = (delta2 > delta1 ? line.lerpPoint(delta2) : line.p2().get(new Vector3f()));
+//
+//                        DrawUtils.addToVertexBuffer(buf, pos1, lastPose, normalVec);
+//                        DrawUtils.addToVertexBuffer(buf, pos2, lastPose, normalVec);
+//                    }
+//                }
+//
+//                minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
+//
+//                linesToAccessoryPositions.clear();
+//            });
         }
     }
 
@@ -443,16 +440,14 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
                         .bounds(this.leftPos + 141, this.topPos + 9, 8, 8)
                         .tooltip(Tooltip.create(Component.translatable(Accessories.translationKey("back.screen"))))
                         .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-            guiGraphics.blitSprite(RenderType::guiTextured, SPRITES_8X8.get(button.active, button.isHoveredOrFocused()), x, y, width, height, ARGB.white(/*button.alpha*/1.0f));
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, SPRITES_8X8.get(button.active, button.isHoveredOrFocused()), x, y, width, height, ARGB.white(/*button.alpha*/1.0f));
 
-            var pose = guiGraphics.pose();
+            guiGraphics.pop()
+                .translate(0.5, 0.5);
 
-            pose.pushPose();
-            pose.translate(0.5, 0.5, 0.0);
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, BACk_ICON, x, y, width - 1, height - 1);
 
-            guiGraphics.blitSprite(RenderType::guiTextured, BACk_ICON, x, y, width - 1, height - 1);
-
-            pose.popPose();
+            guiGraphics.pop();
 
             return true;
         });
@@ -478,8 +473,8 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
                         .tooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()))
                         .bounds(this.leftPos + 154, btnOffset, 12, 12)
                         .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-            guiGraphics.blitSprite(RenderType::guiTextured, SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height, ARGB.white(/*button.alpha*/1.0f));
-            guiGraphics.blitSprite(RenderType::guiTextured, (this.menu.areUnusedSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height, ARGB.white(/*button.alpha*/1.0f));
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, (this.menu.areUnusedSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
 
             return true;
         });
@@ -663,7 +658,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
             AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(true);
 
             if (slot.getItem().isEmpty() && slot.accessoriesContainer.slotType() != null) {
-                guiGraphics.renderTooltip(Minecraft.getInstance().font, slot.getTooltipData(), Optional.empty(), x, y);
+                guiGraphics.setTooltipForNextFrame(Minecraft.getInstance().font, slot.getTooltipData(), Optional.empty(), x, y);
 
                 return;
             }
@@ -682,7 +677,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
                 tooltipData.add(Component.translatable(group.translation()));
                 if (UniqueSlotHandling.isUniqueGroup(group.name(), true)) tooltipData.add(Component.literal(group.name()).withStyle(ChatFormatting.BLUE, ChatFormatting.ITALIC));
 
-                guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
+                guiGraphics.setTooltipForNextFrame(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
 
                 break;
             }
@@ -856,7 +851,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         entity.yHeadRot = entity.getYRot();
         entity.yHeadRotO = entity.getYRot();
         Vector3f vector3f = new Vector3f(0.0F, entity.getBbHeight() / 2.0F + yOffset, 0.0F);
-        InventoryScreen.renderEntityInInventory(guiGraphics, f, g, scale, vector3f, quaternionf, quaternionf2, entity);
+//        InventoryScreen.renderEntityInInventory(guiGraphics, f, g, scale, vector3f, quaternionf, quaternionf2, entity);
         entity.yBodyRot = j;
         entity.setYRot(k);
         entity.setXRot(l);

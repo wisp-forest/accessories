@@ -1,11 +1,18 @@
 package io.wispforest.accessories.client.gui.components;
 
+import com.mojang.blaze3d.textures.GpuTextureView;
+import io.wispforest.accessories.client.BlitSpectrumRenderState;
 import io.wispforest.accessories.client.DrawUtils;
 import io.wispforest.owo.ui.base.BaseComponent;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
 import io.wispforest.owo.ui.core.Sizing;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.render.TextureSetup;
+import net.minecraft.client.gui.render.state.BlitRenderState;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
+import org.joml.Matrix3x2f;
 
 public class PixelPerfectTextureComponent extends BaseComponent {
 
@@ -29,19 +36,27 @@ public class PixelPerfectTextureComponent extends BaseComponent {
 
     @Override
     public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
-        drawPixelPerfectTextureQuad(context, texture, this.x(), this.y(), 0, this.width(), this.height());
+        drawPixelPerfectTextureQuad(context, texture, this.x(), this.y(), this.width(), this.height());
     }
 
-    public static void drawPixelPerfectTextureQuad(OwoUIDrawContext context, ResourceLocation texture, int x1, int y1, float z, int width, int height) {
+    public static void drawPixelPerfectTextureQuad(OwoUIDrawContext context, ResourceLocation texture, int x1, int y1, int width, int height) {
         int x2 = x1 + width;
         int y2 = y1 + height;
 
-        var vertexConsumer = context.vertexConsumers().getBuffer(RenderType.guiTextured(texture));
-        var matrix4f = context.pose().last().pose();
+        var gpuTextureView = Minecraft.getInstance().getTextureManager().getTexture(texture).getTextureView();
 
-        DrawUtils.addToVertexBuffer(vertexConsumer, matrix4f, x1, y1, z, 0, 0);
-        DrawUtils.addToVertexBuffer(vertexConsumer, matrix4f, x1, y2, z, 0, 1);
-        DrawUtils.addToVertexBuffer(vertexConsumer, matrix4f, x2, y2, z, 1, 1);
-        DrawUtils.addToVertexBuffer(vertexConsumer, matrix4f, x2, y1, z, 1, 0);
+        context.guiRenderState.submitGuiElement(
+            new BlitRenderState(
+                RenderPipelines.GUI_TEXTURED,
+                TextureSetup.singleTexture(gpuTextureView),
+                new Matrix3x2f(context.pose()),
+                x1, y1,
+                x2, y2,
+                0, 1,
+                0, 1,
+                0xFFFFFFFF,
+                context.scissorStack.peek()
+            )
+        );
     }
 }

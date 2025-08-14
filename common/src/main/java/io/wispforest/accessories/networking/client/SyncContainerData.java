@@ -52,7 +52,7 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    @Environment(EnvType.CLIENT)
+    //@Environment(EnvType.CLIENT)
     public static void handlePacket(SyncContainerData packet, Player player) {
         var level = player.level();
 

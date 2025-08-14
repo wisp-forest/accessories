@@ -177,7 +177,7 @@ public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
         }
     }
 
-    @Environment(EnvType.CLIENT)
+//    @Environment(EnvType.CLIENT)
     public void removedClientSide(Player player) {
         if (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen screen) {
             screen.getMenu().setCarried(this.getCarried());

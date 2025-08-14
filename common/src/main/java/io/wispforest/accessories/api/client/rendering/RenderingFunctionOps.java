@@ -3,6 +3,7 @@ package io.wispforest.accessories.api.client.rendering;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Either;
 import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.client.ClientDelayedCache;
 import io.wispforest.accessories.data.CustomRendererLoader;
@@ -27,6 +28,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -35,7 +38,7 @@ import org.slf4j.Logger;
 import java.lang.ref.SoftReference;
 import java.util.*;
 
-@Environment(EnvType.CLIENT)
+//@Environment(EnvType.CLIENT)
 @ApiStatus.Experimental
 public class RenderingFunctionOps {
 
@@ -81,7 +84,13 @@ public class RenderingFunctionOps {
                         var entity = entityData.entityType().create(level, EntitySpawnReason.EVENT);
 
                         if (entity != null) {
-                            var defaultData = entity.saveWithoutId(new CompoundTag());
+                            var defaultData = Accessories.handleIoError("rendering_function_default_entity_data", scopedCollector -> {
+                                var valueOutput = TagValueOutput.createWithContext(scopedCollector, level.registryAccess());
+
+                                entity.saveWithoutId(valueOutput);
+
+                                return valueOutput.buildResult();
+                            });
 
                             return new EntityData(new SoftReference<>(entity), defaultData, true);
                         }
@@ -106,7 +115,9 @@ public class RenderingFunctionOps {
                     if (!entityData.data().isEmpty()) {
                         customData = true;
 
-                        entity.load(entityData.data());
+                        Accessories.handleIoError("rendering_function_entity_data", scopedCollector -> {
+                            entity.load(TagValueInput.create(scopedCollector, level.registryAccess(), entityData.data()));
+                        });
                     }
 
                     if (entityData.allowTicking() || entity instanceof Display) entity.tick();
@@ -115,7 +126,7 @@ public class RenderingFunctionOps {
                             .render(entity, 0, 0, 0, partialTicks, matrices, multiBufferSource, packedLight);
 
                     if (customData) {
-                        currentEntityData.resetEntity();
+                        currentEntityData.resetEntity(level);
                     }
                 } catch (Exception ignored) {}
             }
@@ -268,7 +279,7 @@ public class RenderingFunctionOps {
             return reference;
         }
 
-        public void resetEntity() {
+        public void resetEntity(Level level) {
             if (this.reference == null) return;
 
             var entity = this.reference.get();
@@ -276,7 +287,9 @@ public class RenderingFunctionOps {
             if (entity == null) return;
 
             try {
-                entity.load(defaultData);
+                Accessories.handleIoError("rendering_function_entity_data", scopedCollector -> {
+                    entity.load(TagValueInput.create(scopedCollector, level.registryAccess(), defaultData));
+                });
             } catch (Exception ignored) {}
         }
 

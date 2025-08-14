@@ -111,7 +111,7 @@ public final class PlayerOption<T> {
         return SyncOptionChange.of(this, data);
     }
 
-    public void writeToCarrier(MapCarrier carrier, Object value) {
+    public void writeToCarrierCasted(MapCarrierEncodable carrier, Object value) {
         carrier.put(this.keyEndec(), (T) value);
     }
 

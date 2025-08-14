@@ -361,7 +361,7 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
         return getClientManger();
     }
 
-    @Environment(EnvType.CLIENT)
+    //@Environment(EnvType.CLIENT)
     private ResourceManager getClientManger() {
         return Minecraft.getInstance().getResourceManager();
     }

@@ -48,7 +48,7 @@ public class AccessoriesNetworking {
         CHANNEL.registerClientboundDeferred(SyncOptionChange.class, SyncOptionChange.ENDEC);
     }
 
-    @Environment(EnvType.CLIENT)
+    //@Environment(EnvType.CLIENT)
     public static void initClient() {
         CHANNEL.registerClientbound(SyncEntireContainer.class, SyncEntireContainer.ENDEC, clientHandler(SyncEntireContainer::handlePacket));
         CHANNEL.registerClientbound(SyncContainerData.class, SyncContainerData.ENDEC, clientHandler(SyncContainerData::handlePacket));
@@ -61,7 +61,7 @@ public class AccessoriesNetworking {
         CHANNEL.registerClientbound(SyncOptionChange.class, SyncOptionChange.ENDEC, clientHandler(SyncOptionChange::handlePacket));
     }
 
-    @Environment(EnvType.CLIENT)
+    //@Environment(EnvType.CLIENT)
     public static <R extends Record> OwoNetChannel.ChannelHandler<R, ClientAccess> clientHandler(BiConsumer<R, Player> consumer) {
         return (r, access) -> consumer.accept(r, access.player());
     }
@@ -70,7 +70,7 @@ public class AccessoriesNetworking {
         return (r, access) -> consumer.accept(r, access.player());
     }
 
-    @Environment(EnvType.CLIENT)
+    //@Environment(EnvType.CLIENT)
     public static <R extends Record> void sendToServer(R packet) {
         CHANNEL.clientHandle().send(packet);
     }

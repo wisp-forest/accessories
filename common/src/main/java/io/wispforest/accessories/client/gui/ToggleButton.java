@@ -11,6 +11,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.WidgetSprites;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -88,7 +89,7 @@ public class ToggleButton extends Button {
 
         var minecraft = Minecraft.getInstance();
         guiGraphics.blitSprite(
-                RenderType::guiTextured,
+            RenderPipelines.GUI_TEXTURED,
                 SPRITES.get(this.toggled(), this.isHoveredOrFocused()),
                 this.getX(),
                 this.getY(),
@@ -100,7 +101,6 @@ public class ToggleButton extends Button {
         this.renderString(guiGraphics, minecraft.font, i | Mth.ceil(this.alpha * 255.0F) << 24);
     }
 
-    @Environment(EnvType.CLIENT)
     public static class Builder {
         private final Component message;
         private final Button.OnPress onPress;

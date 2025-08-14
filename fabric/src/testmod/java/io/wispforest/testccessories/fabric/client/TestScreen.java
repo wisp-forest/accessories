@@ -7,7 +7,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
@@ -51,16 +54,16 @@ public class TestScreen extends AbstractContainerScreen<TestMenu> implements Men
         var startX = minX - padding;
         var startY = minY - padding;
 
-        guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate((float)leftPos, (float)topPos, 0.0F);
+        guiGraphics.push()
+            .translate((float)leftPos, (float)topPos);
 
-        guiGraphics.blitSprite(RenderType::guiTextured, BACKGROUND_PATCH, startX - 1, startY - 1, width + 1, height + 1); //147
+        guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, BACKGROUND_PATCH, startX - 1, startY - 1, width + 1, height + 1); //147
 
         for (Slot slot : this.menu.slots) {
-            guiGraphics.blit(RenderType::guiTextured, SLOT_FRAME, slot.x - 1, slot.y - 1, 0, 0, 18, 18, 18, 18);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, SLOT_FRAME, slot.x - 1, slot.y - 1, 0, 0, 18, 18, 18, 18);
         }
 
-        guiGraphics.pose().popPose();
+        guiGraphics.pop();
     }
 
     @Override
@@ -70,7 +73,7 @@ public class TestScreen extends AbstractContainerScreen<TestMenu> implements Men
         if (this.hoveredSlot instanceof AccessoriesBasedSlot slot && slot.getItem().isEmpty() && slot.accessoriesContainer.slotType() != null) {
             var tooltipData = slot.getTooltipData();
 
-            guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), mouseX, mouseY);
+            guiGraphics.setTooltipForNextFrame(Minecraft.getInstance().font, tooltipData, Optional.empty(), mouseX, mouseY);
 
             return;
         }

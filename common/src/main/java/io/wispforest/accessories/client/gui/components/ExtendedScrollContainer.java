@@ -2,7 +2,7 @@ package io.wispforest.accessories.client.gui.components;
 
 import io.wispforest.owo.ui.container.ScrollContainer;
 import io.wispforest.owo.ui.core.*;
-import io.wispforest.owo.ui.util.ScissorStack;
+//import io.wispforest.owo.ui.util.ScissorStack;
 import net.minecraft.util.Mth;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.Nullable;
@@ -139,18 +139,16 @@ public class ExtendedScrollContainer<C extends Component> extends ScrollContaine
     @Override
     protected void drawChildren(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta, List<? extends Component> children) {
         if (this.customClippingInsets != Insets.none()) {
-            ScissorStack.push(
-                    this.x + customClippingInsets.left(),
-                    this.y + customClippingInsets.top(),
-                    this.width - customClippingInsets.horizontal(),
-                    this.height - customClippingInsets.vertical(),
-                    context.pose());
+            context.enableScissor(this.x + customClippingInsets.left(),
+                this.y + customClippingInsets.top(),
+                this.width - customClippingInsets.horizontal(),
+                this.height - customClippingInsets.vertical());
         }
 
         super.drawChildren(context, mouseX, mouseY, partialTicks, delta, children);
 
         if (this.customClippingInsets != Insets.none()) {
-            ScissorStack.pop();
+            context.disableScissor();
         }
     }
 }

@@ -1,6 +1,8 @@
 package io.wispforest.accessories;
 
 import com.google.common.reflect.Reflection;
+import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.api.client.rendering.RenderingFunction;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
 import io.wispforest.accessories.commands.AccessoriesCommands;
@@ -20,18 +22,27 @@ import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
+import org.slf4j.Logger;
+
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class Accessories {
+
+    public static final Logger LOGGER = LogUtils.getLogger();
 
     public static final ResourceLocation SLOT_LOADER_LOCATION = Accessories.of("slot_loader");
     public static final ResourceLocation ENTITY_SLOT_LOADER_LOCATION = Accessories.of("entity_slot_loader");
@@ -150,5 +161,27 @@ public class Accessories {
     public static void registerCriteria(){
         ACCESSORY_EQUIPPED = CriteriaTriggersAccessor.accessories$callRegister("accessories:equip_accessory", new AccessoryChangedCriterion());
         ACCESSORY_UNEQUIPPED = CriteriaTriggersAccessor.accessories$callRegister("accessories:unequip_accessory", new AccessoryChangedCriterion());
+    }
+
+    //--
+
+    public static <T> T handleIoError(String dataName, Function<ProblemReporter.ScopedCollector, T> function) {
+        return handleIoError(() -> dataName, function);
+    }
+
+    public static <T> T handleIoError(ProblemReporter.PathElement pathElement, Function<ProblemReporter.ScopedCollector, T> function) {
+        try (var scopedCollector = new ProblemReporter.ScopedCollector(pathElement, Accessories.LOGGER)) {
+            return function.apply(scopedCollector);
+        }
+    }
+
+    public static void handleIoError(String dataName, Consumer<ProblemReporter.ScopedCollector> function) {
+        handleIoError(() -> dataName, function);
+    }
+
+    public static void handleIoError(ProblemReporter.PathElement pathElement, Consumer<ProblemReporter.ScopedCollector> function) {
+        try (var scopedCollector = new ProblemReporter.ScopedCollector(pathElement, Accessories.LOGGER)) {
+            function.accept(scopedCollector);
+        }
     }
 }

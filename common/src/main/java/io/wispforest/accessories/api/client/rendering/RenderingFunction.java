@@ -24,6 +24,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.HumanoidArm;
@@ -31,6 +32,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -82,15 +84,19 @@ public sealed interface RenderingFunction permits DeferredRenderer, Block, Compo
         var entity = entityType.create(level, EntitySpawnReason.EVENT);
         if (entity == null) throw new IllegalStateException("Unable to create render function of the given entity");
 
-        var compound = new CompoundTag();
+        return Accessories.handleIoError("rendering_function_entity_data", scopedCollector -> {
+            var valueOutput = TagValueOutput.createWithContext(scopedCollector, level.registryAccess());
 
-        String string = entity.getEncodeId();
-        if (string == null) throw new IllegalStateException("Unable to create render function of the given entity");
+            var string = entity.getEncodeId();
+            if (string == null) throw new IllegalStateException("Unable to create render function of the given entity");
 
-        compound.putString("id", string);
-        entity.saveWithoutId(compound);
+            valueOutput.putString("id", string);
+            entity.saveWithoutId(valueOutput);
 
-        return new Entity(entityType, compound, true);
+            var compound = valueOutput.buildResult();
+
+            return new Entity(entityType, compound, true);
+        });
     }
 
     static Entity ofEntity(EntityType<? extends net.minecraft.world.entity.Entity> entityType, CompoundTag data) {
@@ -300,7 +306,7 @@ public sealed interface RenderingFunction permits DeferredRenderer, Block, Compo
     }
 
     // TODO: FIRST CHANGE FROM JSON TO EDM WHEN 1.21.4 and CACHE RESULTS OF CUSTOM renderingFunctions SOME HOW?
-    @Environment(EnvType.CLIENT)
+//    @Environment(EnvType.CLIENT)
     @ApiStatus.Experimental
     final class DeferredRenderer implements RenderingFunction {
         public static final StructEndec<DeferredRenderer> ENDEC = StructEndecBuilder.of(

@@ -32,7 +32,7 @@ public class AccessoriesMenuTypes {
         return AccessoriesInternals.registerMenuType(Accessories.of(path), AccessoriesMenuData.ENDEC, func);
     }
 
-    @Environment(EnvType.CLIENT)
+//    @Environment(EnvType.CLIENT)
     public static <M extends AbstractContainerMenu, U extends Screen & MenuAccess<M>> void registerClientMenuConstructors(MenuRegisterCallback callback) {
         callback.register(AccessoriesMenuTypes.ORIGINAL_MENU, AccessoriesScreen::new);
         callback.register(AccessoriesMenuTypes.EXPERIMENTAL_MENU, AccessoriesExperimentalScreen::new);

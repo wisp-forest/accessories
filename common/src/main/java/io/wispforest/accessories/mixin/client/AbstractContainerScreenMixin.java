@@ -2,6 +2,7 @@ package io.wispforest.accessories.mixin.client;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
 import net.minecraft.client.KeyMapping;
@@ -32,15 +33,15 @@ public abstract class AbstractContainerScreenMixin implements ContainerScreenExt
         if(override != null) cir.setReturnValue(override);
     }
 
-    @Inject(method = "renderSlot", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V"), cancellable = true)
+    @Inject(method = "renderSlot", at = @At(value = "HEAD"), cancellable = true)
     private void accessories$shouldRenderSlot(GuiGraphics guiGraphics, Slot slot, CallbackInfo ci) {
         var result = this.shouldRenderSlot(slot);
 
         if(result != null && !result) ci.cancel();
     }
 
-    @WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Ljava/util/function/Function;Lnet/minecraft/resources/ResourceLocation;IIII)V"))
-    private void accessories$adjustFor18x18(GuiGraphics instance, Function<ResourceLocation, RenderType> function, ResourceLocation texture, int x, int y, int width, int height, Operation<Void> original) {
+    @WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V"))
+    private void accessories$adjustFor18x18(GuiGraphics instance, RenderPipeline pipeline, ResourceLocation texture, int x, int y, int width, int height, Operation<Void> original) {
         var textureAtlasSprite = Minecraft.getInstance().getGuiSprites().getSprite(texture);
 
         var is18x18 = textureAtlasSprite.contents().width() == 18 && textureAtlasSprite.contents().height() == 18;
@@ -53,11 +54,6 @@ public abstract class AbstractContainerScreenMixin implements ContainerScreenExt
             y = y - 1;
         }
 
-        original.call(instance, function, texture, x, y, width, height);
-    }
-
-    @WrapOperation(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;matches(II)Z"))
-    private boolean accessories$adjustCloseCheck(KeyMapping instance, int keysym, int scancode, Operation<Boolean> original) {
-        return original.call(instance, keysym, scancode) || original.call(AccessoriesClient.OPEN_SCREEN, keysym, scancode);
+        original.call(instance, pipeline, texture, x, y, width, height);
     }
 }

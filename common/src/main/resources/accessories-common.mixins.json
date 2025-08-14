@@ -37,7 +37,6 @@
     "client.owo.DiscreteSliderComponentAccessor",
     "client.owo.OwoEmiPluginMixin",
     "client.owo.OwoReiPluginMixin",
-    "client.owo.ScissorStackMixin",
     "client.owo.ScrollContainerMixin",
     "sodium.MPOATVConstructingVertexConsumerMixin_SodiumImpl"
   ],
@@ -80,7 +79,9 @@
     "StateHolderAccessor",
     "owo.ConfigWrapperAccessor",
     "owo.NbtDeserializerMixin",
-    "owo.DumpdataCommandMixin"
+    "owo.DumpdataCommandMixin",
+    "owo.TagValueOutputAccessor",
+    "owo.TagValueInputAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -45,7 +45,7 @@ public record SyncEntireContainer(int entityId, NbtMapCarrier containerMap) {
         handleCreator.accept(new SyncEntireContainer(entity.getId(), carrier));
     }
 
-    @Environment(EnvType.CLIENT)
+    //@Environment(EnvType.CLIENT)
     public static void handlePacket(SyncEntireContainer packet, Player player) {
         var level = player.level();
         var entity = level.getEntity(packet.entityId());

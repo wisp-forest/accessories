@@ -31,7 +31,7 @@ import java.util.Map;
  * This is only applied to {@link LivingEntityRenderer} that have a model that
  * extends {@link HumanoidModel}
  */
-public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<S>> extends RenderLayer<S, M> {
+public class AccessoriesRenderLayer<S extends LivingEntityRenderState, M extends EntityModel<S>> extends RenderLayer<S, M> {
 
     private static final float increment = 0.1f;
 
@@ -212,11 +212,11 @@ public class AccessoriesRenderLayer<T extends LivingEntity, S extends LivingEnti
                             var x2 = window.getGuiScaledWidth();
                             var y2 = window.getGuiScaledHeight();
 
-                            bufferSource.getBuffer(AccessoriesPipelines.setupHoverEffect(shaderColor))
-                                .addVertex(0, 0, 0).setUv(0, 1).setColor(0xffffffff)
-                                .addVertex(0, y2, 0).setUv(0, 0).setColor(0xffffffff)
-                                .addVertex(x2, y2, 0).setUv(1, 0).setColor(0xffffffff)
-                                .addVertex(x2, 0, 0).setUv(1, 1).setColor(0xffffffff);
+//                            bufferSource.getBuffer(AccessoriesPipelines.setupHoverEffect(shaderColor))
+//                                .addVertex(0, 0, 0).setUv(0, 1).setColor(0xffffffff)
+//                                .addVertex(0, y2, 0).setUv(0, 0).setColor(0xffffffff)
+//                                .addVertex(x2, y2, 0).setUv(1, 0).setColor(0xffffffff)
+//                                .addVertex(x2, 0, 0).setUv(1, 1).setColor(0xffffffff);
                         }
 
                         bufferSource.endBatch();

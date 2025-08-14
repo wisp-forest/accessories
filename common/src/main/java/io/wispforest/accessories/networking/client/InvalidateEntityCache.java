@@ -21,7 +21,7 @@ public record InvalidateEntityCache(int entityId) {
             InvalidateEntityCache::new
     );
 
-    @Environment(EnvType.CLIENT)
+    //@Environment(EnvType.CLIENT)
     public static void handlePacket(InvalidateEntityCache packet, Player player) {
         var level = player.level();
         var entity = level.getEntity(packet.entityId());

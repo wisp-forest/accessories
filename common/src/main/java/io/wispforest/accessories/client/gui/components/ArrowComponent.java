@@ -24,7 +24,6 @@ public class ArrowComponent extends BaseComponent {
     protected boolean centered = false;
 
     protected final AnimatableProperty<PositionedRectangle> visibleArea;
-    protected boolean blend = false;
 
     public ArrowComponent(Direction direction) {
         this.direction = direction;
@@ -62,15 +61,20 @@ public class ArrowComponent extends BaseComponent {
 
     public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
         context.push();
-        context.translate((float) this.x, (float) this.y, 0.0F);
+        context.translate((float) this.x, (float) this.y);
 
-        if(this.centered) context.translate(this.direction.getXOffset(), this.direction.getYOffset(), 0.0f);
+        if(this.centered) context.translate(this.direction.getXOffset(), this.direction.getYOffset());
 
-        context.scale((float) this.width / (float) this.regionWidth(), (float) this.height / (float) this.regionHeight(), 0.0F);
+        context.scale((float) this.width / (float) this.regionWidth(), (float) this.height / (float) this.regionHeight());
         PositionedRectangle visibleArea = this.visibleArea.get();
         int bottomEdge = Math.min(visibleArea.y() + visibleArea.height(), this.regionHeight());
         int rightEdge = Math.min(visibleArea.x() + visibleArea.width(), this.regionWidth());
-        DrawUtils.blit(context, this.blend, this.texture, visibleArea.x(), visibleArea.y(), (float) (this.u() + visibleArea.x()), (float) (this.v() + visibleArea.y()), rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(), rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(), this.textureWidth, this.textureHeight);
+        DrawUtils.blit(context, this.texture,
+            visibleArea.x(), visibleArea.y(),
+            (float) (this.u() + visibleArea.x()), (float) (this.v() + visibleArea.y()),
+            rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(),
+            rightEdge - visibleArea.x(), bottomEdge - visibleArea.y(),
+            this.textureWidth, this.textureHeight);
 
         context.pop();
     }
@@ -100,15 +104,6 @@ public class ArrowComponent extends BaseComponent {
 
     public AnimatableProperty<PositionedRectangle> visibleArea() {
         return this.visibleArea;
-    }
-
-    public ArrowComponent blend(boolean blend) {
-        this.blend = blend;
-        return this;
-    }
-
-    public boolean blend() {
-        return this.blend;
     }
 
     public enum Direction {

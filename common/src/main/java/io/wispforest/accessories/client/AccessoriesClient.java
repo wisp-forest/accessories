@@ -19,6 +19,7 @@ import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.mixin.owo.ConfigWrapperAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
+import io.wispforest.accessories.networking.client.ScreenVariantPing;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.owo.config.ui.ConfigScreenProviders;
@@ -45,6 +46,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.BannerItem;
@@ -54,6 +56,7 @@ import net.minecraft.world.phys.EntityHitResult;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class AccessoriesClient {
 
@@ -290,6 +293,28 @@ public class AccessoriesClient {
 
         return true;
     }
+
+    public static void attemptToOpenSelectionScreen(int entityId, boolean targetLookEntity, Player player) {
+        var selectedVariant = AccessoriesMenuVariant.getVariant(Accessories.config().screenOptions.selectedScreenType());
+
+        ItemStack creativeCarriedStack = (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen screen)
+            ? screen.getMenu().getCarried()
+            : null;
+
+        Function<AccessoriesMenuVariant, ScreenOpen> packetBuilder = (menuVariant) -> {
+            return new ScreenOpen(targetLookEntity ? -1 : entityId, targetLookEntity, menuVariant, creativeCarriedStack);
+        };
+
+        if(selectedVariant != null) {
+            AccessoriesNetworking.sendToServer(packetBuilder.apply(selectedVariant));
+        } else {
+            Minecraft.getInstance().setScreen(new ScreenVariantSelectionScreen(variant -> {
+                AccessoriesNetworking.sendToServer(packetBuilder.apply(variant));
+            }));
+        }
+    }
+
+    //--
 
     public static void initLayer() {
         AccessoriesScreenTransitionHelper.init();

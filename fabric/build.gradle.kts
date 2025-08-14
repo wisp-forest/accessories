@@ -36,6 +36,7 @@ repositories {
         content { includeGroup("software.bernie.geckolib") }
     }
     maven("https://maven.ladysnake.org/releases")
+    mavenLocal()
 }
 
 sourceSets {

@@ -18,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-@Environment(EnvType.CLIENT)
+//@Environment(EnvType.CLIENT)
 @ApiStatus.Experimental
 public class ModelTransformOps {
 
