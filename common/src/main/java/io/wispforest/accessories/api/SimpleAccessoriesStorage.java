@@ -1,10 +1,8 @@
 package io.wispforest.accessories.api;
 
-import io.wispforest.accessories.impl.core.ExpandedSimpleContainer;
+import io.wispforest.accessories.impl.core.ExpandedContainer;
 import net.minecraft.world.Container;
-import net.minecraft.world.SimpleContainer;
 
-import java.util.List;
 import java.util.Map;
 
 public record SimpleAccessoriesStorage(boolean isClientSide, String slotName, int size, Map<Integer, Boolean> renderOptions, Container accessories, Container cosmeticAccessories) implements AccessoriesStorage {
@@ -41,7 +39,7 @@ public record SimpleAccessoriesStorage(boolean isClientSide, String slotName, in
     }
 
     private static Container copyContainer(Container container) {
-        if (container instanceof ExpandedSimpleContainer expandedContainer) {
+        if (container instanceof ExpandedContainer expandedContainer) {
             return expandedContainer.toImmutable();
         }
 

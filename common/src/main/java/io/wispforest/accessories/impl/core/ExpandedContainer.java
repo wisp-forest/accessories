@@ -1,6 +1,7 @@
 package io.wispforest.accessories.impl.core;
 
 import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.utils.BaseContainer;
@@ -13,15 +14,11 @@ import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.Container;
 import io.wispforest.accessories.utils.ItemStackWithSlot;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -31,11 +28,13 @@ import java.util.Iterator;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
-/**
- * An implementation of SimpleContainer with easy utilities for iterating over the stacks
- * and holding on to previous stack info
- */
-public class ExpandedSimpleContainer extends BaseContainer implements Iterable<ItemStack> {
+
+///
+/// An implementation of [BaseContainer] with overall API designed for use with [AccessoriesContainerImpl]
+/// with hooks for mutation or resizing checks on stacks combined with a copy of the `previousItems` to
+/// use later for checks of changes/used to rollback/remove effects from an entity.
+///
+public class ExpandedContainer extends BaseContainer {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -56,11 +55,11 @@ public class ExpandedSimpleContainer extends BaseContainer implements Iterable<I
 
     private final Int2ObjectMap<EventSource.Subscription> currentPrevResizeSubscriptions = new Int2ObjectOpenHashMap<>();
 
-    public ExpandedSimpleContainer(AccessoriesContainerImpl container, int size, String name) {
+    public ExpandedContainer(AccessoriesContainerImpl container, int size, String name) {
         this(container, size, name, true);
     }
 
-    public ExpandedSimpleContainer(AccessoriesContainerImpl container, int size, String name, boolean toggleNewlyConstructed) {
+    public ExpandedContainer(AccessoriesContainerImpl container, int size, String name, boolean toggleNewlyConstructed) {
         super(size);
 
         this.container = container;
@@ -321,12 +320,12 @@ public class ExpandedSimpleContainer extends BaseContainer implements Iterable<I
 
             @Override
             public boolean hasNext() {
-                return index < ExpandedSimpleContainer.this.getContainerSize();
+                return index < ExpandedContainer.this.getContainerSize();
             }
 
             @Override
             public ItemStack next() {
-                var stack = ExpandedSimpleContainer.this.getItem(index);
+                var stack = ExpandedContainer.this.getItem(index);
 
                 index++;
 
@@ -358,7 +357,7 @@ public class ExpandedSimpleContainer extends BaseContainer implements Iterable<I
         return null;
     }
 
-    public void setFromPrev(ExpandedSimpleContainer prevContainer) {
+    public void setFromPrev(ExpandedContainer prevContainer) {
         int i = 0;
 
         for (var itemStack : prevContainer) {
@@ -368,7 +367,7 @@ public class ExpandedSimpleContainer extends BaseContainer implements Iterable<I
         }
     }
 
-    public void copyPrev(ExpandedSimpleContainer prevContainer) {
+    public void copyPrev(ExpandedContainer prevContainer) {
         for (int i = 0; i < prevContainer.getContainerSize(); i++) {
             if(i >= this.getContainerSize()) continue;
 

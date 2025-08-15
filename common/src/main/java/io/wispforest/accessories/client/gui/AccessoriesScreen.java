@@ -4,11 +4,10 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.AccessoriesFunkyRenderingState;
-import io.wispforest.accessories.client.DrawUtils;
 import io.wispforest.accessories.client.gui.utils.Line3d;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
-import io.wispforest.accessories.impl.core.ExpandedSimpleContainer;
+import io.wispforest.accessories.impl.core.ExpandedContainer;
 import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.impl.slot.SlotGroupImpl;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
@@ -28,6 +27,7 @@ import net.minecraft.client.gui.screens.ErrorScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -252,7 +252,7 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
 //        }
 
         this.menu.slots.forEach(slot -> {
-            if (!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) return;
+            if (!(slot.container instanceof ExpandedContainer) || !slot.isActive()) return;
 
             guiGraphics.blit(RenderType::guiTextured, SLOT, slot.x + this.leftPos, slot.y + this.topPos, 0f, 0f,18, 18, 18, 18);
         });

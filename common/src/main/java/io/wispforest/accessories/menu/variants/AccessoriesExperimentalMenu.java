@@ -5,7 +5,7 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.SlotGroupLoader;
-import io.wispforest.accessories.impl.core.ExpandedSimpleContainer;
+import io.wispforest.accessories.impl.core.ExpandedContainer;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.menu.*;
@@ -23,7 +23,6 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.ticks.ContainerSingleItem;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -471,7 +470,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
                             if (stack.isEmpty() && this.stackIndex != -1) {
                                 var prevSlot = this.slots.get(this.stackIndex);
 
-                                if (prevSlot.container instanceof ExpandedSimpleContainer simpleContainer) {
+                                if (prevSlot.container instanceof ExpandedContainer simpleContainer) {
                                     simpleContainer.setPreviousItem(prevSlot.index, itemStack);
                                 }
                             }
@@ -509,7 +508,7 @@ public class AccessoriesExperimentalMenu extends AccessoriesMenuBase {
                         if (stack.isEmpty() && this.stackIndex != -1) {
                             var prevSlot = this.slots.get(this.stackIndex);
 
-                            if (prevSlot.container instanceof ExpandedSimpleContainer simpleContainer) {
+                            if (prevSlot.container instanceof ExpandedContainer simpleContainer) {
                                 simpleContainer.setPreviousItem(prevSlot.getContainerSlot(), newStack);
                             }
                         }
