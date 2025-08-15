@@ -1,6 +1,7 @@
 package io.wispforest.accessories.networking.client;
 
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
+import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;

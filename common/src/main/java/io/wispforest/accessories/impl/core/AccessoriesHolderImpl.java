@@ -20,8 +20,6 @@ import io.wispforest.endec.SerializationAttribute;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
-import io.wispforest.endec.util.MapCarrierDecodable;
-import io.wispforest.endec.util.MapCarrierEncodable;
 import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
@@ -54,7 +52,7 @@ public class AccessoriesHolderImpl implements InstanceEndec {
 
     // --
 
-    private MapCarrierDecodable carrier;
+    private MapCarrier carrier;
     protected boolean loadedFromTag = false;
 
     public AccessoriesHolderImpl(){}
@@ -261,7 +259,7 @@ public class AccessoriesHolderImpl implements InstanceEndec {
             }).keyed("accessories_containers", HashMap::new);
 
     @Override
-    public void encode(MapCarrierEncodable carrier, SerializationContext ctx) {
+    public void encode(MapCarrier carrier, SerializationContext ctx) {
         if(slotContainers.isEmpty()) return;
 
         carrier.put(ctx, CONTAINERS_KEY, this.slotContainers);
@@ -286,7 +284,7 @@ public class AccessoriesHolderImpl implements InstanceEndec {
 
     private static final KeyedEndec<Boolean> SHOW_CRAFTING_GRID = Endec.BOOLEAN.keyed("cosmetics_shown", false);
 
-    public void read(AccessoriesCapability capability, LivingEntity entity, MapCarrierDecodable carrier, SerializationContext ctx) {
+    public void read(AccessoriesCapability capability, LivingEntity entity, MapCarrier carrier, SerializationContext ctx) {
         this.loadedFromTag = false;
 
         EndecUtils.dfuKeysCarrier(
@@ -330,14 +328,14 @@ public class AccessoriesHolderImpl implements InstanceEndec {
         if (cache != null) cache.clearCache();
     }
 
-    private static <F> void setIfPresent(MapCarrierDecodable carrier, AccessoriesPlayerOptionsHolder options, KeyedEndec<F> keyedEndec, PlayerOption<F> option) {
+    private static <F> void setIfPresent(MapCarrier carrier, AccessoriesPlayerOptionsHolder options, KeyedEndec<F> keyedEndec, PlayerOption<F> option) {
         if (carrier.has(keyedEndec)) {
             options.setData(option, carrier.get(keyedEndec));
         }
     }
 
     @Override
-    public void decode(MapCarrierDecodable carrier, SerializationContext context) {
+    public void decode(MapCarrier carrier, SerializationContext context) {
         this.loadedFromTag = true;
 
         this.carrier = carrier;

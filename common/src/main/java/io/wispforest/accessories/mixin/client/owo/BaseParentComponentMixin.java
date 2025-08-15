@@ -5,15 +5,11 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.client.gui.components.ComponentUtils;
-import io.wispforest.accessories.client.gui.utils.AbstractPolygon;
-import io.wispforest.accessories.pond.owo.MutableBoundingArea;
-import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
 import io.wispforest.owo.ui.base.BaseParentComponent;
 import io.wispforest.owo.ui.core.Component;
 import io.wispforest.owo.ui.core.ParentComponent;
 import io.wispforest.owo.util.pond.OwoSlotExtension;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(value = BaseParentComponent.class, remap = false)

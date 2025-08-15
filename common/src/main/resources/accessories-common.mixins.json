@@ -31,13 +31,10 @@
     "client.WingsLayerMixin",
     "client.cosmetic.LivingEntityMixin",
     "client.cosmetic.MobMixin",
-    "client.GuiGraphicsMixin",
-    "client.GuiGraphicsMixin$ScissorStackMixin",
     "client.owo.BaseParentComponentMixin",
     "client.owo.DiscreteSliderComponentAccessor",
     "client.owo.OwoEmiPluginMixin",
     "client.owo.OwoReiPluginMixin",
-    "client.owo.ScissorStackMixin",
     "client.owo.ScrollContainerMixin",
     "sodium.MPOATVConstructingVertexConsumerMixin_SodiumImpl"
   ],

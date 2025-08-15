@@ -23,7 +23,6 @@ import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
-import io.wispforest.accessories.pond.owo.InclusiveBoundingArea;
 import io.wispforest.owo.mixin.ui.SlotAccessor;
 import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
 import io.wispforest.owo.ui.component.ButtonComponent;

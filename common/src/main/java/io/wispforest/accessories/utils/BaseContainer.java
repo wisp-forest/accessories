@@ -6,14 +6,12 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.ContainerListener;
-import net.minecraft.world.ItemStackWithSlot;
+import io.wispforest.accessories.utils.ItemStackWithSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.inventory.StackedContentsCompatible;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -223,24 +221,6 @@ public class BaseContainer implements Container, StackedContentsCompatible {
         }
     }
 
-    public final void saveAllItems(ValueOutput valueOutput) {
-        var typedOutputList = valueOutput.list("Items", ItemStackWithSlot.CODEC);
-
-        saveItemsToList(typedOutputList);
-    }
-
-    public final void loadAllItems(ValueInput valueInput) {
-        loadItemsFromList(valueInput.listOrEmpty("Items", ItemStackWithSlot.CODEC));
-    }
-
-    public void saveItemsToList(ValueOutput.TypedOutputList<ItemStackWithSlot> valueOutput) {
-        saveItemsToList().forEach(valueOutput::add);
-    }
-
-    public void loadItemsFromList(ValueInput.TypedInputList<ItemStackWithSlot> valueInput) {
-        loadItemsFromList(valueInput.stream().toList());
-    }
-
     //--
 
     public List<ItemStackWithSlot> saveItemsToList() {
@@ -262,9 +242,5 @@ public class BaseContainer implements Container, StackedContentsCompatible {
                 this.items.set(slottedStack.slot(), slottedStack.stack());
             }
         }
-    }
-
-    public interface ErrorableGetter<T> {
-        T getEntry(Consumer<String> errorConsumer);
     }
 }

@@ -9,7 +9,6 @@ import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.server.SyncCosmeticToggle;
-import io.wispforest.accessories.pond.owo.ComponentExtension;
 import io.wispforest.owo.Owo;
 import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
 import io.wispforest.owo.ui.component.ButtonComponent;
@@ -216,8 +215,6 @@ public class ComponentUtils {
                         component.zIndex(600) //900
                                 .sizing(Sizing.fixed(5))
                                 .positioning(btnPosition);
-
-                        ((ComponentExtension) component).allowIndividualOverdraw(true);
                     });
         }
 
@@ -287,11 +284,7 @@ public class ComponentUtils {
                 context.flush();
             };
 
-            if(btn instanceof ComponentExtension<?> extension && extension.allowIndividualOverdraw()) {
-                ScissorStack.popFramesAndDraw(7, drawCall);
-            } else {
-                drawCall.run();
-            }
+            ScissorStack.popFramesAndDraw(11, drawCall);
 
             context.pop();
         };

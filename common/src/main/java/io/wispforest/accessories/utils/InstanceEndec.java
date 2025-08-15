@@ -1,11 +1,10 @@
 package io.wispforest.accessories.utils;
 
 import io.wispforest.endec.SerializationContext;
-import io.wispforest.endec.util.MapCarrierDecodable;
-import io.wispforest.endec.util.MapCarrierEncodable;
+import io.wispforest.endec.util.MapCarrier;
 
 public interface InstanceEndec {
-    void encode(MapCarrierEncodable encoder, SerializationContext ctx);
+    void encode(MapCarrier encoder, SerializationContext ctx);
 
-    void decode(MapCarrierDecodable decoder, SerializationContext ctx);
+    void decode(MapCarrier decoder, SerializationContext ctx);
 }

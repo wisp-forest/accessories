@@ -20,10 +20,8 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.Container;
-import net.minecraft.world.ItemStackWithSlot;
+import io.wispforest.accessories.utils.ItemStackWithSlot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 

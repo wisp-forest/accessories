@@ -6,7 +6,7 @@ import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.KeyedEndec;
-import io.wispforest.endec.util.MapCarrierEncodable;
+import io.wispforest.endec.util.MapCarrier;
 import net.minecraft.world.entity.player.Player;
 import org.slf4j.Logger;
 

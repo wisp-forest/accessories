@@ -7,14 +7,11 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.mixin.StateHolderAccessor;
-import io.wispforest.accessories.mixin.owo.TagValueInputAccessor;
-import io.wispforest.accessories.mixin.owo.TagValueOutputAccessor;
 import io.wispforest.endec.*;
 import io.wispforest.endec.format.gson.GsonMapCarrier;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.impl.StructField;
-import io.wispforest.endec.util.MapCarrierDecodable;
-import io.wispforest.endec.util.MapCarrierEncodable;
+import io.wispforest.endec.util.MapCarrier;
 import io.wispforest.owo.mixin.ForwardingDynamicOpsAccessor;
 import io.wispforest.owo.mixin.RegistryOpsAccessor;
 import io.wispforest.owo.serialization.CodecUtils;
@@ -36,10 +33,6 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.TagValueInput;
-import net.minecraft.world.level.storage.TagValueOutput;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -158,7 +151,7 @@ public class EndecUtils {
         return new AttributeStructEndecBuilder<>(baseEndec, SerializationAttributes.HUMAN_READABLE).orElse(networkEndec);
     }
 
-    public static void dfuKeysCarrier(MapCarrierDecodable carrier, Map<String, String> changedKeys) {
+    public static void dfuKeysCarrier(MapCarrier carrier, Map<String, String> changedKeys) {
         CompoundTag compoundTag;
 
         if (carrier instanceof NbtMapCarrier nbtMapCarrier) {
@@ -290,100 +283,6 @@ public class EndecUtils {
 
         from.encode(carrier, SerializationContext.empty());
         to.decode(carrier, SerializationContext.empty());
-    }
-
-    public static MapCarrierDecodable createCarrierDecoder(ValueInput input) {
-        if (input instanceof MapCarrierDecodable decodable) return decodable;
-
-        if (input instanceof TagValueInputAccessor tagInputAccessor) {
-            var assumedContext = createContext(tagInputAccessor.accessories$context().ops(), SerializationContext.empty());
-
-            return new MapCarrierDecodable() {
-                @Override
-                public <T> T getWithErrors(SerializationContext ctx, @NotNull KeyedEndec<T> key) {
-                    ctx = ctx.and(assumedContext);
-
-                    return tagInputAccessor.accessories$input()
-                        .get(ctx, key);
-                }
-
-                @Override
-                public <T> T get(SerializationContext ctx, @NotNull KeyedEndec<T> key) {
-                    try {
-                        return this.getWithErrors(ctx, key);
-                    } catch (Exception e) {
-                        var tag = tagInputAccessor.accessories$input()
-                            .get(key.key());
-
-                        if (tag == null) tag = EndTag.INSTANCE;
-
-                        tagInputAccessor.accessories$problemReporter()
-                            .report(new TagValueInput.DecodeFromFieldFailedProblem(key.key(), tag, (DataResult.Error<?>) DataResult.error(e::getMessage)));
-
-                        return key.defaultValue();
-                    }
-                }
-
-                @Override
-                public <T> boolean has(@NotNull KeyedEndec<T> key) {
-                    return tagInputAccessor.accessories$input().has(key);
-                }
-            };
-        }
-
-        return new MapCarrierDecodable() {
-            @Override
-            public <T> T getWithErrors(SerializationContext ctx, @NotNull KeyedEndec<T> key) {
-                return input.read(key.key(), CodecUtils.toCodec(key.endec(), ctx))
-                    .orElseGet(key::defaultValue);
-            }
-
-            @Override
-            public <T> boolean has(@NotNull KeyedEndec<T> key) {
-                return input.child(key.key()).isPresent();
-            }
-        };
-    }
-
-    public static MapCarrierEncodable createCarrierEncoder(ValueOutput output) {
-        if (output instanceof MapCarrierEncodable encodable) return encodable;
-
-        if (output instanceof TagValueOutputAccessor tagOutputAccessor) {
-            var assumedContext = createContext(tagOutputAccessor.accessories$ops(), SerializationContext.empty());
-
-            return new MapCarrierEncodable() {
-                @Override
-                public <T> void put(SerializationContext ctx, @NotNull KeyedEndec<T> key, @NotNull T value) {
-                    try {
-                        ctx = ctx.and(assumedContext);
-
-                        tagOutputAccessor.accessories$output()
-                            .put(ctx, key, value);
-                    } catch (Exception e) {
-                        tagOutputAccessor.accessories$problemReporter()
-                            .report(new TagValueOutput.EncodeToFieldFailedProblem(key.key(), value, (DataResult.Error<?>) DataResult.error(e::getMessage)));
-                    }
-                }
-
-                @Override
-                public <T> void delete(@NotNull KeyedEndec<T> key) {
-                    tagOutputAccessor.accessories$output()
-                        .delete(key);
-                }
-            };
-        }
-
-        return new MapCarrierEncodable() {
-            @Override
-            public <T> void put(SerializationContext ctx, @NotNull KeyedEndec<T> key, @NotNull T value) {
-                output.store(key.key(), CodecUtils.toCodec(key.endec(), ctx), value);
-            }
-
-            @Override
-            public <T> void delete(@NotNull KeyedEndec<T> key) {
-                output.discard(key.key());
-            }
-        };
     }
 
     //--

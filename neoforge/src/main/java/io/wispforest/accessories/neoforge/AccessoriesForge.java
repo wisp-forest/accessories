@@ -9,6 +9,7 @@ import io.wispforest.accessories.commands.api.ArgumentRegistrationCallback;
 import io.wispforest.accessories.commands.api.CommandGenerators;
 import io.wispforest.accessories.commands.api.core.RecordArgumentTypeInfo;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.impl.core.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
@@ -20,10 +21,13 @@ import io.wispforest.accessories.data.api.SyncedDataHelperManager;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.accessories.utils.InstanceEndec;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
@@ -40,8 +44,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -64,6 +66,7 @@ import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.RegisterEvent;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -86,22 +89,24 @@ public class AccessoriesForge {
             .copyOnDeath()
             .build();
 
-    private static <T extends InstanceEndec> IAttachmentSerializer<T> createSerializerFor(Supplier<T> supplier) {
-        return new IAttachmentSerializer<T>() {
+    private static <T extends InstanceEndec> IAttachmentSerializer<CompoundTag, T> createSerializerFor(Supplier<T> supplier) {
+        return new IAttachmentSerializer<>() {
             @Override
-            public T read(IAttachmentHolder iAttachmentHolder, ValueInput arg) {
+            public T read(IAttachmentHolder iAttachmentHolder, CompoundTag arg, HolderLookup.Provider arg2) {
                 var holder = supplier.get();
 
-                holder.decode(EndecUtils.createCarrierDecoder(arg), SerializationContext.empty());
+                holder.decode(new NbtMapCarrier(arg), SerializationContext.empty());
 
                 return holder;
             }
 
             @Override
-            public boolean write(T object, ValueOutput arg) {
-                object.encode(EndecUtils.createCarrierEncoder(arg), SerializationContext.empty());
+            public @Nullable CompoundTag write(T object, HolderLookup.Provider arg) {
+                var tag = new CompoundTag();
 
-                return true;
+                object.encode(new NbtMapCarrier(tag), SerializationContext.empty());
+
+                return null;
             }
         };
     }

@@ -1,7 +1,6 @@
 package io.wispforest.accessories.impl.core;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.mojang.datafixers.util.Either;
 import com.mojang.datafixers.util.Pair;
@@ -23,11 +22,8 @@ import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
-import io.wispforest.endec.util.MapCarrierDecodable;
-import io.wispforest.endec.util.MapCarrierEncodable;
 import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.owo.serialization.CodecUtils;
-import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import it.unimi.dsi.fastutil.ints.Int2BooleanLinkedOpenHashMap;
 import net.minecraft.nbt.CompoundTag;
@@ -35,7 +31,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerListener;
-import net.minecraft.world.ItemStackWithSlot;
+import io.wispforest.accessories.utils.ItemStackWithSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
@@ -429,11 +425,11 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     public static final KeyedEndec<List<ItemStackWithSlot>> COSMETICS_KEY = SLOTTED_ITEMSTACK_ENDEC.listOf().keyed("cosmetics", ArrayList::new);
 
     @Override
-    public void encode(MapCarrierEncodable carrier, SerializationContext ctx) {
+    public void encode(MapCarrier carrier, SerializationContext ctx) {
         write(carrier, ctx, false);
     }
 
-    public void write(MapCarrierEncodable carrier, SerializationContext ctx, boolean sync){
+    public void write(MapCarrier carrier, SerializationContext ctx, boolean sync){
         carrier.put(SLOT_NAME_KEY, this.slotName);
 
         carrier.putIfNotNull(ctx, BASE_SIZE_KEY, this.baseSize);
@@ -479,11 +475,11 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     @Override
-    public void decode(MapCarrierDecodable carrier, SerializationContext ctx) {
+    public void decode(MapCarrier carrier, SerializationContext ctx) {
         read(carrier, ctx, false);
     }
 
-    public void read(MapCarrierDecodable carrier, SerializationContext ctx, boolean sync){
+    public void read(MapCarrier carrier, SerializationContext ctx, boolean sync){
         EndecUtils.dfuKeysCarrier(
                 carrier,
                 Map.of(

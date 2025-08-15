@@ -18,8 +18,7 @@ import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.endec.SerializationContext;
-import io.wispforest.endec.util.MapCarrierDecodable;
-import io.wispforest.endec.util.MapCarrierEncodable;
+import io.wispforest.endec.util.MapCarrier;
 import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import it.unimi.dsi.fastutil.Pair;
@@ -309,12 +308,12 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     //--
 
     @Override
-    public void encode(MapCarrierEncodable carrier, SerializationContext ctx) {
+    public void encode(MapCarrier carrier, SerializationContext ctx) {
         AccessoriesHolderImpl.getHolder(this).encode(carrier, ctx);
     }
 
     @Override
-    public void decode(MapCarrierDecodable carrier, SerializationContext ctx) {
+    public void decode(MapCarrier carrier, SerializationContext ctx) {
         AccessoriesHolderImpl.getHolder(this).decode(carrier, ctx);
     }
 }
