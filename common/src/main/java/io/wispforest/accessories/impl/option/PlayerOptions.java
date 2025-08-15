@@ -15,13 +15,13 @@ public class PlayerOptions {
     public static PlayerOption<Integer> COLUMN_AMOUNT = new PlayerOption<>("column_amount", Endec.VAR_INT, 2);
     public static PlayerOption<Integer> WIDGET_TYPE = new PlayerOption<>("widget_type", Endec.VAR_INT, 2);
 
-    public static PlayerOption<Boolean> SHOW_GROUP_FILTER = new PlayerOption<>("group_filter", Endec.BOOLEAN, false);
+    public static PlayerOption<Boolean> SHOW_GROUP_FILTER = new PlayerOption<>("group_filter", Endec.BOOLEAN, true);
     public static PlayerOption<Set<String>> FILTERED_GROUPS = new PlayerOption<>("filtered_groups", Endec.STRING.setOf(), Set.of());
 
     public static PlayerOption<Boolean> ENTITY_CENTERED = new PlayerOption<>("entity_centered", Endec.BOOLEAN, true);
     public static PlayerOption<Boolean> SIDE_BY_SIDE_ENTITY = new PlayerOption<>("side_by_side_entity", Endec.BOOLEAN, false);
-    public static PlayerOption<Boolean> MAIN_WIDGET_POSITION = new PlayerOption<>("main_widget_position", Endec.BOOLEAN, false);
-    public static PlayerOption<Boolean> SIDE_WIDGET_POSITION = new PlayerOption<>("side_widget_position", Endec.BOOLEAN, true);
+    public static PlayerOption<Boolean> MAIN_WIDGET_POSITION = new PlayerOption<>("main_widget_position", Endec.BOOLEAN, true);
+    public static PlayerOption<Boolean> SIDE_WIDGET_POSITION = new PlayerOption<>("side_widget_position", Endec.BOOLEAN, false);
 
     public static PlayerOption<Boolean> SHOW_CRAFTING_GRID = new PlayerOption<>("show_crafting_grid", Endec.BOOLEAN, false);
     public static PlayerOption<Boolean> ADVANCED_SETTINGS = new PlayerOption<>("advanced_settings", Endec.BOOLEAN, false);
