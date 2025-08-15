@@ -79,6 +79,7 @@
     "StateHolderAccessor",
     "owo.ConfigWrapperAccessor",
     "owo.NbtDeserializerMixin",
+    "owo.NbtDeserializerMixin$SequenceMixin",
     "owo.DumpdataCommandMixin",
     "owo.TagValueOutputAccessor",
     "owo.TagValueInputAccessor"
