@@ -58,6 +58,12 @@ dependencies {
     modImplementation("io.wispforest:owo-lib:${project.property("owo_version")}")
     include("io.wispforest:owo-sentinel:${project.property("owo_version")}")
 
+    // Temp fix for issues with needing higher Endec Version
+    include("io.wispforest:endec:${rootProject.property("endec_version")}")
+    include("io.wispforest.endec:gson:${rootProject.property("endec_gson_version")}")
+    include("io.wispforest.endec:jankson:${rootProject.property("endec_jankson_version")}")
+    include("io.wispforest.endec:netty:${rootProject.property("endec_netty_version")}")
+
     "testmodImplementation"(sourceSets.main.get().output)
 
     //--

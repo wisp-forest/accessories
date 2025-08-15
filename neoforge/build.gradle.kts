@@ -63,6 +63,12 @@ dependencies {
     forgeRuntimeLibrary("io.wispforest.endec:jankson:${rootProject.property("endec_jankson_version")}")
     forgeRuntimeLibrary("io.wispforest.endec:netty:${rootProject.property("endec_netty_version")}")
 
+    // Temp fix for issues with needing higher Endec Version
+    include("io.wispforest:endec:${rootProject.property("endec_version")}")
+    include("io.wispforest.endec:gson:${rootProject.property("endec_gson_version")}")
+    include("io.wispforest.endec:jankson:${rootProject.property("endec_jankson_version")}")
+    include("io.wispforest.endec:netty:${rootProject.property("endec_netty_version")}")
+
     "testmodImplementation"(sourceSets.main.get().output)
 
     //--

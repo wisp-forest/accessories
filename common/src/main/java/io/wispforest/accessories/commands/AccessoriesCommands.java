@@ -24,6 +24,7 @@ import io.wispforest.accessories.data.CustomRendererLoader;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.mixin.CommandSelectionAccessor;
 import io.wispforest.endec.Endec;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -112,7 +113,7 @@ public class AccessoriesCommands {
     protected static void generateTrees(BranchedCommandGenerator generator, CommandBuildContext context, Commands.CommandSelection environment) {
         generator.modifyRootNode(builder -> builder.requires(stack -> stack.hasPermission(Commands.LEVEL_GAMEMASTERS)));
 
-        if (environment.includeIntegrated) {
+        if (((CommandSelectionAccessor) (Object) environment).accessories$includeIntegrated()) {
             generator.branch("rendering", renderingBranch -> {
                 renderingBranch.leaves(
                         "create-renderer-stack",

@@ -77,6 +77,7 @@
     "SimpleJsonResourceReloadListenerMixin",
     "SlotAccessor",
     "StateHolderAccessor",
+    "CommandSelectionAccessor",
     "owo.ConfigWrapperAccessor",
     "owo.NbtDeserializerMixin",
     "owo.NbtDeserializerMixin$SequenceMixin",
