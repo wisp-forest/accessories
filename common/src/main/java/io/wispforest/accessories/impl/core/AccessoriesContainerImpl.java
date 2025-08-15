@@ -1,7 +1,6 @@
 package io.wispforest.accessories.impl.core;
 
 import com.google.common.collect.HashMultimap;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.mojang.datafixers.util.Either;
 import com.mojang.datafixers.util.Pair;
@@ -27,7 +26,6 @@ import io.wispforest.endec.util.MapCarrierDecodable;
 import io.wispforest.endec.util.MapCarrierEncodable;
 import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.owo.serialization.CodecUtils;
-import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import it.unimi.dsi.fastutil.ints.Int2BooleanLinkedOpenHashMap;
 import net.minecraft.nbt.CompoundTag;
@@ -61,8 +59,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
     private Map<Integer, Boolean> renderOptions;
 
-    private ExpandedSimpleContainer accessories;
-    private ExpandedSimpleContainer cosmeticAccessories;
+    private ExpandedContainer accessories;
+    private ExpandedContainer cosmeticAccessories;
 
     private boolean update = false;
     private boolean resizingUpdate = false;
@@ -74,8 +72,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         this.slotName = slotType.name();
         this.baseSize = slotType.amount();
 
-        this.accessories = new ExpandedSimpleContainer(this, this.baseSize, "accessories", false);
-        this.cosmeticAccessories = new ExpandedSimpleContainer(this, this.baseSize, "cosmetic_accessories", false);
+        this.accessories = new ExpandedContainer(this, this.baseSize, "accessories", false);
+        this.cosmeticAccessories = new ExpandedContainer(this, this.baseSize, "cosmetic_accessories", false);
 
         this.renderOptions = new Int2BooleanLinkedOpenHashMap(baseSize);
     }
@@ -95,7 +93,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
         if (cache != null) cache.clearContainerCache(this.slotName);
 
-        if(((ExpandedSimpleContainer) container).name().contains("cosmetic")) return;
+        if(((ExpandedContainer) container).name().contains("cosmetic")) return;
 
         this.markChanged();
         this.update();
@@ -183,8 +181,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
             this.containerListenerLock = true;
 
-            var newAccessories = new ExpandedSimpleContainer(this, currentSize, "accessories");
-            var newCosmetics = new ExpandedSimpleContainer(this, currentSize, "cosmetic_accessories");
+            var newAccessories = new ExpandedContainer(this, currentSize, "accessories");
+            var newCosmetics = new ExpandedContainer(this, currentSize, "cosmetic_accessories");
 
             newAccessories.toggleFlagablity();
             newCosmetics.toggleFlagablity();
@@ -285,13 +283,13 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     @Override
-    public ExpandedSimpleContainer getAccessories() {
+    public ExpandedContainer getAccessories() {
         this.update();
         return accessories;
     }
 
     @Override
-    public ExpandedSimpleContainer getCosmeticAccessories() {
+    public ExpandedContainer getCosmeticAccessories() {
         this.update();
         return cosmeticAccessories;
     }
@@ -552,8 +550,8 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
             this.renderOptions = getWithSize(currentSize, sentOptions);
 
             if(this.accessories.getContainerSize() != currentSize) {
-                this.accessories = new ExpandedSimpleContainer(this, currentSize, "accessories");
-                this.cosmeticAccessories = new ExpandedSimpleContainer(this, currentSize, "cosmetic_accessories");
+                this.accessories = new ExpandedContainer(this, currentSize, "accessories");
+                this.cosmeticAccessories = new ExpandedContainer(this, currentSize, "cosmetic_accessories");
             }
 
             this.accessories.loadItemsFromList(carrier.get(ctx, ITEMS_KEY));

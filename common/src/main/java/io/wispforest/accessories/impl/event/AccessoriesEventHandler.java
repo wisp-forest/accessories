@@ -23,7 +23,7 @@ import io.wispforest.accessories.impl.*;
 import io.wispforest.accessories.impl.core.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.core.AccessoriesContainerImpl;
 import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
-import io.wispforest.accessories.impl.core.ExpandedSimpleContainer;
+import io.wispforest.accessories.impl.core.ExpandedContainer;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
@@ -743,7 +743,7 @@ public class AccessoriesEventHandler {
     }
 
     @Nullable
-    private static ItemStack dropStack(DropRule dropRule, LivingEntity entity, ExpandedSimpleContainer container, SlotReference reference, DamageSource source, boolean keepInvEnabled) {
+    private static ItemStack dropStack(DropRule dropRule, LivingEntity entity, ExpandedContainer container, SlotReference reference, DamageSource source, boolean keepInvEnabled) {
         var stack = container.getItem(reference.index());
 
         if (stack.isEmpty()) return null;

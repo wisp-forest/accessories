@@ -9,7 +9,7 @@ import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.EntitySlotLoader;
-import io.wispforest.accessories.impl.core.ExpandedSimpleContainer;
+import io.wispforest.accessories.impl.core.ExpandedContainer;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
 import net.minecraft.ChatFormatting;
@@ -37,7 +37,7 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
     public final LivingEntity entity;
     public final AccessoriesContainer accessoriesContainer;
 
-    public AccessoriesBasedSlot(AccessoriesContainer accessoriesContainer, ExpandedSimpleContainer container, int slot, int x, int y) {
+    public AccessoriesBasedSlot(AccessoriesContainer accessoriesContainer, ExpandedContainer container, int slot, int x, int y) {
         super(container, slot, x, y);
 
         this.accessoriesContainer = accessoriesContainer;

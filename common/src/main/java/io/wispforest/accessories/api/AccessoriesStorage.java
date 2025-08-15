@@ -4,6 +4,7 @@ import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.world.Container;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -41,6 +42,7 @@ public interface AccessoriesStorage {
     /// Returns a [Map] containing if the renderer has been disabled, if such index is not found within map
     /// then such is enabled. Recommend to use [#shouldRender(int)] instead of direct map access
     ///
+    @ApiStatus.Internal
     Map<Integer, Boolean> renderOptions();
 
     ///

@@ -2,13 +2,12 @@ package io.wispforest.accessories.api;
 
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.impl.core.ExpandedSimpleContainer;
+import io.wispforest.accessories.impl.core.ExpandedContainer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,13 +36,13 @@ public interface AccessoriesContainer extends AccessoriesStorage {
     /// Returns the Vanilla [Container] that holds primary Accessories
     ///
     @Override
-    ExpandedSimpleContainer getAccessories();
+    ExpandedContainer getAccessories();
 
     ///
     /// Returns the Vanilla [Container] that holds cosmetic Accessories
     ///
     @Override
-    ExpandedSimpleContainer getCosmeticAccessories();
+    ExpandedContainer getCosmeticAccessories();
 
     //--
 
