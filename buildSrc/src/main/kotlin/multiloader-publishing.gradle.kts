@@ -42,13 +42,19 @@ publishing {
         }
     }
 
-//    repositories {
-//        maven {
-//            url = uri(ENV["MAVEN_URL"]!!)
-//            credentials {
-//                username = ENV["MAVEN_USER"]
-//                password = ENV["MAVEN_PASSWORD"]
-//            }
-//        }
-//    }
+    var mavenUrl = ENV["MAVEN_URL"]
+    var mavenUser = ENV["MAVEN_USER"]
+    var mavenPassword = ENV["MAVEN_PASSWORD"]
+
+    if (mavenUrl != null && mavenUser != null && mavenPassword != null) {
+        repositories {
+            maven {
+                url = uri(mavenUrl)
+                credentials {
+                    username = mavenUser
+                    password = mavenPassword
+                }
+            }
+        }
+    }
 }
