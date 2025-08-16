@@ -6,9 +6,7 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.screen.AccessoriesScreenTransitionHelper;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
-import io.wispforest.accessories.client.gui.ScreenVariantSelectionScreen;
 import io.wispforest.accessories.client.gui.components.ComponentUtils;
-import io.wispforest.accessories.compat.config.ScreenType;
 import io.wispforest.accessories.compat.config.client.ExtendedConfigScreen;
 import io.wispforest.accessories.compat.config.client.Structured;
 import io.wispforest.accessories.compat.config.client.components.StructListOptionContainer;
@@ -45,6 +43,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.BannerItem;
@@ -54,6 +53,7 @@ import net.minecraft.world.phys.EntityHitResult;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class AccessoriesClient {
 
@@ -256,10 +256,6 @@ public class AccessoriesClient {
     }
 
     public static boolean attemptToOpenScreenFromEntity(LivingEntity targetingEntity) {
-        return attemptToOpenScreen(targetingEntity, Accessories.config().screenOptions.selectedScreenType());
-    }
-
-    private static boolean attemptToOpenScreen(LivingEntity targetingEntity, ScreenType screenType) {
         var player = Minecraft.getInstance().player;
 
         if(targetingEntity.equals(player)) {
@@ -274,22 +270,32 @@ public class AccessoriesClient {
             }
         }
 
-        var selectedVariant = AccessoriesMenuVariant.getVariant(screenType);
+        var selectedVariant = AccessoriesMenuVariant.PRIMARY_V2;
 
         ItemStack creativeCarriedStack = (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen screen)
                 ? screen.getMenu().getCarried()
                 : null;
 
-        if(selectedVariant != null) {
-            AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingEntity, selectedVariant, creativeCarriedStack));
-        } else {
-            Minecraft.getInstance().setScreen(new ScreenVariantSelectionScreen(variant -> {
-                AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingEntity, variant, creativeCarriedStack));
-            }));
-        }
+        AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingEntity, selectedVariant, creativeCarriedStack));
 
         return true;
     }
+
+    public static void attemptToOpenSelectionScreen(int entityId, boolean targetLookEntity, Player player) {
+        var selectedVariant = AccessoriesMenuVariant.PRIMARY_V2;
+
+        ItemStack creativeCarriedStack = (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen screen)
+            ? screen.getMenu().getCarried()
+            : null;
+
+        Function<AccessoriesMenuVariant, ScreenOpen> packetBuilder = (menuVariant) -> {
+            return new ScreenOpen(targetLookEntity ? -1 : entityId, targetLookEntity, menuVariant, creativeCarriedStack);
+        };
+
+        AccessoriesNetworking.sendToServer(packetBuilder.apply(selectedVariant));
+    }
+
+    //--
 
     public static void initLayer() {
         AccessoriesScreenTransitionHelper.init();

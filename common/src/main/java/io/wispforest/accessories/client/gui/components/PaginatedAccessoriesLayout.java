@@ -1,8 +1,7 @@
 package io.wispforest.accessories.client.gui.components;
 
-import com.mojang.math.Axis;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
+import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.component.LabelComponent;
@@ -24,12 +23,12 @@ public class PaginatedAccessoriesLayout extends AccessoriesContainingLayout<Pagi
 
     private Observable<Integer> pageIndex;
 
-    private PaginatedAccessoriesLayout(AccessoriesExperimentalScreen screen, RawPageData data) {
+    private PaginatedAccessoriesLayout(AccessoriesScreen screen, RawPageData data) {
         super(screen, data);
     }
 
     @Nullable
-    public static PaginatedAccessoriesLayout createOrNull(AccessoriesExperimentalScreen screen) {
+    public static PaginatedAccessoriesLayout createOrNull(AccessoriesScreen screen) {
         var data = buildPageData(screen);
 
         if(data == null) return null;
@@ -38,7 +37,7 @@ public class PaginatedAccessoriesLayout extends AccessoriesContainingLayout<Pagi
     }
 
     @Nullable
-    private static RawPageData buildPageData(AccessoriesExperimentalScreen screen) {
+    private static RawPageData buildPageData(AccessoriesScreen screen) {
         var menu = screen.getMenu();
         var slots = menu.getVisibleAccessoriesSlots();
 

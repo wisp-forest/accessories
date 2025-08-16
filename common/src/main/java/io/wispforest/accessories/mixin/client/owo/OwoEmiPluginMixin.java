@@ -1,6 +1,6 @@
 package io.wispforest.accessories.mixin.client.owo;
 
-import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
+import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.owo.compat.emi.OwoEmiPlugin;
 import net.minecraft.client.gui.screens.Screen;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,6 +15,6 @@ public abstract class OwoEmiPluginMixin {
 
     @Inject(method = "lambda$register$2", at = @At("HEAD"), remap = false, cancellable = true)
     private static void accessories$preventZonesForAccessoriesScreen(Screen screen, Consumer consumer, CallbackInfo ci) {
-        if(screen instanceof AccessoriesExperimentalScreen) ci.cancel();
+        if(screen instanceof AccessoriesScreen) ci.cancel();
     }
 }

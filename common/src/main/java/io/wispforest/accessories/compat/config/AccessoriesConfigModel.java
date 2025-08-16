@@ -67,7 +67,7 @@ public class AccessoriesConfigModel {
 
         public boolean backButtonClosesScreen = false;
 
-        public ScreenType selectedScreenType = ScreenType.NONE;
+//        public ScreenType selectedScreenType = ScreenType.NONE;
 
         @Hook
         public boolean showUnusedSlots = false;

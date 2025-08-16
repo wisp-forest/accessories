@@ -3,7 +3,7 @@ package io.wispforest.accessories.compat.config;
 public enum ScreenType {
     NONE(-1),
     ORIGINAL(1),
-    EXPERIMENTAL_V1(2);
+    PRIMARY_V2(2);
 
     private final int screenIndex;
 

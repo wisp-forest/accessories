@@ -1,424 +1,222 @@
 package io.wispforest.accessories.client.gui;
 
+import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.client.screen.AccessoriesScreenTransitionHelper;
+import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesFunkyRenderingState;
+import io.wispforest.accessories.client.DrawUtils;
+import io.wispforest.accessories.client.gui.components.*;
 import io.wispforest.accessories.client.gui.utils.Line3d;
-import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
-import io.wispforest.accessories.impl.core.ExpandedContainer;
+import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.option.PlayerOptions;
-import io.wispforest.accessories.impl.slot.SlotGroupImpl;
+import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
+import io.wispforest.accessories.menu.ArmorSlotTypes;
+import io.wispforest.accessories.menu.networking.ToggledSlots;
 import io.wispforest.accessories.menu.variants.AccessoriesMenu;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
-import io.wispforest.accessories.networking.server.MenuScroll;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
+import io.wispforest.owo.mixin.ui.SlotAccessor;
+import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
+import io.wispforest.owo.ui.component.ButtonComponent;
+import io.wispforest.owo.ui.container.*;
+import io.wispforest.owo.ui.core.*;
+import io.wispforest.owo.util.pond.OwoSlotExtension;
+import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.screens.ErrorScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.ARGB;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.Slot;
-import org.apache.commons.lang3.Range;
+import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.*;
+import org.joml.Vector3d;
 import org.lwjgl.glfw.GLFW;
+import org.slf4j.Logger;
 
-import java.lang.Math;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> implements ContainerScreenExtension, AccessoriesScreenBase<AccessoriesMenu> {
+public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, AccessoriesMenu> implements AccessoriesScreenBase<AccessoriesMenu>, ContainerScreenExtension {
 
-    private static final ResourceLocation SLOT = Accessories.of("textures/gui/theme/light/slot.png");
+    private static final Logger LOGGER = LogUtils.getLogger();
+    private final @Nullable AbstractContainerScreen<AbstractContainerMenu> prevScreen;
 
-    private static final ResourceLocation ACCESSORIES_INVENTORY_LOCATION = Accessories.of("textures/gui/container/accessories_inventory.png");
+    public AccessoriesScreen(AccessoriesMenu handler, Inventory inventory, Component title) {
+        super(handler, inventory, title);
 
-    private static final ResourceLocation BACKGROUND_PATCH = Accessories.of("background_patch");
+        this.prevScreen = (Minecraft.getInstance().screen instanceof AbstractContainerScreen<?> prevScreen)
+                ? (AbstractContainerScreen<AbstractContainerMenu>) prevScreen
+                : null;
 
-    private static final ResourceLocation SCROLL_BAR_PATCH = Accessories.of("scroll_bar_patch");
-    private static final ResourceLocation SCROLL_BAR = Accessories.of("scroll_bar");
-
-    private static final ResourceLocation HORIZONTAL_TABS = Accessories.of("textures/gui/container/horizontal_tabs_small.png");
-
-    private static final WidgetSprites SPRITES_12X12 = new WidgetSprites(Accessories.of("widget/12x12/button"), Accessories.of("widget/12x12/button_disabled"), Accessories.of("widget/12x12/button_highlighted"));
-    public static final WidgetSprites SPRITES_8X8 = new WidgetSprites(Accessories.of("widget/8x8/button"), Accessories.of("widget/8x8/button_disabled"), Accessories.of("widget/8x8/button_highlighted"));
-
-    private static final ResourceLocation BACk_ICON = Accessories.of("widget/back");
-
-    private static final ResourceLocation LINE_HIDDEN = Accessories.of("widget/line_hidden");
-    private static final ResourceLocation LINE_SHOWN = Accessories.of("widget/line_shown");
-
-    private static final ResourceLocation UNUSED_SLOTS_HIDDEN = Accessories.of("widget/unused_slots_hidden");
-    private static final ResourceLocation UNUSED_SLOTS_SHOWN = Accessories.of("widget/unused_slots_shown");
-
-    private final Map<AccessoriesInternalSlot, ToggleButton> cosmeticButtons = new LinkedHashMap<>();
-
-    private int currentTabPage = 1;
-
-    private int scrollBarHeight = 0;
-
-    private boolean isScrolling = false;
-
-    public AccessoriesScreen(AccessoriesMenu menu, Inventory inventory, Component component) {
-        super(menu, inventory, Component.empty());
-
-        this.titleLabelX = 97;
         this.inventoryLabelX = 42069;
     }
 
-    private static final int upperPadding = 8;
-
-    public int getPanelHeight() {
-        return getPanelHeight(upperPadding);
-    }
-
-    public int getPanelHeight(int upperPadding) {
-        return 14 + (Math.min(menu.totalSlots, 8) * 18) + upperPadding;
-    }
-
-    public int getPanelWidth() {
-        int width = 8 + 18 + 18;
-
-        if (menu.isCosmeticsOpen()) width += 18 + 2;
-
-        if (!menu.overMaxVisibleSlots) width -= 12;
-
-        return width;
-    }
-
-    public int getStartingPanelX() {
-        int x = this.leftPos - ((menu.isCosmeticsOpen()) ? 72 : 52);
-
-        if (!menu.overMaxVisibleSlots) x += 12;
-
-        return x;
-    }
-
-    public int leftPos() {
-        return this.leftPos;
-    }
-
-    public int topPos() {
-        return this.topPos;
-    }
-
-    protected boolean insideScrollbar(double mouseX, double mouseY) {
-        int x = getStartingPanelX() + 13;
-        int y = this.topPos + 7 + upperPadding;
-
-        int height = getPanelHeight() - 22;
-        int width = 8;
-
-        return this.menu.overMaxVisibleSlots && (mouseX >= x && mouseY >= y && mouseX < (x + width) && mouseY < (y + height));
-    }
+    //--
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        var bl = super.mouseClicked(mouseX, mouseY, button);
-
-        if (this.getFocused() instanceof Button) this.clearFocus();
-
-        if (this.insideScrollbar(mouseX, mouseY)) {
-            this.isScrolling = true;
-
-            return true;
-        }
-
-        if (Accessories.config().screenOptions.showGroupTabs() && this.menu.maxScrollableIndex() > 0) {
-            int x = getStartingPanelX();
-            int y = this.topPos;
-
-            for (var value : this.getGroups(x, y).values()) {
-                if (!value.isInBounds((int) Math.round(mouseX), (int) Math.round(mouseY))) continue;
-
-                var index = value.startingIndex;
-
-                if (index > this.menu.maxScrollableIndex()) index = this.menu.maxScrollableIndex();
-
-                if (index != this.menu.scrolledIndex) {
-                    AccessoriesNetworking.sendToServer(new MenuScroll(index, false));
-
-                    Minecraft.getInstance().getSoundManager()
-                            .play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-                }
-
-                break;
-            }
-        }
-
-        return bl;
+    protected @NotNull OwoUIAdapter<FlowLayout> createAdapter() {
+        return OwoUIAdapter.create(this, Containers::verticalFlow);
     }
 
-    @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (!this.insideScrollbar(mouseX, mouseY) && button == GLFW.GLFW_MOUSE_BUTTON_1) this.isScrolling = false;
-
-        return super.mouseReleased(mouseX, mouseY, button);
+    protected FlowLayout rootComponent() {
+        return this.uiAdapter.rootComponent;
     }
 
-    private final List<Vector3d> hoveredAccessoryPositons = new ArrayList<>();
-    private final List<Line3d> linesToAccessoryPositions = new ArrayList<>();
+    private boolean rebuildComponentRectangles = true;
 
-    @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        int leftPos = this.leftPos;
-        int topPos = this.topPos;
+    private List<PositionedRectangle> componentRectangles = List.of();
 
-        guiGraphics.blit(
-                RenderType::guiTextured, ACCESSORIES_INVENTORY_LOCATION,
-                leftPos, topPos,
-                0f, 0f,
-                this.imageWidth, this.imageHeight,
-                256, 256
-        );
+    public List<PositionedRectangle> getComponentRectangles() {
+        if (rebuildComponentRectangles) {
+            var unpackRules = new ArrayDeque<List<Pair<Boolean, String>>>();
 
-        //--
+            unpackRules.push(List.of());
+            unpackRules.push(List.of(Pair.of(false, "armor_entity_layout"), Pair.of(true, "bottom_inventory_section")));
+            unpackRules.push(List.of(Pair.of(false, "outer_accessories_layout")));
 
-        var scissorStart = new Vector2i(leftPos + 26, topPos + 8);
-        var scissorEnd = new Vector2i(leftPos + 26 + 124, topPos + 8 + 70);
-        var size = new Vector2i((scissorEnd.x - scissorStart.x) / 2, scissorEnd.y - scissorStart.y);
+            var stream = rootComponent().children().stream();
 
-        // --
+            while (!unpackRules.isEmpty()) {
+                var ids = unpackRules.pollLast();
 
-        AccessoriesFunkyRenderingState.INSTANCE.wrapEntityRendering(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y, primaryEntityWrapCall -> {
-            primaryEntityWrapCall.accept(() -> {
-                renderEntityInInventoryFollowingMouseRotated(guiGraphics, scissorStart, size, scissorStart, scissorEnd, mouseX, mouseY, 0);
-            });
+                stream = stream.flatMap(component -> {
+                    if (component instanceof ParentComponent parent) {
+                        if (ids.isEmpty()) return parent.children().stream();
 
-            renderEntityInInventoryFollowingMouseRotated(guiGraphics, new Vector2i(scissorStart).add(size.x, 0), size, scissorStart, scissorEnd, mouseX, mouseY, 180);
-        });
+                        if (parent.id() != null) {
+                            for (var pair : ids) {
+                                if (pair.right().equals(parent.id())) {
+                                    var componentStream = parent.children().stream();
 
+                                    if (pair.left()) {
+                                        componentStream = Stream.concat(componentStream, Stream.of(parent));
+                                    }
 
-//        HOVERED_SLOT_TYPE = null;
-
-        //--
-
-        var pose = guiGraphics.pose();
-
-        pose.pushPose();
-        pose.translate(0.0F, 0.0F, 0);
-
-        int x = getStartingPanelX();
-        int y = this.topPos;
-
-        int height = getPanelHeight();
-        int width = getPanelWidth();
-
-        guiGraphics.blitSprite(RenderType::guiTextured, AccessoriesScreen.BACKGROUND_PATCH, x + 6, y, width, height); //147
-
-        if (menu.overMaxVisibleSlots) {
-            //guiGraphics.blitSprite(AccessoriesScreen.SCROLL_BAR_PATCH, x + 13, y + 7 + upperPadding, 8, height - 22);
-            guiGraphics.blitSprite(RenderType::guiTextured, AccessoriesScreen.SCROLL_BAR_PATCH, x + 13, y + 7 + upperPadding, 8, height - 22);
-        }
-
-        pose.popPose();
-
-        //--
-
-        pose.pushPose();
-        pose.translate(-1, -1, 0);
-
-//        for (Slot slot : this.menu.slots) {
-//            if (!(slot.container instanceof ExpandedSimpleContainer) || !slot.isActive()) continue;
-//
-//            if (slot instanceof AccessoriesInternalSlot accessoriesSlot && !accessoriesSlot.getItem().isEmpty()) {
-//                var positionKey = accessoriesSlot.accessoriesContainer.getSlotName() + accessoriesSlot.getContainerSlot();
-//
-//                var vec = NOT_VERY_NICE_POSITIONS.getOrDefault(positionKey, null);
-//
-//                if (!accessoriesSlot.isCosmetic && vec != null && (menu.areLinesShown())) {
-//                    var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
-//                    var vec3 = vec.add(0, 0, 5000);
-//
-//                    this.accessoryLines.add(Pair.of(start, vec3));}
-//            }
-//        }
-
-        this.menu.slots.forEach(slot -> {
-            if (!(slot.container instanceof ExpandedContainer) || !slot.isActive()) return;
-
-            guiGraphics.blit(RenderType::guiTextured, SLOT, slot.x + this.leftPos, slot.y + this.topPos, 0f, 0f,18, 18, 18, 18);
-        });
-
-        if (getHoveredSlot() != null && getHoveredSlot() instanceof AccessoriesInternalSlot slot && slot.isActive() && !slot.getItem().isEmpty()) {
-            var positions = AccessoriesFunkyRenderingState.INSTANCE.getNotVeryNicePositions();
-
-            if (positions.containsKey(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot())) {
-                hoveredAccessoryPositons.add(positions.get(slot.accessoriesContainer.getSlotName() + slot.getContainerSlot()));
-
-                var positionKey = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
-                var vec = positions.getOrDefault(positionKey, null);
-
-                if (!slot.isCosmetic && vec != null && (Accessories.config().screenOptions.hoveredOptions.line())) {
-                    var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
-                    var vec3 = vec.add(0, 0, 5000);
-
-                    linesToAccessoryPositions.add(new Line3d(start, vec3));
-                }
-            }
-        }
-
-        pose.popPose();
-    }
-
-    @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (insideScrollbar(mouseX, mouseY) || (Accessories.config().screenOptions.allowSlotScrolling() && this.hoveredSlot instanceof AccessoriesInternalSlot)) {
-            int index = (int) Math.max(Math.min(-scrollY + this.menu.scrolledIndex, this.menu.maxScrollableIndex()), 0);
-
-            if (index != menu.scrolledIndex) {
-                AccessoriesNetworking.sendToServer(new MenuScroll(index, false));
-
-                return true;
-            }
-        }
-
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
-    }
-
-    @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (this.isScrolling) {
-            int patchYOffset = this.topPos + 7 + upperPadding;
-            int height = getPanelHeight();
-
-            this.menu.smoothScroll = Mth.clamp((float) (mouseY - patchYOffset) / (height - 22f), 0.0f, 1.0f); //(menu.smoothScroll + (dragY / (getPanelHeight(upperPadding) - 24)))
-
-            int index = Math.round(this.menu.smoothScroll * this.menu.maxScrollableIndex());
-
-            if (index != menu.scrolledIndex) {
-                AccessoriesNetworking.sendToServer(new MenuScroll(index, true));
-
-                return true;
-            }
-        }
-
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
-    }
-
-    @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-
-        for (var cosmeticButton : this.cosmeticButtons.values()) {
-            cosmeticButton.render(guiGraphics, mouseX, mouseY, partialTick);
-        }
-
-        int x = getStartingPanelX();
-        int y = this.topPos;
-
-        int panelHeight = getPanelHeight();
-
-        if (this.menu.overMaxVisibleSlots) {
-            int startingY = y + upperPadding + 8;
-
-            startingY += this.menu.smoothScroll * (panelHeight - 24 - this.scrollBarHeight);
-
-            guiGraphics.blitSprite(RenderType::guiTextured, AccessoriesScreen.SCROLL_BAR, x + 14, startingY, 6, this.scrollBarHeight);
-        }
-
-        //--
-
-        var pose = guiGraphics.pose();
-
-        if (Accessories.config().screenOptions.showGroupTabs()) {
-            for (var entry : getGroups(x, y).entrySet()) {
-                var group = entry.getKey();
-                var pair = entry.getValue();
-
-                var vector = pair.dimensions();
-
-                int v = (pair.isSelected()) ? vector.w : vector.w * 3;
-
-                guiGraphics.blit(RenderType::guiTextured, HORIZONTAL_TABS, vector.x, vector.y, 0, v, vector.z, vector.w, 19, vector.w * 4); //32,128
-
-                pose.pushPose();
-
-                pose.translate(vector.x + 3, vector.y + 3, 0);
-                pose.translate(1, 1, 0);
-
-                if (pair.isSelected) pose.translate(2, 0, 0);
-
-                guiGraphics.blitSprite(RenderType::guiTextured, group.icon(), 0, 0, 8, 8);
-
-                pose.popPose();
-            }
-        }
-
-        //--
-
-        if (Accessories.config().screenOptions.hoveredOptions.clickbait()) {
-            hoveredAccessoryPositons.forEach(pos -> guiGraphics.blitSprite(RenderType::guiTextured, Accessories.of("highlight/clickbait"), (int) pos.x - 128, (int) pos.y - 128, 100, 256, 256));
-            hoveredAccessoryPositons.clear();
-        }
-
-        this.renderTooltip(guiGraphics, mouseX, mouseY);
-
-
-
-        if (!linesToAccessoryPositions.isEmpty() && Accessories.config().screenOptions.hoveredOptions.line()) {
-            guiGraphics.drawSpecial(multiBufferSource -> {
-                var buf = multiBufferSource.getBuffer(RenderType.LINES);
-                var lastPose = guiGraphics.pose().last();
-
-                for (Line3d line : linesToAccessoryPositions) {
-                    var normalVec = line.p2().sub(line.p1(), new Vector3d()).normalize().get(new Vector3f());
-
-                    double segments = Math.max(10, ((int) (line.p1().distance(line.p2()) * 10)) / 100);
-                    segments *= 2;
-
-                    var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
-                    var delta = movement % (2 / (segments)) % segments;
-
-                    var firstVec = line.p1().get(new Vector3f());
-
-                    if (delta > 0.05) {
-                        DrawUtils.addToVertexBuffer(buf, firstVec, lastPose, normalVec);
-                        DrawUtils.addToVertexBuffer(buf, line.lerpPoint(delta - 0.05), lastPose, normalVec);
+                                    return componentStream;
+                                }
+                            }
+                        }
                     }
 
-                    for (int i = 0; i < segments / 2; i++) {
-                        var delta1 = ((i * 2) / segments + movement) % 1;
-                        var delta2 = ((i * 2 + 1) / segments + movement) % 1;
+                    return Stream.of(component);
+                });
+            }
 
-                        var pos1 = line.lerpPoint(delta1);
-                        var pos2 = (delta2 > delta1 ? line.lerpPoint(delta2) : line.p2().get(new Vector3f()));
+            this.componentRectangles = stream
+                    .map(component -> (PositionedRectangle) component)
+                    .toList();
 
-                        DrawUtils.addToVertexBuffer(buf, pos1, lastPose, normalVec);
-                        DrawUtils.addToVertexBuffer(buf, pos2, lastPose, normalVec);
-                    }
-                }
-
-                minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
-
-                linesToAccessoryPositions.clear();
-            });
+            this.rebuildComponentRectangles = false;
         }
+
+        return componentRectangles;
     }
 
-    private Button cosmeticToggleButton = null;
+    @Override
+    public <C extends io.wispforest.owo.ui.core.Component> C component(Class<C> expectedClass, String id) {
+        return super.component(expectedClass, id);
+    }
 
-    private Button unusedSlotsToggleButton = null;
+    //--
 
-    private Button tabUpButton = null;
-    private Button tabDownButton = null;
+    private final Map<Integer, Boolean> changedSlots = new HashMap<>();
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+
+        if (this.changedSlots.isEmpty()) return;
+
+        var slots = this.getMenu().slots;
+
+        var changes = this.changedSlots.entrySet().stream()
+                .filter(entry -> entry.getKey() < slots.size())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        this.getMenu().sendMessage(new ToggledSlots(changes));
+
+        this.changedSlots.clear();
+    }
+
+    public void hideSlot(int index) {
+        hideSlot(this.menu.slots.get(index));
+    }
+
+    public void hideSlot(Slot slot) {
+        ((SlotAccessor) slot).owo$setX(-300);
+        ((SlotAccessor) slot).owo$setY(-300);
+    }
+
+    @Override
+    public void disableSlot(Slot slot) {
+        super.disableSlot(slot);
+
+        var index = slot.index;
+
+        // If present check result is enabled, else update as a changeed slot
+        if (this.changedSlots.getOrDefault(index, false)) return;
+
+        hideSlot(index);
+
+        this.changedSlots.put(index, true);
+    }
+
+    @Override
+    public void enableSlot(Slot slot) {
+        super.enableSlot(slot);
+
+        var index = slot.index;
+
+        // If present check result is disabled, else update as a changed slot
+        if (!this.changedSlots.getOrDefault(index, true)) return;
+
+        this.changedSlots.put(index, false);
+    }
+
+    //--
+
+    @Override
+    public Slot getHoveredSlot() {
+        return this.hoveredSlot;
+    }
+
+    @Override
+    @Nullable
+    public Boolean isHovering_Logical(Slot slot, double mouseX, double mouseY) {
+        var accessories = this.topComponent;
+
+        return (accessories != null) ? accessories.isHovering_Logical(slot, mouseX, mouseY) : null;
+    }
+
+    //--
+
+    @Override
+    public void onClose() {
+        var selectedGroups = this.getMenu().selectedGroups().stream()
+                .map(SlotGroup::name)
+                .collect(Collectors.toSet());
+
+        AccessoriesNetworking
+                .sendToServer(SyncOptionChange.of(PlayerOptions.FILTERED_GROUPS, selectedGroups));
+
+        super.onClose();
+    }
 
     @Override
     protected void init() {
@@ -433,258 +231,70 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
         }
 
         super.init();
-
-        this.currentTabPage = 1;
-
-        this.cosmeticButtons.clear();
-
-        this.addRenderableWidget(
-                Button.builder(Component.empty(), (btn) -> this.switchToBaseInventory())
-                        .bounds(this.leftPos + 141, this.topPos + 9, 8, 8)
-                        .tooltip(Tooltip.create(Component.translatable(Accessories.translationKey("back.screen"))))
-                        .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-            guiGraphics.blitSprite(RenderType::guiTextured, SPRITES_8X8.get(button.active, button.isHoveredOrFocused()), x, y, width, height, ARGB.white(/*button.alpha*/1.0f));
-
-            var pose = guiGraphics.pose();
-
-            pose.pushPose();
-            pose.translate(0.5, 0.5, 0.0);
-
-            guiGraphics.blitSprite(RenderType::guiTextured, BACk_ICON, x, y, width - 1, height - 1);
-
-            pose.popPose();
-
-            return true;
-        });
-
-        var cosmeticsOpen = this.menu.isCosmeticsOpen();
-
-        this.cosmeticToggleButton = this.addRenderableWidget(
-                Button.builder(Component.empty(), (btn) -> {
-                            AccessoriesNetworking
-                                    .sendToServer(SyncOptionChange.of(PlayerOptions.SHOW_COSMETIC_SLOTS, this.getMenu().owner(), bl -> !bl));
-                        })
-                        .tooltip(cosmeticsToggleTooltip(cosmeticsOpen))
-                        .bounds(this.leftPos - 27 + (cosmeticsOpen ? -20 : 0), this.topPos + 7, (cosmeticsOpen ? 38 : 18), 6)
-                        .build());
-
-        var btnOffset = this.topPos + 7;
-
-        this.unusedSlotsToggleButton = this.addRenderableWidget(
-                Button.builder(Component.empty(), (btn) -> {
-                            AccessoriesNetworking
-                                    .sendToServer(SyncOptionChange.of(PlayerOptions.SHOW_UNUSED_SLOTS, this.getMenu().owner(), bl -> !bl));
-                        })
-                        .tooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()))
-                        .bounds(this.leftPos + 154, btnOffset, 12, 12)
-                        .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-            guiGraphics.blitSprite(RenderType::guiTextured, SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height, ARGB.white(/*button.alpha*/1.0f));
-            guiGraphics.blitSprite(RenderType::guiTextured, (this.menu.areUnusedSlotsShown() ? UNUSED_SLOTS_SHOWN : UNUSED_SLOTS_HIDDEN), x, y, width, height);
-
-            return true;
-        });
-
-        btnOffset += 15;
-
-//        if (Accessories.getConfig().clientData.showLineRendering) {
-//            this.linesToggleButton = this.addRenderableWidget(
-//                    Button.builder(Component.empty(), (btn) -> {
-//                                AccessoriesNetworking
-//                                        .sendToServer(SyncHolderChange.of(HolderProperty.LINES_PROP, this.getMenu().owner(), bl -> !bl));
-//                            })
-//                            .bounds(this.leftPos + 154, btnOffset, 12, 12)
-//                            //.bounds(this.leftPos - (this.menu.isCosmeticsOpen() ? 59 : 39), this.topPos + 7, 8, 6)
-//                            .build()).adjustRendering((button, guiGraphics, sprite, x, y, width, height) -> {
-//                guiGraphics.blitSprite(SPRITES_12X12.get(button.active, button.isHoveredOrFocused()), x, y, width, height);
-//                guiGraphics.blitSprite((this.menu.areLinesShown() ? LINE_SHOWN : LINE_HIDDEN), x, y, width, height);
-//
-//                return true;
-//            });
-//        }
-
-        int accessoriesSlots = 0;
-
-        for (Slot slot : this.menu.slots) {
-            if (!(slot instanceof AccessoriesInternalSlot accessoriesSlot && !accessoriesSlot.isCosmetic)) continue;
-
-            var slotButton = ToggleButton.ofSlot(slot.x + this.leftPos + 13, slot.y + this.topPos - 2, 300, accessoriesSlot);
-
-            slotButton.visible = accessoriesSlot.isActive();
-            slotButton.active = accessoriesSlot.isActive();
-
-            cosmeticButtons.put(accessoriesSlot, this.addWidget(slotButton));
-
-            accessoriesSlots++;
-        }
-
-        if (tabPageCount() > 1) {
-            this.tabDownButton = this.addRenderableWidget(
-                    Button.builder(Component.literal("⬆"), button -> this.onTabPageChange(true))
-                            .bounds(this.leftPos - 56, this.topPos - 11, 10, 10)
-                            .build());
-
-            this.tabDownButton.active = false;
-
-            var height = getPanelHeight();
-
-            this.tabUpButton = this.addRenderableWidget(
-                    Button.builder(Component.literal("⬇"), button -> this.onTabPageChange(false))
-                            .bounds(this.leftPos - 56, this.topPos + height + 0, 10, 10)
-                            .build());
-
-            this.tabUpButton.setTooltip(Tooltip.create(Component.literal("Page 2")));
-
-            this.tabUpButton.active = tabPageCount() != 1;
-        }
-
-        this.menu.setScrollEvent(this::updateAccessoryToggleButtons);
-
-        this.scrollBarHeight = Mth.lerpInt(Math.min(accessoriesSlots / 20f, 1.0f), 101, 31);
-
-        if (this.scrollBarHeight % 2 == 0) this.scrollBarHeight++;
-    }
-
-    private void onTabPageChange(boolean isDown) {
-        if ((this.currentTabPage <= 1 && isDown) || (this.currentTabPage > tabPageCount() && !isDown)) {
-            return;
-        }
-
-        this.currentTabPage += (isDown) ? -1 : 1;
-
-        var lowerLabel = "Page " + (this.currentTabPage - 1);
-        var upperLabel = "Page " + (this.currentTabPage + 1);
-
-        this.tabDownButton.setTooltip(Tooltip.create(Component.literal(lowerLabel)));
-        this.tabUpButton.setTooltip(Tooltip.create(Component.literal(upperLabel)));
-
-//        this.tabDownButton.setMessage(Component.literal(lowerLabel));
-//        this.tabUpButton.setMessage(Component.literal(upperLabel));
-
-        if (this.currentTabPage <= 1) {
-            this.tabDownButton.active = false;
-        } else if (!this.tabDownButton.active) {
-            this.tabDownButton.active = true;
-        }
-
-        if (this.currentTabPage >= tabPageCount()) {
-            this.tabUpButton.active = false;
-        } else if (!this.tabUpButton.active) {
-            this.tabUpButton.active = true;
-        }
     }
 
     @Override
-    public void onHolderChange(PlayerOption<?> option) {
-        switch (option.name()) {
-            case "lines" -> updateLinesButton();
-            case "cosmetic" -> updateCosmeticToggleButton();
-            case "unused_slots" -> updateUnusedSlotToggleButton();
+    public boolean shouldCloseOnEsc() {
+        if (this.getOption(PlayerOptions.ADVANCED_SETTINGS)) {
+            toggleAdvancedOptions(this.component(ButtonComponent.class, "advanced_options_btn"));
+
+            return false;
         }
+
+        return super.shouldCloseOnEsc();
     }
 
-    public void updateLinesButton() {
-//        if (Accessories.getConfig().clientData.showLineRendering) {
-//            this.linesToggleButton.setTooltip(linesToggleTooltip(this.menu.areLinesShown()));
-//        }
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (AccessoriesClient.OPEN_SCREEN.matches(keyCode, scanCode)) {
+            this.onClose();
+            return true;
+        }
+
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE && this.getOption(PlayerOptions.ADVANCED_SETTINGS)) {
+            toggleAdvancedOptions(this.component(ButtonComponent.class, "advanced_options_btn"));
+
+            return false;
+        }
+
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
-    public void updateCosmeticToggleButton() {
-        var btn = this.cosmeticToggleButton;
-        btn.setWidth(this.menu.isCosmeticsOpen() ? 38 : 18);
-        btn.setX(btn.getX() + (this.menu.isCosmeticsOpen() ? -20 : 20));
-        btn.setTooltip(cosmeticsToggleTooltip(this.menu.isCosmeticsOpen()));
-    }
-
-    public void updateUnusedSlotToggleButton() {
-        this.unusedSlotsToggleButton.setTooltip(unusedSlotsToggleButton(this.menu.areUnusedSlotsShown()));
-        this.menu.reopenMenu();
-    }
-
-    public void updateAccessoryToggleButtons() {
-        for (var entry : cosmeticButtons.entrySet()) {
-            var accessoriesSlot = entry.getKey();
-            var btn = entry.getValue();
-
-            if (!accessoriesSlot.isActive()) {
-                btn.active = false;
-                btn.visible = false;
-            } else {
-                btn.setTooltip(toggleTooltip(accessoriesSlot.accessoriesContainer.shouldRender(accessoriesSlot.getContainerSlot())));
-
-                btn.setX(accessoriesSlot.x + this.leftPos + 13);
-                btn.setY(accessoriesSlot.y + this.topPos - 2);
-
-                btn.toggled(accessoriesSlot.accessoriesContainer.shouldRender(accessoriesSlot.getContainerSlot()));
-
-                btn.active = true;
-                btn.visible = true;
+    @Override
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop, int mouseButton) {
+        for (var rect : getComponentRectangles()) {
+            if (rect.isInBoundingBox(mouseX, mouseY)) {
+                return false;
             }
         }
+
+        return true;
     }
 
-    private static Tooltip cosmeticsToggleTooltip(boolean value) {
-        return createToggleTooltip("slot.cosmetics", value);
-    }
+    //--
 
-    private static Tooltip linesToggleTooltip(boolean value) {
-        return createToggleTooltip("lines", value);
-    }
-
-    private static Tooltip unusedSlotsToggleButton(boolean value) {
-        return createToggleTooltip("unused_slots", value);
-    }
-
-    private static Tooltip uniqueSlotsToggleButton(boolean value) {
-        return createToggleTooltip("unique_slots", value);
-    }
-
-    private static Tooltip toggleTooltip(boolean value) {
-        return createToggleTooltip("display", value);
-    }
-
-    private static Tooltip createToggleTooltip(String type, boolean value) {
-        var key = type + ".toggle." + (!value ? "show" : "hide");
-
-        return Tooltip.create(Component.translatable(Accessories.translationKey(key)));
-    }
-
-    @Override
-    public @Nullable Boolean isHovering_Logical(Slot slot, double mouseX, double mouseY) {
-        for (var child : this.children()) {
-            if (child instanceof ToggleButton btn && btn.isMouseOver(mouseX, mouseY)) return false;
-        }
-
-        return ContainerScreenExtension.super.isHovering_Logical(slot, mouseX, mouseY);
-    }
+//    @Override
+//    protected int getLayerZOffset(HandledScreenLayer layer) {
+//        if(layer == HandledScreenLayer.CURSOR_ITEM || layer == HandledScreenLayer.ITEM_TOOLTIP) {
+//            return 600;
+//        }
+//
+//        return super.getLayerZOffset(layer);
+//    }
 
     @Override
     protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
-        if (this.hoveredSlot instanceof AccessoriesInternalSlot slot) {
-            AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(true);
-
-            if (slot.getItem().isEmpty() && slot.accessoriesContainer.slotType() != null) {
-                guiGraphics.renderTooltip(Minecraft.getInstance().font, slot.getTooltipData(), Optional.empty(), x, y);
-
-                return;
-            }
-        }
-
-        if (Accessories.config().screenOptions.showGroupTabs()) {
-            int panelX = getStartingPanelX();
-            int panelY = this.topPos;
-
-            for (var entry : getGroups(panelX, panelY).entrySet()) {
-                if (!entry.getValue().isInBounds(x, y)) continue;
-
-                var tooltipData = new ArrayList<Component>();
-                var group = entry.getKey();
-
-                tooltipData.add(Component.translatable(group.translation()));
-                if (UniqueSlotHandling.isUniqueGroup(group.name(), true)) tooltipData.add(Component.literal(group.name()).withStyle(ChatFormatting.BLUE, ChatFormatting.ITALIC));
-
-                guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltipData, Optional.empty(), x, y);
-
-                break;
+        if(this.hoveredSlot != null) {
+            if (this.hoveredSlot instanceof AccessoriesInternalSlot accessoriesInternalSlot) {
+                if (!ArmorSlotTypes.isArmorType(accessoriesInternalSlot.slotName())) {
+                    AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(this.getOption(PlayerOptions.MAIN_WIDGET_POSITION));
+                }
+            } else if (this.hoveredSlot instanceof ArmorSlot) {
+                AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(true);
+            } else if (this.hoveredSlot.container instanceof TransientCraftingContainer || this.hoveredSlot instanceof ResultSlot) {
+                if (!(boolean) this.getOption(PlayerOptions.SHOW_GROUP_FILTER)) {
+                    AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(!(boolean) this.getOption(PlayerOptions.MAIN_WIDGET_POSITION));
+                }
             }
         }
 
@@ -694,178 +304,926 @@ public class AccessoriesScreen extends AbstractContainerScreen<AccessoriesMenu> 
     }
 
     @Override
-    protected boolean hasClickedOutside(double mouseX, double mouseY, int x, int y, int mouseButton) {
-        int leftPos = this.leftPos;
-        int topPos = this.topPos;
+    protected void drawComponentTooltip(GuiGraphics drawContext, int mouseX, int mouseY, float tickDelta) {
+        //drawContext.push().translate(0,0, 300);
+        super.drawComponentTooltip(drawContext, mouseX, mouseY, tickDelta);
+        //drawContext.pop();
+    }
 
-        boolean insideMainPanel = (mouseX >= leftPos && mouseX <= leftPos + this.imageWidth)
-                && (mouseY >= topPos && mouseY <= topPos + this.imageHeight);
+    @Override
+    protected List<Component> getTooltipFromContainerItem(ItemStack itemStack) {
+        var tooltipData = getTooltipFromItem(this.minecraft, itemStack);
 
-        int sidePanelX = getStartingPanelX();
-        int sidePanelY = topPos;
+        if (Accessories.config().screenOptions.showEquippedStackSlotType()
+                && this.menu.getCarried().isEmpty()
+                && this.hoveredSlot != null
+                && this.hoveredSlot.hasItem()
+                && this.hoveredSlot instanceof AccessoriesBasedSlot slot && ExtraSlotTypeProperties.getProperty(slot.slotName(), true).allowTooltipInfo()) {
+            var hoveredStack = this.hoveredSlot.getItem();
 
-        boolean insideSidePanel = (mouseX >= sidePanelX && mouseX <= sidePanelX + this.getPanelWidth() + this.imageWidth)
-                && (mouseY >= sidePanelY && mouseY <= sidePanelY + this.getPanelHeight());
-
-        boolean insideGroupPanel = false;
-
-        if (Accessories.config().screenOptions.showGroupTabs() && this.menu.maxScrollableIndex() > 0) {
-            for (var value : this.getGroups(sidePanelX, sidePanelY).values()) {
-                if (value.isInBounds((int) Math.round(mouseX), (int) Math.round(mouseY))) {
-                    insideGroupPanel = true;
-                    break;
-                }
+            if (itemStack == hoveredStack) {
+                tooltipData.add(Component.empty());
+                tooltipData.add(
+                        Component.translatable(Accessories.translationKey("tooltip.currently_equipped_in"))
+                                .withStyle(ChatFormatting.GRAY)
+                                .append(
+                                        Component.translatable(slot.slotType().translation())
+                                                .withStyle(ChatFormatting.BLUE)
+                                )
+                );
             }
         }
 
-        return !(insideMainPanel || insideSidePanel || insideGroupPanel);
+        return tooltipData;
     }
 
-    public static int tabPageCount() {
-        var groups = SlotGroupLoader.INSTANCE.getGroups(true, true);
+    private final List<Vector3d> hoveredAccessoryPositons = new ArrayList<>();
+    private final List<Line3d> linesToAccessoryPositions = new ArrayList<>();
 
-        return (int) Math.ceil(groups.size() / 9f);
-    }
+    @Override
+    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+        super.renderBg(guiGraphics, partialTick, mouseX, mouseY);
 
-    // MAX 9
-    private Map<SlotGroup, SlotGroupData> getGroups(int x, int y) {
-        var groups = this.getMenu().validGroups().stream()
-                .sorted(Comparator.comparingInt(SlotGroup::order).reversed())
-                .toList();
+        //--
 
-        if (tabPageCount() > 1) {
-            var lowerBound = (this.currentTabPage - 1) * 9;
-            var upperBound = lowerBound + 9;
+        if (getHoveredSlot() != null && getHoveredSlot() instanceof AccessoriesInternalSlot slot && slot.isActive() && !slot.getItem().isEmpty()) {
+            var positions = AccessoriesFunkyRenderingState.INSTANCE.getNotVeryNicePositions();
 
-            if (upperBound > groups.size()) upperBound = groups.size();
+            var positionKey = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
 
-            groups = groups.subList(lowerBound, upperBound);
-        }
+            if (positions.containsKey(positionKey)) {
+                hoveredAccessoryPositons.add(positions.get(positionKey));
 
-        var bottomIndex = this.menu.scrolledIndex;
-        var upperIndex = bottomIndex + 8 - 1;
+                var vec = positions.get(positionKey);
 
-        var scrollRange = Range.between(bottomIndex, upperIndex, Integer::compareTo);
+                if (!slot.isCosmetic && vec != null && (Accessories.config().screenOptions.hoveredOptions.line())) {
+                    var start = new Vector3d(slot.x + this.leftPos + 17, slot.y + this.topPos + 9, 5000);
+                    var vec3 = vec.add(0, 0, 5000);
 
-        var targetEntity = this.targetEntityDefaulted();
-        var containers = targetEntity.accessoriesCapability().getContainers();
-
-        var slotToSize = new HashMap<String, Integer>();
-
-        for (var slotType : EntitySlotLoader.getEntitySlots(targetEntity).values()) {
-            var usedSlots = this.getMenu().usedSlots();
-            if (usedSlots != null && !usedSlots.contains(slotType)) continue;
-
-            var container = containers.get(slotType.name());
-            if(container == null) continue;
-
-            slotToSize.put(slotType.name(), container.getAccessories().getContainerSize());
-        }
-
-        int currentIndexOffset = 0;
-
-        var groupToIndex = new HashMap<SlotGroup, Integer>();
-        var selectedGroup = new HashSet<String>();
-
-        for (var group : groups) {
-            var groupSize = slotToSize.entrySet().stream()
-                    .filter(entry -> group.slots().contains(entry.getKey()))
-                    .mapToInt(Map.Entry::getValue)
-                    .sum();
-
-            if (groupSize <= 0) continue;
-
-            var groupMinIndex = currentIndexOffset;
-            var groupMaxIndex = groupMinIndex + groupSize - 1;
-
-            var groupRange = Range.between(groupMinIndex, groupMaxIndex, Integer::compareTo);
-
-            if (groupRange.isOverlappedBy(scrollRange)) {
-                selectedGroup.add(group.name());
+                    linesToAccessoryPositions.add(new Line3d(start, vec3));}
             }
-
-            groupToIndex.put(group, groupMinIndex);
-
-            currentIndexOffset += groupSize;
         }
-
-        int maxHeight = getPanelHeight() - 4;
-
-        int width = 19;//32;
-        int height = 16;//28;
-
-        int tabY = y + 4;
-        int tabX = x - (width - 10);
-
-        int yOffset = 0;
-
-        var groupValues = new HashMap<SlotGroup, SlotGroupData>();
-
-        for (var group : groups) {
-            if ((yOffset + height) > maxHeight) break;
-
-            var selected = selectedGroup.contains(group.name());
-
-            int xOffset = (selected) ? 0 : 2;
-
-            var index = groupToIndex.get(group);
-
-            if (index == null) continue;
-
-            groupValues.put(group, new SlotGroupData(new Vector4i(tabX + xOffset, tabY + yOffset, width - xOffset, height), selected, index));
-
-            yOffset += height + 1;
-        }
-
-        return groupValues;
     }
 
-    private static SlotGroupImpl copy(SlotGroup group) {
-        return new SlotGroupImpl(group.name() + 1, group.order(), group.slots(), group.icon());
-    }
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        this.renderBg(guiGraphics, partialTick, mouseX, mouseY);
 
-    private record SlotGroupData(Vector4i dimensions, boolean isSelected, int startingIndex) {
-        private boolean isInBounds(int x, int y) {
-            return (x > dimensions.x) && (y > dimensions.y) && (x < dimensions.x + dimensions.z) && (y < dimensions.y + dimensions.w);
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
+
+        if (Accessories.config().screenOptions.hoveredOptions.clickbait()) {
+            hoveredAccessoryPositons.forEach(pos -> {
+                        DrawUtils.blitSprite(
+                                guiGraphics,
+                                Accessories.of("highlight/clickbait"),
+                                (int) pos.x - 128, (int) pos.y - 128, 450, 256, 256);
+                    });
+            hoveredAccessoryPositons.clear();
+        }
+
+        if (!linesToAccessoryPositions.isEmpty() || Accessories.config().screenOptions.hoveredOptions.line()) {
+//            guiGraphics.drawSpecial(multiBufferSource -> {
+//                var buf = multiBufferSource.getBuffer(RenderType.LINES);
+//
+//                var lastPose = guiGraphics.pose().last();
+//
+//                for (Line3d line : linesToAccessoryPositions) {
+//                    var endPoint = line.p2();
+//
+//                    if (endPoint.x == 0 || endPoint.y == 0) continue;
+//
+//                    var normalVec = endPoint.sub(line.p1(), new Vector3d()).normalize().get(new Vector3f());
+//
+//                    double segments = Math.max(10, ((int) (line.p1().distance(line.p2()) * 10)) / 100);
+//                    segments *= 2;
+//
+//                    var movement = (System.currentTimeMillis() / (segments * 1000) % 1);
+//                    var delta = movement % (2 / (segments)) % segments;
+//
+//                    var firstVec = line.p1().get(new Vector3f());
+//
+//                    if (delta > 0.05) {
+//                        DrawUtils.addToVertexBuffer(buf, firstVec, lastPose, normalVec);
+//                        DrawUtils.addToVertexBuffer(buf, line.lerpPoint(delta - 0.05), lastPose, normalVec);
+//                    }
+//
+//                    for (int i = 0; i < segments / 2; i++) {
+//                        var delta1 = ((i * 2) / segments + movement) % 1;
+//                        var delta2 = ((i * 2 + 1) / segments + movement) % 1;
+//
+//                        var pos1 = line.lerpPoint(delta1);
+//                        var pos2 = (delta2 > delta1 ? line.lerpPoint(delta2) : line.p2().get(new Vector3f()));
+//
+//                        DrawUtils.addToVertexBuffer(buf, pos1, lastPose, normalVec);
+//                        DrawUtils.addToVertexBuffer(buf, pos2, lastPose, normalVec);
+//                    }
+//                }
+//            });
+
+            minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
+
+            linesToAccessoryPositions.clear();
         }
     }
 
     //--
 
-    private void renderEntityInInventoryFollowingMouseRotated(GuiGraphics guiGraphics, Vector2i pos, Vector2i size, Vector2i scissorStart, Vector2i scissorEnd, float mouseX, float mouseY, float rotation) {
-        int scale = 30;
-        float yOffset = 0.0625F;
-        var entity = this.targetEntityDefaulted();
+    public void showCosmeticState(boolean value) {
+        this.setOption(PlayerOptions.SHOW_COSMETIC_SLOTS, value);
 
-        float f = (float) (pos.x + pos.x + size.x) / 2.0F;
-        float g = (float) (pos.y + pos.y + size.y) / 2.0F;
-        guiGraphics.enableScissor(scissorStart.x, scissorStart.y, scissorEnd.x, scissorEnd.y);
-        float h = (float) Math.atan(((scissorStart.x + scissorStart.x + size.x) / 2f - mouseX) / 40.0F);
-        float i = (float) Math.atan(((scissorStart.y + scissorStart.y + size.y) / 2f - mouseY) / 40.0F);
-        Quaternionf quaternionf = (new Quaternionf()).rotateZ(3.1415927F).rotateY((float) (rotation * (Math.PI / 180)));
-        Quaternionf quaternionf2 = (new Quaternionf()).rotateX(i * 20.0F * 0.017453292F);
-        quaternionf.mul(quaternionf2);
-        float j = entity.yBodyRot;
-        float k = entity.getYRot();
-        float l = entity.getXRot();
-        float m = entity.yHeadRotO;
-        float n = entity.yHeadRot;
-        entity.yBodyRot = 180.0F + h * 30.0F;
-        entity.setYRot(180.0F + h * 40.0F);
-        entity.setXRot(-i * 20.0F);
-        entity.yHeadRot = entity.getYRot();
-        entity.yHeadRotO = entity.getYRot();
-        Vector3f vector3f = new Vector3f(0.0F, entity.getBbHeight() / 2.0F + yOffset, 0.0F);
-        InventoryScreen.renderEntityInInventory(guiGraphics, f, g, scale, vector3f, quaternionf, quaternionf2, entity);
-        entity.yBodyRot = j;
-        entity.setYRot(k);
-        entity.setXRot(l);
-        entity.yHeadRotO = m;
-        entity.yHeadRot = n;
-        guiGraphics.disableScissor();
+        AccessoriesNetworking.sendToServer(PlayerOptions.SHOW_COSMETIC_SLOTS.toPacket(value));
     }
 
-    public Slot getHoveredSlot() {
-        return this.hoveredSlot;
+    public boolean showCosmeticState() {
+        return this.getOption(PlayerOptions.SHOW_COSMETIC_SLOTS);
+    }
+
+    @Override
+    protected void build(FlowLayout rootComponent) {
+        this.changedSlots.clear();
+
+        this.getMenu().slots.forEach(this::disableSlot);
+
+        //--
+
+        rootComponent.allowOverflow(true)
+                .horizontalAlignment(HorizontalAlignment.CENTER)
+                .verticalAlignment(VerticalAlignment.CENTER)
+                .surface(Surface.VANILLA_TRANSLUCENT);
+
+        var baseChildren = new ArrayList<io.wispforest.owo.ui.core.Component>();
+
+        var accessoriesComponent = createAccessoriesComponent();
+
+        //--
+
+        var menu = this.getMenu();
+
+        SlotGroupLoader.getValidGroups(this.getMenu().targetEntityDefaulted()).keySet().stream()
+                .filter(group -> this.getOption(PlayerOptions.FILTERED_GROUPS).contains(group.name()))
+                .forEach(menu::addSelectedGroup);
+
+        //--
+
+        var playerInv = ComponentUtils.createPlayerInv(5, menu.startingAccessoriesSlot(), this::slotAsComponent, this::enableSlot);
+
+        this.setOption(PlayerOptions.ADVANCED_SETTINGS, false);
+
+        var offHandIndex = this.getMenu().startingAccessoriesSlot() - 1;
+
+        this.enableSlot(offHandIndex);
+
+        var offhandComponent = Containers.verticalFlow(Sizing.content(), Sizing.content())
+                .child(this.slotAsComponent(offHandIndex).margins(Insets.of(1)))
+                .padding(Insets.of(7, 7, 7, 4))
+                .allowOverflow(true);
+
+        var bottomInvComponent = new FlowLayout(Sizing.content(), Sizing.content(), FlowLayout.Algorithm.HORIZONTAL){
+            @Override
+            public boolean isInBoundingBox(double x, double y) {
+                return super.isInBoundingBox(x, y)
+                    || offhandComponent.isInBoundingBox(x, y);
+            }
+        }
+                 .child(
+                        Containers.verticalFlow(Sizing.content(), Sizing.content()) // Sizing.expand()
+                                .child(offhandComponent)
+                                .allowOverflow(true)
+                                .positioning(Positioning.absolute(-(18 + 4 + 7), 51))
+                                .zIndex(10)
+//                                .margins(Insets.top(54 + 4))
+                )
+                .child(
+                        Containers.verticalFlow(Sizing.fixed(162), Sizing.fixed(76))
+                                .child(playerInv)
+//                                        .margins(Insets.left(4))
+                                .id("bottom_component_holder")
+                )
+                .child(
+                        Containers.verticalFlow(Sizing.content(), Sizing.content())
+                                .positioning(Positioning.absolute(162, -7))
+                                .configure((FlowLayout component) -> {
+                                    if (this.getOption(PlayerOptions.SHOW_CRAFTING_GRID)) {
+                                        component.child(createCraftingGrid());
+                                    }
+                                })
+                                .id("crafting_grid_layout")
+                )
+                .padding(Insets.of(7)/*.add(0,0,0,22)*/)
+                .surface((ctx, component) -> {
+//                            ComponentUtils.getPanelSurface().draw(ctx, component);
+//                            ComponentUtils.BACKGROUND_SLOT_RENDERING_SURFACE.draw(ctx, component);
+
+                    var showCraftingGrid = this.getOption(PlayerOptions.SHOW_CRAFTING_GRID);
+                    var width = showCraftingGrid ? 238 : 198;
+
+                    DrawUtils.blit(
+                            ctx,
+                            Accessories.of("textures/gui/theme/" + ComponentUtils.checkMode("light", "dark") + "/player_inv/" + (showCraftingGrid ? "with" : "without") + "_crafting.png"),
+                            component.x() - (18 + 4), component.y(), width, 90
+                    );
+                })
+                .allowOverflow(true)
+                .id("bottom_inventory_section");
+
+        baseChildren.add(bottomInvComponent);
+
+
+        //--
+
+        var primaryLayout = (FlowLayout) Containers.horizontalFlow(Sizing.content(), Sizing.fixed(140))
+                .gap(2)
+                .horizontalAlignment(HorizontalAlignment.CENTER)
+                .id("armor_entity_layout");
+
+        {
+            var armorSlotsLayout = Containers.verticalFlow(Sizing.content(), Sizing.content())
+                    .configure((FlowLayout layout) -> layout.allowOverflow(true));
+
+            var outerLeftArmorLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content())
+                    .child(armorSlotsLayout);
+
+            var cosmeticArmorSlotsLayout = Containers.verticalFlow(Sizing.content(), Sizing.content())
+                            .configure((FlowLayout layout) -> layout.allowOverflow(true));
+
+            var outerRightArmorLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content())
+                    .child(cosmeticArmorSlotsLayout);
+
+            for (int i = 0; i < menu.addedArmorSlots() / 2; i++) {
+                var armor = menu.startingAccessoriesSlot() + (i * 2);
+                var cosmeticArmor = armor + 1;
+
+                this.enableSlot(armor);
+                this.enableSlot(cosmeticArmor);
+
+                armorSlotsLayout.child(this.slotAsComponent(armor).margins(Insets.of(1)));
+                cosmeticArmorSlotsLayout.child(ComponentUtils.createSlotWithToggle((AccessoriesBasedSlot) this.menu.slots.get(cosmeticArmor), this::slotAsComponent).left());
+            }
+
+            //--
+
+            var entityContainer = Containers.stack(Sizing.content(), Sizing.fixed(126 + 14))
+                    .child(
+                            Containers.verticalFlow(Sizing.content(), Sizing.content())
+                                    .child(
+                                            createEntityComponent()
+                                    ).surface((ctx, component) -> {
+                                        var sideBySideMode = this.getOption(PlayerOptions.SIDE_BY_SIDE_ENTITY);
+
+                                        DrawUtils.blit(
+                                                ctx,
+                                                Accessories.of("textures/gui/theme/" + ComponentUtils.checkMode("light", "dark") + "/entity_view/" + (sideBySideMode ? "double" : "single") +  "/entity_background.png"),
+                                                component.x(), component.y(), sideBySideMode ? 162 : 108, 126
+                                        );
+                                    })
+                                    .id("entity_renderer_holder")
+                    )
+                    .child(
+                            Containers.verticalFlow(Sizing.fixed(0), Sizing.fixed(0))
+                                    .surface((ctx, component) -> {
+                                        var surfaceType = Math.min((this.getMenu().addedArmorSlots() / 2), 4) + "_slots";
+                                        var sideBySideMode = this.getOption(PlayerOptions.SIDE_BY_SIDE_ENTITY);
+
+                                        DrawUtils.blit(
+                                                ctx,
+                                                Accessories.of("textures/gui/theme/" + ComponentUtils.checkMode("light", "dark") + "/entity_view/" + (sideBySideMode ? "double" : "single") + "/" + surfaceType + ".png"),
+                                                component.x() - 7, component.y() - 7, sideBySideMode ? 176 : 122, 140
+                                        );
+                                    })
+                    )
+                    .child(
+                            outerLeftArmorLayout
+                                    .configure((FlowLayout component) -> component.mouseScroll().subscribe((mouseX, mouseY, amount) -> true))
+                                    .padding(Insets.of(7))
+                                    .margins(Insets.left(-7))
+                                    .positioning(Positioning.relative(0, 40))
+                                    .zIndex(200) // 140
+                    )
+                    .child(
+                            outerRightArmorLayout
+                                    .configure((FlowLayout component) -> component.mouseScroll().subscribe((mouseX, mouseY, amount) -> true))
+                                    .surface(ComponentUtils.SPECTRUM_SLOT_OUTLINE)
+                                    .padding(Insets.of(7))
+                                    .margins(Insets.right(-7))
+                                    .positioning(Positioning.relative(100, 40))
+                                    .zIndex(200) // 140
+                    )
+                    .child(
+                            ComponentUtils.createIconButton(
+                                    (btn) -> {
+                                        showCosmeticState(!showCosmeticState());
+
+                                        btn.tooltip(createToggleText("slot_cosmetics", false, showCosmeticState()));
+
+                                        var component = rootComponent().childById(AccessoriesContainingLayout.class, AccessoriesContainingLayout.defaultID());
+
+                                        if(component != null) component.onCosmeticToggle(showCosmeticState());
+                                    },
+                                    14,
+                                    btn -> {
+                                        btn.tooltip(createToggleText("slot_cosmetics", false, showCosmeticState()))
+                                                .margins(Insets.of(2, 0, 3, 0));
+                                    },
+                                    (btn) -> {
+                                        return Accessories.of("textures/gui/" + (showCosmeticState() ? "charm" : "cosmetic") + "_toggle_icon" + (btn.isHovered() ? "_hovered" : "") + ".png");
+                                    }
+                            ).positioning(Positioning.relative(0, 0))
+                    )
+                    .child(
+                            ComponentUtils.createIconButton(
+                                    btn -> {
+                                        AccessoriesScreenTransitionHelper.openPrevScreen(Minecraft.getInstance().player, this.menu.targetEntityDefaulted(), prevScreen);
+                                    },
+                                    10,
+                                    btn -> {
+                                        btn.tooltip(Component.translatable(Accessories.translationKey("back.screen")))
+                                                .margins(Insets.of(3, 0, 0, 3));
+                                    },
+                                    (btn) -> {
+                                        return Accessories.of("textures/gui/accessories_back_icon" + (btn.isHovered() ? "_hovered" : "") + ".png");
+                                    }).positioning(Positioning.relative(100, 0))
+                    ).child(
+                            ComponentUtils.createIconButton(
+                                    btn -> {
+                                        toggleAdvancedOptions(btn);
+                                    },
+                                    14,
+                                    "advanced_options_btn",
+                                    btn -> {
+                                        btn.tooltip(createToggleText("advanced_options", true, this.getOption(PlayerOptions.ADVANCED_SETTINGS)))
+                                                .margins(Insets.of(0, 3, 0, 3));
+                                    },
+                                    (ctx, btn) -> {
+                                        return Accessories.of("textures/gui/settings_icon" + (btn.isHovered() ? "_hovered" : "") + ".png");
+                                    }).positioning(Positioning.relative(100, 100))
+                    );
+
+            if(!Accessories.config().screenOptions.alwaysShowCraftingGrid()){
+                entityContainer.child(
+                    createCraftingToggleButton()
+                );
+            }
+
+            primaryLayout.child(
+                entityContainer
+                    .allowOverflow(true)
+                    .padding(Insets.of(7))
+                    .id("entity_button_panel")
+            );
+        }
+
+        baseChildren.add(primaryLayout);
+
+        if(accessoriesComponent != null) {
+            primaryLayout.child((this.getOption(PlayerOptions.MAIN_WIDGET_POSITION) ? 0 : 1), accessoriesComponent); //1,
+        }
+
+        var hasSideBar = false;
+
+        if(accessoriesComponent != null || !this.getMenu().selectedGroups().isEmpty()) {
+            var sideBarHolder = createSideBarOptions();
+
+            if (sideBarHolder != null) {
+                if ((boolean) this.getOption(PlayerOptions.SIDE_WIDGET_POSITION) == this.getOption(PlayerOptions.MAIN_WIDGET_POSITION)) {
+                    primaryLayout.child(0, sideBarHolder);
+                } else {
+                    primaryLayout.child(sideBarHolder);
+                }
+
+                hasSideBar = true;
+            }
+        }
+
+        setupPadding(accessoriesComponent, hasSideBar, primaryLayout);
+
+        //--
+
+        var baseLayout = Containers.verticalFlow(Sizing.content(), Sizing.content())
+                .gap(2)
+                .children(baseChildren.reversed())
+                .allowOverflow(true);
+
+        baseLayout.horizontalAlignment(HorizontalAlignment.CENTER)
+                .verticalAlignment(VerticalAlignment.CENTER)
+                .positioning(Positioning.relative(50, 50));
+
+        //--
+
+        rootComponent.child(baseLayout);
+    }
+
+    public void setupPadding() {
+        if (this.topComponent == null) return;
+
+        var hasSideBar = this.rootComponent().childById(io.wispforest.owo.ui.core.Component.class, "side_bar_holder") != null;
+        var primaryLayout = rootComponent().childById(FlowLayout.class, "armor_entity_layout");
+
+        setupPadding(this.topComponent, hasSideBar, primaryLayout);
+    }
+
+    public void setupPadding(AccessoriesContainingLayout<?> accessoriesComponent, boolean hasSideBar, ParentComponent primaryLayout) {
+        if (this.getOption(PlayerOptions.ENTITY_CENTERED)) {
+            // (((Accessories Component Width) + 3) | 0) + (120) + ((3 + (30)) | 0
+            var padding = 0;
+
+            var paddingOnTheRight = this.getOption(PlayerOptions.MAIN_WIDGET_POSITION);
+
+            if (accessoriesComponent != null) {
+                var operationValue = (this.getOption(PlayerOptions.SIDE_WIDGET_POSITION) ? 1 : -1);
+
+                // 33
+
+                int roundingOffset = 0;
+
+                if (this.getOption(PlayerOptions.SIDE_WIDGET_POSITION)) {
+                    roundingOffset = (this.getOption(PlayerOptions.MAIN_WIDGET_POSITION) ? -1 : -3);
+                } else if(component(io.wispforest.owo.ui.core.Component.class, "group_filter_holder") == null && !this.getOption(PlayerOptions.MAIN_WIDGET_POSITION)) {
+                    roundingOffset = -2;
+                }
+
+                padding = accessoriesComponent.getMaxPossibleWidth() + 3 + ((hasSideBar ? 35 : 0) * operationValue) + roundingOffset;
+
+                primaryLayout.padding(
+                        paddingOnTheRight
+                                ? Insets.right(padding)
+                                : Insets.left(padding)
+                );
+            }
+        } else {
+            primaryLayout.padding(Insets.none());
+        }
+    }
+
+    @Nullable
+    private AccessoriesContainingLayout<?> topComponent = null;
+
+    public void rebuildEntityComponent() {
+        var holder = this.component(FlowLayout.class, "entity_renderer_holder");
+
+        holder.clearChildren();
+
+        holder.child(createEntityComponent());
+
+        rebuildComponentRectangles = true;
+    }
+
+    public io.wispforest.owo.ui.core.Component createEntityComponent() {
+        var sideBySideView = this.getOption(PlayerOptions.SIDE_BY_SIDE_ENTITY);
+
+        return InventoryEntityComponent.of(Sizing.fixed(sideBySideView ? 162 : 108), Sizing.fixed(126), this.getMenu().targetEntityDefaulted())
+                .renderWrapping((ctx, component, renderCall) -> {
+                    //ctx.enableScissor(component.x() + 24, component.y(), component.x() + component.width()  - 48, component.y() + component.height());
+                    //ScissorStack.push(component.x() + 24, component.y(), component.width() - 48, component.height(), ctx);
+
+                    AccessoriesFunkyRenderingState.INSTANCE.wrapEntityRendering(
+                            component.x() + 24, component.y(), component.x() + component.width() - 24, component.y() + component.height(),
+                            primaryEntityWrapCall -> {
+                                primaryEntityWrapCall.accept(() -> {
+                                    renderCall.getFirst().run();
+                                });
+
+                                if (renderCall.size() != 1) {
+                                    renderCall.get(1).run();
+                                }
+                            });
+
+                    //ScissorStack.blitSprite(RenderType::guiTextured, BACk_ICON, x, y, width - 1, height - 1);
+
+            pose.popPose();
+                    //ctx.disableScissor();
+                })
+                .sideBySideMode(sideBySideView)
+                .additionalOffset(sideBySideView ? 12 : 0)
+                .startingRotation(this.getOption(PlayerOptions.MAIN_WIDGET_POSITION) ? -45 : 45)
+                .scaleToFit(true)
+                .allowMouseRotation(true)
+                .lookAtCursor(Accessories.config().screenOptions.entityLooksAtMouseCursor())
+                .id("entity_rendering_component");
+    }
+
+    public void rebuildAccessoriesComponent() {
+
+        this.getMenu().getAccessoriesSlots().forEach(this::disableSlot);
+
+        var primaryLayout = rootComponent().childById(FlowLayout.class, "armor_entity_layout");
+
+        //--
+
+        var accessoriesLayout = primaryLayout.childById(AccessoriesContainingLayout.class, AccessoriesContainingLayout.defaultID());
+
+        var accessoriesParent = accessoriesLayout.parent();
+
+        if (accessoriesParent != null) {
+            ComponentUtils.recursiveSearchSlots(accessoriesParent, slotComponent -> this.hideSlot(slotComponent.slot()));
+
+            accessoriesParent.removeChild(accessoriesLayout);
+        }
+
+        //--
+
+        var accessoriesComponent = createAccessoriesComponent();
+
+        var hasSideBar = false;
+
+        if (accessoriesComponent != null) {
+            if(this.getOption(PlayerOptions.MAIN_WIDGET_POSITION)) {
+                primaryLayout.child(0, accessoriesComponent);
+            } else {
+                primaryLayout.child(accessoriesComponent);
+            }
+
+            hasSideBar = swapOrCreateSideBarComponent();
+        } else {
+            if(this.getMenu().selectedGroups().isEmpty()) {
+                var sideBarOptionsComponent = primaryLayout.childById(io.wispforest.owo.ui.core.Component.class, "accessories_toggle_panel");
+
+                if (sideBarOptionsComponent != null) {
+                    var sideParParent = sideBarOptionsComponent.parent();
+
+                    if (sideParParent != null) sideParParent.removeChild(sideBarOptionsComponent);
+                }
+            } else {
+                hasSideBar = swapOrCreateSideBarComponent();
+            }
+        }
+
+        setupPadding(accessoriesComponent, hasSideBar, primaryLayout);
+
+        toggleCraftingGrid();
+
+        rebuildComponentRectangles = true;
+    }
+
+    public boolean swapOrCreateSideBarComponent() {
+        if (this.topComponent == null && this.getMenu().selectedGroups().isEmpty()) return false;
+
+        var armorAndEntityComp = rootComponent().childById(FlowLayout.class, "armor_entity_layout");
+
+        armorAndEntityComp.removeChild(armorAndEntityComp.childById(FlowLayout.class, "side_bar_holder"));
+
+        var sideBarResultWidget = createSideBarOptions();
+
+        rebuildComponentRectangles = true;
+
+        if (sideBarResultWidget != null) {
+            if ((boolean) this.getOption(PlayerOptions.SIDE_WIDGET_POSITION) == this.getOption(PlayerOptions.MAIN_WIDGET_POSITION)) {
+                armorAndEntityComp.child(0, sideBarResultWidget);
+            } else {
+                armorAndEntityComp.child(sideBarResultWidget);
+            }
+
+            return true;
+        }
+
+
+        return false;
+    }
+
+    @Nullable
+    private AccessoriesContainingLayout<?> createAccessoriesComponent() {
+        this.topComponent = (this.getOption(PlayerOptions.WIDGET_TYPE) == 2)
+                ? ScrollableAccessoriesLayout.createOrNull(this)
+                : PaginatedAccessoriesLayout.createOrNull(this);
+
+        return this.topComponent;
+    }
+
+    //--
+    @Nullable
+    private io.wispforest.owo.ui.core.Component createSideBarOptions() {
+        var accessoriesTogglePanel = (FlowLayout) Containers.verticalFlow(Sizing.content(), Sizing.content())
+                .id("accessories_toggle_panel");
+
+        var groupFilterComponent = createGroupFilters();
+
+        if(groupFilterComponent != null) {
+            return Containers.verticalFlow(Sizing.content(), Sizing.content())
+                    .child(
+                            accessoriesTogglePanel.child(groupFilterComponent)
+                                    .padding(Insets.of(7))
+                                    .surface((ctx, component) -> {
+                                        ComponentUtils.getPanelSurface().and(ComponentUtils.getPanelWithInset(6))
+                                                .draw(ctx, component);
+                                    })
+                                    .horizontalAlignment(HorizontalAlignment.CENTER)
+                    )
+                    .horizontalAlignment(this.getOption(PlayerOptions.MAIN_WIDGET_POSITION) ? HorizontalAlignment.LEFT : HorizontalAlignment.RIGHT)
+                    .id("side_bar_holder");
+        }
+
+        return null;
+    }
+
+    public void rebuildSideBarOptions() {
+        if(this.getOption(PlayerOptions.SHOW_GROUP_FILTER)) {
+            var panel = rootComponent().childById(FlowLayout.class, "accessories_toggle_panel");
+
+            if(panel != null) {
+                var groupFilter = this.createGroupFilters();
+
+                if (groupFilter != null) panel.child(groupFilter);
+            }
+        } else {
+            var component = rootComponent().childById(ParentComponent.class, "group_filter_holder");
+
+            if (component != null) component.remove();
+        }
+
+        rebuildComponentRectangles = true;
+
+        this.toggleCraftingGrid();
+    }
+
+    @Nullable
+    private ExtendedScrollContainer prevGroupFilterScrollable = null;
+
+    @Nullable
+    private io.wispforest.owo.ui.core.Component createGroupFilters() {
+        if (!this.getOption(PlayerOptions.SHOW_GROUP_FILTER)) return null;
+
+        var groups = new ArrayList<>(SlotGroupLoader.getValidGroups(this.getMenu().targetEntityDefaulted()).keySet());
+
+        if (groups.isEmpty()) return null;
+
+        var usedSlots = this.getMenu().getUsedSlots();
+
+        var groupButtons = new ArrayList<io.wispforest.owo.ui.core.Component>();
+
+        for (SlotGroup group : groups) {
+            var groupSlots = group.slots().stream()
+                    .filter(slotName -> {
+                        if (UniqueSlotHandling.isUniqueSlot(slotName)) return false;
+
+                        var slotType = SlotTypeLoader.getSlotType(this.targetEntityDefaulted(), slotName);
+
+                        if (slotType == null) return false;
+
+                        var capability = this.targetEntityDefaulted().accessoriesCapability();
+
+                        if (capability == null) return false;
+
+                        var container = capability.getContainer(slotType);
+
+                        if (container == null) return false;
+
+                        return container.getSize() > 0;
+                    })
+                    .map((slotName) -> SlotTypeLoader.INSTANCE.getSlotType(false, slotName))
+                    .collect(Collectors.toSet());
+
+            if (groupSlots.isEmpty() || (usedSlots != null && groupSlots.stream().noneMatch(usedSlots::contains))) continue;
+
+            groupButtons.add(ComponentUtils.createGroupToggle(this, group));
+        }
+
+        if (groupButtons.isEmpty()) return null;
+
+        var baseButtonLayout = (ParentComponent) Containers.verticalFlow(Sizing.content(), Sizing.content())
+                .children(groupButtons)
+                .gap(1);
+
+        if(groupButtons.size() > 7) {
+            var scrollable = new ExtendedScrollContainer<>(
+                    ScrollContainer.ScrollDirection.VERTICAL,
+                    Sizing.fixed(18 + 3),
+                    Sizing.fixed(108/*(5 * 14) + (5) + (2 * 2) - 1*/),
+                    baseButtonLayout.padding(Insets.of(1))
+            ).configure((ExtendedScrollContainer<?> scrollContainer) -> {
+                scrollContainer.oppositeScrollbar((boolean) this.getOption(PlayerOptions.SIDE_WIDGET_POSITION) == this.getOption(PlayerOptions.MAIN_WIDGET_POSITION))
+//                    .customClippingInsets(Insets.of(1))
+                        .scrollToAfterLayout(prevGroupFilterScrollable.getProgress())
+                        .scrollbarThiccness(2)
+                        .scrollbar(ScrollContainer.Scrollbar.flat(Color.ofArgb(0xA0000000)))
+                        .fixedScrollbarLength(16)
+                        .padding(Insets.of(1, 2, 2, 1))
+                        .id("group_filters_scrollable");
+            });
+
+            baseButtonLayout = scrollable;
+            this.prevGroupFilterScrollable = scrollable;
+        } else {
+            baseButtonLayout.padding(Insets.of(1, 2, 2, 2));
+            this.prevGroupFilterScrollable = null;
+        }
+
+        return Containers.verticalFlow(Sizing.content(), Sizing.content())
+                .child(
+                        ComponentUtils.createIconButton(
+                                (btn) -> {
+                                    this.getMenu().selectedGroups().clear();
+                                    this.rebuildAccessoriesComponent();
+                                },
+                                14,
+                                (btn) -> {
+                                    btn.tooltip(Component.translatable(Accessories.translationKey("reset.group_filter")));
+                                },
+                                (btn) -> {
+                                    return Accessories.of("textures/gui/reset_icon" + (btn.isHovered() ? "_hovered" : "") + ".png");
+                                })
+                                .margins(Insets.of(3, 1, 0, 0))
+                )
+                .child(baseButtonLayout)
+                .horizontalAlignment(HorizontalAlignment.CENTER)
+                .id("group_filter_holder");
+    }
+
+    //--
+
+    @Nullable
+    private AccessoriesScreenSettingsLayout settingsLayout = null;
+
+    private void swapBottomComponentHolder() {
+        var holder = rootComponent().childById(FlowLayout.class, "bottom_component_holder");
+
+        holder.clearChildren();
+
+        if(this.getOption(PlayerOptions.ADVANCED_SETTINGS)) {
+            for (int i = 0; i < menu.startingAccessoriesSlot() - 1; i++) this.disableSlot(i);
+
+            settingsLayout = new AccessoriesScreenSettingsLayout(this);
+
+            holder.child(settingsLayout)
+                    .surface(ComponentUtils.getInsetPanelSurface())
+                    .padding(Insets.of(1));
+        } else {
+            settingsLayout = null;
+
+            holder.child(ComponentUtils.createPlayerInv(5, menu.startingAccessoriesSlot(), this::slotAsComponent, this::enableSlot))
+                    .surface(Surface.BLANK)
+                    .padding(Insets.of(0));
+        }
+
+        rebuildComponentRectangles = true;
+    }
+
+    //--
+
+    private void toggleCraftingGrid() {
+        rebuildComponentRectangles = true;
+
+        this.removeCraftingGrid();
+
+        if (!(boolean) this.getOption(PlayerOptions.SHOW_CRAFTING_GRID)) return;
+
+        var bottom_holder = rootComponent().childById(FlowLayout.class, "crafting_grid_layout");//side_bar_holder
+
+        bottom_holder.child(createCraftingGrid());
+    }
+
+    private void removeCraftingGrid() {
+        var bottom_holder = rootComponent().childById(FlowLayout.class, "crafting_grid_layout");//side_bar_holder
+
+        if (bottom_holder != null) {
+            bottom_holder.clearChildren();
+        }
+
+        if (!(boolean) this.getOption(PlayerOptions.SHOW_CRAFTING_GRID)) {
+            bottom_holder.margins(Insets.of(0));
+
+            for (int i = 0; i < 5; i++) this.disableSlot(i);
+        }
+    }
+
+    private io.wispforest.owo.ui.core.Component createCraftingGrid() {
+        return ComponentUtils.createCraftingComponent(0, this::slotAsComponent, this::enableSlot, true)
+                .id("crafting_component");
+    }
+
+    private io.wispforest.owo.ui.core.Component createCraftingToggleButton() {
+        return ComponentUtils.createIconButton(
+            btn -> {
+                AccessoriesNetworking
+                    .sendToServer(SyncOptionChange.of(PlayerOptions.SHOW_CRAFTING_GRID, this.menu.owner(), bl -> !bl));
+
+                this.setOption(PlayerOptions.SHOW_CRAFTING_GRID, !this.getOption(PlayerOptions.SHOW_CRAFTING_GRID));
+
+                btn.tooltip(createToggleText("crafting_grid", true, this.getOption(PlayerOptions.SHOW_CRAFTING_GRID)));
+
+                this.toggleCraftingGrid();
+            },
+            14,
+            "crafting_grid_btn",
+            btn -> {
+                btn.tooltip(createToggleText("crafting_grid", true, this.getOption(PlayerOptions.SHOW_CRAFTING_GRID)))
+                    .margins(Insets.of(0, 3, 3, 0));
+            },
+            (ctx, btn) -> {
+                return Accessories.of("textures/gui/crafting_toggle_icon" + (btn.isHovered() ? "_hovered" : "") + ".png");
+            }).positioning(Positioning.relative(0, 100));
+    }
+
+    //--
+
+    @Override
+    public void onHolderChange(PlayerOption<?> option) {
+        if (settingsLayout == null) return;
+
+        settingsLayout.onHolderChange(option);
+
+        if (option.equals(PlayerOptions.SHOW_CRAFTING_GRID)) {
+            var buttonPanel = component(StackLayout.class, "entity_button_panel");
+
+            var craftingBtn = buttonPanel.childById(io.wispforest.owo.ui.core.Component.class, "crafting_grid_btn");
+
+            if (craftingBtn != null && Accessories.config().screenOptions.alwaysShowCraftingGrid()) {
+                buttonPanel.removeChild(craftingBtn);
+            } else if (craftingBtn == null && Accessories.config().screenOptions.alwaysShowCraftingGrid()) {
+                buttonPanel.child(buttonPanel.children().size() - 1, createCraftingToggleButton());
+            }
+        }
+    }
+
+    private void toggleAdvancedOptions(ButtonComponent btn) {
+        boolean value = !(boolean) this.getOption(PlayerOptions.ADVANCED_SETTINGS);
+        this.setOption(PlayerOptions.ADVANCED_SETTINGS, value);
+
+        btn.tooltip(createToggleText("advanced_options", true, this.getOption(PlayerOptions.ADVANCED_SETTINGS)));
+
+        this.swapBottomComponentHolder();
+    }
+
+    private static Component createToggleText(String type, boolean isTooltip, boolean value) {
+        return Accessories.translation(type + ".toggle." + (value ? "enabled" : "disabled") + (isTooltip ? ".tooltip" : ""));
+    }
+
+    //--
+
+    public ExtendedSlotComponent slotAsComponent(int index) {
+        return new ExtendedSlotComponent(index);
+    }
+
+    public class ExtendedSlotComponent extends SlotComponent {
+
+        protected final AccessoriesScreen screen;
+        protected int index;
+
+        protected ExtendedSlotComponent(int index) {
+            super(index);
+
+            this.screen = AccessoriesScreen.this;
+            this.index = index;
+
+            this.didDraw = true;
+
+            if (slot() instanceof AccessoriesBasedSlot accessoriesBasedSlot) {
+                this.tooltip(accessoriesBasedSlot.getTooltipData());
+            }
+        }
+
+        public final Slot slot() {
+            return this.slot;
+        }
+
+        @Override
+        public void dismount(DismountReason reason) {
+            super.dismount(reason);
+
+            if (reason == DismountReason.REMOVED) {
+                ((SlotAccessor) slot).owo$setX(-300);
+                ((SlotAccessor) slot).owo$setY(-300);
+            }
+        }
+
+        @Override
+        public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
+            //super.draw(context, mouseX, mouseY, partialTicks, delta);
+            this.didDraw = true;
+
+            ((OwoSlotExtension) this.slot).owo$setDisabledOverride(false);
+        }
+
+        @Override
+        public void drawTooltip(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
+            var slot = this.slot();
+
+            if(slot != null) {
+                if (slot instanceof AccessoriesInternalSlot accessoriesInternalSlot) {
+                    if (!ArmorSlotTypes.isArmorType(accessoriesInternalSlot.slotName())) {
+                        AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(screen.getOption(PlayerOptions.MAIN_WIDGET_POSITION));
+                    }
+                } else if (slot instanceof ArmorSlot) {
+                    AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(true);
+                } else if (slot.container instanceof TransientCraftingContainer || slot instanceof ResultSlot) {
+                    if (!(boolean) screen.getOption(PlayerOptions.SHOW_GROUP_FILTER)) {
+                        AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(!(boolean) screen.getOption(PlayerOptions.MAIN_WIDGET_POSITION));
+                    }
+                }
+            }
+
+            //context.translate(0, 0, 600);
+            super.drawTooltip(context, mouseX, mouseY, partialTicks, delta);
+            //context.translate(0, 0, -600);
+            AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(false);
+        }
+    }
+
+    //--
+
+    public <T> T getOption(PlayerOption<T> option) {
+        return option.getDataOrDefault(this.menu.owner());
+    }
+
+    public <T> void setOption(PlayerOption<T> option, T data) {
+        option.setData(this.menu.owner(), data);
     }
 }

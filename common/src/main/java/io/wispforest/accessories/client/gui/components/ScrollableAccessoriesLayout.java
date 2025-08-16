@@ -1,7 +1,7 @@
 package io.wispforest.accessories.client.gui.components;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
+import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.owo.ui.base.BaseParentComponent;
 import io.wispforest.owo.ui.container.Containers;
@@ -21,7 +21,7 @@ public class ScrollableAccessoriesLayout extends AccessoriesContainingLayout<Scr
 
     private IntegerRange alternativeCheckRange;
 
-    protected ScrollableAccessoriesLayout(AccessoriesExperimentalScreen screen, RawScrollData data) {
+    protected ScrollableAccessoriesLayout(AccessoriesScreen screen, RawScrollData data) {
         super(screen, data);
 
         this.alternativeCheckRange = IntegerRange.of(0, Math.min(data.maxRowCount, data.totalRowCount));
@@ -40,7 +40,7 @@ public class ScrollableAccessoriesLayout extends AccessoriesContainingLayout<Scr
     //--
 
     @Nullable
-    public static ScrollableAccessoriesLayout createOrNull(AccessoriesExperimentalScreen screen) {
+    public static ScrollableAccessoriesLayout createOrNull(AccessoriesScreen screen) {
         var data = buildPages(screen);
 
         if(data == null) return null;
@@ -49,7 +49,7 @@ public class ScrollableAccessoriesLayout extends AccessoriesContainingLayout<Scr
     }
 
     @Nullable
-    private static ScrollableAccessoriesLayout.RawScrollData buildPages(AccessoriesExperimentalScreen screen) {
+    private static ScrollableAccessoriesLayout.RawScrollData buildPages(AccessoriesScreen screen) {
         var menu = screen.getMenu();
         var slots = menu.getVisibleAccessoriesSlots();
 

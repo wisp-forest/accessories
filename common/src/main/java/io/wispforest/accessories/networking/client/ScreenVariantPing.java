@@ -1,6 +1,7 @@
 package io.wispforest.accessories.networking.client;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.gui.ScreenVariantSelectionScreen;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
@@ -37,22 +38,6 @@ public record ScreenVariantPing(int entityId, boolean targetLookEntity) {
 
     @Environment(EnvType.CLIENT)
     public static void handlePacket(ScreenVariantPing packet, Player player) {
-        var selectedVariant = AccessoriesMenuVariant.getVariant(Accessories.config().screenOptions.selectedScreenType());
-
-        ItemStack creativeCarriedStack = (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen screen)
-                ? screen.getMenu().getCarried()
-                : null;
-
-        Function<AccessoriesMenuVariant, ScreenOpen> packetBuilder = (menuVariant) -> {
-            return new ScreenOpen(packet.targetLookEntity() ? -1 : packet.entityId(), packet.targetLookEntity(), menuVariant, creativeCarriedStack);
-        };
-
-        if(selectedVariant != null) {
-            AccessoriesNetworking.sendToServer(packetBuilder.apply(selectedVariant));
-        } else {
-            Minecraft.getInstance().setScreen(new ScreenVariantSelectionScreen(variant -> {
-                AccessoriesNetworking.sendToServer(packetBuilder.apply(variant));
-            }));
-        }
+        AccessoriesClient.attemptToOpenSelectionScreen(packet.entityId, packet.targetLookEntity, player);
     }
 }

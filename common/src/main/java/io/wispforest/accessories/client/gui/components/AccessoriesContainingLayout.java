@@ -1,7 +1,7 @@
 package io.wispforest.accessories.client.gui.components;
 
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
-import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
+import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.owo.ui.container.Containers;
 import io.wispforest.owo.ui.container.FlowLayout;
@@ -17,10 +17,10 @@ import java.util.List;
 
 public abstract class AccessoriesContainingLayout<D extends AccessoriesContainingLayout.LayoutData> extends FlowLayout {
 
-    protected final AccessoriesExperimentalScreen screen;
+    protected final AccessoriesScreen screen;
     protected final D layoutData;
 
-    protected AccessoriesContainingLayout(AccessoriesExperimentalScreen screen, D layoutData) {
+    protected AccessoriesContainingLayout(AccessoriesScreen screen, D layoutData) {
         super(Sizing.content(), Sizing.content(), Algorithm.VERTICAL);
 
         this.screen = screen;
@@ -88,7 +88,7 @@ public abstract class AccessoriesContainingLayout<D extends AccessoriesContainin
 
     //--
 
-    protected static BaseLayoutGroup createBaseLayoutGroup(AccessoriesExperimentalScreen screen, List<Slot> slots, int totalRowCount, int maxColumnCount, int colStartingIndexOffset, boolean sideBySide) {
+    protected static BaseLayoutGroup createBaseLayoutGroup(AccessoriesScreen screen, List<Slot> slots, int totalRowCount, int maxColumnCount, int colStartingIndexOffset, boolean sideBySide) {
         var accessoriesLayout = Containers.verticalFlow(Sizing.content(), Sizing.content());
         var cosmeticsLayout = Containers.verticalFlow(Sizing.content(), Sizing.content());
 

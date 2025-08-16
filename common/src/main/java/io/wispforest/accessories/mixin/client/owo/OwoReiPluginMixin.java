@@ -1,6 +1,6 @@
 package io.wispforest.accessories.mixin.client.owo;
 
-import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
+import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.owo.compat.rei.OwoReiPlugin;
 import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,6 +16,6 @@ public abstract class OwoReiPluginMixin {
 
     @Inject(method = "lambda$registerExclusionZones$2", at = @At("HEAD"), remap = false, cancellable = true)
     private static void accessories$preventZonesForAccessoriesScreen(BaseOwoHandledScreen screen, CallbackInfoReturnable<Collection> cir) {
-        if(screen instanceof AccessoriesExperimentalScreen) cir.setReturnValue(List.of());
+        if(screen instanceof AccessoriesScreen) cir.setReturnValue(List.of());
     }
 }
