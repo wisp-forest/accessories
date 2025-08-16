@@ -275,7 +275,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     public void setShouldRender(int index, boolean value) {
         var size = getSize();
 
-        if (index > 0 && index < size) {
+        if (index >= 0 && index < size) {
             this.renderOptions.put(index, value);
         }
     }
