@@ -2,7 +2,7 @@ package io.wispforest.accessories.mixin.client.owo;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
+import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.client.gui.components.ComponentUtils;
 import io.wispforest.owo.ui.base.BaseParentComponent;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
@@ -22,10 +22,10 @@ public abstract class BaseParentComponentMixin {
         var result = original.call(instance, other);
 
         if (!result) {
-            if (other instanceof AccessoriesExperimentalScreen.ExtendedSlotComponent slotComponent) {
+            if (other instanceof AccessoriesScreen.ExtendedSlotComponent slotComponent) {
                 ((OwoSlotExtension) slotComponent.slot()).owo$setDisabledOverride(true);
             } else if (other instanceof ParentComponent parentComponent) {
-                ComponentUtils.recursiveSearch(parentComponent, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, slotComponent -> {
+                ComponentUtils.recursiveSearch(parentComponent, AccessoriesScreen.ExtendedSlotComponent.class, slotComponent -> {
                     ((OwoSlotExtension) slotComponent.slot()).owo$setDisabledOverride(true);
                 });
             }

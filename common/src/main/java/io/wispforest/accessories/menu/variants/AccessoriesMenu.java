@@ -1,65 +1,61 @@
 package io.wispforest.accessories.menu.variants;
 
-import com.google.common.collect.ImmutableSet;
-import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.slot.SlotGroup;
-import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
+import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.SlotGroupLoader;
-import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.impl.core.ExpandedContainer;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.impl.option.PlayerOptions;
-import io.wispforest.accessories.menu.AccessoriesInternalSlot;
-import io.wispforest.accessories.menu.AccessoriesMenuData;
-import io.wispforest.accessories.menu.AccessoriesMenuTypes;
-import io.wispforest.accessories.menu.ArmorSlotTypes;
-import io.wispforest.accessories.mixin.SlotAccessor;
+import io.wispforest.accessories.menu.*;
+import io.wispforest.accessories.menu.networking.ToggledSlots;
+import io.wispforest.owo.client.screens.SlotGenerator;
+import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ArmorSlot;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.ticks.ContainerSingleItem;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 
 import java.util.*;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
-public final class AccessoriesMenu extends AccessoriesMenuBase {
+public class AccessoriesMenu extends AccessoriesMenuBase {
 
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private final Set<SlotType> usedSlots = new HashSet<>();
 
-    public int totalSlots = 0;
-    public boolean overMaxVisibleSlots = false;
+    private final Set<SlotGroup> selectedGroups = new HashSet<>();
 
-    public int scrolledIndex = 0;
+    private final List<AccessoriesBasedSlot> accessoriesSpecificSlots = new ArrayList<>();
 
-    public float smoothScroll = 0;
+    private int addedArmorSlots = 0;
 
-    private int maxScrollableIndex = 0;
+    private int startArmorSlots = 0;
+    private int startingAccessoriesSlot = 0;
 
-    private int accessoriesSlotStartIndex = 0;
-    private int cosmeticSlotStartIndex = 0;
+    public static AccessoriesMenu of(int containerId, Inventory inventory, AccessoriesMenuData data) {
+        var targetEntity = data.targetEntityId()
+                .map(i -> (inventory.player.level().getEntity(i) instanceof LivingEntity livingEntity)
+                        ? livingEntity
+                        : null
+                ).orElse(null);
 
-    private final Set<SlotGroup> validGroups = new HashSet<>();
+        var menu = new AccessoriesMenu(containerId, inventory, targetEntity, data.carriedStack())
+                .isSyncedWithServer(data.slotAmountAdded());
 
-    private final Map<Integer, Boolean> slotToView = new HashMap<>();
-
-    private Runnable onScrollToEvent = () -> {};
-
-    @Nullable
-    private Set<SlotType> usedSlots = null;
-
-    private Map<AccessoriesInternalSlot, Integer> slotToPageIndex = new HashMap<>();
+        return (AccessoriesMenu) menu;
+    }
 
     public AccessoriesMenu(int containerId, Inventory inventory, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
-        super(AccessoriesMenuTypes.ORIGINAL_MENU, containerId, inventory, 0, 0, targetEntity);
+        super(AccessoriesMenuTypes.PRIAMRY_MENU, containerId, inventory, 2, 2, targetEntity);
 
         if(carriedStack != null) this.setCarried(carriedStack);
 
@@ -69,29 +65,20 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
 
         if (capability == null) return;
 
-        //-- Vanilla Slot Setup
+        this.updateUsedSlots();
 
-        for (int i = 0; i < 4; i++) {
-            var equipmentSlot = ArmorSlotTypes.SLOT_IDS[i];
-            ResourceLocation resourceLocation = ArmorSlotTypes.TEXTURE_EMPTY_SLOTS.get(equipmentSlot);
-            this.addSlot(new ArmorSlot(inventory, owner, equipmentSlot, 39 - i, 8, 8 + i * 18, resourceLocation));
-        }
+        //--
 
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 9; j++) {
-                this.addSlot(new Slot(inventory, j + (i + 1) * 9, 8 + j * 18, 84 + i * 18));
-            }
-        }
+        SlotGenerator.begin(this::addSlot, -300, -300)
+                .playerInventory(inventory);
 
-        for (int i = 0; i < 9; i++) {
-            this.addSlot(new Slot(inventory, i, 8 + i * 18, 142));
-        }
+        //--
 
-        this.addSlot(new Slot(inventory, 40, 152, 62) {
+        this.addSlot(new Slot(inventory, 40, -300, -300) {
             @Override
-            public void setByPlayer(ItemStack newStack, ItemStack oldStack) {
-                owner.onEquipItem(EquipmentSlot.OFFHAND, oldStack, newStack);
-                super.setByPlayer(newStack, oldStack);
+            public void setByPlayer(ItemStack itemStack, ItemStack itemStack2) {
+                inventory.player.onEquipItem(EquipmentSlot.OFFHAND, itemStack2, itemStack);
+                super.setByPlayer(itemStack, itemStack2);
             }
 
             @Override
@@ -102,337 +89,458 @@ public final class AccessoriesMenu extends AccessoriesMenuBase {
 
         //--
 
-        if(!this.areUnusedSlotsShown()) {
-            this.usedSlots = ImmutableSet.copyOf(AccessoriesCapability.getUsedSlotsFor(targetEntity != null ? targetEntity : owner, owner.getInventory()));
-        }
-
-        int minX = -46, maxX = 60, minY = 8, maxY = 152;
-
-        int yIndex = 0;
-
-        this.accessoriesSlotStartIndex = this.slots.size();
-
-        var slotVisibility = new HashMap<Slot, Boolean>();
-
-        var accessoriesSlots = new ArrayList<AccessoriesInternalSlot>();
-        var cosmeticSlots = new ArrayList<AccessoriesInternalSlot>();
-
-        var groups = SlotGroupLoader.getGroups(inventory.player.level(), true);
+        this.startArmorSlots = this.slots.size();
 
         var containers = capability.getContainers();
 
-        var slotTypes = groups.stream().sorted(Comparator.comparingInt(SlotGroup::order).reversed())
-                .flatMap(slotGroup -> {
-                    if(slotGroup.name().equals(Accessories.MODID)) return Stream.of();
+        var validEquipmentSlots = new ArrayList<Pair<EquipmentSlot, SlotTypeReference>>();
 
-                    return slotGroup.slots().stream()
-                            .map(s -> {
-                                var slotType = SlotTypeLoader.getSlotType(owner.level(), s);
+        for (var value : EquipmentSlot.values()) {
+            if (!accessoryTarget.canUseSlot(value)) continue;
 
-                                if(this.usedSlots != null && !this.usedSlots.contains(slotType)) return null;
+            var armorRef = ArmorSlotTypes.getReferenceFromSlot(value);
 
-                                this.validGroups.add(slotGroup);
+            if (armorRef == null || containers.get(armorRef.slotName()) == null) continue;
 
-                                return slotType;
-                            })
-                            .filter(Objects::nonNull)
-                            .sorted(Comparator.comparingInt(SlotType::order).reversed());
-                }).toList();
+            validEquipmentSlots.add(Pair.of(value, armorRef));
+        }
 
-        //LOGGER.info("SlotTypes for [{}] Screen: {}", (owner.level().isClientSide() ? "client" : "server"), slotTypes);
-        //LOGGER.info("Containers for [{}] Screen: {}", (owner.level().isClientSide() ? "client" : "server"), containers.keySet());
+        for (var pair : validEquipmentSlots.reversed()) {
+            if (addArmorSlot(pair.left(), accessoryTarget, pair.right(), containers)) addedArmorSlots += 2;
+        }
+
+        this.startingAccessoriesSlot = this.slots.size();
+
+        //--
+
+        var validGroupData = SlotGroupLoader.getValidGroups(accessoryTarget);
+
+        var slotTypes = validGroupData.values()
+                .stream()
+                .flatMap(Collection::stream)
+                .toList();
 
         for (var slot : slotTypes) {
             var accessoryContainer = containers.get(slot.name());
 
             if (accessoryContainer == null || accessoryContainer.slotType() == null) continue;
 
-            var size = accessoryContainer.getSize();
+            for (int i = 0; i < accessoryContainer.getSize(); i++) {
+                var cosmeticSlot = new AccessoriesInternalSlot(accessoryContainer, true, i, -300, -300)
+                        .useCosmeticIcon(false);
 
-            for (int i = 0; i < size; i++) {
-                int currentY = (yIndex * 18) + minY + 8;
+                this.addSlot(cosmeticSlot);
+                this.accessoriesSpecificSlots.add(cosmeticSlot);
 
-                int currentX = minX;
+                var baseSlot = new AccessoriesInternalSlot(accessoryContainer, false, i, -300, -300);
 
-                var cosmeticSlot = new AccessoriesInternalSlot(accessoryContainer, true, i, currentX, currentY)
-                                .isActive((slot1) -> this.isCosmeticsOpen() && this.slotToView.getOrDefault(slot1.index, true))
-                                .isAccessible(slot1 -> slot1.isCosmetic && isCosmeticsOpen());
-
-                slotToPageIndex.put(cosmeticSlot, yIndex);
-
-                    cosmeticSlots.add(cosmeticSlot);
-
-                slotVisibility.put(cosmeticSlot, !this.overMaxVisibleSlots);
-
-                currentX += 18 + 2;
-
-                var baseSlot = new AccessoriesInternalSlot(accessoryContainer, false, i, currentX, currentY)
-                                .isActive(slot1 -> this.slotToView.getOrDefault(slot1.index, true));
-
-                slotToPageIndex.put(baseSlot, yIndex);
-
-                    accessoriesSlots.add(baseSlot);
-
-                slotVisibility.put(baseSlot, !this.overMaxVisibleSlots);
-
-                yIndex++;
-
-                if (!this.overMaxVisibleSlots && currentY + 18 > maxY) this.overMaxVisibleSlots = true;
+                this.addSlot(baseSlot);
+                this.accessoriesSpecificSlots.add(baseSlot);
             }
         }
 
-        for (var accessoriesSlot : accessoriesSlots) {
-            this.addSlot(accessoriesSlot);
+        ToggledSlots.initMenu(this);
 
-            slotToView.put(accessoriesSlot.index, slotVisibility.getOrDefault(accessoriesSlot, false));
-        }
-
-        this.cosmeticSlotStartIndex = this.slots.size();
-
-        for (var cosmeticSlot : cosmeticSlots) {
-            this.addSlot(cosmeticSlot);
-
-            this.slotToView.put(cosmeticSlot.index, slotVisibility.getOrDefault(cosmeticSlot, false));
-        }
-
-        this.totalSlots = yIndex;
-
-        this.maxScrollableIndex = this.totalSlots - 8;
-
-        this.slotAmountAdded = this.slots.size() - this.accessoriesSlotStartIndex;
+        this.slotAmountAdded = this.slots.size() - this.startArmorSlots;
     }
 
-    public void setScrollEvent(Runnable event) {
-        this.onScrollToEvent = event;
+    private static Container createEquipmentSlotContainer(LivingEntity living, EquipmentSlot equipmentSlot) {
+        return new ContainerSingleItem() {
+            @Override
+            public ItemStack getTheItem() {
+                return living.getItemBySlot(equipmentSlot);
+            }
+
+            @Override
+            public void setTheItem(ItemStack item) {
+                living.setItemSlot(equipmentSlot, item);
+                if (!item.isEmpty() && living instanceof Mob mob) {
+                    mob.setGuaranteedDrop(equipmentSlot);
+                    mob.setPersistenceRequired();
+                }
+            }
+
+            @Override
+            public boolean stillValid(Player player) {
+                return player.getVehicle() == living || player.canInteractWithEntity(living, 4.0);
+            }
+
+            @Override public void setChanged() {}
+        };
     }
 
-    public boolean scrollTo(int i, boolean smooth) {
-        var index = Math.min(Math.max(i, 0), this.maxScrollableIndex);
+    private boolean addArmorSlot(EquipmentSlot equipmentSlot, LivingEntity targetEntity, SlotTypeReference armorReference, Map<String, AccessoriesContainer> containers) {
+        var location = ArmorSlotTypes.getEmptyTexture(equipmentSlot, targetEntity);
 
-        if (index == this.scrolledIndex) return false;
+        var armorContainer = containers.get(armorReference.slotName());
 
-        var diff = this.scrolledIndex - index;
+        if(armorContainer == null) return false;
 
-        if (!smooth) this.smoothScroll = Mth.clamp(index / (float) this.maxScrollableIndex, 0.0f, 1.0f);
+        var armorSlot = new AccessoriesArmorSlot(armorContainer, SlotAccessContainer.ofArmor(equipmentSlot, targetEntity), targetEntity, equipmentSlot, 0, -300, -300, location);
 
-        for (Slot slot : this.slots) {
-            if (!(slot instanceof AccessoriesInternalSlot accessoriesSlot)) continue;
+        this.addSlot(armorSlot);
 
-            ((SlotAccessor) accessoriesSlot).accessories$setY(accessoriesSlot.y + (diff * 18));
+        var cosmeticSlot = new AccessoriesInternalSlot(armorContainer, true, 0, -300, -300){
+            @Override
+            public @Nullable ResourceLocation getNoItemIcon() {
+                return location;
+            }
+        };
 
-            var menuIndex = slotToPageIndex.get(accessoriesSlot);
-
-            this.slotToView.put(accessoriesSlot.index, (menuIndex >= index && menuIndex < index + 8));
-        }
-
-        this.scrolledIndex = index;
-
-        this.onScrollToEvent.run();
+        this.addSlot(cosmeticSlot);
 
         return true;
     }
 
-    public int maxScrollableIndex(){
-        return this.maxScrollableIndex;
+    public final LivingEntity targetEntityDefaulted() {
+        var targetEntity = this.targetEntity();
+
+        return (targetEntity != null) ? targetEntity : this.owner();
     }
 
-    public static AccessoriesMenu of(int containerId, Inventory inventory, AccessoriesMenuData data) {
-        var targetEntity = data.targetEntityId().map(i -> {
-            var entity = inventory.player.level().getEntity(i);
-
-            if(entity instanceof LivingEntity livingEntity) return livingEntity;
-
-            return null;
-        }).orElse(null);
-
-        var menu = new AccessoriesMenu(containerId, inventory, targetEntity, data.carriedStack())
-                .isSyncedWithServer(data.slotAmountAdded());
-
-        return (AccessoriesMenu) menu;
+    public int startingAccessoriesSlot() {
+        return this.startArmorSlots;
     }
 
-    public boolean showingSlots() {
-        return this.usedSlots == null || !this.usedSlots.isEmpty();
+    public List<AccessoriesBasedSlot> getAccessoriesSlots() {
+        return this.accessoriesSpecificSlots;
+    }
+
+    public List<Slot> getVisibleAccessoriesSlots() {
+        var filteredList = new ArrayList<Slot>();
+
+        var groups = SlotGroupLoader.getValidGroups(this.targetEntityDefaulted());
+
+        var usedSlots = this.getUsedSlots();
+
+        if (usedSlots != null) {
+            groups.forEach((group, groupSlots) -> {
+                if (groupSlots.stream().noneMatch(usedSlots::contains)) this.removeSelectedGroup(group);
+            });
+        }
+
+        var selectedGroupedSlots = SlotGroupLoader.getValidGroups(this.targetEntityDefaulted()).entrySet()
+                .stream()
+                .filter(entry -> this.selectedGroups.isEmpty() || this.selectedGroups.contains(entry.getKey()))
+                .flatMap(entry -> entry.getValue().stream())
+                .toList();
+
+        for (int i = 0; i < (this.accessoriesSpecificSlots.size() / 2); i++) {
+            var cosmetic = (i * 2);
+            var accessory = cosmetic + 1;
+
+            var cosmeticSlot = this.accessoriesSpecificSlots.get(cosmetic);
+            var accessorySlot = this.accessoriesSpecificSlots.get(accessory);
+
+            var slotType = accessorySlot.slotType();
+
+            var isVisible = (this.usedSlots.isEmpty() || this.usedSlots.contains(slotType))
+                    && (selectedGroupedSlots.isEmpty() || selectedGroupedSlots.contains(slotType));
+
+            if(isVisible){
+                filteredList.add(cosmeticSlot);
+                filteredList.add(accessorySlot);
+            }
+        }
+
+        return filteredList;
     }
 
     @Nullable
-    public Set<SlotType> usedSlots() {
-        return this.usedSlots;
+    public Set<SlotType> getUsedSlots() {
+        return this.areUnusedSlotsShown() ? null : this.usedSlots;
     }
 
-    public Set<SlotGroup> validGroups() {
-        return this.validGroups;
+    public void updateUsedSlots() {
+        this.usedSlots.clear();
+
+        if(!this.areUnusedSlotsShown()) {
+            var entity = this.targetEntity != null ? this.targetEntity : this.owner;
+
+            var currentlyUsedSlots = AccessoriesCapability.getUsedSlotsFor(entity, this.owner.getInventory());
+
+            currentlyUsedSlots.addAll(SlotPredicateRegistry.getValidSlotTypes(entity, this.getCarried()));
+
+            if(!currentlyUsedSlots.isEmpty()) {
+                this.usedSlots.addAll(currentlyUsedSlots);
+            } else {
+                this.usedSlots.add(null);
+            }
+        }
     }
 
-    public boolean isCosmeticsOpen() {
-        return AccessoriesPlayerOptionsHolder.getOptions(owner).getData(PlayerOptions.SHOW_COSMETIC_SLOTS);
+    private static Set<SlotGroup> usedGroups(LivingEntity targetEntity, Set<SlotType> usedSlots) {
+        var groups = SlotGroupLoader.getValidGroups(targetEntity).entrySet().stream();
+
+        groups = groups
+                .filter(entry -> {
+                    var groupSlots = entry.getValue()
+                            .stream()
+                            .filter(slotType -> {
+                                if (UniqueSlotHandling.isUniqueSlot(slotType.name())) return false;
+
+                                var capability = targetEntity.accessoriesCapability();
+
+                                if (capability == null) return false;
+
+                                var container = capability.getContainer(slotType);
+
+                                if (container == null) return false;
+
+                                return container.getSize() > 0;
+                            })
+                            .collect(Collectors.toSet());
+
+                    return !groupSlots.isEmpty() && (usedSlots == null || groupSlots.stream().anyMatch(usedSlots::contains));
+                });
+
+        return groups.map(Map.Entry::getKey).collect(Collectors.toSet());
+    }
+
+    public Set<SlotGroup> selectedGroups() {
+        return this.selectedGroups;
+    }
+
+    public boolean isGroupSelected(SlotGroup group) {
+        return this.selectedGroups.contains(group);
+    }
+
+    public void toggleSelectedGroup(SlotGroup group) {
+        if(isGroupSelected(group)) {
+            removeSelectedGroup(group);
+        } else {
+            addSelectedGroup(group);
+        }
+    }
+
+    public void addSelectedGroup(SlotGroup group) {
+        this.selectedGroups.add(group);
+
+        if (this.selectedGroups.containsAll(usedGroups(this.targetEntityDefaulted(), this.getUsedSlots()))) {
+            this.selectedGroups.clear();
+        }
+    }
+
+    public void removeSelectedGroup(SlotGroup group) {
+        this.selectedGroups.remove(group);
+    }
+
+    //--
+
+    public int addedArmorSlots() {
+        return this.addedArmorSlots;
     }
 
     public boolean areUnusedSlotsShown() {
         return AccessoriesPlayerOptionsHolder.getOptions(owner).getData(PlayerOptions.SHOW_UNUSED_SLOTS);
     }
 
-    //--
+    @Override
+    public void removed(Player player) {
+        super.removed(player);
+    }
+
+    private int stackIndex = -1;
+
+    @Override
+    public ItemStack quickMoveStack(Player player, int index) {
+        this.stackIndex = index;
+
+        var stack = quickMoveStackInternal(player, index);
+
+        this.stackIndex = -1;
+
+        return stack;
+    }
+
+    private ItemStack quickMoveStackInternal(Player player, int index) {
+        var slot = this.slots.get(index);
+
+        if(!slot.hasItem()) return ItemStack.EMPTY;
+
+        var itemStack2 = slot.getItem();
+        var itemStack = itemStack2.copy();
+
+        // 0 1 2 3 : 6 - 7 / 4 - 5 / 2 - 3 / 0 - 1
+        var equipmentSlot = targetEntity.getEquipmentSlotForItem(itemStack);
+        int bottomArmorIndex = 42 + (this.addedArmorSlots - ((equipmentSlot.getIndex() + 1) * 2));
+        int topArmorIndex = bottomArmorIndex + 1;
+
+        var upperInventorySize = this.startingAccessoriesSlot;
+
+        /*
+         * Player Indies
+         *       0: Result slot
+         *  1 -  5: Crafting Grid
+         *  5 - 41: Player Inv
+         *      41: Offhand Slot
+         * 41 - (41 - 51): Armor Slots
+         * (41 - 51) -   : Accessories Slots
+         */
+
+        if (index == 0) { // If from Crafting Result move to player inventory
+            if (!this.moveItemStackTo(itemStack2, 5, 41, true)) return ItemStack.EMPTY;
+
+            slot.onQuickCraft(itemStack2, itemStack);
+        } else if ((index >= 1 && index < 5) || (index >= upperInventorySize) || Objects.equals(41, index) || (index >= 42)) { // If from Crafting Grid move to player inventory
+            if (!this.moveItemStackTo(itemStack2, 5, 41, false)) return ItemStack.EMPTY;
+        } else if (equipmentSlot.isArmor() && !this.slots.get(bottomArmorIndex).hasItem()) {
+            if(!this.moveItemStackTo(itemStack2, bottomArmorIndex, topArmorIndex, false)) return ItemStack.EMPTY;
+        } else if (equipmentSlot == EquipmentSlot.OFFHAND && !this.slots.get(41).hasItem()) {
+            if(!this.moveItemStackTo(itemStack2, 41, 42, false)) return ItemStack.EMPTY;
+        }
+        else {
+            boolean changeOccured = false;
+
+            if (canMoveToAccessorySlot(itemStack2, this.targetEntityDefaulted())) {
+                moveItemStackTo(itemStack2, upperInventorySize, slots.size(), false);
+
+                if (itemStack2.getCount() != itemStack.getCount() || itemStack2.isEmpty()) {
+                    changeOccured = true;
+                }
+            }
+
+            if(!changeOccured) {
+                if (index >= 5 && index < 32) {
+                    if (!this.moveItemStackTo(itemStack2, 32, 41, false)) return ItemStack.EMPTY;
+                } else if (index >= 32 && index < 41) {
+                    if (!this.moveItemStackTo(itemStack2, 5, 32, false)) return ItemStack.EMPTY;
+                }
+            }
+        }
+
+        if (itemStack2.getCount() == itemStack.getCount()) return ItemStack.EMPTY;
+
+        if (itemStack2.isEmpty()) {
+            slot.setByPlayer(ItemStack.EMPTY, itemStack);
+        } else {
+            slot.setChanged();
+        }
+
+        if (itemStack2.getCount() == itemStack.getCount()) return ItemStack.EMPTY;
+
+        slot.onTake(player, itemStack2);
+
+        if (index == 0) player.drop(itemStack2, false);
+
+        return itemStack;
+    }
 
     @Override
     public boolean stillValid(Player player) {
         return true;
     }
 
-    @Override
-    public ItemStack quickMoveStack(Player player, int clickedIndex) {
-        final var slots = this.slots;
-        final var clickedSlot = slots.get(clickedIndex);
-        if (!clickedSlot.hasItem()) return ItemStack.EMPTY;
+    protected boolean canMoveToAccessorySlot(ItemStack stack, LivingEntity living) {
+        var capability = living.accessoriesCapability();
 
-        ItemStack clickedStack = clickedSlot.getItem();
-        var oldStack = clickedStack.copy();
-        EquipmentSlot equipmentSlot = player.getEquipmentSlotForItem(oldStack);
+        if (capability == null) return false;
 
-        int armorSlots = 4;
-        int hotbarSlots = 9;
-        int invSlots = 27;
+        var validSlotTypes = SlotPredicateRegistry.getStackSlotTypes(living, stack);
 
-        int armorStart = 0;
-        int armorEnd = armorStart - 1 + armorSlots;
-        int invStart = armorEnd + 1;
-        int invEnd = invStart - 1 + invSlots;
-        int hotbarStart = invEnd + 1;
-        int hotbarEnd = hotbarStart - 1 + hotbarSlots;
-        int offhand = hotbarEnd + 1;
-
-        // If the clicked slot isn't an accessory slot
-        if (clickedIndex < this.accessoriesSlotStartIndex) {
-            // Try to move to accessories
-            if (!this.moveItemStackTo(clickedStack, this.accessoriesSlotStartIndex, this.slots.size(), false)) {
-                // If the clicked slot is one of the armor slots
-                if (clickedIndex >= armorStart && clickedIndex <= armorEnd) {
-                    // Try to move to the inventory or hotbar
-                    if (!this.moveItemStackTo(clickedStack, invStart, hotbarEnd, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                    // If the clicked slot can go into an armor slot and said armor slot is empty
-                } else if (equipmentSlot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR && !this.slots.get(armorEnd - equipmentSlot.getIndex()).hasItem()) {
-                    // Try to move to the armor slot
-                    int targetArmorSlotIndex = armorEnd - equipmentSlot.getIndex();
-                    if (!this.moveItemStackTo(clickedStack, targetArmorSlotIndex, targetArmorSlotIndex + 1, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                    // If the clicked slot can go into the offhand slot and the offhand slot is empty
-                } else if (equipmentSlot == EquipmentSlot.OFFHAND && !this.slots.get(offhand).hasItem()) {
-                    // Try to move to the offhand slot
-                    if (!this.moveItemStackTo(clickedStack, offhand, offhand + 1, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                    // If the clicked slot is in the hotbar
-                } else if (clickedIndex >= hotbarStart && clickedIndex <= hotbarEnd) {
-                    // Try to move to the inventory
-                    if (!this.moveItemStackTo(clickedStack, invStart, invEnd, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                    // If the clicked slot is in the inventory
-                } else if (clickedIndex >= invStart && clickedIndex <= invEnd) {
-                    // Try to move to the hotbar
-                    if (!this.moveItemStackTo(clickedStack, hotbarStart, hotbarEnd, false)) {
-                        return ItemStack.EMPTY;
-                    }
-                    // Try to move to the inventory or hotbar
-                } else if (!this.moveItemStackTo(clickedStack, invStart, hotbarEnd, false)) {
-                    return ItemStack.EMPTY;
-                }
-            }
-        } else if (!this.moveItemStackTo(clickedStack, invStart, hotbarEnd, false)) {
-            return ItemStack.EMPTY;
+        for (var slot : this.slots.subList(this.startingAccessoriesSlot, this.slots.size())) {
+            if (slot instanceof SlotTypeAccessible accessible && validSlotTypes.contains(accessible.slotType())) return true;
         }
 
-        if (clickedStack.isEmpty()) {
-            clickedSlot.setByPlayer(ItemStack.EMPTY, oldStack);
-        } else {
-            clickedSlot.setChanged();
-        }
-
-        if (clickedStack.getCount() == oldStack.getCount()) {
-            return ItemStack.EMPTY;
-        }
-
-        clickedSlot.onTake(player, clickedStack);
-
-        return oldStack;
+        return false;
     }
 
-    @Override
     protected boolean moveItemStackTo(ItemStack stack, int startIndex, int endIndex, boolean reverseDirection) {
         boolean bl = false;
-        int i = startIndex;
-        if (reverseDirection) {
-            i = endIndex - 1;
-        }
+        int i = reverseDirection ? endIndex - 1 : startIndex;
 
         if (stack.isStackable()) {
-            while(!stack.isEmpty() && (reverseDirection ? i >= startIndex : i < endIndex)) {
-                Slot slot = this.slots.get(i);
-                ItemStack itemStack = slot.getItem();
+            while (!stack.isEmpty() && (reverseDirection ? i >= startIndex : i < endIndex)) {
+                var slot = this.slots.get(i);
 
-                //Check if the slot does not permit the given amount
-                if(slot.getMaxStackSize(itemStack) < itemStack.getCount()) {
+                if (slot.isActive()) {
+                    var itemStack = slot.getItem();
+
                     if (!itemStack.isEmpty() && ItemStack.isSameItemSameComponents(stack, itemStack)) {
                         int j = itemStack.getCount() + stack.getCount();
-                        if (j <= stack.getMaxStackSize()) {
+                        int k = slot.getMaxStackSize(itemStack);
+
+                        if (j <= k) {
                             stack.setCount(0);
                             itemStack.setCount(j);
                             slot.setChanged();
                             bl = true;
-                        } else if (itemStack.getCount() < stack.getMaxStackSize()) {
-                            stack.shrink(stack.getMaxStackSize() - itemStack.getCount());
-                            itemStack.setCount(stack.getMaxStackSize());
+
+                            // PATCH TO ATTEMPT TO PRESERVE THE INDEX
+                            if (stack.isEmpty() && this.stackIndex != -1) {
+                                var prevSlot = this.slots.get(this.stackIndex);
+
+                                if (prevSlot.container instanceof ExpandedContainer simpleContainer) {
+                                    simpleContainer.setPreviousItem(prevSlot.index, itemStack);
+                                }
+                            }
+                        } else if (itemStack.getCount() < k) {
+                            stack.shrink(k - itemStack.getCount());
+                            itemStack.setCount(k);
                             slot.setChanged();
                             bl = true;
                         }
                     }
                 }
 
-                if (reverseDirection) {
-                    --i;
-                } else {
-                    ++i;
-                }
+                i += (reverseDirection) ? -1 : 1;
             }
         }
 
         if (!stack.isEmpty()) {
-            if (reverseDirection) {
-                i = endIndex - 1;
-            } else {
-                i = startIndex;
-            }
+            i = reverseDirection ? endIndex - 1 : startIndex;
 
-            while(reverseDirection ? i >= startIndex : i < endIndex) {
-                Slot slot = this.slots.get(i);
+            while (reverseDirection ? i >= startIndex : i < endIndex) {
+                var slot = this.slots.get(i);
 
-                ItemStack itemStack = slot.getItem();
-                if (itemStack.isEmpty() && slot.mayPlace(stack)) {
-                    //Use Stack aware form of getMaxStackSize
-                    if (stack.getCount() > slot.getMaxStackSize(stack)) {
-                        slot.setByPlayer(stack.split(slot.getMaxStackSize(stack)));
-                    } else {
-                        slot.setByPlayer(stack.split(stack.getCount()));
+                if(slot.isActive()) {
+                    var itemStack = slot.getItem();
+
+                    if (itemStack.isEmpty() && slot.mayPlace(stack)) {
+                        int j = slot.getMaxStackSize(stack);
+
+                        var newStack = stack.split(Math.min(stack.getCount(), j));
+
+                        slot.setByPlayer(newStack);
+                        slot.setChanged();
+
+                        // PATCH TO ATTEMPT TO PRESERVE THE INDEX
+                        if (stack.isEmpty() && this.stackIndex != -1) {
+                            var prevSlot = this.slots.get(this.stackIndex);
+
+                            if (prevSlot.container instanceof ExpandedContainer simpleContainer) {
+                                simpleContainer.setPreviousItem(prevSlot.getContainerSlot(), newStack);
+                            }
+                        }
+
+                        bl = true;
+                        break;
                     }
-
-                    slot.setChanged();
-                    bl = true;
-                    break;
                 }
 
-                if (reverseDirection) {
-                    --i;
-                } else {
-                    ++i;
-                }
+                i += (reverseDirection) ? -1 : 1;
             }
         }
 
         return bl;
     }
 
-    //--
+    //initializeContents
+
+    // REQUIRED TO PREVENT THE MENU FROM RESETTING THE CACHE WITH STACKS THAT ARE ALREADY SYNCED TO THE CLIENT
+    // SINCE ACCESSORIES CONTAINERS ARE FULLY SYNCED
+    @Override
+    public void initializeContents(int stateId, List<ItemStack> items, ItemStack carried) {
+        if (!this.isValidMenu()) return;
+
+        for(int i = 0; i < items.size(); ++i) {
+            var slot = this.getSlot(i);
+
+            if (slot instanceof SlotTypeAccessible) continue;
+
+            slot.set(items.get(i));
+        }
+
+        super.initializeContents(stateId, List.of(), carried);
+    }
 }

@@ -1,6 +1,5 @@
 package io.wispforest.accessories.compat.rei;
 
-import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.client.gui.components.ArrowComponent;
 import io.wispforest.accessories.impl.option.PlayerOptions;
@@ -17,7 +16,6 @@ import me.shedaniel.rei.api.common.transfer.info.stack.SlotAccessor;
 import me.shedaniel.rei.plugin.autocrafting.InventoryCraftingTransferHandler;
 import me.shedaniel.rei.plugin.common.BuiltinPlugin;
 
-import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -25,21 +23,6 @@ public class AccessoriesClientREIPlugin implements REIClientPlugin {
     @Override
     public void registerExclusionZones(ExclusionZones zones) {
         zones.register(AccessoriesScreen.class, screen -> {
-            var leftPos = screen.leftPos();
-            var topPos = screen.topPos();
-
-            var bl = screen.getMenu().showingSlots();
-
-            var x = leftPos - screen.getPanelWidth() - (bl ? 15 : 0);
-            var y = topPos;
-
-            var width = screen.getPanelWidth() + (bl ? 15 : 0) + 176;
-            var height = screen.getPanelHeight();
-
-            return List.of(new Rectangle(x, y, width, height));
-        });
-
-        zones.register(AccessoriesExperimentalScreen.class, screen -> {
             return screen.getComponentRectangles().stream()
                     .map(rectangle -> new Rectangle(rectangle.x(), rectangle.y(), rectangle.width(), rectangle.height()))
                     .toList();
@@ -62,7 +45,7 @@ public class AccessoriesClientREIPlugin implements REIClientPlugin {
 
                     return new Rectangle(0, 0, 0, 0);
                 },
-                AccessoriesExperimentalScreen.class,
+                AccessoriesScreen.class,
                 BuiltinPlugin.CRAFTING);
     }
 
@@ -75,7 +58,7 @@ public class AccessoriesClientREIPlugin implements REIClientPlugin {
             @Override
             public ApplicabilityResult checkApplicable(Context context) {
                 if (categoryIdentifier.equals(context.getDisplay().getCategoryIdentifier())
-                        && context.getContainerScreen() instanceof AccessoriesExperimentalScreen screen) {
+                        && context.getContainerScreen() instanceof AccessoriesScreen screen) {
 
                     if (!screen.getOption(PlayerOptions.SHOW_CRAFTING_GRID) && context.isActuallyCrafting()) {
                         var component = screen.component(ButtonComponent.class, "crafting_grid_btn");

@@ -6,9 +6,7 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.screen.AccessoriesScreenTransitionHelper;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
-import io.wispforest.accessories.client.gui.ScreenVariantSelectionScreen;
 import io.wispforest.accessories.client.gui.components.ComponentUtils;
-import io.wispforest.accessories.compat.config.ScreenType;
 import io.wispforest.accessories.compat.config.client.ExtendedConfigScreen;
 import io.wispforest.accessories.compat.config.client.Structured;
 import io.wispforest.accessories.compat.config.client.components.StructListOptionContainer;
@@ -19,7 +17,6 @@ import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.mixin.owo.ConfigWrapperAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
-import io.wispforest.accessories.networking.client.ScreenVariantPing;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.owo.config.ui.ConfigScreenProviders;
@@ -259,10 +256,6 @@ public class AccessoriesClient {
     }
 
     public static boolean attemptToOpenScreenFromEntity(LivingEntity targetingEntity) {
-        return attemptToOpenScreen(targetingEntity, Accessories.config().screenOptions.selectedScreenType());
-    }
-
-    private static boolean attemptToOpenScreen(LivingEntity targetingEntity, ScreenType screenType) {
         var player = Minecraft.getInstance().player;
 
         if(targetingEntity.equals(player)) {
@@ -277,25 +270,19 @@ public class AccessoriesClient {
             }
         }
 
-        var selectedVariant = AccessoriesMenuVariant.getVariant(screenType);
+        var selectedVariant = AccessoriesMenuVariant.PRIMARY_V2;
 
         ItemStack creativeCarriedStack = (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen screen)
                 ? screen.getMenu().getCarried()
                 : null;
 
-        if(selectedVariant != null) {
-            AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingEntity, selectedVariant, creativeCarriedStack));
-        } else {
-            Minecraft.getInstance().setScreen(new ScreenVariantSelectionScreen(variant -> {
-                AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingEntity, variant, creativeCarriedStack));
-            }));
-        }
+        AccessoriesNetworking.sendToServer(ScreenOpen.of(targetingEntity, selectedVariant, creativeCarriedStack));
 
         return true;
     }
 
     public static void attemptToOpenSelectionScreen(int entityId, boolean targetLookEntity, Player player) {
-        var selectedVariant = AccessoriesMenuVariant.getVariant(Accessories.config().screenOptions.selectedScreenType());
+        var selectedVariant = AccessoriesMenuVariant.PRIMARY_V2;
 
         ItemStack creativeCarriedStack = (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen screen)
             ? screen.getMenu().getCarried()
@@ -305,13 +292,7 @@ public class AccessoriesClient {
             return new ScreenOpen(targetLookEntity ? -1 : entityId, targetLookEntity, menuVariant, creativeCarriedStack);
         };
 
-        if(selectedVariant != null) {
-            AccessoriesNetworking.sendToServer(packetBuilder.apply(selectedVariant));
-        } else {
-            Minecraft.getInstance().setScreen(new ScreenVariantSelectionScreen(variant -> {
-                AccessoriesNetworking.sendToServer(packetBuilder.apply(variant));
-            }));
-        }
+        AccessoriesNetworking.sendToServer(packetBuilder.apply(selectedVariant));
     }
 
     //--

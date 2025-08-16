@@ -1,7 +1,6 @@
 package io.wispforest.accessories.client;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 

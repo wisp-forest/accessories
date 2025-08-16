@@ -1,7 +1,6 @@
 package io.wispforest.accessories.menu;
 
 import io.wispforest.accessories.compat.config.ScreenType;
-import io.wispforest.accessories.menu.variants.AccessoriesExperimentalMenu;
 import io.wispforest.accessories.menu.variants.AccessoriesMenu;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -15,8 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Supplier;
 
 public enum AccessoriesMenuVariant {
-    ORIGINAL(() -> AccessoriesMenuTypes.ORIGINAL_MENU),
-    EXPERIMENTAL_V1(() -> AccessoriesMenuTypes.EXPERIMENTAL_MENU);
+    PRIMARY_V2(() -> AccessoriesMenuTypes.PRIAMRY_MENU);
 
     public final Supplier<MenuType<? extends AccessoriesMenuBase>> supplier;
 
@@ -27,8 +25,7 @@ public enum AccessoriesMenuVariant {
     @Nullable
     public static AccessoriesMenuVariant getVariant(ScreenType screenType) {
         return switch (screenType) {
-            case ORIGINAL -> ORIGINAL;
-            case EXPERIMENTAL_V1 -> EXPERIMENTAL_V1;
+            case PRIMARY_V2 -> PRIMARY_V2;
             default -> null;
         };
     }
@@ -43,8 +40,7 @@ public enum AccessoriesMenuVariant {
 
     public static AbstractContainerMenu openMenu(int i, Inventory inv, AccessoriesMenuVariant variant, @Nullable LivingEntity target, @Nullable ItemStack carriedStack) {
         return switch (variant) {
-            case AccessoriesMenuVariant.EXPERIMENTAL_V1 -> new AccessoriesExperimentalMenu(i, inv, target, carriedStack);
-            case ORIGINAL -> new AccessoriesMenu(i, inv, target, carriedStack);
+            case AccessoriesMenuVariant.PRIMARY_V2 -> new AccessoriesMenu(i, inv, target, carriedStack);
             default -> throw new IllegalArgumentException("Unknown AccessoriesMenuVariant passed to construct Menu! [Variant: " + variant.name() + "]");
         };
     }

@@ -4,7 +4,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.client.DrawUtils;
-import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
+import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.server.SyncCosmeticToggle;
@@ -38,7 +38,7 @@ public class ComponentUtils {
     private static final ResourceLocation DARK_SLOT = Accessories.of("textures/gui/theme/dark/slot.png");
 
     public static final Surface BACKGROUND_SLOT_RENDERING_SURFACE = (context, component) -> {
-        var slotComponents = new ArrayList<AccessoriesExperimentalScreen.ExtendedSlotComponent>();
+        var slotComponents = new ArrayList<AccessoriesScreen.ExtendedSlotComponent>();
 
         recursiveSearchSlots(component, slotComponents::add);
 
@@ -64,14 +64,14 @@ public class ComponentUtils {
     };
 
     public static final Surface SPECTRUM_SLOT_OUTLINE = (context, component) -> {
-        var slotComponents = new ArrayList<AccessoriesExperimentalScreen.ExtendedSlotComponent>();
+        var slotComponents = new ArrayList<AccessoriesScreen.ExtendedSlotComponent>();
 
         recursiveSearchSlots(component, slotComponents::add);
 
         renderSpectrumOutlines(context, slotComponents);
     };
 
-    public static void renderSpectrumOutlines(OwoUIDrawContext context, List<AccessoriesExperimentalScreen.ExtendedSlotComponent> slotComponents) {
+    public static void renderSpectrumOutlines(OwoUIDrawContext context, List<AccessoriesScreen.ExtendedSlotComponent> slotComponents) {
         for (var slotComponent : slotComponents) {
             var slot = slotComponent.slot();
 
@@ -183,8 +183,8 @@ public class ComponentUtils {
         return VANILLA;
     }
 
-    public static void recursiveSearchSlots(ParentComponent parentComponent, Consumer<AccessoriesExperimentalScreen.ExtendedSlotComponent> action) {
-        recursiveSearch(parentComponent, AccessoriesExperimentalScreen.ExtendedSlotComponent.class, action);
+    public static void recursiveSearchSlots(ParentComponent parentComponent, Consumer<AccessoriesScreen.ExtendedSlotComponent> action) {
+        recursiveSearch(parentComponent, AccessoriesScreen.ExtendedSlotComponent.class, action);
     }
 
     public static <C extends io.wispforest.owo.ui.core.Component> void recursiveSearch(ParentComponent parentComponent, Class<C> target, Consumer<C> action) {
@@ -196,11 +196,11 @@ public class ComponentUtils {
         }
     }
 
-    public static <S extends Slot & SlotTypeAccessible> Pair<io.wispforest.owo.ui.core.Component, PositionedRectangle> createSlotWithToggle(S slot, Function<Integer, AccessoriesExperimentalScreen.ExtendedSlotComponent> slotBuilder) {
+    public static <S extends Slot & SlotTypeAccessible> Pair<io.wispforest.owo.ui.core.Component, PositionedRectangle> createSlotWithToggle(S slot, Function<Integer, AccessoriesScreen.ExtendedSlotComponent> slotBuilder) {
         return createSlotWithToggle(slot, slotBuilder, true);
     }
 
-    public static <S extends Slot & SlotTypeAccessible> Pair<io.wispforest.owo.ui.core.Component, @Nullable PositionedRectangle> createSlotWithToggle(S slot, Function<Integer, AccessoriesExperimentalScreen.ExtendedSlotComponent> slotBuilder, boolean createButton) {
+    public static <S extends Slot & SlotTypeAccessible> Pair<io.wispforest.owo.ui.core.Component, @Nullable PositionedRectangle> createSlotWithToggle(S slot, Function<Integer, AccessoriesScreen.ExtendedSlotComponent> slotBuilder, boolean createButton) {
         var btnPosition = Positioning.absolute(14, -1); //15, -1
 
         @Nullable ButtonComponent toggleBtn = null;
@@ -239,7 +239,7 @@ public class ComponentUtils {
                 (context, button, delta) -> {});
     }
 
-    public static io.wispforest.owo.ui.core.Component createGroupToggle(AccessoriesExperimentalScreen screen, SlotGroup group) {
+    public static io.wispforest.owo.ui.core.Component createGroupToggle(AccessoriesScreen screen, SlotGroup group) {
         var tooltipData = new ArrayList<Component>();
 
         tooltipData.add(Component.translatable(group.translation()));

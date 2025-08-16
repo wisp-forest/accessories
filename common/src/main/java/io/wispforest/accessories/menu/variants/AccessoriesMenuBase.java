@@ -5,14 +5,10 @@ import io.wispforest.accessories.mixin.CraftingMenuAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.endec.Endec;
-import io.wispforest.endec.StructEndec;
 import it.unimi.dsi.fastutil.Pair;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.network.protocol.game.ServerboundContainerClosePacket;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.LivingEntity;
@@ -48,7 +44,7 @@ public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
         this.owner = inventory.player;
         this.targetEntity = targetEntity;
 
-        if (this instanceof AccessoriesExperimentalMenu) {
+        if (this instanceof AccessoriesMenu) {
             this.addResultSlot(inventory.player, 154, 28);
             this.addCraftingGridSlots(98, 18);
         }
@@ -66,12 +62,12 @@ public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
 
     @Override
     public Slot getResultSlot() {
-        return (this instanceof AccessoriesExperimentalMenu) ? this.slots.get(0) : EMPTY_SLOT;
+        return (this instanceof AccessoriesMenu) ? this.slots.get(0) : EMPTY_SLOT;
     }
 
     @Override
     public List<Slot> getInputGridSlots() {
-        return (this instanceof AccessoriesExperimentalMenu) ? this.slots.subList(1, 5) : List.of();
+        return (this instanceof AccessoriesMenu) ? this.slots.subList(1, 5) : List.of();
     }
 
     @Nullable

@@ -1,7 +1,7 @@
 package io.wispforest.accessories.client.gui.components;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.client.gui.AccessoriesExperimentalScreen;
+import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.mixin.client.AbstractSliderButtonAccessor;
 import io.wispforest.accessories.mixin.client.owo.DiscreteSliderComponentAccessor;
@@ -22,12 +22,12 @@ import java.util.function.*;
 
 public class AccessoriesScreenSettingsLayout extends FlowLayout {
 
-    private final AccessoriesExperimentalScreen screen;
+    private final AccessoriesScreen screen;
 
     private int maxWidth = 162;
     private int columnAmount = 1;
 
-    public AccessoriesScreenSettingsLayout(AccessoriesExperimentalScreen screen) {
+    public AccessoriesScreenSettingsLayout(AccessoriesScreen screen) {
         super(Sizing.content(), Sizing.content(), Algorithm.VERTICAL);
 
         this.screen = screen;
