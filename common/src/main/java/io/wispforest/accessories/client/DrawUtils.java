@@ -115,6 +115,7 @@ public class DrawUtils {
         context.blit(RenderPipelines.GUI_TEXTURED, atlasLocation, x, y, uOffset, vOffset, uWidth, vHeight, width, height, textureWidth, textureHeight, -1);
     }
 
+    // TODO: THIS CURRENTLY DOSE NOT MAKE THE ICONS WHITE AT ALL AND REQUIRES HEAVY MODIFICATION SIMILAR TO OWO BLUR TO SETUP THE UNIFORMS CORRECTLY
     public static void blitSpriteWithColor(GuiGraphics context, TextureAtlasSprite sprite, int x, int y, int width, int height, Color color) {
         context.blitSprite(RenderPipelines.GUI_TEXTURED/*location -> AccessoriesPipelines.COLORED_GUI_TEXTURED.apply(color, location)*/, sprite, x, y, width, height, color.argb());
     }
