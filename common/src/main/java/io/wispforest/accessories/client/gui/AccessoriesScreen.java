@@ -772,9 +772,6 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
 
         return InventoryEntityComponent.of(Sizing.fixed(sideBySideView ? 162 : 108), Sizing.fixed(126), this.getMenu().targetEntityDefaulted())
                 .renderWrapping((ctx, component, renderCall) -> {
-                    //ctx.enableScissor(component.x() + 24, component.y(), component.x() + component.width()  - 48, component.y() + component.height());
-                    //ScissorStack.push(component.x() + 24, component.y(), component.width() - 48, component.height(), ctx);
-
                     AccessoriesFunkyRenderingState.INSTANCE.wrapEntityRendering(
                             component.x() + 24, component.y(), component.x() + component.width() - 24, component.y() + component.height(),
                             primaryEntityWrapCall -> {
@@ -786,11 +783,6 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
                                     renderCall.get(1).run();
                                 }
                             });
-
-                    //ScissorStack.blitSprite(RenderType::guiTextured, BACk_ICON, x, y, width - 1, height - 1);
-
-            pose.popPose();
-                    //ctx.disableScissor();
                 })
                 .sideBySideMode(sideBySideView)
                 .additionalOffset(sideBySideView ? 12 : 0)

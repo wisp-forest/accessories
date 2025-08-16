@@ -2,7 +2,6 @@ package io.wispforest.accessories.networking.client;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.AccessoriesClient;
-import io.wispforest.accessories.client.gui.ScreenVariantSelectionScreen;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.server.ScreenOpen;

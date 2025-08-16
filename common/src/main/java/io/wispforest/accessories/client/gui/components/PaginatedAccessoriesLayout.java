@@ -1,5 +1,6 @@
 package io.wispforest.accessories.client.gui.components;
 
+import com.mojang.math.Axis;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.impl.option.PlayerOptions;
