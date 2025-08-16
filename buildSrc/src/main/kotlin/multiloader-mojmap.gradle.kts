@@ -37,7 +37,7 @@ fun setupTask(targetTask: AbstractRemapJarTask, taskName: String, archiveClassif
         tasks.named("generateMetadataFileForMavenCommonPublication"),
         tasks.named("generateMetadataFileForMavenMojmapPublication"),
         tasks.named("publishMavenCommonPublicationToMavenLocal"),
-        tasks.named("publishMavenCommonPublicationToMavenRepository"),
+        //tasks.named("publishMavenCommonPublicationToMavenRepository"),
         //tasks.named("publishMavenMojmapPublicationToMavenLocal")
     )
 }
