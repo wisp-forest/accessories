@@ -12,7 +12,6 @@ public record SlotEntryReference(SlotReference reference, ItemStack stack) imple
         this(SlotReference.of(entity, path), stack);
     }
 
-
     @Override
     public SlotPath path() {
         return reference.slotPath();
