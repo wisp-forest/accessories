@@ -10,15 +10,16 @@ import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.CodecUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.include.com.google.common.base.Objects;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 ///
 /// A Path Representation for where a given [ItemStack] is equipped within the Accessories API, which may
@@ -28,6 +29,9 @@ import java.util.List;
 ///
 /// It is **not recommend** to hold onto such objects due to the fact of [SlotType]'s being reloadable
 /// and resizable meaning that such may not be present depending on the amount of time that has elapsed.
+///
+/// When using this as a key within a [Map] it is recommended that you unpack all [DelegatingSlotPath]'s used
+/// and change to a map that allows for custom checks for [equals][#equals] and [hashcode][#hashCode].
 ///
 public sealed interface SlotPath permits SlotPathImpl, DelegatingSlotPath {
 
@@ -157,6 +161,21 @@ public sealed interface SlotPath permits SlotPathImpl, DelegatingSlotPath {
         return SlotPath.of(name, index).createString();
     }
 
+    // TODO: FIGURE OUT IF WE ALSO NEED TO HANDLE HASHCODE DIFFERENTLY AS HOLDING A SLOT PATH VS A SLOT REFERENCE ARE DIFFERENT HASHES BUT COULD BE EQUAL
+    static boolean areEqual(SlotPath path, SlotPath otherPath) {
+        if (path instanceof SlotReference ref && otherPath instanceof SlotReference otherRef) {
+            if (ref.entity() != otherRef.entity()) return false;
+        }
+
+        return path.slotName().equals(otherPath.slotName())
+            && path.index() == otherPath.index()
+            && path.innerIndices().equals(otherPath.innerIndices())
+            && path.isNested() == otherPath.isNested();
+    }
+
+    static int createHashCode(SlotPath path) {
+        return Objects.hashCode(path.slotName(), path.index(), path.innerIndices(), path.isNested());
+    }
 }
 
 @ApiStatus.Internal
@@ -170,33 +189,11 @@ record SlotPathImpl(String slotName, int index, List<Integer> innerIndices, bool
     public String toString() {
         return createString();
     }
-}
-
-sealed interface DelegatingSlotPath extends SlotPath permits SlotReference {
-    SlotPath slotPath();
 
     @Override
-    default String slotName() {
-        return slotPath().slotName();
-    }
+    public boolean equals(Object obj) {
+        if (!(obj instanceof SlotPath otherPath)) return false;
 
-    @Override
-    default int index() {
-        return slotPath().index();
-    }
-
-    @Override
-    default List<Integer> innerIndices() {
-        return slotPath().innerIndices();
-    }
-
-    @Override
-    default boolean isNested() {
-        return slotPath().isNested();
-    }
-
-    @Override
-    default String createString() {
-        return slotPath().createString();
+        return SlotPath.areEqual(this, otherPath);
     }
 }

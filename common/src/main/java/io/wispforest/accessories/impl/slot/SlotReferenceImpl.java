@@ -146,4 +146,11 @@ public record SlotReferenceImpl(LivingEntity entity, SlotPath slotPath) implemen
             return accessoryNest.getInnerStacks(holderStack).get(index);
         }
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof SlotPath otherPath)) return false;
+
+        return SlotPath.areEqual(this, otherPath);
+    }
 }
