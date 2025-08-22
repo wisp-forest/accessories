@@ -121,15 +121,15 @@ public class AccessoriesRendererRegistry {
      * @return Either the {@link AccessoryRenderer} bound to the item or the instance of the {@link DefaultAccessoryRenderer}
      */
     public static AccessoryRenderer getRenderer(Item item){
-        AccessoryRenderer renderer = null;
+        AccessoryRenderer renderer;
 
         var id = getBoundRenderer(item);
 
         if (id != null) {
-            if (!CACHED_RENDERERS.containsKey(id)) {
+            renderer = getRenderer(id);
+
+            if (renderer == null) {
                 renderer = DefaultAccessoryRenderer.INSTANCE;
-            } else {
-                renderer = getRenderer(id);
             }
         } else {
             renderer = DefaultAccessoryRenderer.INSTANCE;
@@ -137,6 +137,8 @@ public class AccessoriesRendererRegistry {
 
         if(renderer instanceof BuiltinAccessoryRenderers.EmptyRenderer && Accessories.config().clientOptions.forceNullRenderReplacement()) {
             renderer = DefaultAccessoryRenderer.INSTANCE;
+        } else if (renderer == null) {
+            renderer = new BuiltinAccessoryRenderers.EmptyRenderer();
         }
 
         return renderer == null ? new BuiltinAccessoryRenderers.EmptyRenderer() : renderer;

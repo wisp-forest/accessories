@@ -1,6 +1,7 @@
 package io.wispforest.testccessories.neoforge.client;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.testccessories.neoforge.Testccessories;
 import io.wispforest.testccessories.neoforge.accessories.AppleAccessory;
@@ -9,6 +10,7 @@ import io.wispforest.testccessories.neoforge.accessories.PotatoAccessory;
 import io.wispforest.testccessories.neoforge.accessories.TntAccessory;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
@@ -32,6 +34,8 @@ public class TestccessoriesClient {
         MenuScreens.register(Testccessories.TEST_MENU_TYPE, TestScreen::new);
 
         NeoForge.EVENT_BUS.addListener(this::initCommand);
+
+        AccessoriesRendererRegistry.bindItemToEmptyRenderer(Items.BEDROCK);
     }
 
     public void initCommand(RegisterClientCommandsEvent event){

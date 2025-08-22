@@ -24,6 +24,7 @@ public class TestccessoriesClientFabric implements ClientModInitializer {
         PointedDripstoneAccessory.clientInit();
         TntAccessory.clientInit();
 
+        AccessoriesRendererRegistry.bindItemToEmptyRenderer(Items.BEDROCK);
         AccessoriesRendererRegistry.bindItemToEmptyRenderer(Items.BAMBOO);
         AccessoriesRendererRegistry.bindItemToEmptyRenderer(Items.STICK);
 

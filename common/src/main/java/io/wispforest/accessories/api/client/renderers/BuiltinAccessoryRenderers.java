@@ -202,7 +202,6 @@ public class BuiltinAccessoryRenderers {
         AccessoriesRendererRegistry.registerRenderer(DEFAULT_RENDERER_ID, () -> DefaultAccessoryRenderer.INSTANCE);
         AccessoriesRendererRegistry.registerRenderer(ARMOR_RENDERER_ID, () -> ARMOR_RENDERER);
         AccessoriesRendererRegistry.registerRenderer(ELYTRA_RENDERER_ID, () -> ELYTRA_RENDERER);
-        AccessoriesRendererRegistry.registerRenderer(AccessoriesRendererRegistry.NO_RENDERER_ID, EmptyRenderer::new);
     }
 
     public static void onAddCallback(Item item) {
