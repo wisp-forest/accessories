@@ -49,12 +49,10 @@ import net.neoforged.neoforge.common.util.AttributeTooltipContext;
 import net.neoforged.neoforge.common.util.AttributeUtil;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import org.apache.commons.lang3.function.TriFunction;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
@@ -113,17 +111,23 @@ public class AccessoriesInternalsImpl {
     }
 
     public static void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
+        var menuHolder = new MutableObject<@Nullable AbstractContainerMenu>(null);
+
         player.openMenu(
                 new SimpleMenuProvider((i, inventory, arg2) -> {
                     var menu = AccessoriesMenuVariant.openMenu(i, inventory, variant, targetEntity, carriedStack);
 
                     // Hacky work around for getting menu info in encoding
-                    inventory.player.containerMenu = menu;
+                    menuHolder.setValue(menu);
 
                     return menu;
                 }, Component.empty()),
                 buf -> {
-                    AccessoriesMenuData.ENDEC.encode(SerializationContext.attributes(RegistriesAttribute.of(buf.registryAccess())), ByteBufSerializer.of(buf), AccessoriesMenuData.of(targetEntity, ((AccessoriesMenuBase) player.containerMenu)));
+                    var menu = (AccessoriesMenuBase) Objects.requireNonNull(menuHolder.getValue(), "Unable to open accessories menu as the menu was not constructed before encoding!");
+
+                    var ctx = SerializationContext.attributes(RegistriesAttribute.of(buf.registryAccess()));
+
+                    AccessoriesMenuData.ENDEC.encode(ctx, ByteBufSerializer.of(buf), AccessoriesMenuData.of(targetEntity, menu));
                 });
     }
 
