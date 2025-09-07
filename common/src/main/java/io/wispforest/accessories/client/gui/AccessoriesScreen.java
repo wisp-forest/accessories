@@ -931,7 +931,7 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
     }
 
     @Nullable
-    private ExtendedScrollContainer prevGroupFilterScrollable = null;
+    private ExtendedScrollContainer groupFilterScrollable = null;
 
     @Nullable
     private io.wispforest.owo.ui.core.Component createGroupFilters() {
@@ -987,7 +987,7 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
             ).configure((ExtendedScrollContainer<?> scrollContainer) -> {
                 scrollContainer.oppositeScrollbar((boolean) this.getOption(PlayerOptions.SIDE_WIDGET_POSITION) == this.getOption(PlayerOptions.MAIN_WIDGET_POSITION))
 //                    .customClippingInsets(Insets.of(1))
-                        .scrollToAfterLayout(prevGroupFilterScrollable.getProgress())
+                        .scrollToAfterLayout(groupFilterScrollable != null ? groupFilterScrollable.getProgress() : 0)
                         .scrollbarThiccness(2)
                         .scrollbar(ScrollContainer.Scrollbar.flat(Color.ofArgb(0xA0000000)))
                         .fixedScrollbarLength(16)
@@ -996,10 +996,10 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
             });
 
             baseButtonLayout = scrollable;
-            this.prevGroupFilterScrollable = scrollable;
+            this.groupFilterScrollable = scrollable;
         } else {
             baseButtonLayout.padding(Insets.of(1, 2, 2, 2));
-            this.prevGroupFilterScrollable = null;
+            this.groupFilterScrollable = null;
         }
 
         return Containers.verticalFlow(Sizing.content(), Sizing.content())
