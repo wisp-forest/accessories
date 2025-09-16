@@ -55,9 +55,4 @@ public abstract class AbstractContainerScreenMixin implements ContainerScreenExt
 
         original.call(instance, function, texture, x, y, width, height);
     }
-
-    @WrapOperation(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;matches(II)Z"))
-    private boolean accessories$adjustCloseCheck(KeyMapping instance, int keysym, int scancode, Operation<Boolean> original) {
-        return original.call(instance, keysym, scancode) || original.call(AccessoriesClient.OPEN_SCREEN, keysym, scancode);
-    }
 }
