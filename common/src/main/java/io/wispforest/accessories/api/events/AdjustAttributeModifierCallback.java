@@ -18,11 +18,9 @@ public interface AdjustAttributeModifierCallback {
     Event<AdjustAttributeModifierCallback> EVENT = EventFactory.createArrayBacked(AdjustAttributeModifierCallback.class,
             (invokers) -> (stack, reference, builder) -> {
                 AccessoryNestUtils.recursiveStackConsumption(stack, reference, (stack1, reference1) -> {
-                    var innerBuilder = new AccessoryAttributeBuilder(reference1);
+                    var innerBuilder = new AccessoryAttributeBuilder(reference1, builder);
 
                     for (var invoker : invokers) invoker.adjustAttributes(stack1, reference1, innerBuilder);
-
-                    builder.addFrom(innerBuilder);
                 });
             }
     );

@@ -28,24 +28,37 @@ public final class AccessoryAttributeBuilder {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private final Map<Holder<Attribute>, Map<ResourceLocation, AttributeModificationData>> exclusiveAttributes = new HashMap<>();
-    private final Multimap<Holder<Attribute>, AttributeModificationData> stackedAttributes = LinkedHashMultimap.create();
+    private final Map<Holder<Attribute>, Map<ResourceLocation, AttributeModificationData>> exclusiveAttributes;
+    private final Multimap<Holder<Attribute>, AttributeModificationData> stackedAttributes;
 
     private final SlotPath slotPath;
 
     @ApiStatus.Internal
-    public AccessoryAttributeBuilder(SlotPath slotPath) {
+    public AccessoryAttributeBuilder(SlotPath slotPath, @Nullable AccessoryAttributeBuilder parentBuilder) {
         this.slotPath = slotPath;
+
+        if (parentBuilder != null) {
+            this.exclusiveAttributes = parentBuilder.exclusiveAttributes;
+            this.stackedAttributes = parentBuilder.stackedAttributes;
+        } else {
+            this.exclusiveAttributes = new HashMap<>();
+            this.stackedAttributes = LinkedHashMultimap.create();
+        }
+    }
+
+    @ApiStatus.Internal
+    public AccessoryAttributeBuilder(SlotPath slotPath) {
+        this(slotPath, null);
     }
 
     @ApiStatus.Internal
     public AccessoryAttributeBuilder(String slotName, int slot) {
-        this.slotPath = SlotPath.of(slotName, slot);
+        this(SlotPath.of(slotName, slot));
     }
 
     @ApiStatus.Internal
     public AccessoryAttributeBuilder() {
-        this.slotPath = SlotPath.of("", 0);
+        this(SlotPath.of("", 0));
     }
 
     //--

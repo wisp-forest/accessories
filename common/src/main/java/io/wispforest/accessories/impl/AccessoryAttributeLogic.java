@@ -1,5 +1,6 @@
 package io.wispforest.accessories.impl;
 
+import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
@@ -43,11 +44,9 @@ public class AccessoryAttributeLogic {
         AccessoryNestUtils.recursiveStackConsumption(stack, slotReference, (innerStack, innerRef) -> {
             var component = innerStack.getOrDefault(AccessoriesDataComponents.ATTRIBUTES, AccessoryItemAttributeModifiers.EMPTY);
 
-            var innerBuilder = (!hideTooltipIfDisabled || component.showInTooltip())
-                    ? component.gatherAttributes(innerRef)
-                    : new AccessoryAttributeBuilder(slotName, slot);
-
-            builder.addFrom(innerBuilder);
+            if (!hideTooltipIfDisabled || component.showInTooltip()) {
+                component.gatherAttributes(innerRef, builder);
+            }
         });
 
         if(entity != null) {
