@@ -6,24 +6,6 @@
     ],
     "net/minecraft/class_4264": [
       "io/wispforest/accessories/client/gui/AbstractButtonExtension"
-    ],
-    "net/minecraft/class_2487": [
-      "io/wispforest/endec/util/MapCarrier"
-    ],
-    "net/minecraft/class_2540": [
-      "io/wispforest/endec/util/EndecBuffer"
-    ],
-    "net/minecraft/class_339": [
-      "io/wispforest/owo/ui/inject/ComponentStub"
-    ],
-    "net/minecraft/class_342": [
-      "io/wispforest/owo/ui/inject/GreedyInputComponent"
-    ],
-    "net/minecraft/class_1703": [
-      "io/wispforest/owo/client/screens/OwoScreenHandler"
-    ],
-    "net/minecraft/class_332": [
-      "io/wispforest/owo/ui/util/MatrixStackTransformer"
     ]
   }
 }

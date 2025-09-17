@@ -49,7 +49,7 @@ dependencies {
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive false }
 
-    modImplementation("io.wispforest:owo-lib-neoforge:${rootProject.owo_neo_version}")
+    modApi("io.wispforest:owo-lib-neoforge:${rootProject.owo_neo_version}")
 
     //implementation("org.sinytra:forgified-fabric-loader:${project.ffloader_version}")
 
