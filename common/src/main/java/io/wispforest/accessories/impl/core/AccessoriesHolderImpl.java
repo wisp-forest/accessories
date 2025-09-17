@@ -2,6 +2,9 @@ package io.wispforest.accessories.impl.core;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ForwardingIterator;
+import com.google.common.collect.ForwardingMap;
+import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
@@ -12,6 +15,7 @@ import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.impl.PlayerEquipControl;
 import io.wispforest.accessories.impl.caching.AccessoriesHolderLookupCache;
+import io.wispforest.accessories.utils.ValidatingForwardingMap;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.accessories.impl.option.PlayerOptions;
@@ -34,6 +38,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -41,6 +46,11 @@ import java.time.Duration;
 import java.util.*;
 
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @ApiStatus.Internal
 public class AccessoriesHolderImpl implements InstanceEndec {
@@ -50,6 +60,7 @@ public class AccessoriesHolderImpl implements InstanceEndec {
     private static final MapCarrier EMPTY = new NbtMapCarrier(new CompoundTag());
 
     private final Map<String, AccessoriesContainer> slotContainers = new LinkedHashMap<>();
+    private final Map<String, AccessoriesContainer> slotContainersView = Collections.unmodifiableMap(this.getAllSlotContainers());
 
     public final List<ItemStack> invalidStacks = new ArrayList<>();
 
@@ -156,52 +167,28 @@ public class AccessoriesHolderImpl implements InstanceEndec {
     }
 
     @Nullable
-    private Map<String, AccessoriesContainer> validSlotContainers = null;
+    private Set<String> validSlotTypes = null;
+
+    @Nullable
+    private final Map<String, AccessoriesContainer> validSlotContainers = new ValidatingForwardingMap<>(
+        this.slotContainers,
+        String.class, AccessoriesContainer.class,
+        s -> this.validSlotTypes == null || this.validSlotTypes.contains(s), AccessoriesContainer::getSlotName);
 
     public void setValidTypes(Set<String> validTypes) {
-        if (this.currentlyInitializingHolder.isLocked()) {
-            var threadOwner = currentlyInitializingHolder.getOwner();
+        if (this.currentlyInitializingHolder.isLockedNotByOwner(Thread.currentThread())) return;
 
-            var threadOwnerName = "";
-
-            if (threadOwner != null) threadOwnerName = threadOwner.getName();
-
-            LOGGER.warn("Valid Slot View was attempted to created but somehow its currently Locked! [Current Thread: {}, Lock Owner: {}]", Thread.currentThread().getName(), threadOwnerName);
-
-            return;
-        }
-
-        var validSlotContainers = ImmutableMap.<String, AccessoriesContainer>builder();
-
-        this.slotContainers.forEach((string, container) -> {
-            if (validTypes.contains(container.getSlotName())) validSlotContainers.put(string, container);
-        });
-
-        this.validSlotContainers = validSlotContainers.build();
-
-//        if (this.lookupCache == null) {
-//            this.lookupCache = new AccessoriesHolderLookupCache(this);
-//        }
-//
-//        this.lookupCache.clearCache();
+        this.validSlotTypes = this.slotContainers.keySet().containsAll(validTypes) ? null : validTypes;
     }
 
     @ApiStatus.Internal
     public Map<String, AccessoriesContainer> getSlotContainers() {
-        return this.validSlotContainers != null ? this.validSlotContainers : Collections.unmodifiableMap(this.getAllSlotContainers());
+        return this.validSlotTypes != null ? this.validSlotContainers : this.slotContainersView;
     }
 
     @Nullable
-    public AccessoriesHolderLookupCache lookupCache = null;
-
-    @Nullable
     public AccessoriesHolderLookupCache getLookupCache() {
-        // TODO: FIX ISSUES WITH LOOK UP CACHE LEADING TO IT EITHER:
-        /*
-            - Not updating on death with YIGD
-            - Not updating with old save leading to issues where Accessorie changes not being picked up
-         */
-        return /*Accessories.config().useExperimentalCaching() ? this.lookupCache :*/ null;
+        return null;
     }
 
     //--
@@ -221,7 +208,12 @@ public class AccessoriesHolderImpl implements InstanceEndec {
             LOGGER.warn("It seems the given player has no slots bound to it within a init call, is that desired?");
         }
 
-        this.validSlotContainers = null;
+        this.validSlotTypes = null;
+
+        // Prevent nested init calls on the same thread as this really is not good idea nor makes any sense
+        if (this.currentlyInitializingHolder.isLockedByOwner(Thread.currentThread())) {
+            return;
+        }
 
         try {
             this.currentlyInitializingHolder.lock();
@@ -242,7 +234,6 @@ public class AccessoriesHolderImpl implements InstanceEndec {
                     this.slotContainers.put(s, new AccessoriesContainerImpl(capability, slotType));
                 });
             }
-
         } finally {
             this.currentlyInitializingHolder.unlock();
         }
@@ -370,6 +361,8 @@ public class AccessoriesHolderImpl implements InstanceEndec {
             setIfPresent(carrier, options, SHOW_CRAFTING_GRID, PlayerOptions.SHOW_CRAFTING_GRID);
         }
 
+        this.setValidTypes(EntitySlotLoader.getEntitySlots(entity).keySet());
+
         capability.clearCachedSlotModifiers();
 
         this.carrier = EMPTY;
@@ -413,10 +406,31 @@ public class AccessoriesHolderImpl implements InstanceEndec {
         @Override public Object value() { return this;}
     }
 
-    private class OwnerAccessibleReentrantLock extends ReentrantLock {
+    private static class OwnerAccessibleReentrantLock extends ReentrantLock {
         @Override
+        @Nullable
         public Thread getOwner() {
             return super.getOwner();
+        }
+
+        public boolean isLockedNotByOwner(Thread thread) {
+            if (!isLocked()) return false;
+
+            var owner = getOwner();
+
+            if (owner == null) return false;
+
+            return owner != thread;
+        }
+
+        public boolean isLockedByOwner(Thread thread) {
+            if (!isLocked()) return false;
+
+            var owner = getOwner();
+
+            if (owner == null) return false;
+
+            return owner == thread;
         }
     }
 }
