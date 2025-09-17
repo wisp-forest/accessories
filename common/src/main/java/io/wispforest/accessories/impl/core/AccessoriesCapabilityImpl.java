@@ -1,5 +1,8 @@
 package io.wispforest.accessories.impl.core;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheBuilderSpec;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
@@ -31,6 +34,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
+import java.time.Duration;
 import java.util.*;
 
 @ApiStatus.Internal

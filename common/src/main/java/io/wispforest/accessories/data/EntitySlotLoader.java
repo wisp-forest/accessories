@@ -14,6 +14,8 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
+import io.wispforest.accessories.impl.core.AccessoriesCapabilityImpl;
+import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -113,6 +115,8 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
         }
 
         this.client = ImmutableMap.copyOf(entitySlotTypes);
+
+        AccessoriesHolderImpl.clearValidationCache(true);
     }
 
     @Override
@@ -153,6 +157,8 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
         tempMap.forEach((entityType, slotsBuilder) -> finishMap.put(entityType, Collections.unmodifiableMap(slotsBuilder)));
 
         this.server = finishMap.build();
+
+        AccessoriesHolderImpl.clearValidationCache(false);
 
         this.tagToBoundSlots.clear();
         this.entityToBoundSlots.clear();
