@@ -55,7 +55,7 @@ dependencies {
 
     //--
 
-    modImplementation("io.wispforest:owo-lib:${project.property("owo_version")}")
+    modApi("io.wispforest:owo-lib:${project.property("owo_version")}")
     include("io.wispforest:owo-sentinel:${project.property("owo_version")}")
 
     // Temp fix for issues with needing higher Endec Version
