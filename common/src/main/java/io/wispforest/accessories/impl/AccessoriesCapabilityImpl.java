@@ -1,5 +1,8 @@
 package io.wispforest.accessories.impl;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheBuilderSpec;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.mojang.logging.LogUtils;
@@ -27,8 +30,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
+import java.time.Duration;
 import java.util.*;
-import java.util.function.Predicate;
 
 @ApiStatus.Internal
 public class AccessoriesCapabilityImpl implements AccessoriesCapability, InstanceEndec {
@@ -50,15 +53,58 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     public AccessoriesHolder getHolder() {
         var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
 
-        if (holder.loadedFromTag && !this.entity.level().isClientSide()) {
-            // Attempts to reset the container when loaded from tag on the server
-            this.reset(true);
-        } else if (holder.loadedFromTag || holder.getSlotContainers().size() != EntitySlotLoader.getEntitySlots(entity).size()) {
+        // If data has been yet to be loaded
+        if (holder.loadedFromTag) {
+            if (this.entity.level().isClientSide()) {
+                // Will init containers from data
+                holder.init(this);
+            } else {
+                // Reset the container when loaded from tag on the server
+                this.reset(true);
+            }
+        } else if (!isEntitySlotsValid(holder)) {
             // Prevents containers from not existing even if a given entity will have such slots but have yet to be synced to the client
             holder.init(this);
         }
 
         return holder;
+    }
+
+    private static final Cache<Integer, Boolean> validatedServerEntities = CacheBuilder.newBuilder()
+        .expireAfterAccess(Duration.ofSeconds(30))
+        .build();
+
+    private static final Cache<Integer, Boolean> validatedClientEntities = CacheBuilder.newBuilder()
+        .expireAfterAccess(Duration.ofSeconds(30))
+        .build();
+
+    private boolean isEntitySlotsValid(AccessoriesHolderImpl holder){
+        var validEntities = this.entity.level().isClientSide()
+            ? validatedClientEntities
+            : validatedServerEntities;
+
+        var hash = Objects.hash(this.entity.getUUID(), this.entity.hashCode());
+
+        var result = validEntities.getIfPresent(hash);
+
+        if (result != null) {
+            if (result) return true;
+
+            validEntities.invalidate(hash);
+        }
+
+        var currentContainers = holder.getSlotContainers();
+        var requiredSlotTypes = EntitySlotLoader.getEntitySlots(this.entity);
+
+        result = currentContainers.size() == requiredSlotTypes.size();
+
+        if (result) validEntities.put(hash, true);
+
+        return result;
+    }
+
+    public static void clearValidationCache(boolean isClientSide) {
+        (isClientSide ? validatedClientEntities : validatedServerEntities).invalidateAll();
     }
 
     private AccessoriesHolderImpl holder() {

@@ -10,6 +10,8 @@ import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
+import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -80,6 +82,8 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
     @ApiStatus.Internal
     public final void setEntitySlotData(Map<EntityType<?>, Map<String, SlotType>> data){
         this.client = ImmutableMap.copyOf(data);
+
+        AccessoriesCapabilityImpl.clearValidationCache(true);
     }
 
     //--
@@ -164,5 +168,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
         }
         
         this.server = ImmutableMap.copyOf(tempMap);
+
+        AccessoriesCapabilityImpl.clearValidationCache(false);
     }
 }

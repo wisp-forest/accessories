@@ -197,6 +197,8 @@ public class AccessoriesEventHandler {
                 Accessories.openAccessoriesMenu(player, base.menuVariant(), base.targetEntity());
             }
         }
+
+        AccessoriesCapabilityImpl.clearValidationCache(false);
     }
 
     public static void onLivingEntityTick(LivingEntity entity) {
