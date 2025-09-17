@@ -8,7 +8,7 @@ modId = "accessories"
 version = "${version}"
 displayName = "Accessories"
 authors = "Blodhgarm, chyzman, Dr.Zeal"
-credits = "BasiqueEvangelist, mpustovoi, EvanHsieh0415, notlin4, RuyaSavascisi, and Special thanks to both Emi and C4 for the creation of both Trinkets and Curios"
+credits = "glisco, BasiqueEvangelist, mpustovoi, EvanHsieh0415, notlin4, RuyaSavascisi, TheLegendofSaram, Zailer43, and Special thanks to both Emi and C4 for the creation of both Trinkets and Curios"
 description = '''
 A extendable and data-driven Accessory Mod for Minecraft.
 '''
