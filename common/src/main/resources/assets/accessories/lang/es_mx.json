@@ -1,0 +1,374 @@
+{
+  "accessories.slot.tooltip.singular": "Ranura: ",
+  "accessories.slot.tooltip.plural": "Ranuras: ",
+  "accessories.cosmetic_slot.tooltip.singular": "Ranura Cosmética: ",
+  "accessories.cosmetic_slot.tooltip.plural": "Ranuras Cosméticas: ",
+  "accessories.slot.any": "Cualquiera",
+  "accessories.slot.except": " excepto ",
+  "accessories.tooltip.attributes.any": "Cuando está equipado:",
+  "accessories.tooltip.attributes.slot": "Cuando está equipado en %s:",
+  "accessories.tooltip.currently_equipped_in": "Equipado en: ",
+  "accessories.slot.hat": "Sombrero",
+  "accessories.slot.face": "Cara",
+  "accessories.slot.cape": "Capa",
+  "accessories.slot.necklace": "Collar",
+  "accessories.slot.back": "Espalda",
+  "accessories.slot.hand": "Mano",
+  "accessories.slot.ring": "Anillo",
+  "accessories.slot.wrist": "Muñeca",
+  "accessories.slot.belt": "Cinturón",
+  "accessories.slot.anklet": "Tobillera",
+  "accessories.slot.shoes": "Zapatos",
+  "accessories.slot.charm": "Amuleto",
+  "accessories.slot.accessories.head": "Cabeza",
+  "accessories.slot.accessories.chest": "Pecho",
+  "accessories.slot.accessories.legs": "Piernas",
+  "accessories.slot.accessories.feet": "Pies",
+  "accessories.slot.accessories.animal_body": "Cuerpo",
+  "accessories.slot_group.misc": "Varios",
+  "accessories.slot_group.head": "Cabeza",
+  "accessories.slot_group.chest": "Pecho",
+  "accessories.slot_group.arm": "Brazos",
+  "accessories.slot_group.leg": "Piernas",
+  "accessories.slot_group.feet": "Pies",
+  "accessories.slot_group.unsorted": "Sin clasificar",
+  "accessories.key.category.accessories": "Accesories",
+  "argument.livingEntities.nonLiving": "Solo las entidades vivas pueden ser afectadas por este comando, pero el selector proporcionado incluye entidades no vivas",
+
+  "gamerule.accessories.keepAccessoryInventory": "Mantener Inventario de Accesories",
+
+  "#comment": "Relacionado con la IGU a continuación",
+
+  "accessories.key.open_accessories_screen": "Abrir Pantalla de Accesories",
+  "accessories.slot.cosmetics.toggle.show": "Mostrar Ranuras Cosméticas",
+  "accessories.slot.cosmetics.toggle.hide": "Ocultar Ranuras Cosméticas",
+  "accessories.display.toggle.show": "Mostrar Accesorio",
+  "accessories.display.toggle.hide": "Ocultar Accesorio",
+  "accessories.lines.toggle.show": "Mostrar Todas las Líneas",
+  "accessories.lines.toggle.hide": "Ocultar Todas las Líneas",
+  "accessories.unused_slots.toggle.show": "Mostrar Ranuras No Usadas",
+  "accessories.unused_slots.toggle.hide": "Ocultar Ranuras No Usadas",
+  "accessories.slot_cosmetics.toggle.enabled": "Mostrar Ranuras de Accesorios",
+  "accessories.slot_cosmetics.toggle.disabled": "Mostrar Ranuras Cosméticas",
+  "accessories.advanced_options.toggle.enabled": "❤",
+  "accessories.advanced_options.toggle.disabled": "⚗",
+  "accessories.advanced_options.toggle.enabled.tooltip": "Ocultar opciones de configuración de pantalla adicionales",
+  "accessories.advanced_options.toggle.disabled.tooltip": "Mostrar opciones de configuración de pantalla adicionales",
+  "accessories.unused_slots.label": "Ranuras No Usadas:",
+  "accessories.unused_slots.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Mostradas"
+  ],
+  "accessories.unused_slots.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Ocultas"
+  ],
+  "accessories.unused_slots.toggle.enabled.tooltip": "Ocultar todas las Ranuras No Usadas",
+  "accessories.unused_slots.toggle.disabled.tooltip": "Mostrar todas las Ranuras No Usadas",
+  "accessories.column_amount_slider.label": "Cantidad de Columnas:",
+  "accessories.column_amount_slider.tooltip": "Deslizador utilizado para ajustar la cantidad de columnas para el diseño de Accesories",
+  "accessories.widget_type.label": "Variante de Widget:",
+  "accessories.widget_type.paginated": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☰", "color": "#347ecf"},
+    {"text": "]", "color": "gray"},
+    " Paginado"
+  ],
+  "accessories.widget_type.paginated.tooltip": "Un diseño paginado para las ranuras de Accesories",
+  "accessories.widget_type.scrollable": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "⏷", "color": "#953abd"},
+    {"text": "]", "color": "gray"},
+    " Desplazable"
+  ],
+  "accessories.main_widget_position.label": "Posición del Widget:",
+  "accessories.main_widget_position.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "←", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Izquierda"
+  ],
+  "accessories.main_widget_position.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "→", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Derecha"
+  ],
+  "accessories.main_widget_position.toggle.enabled.tooltip": "Mover el Widget de Accesories a la Derecha",
+  "accessories.main_widget_position.toggle.disabled.tooltip": "Mover el Widget de Accesories a la Izquierda",
+  "accessories.group_filter.label": "Filtros de Grupo:",
+  "accessories.group_filter.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Mostrados"
+  ],
+  "accessories.group_filter.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Ocultos"
+  ],
+  "accessories.group_filter.toggle.enabled.tooltip": "Ocultar el widget de filtro de grupo",
+  "accessories.group_filter.toggle.disabled.tooltip": "Mostrar el widget de filtro de grupo",
+  "accessories.side_widget_position.label": "Posición Lateral:",
+  "accessories.side_widget_position.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "()", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Juntos"
+  ],
+  "accessories.side_widget_position.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "||", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " Separado"
+  ],
+  "accessories.side_widget_position.toggle.enabled.tooltip": "Mover el widget lateral junto al widget de Accesories",
+  "accessories.side_widget_position.toggle.disabled.tooltip": "Mover el widget lateral opuesto al widget de Accesories",
+  "accessories.dark_mode_toggle.label": "Modo de Tema:",
+  "accessories.dark_mode_toggle.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☽", "color": "#3d29c2"},
+    {"text": "]", "color": "gray"},
+    " Oscuro"
+  ],
+  "accessories.dark_mode_toggle.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☀", "color": "#bffa9b"},
+    {"text": "]", "color": "gray"},
+    " Claro"
+  ],
+  "accessories.dark_mode_toggle.toggle.enabled.tooltip": "Cambiar tema a modo claro",
+  "accessories.dark_mode_toggle.toggle.disabled.tooltip": "Cambiar tema a modo oscuro",
+  "accessories.show_equipped_stack_slot_type.label": "Tipo Equipado:",
+  "accessories.show_equipped_stack_slot_type.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Mostrados"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Ocultos"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.enabled.tooltip": "Ocultar tipo de ranura equipada",
+  "accessories.show_equipped_stack_slot_type.toggle.disabled.tooltip": "Mostrar tipo de ranura equipada",
+  "accessories.entity_look_at_cursor.label": "Mirar al Ratón:",
+  "accessories.entity_look_at_cursor.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " Habilitado"
+  ],
+  "accessories.entity_look_at_cursor.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " Deshabilitado"
+  ],
+  "accessories.entity_look_at_cursor.toggle.enabled.tooltip": "Deshabilitar mirar al cursor",
+  "accessories.entity_look_at_cursor.toggle.disabled.tooltip": "Habilitar mirar al cursor",
+  "accessories.lines.toggle.enabled.tooltip": "Ocultar toda la renderización de líneas",
+  "accessories.lines.toggle.disabled.tooltip": "Mostrar toda la renderización de líneas",
+  "accessories.crafting_grid.toggle.enabled": "☒",
+  "accessories.crafting_grid.toggle.disabled": "☐",
+  "accessories.crafting_grid.toggle.enabled.tooltip": "Ocultar la pequeña cuadrícula de crafteo",
+  "accessories.crafting_grid.toggle.disabled.tooltip": "Mostrar la pequeña cuadrícula de crafteo",
+  "accessories.widget_type.scrollable.tooltip": "Un diseño desplazable para las ranuras de Accesories",
+  "accessories.selection_screen.message": [
+    "A continuación se muestra un conjunto de opciones de pantalla que \n",
+    "puedes elegir dependiendo del estilo de \n",
+    "Modpack o tu estilo de juego. \n\n",
+    "Ten en cuenta que puedes cambiar esto dentro de la \n",
+    "configuración de Accesories si la opción dada no es \n",
+    "de tu agrado."
+  ],
+  "accessories.unique_slots.toggle.show": "Mostrar Ranuras Únicas",
+  "accessories.unique_slots.toggle.hide": "Ocultar Ranuras Únicas",
+  "accessories.back.screen": "A la Pantalla Anterior",
+  "accessories.open.screen": "Abrir Pantalla de Accesories",
+  "accessories.reset.group_filter": "Restablecer Filtros de Grupo",
+
+  "#comment": "Config Related Below",
+
+  "text.config.accessories.title": "Configuración de Accesories",
+
+  "text.config.accessories.option.useExperimentalCaching": "Usar Caché Experimental",
+  "text.config.accessories.option.useExperimentalCaching.tooltip": [
+    "Intenta almacenar en caché varias búsquedas de ItemStack\n",
+    "para ser más eficiente, pero puede causar problemas."
+  ],
+
+  "text.config.accessories.category.clientOptions": "Opciones del Cliente",
+  "text.config.accessories.category.clientOptions.tooltip": [
+    "Contiene opciones más genéricas del lado del cliente para renderizado o entrada del jugador"
+  ],
+
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement": "Forzar Reemplazo de Renderizado Vacío",
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement.tooltip": [
+    "Fuerza cualquier render registrado que no se\n",
+    "esté renderizando a usar el renderizado predeterminado."
+  ],
+
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError": "Deshabilitar Error de Ranura Vacía",
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError.tooltip": [
+    "Deshabilita el mensaje de error mostrado si se abre la pantalla de Accesories\n",
+    "y no se encontraron ranuras usadas."
+  ],
+
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories": "Mostrar Renderizado Cosmético de Ítems",
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories.tooltip": [
+    "Habilita/Deshabilita el renderizado de variantes cosméticas de ítems si están equipadas."
+  ],
+
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders": "Renderizado Predeterminado Deshabilitado",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.tooltip": [
+    "Deshabilita el renderizador predeterminado incluido de ítems si se está utilizando."
+  ],
+
+  "text.config.accessories.option.clientOptions.equipControl": "Modo de Equipamiento Rápido",
+  "text.config.accessories.option.clientOptions.equipControl.tooltip": [
+    "Cambia el modo utilizado para equipar rápidamente un stack desde tu mano."
+  ],
+
+  "text.config.accessories.enum.playerEquipControl.must_crouch": "Requiere Agacharse",
+  "text.config.accessories.enum.playerEquipControl.must_not_crouch": "Sin Agacharse",
+  "text.config.accessories.enum.playerEquipControl.disabled": "Deshabilitado",
+
+  "text.config.accessories.category.screenOptions": "Opciones de Pantalla",
+  "text.config.accessories.category.screenOptions.tooltip": [
+    "Contiene todas las opciones de configuración de pantalla para todas las variantes y desplazamiento de botones inyectados"
+  ],
+
+  "text.config.accessories.option.screenOptions.selectedScreenType": "Tipo de Pantalla Seleccionada",
+  "text.config.accessories.option.screenOptions.selectedScreenType.tooltip": [
+    "Se utiliza para ajustar qué pantalla se usará, ninguna\n",
+    "traerá un mensaje para la selección del usuario."
+  ],
+
+  "text.config.accessories.enum.screenType.none": "Indeciso",
+  "text.config.accessories.enum.screenType.original": "Original",
+  "text.config.accessories.enum.screenType.experimental_v1": "Experimental",
+
+  "text.config.accessories.option.screenOptions.showUnusedSlots": "Mostrar Ranuras No Usadas",
+  "text.config.accessories.option.screenOptions.showUnusedSlots.tooltip": "Alterna el filtrado de ranuras no usadas",
+
+  "text.config.accessories.option.screenOptions.allowSlotScrolling": "Permitir Desplazamiento de Ranuras",
+  "text.config.accessories.option.screenOptions.allowSlotScrolling.tooltip": [
+    "Útil si el mod dado permite el desplazamiento de stacks\n",
+    "lo que lleva a problemas al pasar por Accesories."
+  ],
+
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType": "Mostrar Tipo de Ranura de stacks Equipadas",
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType.tooltip": [
+    "Muestra el tipo de ranura en la que el stack está equipado dentro de su tooltip."
+  ],
+
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor": "Hacer que la Entidad Siga el Cursor del Ratón",
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor.tooltip": [
+    "Si está habilitado, hace que la entidad siga el cursor del ratón\n",
+    "de lo contrario, permite la rotación manual de la entidad."
+  ],
+
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid": "Permitir Cuadrícula de Crafteo en la Barra Lateral",
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid.tooltip": [
+    "Si los filtros de grupo no están presentes, intentará poner\n",
+    "la cuadrícula de crafteo en la barra lateral en lugar de abajo."
+  ],
+
+  "text.config.accessories.section.button_offsets": "Desplazamientos de Botones Inyectados",
+
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset": "Desplazamiento del Botón de Inventario",
+
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.x": "Desplazamiento X",
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.y": "Desplazamiento Y",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset": "Desplazamiento del Botón de Inventario Creativo",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.x": "Desplazamiento X",
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.y": "Desplazamiento Y",
+
+  "text.config.accessories.section.experimental": "Pantalla Experimental",
+
+  "text.config.accessories.option.screenOptions.isDarkMode": "Usar Tema de Modo Oscuro",
+  "text.config.accessories.option.screenOptions.isDarkMode.tooltip": [
+    "Cambia la temática de la pantalla experimental a modo oscuro."
+  ],
+
+  "text.config.accessories.section.legacy": "Pantalla Original",
+
+  "text.config.accessories.option.screenOptions.showGroupTabs": "Mostrar Pestañas de Grupo de Búsqueda Rápida",
+  "text.config.accessories.option.screenOptions.showGroupTabs.tooltip": [
+    "Alterna las pestañas de grupo dentro de la pantalla original para mostrarlas u ocultarlas."
+  ],
+
+  "text.config.accessories.section.hover": "Efectos al Pasar el Ratón",
+
+  "text.config.accessories.category.screenOptions.hoveredOptions": "Opciones al Pasar el Ratón",
+  "text.config.accessories.category.screenOptions.hoveredOptions.tooltip": [
+    "Opciones para controlar los efectos de renderizado de la entrada al pasar el ratón."
+  ],
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.brightenHovered": "Aclarar al Pasar el Ratón",
+  "text.config.accessories.option.screenOptions.hoveredOptions.cycleBrightness": "Ciclo de Brillo",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.line": "Dibujar Línea",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.clickbait": "ClickBait",
+
+  "text.config.accessories.category.screenOptions.unHoveredOptions": "Opciones sin Pasar el Ratón",
+  "text.config.accessories.category.screenOptions.unHoveredOptions.tooltip": [
+    "Opciones para controlar los efectos de renderizado de las entradas sin pasar el ratón."
+  ],
+
+  "text.config.accessories.option.screenOptions.unHoveredOptions.renderUnHovered": "Renderizar sin Pasar el Ratón",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenUnHovered": "Oscurecer sin Pasar el Ratón",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedBrightness": "Brillo Oscurecido",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedOpacity": "Opacidad Oscurecida",
+
+  "text.config.accessories.option.disabledDefaultRenders": "Renderizadores Predeterminados Deshabilitados",
+  "text.config.accessories.option.disabledDefaultRenders.tooltip": [
+    "Útil para deshabilitar el renderizado predeterminado para una ranura dada ya sea\n",
+    "específicamente para renderizados de bloques o ítems."
+  ],
+
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.slotType": "Ranura",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.targetType": "Tipo",
+
+  "text.config.accessories.enum.targetType.item": "Ítem",
+  "text.config.accessories.enum.targetType.block": "Bloque",
+  "text.config.accessories.enum.targetType.all": "Todo",
+
+  "text.config.accessories.option.modifiers": "Modificadores de Cantidad de Ranuras",
+  "text.config.accessories.option.modifiers.tooltip": [
+    "Útil para agregar valores de desplazamiento a un tipo de ranura dado sin\n",
+    "necesitar un paquete de datos ya que permite tanto valores de desplazamiento\n",
+    "positivos como negativos."
+  ],
+
+  "text.config.accessories.option.modifiers.slotType": "Ranura",
+  "text.config.accessories.option.modifiers.amount": "Desplazamiento"
+}
