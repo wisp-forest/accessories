@@ -72,6 +72,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
     }
 
     public void setPreviousItem(int slot, ItemStack stack) {
+        if(!validIndex(slot)) return;
         this.previousItems.set(slot, stack);
         if (!stack.isEmpty() && stack.getCount() > this.getMaxStackSize()) {
             stack.setCount(this.getMaxStackSize());
