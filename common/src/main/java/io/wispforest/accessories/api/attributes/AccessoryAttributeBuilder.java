@@ -26,24 +26,37 @@ public final class AccessoryAttributeBuilder {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private final Map<Holder<Attribute>, Map<ResourceLocation, AttributeModificationData>> exclusiveAttributes = new HashMap<>();
-    private final Multimap<Holder<Attribute>, AttributeModificationData> stackedAttributes = LinkedHashMultimap.create();
+    private final Map<Holder<Attribute>, Map<ResourceLocation, AttributeModificationData>> exclusiveAttributes;
+    private final Multimap<Holder<Attribute>, AttributeModificationData> stackedAttributes;
 
     private final SlotReference slotReference;
 
     @ApiStatus.Internal
-    public AccessoryAttributeBuilder(SlotReference slotReference) {
+    public AccessoryAttributeBuilder(SlotReference slotReference, @Nullable AccessoryAttributeBuilder parentBuilder) {
         this.slotReference = slotReference;
+
+        if (parentBuilder != null) {
+            this.exclusiveAttributes = parentBuilder.exclusiveAttributes;
+            this.stackedAttributes = parentBuilder.stackedAttributes;
+        } else {
+            this.exclusiveAttributes = new HashMap<>();
+            this.stackedAttributes = LinkedHashMultimap.create();
+        }
+    }
+
+    @ApiStatus.Internal
+    public AccessoryAttributeBuilder(SlotReference slotReference) {
+        this(slotReference, null);
     }
 
     @ApiStatus.Internal
     public AccessoryAttributeBuilder(String slotName, int slot) {
-        this.slotReference = SlotReference.of(null, slotName, slot);
+        this(SlotReference.of(null, slotName, slot));
     }
 
     @ApiStatus.Internal
     public AccessoryAttributeBuilder() {
-        this.slotReference = SlotReference.of(null, "", 0);
+        this(SlotReference.of(null, "", 0));
     }
 
     /**

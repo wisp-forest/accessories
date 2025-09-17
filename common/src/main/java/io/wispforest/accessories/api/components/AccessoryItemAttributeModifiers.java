@@ -81,9 +81,13 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
         return new AccessoryItemAttributeModifiers(builder.build(), this.showInTooltip());
     }
 
-    @ApiStatus.Internal
     public AccessoryAttributeBuilder gatherAttributes(SlotReference slotReference) {
-        var builder = new AccessoryAttributeBuilder(slotReference);
+        return gatherAttributes(slotReference, null);
+    }
+
+    @ApiStatus.Internal
+    public AccessoryAttributeBuilder gatherAttributes(SlotReference slotReference, @Nullable AccessoryAttributeBuilder parentBuilder) {
+        var builder = new AccessoryAttributeBuilder(slotReference, parentBuilder);
 
         if(this.modifiers().isEmpty()) return builder;
 
