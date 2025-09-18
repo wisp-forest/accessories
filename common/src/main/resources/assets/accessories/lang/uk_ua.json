@@ -1,4 +1,3 @@
-
 {
   "accessories.slot.tooltip.singular": "Слот: ",
   "accessories.slot.tooltip.plural": "Слоти: ",
@@ -9,12 +8,12 @@
   "accessories.tooltip.attributes.any": "Коли споряджено:",
   "accessories.tooltip.attributes.slot": "Коли споряджено в %s:",
   "accessories.tooltip.currently_equipped_in": "Споряджено в: ",
-  "accessories.slot.hat": "Капелюк",
+  "accessories.slot.hat": "Капелюх",
   "accessories.slot.face": "Обличчя",
   "accessories.slot.cape": "Плащ",
   "accessories.slot.necklace": "Намисто",
   "accessories.slot.back": "Спина",
-  "accessories.slot.hand": "Hand",
+  "accessories.slot.hand": "Рука",
   "accessories.slot.ring": "Кільце",
   "accessories.slot.wrist": "Зап'ястя",
   "accessories.slot.belt": "Пояс",
@@ -34,9 +33,9 @@
   "accessories.slot_group.feet": "Ступня",
   "accessories.slot_group.unsorted": "несортовано",
   "accessories.key.category.accessories": "Accessories",
-  "argument.livingEntities.nonLiving": "Ця команда може впливати лише на живих сутностей, але наданий селектор включає неживі істоти",
+  "argument.livingEntities.nonLiving": "Ця команда може впливати лише на живих сутностей, але наданий селектор уключає неживих сутностей",
 
-  "gamerule.accessories.keepAccessoryInventory": "Зберігати аксесуари пісоя смерти",
+  "gamerule.accessories.keepAccessoryInventory": "Зберігати аксесуари після смерти",
 
   "#comment": "GUI Related Below",
 
@@ -53,8 +52,8 @@
   "accessories.slot_cosmetics.toggle.disabled": "Показати косметичні слоти",
   "accessories.advanced_options.toggle.enabled": "❤",
   "accessories.advanced_options.toggle.disabled": "⚗",
-  "accessories.advanced_options.toggle.enabled.tooltip": "Приховати додаткой екран налаштувань",
-  "accessories.advanced_options.toggle.disabled.tooltip": "Показати додаткой екран налаштувань",
+  "accessories.advanced_options.toggle.enabled.tooltip": "Приховати додатковий екран налаштувань",
+  "accessories.advanced_options.toggle.disabled.tooltip": "Показати додатковий екран налаштувань",
   "accessories.unused_slots.label": "Невикористані слоти:",
   "accessories.unused_slots.toggle.enabled": [
     "",
@@ -70,8 +69,8 @@
     {"text": "]", "color": "gray"},
     " приховано"
   ],
-  "accessories.unused_slots.toggle.enabled.tooltip": "Приховати всі невикористаін слоти",
-  "accessories.unused_slots.toggle.disabled.tooltip": "Показати всі невикористаін слоти",
+  "accessories.unused_slots.toggle.enabled.tooltip": "Приховати всі невикористані слоти",
+  "accessories.unused_slots.toggle.disabled.tooltip": "Показати всі невикористані слоти",
   "accessories.column_amount_slider.label": "Кількість стовпця:",
   "accessories.column_amount_slider.tooltip": "Повзунок, який використовується для налаштування кількости стовпців для макета аксесуарів",
   "accessories.widget_type.label": "Варіант віджета:",
@@ -82,7 +81,7 @@
     {"text": "]", "color": "gray"},
     " сторінки"
   ],
-  "accessories.widget_type.paginated.tooltip": "Макет із розбивкою на сторінки для слотів аксесуарів",
+  "accessories.widget_type.paginated.tooltip": "Макет із розбиванням на сторінки для слотів аксесуарів",
   "accessories.widget_type.scrollable": [
     "",
     {"text": "[", "color": "gray"},
@@ -105,8 +104,8 @@
     {"text": "]", "color": "gray"},
     " справа"
   ],
-  "accessories.main_widget_position.toggle.enabled.tooltip": "Переміщює віджет аксесуарів праворуч",
-  "accessories.main_widget_position.toggle.disabled.tooltip": "Переміщює віджет аксесуарів ліворуч",
+  "accessories.main_widget_position.toggle.enabled.tooltip": "Переміщує віджет аксесуарів праворуч",
+  "accessories.main_widget_position.toggle.disabled.tooltip": "Переміщує віджет аксесуарів ліворуч",
   "accessories.group_filter.label": "Фільтри групи:",
   "accessories.group_filter.toggle.enabled": [
     "",
@@ -139,8 +138,8 @@
     {"text": "]", "color": "gray"},
     " розділено"
   ],
-  "accessories.side_widget_position.toggle.enabled.tooltip": "Переміщює боковий віджет навпроти віджета аксесуарів",
-  "accessories.side_widget_position.toggle.disabled.tooltip": "Переміщює боковий віджет навпроти віджета аксесуарів",
+  "accessories.side_widget_position.toggle.enabled.tooltip": "Переміщує боковий віджет навпроти віджета аксесуарів",
+  "accessories.side_widget_position.toggle.disabled.tooltip": "Переміщує боковий віджет навпроти віджета аксесуарів",
   "accessories.dark_mode_toggle.label": "Режим теми:",
   "accessories.dark_mode_toggle.toggle.enabled": [
     "",
@@ -190,8 +189,8 @@
     {"text": "]", "color": "gray"},
     " вимкнено"
   ],
-  "accessories.entity_look_at_cursor.toggle.enabled.tooltip": "Вимкнути погряд на курсор",
-  "accessories.entity_look_at_cursor.toggle.disabled.tooltip": "Увімкнути погряд на курсор",
+  "accessories.entity_look_at_cursor.toggle.enabled.tooltip": "Вимкнути погляд на курсор",
+  "accessories.entity_look_at_cursor.toggle.disabled.tooltip": "Увімкнути погляд на курсор",
   "accessories.lines.toggle.enabled.tooltip": "Приховати показ усіх ліній",
   "accessories.lines.toggle.disabled.tooltip": "Показати показ усіх ліній",
   "accessories.crafting_grid.toggle.enabled": "☒",
@@ -372,6 +371,6 @@
 
   "text.config.accessories.option.modifiers.slotType": "Слот",
   "text.config.accessories.option.modifiers.amount": "Зміщення",
-  
+
   "modmenu.descriptionTranslation.accessories": "Додає систему аксесуарів для Minecraft"
 }
