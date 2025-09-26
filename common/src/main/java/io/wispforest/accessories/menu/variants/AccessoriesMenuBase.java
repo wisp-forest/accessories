@@ -33,8 +33,6 @@ public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
     @Nullable
     protected final LivingEntity targetEntity;
 
-    protected boolean sendCarriedStackToInventory = false;
-
     protected int slotAmountAdded = -1;
     protected boolean isValid = true;
 
@@ -48,10 +46,6 @@ public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
             this.addResultSlot(inventory.player, 154, 28);
             this.addCraftingGridSlots(98, 18);
         }
-
-        this.addServerboundMessage(SetTransferFlag.class, Endec.unit(SetTransferFlag::new), setTransferFlag -> {
-            this.sendCarriedStackToInventory = true;
-        });
     }
 
     public final AccessoriesMenuVariant menuVariant() {
@@ -84,8 +78,6 @@ public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
     }
 
     public void transferAndClose(Runnable setupCall) {
-        this.sendMessage(new SetTransferFlag());
-
         setupCall.run();
 
         this.player().closeContainer();
@@ -173,14 +165,6 @@ public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
         }
     }
 
-//    @Environment(EnvType.CLIENT)
-    public void removedClientSide(Player player) {
-        if (Minecraft.getInstance().screen instanceof CreativeModeInventoryScreen screen) {
-            screen.getMenu().setCarried(this.getCarried());
-        }
-    }
-
-
     public boolean canTakeItemForPickAll(ItemStack stack, Slot slot) {
         return slot.container != this.resultSlots && super.canTakeItemForPickAll(stack, slot);
     }
@@ -204,10 +188,4 @@ public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
     public RecipeBookType getRecipeBookType() {
         return RecipeBookType.CRAFTING;
     }
-
-    public boolean shouldMoveToInventory(int slotIndex) {
-        return slotIndex != this.getResultSlotIndex();
-    }
-
-    private record SetTransferFlag() {}
 }
