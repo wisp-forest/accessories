@@ -29,6 +29,7 @@
     "client.RenderPhaseMixin",
     "client.RenderTargetMixin",
     "client.WingsLayerMixin",
+    "client.InventoryScreenMixin",
     "client.cosmetic.LivingEntityMixin",
     "client.cosmetic.MobMixin",
     "client.GuiGraphicsMixin",

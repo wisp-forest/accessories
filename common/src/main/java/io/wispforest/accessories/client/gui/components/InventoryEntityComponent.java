@@ -3,6 +3,7 @@ package io.wispforest.accessories.client.gui.components;
 import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.math.Axis;
+import io.wispforest.accessories.pond.CosmeticArmorLookupTogglable;
 import io.wispforest.owo.ui.component.EntityComponent;
 import io.wispforest.owo.ui.core.Component;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
@@ -224,7 +225,8 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
             var renderer = (EntityRenderer) this.dispatcher.getRenderer(this.entity);
 
             var entityState = renderer.createRenderState();
-            renderer.extractRenderState(this.entity, entityState, partialTicks);
+
+            CosmeticArmorLookupTogglable.runWithLookupToggle(this.entity, () -> renderer.extractRenderState(this.entity, entityState, partialTicks));
 
             entityState.x = 0;
             entityState.y = 0;

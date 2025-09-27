@@ -8,7 +8,6 @@ import io.wispforest.accessories.pond.AccessoriesRenderStateExtension;
 import io.wispforest.accessories.pond.CosmeticArmorLookupTogglable;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,21 +16,24 @@ import java.util.LinkedHashMap;
 
 @Mixin(value = EntityRenderer.class)
 public abstract class EntityRendererMixin<T extends Entity, S extends EntityRenderState>{
+
+    @WrapMethod(method = {
+        "createRenderState(Lnet/minecraft/world/entity/Entity;F)Lnet/minecraft/client/renderer/entity/state/EntityRenderState;", // Mojmap
+        "method_62425(Lnet/minecraft/class_1297;F)Lnet/minecraft/class_10017;",                                                  // Yarn Interm.
+        "getAndUpdateRenderState(Lnet/minecraft/entity/Entity;F)Lnet/minecraft/client/render/entity/state/EntityRenderState;"    // Yarn
+    }, expect = 1, require = 1, allow = 1)
+    private S accessories$adjustArmorLookup(T entity, float partialTick, Operation<S> original) {
+        // TODO: THIS NEEDS BETTER METHOD FOR MAKING SURE THAT EXTRACTED RENDER STATES GET COSMETIC STACK REPLACEMENT PROPERLY
+        return CosmeticArmorLookupTogglable.runWithLookupToggle(entity, () -> original.call(entity, partialTick));
+    }
+
     //TODO: FIGURE OUT WHY ARCH LOOM DON'T REMAP WRAP METHOD
     @WrapMethod(method = {
             "extractRenderState(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/entity/state/EntityRenderState;F)V", // Mojmap
             "method_62354(Lnet/minecraft/class_1297;Lnet/minecraft/class_10017;F)V",                                                   // Yarn Interm.
             "updateRenderState(Lnet/minecraft/entity/Entity;Lnet/minecraft/client/render/entity/state/EntityRenderState;F)V"           // Yarn
     }, expect = 1, require = 1, allow = 1)
-    private void accessories$adjustArmorLookup(T entity, S reusedState, float partialTick, Operation<Void> original) {
-        var bl = entity instanceof CosmeticArmorLookupTogglable;
-
-        if (bl) ((CosmeticArmorLookupTogglable) entity).setLookupToggle(true);
-
-        original.call(entity, reusedState, partialTick);
-
-        if (bl) ((CosmeticArmorLookupTogglable) entity).setLookupToggle(false);
-
+    private void accessories$setExtensionLookup(T entity, S reusedState, float partialTick, Operation<Void> original) {
         if (reusedState instanceof AccessoriesRenderStateExtension extension && entity instanceof LivingEntity livingEntity) {
             extension.accessories$setEntity(livingEntity); // TODO: REMOVE WITHIN FUTURE UPDATE
             extension.accessories$setPartialTicks(partialTick);
