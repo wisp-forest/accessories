@@ -1,14 +1,13 @@
 package io.wispforest.accessories.data;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.*;
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.impl.SlotGroupImpl;
+import io.wispforest.accessories.utils.CollectionUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
@@ -20,7 +19,6 @@ import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
@@ -29,8 +27,8 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
     public static final SlotGroupLoader INSTANCE = new SlotGroupLoader();
 
-    private Map<String, SlotGroup> server = new HashMap<>();
-    private Map<String, SlotGroup> client = new HashMap<>();
+    private SequencedMap<String, SlotGroup> server = new LinkedHashMap<>();
+    private SequencedMap<String, SlotGroup> client = new LinkedHashMap<>();
 
     protected SlotGroupLoader() {
         super(GSON, LOGGER, "accessories/group");
@@ -52,7 +50,6 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
         var groups = SlotGroupLoader.getGroups(living.level(), false);
 
         return groups.stream()
-                .sorted(Comparator.comparingInt(SlotGroup::order).reversed())
                 .map(slotGroup -> {
                     if(UniqueSlotHandling.isUniqueGroup(slotGroup.name(), living.level().isClientSide())) return null;
 
@@ -60,18 +57,12 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
                             .stream()
                             .filter(entitySpecificSlots::containsKey)
                             .map(slot -> SlotTypeLoader.getSlotType(living.level(), slot))
-                            .sorted(Comparator.comparingInt(SlotType::order).reversed())
                             .toList();
 
                     return slots.isEmpty() ? null : Map.entry(slotGroup, slots);
                 })
                 .filter(Objects::nonNull)
-                .collect(
-                        Collectors.toMap(
-                                Map.Entry::getKey,
-                                Map.Entry::getValue,
-                                (slotTypes, slotTypes2) -> Stream.concat(slotTypes.stream(), slotTypes2.stream()).toList(),
-                                LinkedHashMap::new));
+                .collect(CollectionUtils.toLinkedMap());
     }
 
     public static Optional<SlotGroup> getGroup(Level level, String group){
@@ -116,8 +107,8 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
     }
 
     @ApiStatus.Internal
-    public final void setGroups(Map<String, SlotGroup> groups){
-        this.client = ImmutableMap.copyOf(groups);
+    public final void setGroups(SequencedMap<String, SlotGroup> groups){
+        this.client = Collections.unmodifiableSequencedMap(groups);
     }
 
     @Override
@@ -159,9 +150,9 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
                     var slotType = allSlots.remove(s);
 
                     if (slotType == null) {
-                        LOGGER.warn("SlotType added to a given group without being in the main map for slots! [Name: {}]", slotType.name());
+                        LOGGER.warn("SlotType added to a given group without being in the main map for slots! [Name: {}]", s);
                     } else {
-                        group.addSlot(s);
+                        group.addSlot(slotType);
                     }
                 });
 
@@ -181,13 +172,13 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
             }
         }
 
-        var remainSlots = new HashSet<String>();
+        var remainSlots = new HashSet<SlotType>();
 
         for (var value : allSlots.values()) {
             var slotName = value.name();
 
             if(!UniqueSlotHandling.isUniqueSlot(slotName)) {
-                remainSlots.add(slotName);
+                remainSlots.add(value);
 
                 continue;
             }
@@ -196,25 +187,29 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
             slotGroups.computeIfAbsent(group, SlotGroupBuilder::new)
                     .order(5)
-                    .addSlot(slotName);
+                    .addSlot(value);
 
             UniqueSlotHandling.addGroup(group);
         }
 
         slotGroups.get("unsorted").addSlots(remainSlots);
 
-        var tempMap = ImmutableMap.<String, SlotGroup>builder();
+        var tempMap = new HashMap<String, SlotGroup>();
 
         slotGroups.forEach((s, builder) -> tempMap.put(s, builder.build()));
 
-        this.server = tempMap.build();
+        this.server = Collections.unmodifiableSequencedMap(
+            tempMap.entrySet().stream()
+                .sorted(Map.Entry.<String, SlotGroup>comparingByValue().reversed())
+                .collect(CollectionUtils.toLinkedMap())
+        );
     }
 
     public static class SlotGroupBuilder {
         private final String name;
 
         private Integer order = null;
-        private final Set<String> slots = new LinkedHashSet<>();
+        private final Set<SlotType> slots = new HashSet<>();
 
         private ResourceLocation iconLocation = SlotGroup.UNKNOWN;
 
@@ -228,13 +223,13 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
             return this;
         }
 
-        public SlotGroupBuilder addSlot(String value){
+        public SlotGroupBuilder addSlot(SlotType value){
             this.slots.add(value);
 
             return this;
         }
 
-        public SlotGroupBuilder addSlots(Collection<String> values){
+        public SlotGroupBuilder addSlots(Collection<SlotType> values){
             this.slots.addAll(values);
 
             return this;
@@ -250,7 +245,7 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
             return new SlotGroupImpl(
                     name,
                     Optional.ofNullable(order).orElse(0),
-                    slots,
+                    slots.stream().sorted(Comparator.<SlotType>naturalOrder().reversed()).map(SlotType::name).collect(Collectors.toCollection(LinkedHashSet::new)),
                     iconLocation
             );
         }

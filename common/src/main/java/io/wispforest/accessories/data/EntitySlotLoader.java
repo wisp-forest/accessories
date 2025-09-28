@@ -1,6 +1,5 @@
 package io.wispforest.accessories.data;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -11,7 +10,6 @@ import io.wispforest.accessories.api.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.impl.AccessoriesCapabilityImpl;
-import io.wispforest.accessories.impl.AccessoriesHolderImpl;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -42,8 +40,8 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
     public static final EntitySlotLoader INSTANCE = new EntitySlotLoader();
 
-    private Map<EntityType<?>, Map<String, SlotType>> server = new HashMap<>();
-    private Map<EntityType<?>, Map<String, SlotType>> client = new HashMap<>();
+    private SequencedMap<EntityType<?>, SequencedMap<String, SlotType>> server = new LinkedHashMap<>();
+    private SequencedMap<EntityType<?>, SequencedMap<String, SlotType>> client = new LinkedHashMap<>();
 
     protected EntitySlotLoader() {
         super(GSON, LOGGER, "accessories/entity");
@@ -76,12 +74,12 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
     @ApiStatus.Internal
     public final Map<EntityType<?>, Map<String, SlotType>> getEntitySlotData(boolean isClientSide){
-        return isClientSide ? this.client : this.server;
+        return (Map) (isClientSide ? this.client : this.server);
     }
 
     @ApiStatus.Internal
-    public final void setEntitySlotData(Map<EntityType<?>, Map<String, SlotType>> data){
-        this.client = ImmutableMap.copyOf(data);
+    public final void setEntitySlotData(SequencedMap<EntityType<?>, SequencedMap<String, SlotType>> data){
+        this.client = Collections.unmodifiableSequencedMap(data);
 
         AccessoriesCapabilityImpl.clearValidationCache(true);
     }
@@ -92,7 +90,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
     protected void apply(Map<ResourceLocation, JsonObject> data, ResourceManager resourceManager, ProfilerFiller profiler) {
         var allSlotTypes = SlotTypeLoader.INSTANCE.getSlotTypes(false);
 
-        var tempMap = new HashMap<EntityType<?>, Map<String, SlotType>>();
+        var tempMap = new LinkedHashMap<EntityType<?>, SequencedMap<String, SlotType>>();
 
         for (var resourceEntry : data.entrySet()) {
             var location = resourceEntry.getKey();
@@ -100,7 +98,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
 
             if(!AccessoriesInternals.isValidOnConditions(jsonObject, this.directory, location, null)) continue;
 
-            var slots = new HashMap<String, SlotType>();
+            var slots = new LinkedHashMap<String, SlotType>();
 
             var slotElements = this.safeHelper(GsonHelper::getAsJsonArray, jsonObject, "slots", new JsonArray(), location);
 
@@ -153,7 +151,7 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
             }, entities::addAll);
 
             for (EntityType<?> entityType : entities) {
-                tempMap.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
+                tempMap.computeIfAbsent(entityType, entityType1 -> new LinkedHashMap<>())
                         .putAll(slots);
             }
         }
@@ -162,12 +160,12 @@ public class EntitySlotLoader extends ReplaceableJsonResourceReloadListener {
             var slotType = SlotTypeLoader.INSTANCE.getSlotTypes(false).get(entry.getKey());
 
             for (var entityType : entry.getValue()) {
-                tempMap.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
+                tempMap.computeIfAbsent(entityType, entityType1 -> new LinkedHashMap<>())
                         .put(slotType.name(), slotType);
             }
         }
-        
-        this.server = ImmutableMap.copyOf(tempMap);
+
+        this.server = Collections.unmodifiableSequencedMap(tempMap);
 
         AccessoriesCapabilityImpl.clearValidationCache(false);
     }

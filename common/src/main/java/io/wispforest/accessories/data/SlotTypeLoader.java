@@ -16,6 +16,7 @@ import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.compat.config.SlotAmountModifier;
 import io.wispforest.accessories.impl.SlotTypeImpl;
+import io.wispforest.accessories.utils.CollectionUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
@@ -41,8 +43,8 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
         super(GSON, LOGGER, "accessories/slot");
     }
 
-    private Map<String, SlotType> server = new HashMap<>();
-    private Map<String, SlotType> client = new HashMap<>();
+    private SequencedMap<String, SlotType> server = new LinkedHashMap<>();
+    private SequencedMap<String, SlotType> client = new LinkedHashMap<>();
 
     private final Map<EntityType<?>, Collection<SlotType>> slotUsedByRegistryItemCache_server = new HashMap<>();
     private final Map<EntityType<?>, Collection<SlotType>> slotUsedByRegistryItemCache_client = new HashMap<>();
@@ -87,7 +89,7 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
 
         if (map.containsKey(living.getType())) return map.get(living.getType());
 
-        var validSlotTypes = new HashSet<SlotType>();
+        var validSlotTypes = new LinkedHashSet<SlotType>();
 
         BuiltInRegistries.ITEM.forEach(item -> {
             var stack = item.getDefaultInstance();
@@ -103,8 +105,8 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
     }
 
     @ApiStatus.Internal
-    public void setSlotType(Map<String, SlotType> slotTypes){
-        this.client = ImmutableMap.copyOf(slotTypes);
+    public void setSlotType(SequencedMap<String, SlotType> slotTypes){
+        this.client = Collections.unmodifiableSequencedMap(slotTypes);
 
         this.slotUsedByRegistryItemCache_client.clear();
     }
@@ -208,7 +210,12 @@ public class SlotTypeLoader extends ReplaceableJsonResourceReloadListener {
             tempMap.put(s, slotBuilder.create());
         });
 
-        this.server = ImmutableMap.copyOf(tempMap);
+        this.server = Collections.unmodifiableSequencedMap(
+            tempMap.entrySet().stream()
+                .sorted(Map.Entry.<String, SlotType>comparingByValue().reversed())
+                .collect(CollectionUtils.toLinkedMap())
+        );
+
         this.slotUsedByRegistryItemCache_server.clear();
     }
 

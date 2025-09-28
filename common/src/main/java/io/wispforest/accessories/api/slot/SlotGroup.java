@@ -3,6 +3,7 @@ package io.wispforest.accessories.api.slot;
 import io.wispforest.accessories.Accessories;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
@@ -10,7 +11,7 @@ import java.util.Set;
  * A Group of {@link SlotType}'s based on name used to cosmetically
  * group them together for the UI
  */
-public interface SlotGroup {
+public interface SlotGroup extends Comparable<SlotGroup> {
 
     ResourceLocation UNKNOWN = Accessories.of("gui/group/unknown");
 
@@ -40,4 +41,13 @@ public interface SlotGroup {
      * @return The location for the given icon within the Block Atlas for the given slot group
      */
     ResourceLocation icon();
+
+    @Override
+    default int compareTo(@NotNull SlotGroup o) {
+        var value = Integer.compare(this.order(), o.order());
+
+        if (value != 0) return value;
+
+        return this.name().compareTo(o.name());
+    }
 }

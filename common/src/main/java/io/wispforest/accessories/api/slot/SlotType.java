@@ -5,13 +5,14 @@ import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.DropRule;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
 /**
  * A Holder for information pertaining to a given Slot entry registered
  */
-public interface SlotType {
+public interface SlotType extends Comparable<SlotType> {
 
     ResourceLocation EMPTY_SLOT_ICON = Accessories.of("gui/slot/empty");
 
@@ -51,4 +52,13 @@ public interface SlotType {
      * @return The given {@link DropRule} used to upon an entity's death to handle accessory's equipped.
      */
     DropRule dropRule();
+
+    @Override
+    default int compareTo(@NotNull SlotType o) {
+        var value = Integer.compare(this.order(), o.order());
+
+        if (value != 0) return value;
+
+        return this.name().compareTo(o.name());
+    }
 }
