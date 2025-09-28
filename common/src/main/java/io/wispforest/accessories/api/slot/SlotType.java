@@ -6,6 +6,7 @@ import io.wispforest.accessories.api.events.DropRule;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
@@ -15,7 +16,7 @@ import java.util.Set;
 /// Due to the nature that these objects are reloadable from [SlotTypeLoader],
 /// it is recommended not to hold onto such values as there inner properties might change.
 ///
-public interface SlotType {
+public interface SlotType extends Comparable<SlotType> {
 
     ResourceLocation EMPTY_SLOT_ICON = Accessories.of("gui/slot/empty");
 
@@ -66,4 +67,13 @@ public interface SlotType {
     /// an accessory's equipped within the given slots [AccessoriesStorage]
     ///
     DropRule dropRule();
+
+    @Override
+    default int compareTo(@NotNull SlotType o) {
+        var value = Integer.compare(this.order(), o.order());
+
+        if (value != 0) return value;
+
+        return this.name().compareTo(o.name());
+    }
 }

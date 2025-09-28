@@ -4,6 +4,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 
@@ -14,7 +15,7 @@ import java.util.Set;
 /// Due to the nature that these objects are reloadable from [SlotGroupLoader],
 /// it is recommended not to hold onto such values as there inner properties might change.
 ///
-public interface SlotGroup {
+public interface SlotGroup extends Comparable<SlotGroup> {
 
     ResourceLocation UNKNOWN = Accessories.of("gui/group/unknown");
 
@@ -54,4 +55,12 @@ public interface SlotGroup {
     ///
     Set<String> slots();
 
+    @Override
+    default int compareTo(@NotNull SlotGroup o) {
+        var value = Integer.compare(this.order(), o.order());
+
+        if (value != 0) return value;
+
+        return this.name().compareTo(o.name());
+    }
 }

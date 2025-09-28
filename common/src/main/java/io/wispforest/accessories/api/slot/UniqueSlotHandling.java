@@ -232,8 +232,8 @@ public class UniqueSlotHandling {
 
     private static final Map<String, Set<EntityType<?>>> SLOT_TO_ENTITIES = new HashMap<>();
 
-    private static final Set<String> GROUPS_SERVER = new HashSet<>();
-    private static final Set<String> GROUPS_CLIENT = new HashSet<>();
+    private static final Set<String> GROUPS_SERVER = new LinkedHashSet<>();
+    private static final Set<String> GROUPS_CLIENT = new LinkedHashSet<>();
 
     @ApiStatus.Internal
     public static Map<String, Set<EntityType<?>>> getSlotToEntities() {
@@ -251,7 +251,7 @@ public class UniqueSlotHandling {
     }
 
     @ApiStatus.Internal
-    public static void setClientGroups(Set<String> set) {
+    public static void setClientGroups(Collection<String> set) {
         GROUPS_CLIENT.clear();
         GROUPS_CLIENT.addAll(set);
     }

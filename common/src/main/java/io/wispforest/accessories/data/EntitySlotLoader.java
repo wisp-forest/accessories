@@ -10,6 +10,8 @@ import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.impl.slot.StrictMode;
 import io.wispforest.accessories.pond.ReplaceableJsonResourceReloadListener;
 import io.wispforest.accessories.data.api.EndecDataLoader;
+import io.wispforest.accessories.utils.CollectionUtils;
+import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
@@ -39,7 +41,7 @@ import java.util.stream.Collectors;
  * Resource Reload in which handles the loading of {@link SlotType}'s bindings
  * to the targeted {@link EntityType} though a {@link TagKey} or {@link ResourceLocation}
  */
-public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityBinding> implements SyncedDataHelper<Map<EntityType<?>, Set<String>>> {
+public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityBinding> implements SyncedDataHelper<SequencedMap<EntityType<?>, List<String>>> {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -48,8 +50,8 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
     private Map<TagKey<EntityType<?>>, Map<String, SlotType>> tagToBoundSlots = new HashMap<>();
     private Map<EntityType<?>, Map<String, SlotType>> entityToBoundSlots = new HashMap<>();
 
-    private Map<EntityType<?>, Map<String, SlotType>> server = new HashMap<>();
-    private Map<EntityType<?>, Map<String, SlotType>> client = new HashMap<>();
+    private SequencedMap<EntityType<?>, SequencedMap<String, SlotType>> server = new LinkedHashMap<>();
+    private SequencedMap<EntityType<?>, SequencedMap<String, SlotType>> client = new LinkedHashMap<>();
 
     protected EntitySlotLoader() {
         super(Accessories.of("entity_slot_loader"), "accessories/entity", RawEnityBinding.ENDEC, PackType.SERVER_DATA, Set.of(SlotTypeLoader.INSTANCE.getId()));
@@ -84,7 +86,7 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
 
     @ApiStatus.Internal
     public final Map<EntityType<?>, Map<String, SlotType>> getEntitySlotData(boolean isClientSide){
-        return isClientSide ? this.client : this.server;
+        return (Map) (isClientSide ? this.client : this.server);
     }
 
     //--
@@ -98,40 +100,42 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
     }
 
     @Override
-    public Endec<Map<EntityType<?>, Set<String>>> syncDataEndec() {
-        return Endec.map(MinecraftEndecs.ofRegistry(BuiltInRegistries.ENTITY_TYPE), Endec.STRING.setOf());
+    public Endec<SequencedMap<EntityType<?>, List<String>>> syncDataEndec() {
+        return EndecUtils.map(LinkedHashMap::new,
+            type -> BuiltInRegistries.ENTITY_TYPE.getKey(type).toString(), strType -> BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(strType)),
+            Endec.STRING.listOf());
     }
 
     @Override
-    public void onReceivedData(Map<EntityType<?>, Set<String>> data) {
-        Map<EntityType<?>, Map<String, SlotType>> entitySlotTypes = new HashMap<>();
+    public void onReceivedData(SequencedMap<EntityType<?>, List<String>> data) {
+        SequencedMap<EntityType<?>, SequencedMap<String, SlotType>> entitySlotTypes = new LinkedHashMap<>();
 
         for (var entry : data.entrySet()) {
             var map = entry.getValue().stream()
                     .map(string -> SlotTypeLoader.INSTANCE.getSlotType(true, string))
-                    .collect(Collectors.toUnmodifiableMap(SlotType::name, slotType -> slotType));
+                    .collect(CollectionUtils.toLinkedMap(SlotType::name));
 
             entitySlotTypes.put(entry.getKey(), map);
         }
 
-        this.client = ImmutableMap.copyOf(entitySlotTypes);
+        this.client = Collections.unmodifiableSequencedMap(entitySlotTypes);
 
         AccessoriesHolderImpl.clearValidationCache(true);
     }
 
     @Override
-    public Map<EntityType<?>, Set<String>> getServerData() {
-        var entitySlots = new HashMap<EntityType<?>, Set<String>>();
+    public SequencedMap<EntityType<?>, List<String>> getServerData() {
+        var entitySlots = new LinkedHashMap<EntityType<?>, List<String>>();
 
         for (var entry : server.entrySet()) {
-            entitySlots.put(entry.getKey(), entry.getValue().keySet());
+            entitySlots.put(entry.getKey(), List.copyOf(entry.getValue().keySet()));
         }
 
         return entitySlots;
     }
 
     public void buildEntryMap() {
-        var tempMap = new HashMap<EntityType<?>, Map<String, SlotType>>();
+        var tempMap = new LinkedHashMap<EntityType<?>, SequencedMap<String, SlotType>>();
 
         this.tagToBoundSlots.forEach((entityTag, slots) -> {
             var entityTypes = BuiltInRegistries.ENTITY_TYPE.get(entityTag)
@@ -142,21 +146,21 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
                     });
 
             entityTypes.forEach(entityType -> {
-                tempMap.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
+                tempMap.computeIfAbsent(entityType, entityType1 -> new LinkedHashMap<>())
                         .putAll(slots);
             });
         });
 
         this.entityToBoundSlots.forEach((entityType, slots) -> {
-            tempMap.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
+            tempMap.computeIfAbsent(entityType, entityType1 -> new LinkedHashMap<>())
                     .putAll(slots);
         });
 
-        var finishMap = new ImmutableMap.Builder<EntityType<?>, Map<String, SlotType>>();
+        var finishMap = new LinkedHashMap<EntityType<?>, SequencedMap<String, SlotType>>();
 
-        tempMap.forEach((entityType, slotsBuilder) -> finishMap.put(entityType, Collections.unmodifiableMap(slotsBuilder)));
+        tempMap.forEach((entityType, slotsBuilder) -> finishMap.put(entityType, Collections.unmodifiableSequencedMap(slotsBuilder)));
 
-        this.server = finishMap.build();
+        this.server = finishMap;
 
         AccessoriesHolderImpl.clearValidationCache(false);
 
@@ -177,7 +181,7 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
             var location = resourceEntry.getKey();
             var rawEnityBinding = resourceEntry.getValue();
 
-            var slots = new HashMap<String, SlotType>();
+            var slots = new LinkedHashMap<String, SlotType>();
 
             rawEnityBinding.slotTypes().stream().map(slotName -> {
                 return Pair.of(slotName, allSlotTypes.get(Accessories.parseLocationOrDefault(slotName)));
@@ -222,7 +226,7 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
             var slotType = SlotTypeLoader.INSTANCE.getEntries(false).get(Accessories.parseLocationOrDefault(entry.getKey()));
 
             for (var entityType : entry.getValue()) {
-                entityToBoundSlots.computeIfAbsent(entityType, entityType1 -> new HashMap<>())
+                entityToBoundSlots.computeIfAbsent(entityType, entityType1 -> new LinkedHashMap<>())
                         .put(slotType.name(), slotType);
             }
         }

@@ -76,7 +76,7 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
 
         if (map.containsKey(living.getType())) return map.get(living.getType());
 
-        var validSlotTypes = new HashSet<SlotType>();
+        var validSlotTypes = new LinkedHashSet<SlotType>();
 
         BuiltInRegistries.ITEM.forEach(item -> {
             var stack = item.getDefaultInstance();
@@ -100,7 +100,7 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
 
     @Override
     public Map<ResourceLocation, SlotType> mapFrom(Map<ResourceLocation, RawSlotData> rawData) {
-        var uniqueSlots = new HashMap<String, SlotBuilder>();
+        var uniqueSlots = new LinkedHashMap<String, SlotBuilder>();
 
         try {
             UniqueSlotHandling.gatherUniqueSlots((location, integer, slotPredicates) -> {
@@ -124,7 +124,7 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
             LOGGER.error("[SlotTypeLoader]: Error occurred when trying to gather unique slots though code!", e);
         }
 
-        var builders = new HashMap<>(uniqueSlots);
+        var builders = new LinkedHashMap<>(uniqueSlots);
 
         for (var resourceEntry : rawData.entrySet()) {
             var location = resourceEntry.getKey();

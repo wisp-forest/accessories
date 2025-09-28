@@ -13,14 +13,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 
-public abstract class ManagedEndecDataLoader<V, D> extends EndecDataLoader<D> implements SyncedDataHelper<BiMap<ResourceLocation, V>>, LookupDataLoader<V> {
+public abstract class ManagedEndecDataLoader<V, D> extends EndecDataLoader<D> implements SyncedDataHelper<SequencedBiMap<ResourceLocation, V>>, LookupDataLoader<V> {
 
-    private final BiMap<ResourceLocation, V> server = HashBiMap.create();
-    private final BiMap<ResourceLocation, V> client = HashBiMap.create();
+    private final SequencedBiMap<ResourceLocation, V> server = SequencedBiMap.of(LinkedHashMap::new);
+    private final SequencedBiMap<ResourceLocation, V> client = SequencedBiMap.of(LinkedHashMap::new);
 
     private final Endec<V> valueEndec;
-    private final Endec<BiMap<ResourceLocation, V>> mapEndec;
+    private final Endec<SequencedBiMap<ResourceLocation, V>> mapEndec;
 
     protected ManagedEndecDataLoader(ResourceLocation id, String type, Endec<V> valueEndec, Endec<D> dataEndec, PackType packType) {
         this(id, type, valueEndec, dataEndec, packType, false);
@@ -42,7 +43,9 @@ public abstract class ManagedEndecDataLoader<V, D> extends EndecDataLoader<D> im
         super(id, type, dataEndec, packType, context, requiresRegistries, dependencies);
 
         this.valueEndec = valueEndec;
-        this.mapEndec = biMapEndec(ResourceLocation::toString, ResourceLocation::tryParse, valueEndec);
+        this.mapEndec = biMapEndec(value -> SequencedBiMap.of(new SequencedBiMap.SequencedMapFactory(){
+            @Override public <K, V> SequencedMap<K, V> create() { return new LinkedHashMap<>(value); }
+        }), ResourceLocation::toString, ResourceLocation::tryParse, valueEndec);
     }
 
     public static <V, D> ManagedEndecDataLoader<V, D> of(ResourceLocation id, String type, Endec<V> valueEndec, Endec<D> dataEndec, PackType packType, Function<Map<ResourceLocation, D>, Map<ResourceLocation, V>> mapFrom) {
@@ -77,17 +80,17 @@ public abstract class ManagedEndecDataLoader<V, D> extends EndecDataLoader<D> im
     protected void onSync() {}
 
     @Override
-    public final BiMap<ResourceLocation, V> getServerData() {
+    public final SequencedBiMap<ResourceLocation, V> getServerData() {
         return this.server;
     }
 
     @Override
-    public final Endec<BiMap<ResourceLocation, V>> syncDataEndec() {
+    public final Endec<SequencedBiMap<ResourceLocation, V>> syncDataEndec() {
         return this.mapEndec;
     }
 
     @Override
-    public final void onReceivedData(BiMap<ResourceLocation, V> data) {
+    public final void onReceivedData(SequencedBiMap<ResourceLocation, V> data) {
         this.client.clear();
         this.client.putAll(data);
 
@@ -103,7 +106,7 @@ public abstract class ManagedEndecDataLoader<V, D> extends EndecDataLoader<D> im
     }
 
     @ApiStatus.Internal
-    private static <K, V> Endec<BiMap<K, V>> biMapEndec(Function<K, String> keyToString, Function<String, K> stringToKey, Endec<V> valueEndec) {
+    private static <K, V, M extends BiMap<K, V>> Endec<M> biMapEndec(IntFunction<M> biMapFactory, Function<K, String> keyToString, Function<String, K> stringToKey, Endec<V> valueEndec) {
         return Endec.of((ctx, serializer, map) -> {
             try (var mapState = serializer.map(ctx, valueEndec, map.size())) {
                 map.forEach((k, v) -> mapState.entry(keyToString.apply(k), v));
@@ -111,7 +114,7 @@ public abstract class ManagedEndecDataLoader<V, D> extends EndecDataLoader<D> im
         }, (ctx, deserializer) -> {
             var mapState = deserializer.map(ctx, valueEndec);
 
-            var map = HashBiMap.<K, V>create(mapState.estimatedSize());
+            var map = biMapFactory.apply(mapState.estimatedSize());
             mapState.forEachRemaining(entry -> map.put(stringToKey.apply(entry.getKey()), entry.getValue()));
 
             return map;
