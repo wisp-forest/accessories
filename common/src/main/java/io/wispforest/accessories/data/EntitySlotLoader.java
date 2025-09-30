@@ -102,7 +102,7 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
     @Override
     public Endec<SequencedMap<EntityType<?>, List<String>>> syncDataEndec() {
         return EndecUtils.map(LinkedHashMap::new,
-            type -> BuiltInRegistries.ENTITY_TYPE.getKey(type).toString(), strType -> BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(strType)),
+            type -> BuiltInRegistries.ENTITY_TYPE.getKey(type).toString(), strType -> BuiltInRegistries.ENTITY_TYPE.getValue(ResourceLocation.parse(strType)),
             Endec.STRING.listOf());
     }
 
