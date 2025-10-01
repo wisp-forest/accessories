@@ -49,6 +49,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.GameRules;
 
+import java.util.Objects;
+
 public class AccessoriesFabric implements ModInitializer {
 
     public static final AttachmentType<AccessoriesHolderImpl> HOLDER_ATTACHMENT_TYPE;
@@ -109,11 +111,11 @@ public class AccessoriesFabric implements ModInitializer {
             }
 
             //TODO: CONFIRM IF THIS IS CORRECT!
-//            if(holder instanceof InteractionResult.Success success) {
-//                var stack = Objects.requireNonNullElse(success.heldItemTransformedTo(), player.getItemInHand(hand));
-//
-//                player.setItemInHand(hand, stack);
-//            }
+            if(holder instanceof InteractionResult.Success success) {
+                var stack = Objects.requireNonNullElse(success.heldItemTransformedTo(), player.getItemInHand(hand));
+
+                player.setItemInHand(hand, stack);
+            }
 
             return holder;
         });
