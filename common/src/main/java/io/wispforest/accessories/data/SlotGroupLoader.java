@@ -190,13 +190,10 @@ public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroup
 
         slotGroups.get("unsorted").addSlots(remainSlots);
 
-        var tempMap = new LinkedHashMap<ResourceLocation, SlotGroup>();
-
-        slotGroups.forEach((s, builder) -> {
-            tempMap.put(Accessories.parseLocationOrDefault(s), builder.build());
-        });
-
-        return tempMap;
+        return slotGroups.entrySet().stream()
+            .map(entry -> Map.entry(Accessories.parseLocationOrDefault(entry.getKey()), entry.getValue().build()))
+            .sorted(Map.Entry.<ResourceLocation, SlotGroup>comparingByValue().reversed())
+            .collect(CollectionUtils.toLinkedMap());
     }
 
     public static class SlotGroupBuilder {
