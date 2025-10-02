@@ -11,6 +11,9 @@ import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.LinkedHashMap;
 
@@ -28,12 +31,10 @@ public abstract class EntityRendererMixin<T extends Entity, S extends EntityRend
     }
 
     //TODO: FIGURE OUT WHY ARCH LOOM DON'T REMAP WRAP METHOD
-    @WrapMethod(method = {
-            "extractRenderState(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/entity/state/EntityRenderState;F)V", // Mojmap
-            "method_62354(Lnet/minecraft/class_1297;Lnet/minecraft/class_10017;F)V",                                                   // Yarn Interm.
-            "updateRenderState(Lnet/minecraft/entity/Entity;Lnet/minecraft/client/render/entity/state/EntityRenderState;F)V"           // Yarn
-    }, expect = 1, require = 1, allow = 1)
-    private void accessories$setExtensionLookup(T entity, S reusedState, float partialTick, Operation<Void> original) {
+    @Inject(method = {
+            "extractRenderState(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/client/renderer/entity/state/EntityRenderState;F)V"
+    }, at = @At("HEAD"))
+    private void accessories$setExtensionLookup(T entity, S reusedState, float partialTick, CallbackInfo ci) {
         if (reusedState instanceof AccessoriesRenderStateExtension extension && entity instanceof LivingEntity livingEntity) {
             extension.accessories$setEntity(livingEntity); // TODO: REMOVE WITHIN FUTURE UPDATE
             extension.accessories$setPartialTicks(partialTick);
