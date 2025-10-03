@@ -6,6 +6,7 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.screen.AccessoriesScreenTransitionHelper;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
+import io.wispforest.accessories.client.gui.components.AccessoriesScreenSettingsLayout;
 import io.wispforest.accessories.client.gui.components.ComponentUtils;
 import io.wispforest.accessories.compat.config.client.ExtendedConfigScreen;
 import io.wispforest.accessories.compat.config.client.Structured;
@@ -13,7 +14,9 @@ import io.wispforest.accessories.compat.config.client.components.StructListOptio
 import io.wispforest.accessories.compat.config.client.components.StructOptionContainer;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
+import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.accessories.impl.option.PlayerOptions;
+import io.wispforest.accessories.impl.option.PlayerOptionsAccess;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.mixin.owo.ConfigWrapperAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
@@ -21,13 +24,16 @@ import io.wispforest.accessories.networking.holder.SyncOptionChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
 import io.wispforest.owo.config.ui.ConfigScreenProviders;
 import io.wispforest.owo.config.ui.OptionComponentFactory;
+import io.wispforest.owo.config.ui.OptionComponents;
 import io.wispforest.owo.config.ui.component.OptionValueProvider;
 import io.wispforest.owo.config.ui.component.SearchAnchorComponent;
+import io.wispforest.owo.ui.base.BaseOwoScreen;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.Components;
+import io.wispforest.owo.ui.component.LabelComponent;
 import io.wispforest.owo.ui.container.Containers;
-import io.wispforest.owo.ui.core.Insets;
-import io.wispforest.owo.ui.core.Sizing;
+import io.wispforest.owo.ui.container.FlowLayout;
+import io.wispforest.owo.ui.core.*;
 import io.wispforest.owo.ui.layers.Layers;
 import io.wispforest.owo.util.NumberReflection;
 import io.wispforest.owo.util.ReflectionUtils;
@@ -50,8 +56,12 @@ import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
+import org.apache.commons.lang3.mutable.MutableObject;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -73,6 +83,112 @@ public class AccessoriesClient {
                 ExtendedConfigScreen.buildFunc(
                         Accessories.config(),
                         (config, factoryRegister) -> {
+                            factoryRegister.registerTypedFactory(AccessoriesPlayerOptionsHolder.class, (model, option) -> {
+                                var optionComponent = model.expandTemplate(FlowLayout.class,
+                                    "boolean-toggle-config-option",
+                                    OptionComponents.packParameters(option.translationKey(), Objects.toString(option.value()))
+                                );
+
+                                var holderValue = new MutableObject<>(AccessoriesPlayerOptionsHolder.createOrCopy(option.value()));
+
+                                var resetButton = optionComponent.childById(ButtonComponent.class, "reset-button")
+                                    .onPress(button -> {
+                                        holderValue.setValue(AccessoriesPlayerOptionsHolder.createOrCopy(option.defaultValue()));
+                                        // TODO: ADD RESET FUNCTION
+                                        button.active = false;
+                                    });
+
+                                Runnable checkResetButton = () -> resetButton.active = holderValue.getValue() != null && !holderValue.getValue().isDefaultedValues();
+
+                                checkResetButton.run();
+
+                                var btnLayout = optionComponent.childById(FlowLayout.class, "controls-flow");
+                                var tempBtn = optionComponent.childById(ButtonComponent.class, "toggle-button");
+
+                                btnLayout.removeChild(tempBtn);
+
+                                var toggleButton = (ButtonComponent) Components.button(Component.literal("Edit"), btn -> {})
+                                    .verticalSizing(tempBtn.verticalSizing().get())
+                                    .horizontalSizing(tempBtn.horizontalSizing().get());
+
+                                btnLayout.child(0, toggleButton);
+
+                                toggleButton.onPress(btn -> {
+                                    var currentScreen = Minecraft.getInstance().screen;
+
+                                    var newScreen = new BaseOwoScreen<FlowLayout>() {
+                                        @Override
+                                        protected @NotNull OwoUIAdapter<FlowLayout> createAdapter() {
+                                            return OwoUIAdapter.create(this, Containers::verticalFlow);
+                                        }
+
+                                        @Override
+                                        protected void build(FlowLayout rootComponent) {
+                                            rootComponent.child(
+                                                Containers.verticalFlow(Sizing.fixed(178), Sizing.content())
+                                                    .child(
+                                                        Containers.horizontalFlow(Sizing.content(), Sizing.fixed(14))
+                                                            .child(
+                                                                Containers.horizontalFlow(Sizing.expand(), Sizing.content())
+                                                                    .child(
+                                                                        Components.label(
+                                                                            Component.literal("Default Screen Options")
+                                                                        )
+                                                                    ).horizontalAlignment(HorizontalAlignment.LEFT)
+                                                            )
+                                                            .child(
+                                                                Components.button(Component.literal("Back"), btn -> onClose())
+                                                                    .verticalSizing(Sizing.fixed(14))
+                                                            ).verticalAlignment(VerticalAlignment.CENTER)
+                                                    )
+                                                    .child(
+                                                        Containers.verticalFlow(Sizing.fill(), Sizing.fixed(186))
+                                                            .child(new AccessoriesScreenSettingsLayout(holderValue.getValue(), this::component).shouldNetworkSync(false).updateLive(true))
+                                                            .padding(Insets.of(1))
+                                                            .surface(ComponentUtils.getInsetPanelSurface())
+                                                    )
+                                                    .gap(3)
+                                                    .padding(Insets.of(7))
+                                                    .surface(ComponentUtils.getPanelSurface())
+                                            );
+
+                                            rootComponent
+                                                .surface(Surface.optionsBackground())
+                                                .verticalAlignment(VerticalAlignment.CENTER)
+                                                .horizontalAlignment(HorizontalAlignment.CENTER);
+                                        }
+
+                                        @Override
+                                        public void onClose() {
+                                            checkResetButton.run();
+
+                                            Minecraft.getInstance().setScreen(currentScreen);
+                                        }
+                                    };
+                                    var client = Minecraft.getInstance();
+
+                                    client.screen = newScreen;
+                                    client.screen.added();
+
+                                    client.mouseHandler.releaseMouse();
+                                    KeyMapping.releaseAll();
+                                    newScreen.init(client, client.getWindow().getGuiScaledWidth(), client.getWindow().getGuiScaledHeight());
+                                    client.noRender = false;
+                                });
+
+                                optionComponent.child(new SearchAnchorComponent(
+                                    optionComponent,
+                                    option.key(),
+                                    () -> optionComponent.childById(LabelComponent.class, "option-name").text().getString(),
+                                    () -> toggleButton.getMessage().getString()
+                                ));
+
+                                return new OptionComponentFactory.Result<>(optionComponent, new OptionValueProvider() {
+                                    @Override public boolean isValid() { return true; }
+                                    @Override public Object parsedValue() { return holderValue.getValue(); }
+                                });
+                            });
+
                             factoryRegister.registerFactory(
                                     option -> {
                                         var field = option.backingField().field();
@@ -122,7 +238,7 @@ public class AccessoriesClient {
 
         Accessories.config().clientOptions.subscribeToEquipControl(value -> {
             attemptAction(holder -> {
-                if(holder.getData(PlayerOptions.EQUIP_CONTROL) == value) return;
+                if(holder.getDefaultedData(PlayerOptions.EQUIP_CONTROL) == value) return;
 
                 AccessoriesNetworking.sendToServer(SyncOptionChange.of(PlayerOptions.EQUIP_CONTROL, value));
             });
@@ -130,7 +246,7 @@ public class AccessoriesClient {
 
         Accessories.config().screenOptions.subscribeToShowUnusedSlots(value -> {
             attemptAction(holder -> {
-                if(holder.getData(PlayerOptions.SHOW_UNUSED_SLOTS) == value) return;
+                if(holder.getDefaultedData(PlayerOptions.SHOW_UNUSED_SLOTS) == value) return;
 
                 AccessoriesNetworking.sendToServer(SyncOptionChange.of(PlayerOptions.SHOW_UNUSED_SLOTS, value));
             });
@@ -138,7 +254,7 @@ public class AccessoriesClient {
 
         Accessories.config().screenOptions.subscribeToAlwaysShowCraftingGrid(value -> {
             attemptAction(holder -> {
-                if(holder.getData(PlayerOptions.SHOW_CRAFTING_GRID) == value) return;
+                if(holder.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID) == value) return;
 
                 AccessoriesNetworking.sendToServer(SyncOptionChange.of(PlayerOptions.SHOW_CRAFTING_GRID, value));
             });
@@ -208,19 +324,19 @@ public class AccessoriesClient {
 
         var equipControl = Accessories.config().clientOptions.equipControl();
 
-        if(options.getData(PlayerOptions.EQUIP_CONTROL) != equipControl) {
+        if(options.getDefaultedData(PlayerOptions.EQUIP_CONTROL) != equipControl) {
             AccessoriesNetworking.sendToServer(PlayerOptions.EQUIP_CONTROL.toPacket(equipControl));
         }
 
         var showUnusedSlots = Accessories.config().screenOptions.showUnusedSlots();
 
-        if(options.getData(PlayerOptions.SHOW_UNUSED_SLOTS) != showUnusedSlots) {
+        if(options.getDefaultedData(PlayerOptions.SHOW_UNUSED_SLOTS) != showUnusedSlots) {
             AccessoriesNetworking.sendToServer(PlayerOptions.SHOW_UNUSED_SLOTS.toPacket(showUnusedSlots));
         }
 
         var alwaysShowCraftingGrid = Accessories.config().screenOptions.alwaysShowCraftingGrid();
 
-        if(options.getData(PlayerOptions.SHOW_CRAFTING_GRID) != alwaysShowCraftingGrid) {
+        if(options.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID) != alwaysShowCraftingGrid) {
             AccessoriesNetworking.sendToServer(PlayerOptions.SHOW_CRAFTING_GRID.toPacket(true));
         }
     }
@@ -263,7 +379,7 @@ public class AccessoriesClient {
 
             var options = AccessoriesPlayerOptionsHolder.getOptions(player);
 
-            if(slots.isEmpty() && !options.getData(PlayerOptions.SHOW_UNUSED_SLOTS) && !displayUnusedSlotWarning && !Accessories.config().clientOptions.disableEmptySlotScreenError()) {
+            if(slots.isEmpty() && !options.getDefaultedData(PlayerOptions.SHOW_UNUSED_SLOTS) && !displayUnusedSlotWarning && !Accessories.config().clientOptions.disableEmptySlotScreenError()) {
                 player.displayClientMessage(Component.literal("[Accessories]: No Used Slots found by any mod directly, the screen will show empty unless a item is found to implement slots!"), false);
 
                 displayUnusedSlotWarning = true;

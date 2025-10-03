@@ -35,7 +35,7 @@ public class AccessoriesClientREIPlugin implements REIClientPlugin {
                 screen -> {
                     var accessor = ((AbstractContainerScreenAccessor) (screen));
 
-                    if(screen.getOption(PlayerOptions.SHOW_CRAFTING_GRID)) {
+                    if(screen.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID)) {
                         var component = screen.component(ArrowComponent.class, "crafting_arrow");
 
                         if (component != null) {
@@ -60,7 +60,7 @@ public class AccessoriesClientREIPlugin implements REIClientPlugin {
                 if (categoryIdentifier.equals(context.getDisplay().getCategoryIdentifier())
                         && context.getContainerScreen() instanceof AccessoriesScreen screen) {
 
-                    if (!screen.getOption(PlayerOptions.SHOW_CRAFTING_GRID) && context.isActuallyCrafting()) {
+                    if (!screen.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID) && context.isActuallyCrafting()) {
                         var component = screen.component(ButtonComponent.class, "crafting_grid_btn");
 
                         component.onPress();

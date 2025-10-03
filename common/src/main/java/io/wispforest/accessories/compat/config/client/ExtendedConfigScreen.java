@@ -24,5 +24,9 @@ public final class ExtendedConfigScreen extends ConfigScreen {
 
     public interface FactoryRegister {
         void registerFactory(Predicate<Option<?>> predicate, OptionComponentFactory<?> factory);
+
+        default <T> void registerTypedFactory(Class<T> clazz, OptionComponentFactory<T> factory) {
+            registerFactory(option -> option.clazz().isAssignableFrom(clazz), factory);
+        }
     }
 }

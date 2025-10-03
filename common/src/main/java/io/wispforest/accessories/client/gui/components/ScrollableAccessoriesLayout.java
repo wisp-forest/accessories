@@ -53,9 +53,9 @@ public class ScrollableAccessoriesLayout extends AccessoriesContainingLayout<Scr
         var menu = screen.getMenu();
         var slots = menu.getVisibleAccessoriesSlots();
 
-        var sideBySide = screen.getOption(PlayerOptions.SIDE_BY_SIDE_SLOTS);
+        var sideBySide = screen.getDefaultedData(PlayerOptions.SIDE_BY_SIDE_SLOTS);
 
-        var maxColumnCount = screen.getOption(PlayerOptions.COLUMN_AMOUNT);
+        var maxColumnCount = screen.getDefaultedData(PlayerOptions.COLUMN_AMOUNT);
         var maxRowCount = 7;
 
         var totalRowCount = (int) Math.ceil(((slots.size()) / 2f) / maxColumnCount);
@@ -114,7 +114,7 @@ public class ScrollableAccessoriesLayout extends AccessoriesContainingLayout<Scr
 
         var paddingValue = (layoutData.showScrollbar() ? 3 : 0);
 
-        fullLayout.padding(this.screen.getOption(PlayerOptions.MAIN_WIDGET_POSITION) ? Insets.left(paddingValue) : Insets.right(paddingValue));
+        fullLayout.padding(this.screen.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION) ? Insets.left(paddingValue) : Insets.right(paddingValue));
 
         Component innerAccessoriesLayout;
 
@@ -125,7 +125,7 @@ public class ScrollableAccessoriesLayout extends AccessoriesContainingLayout<Scr
         if(layoutData.showScrollbar()) {
             innerAccessoriesLayout = new ExtendedScrollContainer<>(ScrollContainer.ScrollDirection.VERTICAL, Sizing.fixed(width + 8 + 3), Sizing.fixed(layoutData.height()), fullLayout)
                     .strictMouseScrolling(!Accessories.config().screenOptions.allowSlotScrolling())
-                    .oppositeScrollbar(this.screen.getOption(PlayerOptions.MAIN_WIDGET_POSITION))
+                    .oppositeScrollbar(this.screen.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION))
                     .scrolledToCallback((container, prevOffset, scrollOffset) -> {
                         if(Objects.equals(prevOffset, scrollOffset)) return;
 
@@ -248,7 +248,7 @@ public class ScrollableAccessoriesLayout extends AccessoriesContainingLayout<Scr
 
             var paddingValue = (layoutData.showScrollbar() ? 3 : 0);
 
-            newLayout.padding(this.screen.getOption(PlayerOptions.MAIN_WIDGET_POSITION) ? Insets.left(paddingValue) : Insets.right(paddingValue));
+            newLayout.padding(this.screen.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION) ? Insets.left(paddingValue) : Insets.right(paddingValue));
 
             childSetter.accept(newLayout);
 

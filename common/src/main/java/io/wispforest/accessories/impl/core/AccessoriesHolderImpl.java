@@ -311,21 +311,6 @@ public class AccessoriesHolderImpl implements InstanceEndec {
         read(entity.accessoriesCapability(), entity, carrier, ctx);
     }
 
-    private static final KeyedEndec<PlayerEquipControl> EQUIP_CONTROL_KEY = Endec.forEnum(PlayerEquipControl.class).keyed("equip_control", PlayerEquipControl.MUST_CROUCH);
-
-    private static final KeyedEndec<Boolean> SHOW_UNUSED_SLOTS_KEY = Endec.BOOLEAN.keyed("show_unused_slots", false);
-    private static final KeyedEndec<Boolean> SHOW_COSMETICS_KEY = Endec.BOOLEAN.keyed("show_cosmetics", false);
-
-    private static final KeyedEndec<Integer> COLUMN_AMOUNT_KEY = Endec.INT.keyed("column_amount", 1);
-    private static final KeyedEndec<Integer> WIDGET_TYPE_KEY = Endec.INT.keyed("widget_type", 2);
-    private static final KeyedEndec<Boolean> MAIN_WIDGET_POSITION = Endec.BOOLEAN.keyed("main_widget_position", true);
-    private static final KeyedEndec<Boolean> SIDE_WIDGET_POSITION = Endec.BOOLEAN.keyed("side_widget_position", false);
-
-    private static final KeyedEndec<Boolean> SHOW_GROUP_FILTER = Endec.BOOLEAN.keyed("show_group_filter", false);
-    private static final KeyedEndec<Set<String>> FILTERED_GROUPS_KEY = Endec.STRING.setOf().keyed("filtered_groups", HashSet::new);
-
-    private static final KeyedEndec<Boolean> SHOW_CRAFTING_GRID = Endec.BOOLEAN.keyed("cosmetics_shown", false);
-
     public void read(AccessoriesCapability capability, LivingEntity entity, MapCarrierDecodable carrier, SerializationContext ctx) {
         this.loadedFromTag = false;
 
@@ -339,27 +324,6 @@ public class AccessoriesHolderImpl implements InstanceEndec {
                 ));
 
         carrier.getWithErrors(ctx.withAttributes(new ContainersAttribute(this.slotContainers), new InvalidStacksAttribute(this.invalidStacks)), CONTAINERS_KEY);
-
-        // TODO: REMOVE WITHIN THE FUTURE WHEN A GOOD AMOUNT OF TIME TO TRANSITION HAS OCCURRED
-        if (entity instanceof ServerPlayer player) {
-            var options = AccessoriesPlayerOptionsHolder.getOptions(player);
-
-            setIfPresent(carrier, options, EQUIP_CONTROL_KEY, PlayerOptions.EQUIP_CONTROL);
-
-            setIfPresent(carrier, options, COLUMN_AMOUNT_KEY, PlayerOptions.COLUMN_AMOUNT);
-            setIfPresent(carrier, options, WIDGET_TYPE_KEY, PlayerOptions.WIDGET_TYPE);
-            setIfPresent(carrier, options, MAIN_WIDGET_POSITION, PlayerOptions.MAIN_WIDGET_POSITION);
-            setIfPresent(carrier, options, SIDE_WIDGET_POSITION, PlayerOptions.SIDE_WIDGET_POSITION);
-
-            setIfPresent(carrier, options, SHOW_COSMETICS_KEY, PlayerOptions.SHOW_COSMETIC_SLOTS);
-            setIfPresent(carrier, options, SHOW_UNUSED_SLOTS_KEY, PlayerOptions.SHOW_UNUSED_SLOTS);
-
-            setIfPresent(carrier, options, SHOW_GROUP_FILTER, PlayerOptions.SHOW_GROUP_FILTER);
-//            setIfPresent(carrier, options, IS_GROUP_FILTERS_OPEN_KEY, AccessoriesPlayerOptions::isGroupFiltersOpen);
-            setIfPresent(carrier, options, FILTERED_GROUPS_KEY, PlayerOptions.FILTERED_GROUPS);
-
-            setIfPresent(carrier, options, SHOW_CRAFTING_GRID, PlayerOptions.SHOW_CRAFTING_GRID);
-        }
 
         this.setValidTypes(EntitySlotLoader.getEntitySlots(entity).keySet());
 

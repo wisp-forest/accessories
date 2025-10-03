@@ -22,6 +22,7 @@ import net.fabricmc.fabric.api.event.Event;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -77,6 +78,19 @@ public class AccessoriesClientFabric implements ClientModInitializer {
 
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (AccessoriesClient.OPEN_SCREEN.consumeClick()){
+                var player = client.player;
+
+                if (Accessories.config().screenOptions.prioritizeCreativeScreen() && player != null && player.isCreative()) {
+                    if (client.gameMode.isServerControlledInventory()) {
+                        player.sendOpenInventory();
+                    } else {
+                        client.getTutorial().onOpenInventory();
+                        client.setScreen(new InventoryScreen(player));
+                    }
+
+                    return;
+                }
+
                 AccessoriesClient.openScreenFromKey();
             }
         });

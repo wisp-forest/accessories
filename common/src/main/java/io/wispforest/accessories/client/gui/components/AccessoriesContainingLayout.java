@@ -62,7 +62,7 @@ public abstract class AccessoriesContainingLayout<D extends AccessoriesContainin
     public void updatePadding() {
         var padding = getPaddingOffset();
 
-        this.padding(this.screen.getOption(PlayerOptions.MAIN_WIDGET_POSITION) ? Insets.left(padding) : Insets.right(padding));
+        this.padding(this.screen.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION) ? Insets.left(padding) : Insets.right(padding));
     }
 
     public static String defaultID() {

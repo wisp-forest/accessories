@@ -1,8 +1,8 @@
 package io.wispforest.accessories.client.gui.components;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.impl.option.PlayerOptions;
+import io.wispforest.accessories.impl.option.PlayerOptionsAccess;
 import io.wispforest.accessories.mixin.client.AbstractSliderButtonAccessor;
 import io.wispforest.accessories.mixin.client.owo.DiscreteSliderComponentAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
@@ -18,21 +18,84 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.*;
 
-public class AccessoriesScreenSettingsLayout extends FlowLayout {
+public class AccessoriesScreenSettingsLayout extends FlowLayout implements PlayerOptionsAccess {
 
-    private final AccessoriesScreen screen;
+    private final PlayerOptionsAccess optionAccess;
+    private final ComponentAccess componentAccess;
+
+    private Consumer<ChangeType> onChangeCallback = changeType -> {};
+    private boolean shouldNetworkSync = true;
+    private boolean updateLive = false;
 
     private int maxWidth = 162;
     private int columnAmount = 1;
 
-    public AccessoriesScreenSettingsLayout(AccessoriesScreen screen) {
+    public AccessoriesScreenSettingsLayout(PlayerOptionsAccess optionAccess, ComponentAccess componentAccess) {
         super(Sizing.content(), Sizing.content(), Algorithm.VERTICAL);
 
-        this.screen = screen;
+        this.optionAccess = optionAccess;
+        this.componentAccess = componentAccess;
 
         this.buildLayout();
+    }
+
+    public AccessoriesScreenSettingsLayout onChange(Consumer<ChangeType> onChangeCallback) {
+        this.onChangeCallback = onChangeCallback;
+
+        return this;
+    }
+
+    public AccessoriesScreenSettingsLayout shouldNetworkSync(boolean value) {
+        this.shouldNetworkSync = value;
+
+        return this;
+    }
+
+    public AccessoriesScreenSettingsLayout updateLive(boolean value) {
+        this.updateLive = value;
+
+        return this;
+    }
+
+    @Override
+    public <T> Optional<T> getData(PlayerOption<T> option) {
+        return optionAccess.getData(option);
+    }
+
+    @Override
+    public <T> void setData(PlayerOption<T> option, T data) {
+        optionAccess.setData(option, data);
+
+        if (updateLive) {
+            onHolderChange(option);
+        }
+    }
+
+    public interface ComponentAccess {
+        @Nullable
+        <T extends io.wispforest.owo.ui.core.Component> T getComponent(Class<T> clazz, String id);
+
+        default <T extends io.wispforest.owo.ui.core.Component> void adjustIfPresent(Class<T> clazz, String id, Consumer<T> callback) {
+            var component = getComponent(clazz, id);
+
+            if (component != null) callback.accept(component);
+        }
+    }
+
+    public enum ChangeType {
+        ACCESSORIES,
+        ENTITY,
+        SIDE_BAR,
+        SLOTS
+    }
+
+    private <R extends Record> void syncToServer(R packet) {
+        if (!shouldNetworkSync) return;
+
+        AccessoriesNetworking.sendToServer(packet);
     }
 
     private void buildLayout() {
@@ -42,95 +105,95 @@ public class AccessoriesScreenSettingsLayout extends FlowLayout {
                 wrapAsSettings(PlayerOptions.COLUMN_AMOUNT,
                         Components.discreteSlider(Sizing.fixed(45), getMinimumColumnAmount(), getMaximumColumnAmount())
                                 .configure((DiscreteSliderComponent slider) -> {
+                                    slider.snap(true)
+                                        .setFromDiscreteValue(this.getDefaultedData(PlayerOptions.COLUMN_AMOUNT))
+                                        .scrollStep(1f / (18 - getMinimumColumnAmount()));
+
                                     slider.onChanged().subscribe(value -> {
-                                        AccessoriesNetworking.sendToServer(PlayerOptions.COLUMN_AMOUNT.toPacket((int) value));
+                                        syncToServer(PlayerOptions.COLUMN_AMOUNT.toPacket((int) value));
 
-                                        this.screen.setOption(PlayerOptions.COLUMN_AMOUNT, (int) value);
+                                        this.setData(PlayerOptions.COLUMN_AMOUNT, (int) value);
 
-                                        screen.rebuildAccessoriesComponent();
+                                        onChangeCallback.accept(ChangeType.ACCESSORIES);
                                     });
                                 })
-                                .snap(true)
-                                .setFromDiscreteValue(this.screen.getOption(PlayerOptions.COLUMN_AMOUNT))
-                                .scrollStep(1f / (18 - getMinimumColumnAmount()))
                 ));
 
         children.add(
                 wrapAsSettings(PlayerOptions.WIDGET_TYPE,
                         Components.button(
-                                        widgetTypeToggleMessage(this.screen.getOption(PlayerOptions.WIDGET_TYPE), false),
+                                        widgetTypeToggleMessage(this.getDefaultedData(PlayerOptions.WIDGET_TYPE), false),
                                         btn -> {
-                                            var newWidget = this.screen.getOption(PlayerOptions.WIDGET_TYPE) + 1;
+                                            var newWidget = this.getDefaultedData(PlayerOptions.WIDGET_TYPE) + 1;
 
                                             if(newWidget > 2) newWidget = 1;
 
-                                            AccessoriesNetworking.sendToServer(PlayerOptions.WIDGET_TYPE.toPacket(newWidget));
+                                            syncToServer(PlayerOptions.WIDGET_TYPE.toPacket(newWidget));
 
-                                            this.screen.setOption(PlayerOptions.WIDGET_TYPE, newWidget);
+                                            this.setData(PlayerOptions.WIDGET_TYPE, newWidget);
 
                                             this.onHolderChange(PlayerOptions.WIDGET_TYPE);
                                         })
                                 .renderer(ComponentUtils.getButtonRenderer())
-                                .tooltip(widgetTypeToggleMessage(this.screen.getOption(PlayerOptions.WIDGET_TYPE), true))
+                                .tooltip(widgetTypeToggleMessage(this.getDefaultedData(PlayerOptions.WIDGET_TYPE), true))
                 ));
 
         children.add(
                 ofSettingsToggle(PlayerOptions.SHOW_UNUSED_SLOTS,
-                        (option, newValue) -> AccessoriesNetworking.sendToServer(option.toPacket(newValue))
+                        (option, newValue) -> syncToServer(option.toPacket(newValue))
                 ));
 
         children.add(
                 ofSettingsToggle(PlayerOptions.SIDE_BY_SIDE_SLOTS,
                         (option, newValue) -> {
-                            AccessoriesNetworking.sendToServer(option.toPacket(newValue));
+                            syncToServer(option.toPacket(newValue));
 
-                            screen.rebuildAccessoriesComponent();
+                            onChangeCallback.accept(ChangeType.ACCESSORIES);
                         }
                 ));
 
         children.add(
                 ofSettingsToggle(PlayerOptions.SIDE_BY_SIDE_ENTITY,
                         (option, newValue) -> {
-                            AccessoriesNetworking.sendToServer(option.toPacket(newValue));
+                            syncToServer(option.toPacket(newValue));
 
-                            screen.rebuildEntityComponent();
+                            onChangeCallback.accept(ChangeType.ENTITY);
                         }
                 ));
 
         children.add(
                 ofSettingsToggle(PlayerOptions.MAIN_WIDGET_POSITION,
                         (option, newValue) -> {
-                            AccessoriesNetworking.sendToServer(option.toPacket(newValue));
+                            syncToServer(option.toPacket(newValue));
 
-                            this.screen.component(InventoryEntityComponent.class, "entity_rendering_component")
-                                    .startingRotation(newValue ? -45 : 45);
+                            componentAccess.adjustIfPresent(InventoryEntityComponent.class, "entity_rendering_component", c -> c.startingRotation(newValue ? -45 : 45));
                         }
                 ));
 
         children.add(
                 ofSettingsToggle(PlayerOptions.SHOW_GROUP_FILTER,
                         (option, newValue) -> {
-                            AccessoriesNetworking.sendToServer(option.toPacket(newValue));
+                            syncToServer(option.toPacket(newValue));
 
-                            screen.rebuildSideBarOptions();
+                            onChangeCallback.accept(ChangeType.SIDE_BAR);
                         }
                 ));
 
         children.add(
                 ofSettingsToggle(PlayerOptions.SIDE_WIDGET_POSITION,
                         (option, newValue) -> {
-                            AccessoriesNetworking.sendToServer(option.toPacket(newValue));
+                            syncToServer(option.toPacket(newValue));
 
-                            screen.rebuildAccessoriesComponent();
+                            onChangeCallback.accept(ChangeType.ACCESSORIES);
                         }
                 ));
 
         children.add(
                 ofSettingsToggle(PlayerOptions.ENTITY_CENTERED,
                         (option, newValue) -> {
-                            AccessoriesNetworking.sendToServer(option.toPacket(newValue));
+                            syncToServer(option.toPacket(newValue));
 
-                            screen.rebuildAccessoriesComponent();
+                            onChangeCallback.accept(ChangeType.ACCESSORIES);
                         }
                 ));
 
@@ -152,9 +215,7 @@ public class AccessoriesScreenSettingsLayout extends FlowLayout {
                         bl -> {
                             Accessories.config().screenOptions.entityLooksAtMouseCursor(bl);
 
-                            var component = this.screen.component(InventoryEntityComponent.class, "entity_rendering_component");
-
-                            component.lookAtCursor(bl);
+                            componentAccess.adjustIfPresent(InventoryEntityComponent.class, "entity_rendering_component", c -> c.lookAtCursor(bl));
                         }
                 ));
 
@@ -189,8 +250,8 @@ public class AccessoriesScreenSettingsLayout extends FlowLayout {
     }
 
     private Component ofSettingsToggle(PlayerOption<Boolean> playerOption, BiConsumer<PlayerOption<Boolean>, Boolean> onChange) {
-        return ofSettingsToggle(playerOption.name(), () -> this.screen.getOption(playerOption), newValue -> {
-            this.screen.setOption(playerOption, newValue);
+        return ofSettingsToggle(playerOption.name(), () -> this.getDefaultedData(playerOption), newValue -> {
+            this.setData(playerOption, newValue);
             onChange.accept(playerOption, newValue);
         });
     }
@@ -241,37 +302,53 @@ public class AccessoriesScreenSettingsLayout extends FlowLayout {
     //--
 
     public void onHolderChange(PlayerOption<?> option) {
+        var hasChangeOccurred = false;
+
         if (option.equals(PlayerOptions.SHOW_UNUSED_SLOTS)) {
-            updateToggleButton(PlayerOptions.SHOW_UNUSED_SLOTS, (bl) -> {
-                screen.getMenu().updateUsedSlots();
+            hasChangeOccurred = true;
 
-                Accessories.config().screenOptions.showUnusedSlots(bl);
+            updateToggleButton(PlayerOptions.SHOW_UNUSED_SLOTS, Accessories.config().screenOptions::showUnusedSlots);
 
-                screen.rebuildAccessoriesComponent();
-            });
+            onChangeCallback.accept(ChangeType.SLOTS);
         }
 
-        if (option.equals(PlayerOptions.SHOW_GROUP_FILTER))
-            updateToggleButton(PlayerOptions.SHOW_GROUP_FILTER, screen::rebuildAccessoriesComponent);
-        if (option.equals(PlayerOptions.MAIN_WIDGET_POSITION))
-            updateToggleButton(PlayerOptions.MAIN_WIDGET_POSITION, screen::rebuildAccessoriesComponent);
-        if (option.equals(PlayerOptions.SIDE_WIDGET_POSITION))
-            updateToggleButton(PlayerOptions.SIDE_WIDGET_POSITION, screen::rebuildAccessoriesComponent);
+        if (option.equals(PlayerOptions.SHOW_GROUP_FILTER)) {
+            updateToggleButton(PlayerOptions.SHOW_GROUP_FILTER);
 
-        var updateMaxValue = (option.equals(PlayerOptions.ENTITY_CENTERED) && this.screen.getOption(PlayerOptions.SIDE_BY_SIDE_SLOTS))
-                || (option.equals(PlayerOptions.SIDE_BY_SIDE_SLOTS) && this.screen.getOption(PlayerOptions.ENTITY_CENTERED))
-                || (option.equals(PlayerOptions.SIDE_BY_SIDE_ENTITY) && this.screen.getOption(PlayerOptions.SIDE_BY_SIDE_SLOTS));
+            hasChangeOccurred = true;
+        }
+
+        if (option.equals(PlayerOptions.MAIN_WIDGET_POSITION)) {
+            updateToggleButton(PlayerOptions.MAIN_WIDGET_POSITION);
+
+            hasChangeOccurred = true;
+        }
+
+        if (option.equals(PlayerOptions.SIDE_WIDGET_POSITION)){
+            updateToggleButton(PlayerOptions.SIDE_WIDGET_POSITION);
+
+            hasChangeOccurred = true;
+        }
+
+        var updateMaxValue = option.equals(PlayerOptions.SIDE_BY_SIDE_SLOTS)
+            || (this.getDefaultedData(PlayerOptions.SIDE_BY_SIDE_SLOTS) && option.equals(PlayerOptions.SIDE_BY_SIDE_ENTITY));
 
         if (updateMaxValue) {
             updateMaxValueColumnSlider(getMaximumColumnAmount());
 
-            screen.rebuildAccessoriesComponent();
+            hasChangeOccurred = true;
         }
 
         if(option.equals(PlayerOptions.WIDGET_TYPE)) {
             updateMinValueColumnSlider(getMinimumColumnAmount());
 
             updateWidgetTypeToggleButton();
+
+            hasChangeOccurred = true;
+        }
+
+        if (hasChangeOccurred) {
+            onChangeCallback.accept(ChangeType.ACCESSORIES);
         }
     }
 
@@ -284,7 +361,7 @@ public class AccessoriesScreenSettingsLayout extends FlowLayout {
     }
 
     public void updateColumnSlider(@Nullable Integer minValue, @Nullable Integer maxValue) {
-        var columnAmountSlider = this.screen.component(DiscreteSliderComponent.class, "column_amount");
+        var columnAmountSlider = this.childById(DiscreteSliderComponent.class, PlayerOptions.COLUMN_AMOUNT.name());
 
         if(columnAmountSlider != null) {
             var previousValue = columnAmountSlider.discreteValue();
@@ -310,25 +387,21 @@ public class AccessoriesScreenSettingsLayout extends FlowLayout {
             var newValue = columnAmountSlider.discreteValue();
 
             if (newValue != previousValue) {
-                this.screen.setOption(PlayerOptions.COLUMN_AMOUNT, (int) Math.round(newValue));
+                this.setData(PlayerOptions.COLUMN_AMOUNT, (int) Math.round(newValue));
             }
         }
     }
 
-    private void updateToggleButton(PlayerOption<Boolean> playerOption, Consumer<Boolean> runnable) {
-        updateToggleButton(playerOption.name(), () -> this.screen.getOption(playerOption), runnable);
+    private boolean updateToggleButton(PlayerOption<Boolean> playerOption) {
+        return updateToggleButton(playerOption, bl -> {});
     }
 
-    private void updateToggleButton(PlayerOption<Boolean> playerOption, Runnable runnable) {
-        updateToggleButton(playerOption.name(), () -> this.screen.getOption(playerOption), bl -> runnable.run());
+    private boolean updateToggleButton(PlayerOption<Boolean> playerOption, Consumer<Boolean> runnable) {
+        return updateToggleButton(playerOption.name(), () -> this.getDefaultedData(playerOption), runnable);
     }
 
-    private void updateToggleButton(String baseId, Supplier<Boolean> getter, Runnable runnable) {
-        updateToggleButton(baseId, getter, bl -> runnable.run());
-    }
-
-    private void updateToggleButton(String baseId, Supplier<Boolean> getter, Consumer<Boolean> runnable) {
-        var btn = this.screen.component(ButtonComponent.class, baseId);
+    private boolean updateToggleButton(String baseId, Supplier<Boolean> getter, Consumer<Boolean> runnable) {
+        var btn = this.childById(ButtonComponent.class, baseId);
 
         var value = getter.get();
 
@@ -336,24 +409,24 @@ public class AccessoriesScreenSettingsLayout extends FlowLayout {
         btn.tooltip(createToggleText(baseId, true, value));
 
         runnable.accept(value);
+
+        return true;
     }
 
     private void updateWidgetTypeToggleButton() {
-        var btn = this.screen.component(ButtonComponent.class, "widget_type");
+        var btn = this.childById(ButtonComponent.class, "widget_type");
 
-        var value = this.screen.getOption(PlayerOptions.WIDGET_TYPE);
+        var value = this.getDefaultedData(PlayerOptions.WIDGET_TYPE);
 
         btn.setMessage(widgetTypeToggleMessage(value, false));
         btn.tooltip(widgetTypeToggleMessage(value, true));
-
-        screen.rebuildAccessoriesComponent();
     }
 
     public int getMinimumColumnAmount() {
-        return (this.screen.getOption(PlayerOptions.WIDGET_TYPE) == 2) ? 1 : 3;
+        return (this.getDefaultedData(PlayerOptions.WIDGET_TYPE) == 2) ? 1 : 3;
     }
 
     public int getMaximumColumnAmount() {
-        return (this.screen.getOption(PlayerOptions.SIDE_BY_SIDE_SLOTS)) ? (this.screen.getOption(PlayerOptions.SIDE_BY_SIDE_ENTITY) ? 4 : 6) : 9;
+        return (this.getDefaultedData(PlayerOptions.SIDE_BY_SIDE_SLOTS)) ? (this.getDefaultedData(PlayerOptions.SIDE_BY_SIDE_ENTITY) ? 4 : 6) : 9;
     }
 }

@@ -377,6 +377,12 @@
   "text.config.accessories.enum.playerEquipControl.must_not_crouch": "Without Crouch",
   "text.config.accessories.enum.playerEquipControl.disabled": "Disabled",
 
+  "text.config.accessories.option.screenOptions.prioritizeCreativeScreen": "Prioritize Opening Creative Screen",
+  "text.config.accessories.option.screenOptions.prioritizeCreativeScreen.tooltip": [
+    "Will attempt to open the Creative Screen instead of the Accessories\n",
+    "screen while in creative mode."
+  ],
+
   "text.config.accessories.category.screenOptions": "Screen Options",
   "text.config.accessories.category.screenOptions.tooltip": [
     "Contains all screen configuration options for all variants and injected button offset"
@@ -391,6 +397,14 @@
   "text.config.accessories.enum.screenType.none": "Undecided",
   "text.config.accessories.enum.screenType.original": "Original",
   "text.config.accessories.enum.screenType.experimental_v1": "Experimental",
+
+  "text.config.accessories.section.accessories_screen": "Accessory Screen Specific Options",
+
+  "text.config.accessories.option.screenOptions.defaultValues": "Global Screen Options",
+  "text.config.accessories.option.screenOptions.defaultValues.tooltip": [
+    "Used to adjust the DEFAULT screen options like amount of columns,\n",
+    "the given theme, etc. Such can also be adjusted in game per user."
+  ],
 
   "text.config.accessories.option.screenOptions.backButtonClosesScreen": "Close screen instead of going back to previous screen",
   "text.config.accessories.option.screenOptions.backButtonClosesScreen.tooltip": "Attempts to close the screen instead of going back to the previous inventory screen if possible.",

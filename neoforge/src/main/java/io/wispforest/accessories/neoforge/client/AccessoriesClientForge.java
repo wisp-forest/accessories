@@ -10,6 +10,8 @@ import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.neoforge.AccessoriesInternalsImpl;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
@@ -93,6 +95,20 @@ public class AccessoriesClientForge {
 
     public static void clientTick(ClientTickEvent.Pre event) {
         if (AccessoriesClient.OPEN_SCREEN.consumeClick()) {
+            var client = Minecraft.getInstance();
+            var player = client.player;
+
+            if (Accessories.config().screenOptions.prioritizeCreativeScreen() && player != null && player.isCreative()) {
+                if (client.gameMode.isServerControlledInventory()) {
+                    player.sendOpenInventory();
+                } else {
+                    client.getTutorial().onOpenInventory();
+                    client.setScreen(new InventoryScreen(player));
+                }
+
+                return;
+            }
+
             AccessoriesClient.openScreenFromKey();
         }
     }

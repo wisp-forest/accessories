@@ -12,12 +12,16 @@ import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.event.VanillaItemPredicates;
+import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.menu.ArmorSlotTypes;
 import io.wispforest.accessories.mixin.CriteriaTriggersAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.ScreenVariantPing;
 import io.wispforest.accessories.utils.EndecUtils;
+import io.wispforest.endec.format.edm.EdmElement;
+import io.wispforest.endec.format.edm.EdmEndec;
+import io.wispforest.endec.format.edm.EdmMap;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -34,7 +38,9 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 import org.slf4j.Logger;
+import io.wispforest.accessories.compat.config.AccessoriesConfig;
 
+import java.util.LinkedHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -87,11 +93,12 @@ public class Accessories {
 
     //--
 
-    private static final io.wispforest.accessories.compat.config.AccessoriesConfig CONFIG = io.wispforest.accessories.compat.config.AccessoriesConfig.createAndLoad(serializationBuilder -> {
+    private static final AccessoriesConfig CONFIG = AccessoriesConfig.createAndLoad(serializationBuilder -> {
         serializationBuilder.addEndec(Vector2i.class, EndecUtils.VECTOR_2_I_ENDEC);
+        serializationBuilder.addEndec(AccessoriesPlayerOptionsHolder.class, AccessoriesPlayerOptionsHolder.ENDEC);
     });
 
-    public static io.wispforest.accessories.compat.config.AccessoriesConfig config(){
+    public static AccessoriesConfig config(){
         return CONFIG;
     }
 

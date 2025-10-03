@@ -2,21 +2,18 @@ package io.wispforest.accessories.compat.config;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.impl.PlayerEquipControl;
+import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.owo.config.Option;
 import io.wispforest.owo.config.annotation.*;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Config(name = Accessories.MODID, wrapperName = "AccessoriesConfig")
 public class AccessoriesConfigModel {
-
-    /*
-    @RestartRequired
-    @Sync(Option.SyncMode.OVERRIDE_CLIENT)
-    public boolean useExperimentalCaching = false;
-    */
 
     @Nest
     public ContentFocusedOptions contentOptions = new ContentFocusedOptions();
@@ -63,46 +60,48 @@ public class AccessoriesConfigModel {
 
     public static class ScreenOptions {
 
+        public boolean prioritizeCreativeScreen = false;
+
+        @SectionHeader("button_offsets")
+        @Hook
+        public List<MenuButtonInjection> menuButtonInjections = new ArrayList<>(
+            List.of(
+                new MenuButtonInjection(ResourceLocation.withDefaultNamespace("creative_player_inventory"), 96, 6),
+                new MenuButtonInjection(ResourceLocation.withDefaultNamespace("player_inventory"), 66, 8),
+                new MenuButtonInjection(ResourceLocation.withDefaultNamespace("horse_inventory"), 69, 18)
+            )
+        );
+
+        @SectionHeader("accessories_screen")
+        @Nullable
+        public AccessoriesPlayerOptionsHolder defaultValues = null;
+
         public boolean keybindIgnoresOtherTargets = false;
 
         public boolean backButtonClosesScreen = false;
 
 //        public ScreenType selectedScreenType = ScreenType.NONE;
 
+        @ExcludeFromScreen
         @Hook
         public boolean showUnusedSlots = false;
 
         public boolean allowSlotScrolling = true;
 
-        // Screen Injected Button offsets
-
-        @SectionHeader("button_offsets")
-        @Hook
-        public List<MenuButtonInjection> menuButtonInjections = new ArrayList<>(
-                List.of(
-                        new MenuButtonInjection(ResourceLocation.withDefaultNamespace("creative_player_inventory"), 96, 6),
-                        new MenuButtonInjection(ResourceLocation.withDefaultNamespace("player_inventory"), 66, 8),
-                        new MenuButtonInjection(ResourceLocation.withDefaultNamespace("horse_inventory"), 69, 18)
-                )
-        );
-
-        // Experimental Screen
-
-        @SectionHeader("experimental")
+        @ExcludeFromScreen
         @Hook
         public boolean isDarkMode = false;
 
+        @ExcludeFromScreen
         public boolean showEquippedStackSlotType = true;
 
+        @ExcludeFromScreen
         public boolean entityLooksAtMouseCursor = false;
 
         @Hook
         public boolean alwaysShowCraftingGrid = false;
 
-        // Legacy Screen
-
-        @SectionHeader("legacy")
-        public boolean showGroupTabs = true;
+        // Screen Injected Button offsets
 
         @SectionHeader("hover")
         @Nest public HoveredOptions hoveredOptions = new HoveredOptions();

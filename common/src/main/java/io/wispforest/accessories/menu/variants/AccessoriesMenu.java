@@ -332,7 +332,7 @@ public class AccessoriesMenu extends AccessoriesMenuBase {
     }
 
     public boolean areUnusedSlotsShown() {
-        return AccessoriesPlayerOptionsHolder.getOptions(owner).getData(PlayerOptions.SHOW_UNUSED_SLOTS);
+        return AccessoriesPlayerOptionsHolder.getOptions(owner).getDefaultedData(PlayerOptions.SHOW_UNUSED_SLOTS);
     }
 
     @Override

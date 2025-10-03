@@ -821,7 +821,7 @@ public class AccessoriesEventHandler {
         var capability = AccessoriesCapability.get(player);
 
         if (capability != null && !player.isSpectator() && !stack.isEmpty()) {
-            var equipControl = AccessoriesPlayerOptionsHolder.getOptions(player).getData(PlayerOptions.EQUIP_CONTROL);
+            var equipControl = AccessoriesPlayerOptionsHolder.getOptions(player).getDefaultedData(PlayerOptions.EQUIP_CONTROL);
 
             var shouldAttemptEquip = false;
 

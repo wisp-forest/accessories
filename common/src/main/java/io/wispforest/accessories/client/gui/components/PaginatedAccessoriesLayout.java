@@ -41,9 +41,9 @@ public class PaginatedAccessoriesLayout extends AccessoriesContainingLayout<Pagi
         var menu = screen.getMenu();
         var slots = menu.getVisibleAccessoriesSlots();
 
-        var sideBySide = screen.getOption(PlayerOptions.SIDE_BY_SIDE_SLOTS);
+        var sideBySide = screen.getDefaultedData(PlayerOptions.SIDE_BY_SIDE_SLOTS);
 
-        var maxColumnCount = screen.getOption(PlayerOptions.COLUMN_AMOUNT);
+        var maxColumnCount = screen.getDefaultedData(PlayerOptions.COLUMN_AMOUNT);
         var maxRowCount = 6;
 
         var totalRowCount = (int) Math.ceil((slots.size() / 2f) / maxColumnCount);

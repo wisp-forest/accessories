@@ -2,6 +2,7 @@ package io.wispforest.accessories.impl.option;
 
 import com.google.common.reflect.Reflection;
 import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
 import io.wispforest.endec.Endec;
@@ -95,16 +96,16 @@ public final class PlayerOption<T> {
 
     public Optional<T> getData(Player player) {
         return Optional.ofNullable(AccessoriesPlayerOptionsHolder.getOptions(player))
-                .map(holder -> holder.getData(this));
+            .flatMap(holder -> holder.getData(this));
     }
 
     public T getDataOrDefault(Player player) {
         return getData(player)
-                .orElseGet(() -> {
-                    LOGGER.warn("[PlayerOption] Unable to get the given holder value '{}' for the given owner: {}", this.name, player.getName());
+            .orElseGet(() -> {
+                LOGGER.warn("[PlayerOption] Unable to get the given holder value '{}' for the given owner: {}", this.name, player.getName());
 
-                    return defaultValue.get();
-                });
+                return defaultValue.get();
+            });
     }
 
     public SyncOptionChange toPacket(T data) {
