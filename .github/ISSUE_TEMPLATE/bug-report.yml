@@ -5,25 +5,6 @@ type: Bug
 title: 'Bug: [<Insert minecraft version>] <Here contains concise summary of the bug>'
 body:
   - type: dropdown
-    id: feat-type
-    attributes:
-      label: What Feature Types Apply to This Bug?
-      multiple: true
-      options:
-        - Art
-        - Config
-        - Docs
-        - API
-        - Gui
-        - Other (Please Describe)
-  - type: input
-    id: other-type
-    attributes:
-      label: Feature Type
-      description: If you selected other in the dropdown above, please what type it is.
-    validations:
-      required: false
-  - type: dropdown
     id: bug-type
     attributes:
       label: What Type of Bug Is This?
@@ -34,6 +15,8 @@ body:
         - Design
         - Performance
         - Unexpected Behavior
+      validations:
+        required: true
   - type: input
     id: minecraft_ver
     attributes:
@@ -66,17 +49,13 @@ body:
       placeholder: "1.1.1"
     validations:
       required: true
-  - type: dropdown
-    id: compat-type
+  - type: checkboxes
+    id: confirmation
     attributes:
-      label: What Compatibility layer are you using?
+      label: Using any of Accessories Compatibility Layers?
       options:
-        - Neither
-        - Trinkets
-        - Curios
-        - Both
-    validations:
-      required: false
+        - label: Are you using one of the Compatibility Layers within your Pack for Accessories?
+          required: true
   - type: input
     id: compat-ver
     attributes:
@@ -95,8 +74,10 @@ body:
   - type: input
     id: client-log
     attributes:
-      label: Client Log
-      description: A **[Gist](https://gist.github.com/)** link to the full game log. This can be found in the game files under the `logs` folder. Though not necessary, a client log can help diagnose an issue better in case a bug is caused by a reported error. Provide the `latest.log` or `debug.log` file as a Gist as soon as you find the bug, as these files are reset every time the game is opened.
+      label: Logs
+      description: Either a **[Gist](https://gist.github.com/)** link or other link to the full game log. This can be found in the game files under the `logs` folder. Though not necessary, a client log can help diagnose an issue better in case a bug is caused by a reported error. Provide the `latest.log` or `debug.log` file as a Gist as soon as you find the bug, as these files are reset every time the game is opened.
+    validations:
+      required: false
   - type: input
     id: crash-log
     attributes:
@@ -105,25 +86,15 @@ body:
   - type: textarea
     id: steps
     attributes:
-      label: Steps to Reproduce
+      label: What Actually Happened, What You Expected To Happen, and any known steps to reproduce
       description: A detailed list of how you encountered this bug if it is not immediately obvious. If the bug is immediately obvious, briefly mention how to replicate it.
       placeholder: |
+        Instead of this I encountered that which I thought would not happen.
+        
         How often this happens
         1. Step 1
         2. Step 2
         3. Step 3, etc.
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: What You Expect To Happen
-      description: Describe what you thought was supposed to have happened. Don't worry if you think what you expected may be wrong.
-    validations:
-      required: true
-  - type: textarea
-    attributes:
-      label: What Actually Happened
-      description: Describe what happened to you that wasn't to expectations.
     validations:
       required: true
   - type: textarea
