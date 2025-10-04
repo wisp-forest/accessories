@@ -20,4 +20,14 @@ public record SlotGroupImpl(String name, int order, Set<String> slots, ResourceL
             MinecraftEndecs.IDENTIFIER.fieldOf("icon", SlotGroup::icon),
             SlotGroupImpl::new
     );
+
+    @Override
+    public String toString() {
+        return "SlotGroup{" +
+            "name='" + name + '\'' +
+            ", order=" + order +
+            ", slots=" + slots +
+            ", icon=" + icon +
+            '}';
+    }
 }

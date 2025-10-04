@@ -63,4 +63,14 @@ public interface SlotGroup extends Comparable<SlotGroup> {
 
         return this.name().compareTo(o.name());
     }
+
+    default String dumpData() {
+        return "SlotGroup[" +
+            "name:'" + name() + '\'' +
+            ", order:" + order() +
+            ", slots:" + slots() +
+            ", icon:" + (icon() == UNKNOWN ? "none" : icon()) +
+            ", translation:" + translation() +
+            ']';
+    }
 }

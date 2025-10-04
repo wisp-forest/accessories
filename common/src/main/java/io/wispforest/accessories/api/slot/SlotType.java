@@ -76,4 +76,16 @@ public interface SlotType extends Comparable<SlotType> {
 
         return this.name().compareTo(o.name());
     }
+
+    default String dumpData() {
+        return "SlotType[" +
+            ", name:'" + name() + '\'' +
+            ", icon:" + (icon() == EMPTY_SLOT_ICON ? "none" : icon()) +
+            ", amount:" + amount() +
+            ", order:" + order() +
+            ", validators:" + validators() +
+            ", dropRule:" + dropRule() +
+            ", translation:" + translation() +
+            ']';
+    }
 }

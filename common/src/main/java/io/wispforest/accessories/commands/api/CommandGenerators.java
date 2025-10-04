@@ -21,7 +21,7 @@ public class CommandGenerators {
         create(generateTrees, argumentRegistration -> {});
     }
 
-    public static void create(CommandTreeGenerator<CommandSourceStack, CommandBuildContext,CommandGenerator> generateTrees, OnArgumentRegistration registration) {
+    public static void create(CommandTreeGenerator<CommandSourceStack, CommandBuildContext, CommandGenerator> generateTrees, OnArgumentRegistration registration) {
         ALL_COMMAND_GENERATORS.add(new Holder<>(new CommandGenerator(), generateTrees, registration));
     }
 

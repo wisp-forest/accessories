@@ -1,16 +1,21 @@
 package io.wispforest.accessories.commands;
 
 
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.exceptions.*;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.mojang.datafixers.util.Either;
 import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.commands.api.ArgumentsWithContext;
+import io.wispforest.accessories.commands.api.CommandTreeGenerator;
 import io.wispforest.accessories.commands.api.base.BranchedCommandGenerator;
+import io.wispforest.accessories.commands.api.core.NamedArgumentGetter;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceOrIdArgument;
@@ -36,10 +41,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-import static io.wispforest.accessories.commands.api.Arguments.defaulted;
-import static io.wispforest.accessories.commands.api.Arguments.required;
+public class AccessoriesItemCommands implements CommandTreeGenerator.Branched {
 
-public class AccessoriesItemCommands {
+    public static final AccessoriesItemCommands INSTANCE = new AccessoriesItemCommands();
+
+    private AccessoriesItemCommands() {}
 
 	private static final Dynamic3CommandExceptionType ERROR_TARGET_NOT_A_CONTAINER = new Dynamic3CommandExceptionType(
 		(object, object2, object3) -> Component.translatableEscape("commands.item.target.not_a_container", object, object2, object3)
@@ -61,14 +67,22 @@ public class AccessoriesItemCommands {
 		return SharedSuggestionProvider.listSuggestions(commandContext, suggestionsBuilder, Registries.ITEM_MODIFIER, SharedSuggestionProvider.ElementSuggestionType.ELEMENTS);
 	};
 
-	protected static void generateTrees(BranchedCommandGenerator generator, CommandBuildContext context) {
-		var slotArg = required("slot", SlotArgument.slot(), SlotArgument::getSlot);
+    @Override
+    public <T> NamedArgumentGetter<CommandSourceStack, T> getArgumentGetter(ArgumentType<T> type) {
+        var getter = AccessoriesCommands.getArgumentGetterErased(type);
+
+        return getter != null ? (NamedArgumentGetter<CommandSourceStack, T>) getter : Branched.super.getArgumentGetter(type);
+    }
+
+    @Override
+    public void generateTrees(BranchedCommandGenerator generator, CommandBuildContext context, Commands.CommandSelection environment) {
+		var slotArg = required("slot", SlotArgument.slot());
 
 		var blockArg = required("pos", BlockPosArgument.blockPos(), BlockPosArgument::getLoadedBlockPos);
 
 		var modifierArg = defaulted("modifier", ResourceOrIdArgument.lootModifier(context), ResourceOrIdArgument::getLootModifier, null, SUGGEST_MODIFIER);
 
-		var sourceSlotArg = required("sourceSlot", SlotArgument.slot(), SlotArgument::getSlot);
+		var sourceSlotArg = required("sourceSlot", SlotArgument.slot());
 
 		generator
 				.branch("item")
@@ -83,7 +97,7 @@ public class AccessoriesItemCommands {
 											fromBranch.leaves(
 													"entity",
 													required("source_entity", EntityArgument.entity(), EntityArgument::getEntity),
-													required("source_path", AccessoriesMixedSlotArgument.slot("source_entity"), AccessoriesMixedSlotArgument::getSlot),
+													required("source_path", AccessoriesMixedSlotArgument.slot("source_entity")),
 													modifierArg,
 													(ctx, targetPos, targetSlot, sourceEntity, sourceSlot, modifier) -> {
 														return (modifier == null)
@@ -97,13 +111,13 @@ public class AccessoriesItemCommands {
 							.branch(
 									"entity",
 									required("entity", EntityArgument.entity(), EntityArgument::getEntity),
-									required("path", AccessoriesMixedSlotArgument.slot("entity"), AccessoriesMixedSlotArgument::getSlot),
+									required("path", AccessoriesMixedSlotArgument.slot("entity")),
 									entityBranch -> {
 										entityBranch
 												.leaves(
 														"with",
 														required("item", ItemArgument.item(context), (ctx, name) -> ItemArgument.getItem(ctx, name).createItemStack(1, false)),
-														defaulted("count", IntegerArgumentType.integer(1, 99), IntegerArgumentType::getInteger, 1),
+														defaulted("count", IntegerArgumentType.integer(1, 99), 1),
 														(ctx, entity, slot, stack, count) -> {
 															stack.setCount(count);
 
@@ -124,7 +138,7 @@ public class AccessoriesItemCommands {
 													).leaves(
 															"entity",
 															required("source_entity", EntityArgument.entity(), EntityArgument::getEntity),
-															required("source_path", AccessoriesMixedSlotArgument.slot("source_entity"), AccessoriesMixedSlotArgument::getSlot),
+															required("source_path", AccessoriesMixedSlotArgument.slot("source_entity")),
 															modifierArg,
 															(ctx, targetEntity, targetPath, sourceEntity, sourcePath, modifier) -> {
 																return (modifier == null)
@@ -140,7 +154,7 @@ public class AccessoriesItemCommands {
 					modifyBranch.leaves(
 							"entity",
 							required("entity", EntityArgument.entity(), EntityArgument::getEntity),
-							required("path", AccessoriesMixedSlotArgument.slot("entity"), AccessoriesMixedSlotArgument::getSlot),
+							required("path", AccessoriesMixedSlotArgument.slot("entity")),
 							modifierArg,
 							(ctx, entity, path, modifier) -> modifyEntityItem(ctx.getSource(), entity, path, modifier)
 					);

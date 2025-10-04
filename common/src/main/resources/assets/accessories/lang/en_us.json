@@ -56,6 +56,21 @@
 
   "accessories.argument.livingEntities.nonLiving": "Only living entities may be affected by this command, but the provided selector includes non living entities",
 
+  "accessories.commands.dump.failure" : "'%s' dose not match any of the valid types for logging: %s",
+  "accessories.commands.dump.success" : "'%s' data has been dumped to the log file!",
+
+  "accessories.commands.slot.modifier.addition" : "Attribute '%s' has been added to slot `%s` for '%s'",
+
+  "accessories.commands.slot.modifier.removed.failure" : "Attribute '%s' for slot '%s' was not found for '%s'!",
+  "accessories.commands.slot.modifier.removed.success" : "Attribute '%s' was removed for slot '%s' from '%s'!",
+
+  "accessories.commands.nest.addition" : "Added the inputted item to the main hand stack!",
+
+  "accessories.commands.slot.validation.added.valid" :     "'%s' was added as a valid slot",
+  "accessories.commands.slot.validation.added.invalid" :   "'%s' was added as a invalid slot",
+  "accessories.commands.slot.validation.removed.valid" :   "'%s' was removed as a valid slot",
+  "accessories.commands.slot.validation.removed.invalid" : "'%s' was removed as a invalid slot",
+
   "gamerule.accessories.keepAccessoryInventory": "Keep Accessory Inventory",
 
   "#comment": "GUI Related Below",

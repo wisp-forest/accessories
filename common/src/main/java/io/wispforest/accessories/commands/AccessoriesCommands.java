@@ -1,6 +1,7 @@
 package io.wispforest.accessories.commands;
 
 import com.mojang.brigadier.LiteralMessage;
+import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -16,8 +17,9 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.attributes.SlotAttribute;
 import io.wispforest.accessories.api.client.rendering.RenderingFunction;
 import io.wispforest.accessories.api.components.*;
-import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.commands.api.CommandGenerators;
+import io.wispforest.accessories.commands.api.CommandTreeGenerator;
+import io.wispforest.accessories.commands.api.core.NamedArgumentGetter;
 import io.wispforest.accessories.commands.api.core.RecordArgumentTypeInfo;
 import io.wispforest.accessories.commands.api.base.BranchedCommandGenerator;
 import io.wispforest.accessories.data.CustomRendererLoader;
@@ -25,19 +27,19 @@ import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.mixin.CommandSelectionAccessor;
+import io.wispforest.accessories.mixin.ResourceArgumentAccessor;
 import io.wispforest.endec.Endec;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.ComponentArgument;
-import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.ResourceArgument;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.*;
 import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -47,6 +49,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.Arrays;
@@ -55,9 +58,11 @@ import java.util.Objects;
 import java.util.Map;
 import java.util.Set;
 
-import static io.wispforest.accessories.commands.api.Arguments.*;
+public class AccessoriesCommands implements CommandTreeGenerator.Branched {
 
-public class AccessoriesCommands {
+    public static final AccessoriesCommands INSTANCE = new AccessoriesCommands();
+
+    private AccessoriesCommands(){}
 
     public static final SimpleCommandExceptionType NON_LIVING_ENTITY_TARGET = new SimpleCommandExceptionType(Component.translatable("accessories.argument.livingEntities.nonLiving"));
 
@@ -72,7 +77,7 @@ public class AccessoriesCommands {
     public static void init() {
         CommandGenerators.create(
                 "accessories",
-                AccessoriesCommands::generateTrees,
+                AccessoriesCommands.INSTANCE,
                 registration -> {
                     registration.register(Accessories.of("slot_type"), SlotArgumentType.class, RecordArgumentTypeInfo.of(ctx -> SlotArgumentType.INSTANCE));
                     registration.register(Accessories.of("resource"), ResourceExtendedArgument.class, RecordArgumentTypeInfo.of(ResourceExtendedArgument::attributes));
@@ -110,150 +115,178 @@ public class AccessoriesCommands {
         return container;
     }
 
-    protected static void generateTrees(BranchedCommandGenerator generator, CommandBuildContext context, Commands.CommandSelection environment) {
-        generator.modifyRootNode(builder -> builder.requires(stack -> stack.hasPermission(Commands.LEVEL_GAMEMASTERS)));
+    @Override
+    public <T> NamedArgumentGetter<CommandSourceStack, T> getArgumentGetter(ArgumentType<T> type) {
+        var getter = getArgumentGetterErased(type);
+
+        return getter != null ? (NamedArgumentGetter<CommandSourceStack, T>) getter : Branched.super.getArgumentGetter(type);
+    }
+
+    @Nullable
+    public static <T> NamedArgumentGetter<CommandSourceStack, ?> getArgumentGetterErased(ArgumentType<T> type) {
+        if (type instanceof ResourceLocationArgument) return ResourceLocationArgument::getId;
+        if (type instanceof ComponentArgument) return ComponentArgument::getResolvedComponent;
+        if (type instanceof BoolArgumentType) return BoolArgumentType::getBool;
+        if (type instanceof SlotArgumentType) return SlotArgumentType::getSlot;
+        if (type instanceof DoubleArgumentType) return DoubleArgumentType::getDouble;
+        if (type instanceof IntegerArgumentType) return IntegerArgumentType::getInteger;
+        if (type instanceof ResourceExtendedArgument<?>) return ResourceExtendedArgument::getResource;
+        if (type instanceof ResourceArgument<?> resourceArgument) {
+            var key = (ResourceKey<Registry<Object>>) ((ResourceArgumentAccessor<?>) resourceArgument).registryKey();
+            return (ctx, name) -> ResourceArgument.getResource(ctx, name, key);
+        }
+        if (type instanceof AccessoriesMixedSlotArgument) return AccessoriesMixedSlotArgument::getSlot;
+        if (type instanceof SlotArgument) return SlotArgument::getSlot;
+
+        return null;
+    }
+
+    public void generateTrees(BranchedCommandGenerator root, CommandBuildContext context, Commands.CommandSelection environment) {
+        root.modifyRootNode(builder -> builder.requires(stack -> stack.hasPermission(Commands.LEVEL_GAMEMASTERS)));
 
         if (((CommandSelectionAccessor) (Object) environment).accessories$includeIntegrated()) {
-            generator.branch("rendering", renderingBranch -> {
+            root.branch("rendering", renderingBranch -> {
                 renderingBranch.leaves(
-                        "create-renderer-stack",
-                        required("renderer_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
-                        required("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class)),
-                        required("custom_name", ComponentArgument.textComponent(context), ComponentArgument::getResolvedComponent),
-                        defaulted("is_bundle", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class), false),
-                        (ctx, rendererId, itemModelId, component, isBundle) -> {
-                            AccessoriesCommands.createRenderStack(ctx, rendererId, itemModelId, component, isBundle);
-                            return 0;
-                        }
+                    "create-renderer-stack",
+                    required("renderer_id", ResourceLocationArgument.id()),
+                    required("item_model_id", ResourceLocationArgument.id()),
+                    required("custom_name", ComponentArgument.textComponent(context)),
+                    defaulted("is_bundle", BoolArgumentType.bool(), false),
+                    (ctx, rendererId, itemModelId, component, isBundle) -> {
+                        AccessoriesCommands.createRenderStack(ctx, rendererId, itemModelId, component, isBundle);
+                        return 0;
+                    }
                 ).leaves(
-                        "listen-to-renderer",
-                        defaulted("item_model_id", ResourceLocationArgument.id(), (ctx, name) -> ctx.getArgument(name, ResourceLocation.class), null),
-                        (ctx, id) -> {
-                            CustomRendererLoader.constantFileResolving(ctx.getSource().getServer(), id);
+                    "listen-to-renderer",
+                    defaulted("item_model_id", ResourceLocationArgument.id(), null),
+                    (ctx, id) -> {
+                        CustomRendererLoader.constantFileResolving(ctx.getSource().getServer(), id);
 
-                            return 1;
-                        }
+                        return 1;
+                    }
                 );
             });
         }
 
-        generator.leaves(
-                "edit",
-                defaulted("entity", EntityArgument.entity(), AccessoriesCommands::getOrThrowLivingEntity, null),
-                (ctx, livingEntity) -> {
-                    Accessories.askPlayerForVariant(ctx.getSource().getPlayerOrException(), livingEntity);
+        root.leaves(
+            "edit",
+            defaulted("entity", EntityArgument.entity(), AccessoriesCommands::getOrThrowLivingEntity, null),
+            (ctx, livingEntity) -> {
+                Accessories.askPlayerForVariant(ctx.getSource().getPlayerOrException(), livingEntity);
 
-                    return 1;
-                });
+                return 1;
+            });
 
-        var logFailureType = new DynamicCommandExceptionType(branch -> Component.literal("Unable to locate the given logging for the following command branch: " + branch));
+        var validLoggingBranches = List.of("slots", "groups", "entity_bindings");
 
-        generator.leaves(
-                "dump",
-                branches("slots", "groups", "entity_bindings"),
-                (ctx, branch) -> {
-                    switch (branch) {
-                        case "slots" -> {
-                            LOGGER.info("All given Slots registered:");
+        var logFailureType = new DynamicCommandExceptionType(branch -> Component.translatable("accessories.commands.dump.failure", branch, validLoggingBranches.toString()));
 
-                            for (var slotType : SlotTypeLoader.INSTANCE.getEntries(ctx.getSource().getLevel()).values()) {
-                                LOGGER.info(slotType.toString());
-                            }
+        root.leaves(
+            "dump",
+            branches(validLoggingBranches),
+            (ctx, branch) -> {
+                switch (branch) {
+                    case "slots" -> {
+                        LOGGER.info("All given Slots registered:");
+
+                        for (var slotType : SlotTypeLoader.INSTANCE.getEntries(ctx.getSource().getLevel()).values()) {
+                            LOGGER.info(slotType.dumpData());
                         }
-                        case "groups" -> {
-                            LOGGER.info("All given Slot Groups registered:");
-
-                            for (var group : SlotGroupLoader.getGroups(ctx.getSource().getLevel())) {
-                                LOGGER.info(group.toString());
-                            }
-                        }
-                        case "entity_bindings" ->{
-                            LOGGER.info("All given Entity Bindings registered:");
-
-                            EntitySlotLoader.INSTANCE.getEntitySlotData(false).forEach((type, slots) -> {
-                                LOGGER.info("[{}]: {}", type, slots.keySet());
-                            });
-
-                        }
-                        default -> throw logFailureType.create(branch);
                     }
+                    case "groups" -> {
+                        LOGGER.info("All given Slot Groups registered:");
 
-                    return 1;
+                        for (var group : SlotGroupLoader.getGroups(ctx.getSource().getLevel())) {
+                            LOGGER.info(group.dumpData());
+                        }
+                    }
+                    case "entity_bindings" ->{
+                        LOGGER.info("All given Entity Bindings registered:");
+
+                        EntitySlotLoader.INSTANCE.getEntitySlotData(false).forEach((type, slots) -> {
+                            LOGGER.info("[EntityType: {}] <-> [Slots: {}]", type, slots.keySet());
+                        });
+                    }
+                    default -> throw logFailureType.create(branch);
                 }
+
+                ctx.getSource().sendSystemMessage(Component.translatable("accessories.commands.dump.success", branch));
+
+                return 1;
+            }
         );
 
-        AccessoriesItemCommands.generateTrees(generator, context);
+        AccessoriesItemCommands.INSTANCE.generateTrees(root, context, environment);
 
-        generator.branch("slot", slotBranch -> {
+        root.branch("slot", slotBranch -> {
             slotBranch
-                    .leaves(
-                            "get",
+                .leaves(
+                    "get",
+                    required("entity", EntityArgument.entity(), EntityArgument::getEntity),
+                    required("slot", SlotArgumentType.INSTANCE),
+                    defaulted("scale", DoubleArgumentType.doubleArg(), 1.0),
+                    (ctx, entity, slot, scale) -> {
+                        var container = getContainer(entity, slot);
+
+                        var size = container.getSize();
+
+                        ctx.getSource().sendSuccess(
+                                () -> Component.translatable("accessories.commands.slot.value.get.success", Component.translatable(Accessories.translationKey("slot." + slot.replace(":", "."))), entity.getName(), size),
+                                false
+                        );
+
+                        return (int)(size * scale);
+                    }
+                )
+                .branch("modifier", modiferBranch -> {
+                    modiferBranch
+                        .leaves(
+                            "clear",
                             required("entity", EntityArgument.entity(), EntityArgument::getEntity),
-                            required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
-                            defaulted("scale", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble, 1.0),
-                            (ctx, entity, slot, scale) -> {
-                                var container = getContainer(entity, slot);
+                            defaulted("slot", SlotArgumentType.INSTANCE, ""),
+                            (ctx, entity, s) -> {
+                                if (s.isBlank()) {
+                                    var capability = getCapability(entity);
 
-                                var size = container.getSize();
+                                    capability.clearSlotModifiers();
 
-                                ctx.getSource().sendSuccess(
-                                        () -> Component.translatable("accessories.commands.slot.value.get.success", Component.translatable(Accessories.translationKey("slot." + slot.replace(":", "."))), entity.getName(), size),
+                                    ctx.getSource().sendSuccess(
+                                        () -> Component.translatable(
+                                            "accessories.commands.slot.modifier.clear.all.success", entity.getName()
+                                        ),
                                         false
-                                );
+                                    );
+                                } else {
+                                    var container = getContainer(entity, s);
 
-                                return (int)(size * scale);
-                            }
-                    )
-                    .branch("modifier", builder -> {
+                                    container.clearModifiers();
 
-                        builder
-                            .leaves(
-                                "clear",
-                                required("entity", EntityArgument.entity(), EntityArgument::getEntity),
-                                defaulted("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot, ""),
-                                (ctx, entity, s) -> {
-                                    if (s.isBlank()) {
-                                        var capability = getCapability(entity);
-
-                                        capability.clearSlotModifiers();
-
-                                        ctx.getSource().sendSuccess(
-                                            () -> Component.translatable(
-                                                "accessories.commands.slot.modifier.clear.all.success", entity.getName()
-                                            ),
-                                            false
-                                        );
-                                    } else {
-                                        var container = getContainer(entity, s);
-
-                                        container.clearModifiers();
-
-                                        ctx.getSource().sendSuccess(
-                                            () -> Component.translatable(
-                                                "accessories.commands.slot.modifier.clear.container.success", s, entity.getName()
-                                            ),
-                                            false
-                                        );
-                                    }
-
-                                    return 1;
+                                    ctx.getSource().sendSuccess(
+                                        () -> Component.translatable(
+                                            "accessories.commands.slot.modifier.clear.container.success", s, entity.getName()
+                                        ),
+                                        false
+                                    );
                                 }
-                            )
-                            .branch(
+
+                                return 1;
+                            }
+                        )
+                        .branch(
                             required("entity", EntityArgument.entity(), EntityArgument::getEntity),
-                            required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
-                            required("id", ResourceLocationArgument.id(), ResourceLocationArgument::getId),
+                            required("slot", SlotArgumentType.INSTANCE),
+                            required("id", ResourceLocationArgument.id()),
                             branchBuilder -> {
                                 branchBuilder.leaves(
                                     "add",
-                                    required("amount", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble),
+                                    required("amount", DoubleArgumentType.doubleArg()),
                                     branches(List.of("add_value", "add_multiplied_base", "add_multiplied_total"), operationTypeStr -> {
                                         return Arrays.stream(AttributeModifier.Operation.values())
                                             .filter(value -> value.getSerializedName().equals(operationTypeStr))
                                             .findFirst()
                                             .orElse(null);
                                     }),
-                                    defaulted("is_persistent", BoolArgumentType.bool(), BoolArgumentType::getBool, true),
+                                    defaulted("is_persistent", BoolArgumentType.bool(), true),
                                     (ctx, entity, slot, id, amount, operation, isPersistent) -> {
                                         var container = getContainer(entity, slot);
 
@@ -265,6 +298,8 @@ public class AccessoriesCommands {
                                             container.addTransientModifier(modifier);
                                         }
 
+                                        ctx.getSource().sendSystemMessage(Component.translatable("accessories.commands.slot.modifier.addition", id, slot, entity.getDisplayName()));
+
                                         return 1;
                                     }
                                 ).leaves(
@@ -272,13 +307,21 @@ public class AccessoriesCommands {
                                     (ctx, entity, slot, id) -> {
                                         var container = getContainer(entity, slot);
 
-                                        container.removeModifier(id);
+                                        var doseExist = container.hasModifier(id);
+
+                                        if(doseExist) container.removeModifier(id);
+
+                                        var messageType = (doseExist
+                                            ? "accessories.commands.slot.modifier.removed.success"
+                                            : "accessories.commands.slot.modifier.removed.failure");
+
+                                        ctx.getSource().sendSystemMessage(Component.translatable(messageType, id, slot, entity.getDisplayName()));
 
                                         return 1;
                                     }
                                 ).leaves(
                                     "get",
-                                    defaulted("scale", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble, 1.0),
+                                    defaulted("scale", DoubleArgumentType.doubleArg(), 1.0),
                                     (ctx, entity, slot, id, scale) -> {
                                         var container = getContainer(entity, slot);
                                         var modifiers = container.getModifiers();
@@ -298,126 +341,127 @@ public class AccessoriesCommands {
                                         return (int)(d * scale);
                                     }
                                 );
-                            });
-                    });
-
+                        });
+                });
         });
 
-        generator.branch("components", itemComponentBranch -> {
+        root.branch("components", itemComponentBranch -> {
             itemComponentBranch.leaves(
-                    "effect/add",
-                    required("effect", ResourceArgument.resource(context, Registries.MOB_EFFECT), ResourceArgument::getMobEffect),
-                    defaulted("applyDelay", IntegerArgumentType.integer(1, 1000000), IntegerArgumentType::getInteger, null),
-                    defaulted("seconds", IntegerArgumentType.integer(1, 1000000), IntegerArgumentType::getInteger, -1),
-                    defaulted("amplifier", IntegerArgumentType.integer(0, 255), IntegerArgumentType::getInteger, 1),
-                    defaulted("hideParticles", BoolArgumentType.bool(), BoolArgumentType::getBool, null),
-                    defaulted("hideIcon", BoolArgumentType.bool(), BoolArgumentType::getBool, null),
-                    (ctx, effect, applyDelay, seconds, amplifier, hideParticles, hideIcon) -> {
-                        if (seconds == -1) {
-                            if (hideParticles == null) hideParticles = true;
-                        }
-
-                        if (hideIcon == null) hideIcon = false;
-
-                        var effectInstance = new MobEffectInstance(effect, seconds, amplifier, false, !hideParticles, !hideIcon);
-
-                        var player = ctx.getSource().getPlayerOrException();
-
-                        player.getMainHandItem().update(
-                                AccessoriesDataComponents.MOB_EFFECTS,
-                                AccessoryMobEffectsComponent.EMPTY,
-                                data -> applyDelay != null
-                                        ? data.addEffect(effectInstance, applyDelay)
-                                        : data.addEffect(effectInstance));
-
-                        return 1;
+                "effect/add",
+                required("effect", ResourceArgument.resource(context, Registries.MOB_EFFECT)),
+                defaulted("applyDelay", IntegerArgumentType.integer(1, 1000000), null),
+                defaulted("seconds", IntegerArgumentType.integer(1, 1000000), -1),
+                defaulted("amplifier", IntegerArgumentType.integer(0, 255), 1),
+                defaulted("hideParticles", BoolArgumentType.bool(), null),
+                defaulted("hideIcon", BoolArgumentType.bool(), null),
+                (ctx, effect, applyDelay, seconds, amplifier, hideParticles, hideIcon) -> {
+                    if (seconds == -1) {
+                        if (hideParticles == null) hideParticles = true;
                     }
+
+                    if (hideIcon == null) hideIcon = false;
+
+                    var effectInstance = new MobEffectInstance(effect, seconds, amplifier, false, !hideParticles, !hideIcon);
+
+                    var player = ctx.getSource().getPlayerOrException();
+
+                    player.getMainHandItem().update(
+                            AccessoriesDataComponents.MOB_EFFECTS,
+                            AccessoryMobEffectsComponent.EMPTY,
+                            data -> applyDelay != null
+                                    ? data.addEffect(effectInstance, applyDelay)
+                                    : data.addEffect(effectInstance));
+
+                    return 1;
+                }
             );
 
             //--
 
             itemComponentBranch.leaves(
-                    "nest",
-                    required("item", ItemArgument.item(context), (ctx, name) -> ItemArgument.getItem(ctx, name).createItemStack(1, false)),
-                    (ctx, innerStack) -> {
-                        var player = ctx.getSource().getPlayerOrException();
+                "nest",
+                required("item", ItemArgument.item(context), (ctx, name) -> ItemArgument.getItem(ctx, name).createItemStack(1, false)),
+                (ctx, innerStack) -> {
+                    var player = ctx.getSource().getPlayerOrException();
 
-                        player.getMainHandItem().update(
-                                AccessoriesDataComponents.NESTED_ACCESSORIES,
-                                AccessoryNestContainerContents.EMPTY,
-                                data -> data.addStack(innerStack));
+                    player.getMainHandItem().update(
+                            AccessoriesDataComponents.NESTED_ACCESSORIES,
+                            AccessoryNestContainerContents.EMPTY,
+                            data -> data.addStack(innerStack));
 
-                        return 1;
-                    });
+                    ctx.getSource().sendSystemMessage(Component.translatable("accessories.commands.nest.addition"));
+
+                    return 1;
+                });
 
             //--
 
             itemComponentBranch.leaves(
-                    "slot",
-                    branches("add", "remove"),
-                    branches("valid", "invalid"),
-                    required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
-                    (ctx, operation, condition, slot) -> adjustSlotValidationOnStack(condition, Objects.equals(operation, "add"), slot, ctx)
+                "slot",
+                branches("add", "remove"),
+                branches("valid", "invalid"),
+                required("slot", SlotArgumentType.INSTANCE),
+                (ctx, operation, condition, slot) -> adjustSlotValidationOnStack(condition, Objects.equals(operation, "add"), slot, ctx)
             );
 
             //--
 
             itemComponentBranch.branch("stack-sizing", branchBuilder -> {
                 branchBuilder.leaves(
-                        "useStackSize",
-                        required("value", BoolArgumentType.bool(), (ctx, name) -> ctx.getArgument(name, Boolean.class)),
-                        (ctx, bl) -> {
-                            var player = ctx.getSource().getPlayerOrException();
+                    "useStackSize",
+                    required("value", BoolArgumentType.bool()),
+                    (ctx, bl) -> {
+                        var player = ctx.getSource().getPlayerOrException();
 
-                            player.getMainHandItem().update(AccessoriesDataComponents.STACK_SETTINGS,
-                                    AccessoryStackSettings.DEFAULT,
-                                    component -> component.useStackSize(bl));
+                        player.getMainHandItem().update(AccessoriesDataComponents.STACK_SETTINGS,
+                                AccessoryStackSettings.DEFAULT,
+                                component -> component.useStackSize(bl));
 
-                            return 1;
+                        return 1;
                         }
                 ).leaves(
-                        required("size", IntegerArgumentType.integer(), (ctx, name) -> ctx.getArgument(name, Integer.class)),
-                        (ctx, size) -> {
-                            var player = ctx.getSource().getPlayerOrException();
+                    required("size", IntegerArgumentType.integer()),
+                    (ctx, size) -> {
+                        var player = ctx.getSource().getPlayerOrException();
 
-                            player.getMainHandItem().update(AccessoriesDataComponents.STACK_SETTINGS,
-                                    AccessoryStackSettings.DEFAULT,
-                                    component -> component.sizeOverride(size));
+                        player.getMainHandItem().update(AccessoriesDataComponents.STACK_SETTINGS,
+                                AccessoryStackSettings.DEFAULT,
+                                component -> component.sizeOverride(size));
 
-                            return 1;
-                        }
+                        return 1;
+                    }
                 );
             });
 
             //--
 
             itemComponentBranch.branch(
-                    "attribute",
-                    required("attribute", ResourceExtendedArgument.attributes(context), ResourceExtendedArgument::getAttribute),
-                    required("id", ResourceLocationArgument.id(), ResourceLocationArgument::getId),
-                    branchBuilder -> {
-                        branchBuilder.leaves(
-                                "add",
-                                required("amount", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble),
-                                branches(List.of("add_value", "add_multiplied_base", "add_multiplied_total"), operationTypeStr -> {
-                                    return Arrays.stream(AttributeModifier.Operation.values())
-                                            .filter(value -> value.getSerializedName().equals(operationTypeStr))
-                                            .findFirst()
-                                            .orElse(null);
-                                }),
-                                required("slot", SlotArgumentType.INSTANCE, SlotArgumentType::getSlot),
-                                required("isStackable", BoolArgumentType.bool(), BoolArgumentType::getBool),
-                                defaulted("usedInSlotValidation", BoolArgumentType.bool(), BoolArgumentType::getBool, false),
-                                AccessoriesCommands::addModifier
-                        ).leaves(
-                                "remove",
-                                AccessoriesCommands::removeModifier
-                        ).leaves(
-                                "get",
-                                defaulted("scale", DoubleArgumentType.doubleArg(), DoubleArgumentType::getDouble, 1.0),
-                                AccessoriesCommands::getAttributeModifier
-                        );
-                    });
+                "attribute",
+                required("attribute", ResourceExtendedArgument.attributes(context)),
+                required("id", ResourceLocationArgument.id()),
+                branchBuilder -> {
+                    branchBuilder.leaves(
+                            "add",
+                            required("amount", DoubleArgumentType.doubleArg()),
+                            branches(List.of("add_value", "add_multiplied_base", "add_multiplied_total"), operationTypeStr -> {
+                                return Arrays.stream(AttributeModifier.Operation.values())
+                                        .filter(value -> value.getSerializedName().equals(operationTypeStr))
+                                        .findFirst()
+                                        .orElse(null);
+                            }),
+                            required("slot", SlotArgumentType.INSTANCE),
+                            required("isStackable", BoolArgumentType.bool()),
+                            defaulted("usedInSlotValidation", BoolArgumentType.bool(), false),
+                            AccessoriesCommands::addModifier
+                    ).leaves(
+                            "remove",
+                            AccessoriesCommands::removeModifier
+                    ).leaves(
+                            "get",
+                            defaulted("scale", DoubleArgumentType.doubleArg(), 1.0),
+                            AccessoriesCommands::getAttributeModifier
+                    );
+                });
         });
     }
 
@@ -529,6 +573,8 @@ public class AccessoriesCommands {
                     ? (addSlot ? component.addValidSlot(slotName) : component.removeValidSlot(slotName))
                     : (addSlot ? component.addInvalidSlot(slotName) : component.removeInvalidSlot(slotName));
         });
+
+        ctx.getSource().sendSystemMessage(Component.translatable("accessories.commands.slot.validation." + (addSlot ? "added" : "removed") + "." + (branch), slotName));
 
         return 1;
     }

@@ -79,6 +79,7 @@
     "SlotAccessor",
     "StateHolderAccessor",
     "CommandSelectionAccessor",
+    "ResourceArgumentAccessor",
     "owo.ConfigWrapperAccessor",
     "owo.NbtDeserializerMixin",
     "owo.NbtDeserializerMixin$SequenceMixin",
