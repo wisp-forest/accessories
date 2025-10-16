@@ -1,6 +1,7 @@
 package io.wispforest.accessories.api.slot;
 
 import com.mojang.serialization.Codec;
+import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesStorage;
 import io.wispforest.accessories.api.core.AccessoryNest;
 import io.wispforest.accessories.utils.EndecUtils;
@@ -10,6 +11,7 @@ import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.CodecUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -133,22 +135,31 @@ public sealed interface SlotPath permits SlotPathImpl, DelegatingSlotPath {
     }
 
     default String createString() {
-        var baseString = slotName().replace(":", "-") + "/" + index();
+        return toLocation().toString().replace(":", "-");
+    }
+
+    default ResourceLocation toLocation() {
+        var parts = slotName().split(":");
+
+        ResourceLocation location;
+
+        if (parts.length == 1) {
+            location = Accessories.of(parts[0]);
+        } else {
+            location = ResourceLocation.fromNamespaceAndPath(parts[0], slotName().replace(parts[0] + ":", ""));
+        }
+
+        location = location.withSuffix("/" + index());
 
         var innerSlotIndices = this.innerIndices();
 
-        if (innerSlotIndices.isEmpty()) return baseString;
-
-        var fullString = new StringBuilder(baseString);
-
-        for (int i = 0; i < innerSlotIndices.size(); i++) {
-            fullString.append("/nest_")
-                    .append(i)
-                    .append("_")
-                    .append(innerSlotIndices.get(i));
+        if (!innerSlotIndices.isEmpty()) {
+            for (int i = 0; i < innerSlotIndices.size(); i++) {
+                location = location.withSuffix("/nest_" + i + "_" + innerSlotIndices.get(i));
+            }
         }
 
-        return fullString.toString();
+        return location;
     }
 
     //--

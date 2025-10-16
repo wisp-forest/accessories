@@ -5,6 +5,7 @@ import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
 import io.wispforest.accessories.api.equip.EquipmentChecking;
 import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -14,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public interface AccessoriesStorageLookup {
@@ -22,6 +24,31 @@ public interface AccessoriesStorageLookup {
      * @return A Map containing all the {@link AccessoriesContainer}s with their {@link SlotType#name()} as the key
      */
     Map<String, ? extends AccessoriesStorage> getContainers();
+
+    @Nullable
+    default <T> T getFromContainer(SlotPath slotPath, BiFunction<AccessoriesStorage, Integer, T> function){
+        var container = getContainers().get(slotPath.slotName());
+
+        return (container != null) ? function.apply(container, slotPath.index()) : null;
+    }
+
+    @Nullable
+    default AccessoriesStorage getContainer(SlotPath slotPath){
+        return getContainers().get(slotPath.slotName());
+    }
+
+    /**
+     * @return a given {@link AccessoriesContainer} if found on the given {@link LivingEntity} tied to the Capability or null if not
+     */
+    @Nullable
+    default AccessoriesStorage getContainer(SlotType slotType){
+        return getContainers().get(slotType.name());
+    }
+
+    @Nullable
+    default AccessoriesStorage getContainer(SlotTypeReference reference){
+        return getContainers().get(reference.slotName());
+    }
 
     //--
 

@@ -15,6 +15,7 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -33,6 +34,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 /**
@@ -99,7 +102,7 @@ public class AccessoriesInternals {
     }
 
     @ExpectPlatform
-    public static void registerLoader(PackType type, EndecDataLoader<?> loader, @Nullable Consumer<HolderLookup.Provider> registrySetCall) {
+    public static Function<PreparableReloadListener.SharedState, HolderLookup.@Nullable Provider> registerLoader(PackType type, EndecDataLoader<?> loader) {
         throw new AssertionError();
     }
 }

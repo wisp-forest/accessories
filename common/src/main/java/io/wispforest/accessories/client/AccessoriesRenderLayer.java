@@ -93,11 +93,9 @@ public class AccessoriesRenderLayer<S extends LivingEntityRenderState, M extends
         var shouldUpdate = lastUpdated20th != current20th;
         if (shouldUpdate) lastUpdated20th = current20th;
 
-        AccessoriesInternalSlot selected = null;
-
-        if (client.screen instanceof AccessoriesScreenBase<?> screenBase && screenBase.getHoveredSlot() instanceof AccessoriesInternalSlot slot) {
-            selected = slot;
-        }
+        var selected = (client.screen instanceof AccessoriesScreenBase<?> screenBase)
+            ? screenBase.getSelectedSlotIf(AccessoriesInternalSlot.class)
+            : null;
 
         boolean preventHovering = selected != null && selected.getItem().isEmpty();
 

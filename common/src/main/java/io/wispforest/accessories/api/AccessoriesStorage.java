@@ -15,8 +15,6 @@ import java.util.Map;
 /// areas where not permitted direct entity access resulting in a [SimpleAccessoriesStorage]
 /// instead.
 ///
-/// Designed for use within [io.wispforest.accessories.pond.AccessoriesRenderStateExtension].
-///
 public interface AccessoriesStorage {
     ///
     /// @return The containers [SlotType] name

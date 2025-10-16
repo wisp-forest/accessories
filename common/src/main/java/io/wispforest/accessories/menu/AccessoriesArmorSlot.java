@@ -20,17 +20,12 @@ public class AccessoriesArmorSlot extends ArmorSlot implements SlotTypeAccessibl
     }
 
     @Override
-    public String slotName() {
-        return accessoriesContainer.getSlotName();
-    }
-
-    @Override
-    public SlotType slotType() {
-        return accessoriesContainer.slotType();
-    }
-
-    @Override
     public AccessoriesContainer getContainer() {
         return this.accessoriesContainer;
+    }
+
+    @Override
+    public int index() {
+        return this.index;
     }
 }

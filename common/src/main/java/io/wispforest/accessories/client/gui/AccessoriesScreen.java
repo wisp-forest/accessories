@@ -18,6 +18,7 @@ import io.wispforest.accessories.impl.option.PlayerOptionsAccess;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import io.wispforest.accessories.menu.ArmorSlotTypes;
+import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.menu.networking.ToggledSlots;
 import io.wispforest.accessories.menu.variants.AccessoriesMenu;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
@@ -190,9 +191,10 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
 
     //--
 
+
     @Override
-    public Slot getHoveredSlot() {
-        return this.hoveredSlot;
+    public @Nullable SlotTypeAccessible getSelectedSlot() {
+        return this.hoveredSlot instanceof SlotTypeAccessible slot ? slot : null;
     }
 
     @Override

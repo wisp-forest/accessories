@@ -79,18 +79,13 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
     }
 
     @Override
-    public String slotName() {
-        return accessoriesContainer.getSlotName();
-    }
-
-    @Override
-    public SlotType slotType() {
-        return accessoriesContainer.slotType();
-    }
-
-    @Override
     public AccessoriesContainer getContainer() {
         return accessoriesContainer;
+    }
+
+    @Override
+    public int index() {
+        return this.index;
     }
 
     @Override
