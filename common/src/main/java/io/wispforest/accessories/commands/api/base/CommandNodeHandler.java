@@ -3,9 +3,9 @@ package io.wispforest.accessories.commands.api.base;
 import io.wispforest.accessories.commands.api.core.Branch;
 import io.wispforest.accessories.commands.api.core.CommandAddition;
 import io.wispforest.accessories.commands.api.core.Key;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public interface CommandNodeHandler<S> {
 

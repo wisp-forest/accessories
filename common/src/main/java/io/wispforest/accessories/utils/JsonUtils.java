@@ -2,12 +2,7 @@ package io.wispforest.accessories.utils;
 
 import com.google.gson.*;
 import com.mojang.logging.LogUtils;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DynamicOps;
-import it.unimi.dsi.fastutil.Pair;
-import net.minecraft.core.Registry;
 import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;

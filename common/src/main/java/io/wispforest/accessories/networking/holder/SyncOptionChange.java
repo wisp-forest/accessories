@@ -4,8 +4,6 @@ import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.endec.*;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;

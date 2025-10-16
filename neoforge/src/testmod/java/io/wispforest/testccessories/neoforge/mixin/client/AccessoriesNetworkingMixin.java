@@ -1,7 +1,6 @@
 package io.wispforest.testccessories.neoforge.mixin.client;
 
 import io.wispforest.accessories.networking.AccessoriesNetworking;
-import io.wispforest.testccessories.neoforge.Testccessories;
 import io.wispforest.testccessories.neoforge.client.TestccessoriesClient;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

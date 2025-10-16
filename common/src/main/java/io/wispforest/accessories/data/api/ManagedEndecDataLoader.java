@@ -1,7 +1,6 @@
 package io.wispforest.accessories.data.api;
 
 import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import net.minecraft.resources.ResourceLocation;
@@ -11,7 +10,10 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 

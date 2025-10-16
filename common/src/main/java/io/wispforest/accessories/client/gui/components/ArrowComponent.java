@@ -1,7 +1,5 @@
 package io.wispforest.accessories.client.gui.components;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.DrawUtils;
 import io.wispforest.owo.ui.base.BaseComponent;
@@ -9,10 +7,7 @@ import io.wispforest.owo.ui.core.AnimatableProperty;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
 import io.wispforest.owo.ui.core.PositionedRectangle;
 import io.wispforest.owo.ui.core.Sizing;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
-
-import java.util.function.Function;
 
 public class ArrowComponent extends BaseComponent {
     protected final ResourceLocation texture = Accessories.of("textures/gui/theme/all_arrow_directions.png");

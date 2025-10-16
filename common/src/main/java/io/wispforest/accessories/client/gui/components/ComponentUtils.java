@@ -28,10 +28,14 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.CreativeModeTab;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.function.*;
 
-import static io.wispforest.owo.ui.container.Containers.*;
+import static io.wispforest.owo.ui.container.Containers.horizontalFlow;
+import static io.wispforest.owo.ui.container.Containers.verticalFlow;
 
 public class ComponentUtils {
 

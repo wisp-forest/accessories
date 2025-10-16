@@ -7,8 +7,8 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import io.wispforest.accessories.commands.api.core.NamedArgumentGetter;
 import io.wispforest.accessories.commands.api.core.ContextAwareLiteralArgumentBuilder;
+import io.wispforest.accessories.commands.api.core.NamedArgumentGetter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;

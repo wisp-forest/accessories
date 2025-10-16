@@ -3,7 +3,6 @@ package io.wispforest.accessories.api.components;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.endec.SerializationAttributes;
 import io.wispforest.endec.SerializationContext;
-import io.wispforest.owo.serialization.CodecUtils;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;

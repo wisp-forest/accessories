@@ -1,12 +1,12 @@
 package io.wispforest.accessories.client.gui.components;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.impl.option.PlayerOptionsAccess;
 import io.wispforest.accessories.mixin.client.AbstractSliderButtonAccessor;
 import io.wispforest.accessories.mixin.client.owo.DiscreteSliderComponentAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
-import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.owo.ui.component.ButtonComponent;
 import io.wispforest.owo.ui.component.Components;
 import io.wispforest.owo.ui.component.DiscreteSliderComponent;
@@ -19,7 +19,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class AccessoriesScreenSettingsLayout extends FlowLayout implements PlayerOptionsAccess {
 

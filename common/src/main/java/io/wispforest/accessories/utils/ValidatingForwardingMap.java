@@ -1,12 +1,13 @@
 package io.wispforest.accessories.utils;
 
-import com.google.common.collect.*;
-import io.wispforest.accessories.api.AccessoriesContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;

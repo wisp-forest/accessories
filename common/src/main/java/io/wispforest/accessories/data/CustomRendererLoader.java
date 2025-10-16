@@ -9,12 +9,12 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.client.renderers.AccessoryRenderer;
 import io.wispforest.accessories.api.client.rendering.RenderingFunction;
-import io.wispforest.accessories.utils.HashUtils;
+import io.wispforest.accessories.api.client.rendering.RenderingFunction.DeferredRenderer;
+import io.wispforest.accessories.api.client.rendering.RenderingFunction.RawRenderer;
 import io.wispforest.accessories.data.api.SimpleManagedEndecDataLoader;
+import io.wispforest.accessories.utils.HashUtils;
 import io.wispforest.endec.format.gson.GsonDeserializer;
 import io.wispforest.owo.Owo;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.ResourceLocation;
@@ -31,8 +31,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.time.Duration;
 import java.util.*;
-
-import io.wispforest.accessories.api.client.rendering.RenderingFunction.*;
 
 @ApiStatus.Experimental
 public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRenderer> {

@@ -3,8 +3,8 @@ package io.wispforest.accessories.client;
 import com.mojang.blaze3d.platform.Window;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.client.screen.AccessoriesScreenTransitionHelper;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
+import io.wispforest.accessories.api.client.screen.AccessoriesScreenTransitionHelper;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.client.gui.components.AccessoriesScreenSettingsLayout;
 import io.wispforest.accessories.client.gui.components.ComponentUtils;
@@ -14,9 +14,7 @@ import io.wispforest.accessories.compat.config.client.components.StructListOptio
 import io.wispforest.accessories.compat.config.client.components.StructOptionContainer;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
-import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.accessories.impl.option.PlayerOptions;
-import io.wispforest.accessories.impl.option.PlayerOptionsAccess;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.mixin.owo.ConfigWrapperAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
@@ -62,7 +60,6 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 

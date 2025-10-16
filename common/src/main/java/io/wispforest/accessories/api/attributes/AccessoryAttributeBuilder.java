@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 
 import java.util.*;
 
-import static io.wispforest.accessories.api.attributes.AttributeModificationData.*;
+import static io.wispforest.accessories.api.attributes.AttributeModificationData.AllowedType;
 
 /**
  * Builder used to collect the attribute modifications from a given Accessory with the ability

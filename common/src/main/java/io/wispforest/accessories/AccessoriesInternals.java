@@ -3,10 +3,10 @@ package io.wispforest.accessories;
 import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
 import dev.architectury.injectables.annotations.ExpectPlatform;
+import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
-import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.endec.Endec;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -35,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 /**

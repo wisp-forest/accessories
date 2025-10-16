@@ -2,25 +2,12 @@ package io.wispforest.accessories.mixin.client;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.AccessoriesStorage;
-import io.wispforest.accessories.api.AccessoriesStorageLookup;
-import io.wispforest.accessories.api.SimpleAccessoriesStorage;
 import io.wispforest.accessories.api.client.AccessoriesRenderStateKeys;
-import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
-import io.wispforest.accessories.api.client.AccessoryRenderState;
-import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.pond.CosmeticArmorLookupTogglable;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
-import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;
-
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 @Mixin(value = EntityRenderer.class)
 public abstract class EntityRendererMixin<T extends Entity, S extends EntityRenderState>{

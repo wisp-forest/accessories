@@ -10,7 +10,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Config(name = Accessories.MODID, wrapperName = "AccessoriesConfig")
 public class AccessoriesConfigModel {

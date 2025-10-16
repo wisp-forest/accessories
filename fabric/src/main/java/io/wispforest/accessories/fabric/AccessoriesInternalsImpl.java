@@ -2,15 +2,14 @@ package io.wispforest.accessories.fabric;
 
 import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
+import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuData;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
-import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.endec.Endec;
 import io.wispforest.owo.serialization.CodecUtils;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
@@ -47,7 +46,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 public class AccessoriesInternalsImpl {

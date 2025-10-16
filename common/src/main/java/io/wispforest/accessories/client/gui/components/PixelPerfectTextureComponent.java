@@ -1,8 +1,5 @@
 package io.wispforest.accessories.client.gui.components;
 
-import com.mojang.blaze3d.textures.GpuTextureView;
-import io.wispforest.accessories.client.BlitSpectrumRenderState;
-import io.wispforest.accessories.client.DrawUtils;
 import io.wispforest.owo.ui.base.BaseComponent;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
 import io.wispforest.owo.ui.core.Sizing;
@@ -10,7 +7,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.gui.render.state.BlitRenderState;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import org.joml.Matrix3x2f;
 

@@ -3,7 +3,6 @@ package io.wispforest.accessories.criteria;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.wispforest.accessories.api.slot.SlotPath;
-import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import net.minecraft.advancements.critereon.ContextAwarePredicate;
 import net.minecraft.advancements.critereon.EntityPredicate;

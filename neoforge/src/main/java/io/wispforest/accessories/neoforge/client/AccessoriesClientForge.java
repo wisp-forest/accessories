@@ -28,7 +28,9 @@ import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 @Mod(value = Accessories.MODID, dist = Dist.CLIENT)

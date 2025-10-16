@@ -1,23 +1,19 @@
 package io.wispforest.accessories.data;
 
-import com.google.common.collect.ImmutableMap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.accessories.data.api.SyncedDataHelper;
+import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.impl.slot.StrictMode;
 import io.wispforest.accessories.pond.ReplaceableJsonResourceReloadListener;
-import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.accessories.utils.CollectionUtils;
-import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
-import io.wispforest.owo.serialization.endec.MinecraftEndecs;
-import io.wispforest.accessories.impl.core.AccessoriesCapabilityImpl;
-import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;

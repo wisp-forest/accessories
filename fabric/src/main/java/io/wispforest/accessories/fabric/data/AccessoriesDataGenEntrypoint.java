@@ -1,11 +1,11 @@
 package io.wispforest.accessories.fabric.data;
 
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.events.DropRule;
 import io.wispforest.accessories.api.data.AccessoriesBaseData;
 import io.wispforest.accessories.api.data.providers.entity.EntityBindingProvider;
 import io.wispforest.accessories.api.data.providers.group.GroupDataProvider;
 import io.wispforest.accessories.api.data.providers.slot.SlotDataProvider;
+import io.wispforest.accessories.api.events.DropRule;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;

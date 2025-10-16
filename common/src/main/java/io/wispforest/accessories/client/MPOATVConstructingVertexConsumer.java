@@ -4,8 +4,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 
-import java.util.Objects;
-
 /**
  * Mean Position of all the Vertices™ (MPOATV)
  */

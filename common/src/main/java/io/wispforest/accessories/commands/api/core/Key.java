@@ -3,7 +3,10 @@ package io.wispforest.accessories.commands.api.core;
 import io.wispforest.accessories.commands.api.base.Argument;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.SequencedCollection;
 
 public final class Key {
     private final List<String> path;

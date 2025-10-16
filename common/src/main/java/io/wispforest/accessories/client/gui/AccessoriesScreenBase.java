@@ -1,17 +1,15 @@
 package io.wispforest.accessories.client.gui;
 
-import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
-import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.accessories.networking.server.ContainerClose;
 import io.wispforest.accessories.pond.CloseContainerTransfer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.gui.screens.inventory.MenuAccess;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.inventory.Slot;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Nullable;
 

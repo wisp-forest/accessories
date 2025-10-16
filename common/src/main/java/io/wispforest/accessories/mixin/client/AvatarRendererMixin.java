@@ -2,17 +2,10 @@ package io.wispforest.accessories.mixin.client;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
-import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.client.AccessoriesRenderStateKeys;
-import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
-import net.minecraft.client.Minecraft;
-import io.wispforest.accessories.client.AccessoryRendererErrorCache;
 import net.minecraft.client.entity.ClientAvatarEntity;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;

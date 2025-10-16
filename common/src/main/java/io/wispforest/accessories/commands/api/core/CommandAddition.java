@@ -1,7 +1,6 @@
 package io.wispforest.accessories.commands.api.core;
 
 import com.mojang.brigadier.builder.ArgumentBuilder;
-import net.minecraft.commands.CommandSourceStack;
 
 import java.util.Objects;
 

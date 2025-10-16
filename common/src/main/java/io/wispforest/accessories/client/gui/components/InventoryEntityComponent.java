@@ -1,7 +1,6 @@
 package io.wispforest.accessories.client.gui.components;
 
 import com.mojang.math.Axis;
-import io.wispforest.accessories.pond.CosmeticArmorLookupTogglable;
 import io.wispforest.owo.ui.component.EntityComponent;
 import io.wispforest.owo.ui.core.Component;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;

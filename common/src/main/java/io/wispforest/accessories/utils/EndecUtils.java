@@ -12,25 +12,22 @@ import io.wispforest.accessories.mixin.owo.TagValueOutputAccessor;
 import io.wispforest.endec.*;
 import io.wispforest.endec.format.gson.GsonMapCarrier;
 import io.wispforest.endec.impl.KeyedEndec;
+import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.endec.impl.StructField;
 import io.wispforest.endec.util.MapCarrierDecodable;
 import io.wispforest.endec.util.MapCarrierEncodable;
 import io.wispforest.owo.mixin.serialization.ForwardingDynamicOpsAccessor;
 import io.wispforest.owo.mixin.serialization.RegistryOpsAccessor;
 import io.wispforest.owo.serialization.CodecUtils;
-import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.owo.serialization.format.ContextHolder;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
-import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.Util;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.EndTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.DelegatingOps;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.StringRepresentable;
@@ -44,22 +41,14 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.*;
-import org.spongepowered.asm.mixin.Unique;
 
 import java.lang.Math;
-import java.util.Arrays;
-import java.util.Map;
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class EndecUtils {
-
-    public static final Endec<ListTag> NBT_LIST = NbtEndec.ELEMENT.xmap(ListTag.class::cast, listTag -> listTag);
-
-    public static final Endec<TriState> TRI_STATE_ENDEC = Endec.BOOLEAN.nullableOf().xmap(TriState::of, TriState::getBoxed);
 
     public static final Endec<Vector2i> VECTOR_2_I_ENDEC = StructEndecBuilder.of(
             Endec.LONG.fieldOf("x", vec2i -> (long) vec2i.x),

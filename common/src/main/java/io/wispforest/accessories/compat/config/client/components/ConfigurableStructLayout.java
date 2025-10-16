@@ -2,7 +2,6 @@ package io.wispforest.accessories.compat.config.client.components;
 
 import io.wispforest.owo.config.Option;
 import io.wispforest.owo.config.annotation.RangeConstraint;
-import io.wispforest.owo.config.ui.OptionComponentFactory;
 import io.wispforest.owo.config.ui.OptionComponents;
 import io.wispforest.owo.config.ui.component.*;
 import io.wispforest.owo.ui.component.ButtonComponent;
@@ -26,7 +25,6 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class ConfigurableStructLayout<T> extends FlowLayout {
 

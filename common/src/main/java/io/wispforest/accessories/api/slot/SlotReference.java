@@ -3,7 +3,6 @@ package io.wispforest.accessories.api.slot;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.AccessoriesStorage;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.slot.SlotReferenceImpl;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
@@ -15,7 +14,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 ///

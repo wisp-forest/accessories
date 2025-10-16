@@ -4,8 +4,6 @@ import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.world.entity.player.Player;
 
 public record SyncPlayerOptions(AccessoriesPlayerOptionsHolder options) {

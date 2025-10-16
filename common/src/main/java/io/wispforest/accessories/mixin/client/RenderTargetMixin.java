@@ -1,13 +1,8 @@
 package io.wispforest.accessories.mixin.client;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.pipeline.RenderTarget;
-import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.pond.AccessoriesFrameBufferExtension;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
-import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(RenderTarget.class)
 public abstract class RenderTargetMixin implements AccessoriesFrameBufferExtension {

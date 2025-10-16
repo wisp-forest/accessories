@@ -2,10 +2,6 @@ package io.wispforest.accessories.impl.core;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ForwardingIterator;
-import com.google.common.collect.ForwardingMap;
-import com.google.common.collect.ForwardingSet;
-import com.google.common.collect.ImmutableMap;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
@@ -13,44 +9,33 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
-import io.wispforest.accessories.impl.PlayerEquipControl;
 import io.wispforest.accessories.impl.caching.AccessoriesHolderLookupCache;
-import io.wispforest.accessories.utils.ValidatingForwardingMap;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.impl.option.PlayerOption;
-import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
 import io.wispforest.accessories.utils.EndecUtils;
-import io.wispforest.endec.Endec;
+import io.wispforest.accessories.utils.InstanceEndec;
+import io.wispforest.accessories.utils.ValidatingForwardingMap;
 import io.wispforest.endec.SerializationAttribute;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.util.MapCarrier;
 import io.wispforest.endec.util.MapCarrierDecodable;
 import io.wispforest.endec.util.MapCarrierEncodable;
-import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.time.Duration;
 import java.util.*;
-
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 @ApiStatus.Internal
 public class AccessoriesHolderImpl implements InstanceEndec {

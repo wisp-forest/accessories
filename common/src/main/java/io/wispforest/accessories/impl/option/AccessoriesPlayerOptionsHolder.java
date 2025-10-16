@@ -2,17 +2,20 @@ package io.wispforest.accessories.impl.option;
 
 import com.google.common.collect.Streams;
 import io.wispforest.accessories.AccessoriesInternals;
+import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.format.edm.EdmElement;
 import io.wispforest.endec.format.edm.EdmEndec;
 import io.wispforest.endec.util.MapCarrierDecodable;
 import io.wispforest.endec.util.MapCarrierEncodable;
-import io.wispforest.accessories.utils.InstanceEndec;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class AccessoriesPlayerOptionsHolder implements InstanceEndec, PlayerOptionsAccess {

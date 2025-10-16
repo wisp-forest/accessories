@@ -1,15 +1,12 @@
 package io.wispforest.accessories.api.components;
 
-import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.client.rendering.RenderingFunction;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @ApiStatus.Experimental
 public record AccessoryCustomRendererComponent(@Nullable List<RenderingFunction> renderingFunctions, @Nullable Boolean defaultRenderOverride, boolean disableDefaultTranslations) {

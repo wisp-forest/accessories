@@ -2,7 +2,6 @@ package io.wispforest.accessories.impl.option;
 
 import com.google.common.reflect.Reflection;
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
 import io.wispforest.endec.Endec;
@@ -11,7 +10,10 @@ import io.wispforest.endec.util.MapCarrierEncodable;
 import net.minecraft.world.entity.player.Player;
 import org.slf4j.Logger;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Optional;
+import java.util.SequencedCollection;
+import java.util.SequencedMap;
 import java.util.function.Supplier;
 
 public final class PlayerOption<T> {

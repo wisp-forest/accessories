@@ -2,16 +2,12 @@ package io.wispforest.accessories.client;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.slot.SlotPath;
-import io.wispforest.accessories.client.gui.utils.Line3d;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.ApiStatus;
 import org.joml.Vector3d;
 import org.joml.Vector4i;
 import org.joml.Vector4ic;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 

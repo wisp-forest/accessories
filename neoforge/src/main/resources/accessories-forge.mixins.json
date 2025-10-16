@@ -10,9 +10,9 @@
     "client.AccessoriesPipelinesMixin"
   ],
   "mixins": [
+    "CommandHelperMixin",
     "ContextAwareReloadListenerAccessor",
-    "curios.CurioInventoryMixin",
-    "CommandHelperMixin"
+    "curios.CurioInventoryMixin"
   ],
   "injectors": {
     "defaultRequire": 1

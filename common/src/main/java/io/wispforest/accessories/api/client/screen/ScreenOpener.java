@@ -1,7 +1,5 @@
 package io.wispforest.accessories.api.client.screen;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
 import net.minecraft.world.entity.HasCustomInventoryScreen;

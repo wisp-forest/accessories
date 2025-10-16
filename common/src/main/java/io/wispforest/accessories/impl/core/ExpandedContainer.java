@@ -1,9 +1,8 @@
 package io.wispforest.accessories.impl.core;
 
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.api.AccessoriesContainer;
-import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.utils.BaseContainer;
 import io.wispforest.accessories.utils.ImmutableContainer;
 import io.wispforest.accessories.utils.ItemStackMutation;
@@ -18,7 +17,6 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
 import net.minecraft.world.ItemStackWithSlot;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 

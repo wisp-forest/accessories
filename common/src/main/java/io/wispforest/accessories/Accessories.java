@@ -2,10 +2,10 @@ package io.wispforest.accessories;
 
 import com.google.common.reflect.Reflection;
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.api.client.rendering.RenderingFunction;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
 import io.wispforest.accessories.commands.AccessoriesCommands;
+import io.wispforest.accessories.compat.config.AccessoriesConfig;
 import io.wispforest.accessories.criteria.AccessoryChangedCriterion;
 import io.wispforest.accessories.data.CustomRendererLoader;
 import io.wispforest.accessories.data.EntitySlotLoader;
@@ -19,9 +19,6 @@ import io.wispforest.accessories.mixin.CriteriaTriggersAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.ScreenVariantPing;
 import io.wispforest.accessories.utils.EndecUtils;
-import io.wispforest.endec.format.edm.EdmElement;
-import io.wispforest.endec.format.edm.EdmEndec;
-import io.wispforest.endec.format.edm.EdmMap;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -38,9 +35,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 import org.slf4j.Logger;
-import io.wispforest.accessories.compat.config.AccessoriesConfig;
 
-import java.util.LinkedHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 

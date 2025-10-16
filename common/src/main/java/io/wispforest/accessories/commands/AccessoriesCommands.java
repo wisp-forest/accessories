@@ -19,9 +19,9 @@ import io.wispforest.accessories.api.client.rendering.RenderingFunction;
 import io.wispforest.accessories.api.components.*;
 import io.wispforest.accessories.commands.api.CommandGenerators;
 import io.wispforest.accessories.commands.api.CommandTreeGenerator;
+import io.wispforest.accessories.commands.api.base.BranchedCommandGenerator;
 import io.wispforest.accessories.commands.api.core.NamedArgumentGetter;
 import io.wispforest.accessories.commands.api.core.RecordArgumentTypeInfo;
-import io.wispforest.accessories.commands.api.base.BranchedCommandGenerator;
 import io.wispforest.accessories.data.CustomRendererLoader;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
@@ -52,11 +52,7 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class AccessoriesCommands implements CommandTreeGenerator.Branched {
 

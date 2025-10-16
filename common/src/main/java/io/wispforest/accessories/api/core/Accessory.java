@@ -1,16 +1,16 @@
 package io.wispforest.accessories.api.core;
 
-import io.wispforest.accessories.api.events.DropRule;
 import io.wispforest.accessories.api.SoundEventData;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
 import io.wispforest.accessories.api.components.AccessoryMobEffectsComponent;
 import io.wispforest.accessories.api.components.AccessoryStackSettings;
+import io.wispforest.accessories.api.events.DropRule;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
-import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.AccessoryAttributeLogic;
+import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
 import io.wispforest.accessories.mixin.LivingEntityAccessor;
 import io.wispforest.accessories.networking.client.AccessoryBreak;
 import net.minecraft.core.component.DataComponents;

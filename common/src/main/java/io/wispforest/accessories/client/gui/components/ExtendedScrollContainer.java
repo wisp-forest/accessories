@@ -2,7 +2,6 @@ package io.wispforest.accessories.client.gui.components;
 
 import io.wispforest.owo.ui.container.ScrollContainer;
 import io.wispforest.owo.ui.core.*;
-//import io.wispforest.owo.ui.util.ScissorStack;
 import net.minecraft.util.Mth;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.Nullable;

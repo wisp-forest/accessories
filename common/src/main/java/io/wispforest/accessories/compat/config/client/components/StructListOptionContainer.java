@@ -15,7 +15,6 @@ import io.wispforest.owo.ui.parsing.UIModel;
 import io.wispforest.owo.ui.util.UISounds;
 import io.wispforest.owo.util.ReflectionUtils;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.input.MouseButtonEvent;
 
 public class StructListOptionContainer<T> extends ListOptionContainer<T> {
 

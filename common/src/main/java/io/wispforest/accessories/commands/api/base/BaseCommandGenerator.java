@@ -3,14 +3,15 @@ package io.wispforest.accessories.commands.api.base;
 import com.google.common.collect.Range;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import io.wispforest.accessories.commands.api.base.Argument.ArgumentBuilderConstructor;
+import io.wispforest.accessories.commands.api.base.Argument.ArgumentBuilderConstructorList;
+import io.wispforest.accessories.commands.api.base.Argument.ArgumentWithType;
 import io.wispforest.accessories.commands.api.core.CommandAddition;
 import io.wispforest.accessories.commands.api.core.Key;
 
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
-
-import io.wispforest.accessories.commands.api.base.Argument.*;
 
 public abstract sealed class BaseCommandGenerator<S, B extends CommandTreeBuilder<S, B>> implements CommandTreeBuilder<S, B>, CommandNodeHandler<S> permits CommandGenerator, BranchedCommandGenerator {
 

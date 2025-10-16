@@ -1,8 +1,8 @@
 package io.wispforest.testccessories.fabric.accessories;
 
+import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.core.Accessory;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
-import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.testccessories.fabric.TestItems;
 import io.wispforest.testccessories.fabric.Testccessories;
