@@ -8,6 +8,7 @@ import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.api.ManagedEndecDataLoader;
 import io.wispforest.accessories.data.api.SyncedDataHelper;
 import io.wispforest.accessories.data.api.SyncedDataHelperManager;
+import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.impl.slot.SlotGroupImpl;
 import io.wispforest.accessories.pond.ReplaceableJsonResourceReloadListener;
 import io.wispforest.accessories.utils.CollectionUtils;
@@ -37,11 +38,19 @@ public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroup
         ReplaceableJsonResourceReloadListener.toggleValue(this);
 
         SyncedDataHelperManager.registerLoader(SyncedDataHelper.of(
-                Accessories.of("unique_slot_groups"),
-                Endec.STRING.setOf(),
-                UniqueSlotHandling::setClientGroups,
-                () -> UniqueSlotHandling.getGroups(false),
-                this.getId()
+            Accessories.of("unique_slot_groups"),
+            Endec.STRING.setOf(),
+            UniqueSlotHandling::setClientGroups,
+            () -> UniqueSlotHandling.getGroups(false),
+            this.getId()
+        ));
+
+        SyncedDataHelperManager.registerLoader(SyncedDataHelper.of(
+            Accessories.of("extra_slot_type_properties"),
+            ExtraSlotTypeProperties.ENDEC.mapOf(),
+            ExtraSlotTypeProperties::setClientPropertyMap,
+            () -> ExtraSlotTypeProperties.getProperties(false),
+            this.getId()
         ));
     }
 
