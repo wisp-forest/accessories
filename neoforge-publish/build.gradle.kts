@@ -1,7 +1,7 @@
 import org.gradle.jvm.tasks.Jar;
 
 plugins {
-    id("net.neoforged.moddev") version "2.0.42-beta"
+    id("net.neoforged.moddev") version "2.0.112"
     id("maven-publish")
     id("java-library")
 }

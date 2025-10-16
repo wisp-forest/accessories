@@ -31,10 +31,12 @@ dependencies {
 
     compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.5.0")!!)
 
-    modApi(annotationProcessor("io.wispforest:owo-lib:${project.property("owo_version")}")!!)
+    modApi(annotationProcessor("io.wispforest:owo-lib:${project.property("owo_version")}")!!){
+        (this as ModuleDependency).exclude(group = "net.fabricmc.fabric-api")
+    }
 
     modCompileOnlyApi(fabricApi.module("fabric-api-base", rootProject.property("fabric_api_version")!!.toString())){
-        (this as ModuleDependency).exclude(group = "fabric-api", module = "")
+        (this as ModuleDependency).exclude(group = "net.fabricmc.fabric-api")
     }
 
     //--

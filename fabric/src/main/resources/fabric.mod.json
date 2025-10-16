@@ -74,7 +74,7 @@
   "depends": {
     "fabric-api": ">=0.116.0",
     "minecraft": ">=1.21",
-    "owo": ">=0.12.11+1.21"
+    "owo": ">=0.12.24+1.21"
   },
   "breaks": {
     "accessories_compat_layer": "<=0.1.9"
