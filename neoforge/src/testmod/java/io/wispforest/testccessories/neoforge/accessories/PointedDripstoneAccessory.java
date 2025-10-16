@@ -2,37 +2,37 @@ package io.wispforest.testccessories.neoforge.accessories;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import io.wispforest.accessories.api.core.Accessory;
-import io.wispforest.accessories.api.core.AccessoryRegistry;
+import io.wispforest.accessories.api.AccessoriesStorageLookup;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
+import io.wispforest.accessories.api.client.AccessoriesRenderStateKeys;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
+import io.wispforest.accessories.api.client.AccessoryRenderState;
 import io.wispforest.accessories.api.client.renderers.AccessoryRenderer;
 import io.wispforest.accessories.api.client.renderers.SimpleAccessoryRenderer;
+import io.wispforest.accessories.api.core.Accessory;
+import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.testccessories.neoforge.Testccessories;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
 public class PointedDripstoneAccessory implements Accessory {
 
     private static final ResourceLocation ATTACK_DAMAGE_LOCATION = Testccessories.of("pointed_dripstone_accessory_attack_damage");
 
-    @OnlyIn(Dist.CLIENT)
     public static void clientInit() {
         AccessoriesRendererRegistry.bindItemToRenderer(Items.POINTED_DRIPSTONE, Testccessories.of("dripped_gloves"), Renderer::new);
     }
@@ -48,36 +48,39 @@ public class PointedDripstoneAccessory implements Accessory {
         }
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static class Renderer implements SimpleAccessoryRenderer {
 
         @Override
-        public <S extends LivingEntityRenderState> void align(ItemStack stack, SlotPath path, EntityModel<S> model, S renderState, PoseStack matrices) {
+        public boolean shouldRender(ItemStack stack, SlotPath path, AccessoriesStorageLookup storageLookup, LivingEntity entity, LivingEntityRenderState entityState, boolean isRenderingEnabled) {
+            var arm = entityState.getStateData(AccessoriesRenderStateKeys.ARM);
+
+            return (arm != null)
+                ? path.index() % 2 == 0 ? arm == HumanoidArm.RIGHT : arm == HumanoidArm.LEFT
+                : SimpleAccessoryRenderer.super.shouldRender(stack, path, storageLookup, entity, entityState, isRenderingEnabled);
+        }
+
+        @Override
+        public <S extends LivingEntityRenderState> void renderStack(AccessoryRenderState accessoryState, S entityState, EntityModel<S> model, PoseStack matrices, SubmitNodeCollector collector, ItemStack stack, ItemStackRenderState stackRenderState, int light) {
+            for (int i = 0; i < stack.getCount(); i++) {
+                if (i > 0) matrices.mulPose(Axis.YP.rotationDegrees(Math.min(90, 360f / stack.getCount())));
+                matrices.pushPose();
+                matrices.translate(Math.max(0,stack.getCount() - 8) * 0.01, 0, 0);
+                stackRenderState.submit(matrices, collector, light, OverlayTexture.NO_OVERLAY, 0);
+                matrices.popPose();
+            }
+        }
+
+        @Override
+        public <S extends LivingEntityRenderState> void align(AccessoryRenderState accessoryState, S entityState, EntityModel<S> model, PoseStack matrices) {
             if (!(model instanceof HumanoidModel<? extends HumanoidRenderState> humanoidModel)) return;
+
+            var path = accessoryState.getStateData(AccessoriesRenderStateKeys.SLOT_PATH);
 
             var armModelPart = (path.index() % 2 == 0) ? humanoidModel.rightArm : humanoidModel.leftArm;
 
             AccessoryRenderer.transformToModelPart(matrices, armModelPart, 0, -1, 0);
 
             matrices.translate(0, -0.5, 0);
-        }
-
-        @Override
-        public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
-            align(stack, path, model, renderState, matrices);
-
-            for (int i = 0; i < stack.getCount(); i++) {
-                if (i > 0) matrices.mulPose(Axis.YP.rotationDegrees(Math.min(90, 360f / stack.getCount())));
-                matrices.pushPose();
-                matrices.translate(Math.max(0,stack.getCount() - 8)*0.01, 0, 0);
-                Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, matrices, multiBufferSource, null, 0);
-                matrices.popPose();
-            }
-        }
-
-        @Override
-        public <S extends LivingEntityRenderState> boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotPath path, S renderState) {
-            return path.index() % 2 == 0 ? arm == HumanoidArm.RIGHT : arm == HumanoidArm.LEFT;
         }
     }
 }

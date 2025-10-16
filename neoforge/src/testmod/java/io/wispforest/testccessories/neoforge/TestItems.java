@@ -1,5 +1,6 @@
 package io.wispforest.testccessories.neoforge;
 
+import io.wispforest.testccessories.neoforge.accessories.SlotIncreaserTest;
 import io.wispforest.testccessories.neoforge.accessories.WaterBreathingAccessory;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -21,6 +22,7 @@ public class TestItems {
         //for (var entry : REGISTER.getEntries()) helper.register(entry.getId(), entry.getHolder());
 
         WaterBreathingAccessory.init();
+        SlotIncreaserTest.init();
     }
 
     public static void addToItemGroup(BuildCreativeModeTabContentsEvent event) {

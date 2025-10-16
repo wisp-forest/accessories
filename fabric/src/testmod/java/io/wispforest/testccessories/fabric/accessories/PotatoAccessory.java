@@ -1,6 +1,7 @@
 package io.wispforest.testccessories.fabric.accessories;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import io.wispforest.accessories.api.client.AccessoryRenderState;
 import io.wispforest.accessories.api.core.Accessory;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
@@ -30,9 +31,8 @@ public class PotatoAccessory implements Accessory {
 
     @Environment(EnvType.CLIENT)
     public static class Renderer implements SimpleAccessoryRenderer {
-
         @Override
-        public <S extends LivingEntityRenderState> void align(ItemStack stack, SlotPath path, EntityModel<S> model, S renderState, PoseStack matrices) {
+        public <S extends LivingEntityRenderState> void align(AccessoryRenderState accessoryState, S entityState, EntityModel<S> model, PoseStack matrices) {
             if(!(model instanceof HumanoidModel<? extends HumanoidRenderState> humanoidModel)) return;
 
             AccessoryRenderer.transformToModelPart(matrices, humanoidModel.body, 0, 0, -1);

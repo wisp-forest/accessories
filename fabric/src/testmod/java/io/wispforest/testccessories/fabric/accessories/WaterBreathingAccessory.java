@@ -37,7 +37,7 @@ public class WaterBreathingAccessory implements Accessory {
 
         var customData = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
 
-        var tag = customData.getUnsafe();
+        var tag = customData.copyTag();
 
         var refillTimeout = tag.getIntOr(REFILL_TIME_OUT_KEY, -1);
 
