@@ -4,19 +4,26 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.client.AccessoriesRenderStateKeys;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import io.wispforest.owo.ui.core.Color;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.ClientAvatarEntity;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.entity.player.AvatarRenderer;
+import net.minecraft.client.renderer.entity.state.AvatarRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.world.entity.Avatar;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.NotNull;
@@ -35,8 +42,8 @@ public class AccessoriesRenderLayer<S extends LivingEntityRenderState, M extends
 
     private static final float increment = 0.1f;
 
-    private static final Map<String, Float> brightnessMap = new HashMap<>();
-    private static final Map<String, Float> opacityMap = new HashMap<>();
+    private static final Map<SlotPath, Float> brightnessMap = new HashMap<>();
+    private static final Map<SlotPath, Float> opacityMap = new HashMap<>();
 
     private static long lastUpdated20th = 0;
 
@@ -44,28 +51,15 @@ public class AccessoriesRenderLayer<S extends LivingEntityRenderState, M extends
         super(renderLayerParent);
     }
 
-    @SuppressWarnings("DataFlowIssue")
     @Override
-    public void render(
-        @NotNull PoseStack poseStack,
-        @NotNull MultiBufferSource multiBufferSource,
-        int light,
-        S entityRenderState,
-        float f,
-        float g
-    ) {
+    public void submit(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, S entityState, float f, float g) {
         var client = Minecraft.getInstance();
 
-        var storageLookup = entityRenderState.getStorageLookup();
+        var states = entityState.getStateData(AccessoriesRenderStateKeys.ACCESSORY_RENDER_STATES);
 
-        if (storageLookup == null) return;
+        if (states == null) return;
 
-        var containers = storageLookup.getContainers();
-
-        if (containers.isEmpty()) return;
-
-        var uuid = entityRenderState.getEntityUUIDForState();
-        var partialTicks = entityRenderState.getEntityPartialTicksForState();
+        entityState.setStateData(AccessoriesRenderStateKeys.LIGHT, light);
 
         var funkyRenderState = AccessoriesFunkyRenderingState.INSTANCE;
         
@@ -78,11 +72,11 @@ public class AccessoriesRenderLayer<S extends LivingEntityRenderState, M extends
             positions.clear();
         }
         
-        var useCustomerBuffer = funkyRenderState.isIsRenderingUiEntity();
-
-        if (useCustomerBuffer && multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
-            bufferSource.endBatch();
-        }
+//        var useCustomerBuffer = funkyRenderState.isIsRenderingUiEntity();
+//
+//        if (useCustomerBuffer && multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
+//            bufferSource.endBatch();
+//        }
 
         var scale = (float) (1 + (0.5 * (0.75 + (Math.sin((System.currentTimeMillis()) / 250d)))));
 
@@ -104,130 +98,139 @@ public class AccessoriesRenderLayer<S extends LivingEntityRenderState, M extends
 
         var isFunnyDate = calendar.get(Calendar.MONTH) + 1 == 5 && calendar.get(Calendar.DATE) == 16;
 
-        for (var entry : containers.entrySet()) {
-            var container = entry.getValue();
+        var selectedPath = selected != null ? selected.slotPath() : null;
 
-            var accessories = container.getAccessories();
-            var cosmetics = container.getCosmeticAccessories();
+        states.forEach((path, accessoryRenderState) -> {
+            var isSelected = path.equals(selectedPath);
 
-            var containerSelected = selected != null && selected.accessoriesContainer.slotType() == container.slotType();
+            if (shouldUpdate) {
+                var currentBrightness = brightnessMap.getOrDefault(path, 1f);
+                var currentOpacity = opacityMap.getOrDefault(path, 1f);
 
-            for (int i = 0; i < accessories.getContainerSize(); i++) {
-                var isSelected = containerSelected && selected.getContainerSlot() == i;
-
-                var stack = accessories.getItem(i);
-                var cosmeticStack = cosmetics.getItem(i);
-
-                if (!cosmeticStack.isEmpty() && Accessories.config().clientOptions.showCosmeticAccessories()) stack = cosmeticStack;
-
-                // No stack to renderer so no need to run any code
-                if (stack.isEmpty()) continue;
-
-                var renderer = AccessoriesRendererRegistry.getRenderer(stack);
-
-                // No Renderer to render meaning no need to run any code
-                if (renderer.isEmpty() || !renderer.shouldRender(container.shouldRender(i))) continue;
-
-                var mapKey = entry.getKey() + i;
-
-                if (shouldUpdate) {
-                    var currentBrightness = brightnessMap.getOrDefault(mapKey, 1f);
-                    var currentOpacity = opacityMap.getOrDefault(mapKey, 1f);
-
-                    if (selected != null && !isSelected && !preventHovering) {
-                        brightnessMap.put(mapKey, Math.max(unHoveredOptions.darkenedBrightness(), currentBrightness - increment));
-                        opacityMap.put(mapKey, Math.max(unHoveredOptions.darkenedOpacity(), currentOpacity - increment));
-                    } else {
-                        brightnessMap.put(mapKey, Math.min(1, currentBrightness + increment));
-                        opacityMap.put(mapKey, Math.min(1, currentOpacity + increment));
-                    }
-                }
-
-                var mpoatv = new MPOATVConstructingVertexConsumer();
-
-                var bufferedGrabbedFlag = new MutableBoolean(false);
-
-                MultiBufferSource innerBufferSource = (renderType) -> {
-                    bufferedGrabbedFlag.setValue(true);
-
-                    return useCustomerBuffer ?
-                        VertexMultiConsumer.create(multiBufferSource.getBuffer(renderType), mpoatv) :
-                        multiBufferSource.getBuffer(renderType);
-                };
-
-                if (!useCustomerBuffer || isSelected || selected == null || unHoveredOptions.renderUnHovered()) {
-                    poseStack.pushPose();
-
-                    try {
-                        renderer.render(
-                            stack,
-                            SlotPath.of(container.getSlotName(), i),
-                            poseStack,
-                            getParentModel(),
-                            entityRenderState,
-                            innerBufferSource,
-                            light,
-                            partialTicks
-                        );
-                    } catch (Throwable e) {
-                        AccessoryRendererErrorCache.logIfTimeAllotted(uuid, stack, renderer, e);
-                    }
-
-                    poseStack.popPose();
-                }
-
-                // Code area for handling the hovering effect that makes such items on the entity glow if within a screen for such
-                if (useCustomerBuffer && bufferedGrabbedFlag.getValue()) {
-                    if (multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
-                        Color shaderColor = null;
-
-                        if (hoveredOptions.brightenHovered() && isSelected) {
-                            if (isFunnyDate) {
-                                var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
-                                shaderColor = Color.ofHsv(hue, 1, 1);
-                            } else {
-                                var mul = hoveredOptions.cycleBrightness() ? scale : 1.5f;
-                                shaderColor = new Color(mul, mul, mul, 1);
-                            }
-                        } else if (unHoveredOptions.darkenUnHovered()) {
-                            var darkness = brightnessMap.getOrDefault(mapKey, 1f);
-
-                            shaderColor = new Color(darkness, darkness, darkness, opacityMap.getOrDefault(mapKey, 1f));
-                        }
-
-                        if (shaderColor != null) {
-                            var encoder = RenderSystem.getDevice().createCommandEncoder();
-                            var main = client.getMainRenderTarget();
-                            var buffer = AccessoriesPipelines.getOrCreateBuffer();
-
-                            encoder.copyTextureToTexture(main.getDepthTexture(), buffer.getDepthTexture(), 0, 0, 0, 0, 0, buffer.width, buffer.height);
-                            encoder.clearColorTexture(buffer.getColorTexture(), 0);
-
-                            funkyRenderState.wrapBufferManipulation(bufferSource::endBatch);
-
-                            var window = client.getWindow();
-
-                            var x2 = window.getGuiScaledWidth();
-                            var y2 = window.getGuiScaledHeight();
-
-//                            bufferSource.getBuffer(AccessoriesPipelines.setupHoverEffect(shaderColor))
-//                                .addVertex(0, 0, 0).setUv(0, 1).setColor(0xffffffff)
-//                                .addVertex(0, y2, 0).setUv(0, 0).setColor(0xffffffff)
-//                                .addVertex(x2, y2, 0).setUv(1, 0).setColor(0xffffffff)
-//                                .addVertex(x2, 0, 0).setUv(1, 1).setColor(0xffffffff);
-                        }
-
-                        bufferSource.endBatch();
-                    }
-                }
-
-                if (renderingLines && isRenderingLineTarget) {
-                    var pos = mpoatv.meanPos();
-
-                    if (pos != null) positions.put(container.getSlotName() + i, pos);
+                if (selectedPath != null && !isSelected && !preventHovering) {
+                    brightnessMap.put(path, Math.max(unHoveredOptions.darkenedBrightness(), currentBrightness - increment));
+                    opacityMap.put(path, Math.max(unHoveredOptions.darkenedOpacity(), currentOpacity - increment));
+                } else {
+                    brightnessMap.put(path, Math.min(1, currentBrightness + increment));
+                    opacityMap.put(path, Math.min(1, currentOpacity + increment));
                 }
             }
-        }
+
+            var stack = accessoryRenderState.getStateData(AccessoriesRenderStateKeys.ITEM_STACK);
+            var renderer = AccessoriesRendererRegistry.getRenderer(stack);
+
+//            var mpoatv = new MPOATVConstructingVertexConsumer();
+//
+//            var bufferedGrabbedFlag = new MutableBoolean(false);
+//
+//            MultiBufferSource innerBufferSource = (renderType) -> {
+//                bufferedGrabbedFlag.setValue(true);
+//
+//                return useCustomerBuffer ?
+//                    VertexMultiConsumer.create(multiBufferSource.getBuffer(renderType), mpoatv) :
+//                    multiBufferSource.getBuffer(renderType);
+//            };
+
+            if (/*!useCustomerBuffer || */isSelected || selectedPath == null || unHoveredOptions.renderUnHovered()) {
+                poseStack.pushPose();
+
+                try {
+                    renderer.render(accessoryRenderState, entityState, getParentModel(), poseStack, submitNodeCollector);
+                } catch (Throwable e) {
+                    AccessoryRendererErrorCache.logIfTimeAllotted(entityState.getEntityUUIDForState(), stack, renderer, e);
+                }
+
+                poseStack.popPose();
+            }
+
+            // Code area for handling the hovering effect that makes such items on the entity glow if within a screen for such
+//            if (useCustomerBuffer && bufferedGrabbedFlag.getValue()) {
+//                if (multiBufferSource instanceof MultiBufferSource.BufferSource bufferSource) {
+//                    Color shaderColor = null;
+//
+//                    if (hoveredOptions.brightenHovered() && isSelected) {
+//                        if (isFunnyDate) {
+//                            var hue = (float) ((System.currentTimeMillis() / 20d % 360d) / 360d);
+//                            shaderColor = Color.ofHsv(hue, 1, 1);
+//                        } else {
+//                            var mul = hoveredOptions.cycleBrightness() ? scale : 1.5f;
+//                            shaderColor = new Color(mul, mul, mul, 1);
+//                        }
+//                    } else if (unHoveredOptions.darkenUnHovered()) {
+//                        var darkness = brightnessMap.getOrDefault(mapKey, 1f);
+//
+//                        shaderColor = new Color(darkness, darkness, darkness, opacityMap.getOrDefault(mapKey, 1f));
+//                    }
+//
+//                    if (shaderColor != null) {
+//                        var encoder = RenderSystem.getDevice().createCommandEncoder();
+//                        var main = client.getMainRenderTarget();
+//                        var buffer = AccessoriesPipelines.getOrCreateBuffer();
+//
+//                        encoder.copyTextureToTexture(main.getDepthTexture(), buffer.getDepthTexture(), 0, 0, 0, 0, 0, buffer.width, buffer.height);
+//                        encoder.clearColorTexture(buffer.getColorTexture(), 0);
+//
+//                        funkyRenderState.wrapBufferManipulation(bufferSource::endBatch);
+//
+//                        var window = client.getWindow();
+//
+//                        var x2 = window.getGuiScaledWidth();
+//                        var y2 = window.getGuiScaledHeight();
+//
+////                            bufferSource.getBuffer(AccessoriesPipelines.setupHoverEffect(shaderColor))
+////                                .addVertex(0, 0, 0).setUv(0, 1).setColor(0xffffffff)
+////                                .addVertex(0, y2, 0).setUv(0, 0).setColor(0xffffffff)
+////                                .addVertex(x2, y2, 0).setUv(1, 0).setColor(0xffffffff)
+////                                .addVertex(x2, 0, 0).setUv(1, 1).setColor(0xffffffff);
+//                    }
+//
+//                    bufferSource.endBatch();
+//                }
+//            }
+
+//            if (renderingLines && isRenderingLineTarget) {
+//                var pos = mpoatv.meanPos();
+//
+//                if (pos != null) positions.put(path, pos);
+//            }
+        });
+    }
+
+    public static <A extends Avatar & ClientAvatarEntity> void submitFirstPersonAsClientPlayer(AvatarRenderer<A> avatarRender, HumanoidModel<AvatarRenderState> model, PoseStack matrices, int combinedLight, SubmitNodeCollector submitNodeCollector, HumanoidArm arm) {
+        var player = Minecraft.getInstance().player;
+
+        submitFirstPerson(player, (AvatarRenderer) avatarRender, model, matrices, combinedLight, submitNodeCollector, arm);
+    }
+
+    public static <A extends Avatar & ClientAvatarEntity> void submitFirstPerson(A entity, AvatarRenderer<A> avatarRender, HumanoidModel<AvatarRenderState> model, PoseStack matrices, int combinedLight, SubmitNodeCollector submitNodeCollector, HumanoidArm arm) {
+        var level = entity.level();
+
+        var partialTicks = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(!level.tickRateManager().isEntityFrozen(entity));
+
+        var entityState = avatarRender.createRenderState(entity, partialTicks);
+
+        entityState.setStateData(AccessoriesRenderStateKeys.LIGHT, combinedLight);
+
+        AccessoriesRenderStateKeys.setupStateForAccessories(entityState, entity, partialTicks, arm);
+
+        var states = entityState.getStateData(AccessoriesRenderStateKeys.ACCESSORY_RENDER_STATES);
+
+        if (states == null) return;
+
+        states.forEach((slotPath, accessoryRenderState) -> {
+            matrices.pushPose();
+
+            var stack = accessoryRenderState.getStateData(AccessoriesRenderStateKeys.ITEM_STACK);
+            var renderer = AccessoriesRendererRegistry.getRenderer(stack);
+
+            try {
+                renderer.render(accessoryRenderState, entityState, model, matrices, submitNodeCollector);
+            } catch (Throwable e) {
+                AccessoryRendererErrorCache.logIfTimeAllotted(entityState.getEntityUUIDForState(), stack, renderer, e);
+            }
+
+            matrices.popPose();
+        });
     }
 
 }

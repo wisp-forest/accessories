@@ -25,6 +25,7 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
@@ -46,11 +47,13 @@ import net.neoforged.neoforge.common.util.AttributeUtil;
 import net.neoforged.neoforge.event.GatherSkippedAttributeTooltipsEvent;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import org.apache.commons.lang3.function.TriFunction;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.lang.ref.WeakReference;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 public class AccessoriesInternalsImpl {
@@ -82,7 +85,8 @@ public class AccessoriesInternalsImpl {
     //--
 
     public static void giveItemToPlayer(ServerPlayer player, ItemStack stack) {
-        ItemHandlerHelper.giveItemToPlayer(player, stack);
+        // ItemHandlerHelper.giveItemToPlayer(player, stack);
+        player.getInventory().placeItemBackInInventory(stack);
     }
 
     public static boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, SimplePreparableReloadListener listener, @Nullable RegistryOps.RegistryInfoLookup registryInfo) {
@@ -132,10 +136,19 @@ public class AccessoriesInternalsImpl {
         AttributeUtil.applyTextFor(stack, tooltipAddCallback, modifiers, neoTooltipCtx);
     }
 
-    public static final Map<PackType, Map<EndecDataLoader<?>, @Nullable Consumer<HolderLookup.Provider>>> TO_BE_LOADED = new HashMap<>();
+    public static final Map<PackType, Map<EndecDataLoader<?>, MutableObject<HolderLookup.Provider>>> TO_BE_LOADED = new HashMap<>();
 
-    public static void registerLoader(PackType type, EndecDataLoader<?> loader, @Nullable Consumer<HolderLookup.Provider> registrySetCall) {
-        TO_BE_LOADED.computeIfAbsent(type, type1 -> new HashMap<>())
-                .put(loader, registrySetCall);
+    public static Function<PreparableReloadListener.SharedState, HolderLookup.@Nullable Provider> registerLoader(PackType type, EndecDataLoader<?> loader) {
+        TO_BE_LOADED.computeIfAbsent(type, type1 -> new LinkedHashMap<>()).put(loader, new MutableObject<>(null));
+
+        return sharedState -> {
+            var obj = TO_BE_LOADED.get(type).get(loader);
+
+            var registry = obj.getValue();
+
+            obj.setValue(null);
+
+            return registry;
+        };
     }
 }

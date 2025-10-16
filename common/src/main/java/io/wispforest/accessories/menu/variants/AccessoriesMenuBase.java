@@ -160,7 +160,7 @@ public abstract class AccessoriesMenuBase extends AbstractCraftingMenu {
 
         super.removed(player);
         this.resultSlots.clearContent();
-        if (!player.level().isClientSide) {
+        if (!player.level().isClientSide()) {
             this.clearContainer(player, this.craftSlots);
         }
     }

@@ -8,14 +8,14 @@ import java.nio.file.Path;
 public class AccessoriesLoaderInternalsImpl {
 
     public static boolean isDevelopmentEnv() {
-        return !FMLLoader.isProduction();
+        return !FMLLoader.getCurrent().isProduction();
     }
 
     public static boolean isModLoaded(String mod) {
-        return FMLLoader.getLoadingModList().getModFileById(mod) != null;
+        return FMLLoader.getCurrent().getLoadingModList().getModFileById(mod) != null;
     }
 
     public static Path getConfigPath() {
-        return FMLLoader.getGamePath().resolve(FMLPaths.CONFIGDIR.relative());
+        return FMLLoader.getCurrent().getGameDir().resolve(FMLPaths.CONFIGDIR.relative());
     }
 }

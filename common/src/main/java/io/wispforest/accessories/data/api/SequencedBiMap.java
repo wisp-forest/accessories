@@ -85,7 +85,7 @@ public interface SequencedBiMap<K, V> extends BiMap<K, V>, SequencedMap<K, V> {
     SequencedBiMap<K, V> reversed();
 
     interface SequencedMapFactory {
-        <K, V> SequencedMap<K, V> create();
+        <K, V> SequencedMap<K, V> create(int size);
     }
 }
 
@@ -107,7 +107,7 @@ final class SequencedBiMapImpl<K, V> implements SequencedBiMap<K, V> {
     }
 
     SequencedBiMapImpl(SequencedMapFactory factory) {
-        this(factory.create(), factory.create());
+        this(factory.create(0), factory.create(0));
     }
 
     @Override
@@ -394,5 +394,3 @@ class CustomForwardingSet<T, K, V> extends ForwardingSet<T> implements Sequenced
         throw new IllegalStateException("'addLast' is not support for this set!");
     }
 }
-
-

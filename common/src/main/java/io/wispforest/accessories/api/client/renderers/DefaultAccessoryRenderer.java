@@ -4,6 +4,10 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.logging.LogUtils;
 import com.mojang.math.Axis;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.AccessoriesStorageLookup;
+import io.wispforest.accessories.api.client.AccessoriesRenderStateKeys;
+import io.wispforest.accessories.api.client.AccessoryRenderState;
+import io.wispforest.accessories.api.client.DefaultedContextKey;
 import io.wispforest.accessories.api.core.Accessory;
 import io.wispforest.accessories.api.client.rendering.Side;
 import io.wispforest.accessories.api.client.rendering.ModelTransformOps;
@@ -14,12 +18,19 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.util.context.ContextKey;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
@@ -30,6 +41,8 @@ import java.util.function.Consumer;
  * Default Renderer for any {@link Accessory} that doesn't have a renderer registered.
  */
 public class DefaultAccessoryRenderer implements AccessoryRenderer {
+
+    public static final ContextKey<Boolean> DISABLED_TRANSFORMATIONS = new DefaultedContextKey<>(Accessories.of("disabled_transformations"), () -> false);
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -57,35 +70,64 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
     }
 
     @Override
-    public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
+    public <S extends LivingEntityRenderState> void render(AccessoryRenderState accessoryState, S entityState, EntityModel<S> model, PoseStack matrices, SubmitNodeCollector collector) {
         if (!(model instanceof HumanoidModel<? extends HumanoidRenderState> humanoidModel)) return;
 
-        var disabledTargetType = Accessories.config().clientOptions.disabledDefaultRenders();
+        var stackRenderState = accessoryState.getStateData(AccessoriesRenderStateKeys.ITEM_STACK_STATE);
 
-        for (var target : disabledTargetType) {
-            if(path.slotName().equals(target.slotType) && target.targetType.isValid(stack.getItem())) return;
+        if (stackRenderState == null) {
+            throw new IllegalStateException("Unable to render default accessory as the ItemStacks render state has not been setup!");
         }
 
-        Consumer<PoseStack> renderCall = (poseStack) -> Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, poseStack, multiBufferSource, null, 0);
+        var light = entityState.getStateData(AccessoriesRenderStateKeys.LIGHT);
 
-        var translationData = stack.getOrDefault(AccessoriesDataComponents.CUSTOM_RENDERER, AccessoryCustomRendererComponent.EMPTY);
+        Consumer<PoseStack> renderCall = (poseStack) -> stackRenderState.submit(poseStack, collector, light, OverlayTexture.NO_OVERLAY, entityState.outlineColor);
 
-        if(!translationData.disableDefaultTranslations()) {
+        if(!accessoryState.getStateData(DISABLED_TRANSFORMATIONS)) {
+            var path = accessoryState.getStateData(AccessoriesRenderStateKeys.SLOT_PATH);
+            var stack = accessoryState.getStateData(AccessoriesRenderStateKeys.ITEM_STACK);
+
             var helper = slotToHelpers.get(path.slotName());
 
-            if (helper != null) {
-                helper.render(stack, path, matrices, humanoidModel, renderState, renderCall);
-            }
+            if (helper == null) return;
+
+            helper.render(stack, path, matrices, humanoidModel, entityState, renderCall);
         } else {
             renderCall.accept(matrices);
         }
     }
 
     @Override
-    public <S extends LivingEntityRenderState> boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotPath path, S renderState) {
+    public boolean shouldCreateStackRenderState() {
+        return true;
+    }
+
+    @Override
+    public boolean shouldRender(ItemStack stack, SlotPath path, AccessoriesStorageLookup storageLookup, LivingEntity entity, LivingEntityRenderState renderState, boolean isRenderingEnabled) {
+        var disabledTargetType = Accessories.config().clientOptions.disabledDefaultRenders();
+
         var slotName = path.slotName();
 
-        return (slotName.equals("hand") || slotName.equals("wrist") || slotName.equals("ring")) && (path.index() % 2 == 0 ? arm == HumanoidArm.RIGHT : arm == HumanoidArm.LEFT);
+        for (var target : disabledTargetType) {
+            if(slotName.equals(target.slotType) && target.targetType.isValid(stack.getItem())) {
+                return false;
+            }
+        }
+
+        var translationData = stack.getOrDefault(AccessoriesDataComponents.CUSTOM_RENDERER, AccessoryCustomRendererComponent.EMPTY);
+
+        if (!translationData.disableDefaultTranslations() && slotToHelpers.get(path.slotName()) == null) {
+            return false;
+        }
+
+        var arm = renderState.getStateData(AccessoriesRenderStateKeys.ARM);
+
+        if (arm != null) {
+            return (slotName.equals("hand") || slotName.equals("wrist") || slotName.equals("ring"))
+                && (path.index() % 2 == 0 ? arm == HumanoidArm.RIGHT : arm == HumanoidArm.LEFT);
+        }
+
+        return AccessoryRenderer.super.shouldRender(stack, path, storageLookup, entity, renderState, isRenderingEnabled);
     }
 
     public interface RenderHelper {

@@ -9,17 +9,15 @@ import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.neoforge.AccessoriesInternalsImpl;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
-import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.player.AvatarRenderer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.packs.PackType;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.neoforged.api.distmarker.Dist;
@@ -29,12 +27,9 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
-import org.lwjgl.glfw.GLFW;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import static io.wispforest.accessories.Accessories.MODID;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Mod(value = Accessories.MODID, dist = Dist.CLIENT)
 public class AccessoriesClientForge {
@@ -52,13 +47,11 @@ public class AccessoriesClientForge {
     }
 
     public void registerReloadListeners(AddClientReloadListenersEvent event){
-        var loaders = AccessoriesInternalsImpl.TO_BE_LOADED.getOrDefault(PackType.CLIENT_RESOURCES, new HashMap<>());
+        var loaders = AccessoriesInternalsImpl.TO_BE_LOADED.getOrDefault(PackType.CLIENT_RESOURCES, new LinkedHashMap<>());
 
-        loaders.forEach((endecDataLoader, setupRegistryCallback) -> {
-            event.addListener(endecDataLoader.getId(), endecDataLoader);
-        });
+        loaders.forEach((endecDataLoader, obj) -> event.addListener(endecDataLoader.getId(), endecDataLoader));
 
-        loaders.forEach((endecDataLoader, providerConsumer) -> {
+        loaders.forEach((endecDataLoader, obj) -> {
             for (var dependencyId : endecDataLoader.getDependencyIds()) {
                 event.addDependency(dependencyId, endecDataLoader.getId());
             }
@@ -88,8 +81,6 @@ public class AccessoriesClientForge {
     }
 
     public void initKeybindings(RegisterKeyMappingsEvent event) {
-        AccessoriesClient.OPEN_SCREEN = new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories");
-
         event.register(AccessoriesClient.OPEN_SCREEN);
     }
 
@@ -127,7 +118,7 @@ public class AccessoriesClientForge {
     }
 
     public void addRenderLayer(EntityRenderersEvent.AddLayers event) {
-        for (EntityType<? extends Entity> entityType : event.getEntityTypes()) {
+        for (var entityType : event.getEntityTypes()) {
             try {
                 var renderer = event.getRenderer(entityType);
 
@@ -137,12 +128,9 @@ public class AccessoriesClientForge {
             } catch (ClassCastException ignore) {}
         }
 
-        event.getSkins().forEach(model -> {
-            var renderer = event.getSkin(model);
-
-            if (renderer instanceof LivingEntityRenderer<? extends LivingEntity, ? extends LivingEntityRenderState, ?> livingEntityRenderer && livingEntityRenderer.getModel() instanceof HumanoidModel) {
-                livingEntityRenderer.addLayer(new AccessoriesRenderLayer(livingEntityRenderer));
-            }
-        });
+        event.getSkins().stream()
+            .flatMap(type -> Stream.<AvatarRenderer<?>>of(event.getPlayerRenderer(type), event.getMannequinRenderer(type)))
+            .filter(Objects::nonNull)
+            .forEach(renderer -> renderer.addLayer(new AccessoriesRenderLayer<>(renderer)));
     }
 }

@@ -43,9 +43,7 @@ public abstract class ManagedEndecDataLoader<V, D> extends EndecDataLoader<D> im
         super(id, type, dataEndec, packType, context, requiresRegistries, dependencies);
 
         this.valueEndec = valueEndec;
-        this.mapEndec = biMapEndec(value -> SequencedBiMap.of(new SequencedBiMap.SequencedMapFactory(){
-            @Override public <K, V> SequencedMap<K, V> create() { return new LinkedHashMap<>(value); }
-        }), ResourceLocation::toString, ResourceLocation::tryParse, valueEndec);
+        this.mapEndec = biMapEndec(value -> SequencedBiMap.of(LinkedHashMap::new), ResourceLocation::toString, ResourceLocation::tryParse, valueEndec);
     }
 
     public static <V, D> ManagedEndecDataLoader<V, D> of(ResourceLocation id, String type, Endec<V> valueEndec, Endec<D> dataEndec, PackType packType, Function<Map<ResourceLocation, D>, Map<ResourceLocation, V>> mapFrom) {

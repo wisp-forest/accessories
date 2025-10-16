@@ -25,7 +25,7 @@
     "client.LocalPlayerMixin",
     "client.MinecraftMixin",
     "client.ModelPartAccessor",
-    "client.PlayerRendererMixin",
+    "client.AvatarRendererMixin",
     "client.RenderPhaseMixin",
     "client.RenderTargetMixin",
     "client.WingsLayerMixin",

@@ -24,14 +24,4 @@ public abstract class MinecraftMixin {
     private void captureResize(CallbackInfo ci){
         AccessoriesClient.WINDOW_RESIZE_CALLBACK_EVENT.invoker().onResized(((Minecraft) ((Object) this)), this.window);
     }
-
-    @Unique
-    private static final ResourceLocation SPRITE_ATLAS_LOCATION = ResourceLocation.withDefaultNamespace("textures/atlas/gui.png");
-
-    @Inject(method = "getTextureAtlas", at = @At(value = "HEAD"), cancellable = true)
-    private void allowForGuiSprites(ResourceLocation location, CallbackInfoReturnable<Function<ResourceLocation, TextureAtlasSprite>> cir) {
-        if(location.equals(SPRITE_ATLAS_LOCATION)) {
-            cir.setReturnValue(Minecraft.getInstance().getGuiSprites()::getSprite);
-        }
-    }
 }

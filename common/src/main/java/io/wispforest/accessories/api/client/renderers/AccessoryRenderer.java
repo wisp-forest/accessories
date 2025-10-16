@@ -1,23 +1,18 @@
 package io.wispforest.accessories.api.client.renderers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.AccessoriesStorage;
+import io.wispforest.accessories.api.AccessoriesStorageLookup;
+import io.wispforest.accessories.api.client.AccessoriesRenderStateKeys;
+import io.wispforest.accessories.api.client.AccessoryRenderState;
 import io.wispforest.accessories.api.client.rendering.Side;
 import io.wispforest.accessories.api.client.rendering.ModelTransformOps;
-import io.wispforest.accessories.api.core.Accessory;
 import io.wispforest.accessories.api.slot.SlotPath;
-import io.wispforest.accessories.api.slot.SlotReference;
-import io.wispforest.accessories.client.AccessoriesRenderLayer;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -39,116 +34,53 @@ public interface AccessoryRenderer {
     /// - ageInTicks      -> {@link LivingEntityRenderState#ageInTicks}
     /// - netHeadYaw      -> {@link LivingEntityRenderState#yRot}
     /// - headPitch       -> {@link LivingEntityRenderState#xRot}
-    <S extends LivingEntityRenderState> void render(
-            ItemStack stack,
-            SlotPath path,
-            PoseStack matrices,
-            EntityModel<S> model,
-            S renderState,
-            MultiBufferSource multiBufferSource,
-            int light,
-            float partialTicks
-    );
+    ///
+    /// \[1.21.8 and below -> 1.21.9]
+    /// - stack           -> {@link AccessoryRenderState#getStateData} with {@link AccessoriesRenderStateKeys#ITEM_STACK}
+    /// - path            -> {@link AccessoryRenderState#getStateData} with {@link AccessoriesRenderStateKeys#SLOT_PATH}
+    /// - light           -> {@link LivingEntityRenderState#getStateData} with {@link AccessoriesRenderStateKeys#LIGHT}
+    /// - partialTicks    -> {@link LivingEntityRenderState#getStateData} with {@link AccessoriesRenderStateKeys#PARTIAL_TICKS}
+    /// - arm             -> {@link LivingEntityRenderState#getStateData} with {@link AccessoriesRenderStateKeys#ARM}
+    ///
+    public <S extends LivingEntityRenderState> void render(AccessoryRenderState accessoryState, S entityState, EntityModel<S> model, PoseStack matrices, SubmitNodeCollector collector);
 
-    /**
-     * @return if the given Accessory should render or not based on the boolean provided
-     */
-    default boolean shouldRender(boolean isRendering) {
-        return isRendering;
+    //--
+
+    @Nullable
+    default AccessoryRenderState createRenderState(ItemStack stack, SlotPath path, AccessoriesStorageLookup storageLookup, LivingEntity entity, LivingEntityRenderState entityState) {
+        var isRenderingEnabled = storageLookup.getFromContainer(path, AccessoriesStorage::shouldRender);
+
+        if (!shouldRender(stack, path, storageLookup, entity, entityState, isRenderingEnabled != null ? isRenderingEnabled : true)) return null;
+
+        var accessoryState = AccessoryRenderState.setupState(path, stack, entity, entityState, shouldCreateStackRenderState());
+
+        extractRenderState(stack, path, storageLookup, entity, entityState, accessoryState);
+
+        return accessoryState;
     }
 
-    /**
-     * Determines if this accessory should render in first person
-     * Override to return true for whichever arm this accessory renders on
-     */
-    default <S extends LivingEntityRenderState> boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotPath path, S renderState) {
+    default void extractRenderState(ItemStack stack, SlotPath path, AccessoriesStorageLookup storageLookup, LivingEntity entity, LivingEntityRenderState entityState, AccessoryRenderState accessoryState) {}
+
+    default boolean shouldCreateStackRenderState() {
         return false;
     }
 
-    /**
-     * Attempt to render the given Accessory on the first person player model if found to be able to from the {@link #shouldRenderInFirstPerson}
-     * invocation.
-     */
-    default <S extends LivingEntityRenderState> void renderOnFirstPerson(
-            HumanoidArm arm,
-            ItemStack stack,
-            SlotPath path,
-            PoseStack matrices,
-            EntityModel<S> model,
-            S renderState,
-            MultiBufferSource multiBufferSource,
-            int light,
-            float partialTicks
-    ) {
-        if (!shouldRenderInFirstPerson(arm, stack, path, renderState)) return;
+    ///
+    /// Method used to test if the given accessory should be rendered based on the given context which controls if extraction
+    /// to a `AccessoryRenderState` will occur causing a render.
+    ///
+    /// This **replaces** the old `shouldRenderInFirstPerson` as you can get the [HumanoidArm] `arm` value using [LivingEntityRenderState#getStateData]
+    /// with [AccessoriesRenderStateKeys#ARM]
+    ///
+    default boolean shouldRender(ItemStack stack, SlotPath path, AccessoriesStorageLookup storageLookup, LivingEntity entity, LivingEntityRenderState entityState, boolean isRenderingEnabled) {
+        if (entityState.hasStateData(AccessoriesRenderStateKeys.ARM)) {
+            return false;
+        }
 
-        this.render(stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks);
+        return isRenderingEnabled;
     }
 
-    @ApiStatus.NonExtendable
-    default boolean isEmpty() {
-        return this instanceof BuiltinAccessoryRenderers.EmptyRenderer;
-    }
-
-    /**
-     * Translates the rendering context to the center of the player's face
-     *
-     * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
-     */
-    @Deprecated
-    static void translateToFace(PoseStack poseStack, HumanoidModel<? extends HumanoidRenderState> model, LivingEntity entity) {
-        transformToFace(poseStack, model.head, Side.FRONT);
-    }
-
-    /**
-     * Translates the rendering context to the center of the player's chest/torso segment
-     *
-     * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
-     */
-    @Deprecated(forRemoval = true)
-    static void translateToChest(PoseStack poseStack, HumanoidModel<? extends HumanoidRenderState> model, LivingEntity livingEntity) {
-        transformToModelPart(poseStack, model.body);
-    }
-
-    /**
-     * Translates the rendering context to the center of the bottom of the player's right arm
-     *
-     * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
-     */
-    @Deprecated(forRemoval = true)
-    static void translateToRightArm(PoseStack poseStack, HumanoidModel<? extends HumanoidRenderState> model, LivingEntity player) {
-        transformToFace(poseStack, model.rightArm, Side.BOTTOM);
-    }
-
-    /**
-     * Translates the rendering context to the center of the bottom of the player's left arm
-     *
-     * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
-     */
-    @Deprecated(forRemoval = true)
-    static void translateToLeftArm(PoseStack poseStack, HumanoidModel<? extends HumanoidRenderState> model, LivingEntity player) {
-        transformToFace(poseStack, model.leftArm, Side.BOTTOM);
-    }
-
-    /**
-     * Translates the rendering context to the center of the bottom of the player's right leg
-     *
-     * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
-     */
-    @Deprecated(forRemoval = true)
-    static void translateToRightLeg(PoseStack poseStack, HumanoidModel<? extends HumanoidRenderState> model, LivingEntity player) {
-        transformToFace(poseStack, model.rightLeg, Side.BOTTOM);
-    }
-
-    /**
-     * Translates the rendering context to the center of the bottom of the player's left leg
-     *
-     * @deprecated Use {@link #transformToFace(PoseStack, ModelPart, Side)} or {@link #transformToModelPart(PoseStack, ModelPart)} instead
-     */
-    @Deprecated(forRemoval = true)
-    static void translateToLeftLeg(PoseStack poseStack, HumanoidModel<? extends HumanoidRenderState> model, LivingEntity player) {
-        transformToFace(poseStack, model.leftLeg, Side.BOTTOM);
-    }
+    //--
 
     /**
      * Transforms the rendering context to a specific face on a ModelPart
@@ -194,5 +126,12 @@ public interface AccessoryRenderer {
      */
     static void transformToModelPart(PoseStack poseStack, ModelPart part, @Nullable Number xPercent, @Nullable Number yPercent, @Nullable Number zPercent) {
         ModelTransformOps.transformToModelPart(poseStack, part, xPercent, yPercent, zPercent);
+    }
+
+    //--
+
+    @ApiStatus.NonExtendable
+    default boolean isEmpty() {
+        return this instanceof BuiltinAccessoryRenderers.EmptyRenderer;
     }
 }

@@ -58,6 +58,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.NotNull;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
 import java.util.Objects;
@@ -65,9 +66,13 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static io.wispforest.accessories.Accessories.MODID;
+
 public class AccessoriesClient {
 
-    public static KeyMapping OPEN_SCREEN = null;
+    public static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(Accessories.of("accessories"));
+
+    public static final KeyMapping OPEN_SCREEN = new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, KEY_CATEGORY);
 
     //public static final ShaderProgram BLIT_SHADER_KEY = new ShaderProgram(Accessories.of("core/fish"), DefaultVertexFormat.BLIT_SCREEN, ShaderDefines.EMPTY);
 

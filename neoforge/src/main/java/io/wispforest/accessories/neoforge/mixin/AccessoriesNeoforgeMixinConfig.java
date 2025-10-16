@@ -1,5 +1,6 @@
 package io.wispforest.accessories.neoforge.mixin;
 
+import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.LoadingModList;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
@@ -13,8 +14,9 @@ public class AccessoriesNeoforgeMixinConfig implements IMixinConfigPlugin {
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
         if (mixinClassName.contains("curios")) {
-            var isCuriosLoaded = LoadingModList.get().getModFileById("curios") != null;
-            var isCCLayerLoaded = LoadingModList.get().getModFileById("cclayer") != null;
+            var modList = FMLLoader.getCurrent().getLoadingModList();
+            var isCuriosLoaded = modList.getModFileById("curios") != null;
+            var isCCLayerLoaded = modList.getModFileById("cclayer") != null;
 
             return isCuriosLoaded && !isCCLayerLoaded;
         }

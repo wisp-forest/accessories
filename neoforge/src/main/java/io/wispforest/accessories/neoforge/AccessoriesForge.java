@@ -5,6 +5,7 @@ import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.client.ClientLifecycleEvents;
 import io.wispforest.accessories.commands.api.ArgumentRegistrationCallback;
 import io.wispforest.accessories.commands.api.CommandGenerators;
 import io.wispforest.accessories.commands.api.core.RecordArgumentTypeInfo;
@@ -66,8 +67,11 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import org.slf4j.Logger;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -190,14 +194,15 @@ public class AccessoriesForge {
     }
 
     public void registerReloadListeners(AddServerReloadListenersEvent event){
-        var loaders = AccessoriesInternalsImpl.TO_BE_LOADED.getOrDefault(PackType.SERVER_DATA, new HashMap<>());
+        var loaders = AccessoriesInternalsImpl.TO_BE_LOADED.getOrDefault(PackType.SERVER_DATA, new LinkedHashMap<>());
 
-        loaders.forEach((endecDataLoader, setupRegistryCallback) -> {
-            setupRegistryCallback.accept(event.getRegistryAccess());
+        loaders.forEach((endecDataLoader, obj) -> {
+            obj.setValue(event.getRegistryAccess());
+
             event.addListener(endecDataLoader.getId(), endecDataLoader);
         });
 
-        loaders.forEach((endecDataLoader, providerConsumer) -> {
+        loaders.keySet().forEach((endecDataLoader) -> {
             for (var dependencyId : endecDataLoader.getDependencyIds()) {
                 event.addDependency(dependencyId, endecDataLoader.getId());
             }

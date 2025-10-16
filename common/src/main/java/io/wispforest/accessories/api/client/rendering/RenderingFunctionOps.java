@@ -4,19 +4,18 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Either;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.AccessoriesStorageLookup;
+import io.wispforest.accessories.api.client.AccessoriesRenderStateKeys;
 import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.client.ClientDelayedCache;
 import io.wispforest.accessories.data.CustomRendererLoader;
 import io.wispforest.accessories.pond.AccessoriesRenderStateAPI;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -45,26 +44,28 @@ public class RenderingFunctionOps {
     private static final ClientDelayedCache<ParticleTimeKey> PARTICLE_UPDATE_CACHE = new ClientDelayedCache<>();
 
     public static void handleFunctions(
-            ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<? extends LivingEntityRenderState> model, LivingEntityRenderState renderState, MultiBufferSource multiBufferSource, int light, float partialTicks, @Nullable HumanoidArm arm, int packedLight, int packedOverlay, int color, List<RenderingFunction> functions) {
-        handleFunctions(ItemStack.hashItemAndComponents(stack), stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, functions);
+            ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<? extends LivingEntityRenderState> model, LivingEntityRenderState renderState, SubmitNodeCollector collector, int light, float partialTicks, @Nullable HumanoidArm arm, int packedLight, int packedOverlay, int color, List<RenderingFunction> functions) {
+        handleFunctions(ItemStack.hashItemAndComponents(stack), stack, path, matrices, model, renderState, collector, light, partialTicks, arm, packedLight, packedOverlay, color, functions);
     }
 
     private static final Map<EntityType, EntityData> ENTITY_CACHE = new HashMap<>();
 
-    public static void handleFunctions(int uniqueKey, ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<? extends LivingEntityRenderState> model, LivingEntityRenderState renderState, MultiBufferSource multiBufferSource, int light, float partialTicks, @Nullable HumanoidArm arm, int packedLight, int packedOverlay, int color, List<RenderingFunction> functions) {
+    public static void handleFunctions(int uniqueKey, ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<? extends LivingEntityRenderState> model, LivingEntityRenderState renderState, SubmitNodeCollector collector, int light, float partialTicks, @Nullable HumanoidArm arm, int packedLight, int packedOverlay, int color, List<RenderingFunction> functions) {
         for (var function : functions) {
-            handleFunction(uniqueKey, stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, function);
+            handleFunction(uniqueKey, stack, path, matrices, model, renderState, collector, light, partialTicks, arm, packedLight, packedOverlay, color, function);
         }
     }
 
-    public static void handleFunction(int uniqueKey, ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<? extends LivingEntityRenderState> model, LivingEntityRenderState renderState, MultiBufferSource multiBufferSource, int light, float partialTicks, @Nullable HumanoidArm arm, int packedLight, int packedOverlay, int color, RenderingFunction renderingFunction) {
+    public static void handleFunction(int uniqueKey, ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<? extends LivingEntityRenderState> model, LivingEntityRenderState renderState, SubmitNodeCollector collector, int light, float partialTicks, @Nullable HumanoidArm arm, int packedLight, int packedOverlay, int color, RenderingFunction renderingFunction) {
         var client = Minecraft.getInstance();
         var level = client.level;
 //        var targetEntity = reference.entity();
 
+        var cameraState = renderState.getStateData(AccessoriesRenderStateKeys.CAMERA_STATE);
+
         switch (renderingFunction) {
             case RenderingFunction.Transformations transformation -> {
-                TransformOps.transformStack(transformation.transformations(), matrices, model, () -> handleFunction(uniqueKey, stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, transformation.renderingFunction()));
+                TransformOps.transformStack(transformation.transformations(), matrices, model, () -> handleFunction(uniqueKey, stack, path, matrices, model, renderState, collector, light, partialTicks, arm, packedLight, packedOverlay, color, transformation.renderingFunction()));
             }
             case RenderingFunction.Block blockData -> {
                 var state = blockData.state();
@@ -74,7 +75,8 @@ public class RenderingFunctionOps {
 
                 matrices.translate(-0.5, 0, -0.5);
 
-                renderBlock(client, state, blockEntity, 0, matrices, multiBufferSource, packedLight, packedOverlay, color);
+                // TODO: WHY THE HELL IS THE ZERO and NOT PARTIAL TICKS?
+                renderBlock(client, state, blockEntity, cameraState, 0, matrices, collector, packedLight, packedOverlay, color);
 
                 matrices.popPose();
             }
@@ -122,8 +124,11 @@ public class RenderingFunctionOps {
 
                     if (entityData.allowTicking() || entity instanceof Display) entity.tick();
 
-                    client.getEntityRenderDispatcher()
-                            .render(entity, 0, 0, 0, partialTicks, matrices, multiBufferSource, packedLight);
+                    var dispatcher = client.getEntityRenderDispatcher();
+
+                    var state = dispatcher.extractEntity(entity, partialTicks);
+
+                    dispatcher.submit(state, cameraState, 0, 0, 0, matrices, collector);
 
                     if (customData) {
                         currentEntityData.resetEntity(level);
@@ -133,32 +138,35 @@ public class RenderingFunctionOps {
             case RenderingFunction.Item itemData -> {
                 ItemStack renderStack = itemData.stack();
 
-                client.getItemRenderer().renderStatic(
-                        null,
-                        renderStack,
-                        ItemDisplayContext.GUI,
-                        matrices,
-                        multiBufferSource,
-                        level,
-                        packedLight,
-                        packedOverlay,
-                        Objects.hash(itemData, uniqueKey) // TODO: CONFIRM THIS IS CORRECT
+                var state = new ItemStackRenderState();
+
+                // TODO: FIND SOME WAY TO CONVERT RENDER FUNCTIONS TO A STATE OBJECT.... FUCK MY LIFE
+                client.getItemModelResolver().updateForTopItem(
+                    state,
+                    renderStack,
+                    ItemDisplayContext.GUI,
+                    null,
+                    null,
+                    Objects.hash(itemData, uniqueKey) // TODO: CONFIRM THIS IS CORRECT
                 );
+
+                state.submit(matrices, collector, packedLight, packedOverlay, 0);
             }
             case RenderingFunction.Model modelData -> {
                 var modelStack = Items.BEDROCK.getDefaultInstance();
 
                 modelStack.set(DataComponents.ITEM_MODEL, modelData.id());
 
-                client.getItemRenderer().renderStatic(
-                        modelStack,
-                        ItemDisplayContext.GROUND,
-                        packedLight,
-                        packedOverlay,
-                        matrices,
-                        multiBufferSource,
-                        level,
-                        Objects.hash(modelData, uniqueKey)
+                var state = new ItemStackRenderState();
+
+                // TODO: FIND SOME WAY TO CONVERT RENDER FUNCTIONS TO A STATE OBJECT.... FUCK MY LIFE
+                client.getItemModelResolver().updateForTopItem(
+                    state,
+                    modelStack,
+                    ItemDisplayContext.GUI,
+                    null,
+                    null,
+                    Objects.hash(modelData, uniqueKey) // TODO: CONFIRM THIS IS CORRECT
                 );
             }
             case RenderingFunction.Particle particleData -> {
@@ -173,32 +181,31 @@ public class RenderingFunctionOps {
             case RenderingFunction.Compound compoundFunction -> {
                 if (arm != null && !compoundFunction.firstPersonArmTarget().hasArm(arm)) return;
 
-                handleFunctions(uniqueKey, stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, compoundFunction.renderingFunctions());
+                handleFunctions(uniqueKey, stack, path, matrices, model, renderState, collector, light, partialTicks, arm, packedLight, packedOverlay, color, compoundFunction.renderingFunctions());
             }
             case RenderingFunction.RawRenderer data -> {
                 var renderFunction = CustomRendererLoader.getOrResolveRawRenderer(data, !CustomRendererLoader.isConstantResolveTarget());
 
                 if(renderFunction == null) return;
 
-                handleFunction(uniqueKey, stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, renderFunction);
+                handleFunction(uniqueKey, stack, path, matrices, model, renderState, collector, light, partialTicks, arm, packedLight, packedOverlay, color, renderFunction);
             }
             case RenderingFunction.DeferredRenderer renderer -> {
                 var renderFunction = CustomRendererLoader.getOrResolveRenderer(renderer, !CustomRendererLoader.isConstantResolveTarget());
 
                 if(renderFunction == null) return;
 
+                var lookup = renderState.getStateData(AccessoriesRenderStateKeys.STORAGE_LOOKUP);
+
                 renderFunction.ifLeft(accessoryRenderer -> {
                     try {
-                        if (arm != null){
-                            if (accessoryRenderer.shouldRenderInFirstPerson(arm, stack, path, renderState)){
-                                accessoryRenderer.renderOnFirstPerson(arm, stack, path, matrices, (EntityModel<LivingEntityRenderState>) model, renderState, multiBufferSource, light, partialTicks);
-                            }
-                        } else {
-                            accessoryRenderer.render(stack, path, matrices, (EntityModel<LivingEntityRenderState>) model, renderState, multiBufferSource, light, partialTicks);
-                        }
+                        // TODO: FIND SOME WAY TO CONVERT RENDER FUNCTIONS TO A STATE OBJECT.... FUCK MY LIFE
+//                        if (!accessoryRenderer.shouldRender(stack, path, lookup, null, renderState, true)) return;
+//
+//                        accessoryRenderer.render(null, renderState, (EntityModel<LivingEntityRenderState>) model, matrices, collector);
                     } catch (Exception ignored) {}
                 }).ifRight(function1 -> {
-                    handleFunction(uniqueKey, stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks, arm, packedLight, packedOverlay, color, function1);
+                    handleFunction(uniqueKey, stack, path, matrices, model, renderState, collector, light, partialTicks, arm, packedLight, packedOverlay, color, function1);
                 });
             }
             default -> throw new IllegalStateException("Unimplemented RendererFunc: " + renderingFunction.key());
@@ -236,15 +243,18 @@ public class RenderingFunctionOps {
         }
     }
 
-    private static void renderBlock(Minecraft client, BlockState state, @Nullable BlockEntity blockEntity, float partialTick, PoseStack matrices, MultiBufferSource multiBufferSource, int packedLight, int packedOverlay, int color) {
+    private static void renderBlock(Minecraft client, BlockState state, @Nullable BlockEntity blockEntity, CameraRenderState cameraState, float partialTick, PoseStack matrices, SubmitNodeCollector collector, int packedLight, int packedOverlay, int color) {
         if (state.getRenderShape() != RenderShape.INVISIBLE) {
-            client.getBlockRenderer().renderSingleBlock(state, matrices, multiBufferSource, packedLight, packedOverlay);
+            collector.submitBlock(matrices, state, packedLight, packedOverlay, 0);
         }
 
         if (blockEntity != null) {
-            BlockEntityRenderer<BlockEntity> медведь = client.getBlockEntityRenderDispatcher().getRenderer(blockEntity);
+            var dispatcher = client.getBlockEntityRenderDispatcher();
+
+            var медведь = dispatcher.tryExtractRenderState(blockEntity, partialTick, null);
+
             if (медведь != null) {
-                медведь.render(blockEntity, partialTick, matrices, multiBufferSource, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY, client.gameRenderer.getMainCamera().getPosition());
+                dispatcher.submit(медведь, matrices, collector, cameraState);
             }
         }
 
@@ -343,9 +353,9 @@ public class RenderingFunctionOps {
         }
     }
 
-    public static boolean shouldRenderInFirstPerson(ItemStack stack, HumanoidArm arm, SlotPath path, List<RenderingFunction> renderingFunctions, LivingEntityRenderState renderState) {
+    public static boolean shouldRender(ItemStack stack, SlotPath path, AccessoriesStorageLookup storageLookup, LivingEntity entity, LivingEntityRenderState entityState, List<RenderingFunction> renderingFunctions) {
         for (var function : renderingFunctions) {
-            var result = shouldRenderInFirstPerson(stack, arm, path, function, renderState);
+            var result = shouldRender(stack, path, storageLookup, entity, entityState, function);
 
             if (result != null && result) return true;
         }
@@ -354,36 +364,34 @@ public class RenderingFunctionOps {
     }
 
     @Nullable
-    public static Boolean shouldRenderInFirstPerson(ItemStack stack, HumanoidArm arm, SlotPath path, RenderingFunction renderingFunction, LivingEntityRenderState renderState) {
+    public static Boolean shouldRender(ItemStack stack, SlotPath path, AccessoriesStorageLookup storageLookup, LivingEntity entity, LivingEntityRenderState entityState, RenderingFunction renderingFunction) {
+        if (renderingFunction instanceof RenderingFunction.ArmedTargeted armedTargeted && entityState.hasStateData(AccessoriesRenderStateKeys.ARM)) {
+            if (armedTargeted.firstPersonArmTarget().hasArm(entityState.getStateData(AccessoriesRenderStateKeys.ARM))) return true;
+        }
+
         return switch (renderingFunction) {
             case RenderingFunction.Transformations transformation -> {
-                yield shouldRenderInFirstPerson(stack, arm, path, transformation.renderingFunction(), renderState);
+                yield shouldRender(stack, path, storageLookup, entity, entityState, transformation.renderingFunction());
             }
             case RenderingFunction.Compound compoundFunction -> {
-                if (compoundFunction.firstPersonArmTarget().hasArm(arm)) yield true;
-
-                yield shouldRenderInFirstPerson(stack, arm, path, compoundFunction.renderingFunctions(), renderState);
+                yield shouldRender(stack, path, storageLookup, entity, entityState, compoundFunction.renderingFunctions());
             }
             case RenderingFunction.RawRenderer data -> {
-                if (data.firstPersonArmTarget().hasArm(arm)) yield true;
-
                 var renderFunction = CustomRendererLoader.getOrResolveRawRenderer(data, !CustomRendererLoader.isConstantResolveTarget());
 
                 if(renderFunction == null) yield null;
 
-                yield shouldRenderInFirstPerson(stack, arm, path, renderFunction, renderState);
+                yield shouldRender(stack, path, storageLookup, entity, entityState, renderFunction);
             }
             case RenderingFunction.DeferredRenderer renderer -> {
-                if (renderer.firstPersonArmTarget().hasArm(arm)) yield true;
-
                 var possibleRenderer = CustomRendererLoader.getOrResolveRenderer(renderer, !CustomRendererLoader.isConstantResolveTarget());
 
                 if(possibleRenderer == null) yield null;
 
                 yield Either.unwrap(
                         possibleRenderer.mapBoth(
-                                accessoryRenderer -> accessoryRenderer.shouldRenderInFirstPerson(arm, stack, path, renderState),
-                                renderFunction -> shouldRenderInFirstPerson(stack, arm, path, renderFunction, renderState))
+                                accessoryRenderer -> accessoryRenderer.shouldRender(stack, path, storageLookup, entity, entityState, true),
+                                renderFunction -> shouldRender(stack, path, storageLookup, entity, entityState, renderFunction))
                 );
             }
             default -> null;

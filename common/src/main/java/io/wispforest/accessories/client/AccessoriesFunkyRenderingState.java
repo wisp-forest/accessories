@@ -1,6 +1,7 @@
 package io.wispforest.accessories.client;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.client.gui.utils.Line3d;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.ApiStatus;
@@ -67,7 +68,7 @@ public class AccessoriesFunkyRenderingState {
         }
     }
 
-    private Map<String, Vector3d> NOT_VERY_NICE_POSITIONS = new HashMap<>();
+    private Map<SlotPath, Vector3d> NOT_VERY_NICE_POSITIONS = new HashMap<>();
 
     private Vector4i SCISSOR_BOX = new Vector4i();
 
@@ -87,7 +88,7 @@ public class AccessoriesFunkyRenderingState {
         return COLLECT_ACCESSORY_POSITIONS;
     }
 
-    public Map<String, Vector3d> getNotVeryNicePositions() {
+    public Map<SlotPath, Vector3d> getNotVeryNicePositions() {
         return NOT_VERY_NICE_POSITIONS;
     }
 

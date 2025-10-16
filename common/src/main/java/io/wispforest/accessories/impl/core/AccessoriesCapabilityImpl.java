@@ -241,7 +241,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
                 boolean isValid = SlotPredicateRegistry.canInsertIntoSlot(stack, container.createReference(0));
 
                 // Prevents checking containers that will never allow for the given stack to be equipped within it
-                if (!isValid || !ExtraSlotTypeProperties.getProperty(container.getSlotName(), entity.level().isClientSide).allowEquipFromUse()) continue;
+                if (!isValid || !ExtraSlotTypeProperties.getProperty(container.getSlotName(), entity.level().isClientSide()).allowEquipFromUse()) continue;
 
                 if (allowSwapping) validContainers.put(container.getSlotName(), container);
 
@@ -294,13 +294,13 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
         if(shouldSwapStacks) {
             var splitStack = newStack.isEmpty() ? ItemStack.EMPTY : newStack.split(accessory.maxStackSize(newStack));
 
-            if (!entity.level().isClientSide) {
+            if (!entity.level().isClientSide()) {
                 reference.setStack(splitStack);
             }
 
             return Optional.of(oldStack);
         } else {
-            if (!entity.level().isClientSide) {
+            if (!entity.level().isClientSide()) {
                 var splitStack = newStack.split(accessory.maxStackSize(newStack));
 
                 reference.setStack(splitStack);

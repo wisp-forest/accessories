@@ -11,6 +11,7 @@ import io.wispforest.accessories.pond.AccessoriesRenderStateAPI;
 import io.wispforest.accessories.pond.WingsLayerExtension;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.EquipmentLayerRenderer;
 import net.minecraft.client.renderer.entity.layers.WingsLayer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
@@ -28,22 +29,24 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(WingsLayer.class)
 public abstract class WingsLayerMixin<S extends HumanoidRenderState, M extends EntityModel<S>> implements WingsLayerExtension<S> {
 
-    @Shadow public abstract void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S humanoidRenderState, float f, float g);
 
     @Shadow @Final private EquipmentLayerRenderer equipmentRenderer;
 
+    @Shadow
+    public abstract void submit(PoseStack arg, SubmitNodeCollector arg2, int i, S arg3, float f, float g);
+
     @Override
-    public void renderStack(ItemStack stack, PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S humanoidRenderState) {
+    public void renderStack(ItemStack stack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S humanoidRenderState) {
         var prevItem = humanoidRenderState.chestEquipment;
 
         humanoidRenderState.chestEquipment = stack;
 
-        this.render(poseStack, multiBufferSource, i, humanoidRenderState, humanoidRenderState.yRot, humanoidRenderState.xRot);
+        this.submit(poseStack, submitNodeCollector, i, humanoidRenderState, humanoidRenderState.yRot, humanoidRenderState.xRot);
 
         humanoidRenderState.chestEquipment = prevItem;
     }
 
-    @WrapOperation(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V",
+    @WrapOperation(method = "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/HumanoidRenderState;FF)V",
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;get(Lnet/minecraft/core/component/DataComponentType;)Ljava/lang/Object;"))
     private Object accessories$adjustGliderItemstack(ItemStack instance, DataComponentType dataComponentType, Operation<Object> original, @Local(argsOnly = true) S humanoidRenderState, @Local(ordinal = 0) LocalRef<ItemStack> stack) {
         if (humanoidRenderState instanceof AccessoriesRenderStateAPI extension) {

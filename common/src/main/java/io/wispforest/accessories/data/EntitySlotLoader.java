@@ -72,7 +72,7 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
      * @return The valid {@link SlotType}'s for given {@link EntityType}
      */
     public static Map<String, SlotType> getEntitySlots(Level level, EntityType<?> entityType){
-        var map = EntitySlotLoader.INSTANCE.getSlotTypes(level.isClientSide, entityType);
+        var map = EntitySlotLoader.INSTANCE.getSlotTypes(level.isClientSide(), entityType);
 
         return map != null ? map : Map.of();
     }
@@ -101,7 +101,7 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
 
     @Override
     public Endec<SequencedMap<EntityType<?>, List<String>>> syncDataEndec() {
-        return EndecUtils.map(LinkedHashMap::new,
+        return Endec.map(LinkedHashMap::new,
             type -> BuiltInRegistries.ENTITY_TYPE.getKey(type).toString(), strType -> BuiltInRegistries.ENTITY_TYPE.getValue(ResourceLocation.parse(strType)),
             Endec.STRING.listOf());
     }

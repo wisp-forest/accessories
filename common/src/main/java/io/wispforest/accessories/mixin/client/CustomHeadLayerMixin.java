@@ -10,6 +10,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HeadedModel;
 import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.layers.CustomHeadLayer;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
@@ -24,11 +25,11 @@ public abstract class CustomHeadLayerMixin<S extends LivingEntityRenderState, M 
 
     //TODO: FIGURE OUT WHY ARCH LOOM DON'T REMAP WRAP METHOD
     @WrapMethod(method = {
-            "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/MultiBufferSource;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",        // Mojmap
-            "method_17159(Lnet/minecraft/class_4587;Lnet/minecraft/class_4597;ILnet/minecraft/class_10042;FF)V",                                                                             // Yarn Interm.
-            "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/client/render/entity/state/LivingEntityRenderState;FF)V" // Yarn
+            "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",      // Mojmap
+            "method_17159(Lnet/minecraft/class_4587;Lnet/minecraft/class_11659;ILnet/minecraft/class_10042;FF)V",                                                                             // Yarn Interm.
+            "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/client/render/entity/state/LivingEntityRenderState;FF)V" // Yarn
     })
-    private void accessories$adjustHeadItem(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, S livingEntityRenderState, float f, float g, Operation<Void> original) {
+    private void accessories$adjustHeadItem(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S livingEntityRenderState, float f, float g, Operation<Void> original) {
         ItemStackRenderState prevState = null;
 
         if (livingEntityRenderState instanceof AccessoriesRenderStateAPI extension) {
@@ -55,7 +56,7 @@ public abstract class CustomHeadLayerMixin<S extends LivingEntityRenderState, M 
             }
         }
 
-        original.call(poseStack, multiBufferSource, i, livingEntityRenderState, f, g);
+        original.call(poseStack, submitNodeCollector, i, livingEntityRenderState, f, g);
 
         if (prevState != null) ((LivingEntityRenderStateAccessor) livingEntityRenderState).accessories$headItem(prevState);
     }

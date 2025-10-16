@@ -8,6 +8,7 @@ import io.wispforest.accessories.pond.ContainerScreenExtension;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.world.inventory.Slot;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -33,8 +34,8 @@ public abstract class AbstractContainerScreenMixin implements ContainerScreenExt
         if (override == null || override) original.call(instance, guiGraphics);
     }
 
-    @WrapOperation(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;matches(II)Z", ordinal = 0))
-    private boolean accessories$adjustCloseCheck(KeyMapping instance, int keysym, int scancode, Operation<Boolean> original) {
-        return original.call(instance, keysym, scancode) || original.call(AccessoriesClient.OPEN_SCREEN, keysym, scancode);
+    @WrapOperation(method = "keyPressed", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/KeyMapping;matches(Lnet/minecraft/client/input/KeyEvent;)Z", ordinal = 0))
+    private boolean accessories$adjustCloseCheck(KeyMapping instance, KeyEvent arg, Operation<Boolean> original) {
+        return original.call(instance, arg) || original.call(AccessoriesClient.OPEN_SCREEN, arg);
     }
 }

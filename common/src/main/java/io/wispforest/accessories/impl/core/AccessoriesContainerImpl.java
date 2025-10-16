@@ -109,7 +109,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
         this.update = true;
         this.resizingUpdate = resizingUpdate;
 
-        if(this.capability.entity().level().isClientSide) return;
+        if(this.capability.entity().level().isClientSide()) return;
 
         var inv = AccessoriesHolderImpl.getHolder(this.capability).containersRequiringUpdates();
 
@@ -134,7 +134,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
 
         this.update = false;
 
-        if(this.capability.entity().level().isClientSide) return;
+        if(this.capability.entity().level().isClientSide()) return;
 
         var slotType = this.slotType();
 

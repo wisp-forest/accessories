@@ -15,6 +15,9 @@ import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.transfer.info.stack.SlotAccessor;
 import me.shedaniel.rei.plugin.autocrafting.InventoryCraftingTransferHandler;
 import me.shedaniel.rei.plugin.common.BuiltinPlugin;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -63,7 +66,7 @@ public class AccessoriesClientREIPlugin implements REIClientPlugin {
                     if (!screen.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID) && context.isActuallyCrafting()) {
                         var component = screen.component(ButtonComponent.class, "crafting_grid_btn");
 
-                        component.onPress();
+                        component.onPress(new MouseButtonEvent(0,0, new MouseButtonInfo(GLFW.GLFW_MOUSE_BUTTON_1,0)));
                     }
 
                     return ApplicabilityResult.createApplicable();

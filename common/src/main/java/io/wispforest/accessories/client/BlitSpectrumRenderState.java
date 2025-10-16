@@ -44,11 +44,11 @@ public record BlitSpectrumRenderState(
     }
 
     @Override
-    public void buildVertices(VertexConsumer vertexConsumer, float f) {
-        vertexConsumer.addVertexWith2DPose(this.pose(), this.x0(), this.y0(), f).setUv(this.u0(), this.v0()).setColor(1.0f, 1.0f, 1.0f, alphaValues.x);
-        vertexConsumer.addVertexWith2DPose(this.pose(), this.x0(), this.y1(), f).setUv(this.u0(), this.v1()).setColor(0, 1.0f, 1.0f, alphaValues.z);
-        vertexConsumer.addVertexWith2DPose(this.pose(), this.x1(), this.y1(), f).setUv(this.u1(), this.v1()).setColor(0, 1.0f, 1.0f, alphaValues.w);
-        vertexConsumer.addVertexWith2DPose(this.pose(), this.x1(), this.y0(), f).setUv(this.u1(), this.v0()).setColor(1.0f, 1.0f, 1.0f, alphaValues.y);
+    public void buildVertices(VertexConsumer vertexConsumer) {
+        vertexConsumer.addVertexWith2DPose(this.pose(), this.x0(), this.y0()).setUv(this.u0(), this.v0()).setColor(1.0f, 1.0f, 1.0f, alphaValues.x);
+        vertexConsumer.addVertexWith2DPose(this.pose(), this.x0(), this.y1()).setUv(this.u0(), this.v1()).setColor(0, 1.0f, 1.0f, alphaValues.z);
+        vertexConsumer.addVertexWith2DPose(this.pose(), this.x1(), this.y1()).setUv(this.u1(), this.v1()).setColor(0, 1.0f, 1.0f, alphaValues.w);
+        vertexConsumer.addVertexWith2DPose(this.pose(), this.x1(), this.y0()).setUv(this.u1(), this.v0()).setColor(1.0f, 1.0f, 1.0f, alphaValues.y);
     }
 
     @Nullable

@@ -74,7 +74,8 @@ public class AccessoriesClientFabric implements ClientModInitializer {
 //            BuiltinAccessoryRenderers.onAddCallback(item);
 //        });
 
-        AccessoriesClient.OPEN_SCREEN = KeyBindingHelper.registerKeyBinding(new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, MODID + ".key.category.accessories"));
+
+        KeyBindingHelper.registerKeyBinding(AccessoriesClient.OPEN_SCREEN);
 
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (AccessoriesClient.OPEN_SCREEN.consumeClick()){

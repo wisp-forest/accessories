@@ -1,6 +1,5 @@
 package io.wispforest.accessories.data.api;
 
-import com.google.common.base.Suppliers;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
@@ -16,6 +15,7 @@ import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 
 // TODO: 1.21.4 ADJUSTMENTS SHOULD BE MADE TO USE LESS DIRECT CODE ANYWAYS
@@ -42,6 +41,8 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
     protected final SerializationContext context;
 
     protected final boolean requiresRegistries;
+
+    private final Function<PreparableReloadListener.SharedState, HolderLookup.@Nullable Provider> registriesAccess;
 
     protected EndecDataLoader(ResourceLocation id, String type, Endec<T> endec, PackType packType) {
         this(id, type, endec, packType, false);
@@ -60,7 +61,7 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
     }
 
     protected EndecDataLoader(ResourceLocation id, String type, Endec<T> endec, PackType packType, SerializationContext context, boolean requiresRegistries, Set<ResourceLocation> value) {
-        super(new DelayedRecursiveCodec<>(), FileToIdConverter.json(type));
+        super(new DelegatingCodec<>(endec.toString(), endec), FileToIdConverter.json(type));
 
         this.id = id;
         this.type = type;
@@ -69,9 +70,7 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
         this.requiresRegistries = requiresRegistries;
         this.dependencies = value;
 
-        setupCodec();
-
-        AccessoriesInternals.registerLoader(packType, this, (packType.equals(PackType.SERVER_DATA) ? this::setupOps : null));
+        this.registriesAccess = AccessoriesInternals.registerLoader(packType, this);
 
         if (packType.equals(PackType.SERVER_DATA) && this instanceof SyncedDataHelper<?> syncedDataLoader) {
             SyncedDataHelperManager.registerLoader(syncedDataLoader);
@@ -79,72 +78,79 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
     }
 
     public ResourceLocation getId() {
-        return id;
+        return this.id;
     }
 
     public Set<ResourceLocation> getDependencyIds() {
-        return dependencies;
-    }
-
-    protected void setupCodec() {
-        ((DelayedRecursiveCodec<T>) ((SimpleJsonResourceReloadListenerAccessor<T>) this).getCodec())
-                .setup(this.endec.toString(), codec -> CodecUtils.toCodec(endec, this.getContext()));
-    }
-
-    @Nullable
-    private HolderLookup.Provider registries = null;
-
-    @ApiStatus.Internal
-    private EndecDataLoader<T> setupOps(HolderLookup.Provider registries) {
-        this.registries = registries;
-
-        // Resets the given converted endec to grab new context with current registries
-        setupCodec();
-
-        return this;
-    }
-
-    private SerializationContext getContext() {
-        if (requiresRegistries) {
-            Objects.requireNonNull(registries, "Can not build the needed context for the ManagedEndecDataLoader: " + this.getId());
-
-            return this.context.withAttributes(RegistriesAttribute.fromInfoGetter(new RegistryOps.HolderLookupAdapter(registries)));
-        }
-
-        return this.context;
+        return this.dependencies;
     }
 
     @Override
-    @ApiStatus.Internal
-    protected Map<ResourceLocation, T> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
-        if (requiresRegistries && registries == null) {
-            throw new IllegalStateException("Unable to prepare files as the given Registry access has not been setup on the server! [Id: " + this.getId() + "]");
+    public void prepareSharedState(SharedState sharedState) {
+        super.prepareSharedState(sharedState);
+
+        var ctx = this.context;
+
+        if (this.requiresRegistries) {
+            var registries = registriesAccess.apply(sharedState);
+
+            Objects.requireNonNull(registries, "Can not add the registries to endec context for the ManagedEndecDataLoader: " + this.getId());
+
+            ctx = ctx.withAttributes(RegistriesAttribute.fromInfoGetter(new RegistryOps.HolderLookupAdapter(registries)));
         }
 
+        getCodec().setCodec(ctx);
+    }
+
+    @ApiStatus.Internal
+    private DelegatingCodec<T> getCodec() {
+        return ((DelegatingCodec<T>) ((SimpleJsonResourceReloadListenerAccessor<T>) this).getCodec());
+    }
+
+    @Override
+    protected Map<ResourceLocation, T> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
         var entries = super.prepare(resourceManager, profiler);
 
-        this.registries = null;
+        getCodec().resetCodec();
 
         return entries;
     }
 
-    private static class DelayedRecursiveCodec<T> implements Codec<T> {
-        private String name;
-        private Supplier<Codec<T>> wrapped;
+    private static class DelegatingCodec<T> implements Codec<T> {
 
-        public void setup(String name, Function<Codec<T>, Codec<T>> wrapped) {
+        private final String name;
+        private final Endec<T> endec;
+
+        @Nullable
+        private Codec<T> codec = null;
+
+        private DelegatingCodec(String name, Endec<T> endec) {
             this.name = name;
-            this.wrapped = Suppliers.memoize(() -> wrapped.apply(this));
+            this.endec = endec;
+        }
+
+        void setCodec(SerializationContext ctx) {
+            this.codec = CodecUtils.toCodec(this.endec, ctx);
+        }
+
+        void resetCodec() {
+            this.codec = null;
+        }
+
+        Codec<T> getOrThrow() {
+            if (codec == null) throw new IllegalStateException("Unable to get codec as such has yet to be setup with the proper context!");
+
+            return codec;
         }
 
         @Override
         public <S> DataResult<Pair<T, S>> decode(final DynamicOps<S> ops, final S input) {
-            return wrapped.get().decode(ops, input);
+            return this.getOrThrow().decode(ops, input);
         }
 
         @Override
         public <S> DataResult<S> encode(final T input, final DynamicOps<S> ops, final S prefix) {
-            return wrapped.get().encode(input, ops, prefix);
+            return this.getOrThrow().encode(input, ops, prefix);
         }
 
         @Override

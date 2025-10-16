@@ -21,6 +21,7 @@ import it.unimi.dsi.fastutil.Pair;
 import net.fabricmc.fabric.api.event.Event;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.data.AtlasIds;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.Slot;
@@ -208,8 +209,7 @@ public class ComponentUtils {
         if (createButton) {
             toggleBtn = ComponentUtils.createSlotToggle(slot)
                     .configure(component -> {
-                        component.zIndex(600) //900
-                                .sizing(Sizing.fixed(5))
+                        component.sizing(Sizing.fixed(5))
                                 .positioning(btnPosition);
 
 //                        ((ComponentExtension) component).allowIndividualOverdraw(true);
@@ -256,8 +256,9 @@ public class ComponentUtils {
                 },
                 (context, button, delta) -> {
                     var textureAtlasSprite = Minecraft.getInstance()
-                            .getTextureAtlas(ResourceLocation.withDefaultNamespace("textures/atlas/gui.png"))
-                            .apply(group.icon());
+                            .getAtlasManager()
+                            .getAtlasOrThrow(AtlasIds.GUI)
+                            .getSprite(group.icon());
 
                     DrawUtils.blitSpriteWithColor(context, textureAtlasSprite, button.x() + 3, button.y() + 3, 8, 8, Color.WHITE);
                 })

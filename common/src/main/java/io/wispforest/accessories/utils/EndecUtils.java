@@ -15,8 +15,8 @@ import io.wispforest.endec.impl.KeyedEndec;
 import io.wispforest.endec.impl.StructField;
 import io.wispforest.endec.util.MapCarrierDecodable;
 import io.wispforest.endec.util.MapCarrierEncodable;
-import io.wispforest.owo.mixin.ForwardingDynamicOpsAccessor;
-import io.wispforest.owo.mixin.RegistryOpsAccessor;
+import io.wispforest.owo.mixin.serialization.ForwardingDynamicOpsAccessor;
+import io.wispforest.owo.mixin.serialization.RegistryOpsAccessor;
 import io.wispforest.owo.serialization.CodecUtils;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.RegistriesAttribute;
@@ -203,23 +203,6 @@ public class EndecUtils {
 
     public static <T> StructEndec<MutableObject<T>> wrappedEndec(String fieldName, Endec<T> endec) {
         return StructEndecBuilder.of(endec.fieldOf(fieldName, MutableObject::getValue), MutableObject::new);
-    }
-
-    public static <K, V, M extends Map<K, V>> Endec<M> map(IntFunction<M> mapConstructor, Function<K, String> keyToString, Function<String, K> stringToKey, Endec<V> valueEndec) {
-        return Endec.of((ctx, serializer, map) -> {
-            try (var mapState = serializer.map(ctx, valueEndec, map.size())) {
-                map.forEach((k, v) -> mapState.entry(keyToString.apply(k), v));
-            }
-        }, (ctx, deserializer) -> {
-            var mapState = deserializer.map(ctx, valueEndec);
-
-            var map = mapConstructor.apply(mapState.estimatedSize());
-
-            mapState.forEachRemaining(entry -> map.put(stringToKey.apply(entry.getKey()), entry.getValue()));
-
-            return map;
-
-        });
     }
 
     public static <C extends Collection<T>, T> Endec<C> collectionOf(Endec<T> endec, Supplier<C> supplier) {

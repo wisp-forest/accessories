@@ -15,6 +15,7 @@ import io.wispforest.owo.ui.parsing.UIModel;
 import io.wispforest.owo.ui.util.UISounds;
 import io.wispforest.owo.util.ReflectionUtils;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.input.MouseButtonEvent;
 
 public class StructListOptionContainer<T> extends ListOptionContainer<T> {
 
@@ -48,7 +49,7 @@ public class StructListOptionContainer<T> extends ListOptionContainer<T> {
                 label.cursorStyle(CursorStyle.HAND);
                 label.mouseEnter().subscribe(() -> label.text(TextOps.withFormatting("x ", ChatFormatting.GRAY)));
                 label.mouseLeave().subscribe(() -> label.text(TextOps.withFormatting("- ", ChatFormatting.GRAY)));
-                label.mouseDown().subscribe((mouseX, mouseY, button) -> {
+                label.mouseDown().subscribe((click, doubled) -> {
                     this.backingList.remove(optionIndex);
                     this.refreshResetButton();
                     this.refreshOptions();

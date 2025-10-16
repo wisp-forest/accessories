@@ -235,7 +235,11 @@ public sealed interface RenderingFunction permits DeferredRenderer, Block, Compo
         }
     }
 
-    record Compound(List<RenderingFunction> renderingFunctions, ArmTarget firstPersonArmTarget) implements RenderingFunction {
+    interface ArmedTargeted {
+        ArmTarget firstPersonArmTarget();
+    }
+
+    record Compound(List<RenderingFunction> renderingFunctions, ArmTarget firstPersonArmTarget) implements RenderingFunction, ArmedTargeted {
         private static final StructEndec<Compound> OLD_FORMAT_ENDEC = StructEndecBuilder.of(
                 RenderingFunction.ENDEC.fieldOf("rendering_function", s -> s.renderingFunctions().getFirst()),
                 Endec.forEnum(ArmTarget.class).optionalFieldOf("first_person_arm_target", Compound::firstPersonArmTarget, () -> ArmTarget.NONE),
@@ -255,7 +259,7 @@ public sealed interface RenderingFunction permits DeferredRenderer, Block, Compo
         });
     }
 
-    final class RawRenderer implements RenderingFunction {
+    final class RawRenderer implements RenderingFunction, ArmedTargeted {
         public static final StructEndec<RawRenderer> ENDEC = StructEndecBuilder.of(
                 GsonEndec.INSTANCE.mapOf().optionalFieldOf("references", RawRenderer::references, HashMap::new),
                 GsonEndec.INSTANCE.listOf().fieldOf("rendering_functions", RawRenderer::renderingFunctions),
@@ -308,7 +312,7 @@ public sealed interface RenderingFunction permits DeferredRenderer, Block, Compo
     // TODO: FIRST CHANGE FROM JSON TO EDM WHEN 1.21.4 and CACHE RESULTS OF CUSTOM renderingFunctions SOME HOW?
 //    @Environment(EnvType.CLIENT)
     @ApiStatus.Experimental
-    final class DeferredRenderer implements RenderingFunction {
+    final class DeferredRenderer implements RenderingFunction, ArmedTargeted {
         public static final StructEndec<DeferredRenderer> ENDEC = StructEndecBuilder.of(
                 MinecraftEndecs.IDENTIFIER.optionalFieldOf("renderer_id", DeferredRenderer::rendererId, () -> AccessoriesRendererRegistry.NO_RENDERER_ID),
                 GsonEndec.INSTANCE.mapOf().optionalFieldOf("references", DeferredRenderer::references, HashMap::new),

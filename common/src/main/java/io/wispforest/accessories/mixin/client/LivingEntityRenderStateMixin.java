@@ -1,74 +1,21 @@
 package io.wispforest.accessories.mixin.client;
 
-import io.wispforest.accessories.api.AccessoriesStorage;
-import io.wispforest.accessories.api.AccessoriesStorageLookup;
-import io.wispforest.accessories.pond.AccessoriesRenderStateAPI;
-import io.wispforest.accessories.pond.AccessoriesRenderStateExtension;
+import io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
-import net.minecraft.world.entity.LivingEntity;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.util.context.ContextKey;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
 @Mixin(LivingEntityRenderState.class)
-public abstract class LivingEntityRenderStateMixin implements AccessoriesRenderStateAPI, AccessoriesRenderStateExtension {
+public abstract class LivingEntityRenderStateMixin implements AccessoriesRenderStateAPImpl {
 
     @Unique
-    @Nullable
-    private LivingEntity livingEntity = null;
-
-    @Unique
-    @Nullable
-    private AccessoriesStorageLookup storageLookup = null;
-
-    @Unique
-    private UUID entityUUID = UUID.randomUUID();
-
-    @Unique
-    private float partialTicks = 0;
+    private final Reference2ObjectMap<ContextKey<?>, Object> keyToData = new Reference2ObjectOpenHashMap<>();
 
     @Override
-    public void accessories$setEntity(LivingEntity livingEntity) {
-        this.livingEntity = livingEntity;
-    }
-
-    @Override
-    public void accessories$setPartialTicks(float value) {
-        this.partialTicks = value;
-    }
-
-    @Override
-    public void accessories$storageLookup(Map<String, AccessoriesStorage> map) {
-        this.storageLookup = map.isEmpty() ? null : () -> map;
-    }
-
-    @Override
-    public void accessoreis$setEntityUUID(UUID uuid) {
-        this.entityUUID = uuid;
-    }
-
-    @Override
-    public Optional<LivingEntity> getEntityForState() {
-        return Optional.ofNullable(this.livingEntity);
-    }
-
-    @Override
-    @Nullable
-    public AccessoriesStorageLookup getStorageLookup() {
-        return this.storageLookup;
-    }
-
-    @Override
-    public UUID getEntityUUIDForState() {
-        return this.entityUUID;
-    }
-
-    @Override
-    public float getEntityPartialTicksForState() {
-        return this.partialTicks;
+    public Reference2ObjectMap<ContextKey<?>, Object> contextKeyToContextData() {
+        return keyToData;
     }
 }

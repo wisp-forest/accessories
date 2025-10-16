@@ -1,7 +1,5 @@
 package io.wispforest.accessories.client.gui.components;
 
-import com.mojang.blaze3d.opengl.GlStateManager;
-import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.math.Axis;
 import io.wispforest.accessories.pond.CosmeticArmorLookupTogglable;
 import io.wispforest.owo.ui.component.EntityComponent;
@@ -9,11 +7,8 @@ import io.wispforest.owo.ui.core.Component;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
 import io.wispforest.owo.ui.core.Sizing;
 import io.wispforest.owo.ui.renderstate.EntityElementRenderState;
-import io.wispforest.owo.ui.util.MatrixStackTransformer;
-import io.wispforest.owo.util.pond.OwoEntityRenderDispatcherExtension;
-import net.caffeinemc.mods.sodium.mixin.core.render.world.EntityRendererAccessor;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
-import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
@@ -22,7 +17,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix3x2f;
 import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
 
@@ -222,11 +216,9 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
             living.yHeadRot = living.yBodyRot;
             living.yHeadRotO = living.yBodyRotO;
 
-            var renderer = (EntityRenderer) this.dispatcher.getRenderer(this.entity);
+            var renderer = (EntityRenderer) this.manager.getRenderer(this.entity);
 
-            var entityState = renderer.createRenderState();
-
-            CosmeticArmorLookupTogglable.runWithLookupToggle(this.entity, () -> renderer.extractRenderState(this.entity, entityState, partialTicks));
+            var entityState = renderer.createRenderState(this.entity, partialTicks);
 
             entityState.x = 0;
             entityState.y = 0;
@@ -321,20 +313,22 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
     }
 
     @Override
-    public boolean onKeyPress(int keyCode, int scanCode, int modifiers) {
-        if(keyCode == GLFW.GLFW_KEY_LEFT) {
+    public boolean onKeyPress(KeyEvent input) {
+        var keycode = input.key();
+
+        if(keycode == GLFW.GLFW_KEY_LEFT) {
             this.xOffset -= 0.05f;
-        } else if(keyCode == GLFW.GLFW_KEY_RIGHT) {
+        } else if(keycode == GLFW.GLFW_KEY_RIGHT) {
             this.xOffset += 0.05f;
         }
 
-        if(keyCode == GLFW.GLFW_KEY_UP) {
+        if(keycode == GLFW.GLFW_KEY_UP) {
             this.yOffset += 0.05f;
-        } else if(keyCode == GLFW.GLFW_KEY_DOWN) {
+        } else if(keycode == GLFW.GLFW_KEY_DOWN) {
             this.yOffset -= 0.05f;
         }
 
-        return super.onKeyPress(keyCode, scanCode, modifiers);
+        return super.onKeyPress(input);
     }
 
     public enum ScaleFitType {

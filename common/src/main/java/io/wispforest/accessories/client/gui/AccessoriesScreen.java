@@ -37,6 +37,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.ErrorScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -246,23 +247,23 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (AccessoriesClient.OPEN_SCREEN.matches(keyCode, scanCode)) {
+    public boolean keyPressed(KeyEvent input) {
+        if (AccessoriesClient.OPEN_SCREEN.matches(input)) {
             this.onClose();
             return true;
         }
 
-        if (keyCode == GLFW.GLFW_KEY_ESCAPE && this.getDefaultedData(PlayerOptions.ADVANCED_SETTINGS)) {
+        if (input.key() == GLFW.GLFW_KEY_ESCAPE && this.getDefaultedData(PlayerOptions.ADVANCED_SETTINGS)) {
             toggleAdvancedOptions(this.component(ButtonComponent.class, "advanced_options_btn"));
 
             return false;
         }
 
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(input);
     }
 
     @Override
-    protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop, int mouseButton) {
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop) {
         for (var rect : getComponentRectangles()) {
             if (rect.isInBoundingBox(mouseX, mouseY)) {
                 return false;
@@ -347,10 +348,10 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
 
         //--
 
-        if (getHoveredSlot() != null && getHoveredSlot() instanceof AccessoriesInternalSlot slot && slot.isActive() && !slot.getItem().isEmpty()) {
+        if (hoveredSlot != null && hoveredSlot instanceof AccessoriesInternalSlot slot && slot.isActive() && !slot.getItem().isEmpty()) {
             var positions = AccessoriesFunkyRenderingState.INSTANCE.getNotVeryNicePositions();
 
-            var positionKey = slot.accessoriesContainer.getSlotName() + slot.getContainerSlot();
+            var positionKey = slot.slotPath();
 
             if (positions.containsKey(positionKey)) {
                 hoveredAccessoryPositons.add(positions.get(positionKey));
@@ -491,7 +492,6 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
                                 .child(offhandComponent)
                                 .allowOverflow(true)
                                 .positioning(Positioning.absolute(-(18 + 4 + 7), 51))
-                                .zIndex(10)
 //                                .margins(Insets.top(54 + 4))
                 )
                 .child(
@@ -598,7 +598,6 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
                                     .padding(Insets.of(7))
                                     .margins(Insets.left(-7))
                                     .positioning(Positioning.relative(0, 40))
-                                    .zIndex(200) // 140
                     )
                     .child(
                             outerRightArmorLayout
@@ -607,7 +606,6 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
                                     .padding(Insets.of(7))
                                     .margins(Insets.right(-7))
                                     .positioning(Positioning.relative(100, 40))
-                                    .zIndex(200) // 140
                     )
                     .child(
                             ComponentUtils.createIconButton(

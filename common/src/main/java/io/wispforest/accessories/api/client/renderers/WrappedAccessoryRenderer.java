@@ -1,12 +1,14 @@
 package io.wispforest.accessories.api.client.renderers;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import io.wispforest.accessories.api.AccessoriesStorageLookup;
+import io.wispforest.accessories.api.client.AccessoryRenderState;
 import io.wispforest.accessories.api.slot.SlotPath;
-import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.world.entity.HumanoidArm;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
 public class WrappedAccessoryRenderer implements AccessoryRenderer {
@@ -18,22 +20,32 @@ public class WrappedAccessoryRenderer implements AccessoryRenderer {
     }
 
     @Override
-    public <S extends LivingEntityRenderState> void render(ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
-        delegate.render(stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks);
+    public <S extends LivingEntityRenderState> void render(AccessoryRenderState accessoryState, S entityState, EntityModel<S> model, PoseStack matrices, SubmitNodeCollector collector) {
+        this.delegate.render(accessoryState, entityState, model, matrices, collector);
     }
 
     @Override
-    public boolean shouldRender(boolean isRendering) {
-        return delegate.shouldRender(isRendering);
+    public AccessoryRenderState createRenderState(ItemStack stack, SlotPath path, AccessoriesStorageLookup storageLookup, LivingEntity entity, LivingEntityRenderState renderState) {
+        return this.delegate.createRenderState(stack, path, storageLookup, entity, renderState);
     }
 
     @Override
-    public <S extends LivingEntityRenderState> boolean shouldRenderInFirstPerson(HumanoidArm arm, ItemStack stack, SlotPath path, S renderState) {
-        return delegate.shouldRenderInFirstPerson(arm, stack, path, renderState);
+    public void extractRenderState(ItemStack stack, SlotPath path, AccessoriesStorageLookup storageLookup, LivingEntity entity, LivingEntityRenderState entityState, AccessoryRenderState accessoryState) {
+        this.delegate.extractRenderState(stack, path, storageLookup, entity, entityState, accessoryState);
     }
 
     @Override
-    public <S extends LivingEntityRenderState> void renderOnFirstPerson(HumanoidArm arm, ItemStack stack, SlotPath path, PoseStack matrices, EntityModel<S> model, S renderState, MultiBufferSource multiBufferSource, int light, float partialTicks) {
-        delegate.renderOnFirstPerson(arm, stack, path, matrices, model, renderState, multiBufferSource, light, partialTicks);
+    public boolean shouldCreateStackRenderState() {
+        return this.delegate.shouldCreateStackRenderState();
+    }
+
+    @Override
+    public boolean shouldRender(ItemStack stack, SlotPath path, AccessoriesStorageLookup storageLookup, LivingEntity entity, LivingEntityRenderState renderState, boolean isRendering) {
+        return this.delegate.shouldRender(stack, path, storageLookup, entity, renderState, isRendering);
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return this.delegate.isEmpty();
     }
 }
