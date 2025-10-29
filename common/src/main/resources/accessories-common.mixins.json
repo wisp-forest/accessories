@@ -25,6 +25,7 @@
     "EndermanMixin",
     "EquipmentSlotMixin",
     "EquipmentSlotTypeMixin",
+    "ContainerMixin",
     "InventoryMixin",
     "LevelRendererAccessor",
     "LivingEntityAccessor",

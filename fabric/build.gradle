@@ -57,8 +57,10 @@ dependencies {
     var type = rootProject.properties.get("item_viewer_type");
 
     modCompileOnly("me.shedaniel:RoughlyEnoughItems-api-fabric:${rootProject.rei_version}")
-    modCompileOnly("dev.emi:emi-fabric:${rootProject.emi_version}:api")
+    //modCompileOnly("dev.emi:emi-fabric:${rootProject.emi_version}:api")
     modCompileOnly("mezz.jei:jei-${rootProject.minecraft_version}-fabric-api:${rootProject.jei_version}")
+
+    modImplementation("maven.modrinth:sodium:mc1.20.1-0.5.13-fabric")
 
     if(type == "rei") {
         modLocalRuntime("me.shedaniel:RoughlyEnoughItems-fabric:${rootProject.rei_version}")

@@ -3,7 +3,9 @@
   "package": "io.wispforest.accessories.fabric.mixin",
   "compatibilityLevel": "JAVA_17",
   "minVersion": "0.8",
-  "client": [],
+  "client": [
+    "sodium.MPOATVConstructingVertexConsumerMixin_SodiumImpl"
+  ],
   "mixins": [
     "LivingEntityMixin",
     "PlayerListMixin",

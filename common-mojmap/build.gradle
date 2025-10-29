@@ -27,7 +27,7 @@ private void setupTask(AbstractRemapJarTask targetTask, String taskName, String 
     targetTask.sourceNamespace = 'intermediary'
     targetTask.targetNamespace = 'named'
 
-    targetTask.remapperIsolation = true
+    //targetTask.remapperIsolation = true
 }
 
 tasks.named("build").configure {

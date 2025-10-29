@@ -80,5 +80,8 @@
         "io/wispforest/accessories/client/gui/AbstractButtonExtension"
       ]
     }
+  },
+  "breaks": {
+    "sodium": "<0.5.0"
   }
 }

@@ -1,5 +1,6 @@
 package io.wispforest.accessories.mixin;
 
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -18,6 +19,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.*;
@@ -76,7 +78,9 @@ public abstract class EnchantmentHelperMixin {
 
     @Unique
     private static boolean enchantmentValidForRedirect(Enchantment enchantment) {
-        return BuiltInRegistries.ENCHANTMENT.getHolder(BuiltInRegistries.ENCHANTMENT.getResourceKey(enchantment).orElseThrow()).orElseThrow()
-                .is(AccessoriesTags.VALID_FOR_REDIRECTION);
+        return BuiltInRegistries.ENCHANTMENT.getResourceKey(enchantment)
+            .flatMap(BuiltInRegistries.ENCHANTMENT::getHolder)
+            .map(ref -> ref.is(AccessoriesTags.VALID_FOR_REDIRECTION))
+            .orElse(false);
     }
 }
