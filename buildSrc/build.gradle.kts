@@ -14,5 +14,11 @@ repositories {
 dependencies {
     implementation("architectury-plugin:architectury-plugin.gradle.plugin:3.4-SNAPSHOT")
     implementation("dev.architectury:architectury-loom:1.11-SNAPSHOT")
+    implementation("com.github.johnrengelman.shadow:com.github.johnrengelman.shadow.gradle.plugin:8.1.1")
+
+    // Required to get Version Catalogs to show in buildSrc
+    implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.6.2")
 }
 

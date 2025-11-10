@@ -1,0 +1,132 @@
+# This file contains variours adjustable versioning used for depedencies for the given platforms using Version Catalog API in gradle
+
+[versions]
+java = "21"
+
+minecraft = "1.21.10"
+minecraft_base = "1.21.10"
+
+neoforge_minecraft_range = "[1.21.10,)"
+fabric_minecraft_range = "~1.21.10"
+
+# https://parchmentmc.org/docs/getting-started
+parchment = "2025.10.12"
+
+# Core Libs
+
+fabric_loader = "0.17.2"           # https://fabricmc.net/develop
+fabric_api    = "0.135.0+1.21.10"    # https://fabricmc.net/develop
+
+fabric_loader_range=">=0.16.9"
+fabric_api_range="*"
+
+neoforge      = "21.10.16-beta"      # https://projects.neoforged.net/neoforged/neoforge
+ffapi_base    = "0.4.42+d1308dedd1"
+
+neoforge_range="[21.10.16-beta,)"
+neoforge_loader_range="[4,)"
+
+# Libs
+
+mixinextras = "0.5.0"
+
+modmenu = "16.0.0-rc.1"        # https://modrinth.com/mod/modmenu/versions
+
+endec         = "0.1.11"
+endec_netty   = "0.1.5"
+endec_gson    = "0.1.6"
+endec_jankson = "0.1.6"
+
+owo_fabric   = "0.12.24+1.21.9"
+owo_neoforge = "0.12.26+1.21.9"
+
+owo_fabric_range   = ">=0.12.24+1.21.9"
+owo_neoforge_range = "[0.12.26+1.21.9,)"
+
+jankson = "1.2.2"
+
+# Item Viewers
+
+# Item Viewer Info 
+rei      = "20.0.811"
+arch_api = "17.0.8"               # https://modrinth.com/mod/architectury-api/versions
+
+emi = "1.1.18+1.21.1"
+
+jei_minecraft="1.21.10"
+jei="26.1.0.16"
+
+# Types: none, rei, emi
+item_viewer_type = "none"
+
+# Compat Mods
+
+sodium="mc1.21.8-0.7.0"
+
+geckolib_minecraft="1.21.8"
+geckolib="5.2.2"
+
+curios="10.0.1+1.21.4"
+
+trinkets="3.10.0"
+
+[libraries]
+
+# Common
+
+fabric_loader = { module = "net.fabricmc:fabric-loader", version.ref = "fabric_loader"}
+
+endec         = { module = "io.wispforest:endec", version.ref = "endec" }
+endec_netty   = { group = "io.wispforest.endec", name = "netty", version.ref = "endec_netty" }
+endec_gson    = { group = "io.wispforest.endec", name = "gson", version.ref = "endec_gson" }
+endec_jankson = { group = "io.wispforest.endec", name = "jankson", version.ref = "endec_jankson" }
+
+jankson = { module = "blue.endless:jankson", version.ref = "jankson" }
+
+mixin_extras_common = { module = "io.github.llamalad7:mixinextras-common", version.ref = "mixinextras" }
+
+rei_common_api = { module = "me.shedaniel:RoughlyEnoughItems-api", version.ref = "rei" }
+rei_common     = { module = "me.shedaniel:RoughlyEnoughItems-default-plugin", version.ref = "rei" }
+
+emi_common = { group = "dev.emi", name = "emi-xplat-intermediary", version.ref = "emi"}
+
+jei_common_api = { group = "mezz.jei", name = "jei-${jei_minecraft}-common-api", version.ref = "jei"}
+jei_common = { group = "mezz.jei", name = "jei-${jei_minecraft}-common", version.ref = "jei"}
+
+geckolib_common = { group = "software.bernie.geckolib", name = "geckolib-common-${geckolib_minecraft}", version.ref = "geckolib"}
+
+# Fabric
+
+owolib_fabric = { module = "io.wispforest:owo-lib", version.ref = "owo_fabric" }
+
+fabric_api = { module = "net.fabricmc.fabric-api:fabric-api", version.ref = "fabric_api" }
+
+modmenu = { module = "com.terraformersmc:modmenu", version.ref = "modmenu" }
+
+rei_fabric_api = { module = "me.shedaniel:RoughlyEnoughItems-api-fabric", version.ref = "rei" }
+rei_fabric     = { module = "me.shedaniel:RoughlyEnoughItems-fabric", version.ref = "rei" }
+
+emi_fabric     = { group = "dev.emi", name = "emi-fabric", version.ref = "emi" }
+
+jei_fabric_api = { group = "mezz.jei", name = "jei-${jei_minecraft}-fabric-api", version.ref = "jei"}
+jei_fabric = { group = "mezz.jei", name = "jei-${jei_minecraft}-fabric", version.ref = "jei"}
+
+geckolib_fabric = { group = "software.bernie.geckolib", name = "geckolib-fabric-${geckolib_minecraft}", version.ref = "geckolib"}
+
+# Neoforge
+
+owolib_neo = { module = "io.wispforest:owo-lib-neoforge", version.ref = "owo_neoforge" }
+
+neoforge = { module = "net.neoforged:neoforge", version.ref = "neoforge" }
+
+ffapi_base = { module = "org.sinytra.forgified-fabric-api:fabric-api-base", version.ref = "ffapi_base"}
+
+rei_neoforge_api = { module = "me.shedaniel:RoughlyEnoughItems-api-neoforge", version.ref = "rei" }
+rei_neoforge     = { module = "me.shedaniel:RoughlyEnoughItems-neoforge", version.ref = "rei" }
+
+emi_neoforge =     { group = "dev.emi", name = "emi-neoforge", version.ref = "emi" }
+
+jei_neoforge_api = { group = "mezz.jei", name = "jei-${jei_minecraft}-neoforge-api", version.ref = "jei"}
+jei_neoforge = { group = "mezz.jei", name = "jei-${jei_minecraft}-neoforge", version.ref = "jei"}
+
+geckolib_neoforge = { group = "software.bernie.geckolib", name = "geckolib-neoforge-${geckolib_minecraft}", version.ref = "geckolib"}

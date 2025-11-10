@@ -1,15 +1,22 @@
+import io.wispforest.helpers.Extensions.libs
+import io.wispforest.helpers.Utils
+
 plugins {
     id("java-library")
     id("maven-publish")
 }
 
-val ENV = System.getenv()
-
+/**
+ * Handles the ability to publish either the common, neoforge, or fabric module. Common also publishes one in Mojang Mappings
+ * and sets up the maven credentials within [Utils.setupMavenRepo]
+ */
 publishing {
+    var modid = Utils.modId(rootProject)
+
     publications {
         create<MavenPublication>("mavenCommon") {
             val name = project.name
-            artifactId = "${rootProject.property("archives_base_name")}${(if(name.isEmpty()) "" else "-${name.replace("-mojmap", "")}")}"
+            artifactId = "${modid}${(if(name.isEmpty()) "" else "-${name.replace("-mojmap", "")}")}"
             afterEvaluate {
                 this@create.from(components["java"])
             }
@@ -19,8 +26,8 @@ publishing {
             create<MavenPublication>("mavenMojmap") {
                 val name = project.name
 
-                version = "${rootProject.property("mod_version")}+${rootProject.property("minecraft_base_version")}-mojmap"
-                artifactId = "${rootProject.property("archives_base_name")}-${name}"
+                version = "${rootProject.property("mod_version")}+${libs.versions.minecraft.asProvider().get()}-mojmap"
+                artifactId = "${modid}-${name}"
 
                 afterEvaluate {
                     this@create.from(components["java"])
@@ -42,19 +49,5 @@ publishing {
         }
     }
 
-    var mavenUrl = ENV["MAVEN_URL"]
-    var mavenUser = ENV["MAVEN_USER"]
-    var mavenPassword = ENV["MAVEN_PASSWORD"]
-
-    if (mavenUrl != null && mavenUser != null && mavenPassword != null) {
-        repositories {
-            maven {
-                url = uri(mavenUrl)
-                credentials {
-                    username = mavenUser
-                    password = mavenPassword
-                }
-            }
-        }
-    }
+    Utils.setupMavenRepo(rootProject, repositories)
 }

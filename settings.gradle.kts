@@ -9,13 +9,16 @@ pluginManagement {
     }
 }
 
-include("neoforge-publish")
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("libs") {
+            from(files("libs.versions.toml"))
+        }
+    }
+}
 
 include("common")
 include("fabric")
 include("neoforge")
-
-//include("cclayer")
-//include("tclayer")
 
 rootProject.name = "accessories"

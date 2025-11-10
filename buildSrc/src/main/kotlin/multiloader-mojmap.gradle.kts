@@ -1,3 +1,4 @@
+import io.wispforest.helpers.Utils
 import net.fabricmc.loom.LoomGradleExtension
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace
 import net.fabricmc.loom.task.AbstractRemapJarTask
@@ -9,12 +10,18 @@ plugins {
     id("multiloader-publishing")
 }
 
-val mojmapJar = tasks.register<RemapJarTask>("mojmapJar") {
-    setupTask(this, "remapJar", "")
-}
+if (Utils.currentPlatform(project) == "common") {
+    val mojmapJar = tasks.register<RemapJarTask>("mojmapJar") {
+        setupTask(this, "remapJar", "")
+    }
 
-val mojmapSourcesJar = tasks.register<RemapSourcesJarTask>("mojmapSourcesJar") {
-    setupTask(this, "remapSourcesJar", "sources")
+    val mojmapSourcesJar = tasks.register<RemapSourcesJarTask>("mojmapSourcesJar") {
+        setupTask(this, "remapSourcesJar", "sources")
+    }
+
+    tasks.named("build").configure {
+        dependsOn(mojmapJar, mojmapSourcesJar)
+    }
 }
 
 fun setupTask(targetTask: AbstractRemapJarTask, taskName: String, archiveClassifier: String) {
@@ -34,14 +41,20 @@ fun setupTask(targetTask: AbstractRemapJarTask, taskName: String, archiveClassif
     //targetTask.remapperIsolation = true
 
     targetTask.mustRunAfter(
-        tasks.named("generateMetadataFileForMavenCommonPublication"),
-        tasks.named("generateMetadataFileForMavenMojmapPublication"),
-        tasks.named("publishMavenCommonPublicationToMavenLocal"),
-        tasks.named("publishMavenCommonPublicationToMavenRepository"),
-        //tasks.named("publishMavenMojmapPublicationToMavenLocal")
+        mutableListOf(
+            tasks.namedOrNull("generateMetadataFileForMavenCommonPublication"),
+            tasks.namedOrNull("generateMetadataFileForMavenMojmapPublication"),
+            tasks.namedOrNull("publishMavenCommonPublicationToMavenLocal"),
+            tasks.namedOrNull("publishMavenCommonPublicationToMavenRepository"),
+            tasks.namedOrNull("publishMavenMojmapPublicationToMavenLocal")
+        ).filterNotNull()
     )
 }
 
-tasks.named("build").configure {
-    dependsOn(mojmapJar, mojmapSourcesJar)
+inline fun <reified T: Task> TaskCollection<T>.namedOrNull(name: String): TaskProvider<T>? {
+    return try {
+        this.named<T>(name)
+    } catch (_: UnknownTaskException) {
+        null
+    }
 }
