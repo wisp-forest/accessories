@@ -120,12 +120,12 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
 
     @Inject(method = "onEquippedItemBroken", at = @At("HEAD"), cancellable = true)
     private void sendAccessoriesBreakInstead(Item item, EquipmentSlot slot, CallbackInfo ci){
-        if(slot.equals(AccessoriesInternals.INTERNAL_SLOT)) ci.cancel();
+        if(slot.equals(AccessoriesInternals.INSTANCE.getInternalEquipmentSlot())) ci.cancel();
     }
 
     @Inject(method = "entityEventForEquipmentBreak", at = @At("HEAD"), cancellable = true)
     private static void preventMatchExceptionForAccessories(EquipmentSlot slot, CallbackInfoReturnable<Byte> cir) {
-        if(slot.equals(AccessoriesInternals.INTERNAL_SLOT)) cir.setReturnValue((byte) -1);
+        if(slot.equals(AccessoriesInternals.INSTANCE.getInternalEquipmentSlot())) cir.setReturnValue((byte) -1);
     }
 
     public void onEquipItem(SlotReference slotReference, ItemStack oldItem, ItemStack newItem) {
@@ -230,10 +230,10 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
             if (!gliders.isEmpty()) {
                 var glider = Util.getRandom(gliders, this.random);
 
-                if (LivingEntity.canGlideUsing(glider.stack(), AccessoriesInternals.INTERNAL_SLOT)) {
+                if (LivingEntity.canGlideUsing(glider.stack(), AccessoriesInternals.INSTANCE.getInternalEquipmentSlot())) {
                     slotReference.set(glider.reference());
 
-                    instance = Stream.concat(instance, Stream.of(AccessoriesInternals.INTERNAL_SLOT));
+                    instance = Stream.concat(instance, Stream.of(AccessoriesInternals.INSTANCE.getInternalEquipmentSlot()));
                 }
             }
         }
@@ -243,7 +243,7 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
 
     @WrapOperation(method = "updateFallFlying", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getItemBySlot(Lnet/minecraft/world/entity/EquipmentSlot;)Lnet/minecraft/world/item/ItemStack;"))
     private ItemStack accessories$adjustGottenStack(LivingEntity instance, EquipmentSlot equipmentSlot, Operation<ItemStack> original, @Share("slotReference") LocalRef<@Nullable SlotReference> slotReference) {
-        if (equipmentSlot != AccessoriesInternals.INTERNAL_SLOT) return original.call(instance, equipmentSlot);
+        if (equipmentSlot != AccessoriesInternals.INSTANCE.getInternalEquipmentSlot()) return original.call(instance, equipmentSlot);
 
         var stack = slotReference.get().getStack();
 
@@ -272,7 +272,7 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
         if (gliders.isEmpty()) return;
 
         for (var glider : gliders) {
-            if (LivingEntity.canGlideUsing(glider.stack(), AccessoriesInternals.INTERNAL_SLOT)) {
+            if (LivingEntity.canGlideUsing(glider.stack(), AccessoriesInternals.INSTANCE.getInternalEquipmentSlot())) {
                 cir.setReturnValue(true);
             }
         }
@@ -280,6 +280,6 @@ public abstract class LivingEntityMixin extends Entity implements AccessoriesAPI
 
     @WrapOperation(method = "canGlideUsing", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/equipment/Equippable;slot()Lnet/minecraft/world/entity/EquipmentSlot;"))
     private static EquipmentSlot accessories$changeEquipmentSlot(Equippable instance, Operation<EquipmentSlot> original, @Local(argsOnly = true) EquipmentSlot equipmentSlot) {
-        return (equipmentSlot == AccessoriesInternals.INTERNAL_SLOT) ? AccessoriesInternals.INTERNAL_SLOT : original.call(instance);
+        return (equipmentSlot == AccessoriesInternals.INSTANCE.getInternalEquipmentSlot()) ? AccessoriesInternals.INSTANCE.getInternalEquipmentSlot() : original.call(instance);
     }
 }

@@ -111,7 +111,7 @@ public final class AccessoryAttributeBuilder {
 
         var innerMap = this.exclusiveAttributes.computeIfAbsent(attribute, attributeHolder -> new HashMap<>());
 
-        if(AccessoriesLoaderInternals.isDevelopmentEnv() && innerMap.containsKey(id) && !this.previouslyWarnedLocations.contains(id)) {
+        if(AccessoriesLoaderInternals.INSTANCE.isDevelopmentEnv() && innerMap.containsKey(id) && !this.previouslyWarnedLocations.contains(id)) {
             LOGGER.warn("A given Modifier was found to have a duplicate location but was added as exclusive, was such on purpose as such will not stack with the other: {}", id);
 
             this.previouslyWarnedLocations.add(id);

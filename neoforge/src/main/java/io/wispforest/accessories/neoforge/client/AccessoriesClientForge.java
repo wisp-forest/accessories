@@ -7,7 +7,7 @@ import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.accessories.data.api.SyncedDataHelperManager;
 import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
-import io.wispforest.accessories.neoforge.AccessoriesInternalsImpl;
+import io.wispforest.accessories.neoforge.AccessoriesNeoforgeInternals;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
@@ -49,7 +49,7 @@ public class AccessoriesClientForge {
     }
 
     public void registerReloadListeners(AddClientReloadListenersEvent event){
-        var loaders = AccessoriesInternalsImpl.TO_BE_LOADED.getOrDefault(PackType.CLIENT_RESOURCES, new LinkedHashMap<>());
+        var loaders = AccessoriesNeoforgeInternals.TO_BE_LOADED.getOrDefault(PackType.CLIENT_RESOURCES, new LinkedHashMap<>());
 
         loaders.forEach((endecDataLoader, obj) -> event.addListener(endecDataLoader.getId(), endecDataLoader));
 

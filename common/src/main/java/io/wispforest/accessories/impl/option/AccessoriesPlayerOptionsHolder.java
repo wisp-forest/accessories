@@ -47,7 +47,7 @@ public class AccessoriesPlayerOptionsHolder implements InstanceEndec, PlayerOpti
     public AccessoriesPlayerOptionsHolder() {}
 
     public static AccessoriesPlayerOptionsHolder getOptions(Player player) {
-        return AccessoriesInternals.getPlayerOptions(player);
+        return AccessoriesInternals.INSTANCE.getPlayerOptions(player);
     }
 
     public boolean hasData(PlayerOption<?> option) {

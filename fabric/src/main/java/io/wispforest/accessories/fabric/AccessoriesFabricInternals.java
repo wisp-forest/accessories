@@ -2,6 +2,7 @@ package io.wispforest.accessories.fabric;
 
 import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
@@ -28,6 +29,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -44,17 +46,18 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-public class AccessoriesInternalsImpl {
+public class AccessoriesFabricInternals extends AccessoriesInternals {
 
-    public static AccessoriesHolderImpl getHolder(LivingEntity livingEntity){
+    public AccessoriesHolderImpl getHolder(LivingEntity livingEntity){
         return livingEntity.getAttachedOrCreate(AccessoriesFabric.HOLDER_ATTACHMENT_TYPE);
     }
 
-    public static void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolderImpl> modifier){
+    public void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolderImpl> modifier){
         var holder = (AccessoriesHolderImpl) getHolder(livingEntity);
 
         holder = modifier.apply(holder);
@@ -62,11 +65,11 @@ public class AccessoriesInternalsImpl {
         livingEntity.setAttached(AccessoriesFabric.HOLDER_ATTACHMENT_TYPE, holder);
     }
 
-    public static AccessoriesPlayerOptionsHolder getPlayerOptions(Player player) {
+    public AccessoriesPlayerOptionsHolder getPlayerOptions(Player player) {
         return player.getAttachedOrCreate(AccessoriesFabric.PLAYER_OPTIONS_ATTACHMENT_TYPE);
     }
 
-    public static void modifyPlayerOptions(Player player, UnaryOperator<AccessoriesPlayerOptionsHolder> modifier) {
+    public void modifyPlayerOptions(Player player, UnaryOperator<AccessoriesPlayerOptionsHolder> modifier) {
         var options = getPlayerOptions(player);
 
         options = modifier.apply(options);
@@ -76,7 +79,7 @@ public class AccessoriesInternalsImpl {
 
     //--
 
-    public static void giveItemToPlayer(ServerPlayer player, ItemStack stack) {
+    public void giveItemToPlayer(ServerPlayer player, ItemStack stack) {
         if(stack.isEmpty()) return;
 
         try(var transaction = Transaction.openOuter()) {
@@ -85,15 +88,15 @@ public class AccessoriesInternalsImpl {
         }
     }
 
-    public static boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, SimplePreparableReloadListener listener, @Nullable RegistryOps.RegistryInfoLookup registryInfo) {
+    public boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, SimplePreparableReloadListener listener, @Nullable RegistryOps.RegistryInfoLookup registryInfo) {
         return ResourceConditionsImpl.applyResourceConditions(object, dataType, key, registryInfo);
     }
 
-    public static <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(ResourceLocation location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func){
+    public <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(ResourceLocation location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func){
         return Registry.register(BuiltInRegistries.MENU, location, new ExtendedScreenHandlerType<>(func::apply, CodecUtils.toPacketCodec(endec)));
     }
 
-    public static void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
+    public void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         player.openMenu(new ExtendedScreenHandlerFactory<AccessoriesMenuData>() {
             @Override
             public AccessoriesMenuData getScreenOpeningData(ServerPlayer player) {
@@ -116,7 +119,7 @@ public class AccessoriesInternalsImpl {
         });
     }
 
-    public static void addAttributeTooltips(@Nullable Player player, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, Consumer<Component> tooltipAddCallback, TooltipDisplay display, Item.TooltipContext context, TooltipFlag flag) {
+    public void addAttributeTooltips(@Nullable Player player, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, Consumer<Component> tooltipAddCallback, TooltipDisplay display, Item.TooltipContext context, TooltipFlag flag) {
         var itemAttributeDisplay = new ItemAttributeModifiers.Display.Default();
 
         for (Map.Entry<Holder<Attribute>, AttributeModifier> entry : multimap.entries()) {
@@ -124,7 +127,7 @@ public class AccessoriesInternalsImpl {
         }
     }
 
-    public static Function<PreparableReloadListener.SharedState, HolderLookup.@Nullable Provider> registerLoader(PackType packType, EndecDataLoader<?> dataLoader) {
+    public Function<PreparableReloadListener.SharedState, HolderLookup.@Nullable Provider> registerLoader(PackType packType, EndecDataLoader<?> dataLoader) {
         var loader = ResourceLoader.get(packType);
 
         var id = dataLoader.getId();

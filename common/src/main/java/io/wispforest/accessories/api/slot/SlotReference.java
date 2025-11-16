@@ -69,7 +69,7 @@ public non-sealed interface SlotReference extends DelegatingSlotPath {
         if (currentStack != null) {
             ((AccessoriesLivingEntityExtension) entity).pushEnchantmentContext(currentStack, this);
 
-            EnchantmentHelper.stopLocationBasedEffects(currentStack, entity, AccessoriesInternals.INTERNAL_SLOT);
+            EnchantmentHelper.stopLocationBasedEffects(currentStack, entity, AccessoriesInternals.INSTANCE.getInternalEquipmentSlot());
         }
     }
 

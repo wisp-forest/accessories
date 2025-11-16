@@ -30,7 +30,7 @@ public abstract class EnchantmentMixin {
 
     @Inject(method = "runLocationChangedEffects", at = @At("HEAD"), cancellable = true)
     private void failSafeForInvalidRecordObjects1(ServerLevel level, int enchantmentLevel, EnchantedItemInUse item, LivingEntity entity, CallbackInfo ci) {
-        if(item.inSlot() == AccessoriesInternals.INTERNAL_SLOT) {
+        if(item.inSlot() == AccessoriesInternals.INSTANCE.getInternalEquipmentSlot()) {
             var ref = ((EnchantedItemInUseExtension) (Object) item).getSlotReference();
 
             if (ref == null) ci.cancel();
@@ -39,7 +39,7 @@ public abstract class EnchantmentMixin {
 
     @Inject(method = "stopLocationBasedEffects", at = @At("HEAD"), cancellable = true)
     private void failSafeForInvalidRecordObjects2(int enchantmentLevel, EnchantedItemInUse item, LivingEntity entity, CallbackInfo ci) {
-        if(item.inSlot() == AccessoriesInternals.INTERNAL_SLOT) {
+        if(item.inSlot() == AccessoriesInternals.INSTANCE.getInternalEquipmentSlot()) {
             var ref = ((EnchantedItemInUseExtension) (Object) item).getSlotReference();
 
             if (ref == null) ci.cancel();
@@ -48,7 +48,7 @@ public abstract class EnchantmentMixin {
 
     @WrapOperation(method = "runLocationChangedEffects", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/enchantment/Enchantment;matchingSlot(Lnet/minecraft/world/entity/EquipmentSlot;)Z"))
     private boolean checkIfEnchantmentValid(Enchantment instance, EquipmentSlot slot, Operation<Boolean> original, @Local(argsOnly = true) ServerLevel level){
-        return slot.equals(AccessoriesInternals.INTERNAL_SLOT)
+        return slot.equals(AccessoriesInternals.INSTANCE.getInternalEquipmentSlot())
                 ? original.call(instance, slot)
                 : enchantmentValidForRedirect(level.registryAccess(), instance);
     }
@@ -58,7 +58,7 @@ public abstract class EnchantmentMixin {
             "stopLocationBasedEffects"
     }, at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;activeLocationDependentEnchantments(Lnet/minecraft/world/entity/EquipmentSlot;)Ljava/util/Map;"))
     private Map<Enchantment, Set<EnchantmentLocationBasedEffect>> adjustMapLookupForRecord(LivingEntity instance, EquipmentSlot slot, Operation<Map<Enchantment, Set<EnchantmentLocationBasedEffect>>> original, @Local(argsOnly = true) EnchantedItemInUse item) {
-        if (slot.equals(AccessoriesInternals.INTERNAL_SLOT)) {
+        if (slot.equals(AccessoriesInternals.INSTANCE.getInternalEquipmentSlot())) {
             var ref = ((EnchantedItemInUseExtension) (Object) item).getSlotReference();
 
             return (ref != null)

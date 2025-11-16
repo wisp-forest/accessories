@@ -154,7 +154,7 @@ public class AccessoriesEventHandler {
 
         container.setItem(reference.index(), ItemStack.EMPTY);
 
-        AccessoriesInternals.giveItemToPlayer(player, stack);
+        AccessoriesInternals.INSTANCE.giveItemToPlayer(player, stack);
     }
 
     public static void entityLoad(LivingEntity entity, Level level) {
@@ -268,7 +268,7 @@ public class AccessoriesEventHandler {
                             var removedEnchantmentBuilder = new AccessoryAttributeBuilder(slotReference);
 
                             // TODO: MAYBE MOVE THIS TO AccessoryAttributeLogic or something
-                            EnchantmentHelper.forEachModifier(lastStack, AccessoriesInternals.INTERNAL_SLOT, (attributeHolder, modifier) -> {
+                            EnchantmentHelper.forEachModifier(lastStack, AccessoriesInternals.INSTANCE.getInternalEquipmentSlot(), (attributeHolder, modifier) -> {
                                 var namespace = modifier.id().getNamespace();
                                 var splitPath = new ArrayList<>(List.of(modifier.id().getPath().split("/")));
 
@@ -281,13 +281,13 @@ public class AccessoriesEventHandler {
                             removedAttributesBuilder.addFrom(AccessoryAttributeLogic.getAttributeModifiers(lastStack, slotReference));
 
                             ((AccessoriesLivingEntityExtension) entity).pushEnchantmentContext(lastStack, slotReference);
-                            EnchantmentHelper.stopLocationBasedEffects(lastStack, entity, AccessoriesInternals.INTERNAL_SLOT);
+                            EnchantmentHelper.stopLocationBasedEffects(lastStack, entity, AccessoriesInternals.INSTANCE.getInternalEquipmentSlot());
                         }
 
                         if (!currentStack.isEmpty()) {
                             var addedEnchantmentBuilder = new AccessoryAttributeBuilder(slotReference);
 
-                            EnchantmentHelper.forEachModifier(currentStack, AccessoriesInternals.INTERNAL_SLOT, (attributeHolder, modifier) -> {
+                            EnchantmentHelper.forEachModifier(currentStack, AccessoriesInternals.INSTANCE.getInternalEquipmentSlot(), (attributeHolder, modifier) -> {
                                 var namespace = modifier.id().getNamespace();
                                 var splitPath = new ArrayList<>(List.of(modifier.id().getPath().split("/")));
 
@@ -300,7 +300,7 @@ public class AccessoriesEventHandler {
                             addedAttributesBuilder.addFrom(AccessoryAttributeLogic.getAttributeModifiers(currentStack, slotReference));
 
                             ((AccessoriesLivingEntityExtension) entity).pushEnchantmentContext(currentStack, slotReference);
-                            EnchantmentHelper.runLocationChangedEffects((ServerLevel) entity.level(), currentStack, entity, AccessoriesInternals.INTERNAL_SLOT);
+                            EnchantmentHelper.runLocationChangedEffects((ServerLevel) entity.level(), currentStack, entity, AccessoriesInternals.INSTANCE.getInternalEquipmentSlot());
                         }
 
                         AccessoryNestUtils.recursiveStackConsumption(lastStack, stack -> {
@@ -389,7 +389,7 @@ public class AccessoriesEventHandler {
 
         //--
 
-        var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
+        var holder = ((AccessoriesHolderImpl) AccessoriesInternals.INSTANCE.getHolder(entity));
 
         // Fix for holder data not being loaded so invalid stacks can be collected
         if (holder.loadedFromTag() && capability == null) {
@@ -401,7 +401,7 @@ public class AccessoriesEventHandler {
         if (!invalidStacks.isEmpty() && entity.level() instanceof ServerLevel serverLevel) {
             for (ItemStack invalidStack : invalidStacks) {
                 if (entity instanceof ServerPlayer serverPlayer) {
-                    AccessoriesInternals.giveItemToPlayer(serverPlayer, invalidStack);
+                    AccessoriesInternals.INSTANCE.giveItemToPlayer(serverPlayer, invalidStack);
                 } else {
                     entity.spawnAtLocation(serverLevel, invalidStack);
                 }
@@ -703,7 +703,7 @@ public class AccessoriesEventHandler {
     private static void addAttributeTooltip(LivingEntity entity, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, List<Component> tooltip, TooltipDisplay display, Item.TooltipContext context, TooltipFlag flag) {
         if (multimap.isEmpty()) return;
 
-        AccessoriesInternals.addAttributeTooltips((entity instanceof Player player ? player : null), stack, multimap, tooltip::add, display, context, flag);
+        AccessoriesInternals.INSTANCE.addAttributeTooltips((entity instanceof Player player ? player : null), stack, multimap, tooltip::add, display, context, flag);
     }
 
     @Nullable

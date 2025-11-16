@@ -73,7 +73,7 @@ public final class PlayerOption<T> {
             }
         }
 
-        AccessoriesInternals.modifyPlayerOptions(player, holder -> {
+        AccessoriesInternals.INSTANCE.modifyPlayerOptions(player, holder -> {
             holder.setData(this, (T) data);
 
             return holder;

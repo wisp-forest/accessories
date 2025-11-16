@@ -13,6 +13,7 @@ import io.wispforest.accessories.api.client.rendering.RenderingFunction.Deferred
 import io.wispforest.accessories.api.client.rendering.RenderingFunction.RawRenderer;
 import io.wispforest.accessories.data.api.SimpleManagedEndecDataLoader;
 import io.wispforest.accessories.utils.HashUtils;
+import io.wispforest.accessories.utils.ServerInstanceHolder;
 import io.wispforest.endec.format.gson.GsonDeserializer;
 import io.wispforest.owo.Owo;
 import net.minecraft.client.Minecraft;
@@ -354,7 +355,7 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
 
     // TODO: I KNOW ITS UNSAFEISH!!!!
     private @NotNull ResourceManager getResourceManager(boolean isClientSide) {
-        if (!isClientSide) return Owo.currentServer().getResourceManager();
+        if (!isClientSide) return ServerInstanceHolder.getInstance().getResourceManager();
 
         return getClientManger();
     }

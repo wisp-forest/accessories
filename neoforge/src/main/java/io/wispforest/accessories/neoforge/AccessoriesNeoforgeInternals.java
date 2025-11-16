@@ -3,6 +3,7 @@ package io.wispforest.accessories.neoforge;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
+import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
@@ -56,13 +57,13 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-public class AccessoriesInternalsImpl {
+public class AccessoriesNeoforgeInternals extends AccessoriesInternals {
 
-    public static AccessoriesHolderImpl getHolder(LivingEntity livingEntity){
+    public AccessoriesHolderImpl getHolder(LivingEntity livingEntity){
         return livingEntity.getData(AccessoriesForge.HOLDER_ATTACHMENT_TYPE);
     }
 
-    public static void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolderImpl> modifier){
+    public void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolderImpl> modifier){
         var holder = getHolder(livingEntity);
 
         holder = modifier.apply(holder);
@@ -70,11 +71,11 @@ public class AccessoriesInternalsImpl {
         livingEntity.setData(AccessoriesForge.HOLDER_ATTACHMENT_TYPE, holder);
     }
 
-    public static AccessoriesPlayerOptionsHolder getPlayerOptions(Player player) {
+    public AccessoriesPlayerOptionsHolder getPlayerOptions(Player player) {
         return player.getData(AccessoriesForge.PLAYER_OPTIONS_ATTACHMENT_TYPE);
     }
 
-    public static void modifyPlayerOptions(Player player, UnaryOperator<AccessoriesPlayerOptionsHolder> modifier) {
+    public void modifyPlayerOptions(Player player, UnaryOperator<AccessoriesPlayerOptionsHolder> modifier) {
         var options = getPlayerOptions(player);
 
         options = modifier.apply(options);
@@ -84,22 +85,22 @@ public class AccessoriesInternalsImpl {
 
     //--
 
-    public static void giveItemToPlayer(ServerPlayer player, ItemStack stack) {
+    public void giveItemToPlayer(ServerPlayer player, ItemStack stack) {
         // ItemHandlerHelper.giveItemToPlayer(player, stack);
         player.getInventory().placeItemBackInInventory(stack);
     }
 
-    public static boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, SimplePreparableReloadListener listener, @Nullable RegistryOps.RegistryInfoLookup registryInfo) {
+    public boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, SimplePreparableReloadListener listener, @Nullable RegistryOps.RegistryInfoLookup registryInfo) {
         return ICondition.conditionsMatched(((ContextAwareReloadListenerAccessor) listener).accessories$makeConditionalOps(), object);
     }
 
-    public static <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(ResourceLocation location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func) {
+    public <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(ResourceLocation location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func) {
         return Registry.register(BuiltInRegistries.MENU, location, IMenuTypeExtension.create((i, arg, arg2) -> {
             return func.apply(i, arg, endec.decodeFully(SerializationContext.attributes(RegistriesAttribute.of(arg2.registryAccess())), ByteBufDeserializer::of, arg2));
         }));
     }
 
-    public static void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
+    public void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         player.openMenu(
                 new MenuProvider() {
                     @Override
@@ -120,7 +121,7 @@ public class AccessoriesInternalsImpl {
                 });
     }
 
-    public static void addAttributeTooltips(@Nullable Player player, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, Consumer<Component> tooltipAddCallback, TooltipDisplay display, Item.TooltipContext context, TooltipFlag flag) {
+    public void addAttributeTooltips(@Nullable Player player, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, Consumer<Component> tooltipAddCallback, TooltipDisplay display, Item.TooltipContext context, TooltipFlag flag) {
         var neoTooltipCtx = AttributeTooltipContext.of(player, context, display, flag);
 
         var event = NeoForge.EVENT_BUS.post(new GatherSkippedAttributeTooltipsEvent(stack, neoTooltipCtx));
@@ -138,7 +139,7 @@ public class AccessoriesInternalsImpl {
 
     public static final Map<PackType, Map<EndecDataLoader<?>, MutableObject<HolderLookup.Provider>>> TO_BE_LOADED = new HashMap<>();
 
-    public static Function<PreparableReloadListener.SharedState, HolderLookup.@Nullable Provider> registerLoader(PackType type, EndecDataLoader<?> loader) {
+    public Function<PreparableReloadListener.SharedState, HolderLookup.@Nullable Provider> registerLoader(PackType type, EndecDataLoader<?> loader) {
         TO_BE_LOADED.computeIfAbsent(type, type1 -> new LinkedHashMap<>()).put(loader, new MutableObject<>(null));
 
         return sharedState -> {

@@ -88,7 +88,7 @@ public class AccessoriesHolderImpl implements InstanceEndec {
     public static AccessoriesHolderImpl getHolder(AccessoriesCapability capability) {
         var entity = capability.entity();
 
-        var holder = AccessoriesInternals.getHolder(entity);
+        var holder = AccessoriesInternals.INSTANCE.getHolder(entity);
 
         // If data has been yet to be loaded
         if (holder.loadedFromTag) {

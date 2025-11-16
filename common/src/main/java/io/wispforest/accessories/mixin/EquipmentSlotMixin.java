@@ -29,8 +29,7 @@ public abstract class EquipmentSlotMixin {
     // PUTSTATIC net/minecraft/world/entity/EquipmentSlot.$VALUES : [Lnet/minecraft/world/entity/EquipmentSlot;
     @Inject(method = "<clinit>", at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/EquipmentSlot;$VALUES:[Lnet/minecraft/world/entity/EquipmentSlot;", shift = At.Shift.AFTER, opcode = Opcodes.PUTSTATIC))
     private static void addInternalAccessoriesEquipmentSlot(CallbackInfo ci) {
-        AccessoriesInternals.INTERNAL_SLOT = EquipmentSlotMixin.invokeNew("ACCESSORIES", -1, AccessoriesInternals.ACCESSORIES_TYPE, 0, -1,  "accessories");
-
+        AccessoriesInternals.INSTANCE.setInternalEquipmentSlot(EquipmentSlotMixin.invokeNew("ACCESSORIES", -1, AccessoriesInternals.INSTANCE.getInternalEquipmentSlotType(), 0, -1,  "accessories"));
 //        $VALUES = ArrayUtils.buildWith(
 //                EquipmentSlot.class,
 //                $VALUES,

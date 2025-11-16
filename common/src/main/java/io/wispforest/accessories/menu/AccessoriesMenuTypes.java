@@ -21,7 +21,7 @@ public class AccessoriesMenuTypes {
     }
 
     private static <T extends AbstractContainerMenu> MenuType<T> registerMenuType(String path, TriFunction<Integer, Inventory, AccessoriesMenuData, T> func) {
-        return AccessoriesInternals.registerMenuType(Accessories.of(path), AccessoriesMenuData.ENDEC, func);
+        return AccessoriesInternals.INSTANCE.registerMenuType(Accessories.of(path), AccessoriesMenuData.ENDEC, func);
     }
 
 //    @Environment(EnvType.CLIENT)

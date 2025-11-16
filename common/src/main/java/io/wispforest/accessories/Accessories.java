@@ -51,7 +51,7 @@ public class Accessories {
     public static final boolean DEBUG;
 
     static {
-        boolean debug = AccessoriesLoaderInternals.isDevelopmentEnv();
+        boolean debug = AccessoriesLoaderInternals.INSTANCE.isDevelopmentEnv();
 
         if (System.getProperty("accessories.debug") != null) {
             debug = Boolean.getBoolean("accessories.debug");
@@ -128,7 +128,7 @@ public class Accessories {
             if(!result.orElse(false)) return;
         }
 
-        AccessoriesInternals.openAccessoriesMenu(player, variant, targetEntity, carriedStack);
+        AccessoriesInternals.INSTANCE.openAccessoriesMenu(player, variant, targetEntity, carriedStack);
     }
 
     //--

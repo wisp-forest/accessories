@@ -17,12 +17,12 @@ public class AccessoriesMixinPlugin implements IMixinConfigPlugin {
     @Override
     public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
         if (mixinClassName.contains("SodiumImpl")) {
-            return AccessoriesLoaderInternals.isModLoaded("sodium");
+            return AccessoriesLoaderInternals.INSTANCE.isModLoaded("sodium");
         }
 
         // Allow for the disabling of nbt fixer mixins to by checking if the given file is present
         if (mixinClassName.contains("temp_fixes")) {
-            var pathToFile = AccessoriesLoaderInternals.getConfigPath().resolve("accessories_temp_mixin_disable.txt");
+            var pathToFile = AccessoriesLoaderInternals.INSTANCE.getConfigPath().resolve("accessories_temp_mixin_disable.txt");
 
             if (pathToFile.toFile().exists()) {
                 LOGGER.warn("[Accessories] Temp Mixin [{}] fixing some NBT data stuff has been disabled just a FYI things may be broken with older world data!", mixinClassName);

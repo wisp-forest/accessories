@@ -1,6 +1,7 @@
 package io.wispforest.accessories.impl.core;
 
 import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.AccessoriesLoaderInternals;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.utils.BaseContainer;
@@ -12,7 +13,6 @@ import it.unimi.dsi.fastutil.ints.Int2BooleanArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.NonNullList;
 import net.minecraft.world.Container;
 import net.minecraft.world.ItemStackWithSlot;
@@ -252,7 +252,7 @@ public class ExpandedContainer extends BaseContainer {
     public boolean validIndex(int slot){
         var isValid = slot >= 0 && slot < this.getContainerSize();
 
-        if(!isValid && FabricLoader.getInstance().isDevelopmentEnvironment()){
+        if(!isValid && AccessoriesLoaderInternals.INSTANCE.isDevelopmentEnv()){
             var nameInfo = (this.name != null ? "Container: " + this.name + ", " : "");
 
             try {

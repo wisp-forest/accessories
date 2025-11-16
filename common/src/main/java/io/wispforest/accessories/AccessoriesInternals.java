@@ -2,11 +2,11 @@ package io.wispforest.accessories;
 
 import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
-import dev.architectury.injectables.annotations.ExpectPlatform;
 import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
+import io.wispforest.accessories.utils.ServiceLoaderUtils;
 import io.wispforest.endec.Endec;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -33,6 +33,7 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -42,66 +43,71 @@ import java.util.function.UnaryOperator;
  * of getting class instances
  */
 @ApiStatus.Internal
-public class AccessoriesInternals {
+public abstract class AccessoriesInternals {
+
+    public static final AccessoriesInternals INSTANCE = ServiceLoaderUtils.load(AccessoriesInternals.class);
+
+    //--
+    @Nullable
+    private EquipmentSlot INTERNAL_SLOT = null;
 
     @Nullable
-    public static EquipmentSlot INTERNAL_SLOT = null;
+    private EquipmentSlot.Type INTERNAL_SLOT_TYPE = null;
 
-    @Nullable
-    public static EquipmentSlot.Type ACCESSORIES_TYPE = null;
+    public EquipmentSlot getInternalEquipmentSlot() {
+        Objects.requireNonNull(INTERNAL_SLOT, "Unable to get internal EquipmentSlot used within Accessories to run some Minecraft methods!");
 
-    /**
-     * @return {@link AccessoriesHolderImpl} attached to a given {@link LivingEntity} based on the Platforms method for getting it
-     */
-    @ExpectPlatform
-    public static AccessoriesHolderImpl getHolder(LivingEntity livingEntity) {
-        throw new AssertionError();
+        return INTERNAL_SLOT;
     }
 
-    @ExpectPlatform
-    public static void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolderImpl> modifier) {
-        throw new AssertionError();
+    public EquipmentSlot.Type getInternalEquipmentSlotType() {
+        Objects.requireNonNull(INTERNAL_SLOT_TYPE, "Unable to get internal EquipmentSlot.Type used within Accessories to run some Minecraft methods!");
+
+        return INTERNAL_SLOT_TYPE;
     }
 
-    @ExpectPlatform
-    public static AccessoriesPlayerOptionsHolder getPlayerOptions(Player player) {
-        throw new AssertionError();
+    public void setInternalEquipmentSlot(EquipmentSlot slot) {
+        if (INTERNAL_SLOT != null) {
+            throw new IllegalStateException("Unable to set internal EquipmentSlot for Accessories as it has already happened!");
+        }
+
+        INTERNAL_SLOT = slot;
     }
 
-    @ExpectPlatform
-    public static void modifyPlayerOptions(Player player, UnaryOperator<AccessoriesPlayerOptionsHolder> modifier) {
-        throw new AssertionError();
+    public void setInternalEquipmentSlotType(EquipmentSlot.Type type) {
+        if (INTERNAL_SLOT_TYPE != null) {
+            throw new IllegalStateException("Unable to set internal EquipmentSlot.Type for Accessories as it has already happened!");
+        }
+
+        INTERNAL_SLOT_TYPE = type;
     }
 
     //--
 
-    @ExpectPlatform
-    public static void giveItemToPlayer(ServerPlayer player, ItemStack stack) {
-        throw new AssertionError();
-    }
+    /**
+     * @return {@link AccessoriesHolderImpl} attached to a given {@link LivingEntity} based on the Platforms method for getting it
+     */
+    public abstract AccessoriesHolderImpl getHolder(LivingEntity livingEntity);
 
-    @ExpectPlatform
-    public static boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, SimplePreparableReloadListener listener, @Nullable RegistryOps.RegistryInfoLookup registryInfo) {
-        throw new AssertionError();
-    }
+    public abstract void modifyHolder(LivingEntity livingEntity, UnaryOperator<AccessoriesHolderImpl> modifier);
 
-    @ExpectPlatform
-    public static <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(ResourceLocation location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func) {
-        throw new AssertionError();
-    }
+    public abstract AccessoriesPlayerOptionsHolder getPlayerOptions(Player player);
 
-    @ExpectPlatform
-    public static void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
-        throw new AssertionError();
-    }
+    public abstract void modifyPlayerOptions(Player player, UnaryOperator<AccessoriesPlayerOptionsHolder> modifier);
 
-    @ExpectPlatform
-    public static void addAttributeTooltips(@Nullable Player player, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, Consumer<Component> tooltipAddCallback, TooltipDisplay display, Item.TooltipContext context, TooltipFlag flag) {
-        throw new AssertionError();
-    }
+    //--
 
-    @ExpectPlatform
-    public static Function<PreparableReloadListener.SharedState, HolderLookup.@Nullable Provider> registerLoader(PackType type, EndecDataLoader<?> loader) {
-        throw new AssertionError();
-    }
+    public abstract void giveItemToPlayer(ServerPlayer player, ItemStack stack);
+
+    public abstract boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, SimplePreparableReloadListener listener, @Nullable RegistryOps.RegistryInfoLookup registryInfo);
+
+    public abstract <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(ResourceLocation location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func);
+
+    public abstract void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack);
+
+    public abstract void addAttributeTooltips(@Nullable Player player, ItemStack stack, Multimap<Holder<Attribute>, AttributeModifier> multimap, Consumer<Component> tooltipAddCallback, TooltipDisplay display, Item.TooltipContext context, TooltipFlag flag);
+
+    public abstract Function<PreparableReloadListener.SharedState, HolderLookup.@Nullable Provider> registerLoader(PackType type, EndecDataLoader<?> loader);
+
+    //--
 }

@@ -70,7 +70,7 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
         this.requiresRegistries = requiresRegistries;
         this.dependencies = value;
 
-        this.registriesAccess = AccessoriesInternals.registerLoader(packType, this);
+        this.registriesAccess = AccessoriesInternals.INSTANCE.registerLoader(packType, this);
 
         if (packType.equals(PackType.SERVER_DATA) && this instanceof SyncedDataHelper<?> syncedDataLoader) {
             SyncedDataHelperManager.registerLoader(syncedDataLoader);

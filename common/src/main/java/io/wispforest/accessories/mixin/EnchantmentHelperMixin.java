@@ -11,6 +11,7 @@ import io.wispforest.accessories.api.slot.SlotEntryReference;
 import io.wispforest.accessories.impl.AccessoryNestUtils;
 import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
 import io.wispforest.accessories.pond.EnchantedItemInUseExtension;
+import io.wispforest.accessories.utils.ServerInstanceHolder;
 import io.wispforest.owo.Owo;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
@@ -96,7 +97,7 @@ public abstract class EnchantmentHelperMixin {
 
                         return false;
                     }).map(entryReference -> {
-                        return ((EnchantedItemInUseExtension) (Object) new EnchantedItemInUse(entryReference.stack(), AccessoriesInternals.INTERNAL_SLOT, livingEntity, item -> entryReference.reference().breakStack()))
+                        return ((EnchantedItemInUseExtension) (Object) new EnchantedItemInUse(entryReference.stack(), AccessoriesInternals.INSTANCE.getInternalEquipmentSlot(), livingEntity, item -> entryReference.reference().breakStack()))
                                 .setSlotReference(entryReference.reference());
                     })
                     .toList();
@@ -115,7 +116,7 @@ public abstract class EnchantmentHelperMixin {
                         var itemStack = entryReference.stack();
 
                         ((AccessoriesLivingEntityExtension) livingEntity).pushEnchantmentContext(itemStack, entryReference.reference());
-                        runIterationOnItem(itemStack, AccessoriesInternals.INTERNAL_SLOT, livingEntity, enchantmentInSlotVisitor);
+                        runIterationOnItem(itemStack, AccessoriesInternals.INSTANCE.getInternalEquipmentSlot(), livingEntity, enchantmentInSlotVisitor);
                     });
         }
     }
@@ -139,7 +140,7 @@ public abstract class EnchantmentHelperMixin {
             at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/enchantment/Enchantment;matchingSlot(Lnet/minecraft/world/entity/EquipmentSlot;)Z")
     )
     private static boolean adjustIfIterationOccurs(boolean original, @Local(argsOnly = true) EquipmentSlot equipmentSlot, @Local(argsOnly = true) LivingEntity livingEntity, @Local(ordinal = 0) Holder<Enchantment> holder) {
-        if(equipmentSlot.equals(AccessoriesInternals.INTERNAL_SLOT)) {
+        if(equipmentSlot.equals(AccessoriesInternals.INSTANCE.getInternalEquipmentSlot())) {
             var valid = enchantmentValidForRedirect(livingEntity.registryAccess(), holder.value());
 
             if(valid != null) return valid;
@@ -155,7 +156,7 @@ public abstract class EnchantmentHelperMixin {
     private static EnchantedItemInUse addSlotReferenceToEnchantRecord(ItemStack itemStack, EquipmentSlot inSlot, LivingEntity owner, Operation<EnchantedItemInUse> original) {
         EnchantedItemInUse record = null;
 
-        if (inSlot.equals(AccessoriesInternals.INTERNAL_SLOT)) {
+        if (inSlot.equals(AccessoriesInternals.INSTANCE.getInternalEquipmentSlot())) {
             var ref = ((AccessoriesLivingEntityExtension) owner).popEnchantmentContext(itemStack);
 
             if (ref != null) {
@@ -172,7 +173,7 @@ public abstract class EnchantmentHelperMixin {
 
     @WrapOperation(method = "method_60148", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/enchantment/Enchantment;matchingSlot(Lnet/minecraft/world/entity/EquipmentSlot;)Z"))
     private static boolean allowAccessoriesSlotEnchentments(Enchantment instance, EquipmentSlot slot, Operation<Boolean> original) {
-        if (slot.equals(AccessoriesInternals.INTERNAL_SLOT)) {
+        if (slot.equals(AccessoriesInternals.INSTANCE.getInternalEquipmentSlot())) {
             var valid = enchantmentValidForRedirect(null, instance);
 
             if(valid != null) return valid;
@@ -190,13 +191,11 @@ public abstract class EnchantmentHelperMixin {
             enchantments = access.lookupOrThrow(Registries.ENCHANTMENT);
         } else {
             // THIS IS VERY CRING BUT LACKING CONTEXT MEANS NOT MUCH CAN BE DONE
-            var server = Owo.currentServer();
+            var server = ServerInstanceHolder.getInstance();
 
-            if (server != null) {
-                enchantments = server.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-            } else {
-                return null;
-            }
+            if (server == null) return null;
+
+            enchantments = server.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
         }
 
         return !enchantments.get(enchantments.getResourceKey(enchantment).orElseThrow())

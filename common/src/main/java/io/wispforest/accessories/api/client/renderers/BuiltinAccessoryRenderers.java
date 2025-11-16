@@ -80,7 +80,7 @@ public class BuiltinAccessoryRenderers {
     }
 
     private static <S extends HumanoidRenderState, M extends HumanoidModel<S>, A extends HumanoidModel<S>> boolean attemptGeckoRender(ItemStack stack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, S renderState, EquipmentSlot equipmentSlot, int light, float partialTicks, M parentModel) {
-        if (!AccessoriesLoaderInternals.isModLoaded("geckolib")) return false;
+        if (!AccessoriesLoaderInternals.INSTANCE.isModLoaded("geckolib")) return false;
 
         return GeckoLibCompat.renderGeckoArmor(poseStack, submitNodeCollector, renderState, stack, equipmentSlot, parentModel, partialTicks, light);
     }

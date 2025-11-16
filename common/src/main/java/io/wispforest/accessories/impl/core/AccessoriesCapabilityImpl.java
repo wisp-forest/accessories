@@ -70,7 +70,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
     public void reset(boolean loadedFromTag) {
         if (this.entity.level().isClientSide()) return;
 
-        var holder = ((AccessoriesHolderImpl) AccessoriesInternals.getHolder(entity));
+        var holder = ((AccessoriesHolderImpl) AccessoriesInternals.INSTANCE.getHolder(entity));
 
         if (!loadedFromTag) {
             var oldContainers = Map.copyOf(holder.getAllSlotContainers());

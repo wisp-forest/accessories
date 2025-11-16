@@ -1,20 +1,21 @@
 package io.wispforest.accessories.fabric;
 
+import io.wispforest.accessories.AccessoriesLoaderInternals;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.nio.file.Path;
 
-public class AccessoriesLoaderInternalsImpl {
+public class AccessoriesFabricLoaderInternals extends AccessoriesLoaderInternals {
 
-    public static boolean isDevelopmentEnv() {
+    public boolean isDevelopmentEnv() {
         return FabricLoader.getInstance().isDevelopmentEnvironment();
     }
 
-    public static boolean isModLoaded(String mod) {
+    public boolean isModLoaded(String mod) {
         return FabricLoader.getInstance().isModLoaded(mod);
     }
 
-    public static Path getConfigPath() {
+    public Path getConfigPath() {
         return FabricLoader.getInstance().getConfigDir();
     }
 }

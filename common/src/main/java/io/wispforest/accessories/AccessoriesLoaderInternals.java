@@ -1,23 +1,16 @@
 package io.wispforest.accessories;
 
-import dev.architectury.injectables.annotations.ExpectPlatform;
+import io.wispforest.accessories.utils.ServiceLoaderUtils;
 
 import java.nio.file.Path;
 
-public class AccessoriesLoaderInternals {
+public abstract class AccessoriesLoaderInternals {
 
-    @ExpectPlatform
-    public static boolean isDevelopmentEnv() {
-        throw new AssertionError();
-    }
+    public static final AccessoriesLoaderInternals INSTANCE = ServiceLoaderUtils.load(AccessoriesLoaderInternals.class);
 
-    @ExpectPlatform
-    public static boolean isModLoaded(String mod) {
-        throw new AssertionError();
-    }
+    public abstract boolean isDevelopmentEnv();
 
-    @ExpectPlatform
-    public static Path getConfigPath() {
-        throw new AssertionError();
-    }
+    public abstract boolean isModLoaded(String mod);
+
+    public abstract Path getConfigPath();
 }

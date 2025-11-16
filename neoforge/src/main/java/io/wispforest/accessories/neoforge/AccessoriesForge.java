@@ -18,7 +18,9 @@ import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.accessories.utils.InstanceEndec;
+import io.wispforest.accessories.utils.ServerInstanceHolder;
 import io.wispforest.endec.SerializationContext;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
@@ -64,6 +66,7 @@ import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.RegisterEvent;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -158,6 +161,8 @@ public class AccessoriesForge {
     //--
 
     public void commonInit(FMLCommonSetupEvent event) {
+        ServerInstanceHolder.setInstance(ServerLifecycleHooks::getCurrentServer);
+
         AccessoriesNetworking.init();
 
         SyncedDataHelperManager.init(AccessoriesNetworking.CHANNEL, playerConsumer -> {
@@ -190,7 +195,7 @@ public class AccessoriesForge {
     }
 
     public void registerReloadListeners(AddServerReloadListenersEvent event){
-        var loaders = AccessoriesInternalsImpl.TO_BE_LOADED.getOrDefault(PackType.SERVER_DATA, new LinkedHashMap<>());
+        var loaders = AccessoriesNeoforgeInternals.TO_BE_LOADED.getOrDefault(PackType.SERVER_DATA, new LinkedHashMap<>());
 
         loaders.forEach((endecDataLoader, obj) -> {
             obj.setValue(event.getRegistryAccess());

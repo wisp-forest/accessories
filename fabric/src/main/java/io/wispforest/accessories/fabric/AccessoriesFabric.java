@@ -18,6 +18,7 @@ import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.InvalidateEntityCache;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.utils.EndecUtils;
+import io.wispforest.accessories.utils.ServerInstanceHolder;
 import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
@@ -74,6 +75,9 @@ public class AccessoriesFabric implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        ServerLifecycleEvents.SERVER_STARTING.register(ServerInstanceHolder::setInstance);
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> ServerInstanceHolder.setInstance(() -> null));
+
         Accessories.init();
 
         AccessoriesNetworking.init();
