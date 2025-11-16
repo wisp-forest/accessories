@@ -16,9 +16,11 @@ object ItemViewerUtils {
         val allowNonAPIForCompile = true;
 
         fun setupViewerDependency(name: String, api: Any, mod: Any) {
-            if (name in enabledViewers) modCompileOnly(api)
-            if (allowNonAPIForCompile) modCompileOnly(mod)
-            if (selectedViewer == name) modLocalRuntime(mod)
+            if (name in enabledViewers) {
+                modCompileOnly(api)
+                if (allowNonAPIForCompile) modCompileOnly(mod)
+                if (selectedViewer == name) modLocalRuntime(mod)
+            }
         }
 
         // Item Viewer Libs

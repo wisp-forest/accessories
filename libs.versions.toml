@@ -113,6 +113,8 @@ jei_fabric = { group = "mezz.jei", name = "jei-${jei_minecraft}-fabric", version
 
 geckolib_fabric = { group = "software.bernie.geckolib", name = "geckolib-fabric-${geckolib_minecraft}", version.ref = "geckolib"}
 
+trinkets = { group = "dev.emi", name = "trinkets", version.ref = "trinkets" }
+
 # Neoforge
 
 owolib_neo = { module = "io.wispforest:owo-lib-neoforge", version.ref = "owo_neoforge" }
@@ -130,3 +132,5 @@ jei_neoforge_api = { group = "mezz.jei", name = "jei-${jei_minecraft}-neoforge-a
 jei_neoforge = { group = "mezz.jei", name = "jei-${jei_minecraft}-neoforge", version.ref = "jei"}
 
 geckolib_neoforge = { group = "software.bernie.geckolib", name = "geckolib-neoforge-${geckolib_minecraft}", version.ref = "geckolib"}
+
+curios = { group = "top.theillusivec4.curios", name = "curios-neoforge", version.ref = "curios" }

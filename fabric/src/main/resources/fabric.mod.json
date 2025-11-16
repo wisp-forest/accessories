@@ -1,53 +1,20 @@
 {
   "schemaVersion": 1,
-  "id": "accessories",
-  "version": "${version}",
-  "name": "Accessories",
-  "description": "A extendable and data-driven Accessory Mod for Minecraft",
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
   "authors": [
-    {
-      "name": "Blodhgarm",
-      "contact": {
-        "homepage": "https://github.com/Dragon-Seeker"
-      }
-    },
-    {
-      "name": "chyzman",
-      "contact": {
-        "homepage": "https://chyz.xyz/"
-      }
-    },
-    {
-      "name": "Dr.Zeal",
-      "contact": {
-        "homepage": "https://linktr.ee/miscellaneouszeal"
-      }
-    }
+    "${list_of_authors}"
   ],
   "contributors": [
-    "glisco",
-    "BasiqueEvangelist",
-    "mpustovoi",
-    "EvanHsieh0415",
-    "notlin4",
-    "RuyaSavascisi",
-    "TheLegendofSaram",
-    "Zailer43",
-    {
-      "name": "Emi",
-      "contact": { "github": "https://github.com/emilyploszaj" }
-    },
-    {
-      "name": "C4",
-      "contact": { "github": "https://github.com/TheIllusiveC4" }
-    }
+    "${list_of_contributors}"
   ],
   "contact": {
-    "homepage": "https://wispforest.io/",
-    "sources": "https://github.com/wisp-forest/accessories"
+    "${contact_entry}": ""
   },
-  "license": "MIT",
-  "icon": "assets/accessories/icon.png",
+  "license": "${mod_license}",
+  "icon": "assets/${mod_id}/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -67,14 +34,15 @@
     ]
   },
   "mixins": [
-    "accessories-fabric.mixins.json",
-    "accessories-common.mixins.json"
+    "${mod_id}-fabric.mixins.json",
+    "${mod_id}-common.mixins.json"
   ],
-  "accessWidener": "accessories-fabric.accesswidener",
+  "accessWidener": "${mod_id}.accesswidener",
   "depends": {
-    "fabric-api": ">=0.116.0",
-    "minecraft": ">=1.21",
-    "owo": ">=0.12.24+1.21"
+    "fabricloader": "${fabric_loader_version_range}",
+    "fabric-api": "${fabric_api_version_range}",
+    "minecraft": "${fabric_minecraft_version_range}",
+    "owo": "${owo_fabric_version_range}"
   },
   "breaks": {
     "accessories_compat_layer": "<=0.1.9"

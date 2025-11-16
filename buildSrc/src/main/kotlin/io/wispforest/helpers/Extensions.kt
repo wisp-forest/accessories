@@ -14,6 +14,11 @@ import org.gradle.kotlin.dsl.the
 import java.util.function.BiConsumer
 
 object Extensions {
+
+    val Project.modId: String get(){
+        return this.rootProject.property("mod_id") as String
+    }
+
     val Project.currentPlatform: String get() {
         return currentPlatformDisplayName.lowercase()
     }

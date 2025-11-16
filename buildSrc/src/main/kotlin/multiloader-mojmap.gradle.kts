@@ -1,4 +1,4 @@
-import io.wispforest.helpers.Utils
+import io.wispforest.helpers.Extensions.currentPlatform
 import net.fabricmc.loom.LoomGradleExtension
 import net.fabricmc.loom.api.mappings.layered.MappingsNamespace
 import net.fabricmc.loom.task.AbstractRemapJarTask
@@ -10,7 +10,7 @@ plugins {
     id("multiloader-publishing")
 }
 
-if (Utils.currentPlatform(project) == "common") {
+if (project.currentPlatform == "common") {
     val mojmapJar = tasks.register<RemapJarTask>("mojmapJar") {
         setupTask(this, "remapJar", "")
     }

@@ -1,42 +1,46 @@
 modLoader = "javafml"
-loaderVersion = "[1,)"
-#issueTrackerURL = ""
-license = "MIT"
+loaderVersion = "${neoforge_loader_version_range}"
+issueTrackerURL = "${mod_issuepage}"
+license = "${mod_license}"
 
 [[mods]]
-modId = "accessories"
-version = "${version}"
-displayName = "Accessories"
-authors = "Blodhgarm, chyzman, Dr.Zeal"
-credits = "glisco, BasiqueEvangelist, mpustovoi, EvanHsieh0415, notlin4, RuyaSavascisi, TheLegendofSaram, Zailer43, and Special thanks to both Emi and C4 for the creation of both Trinkets and Curios"
+modId = "${neoforge_mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
+authors = "${mod_authors}, ${mod_contributors}"
+credits = "${mod_credits}"
 description = '''
-A extendable and data-driven Accessory Mod for Minecraft.
+${mod_description}
 '''
-logoFile = "icon.png"
+logoFile = "assets/${mod_id}/icon.png"
+displayURL = "${mod_sourcepage}"
+
+[[accessTransformers]]
+file="META-INF/accesstransformer.cfg"
 
 [[mixins]]
-config = 'accessories-common.mixins.json'
+config = '${mod_id}-common.mixins.json'
 [[mixins]]
-config = 'accessories-forge.mixins.json'
+config = '${mod_id}-neoforge.mixins.json'
 
-[[dependencies.accessories]]
+[[dependencies.${mod_id}]]
 modId = "neoforge"
-type = "required"
-versionRange = "[21,)"
+required = true
+versionRange = "${neoforge_version_range}"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.accessories]]
+[[dependencies.${mod_id}]]
 modId = "minecraft"
-type = "required"
-versionRange = "[1.21,)"
+required = true
+versionRange = "${neoforge_minecraft_version_range}"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.accessories]]
+[[dependencies.${mod_id}]]
 modId = "owo"
-type = "required"
-versionRange = "[0.12.26+1.21,)"
+required = true
+versionRange = "${owo_neoforge_version_range}"
 ordering = "NONE"
 side = "BOTH"
 

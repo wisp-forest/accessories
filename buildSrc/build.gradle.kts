@@ -14,7 +14,7 @@ repositories {
 dependencies {
     implementation("architectury-plugin:architectury-plugin.gradle.plugin:3.4-SNAPSHOT")
     implementation("dev.architectury:architectury-loom:1.11-SNAPSHOT")
-    implementation("com.github.johnrengelman.shadow:com.github.johnrengelman.shadow.gradle.plugin:8.1.1")
+    implementation("com.gradleup.shadow:shadow-gradle-plugin:9.2.2")
 
     // Required to get Version Catalogs to show in buildSrc
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))

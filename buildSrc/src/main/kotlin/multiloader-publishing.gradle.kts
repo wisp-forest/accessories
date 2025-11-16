@@ -1,5 +1,6 @@
 import io.wispforest.helpers.Extensions.libs
-import io.wispforest.helpers.Utils
+import io.wispforest.helpers.Extensions.modId
+import io.wispforest.helpers.MavenSetupUtils
 
 plugins {
     id("java-library")
@@ -8,10 +9,10 @@ plugins {
 
 /**
  * Handles the ability to publish either the common, neoforge, or fabric module. Common also publishes one in Mojang Mappings
- * and sets up the maven credentials within [Utils.setupMavenRepo]
+ * and sets up the maven credentials within [MavenSetupUtils.setupMavenRepo]
  */
 publishing {
-    var modid = Utils.modId(rootProject)
+    var modid = rootProject.modId
 
     publications {
         create<MavenPublication>("mavenCommon") {
@@ -49,5 +50,5 @@ publishing {
         }
     }
 
-    Utils.setupMavenRepo(rootProject, repositories)
+    MavenSetupUtils.setupMavenRepo(rootProject, repositories)
 }

@@ -16,6 +16,5 @@ dependencies {
     fabricModule(this::modCompileOnlyApi, "fabric-api-base")
     // --
 
-
     modrinth(this::modCompileOnly, "sodium" to "${libs.versions.sodium.get()}-fabric")
 }

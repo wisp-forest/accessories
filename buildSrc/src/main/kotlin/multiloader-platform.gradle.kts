@@ -1,11 +1,12 @@
 import io.wispforest.helpers.Extensions.currentPlatform
-import io.wispforest.helpers.Extensions.currentPlatformDisplayName
-import io.wispforest.helpers.Utils
+import io.wispforest.helpers.Extensions.modId
+import io.wispforest.helpers.ResourceProcessingUtils
+import org.apache.tools.ant.filters.LineContains
 import org.gradle.kotlin.dsl.get
 
 plugins {
     id("multiloader-base")
-    id("com.github.johnrengelman.shadow")
+    id("com.gradleup.shadow")
 }
 
 val common by configurations.creating
@@ -37,7 +38,7 @@ sourceSets {
     }
 }
 
-val modid = Utils.modId(rootProject)
+val modid = rootProject.modId
 
 if (currentPlatform == "fabric") {
     // Use Fabric API to setup data generation
@@ -69,16 +70,31 @@ if (currentPlatform == "fabric") {
 
 //-- Jar Handling Section
 
+shadow {
+    addShadowVariantIntoJavaComponent = false;
+}
+
 // Setup shadow to take files from common module
 tasks.shadowJar {
-    if (currentPlatform != "fabric") {
-        exclude("fabric.mod.json")
-    }
-    exclude("architectury.common.json")
-
-    configurations = mutableListOf<FileCollection>(project.configurations["shadowCommon"]);
+    configurations.set(mutableSetOf<Configuration>(project.configurations["shadowCommon"]));
     archiveClassifier.set("dev-shadow")
     destinationDirectory.set(destinationDirectory.get().dir("shadow"))
+
+    exclude("architectury.common.json")
+
+    if (currentPlatform == "neoforge") { // Neoforge does not require the refmap, we remove the file and the line within the mixin json
+        exclude("${modId}-common-common-refmap.json")
+
+        filesMatching("${modId}-common.mixins.json") {
+            filter(LineContains::class, "negate" to true, "contains" to listOf("refmap"))
+        }
+    } else if (currentPlatform == "fabric") { // Fabric requires the refmap but only in prod so we have the field get filled in here
+        val commonExtraProperties = mutableMapOf("mod_id" to modid)
+
+        filesMatching(listOf("${modId}-common.mixins.json")) {
+            filter(ResourceProcessingUtils.expandIgnoreErrors(commonExtraProperties) { true })
+        }
+    }
 }
 
 // Remap the shadow jar to the proper platform mapping
@@ -86,12 +102,7 @@ tasks.remapJar {
     inputFile.set(tasks.shadowJar.get().archiveFile)
     dependsOn(tasks.shadowJar)
     archiveClassifier.set("")
-
-    if (currentPlatform == "fabric") {
-        injectAccessWidener = true
-    } else {
-        //atAccessWideners.add("${modid}.accesswidener")
-    }
+    if (currentPlatform == "fabric") injectAccessWidener = true
 }
 
 // Add Common files to Source
@@ -99,8 +110,4 @@ tasks.getByName("sourcesJar", AbstractArchiveTask::class) {
     val commonSources = project(":common").tasks.getByName("sourcesJar", AbstractArchiveTask::class)
     dependsOn(commonSources)
     from(commonSources.archiveFile.map { zipTree(it) })
-}
-
-with(components["java"] as AdhocComponentWithVariants) {
-    withVariantsFromConfiguration(configurations["shadowRuntimeElements"]) { skip() }
 }

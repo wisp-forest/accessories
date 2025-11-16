@@ -21,6 +21,8 @@ dependencies {
     // --
 
     modrinth(this::modLocalRuntime, "sodium" to "${libs.versions.sodium.get()}-neoforge")
+
+    modCompileOnly(libs.curios)
 }
 
 neoForgeDataFile {
