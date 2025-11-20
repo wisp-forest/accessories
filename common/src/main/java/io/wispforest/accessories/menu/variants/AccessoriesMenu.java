@@ -121,18 +121,17 @@ public class AccessoriesMenu extends AccessoriesMenuBase {
                 .toList();
 
         for (var slot : slotTypes) {
-            var accessoryContainer = containers.get(slot.name());
+            var container = containers.get(slot.name());
 
-            if (accessoryContainer == null || accessoryContainer.slotType() == null) continue;
+            if (container == null || container.slotType() == null) continue;
 
-            for (int i = 0; i < accessoryContainer.getSize(); i++) {
-                var cosmeticSlot = new AccessoriesInternalSlot(accessoryContainer, true, i, -300, -300)
-                        .useCosmeticIcon(false);
+            for (int i = 0; i < container.getSize(); i++) {
+                var cosmeticSlot = new AccessoriesBasedSlot(container, container.getCosmeticAccessories(), i, -300, -300);
 
                 this.addSlot(cosmeticSlot);
                 this.accessoriesSpecificSlots.add(cosmeticSlot);
 
-                var baseSlot = new AccessoriesInternalSlot(accessoryContainer, false, i, -300, -300);
+                var baseSlot = new AccessoriesBasedSlot(container, container.getAccessories(), i, -300, -300);
 
                 this.addSlot(baseSlot);
                 this.accessoriesSpecificSlots.add(baseSlot);
@@ -172,15 +171,15 @@ public class AccessoriesMenu extends AccessoriesMenuBase {
     private boolean addArmorSlot(EquipmentSlot equipmentSlot, LivingEntity targetEntity, SlotTypeReference armorReference, Map<String, AccessoriesContainer> containers) {
         var location = ArmorSlotTypes.getEmptyTexture(equipmentSlot, targetEntity);
 
-        var armorContainer = containers.get(armorReference.slotName());
+        var container = containers.get(armorReference.slotName());
 
-        if(armorContainer == null) return false;
+        if(container == null) return false;
 
-        var armorSlot = new AccessoriesArmorSlot(armorContainer, SlotAccessContainer.ofArmor(equipmentSlot, targetEntity), targetEntity, equipmentSlot, 0, -300, -300, location);
+        var armorSlot = new AccessoriesArmorSlot(container, SlotAccessContainer.ofArmor(equipmentSlot, targetEntity), targetEntity, equipmentSlot, 0, -300, -300, location);
 
         this.addSlot(armorSlot);
 
-        var cosmeticSlot = new AccessoriesInternalSlot(armorContainer, true, 0, -300, -300){
+        var cosmeticSlot = new AccessoriesBasedSlot(container, container.getCosmeticAccessories(), 0, -300, -300){
             @Override
             public @Nullable ResourceLocation getNoItemIcon() {
                 return location;

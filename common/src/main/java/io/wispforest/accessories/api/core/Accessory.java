@@ -68,20 +68,27 @@ public interface Accessory {
     default void onUnequip(ItemStack stack, SlotReference reference){}
 
     /**
+     * Used to indicate if the given Accessory can be equipped, such is invoked within {@link AccessoryRegistry#canEquip}
+     * and is desired method to check if such can occur.
+     *
      * @param stack the stack to be equipped
      * @param reference the slot the accessory is in
      * @return whether the given stack can be equipped
      */
+    @ApiStatus.OverrideOnly
     default boolean canEquip(ItemStack stack, SlotReference reference){
         return true;
     }
 
     /**
+     * Used to indicate if the given Accessory can be unequipped, such is invoked within {@link AccessoryRegistry#canUnequip}
+     * and is desired method to check if such can occur.
+     *
      * @param stack the stack to be unequipped
      * @param reference the slot the accessory is in
      * @return whether the given stack can be unequipped
      */
-    @MustBeInvokedByOverriders
+    @ApiStatus.OverrideOnly
     default boolean canUnequip(ItemStack stack, SlotReference reference){
         if(EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) {
             return reference.entity() instanceof Player player && player.isCreative();
@@ -89,6 +96,8 @@ public interface Accessory {
 
         return true;
     }
+
+    //--
 
     /**
      * Helper method used to fill the passed {@link AccessoryAttributeBuilder} for every call from
@@ -153,15 +162,6 @@ public interface Accessory {
         var equipSound = stack.has(DataComponents.EQUIPPABLE) ? stack.get(DataComponents.EQUIPPABLE).equipSound() : SoundEvents.ARMOR_EQUIP_GENERIC;
 
         return new SoundEventData(equipSound, 1.0f, 1.0f);
-    }
-
-    @Deprecated(forRemoval = true)
-    default boolean canEquipFromUse(ItemStack stack){
-        try {
-            return canEquipFromUse(stack, null);
-        } catch (NullPointerException e) {
-            return false;
-        }
     }
 
     /**
@@ -266,6 +266,16 @@ public interface Accessory {
     }
 
     //--
+
+    @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
+    @Deprecated(forRemoval = true)
+    default boolean canEquipFromUse(ItemStack stack){
+        try {
+            return canEquipFromUse(stack, null);
+        } catch (NullPointerException e) {
+            return false;
+        }
+    }
 
     /**
      * @deprecated Use {@link #getDynamicModifiers} instead

@@ -1,9 +1,11 @@
 package io.wispforest.accessories.fabric;
 
+import com.google.common.reflect.Reflection;
 import com.mojang.brigadier.arguments.ArgumentType;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.api.core.Accessory;
 import io.wispforest.accessories.commands.api.ArgumentRegistrationCallback;
 import io.wispforest.accessories.commands.api.CommandGenerators;
 import io.wispforest.accessories.commands.api.core.RecordArgumentTypeInfo;
@@ -14,6 +16,7 @@ import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
+import io.wispforest.accessories.misc.AccessoriesGameRules;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.InvalidateEntityCache;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
@@ -39,11 +42,13 @@ import net.fabricmc.fabric.api.item.v1.DefaultItemComponentEvents;
 import net.fabricmc.fabric.api.lookup.v1.entity.EntityApiLookup;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -164,19 +169,11 @@ public class AccessoriesFabric implements ModInitializer {
             AccessoriesEventHandler.onTracking(livingEntity, player);
         });
 
-        var manager = ResourceManagerHelper.get(PackType.SERVER_DATA);
-
-        manager.registerReloadListener(new SimpleSynchronousResourceReloadListener() {
-            @Override
-            public ResourceLocation getFabricId() {
-                return Accessories.DATA_RELOAD_HOOK;
-            }
-
-            @Override
-            public void onResourceManagerReload(ResourceManager resourceManager) {
-                AccessoriesEventHandler.dataReloadOccurred = true;
-            }
-        });
+        ResourceLoader.get(PackType.SERVER_DATA)
+            .registerReloader(
+                Accessories.DATA_RELOAD_HOOK,
+                (ResourceManagerReloadListener) manager -> AccessoriesEventHandler.dataReloadOccurred = true
+            );
 
         DefaultItemComponentEvents.MODIFY.register(context -> {
             AccessoriesEventHandler.setupItems(new AccessoriesEventHandler.AddDataComponentCallback() {
@@ -203,6 +200,6 @@ public class AccessoriesFabric implements ModInitializer {
             SyncEntireContainer.syncToAllTrackingAndSelf(newPlayer);
         });
 
-        Accessories.RULE_KEEP_ACCESSORY_INVENTORY = GameRuleRegistry.register("accessories.keepAccessoryInventory", GameRules.Category.PLAYER, GameRuleFactory.createBooleanRule(false));
+        Reflection.initialize(AccessoriesGameRules.class);
     }
 }

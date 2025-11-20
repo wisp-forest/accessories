@@ -4,7 +4,7 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
 import io.wispforest.accessories.api.equip.EquipmentChecking;
 import io.wispforest.accessories.api.slot.*;
-import io.wispforest.accessories.impl.AccessoryNestUtils;
+import io.wispforest.accessories.api.core.AccessoryNestUtils;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -198,7 +198,7 @@ class AccessoriesStorageLookupUtils {
                     if(!cosmetic.isEmpty() && Accessories.config().clientOptions.showCosmeticAccessories()) stack = cosmetic;
                 }
 
-                var ref = AccessoryNestUtils.recursiveStackHandling(stack, path, (innerStack, ref1) -> {
+                var ref = AccessoryNestUtils.recursivelyHandle(stack, path, (innerStack, ref1) -> {
                     return (!innerStack.isEmpty() && predicate.test(innerStack))
                             ? stackEntryMaker.apply(path, innerStack)
                             : null;
@@ -223,7 +223,7 @@ class AccessoriesStorageLookupUtils {
                 if (!stack.isEmpty()) {
                     var path = container.createPath(i);
 
-                    AccessoryNestUtils.recursiveStackConsumption(stack, path, (innerStack, path1) -> references.add(stackEntryMaker.apply(path1, innerStack)));
+                    AccessoryNestUtils.recursivelyConsume(stack, path, (innerStack, path1) -> references.add(stackEntryMaker.apply(path1, innerStack)));
                 }
 
                 i++;

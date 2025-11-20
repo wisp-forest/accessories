@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.data.api.EndecDataLoader;
+import io.wispforest.accessories.data.api.IdentifiedResourceReloadListener;
 import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuData;
@@ -24,10 +25,12 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -40,7 +43,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.GameRules;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.conditions.ICondition;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.common.util.AttributeTooltipContext;
@@ -50,9 +55,8 @@ import org.apache.commons.lang3.function.TriFunction;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -137,19 +141,14 @@ public class AccessoriesNeoforgeInternals extends AccessoriesInternals {
         AttributeUtil.applyTextFor(stack, tooltipAddCallback, modifiers, neoTooltipCtx);
     }
 
-    public static final Map<PackType, Map<EndecDataLoader<?>, MutableObject<HolderLookup.Provider>>> TO_BE_LOADED = new HashMap<>();
+    public static final Map<PackType, Set<IdentifiedResourceReloadListener>> TO_BE_LOADED = new HashMap<>();
 
-    public Function<PreparableReloadListener.SharedState, HolderLookup.@Nullable Provider> registerLoader(PackType type, EndecDataLoader<?> loader) {
-        TO_BE_LOADED.computeIfAbsent(type, type1 -> new LinkedHashMap<>()).put(loader, new MutableObject<>(null));
+    public void registerLoader(PackType type, IdentifiedResourceReloadListener loader) {
+        TO_BE_LOADED.computeIfAbsent(type, type1 -> new LinkedHashSet<>()).add(loader);
+    }
 
-        return sharedState -> {
-            var obj = TO_BE_LOADED.get(type).get(loader);
-
-            var registry = obj.getValue();
-
-            obj.setValue(null);
-
-            return registry;
-        };
+    @Override
+    public <T> String getTagTranslation(TagKey<T> tagKey) {
+        return Tags.getTagTranslationKey(tagKey);
     }
 }

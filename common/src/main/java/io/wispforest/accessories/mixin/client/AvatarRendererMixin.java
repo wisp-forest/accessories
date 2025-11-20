@@ -1,8 +1,12 @@
 package io.wispforest.accessories.mixin.client;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.client.AccessoriesRenderLayer;
+import io.wispforest.accessories.pond.CosmeticArmorLookupTogglable;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.ClientAvatarEntity;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
@@ -32,6 +36,11 @@ public abstract class AvatarRendererMixin<A extends Avatar & ClientAvatarEntity>
 //        AccessoriesClient.IS_PLAYER_INVISIBLE = false;
 //        return returned;
 //    }
+
+    @WrapMethod(method = "renderHand")
+    public void accessories$cosmeticallyAdjustFirstPersonView(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, ResourceLocation resourceLocation, ModelPart modelPart, boolean bl, Operation<Void> original) {
+        CosmeticArmorLookupTogglable.runWithLookupToggle(Minecraft.getInstance().player, () -> original.call(poseStack, submitNodeCollector, i, resourceLocation, modelPart, bl));
+    }
 
     @Inject(method = "renderHand", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitModelPart(Lnet/minecraft/client/model/geom/ModelPart;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/RenderType;IILnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V", shift = At.Shift.AFTER))
     private void accessories$firstPersonAccessories(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int combinedLight, ResourceLocation resourceLocation, ModelPart rendererArm, boolean bl, CallbackInfo ci, @Local PlayerModel playerModel) {

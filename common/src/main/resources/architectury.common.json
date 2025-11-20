@@ -9,6 +9,9 @@
     ],
     "net/minecraft/class_10042": [
       "io/wispforest/accessories/pond/AccessoriesRenderStateAPI"
+    ],
+    "net/minecraft/class_1836": [
+      "io/wispforest/accessories/pond/TooltipFlagExtension"
     ]
   }
 }

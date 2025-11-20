@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
+import io.wispforest.accessories.api.data.AccessoriesBaseData;
 import io.wispforest.accessories.pond.AccessoriesRenderStateAPI;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
@@ -34,7 +35,7 @@ public abstract class CustomHeadLayerMixin<S extends LivingEntityRenderState, M 
             if (lookup != null) {
                 var ref = lookup.getEquipped(ItemStackBasedPredicate.ofClass(BannerItem.class))
                         .stream()
-                        .filter(entry -> entry.path().slotName().equals("hat"))
+                        .filter(entry -> entry.path().slotName().equals(AccessoriesBaseData.HAT_SLOT))
                         .findFirst()
                         .orElse(null);
 

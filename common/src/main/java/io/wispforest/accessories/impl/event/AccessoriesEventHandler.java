@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.AccessoriesClientInternals;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
@@ -20,7 +21,7 @@ import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.impl.AccessoryAttributeLogic;
-import io.wispforest.accessories.impl.AccessoryNestUtils;
+import io.wispforest.accessories.api.core.AccessoryNestUtils;
 import io.wispforest.accessories.impl.PlayerEquipControl;
 import io.wispforest.accessories.impl.core.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.core.AccessoriesContainerImpl;
@@ -30,6 +31,7 @@ import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
+import io.wispforest.accessories.misc.AccessoriesGameRules;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
@@ -245,7 +247,7 @@ public class AccessoriesEventHandler {
                         if (accessory != null) {
                             accessory.tick(currentStack, slotReference);
 
-                            AccessoryNestUtils.recursiveStackConsumption(currentStack, stack -> {
+                            AccessoryNestUtils.recursivelyConsume(currentStack, stack -> {
                                 var effects = stack.get(AccessoriesDataComponents.MOB_EFFECTS);
 
                                 if (effects != null) {
@@ -303,14 +305,14 @@ public class AccessoriesEventHandler {
                             EnchantmentHelper.runLocationChangedEffects((ServerLevel) entity.level(), currentStack, entity, AccessoriesInternals.INSTANCE.getInternalEquipmentSlot());
                         }
 
-                        AccessoryNestUtils.recursiveStackConsumption(lastStack, stack -> {
+                        AccessoryNestUtils.recursivelyConsume(lastStack, stack -> {
                             if (stack.has(AccessoriesDataComponents.MOB_EFFECTS)) {
                                 stack.get(AccessoriesDataComponents.MOB_EFFECTS)
                                     .handleRemovingEffects(entity);
                             }
                         });
 
-                        AccessoryNestUtils.recursiveStackConsumption(currentStack, stack -> {
+                        AccessoryNestUtils.recursivelyConsume(currentStack, stack -> {
                             if (stack.has(AccessoriesDataComponents.MOB_EFFECTS)) {
                                 stack.get(AccessoriesDataComponents.MOB_EFFECTS)
                                     .handleApplyingConstantEffects(entity);
@@ -477,6 +479,9 @@ public class AccessoriesEventHandler {
         var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
         if (accessory != null) {
+            // Add possible client values to tooltipFlag
+            tooltipType = AccessoriesClientInternals.getInstance().createTooltipFlag(tooltipType);
+
             if (entity != null && AccessoriesCapability.get(entity) != null)
                 addEntityBasedTooltipData(entity, accessory, stack, tooltip, display, tooltipContext, tooltipType);
 
@@ -716,7 +721,7 @@ public class AccessoriesEventHandler {
 
         var gamerules = ((ServerLevel) entity.level()).getGameRules();
 
-        var keepInv = gamerules.getRule(GameRules.RULE_KEEPINVENTORY).get() || gamerules.getRule(Accessories.RULE_KEEP_ACCESSORY_INVENTORY).get();
+        var keepInv = gamerules.getRule(GameRules.RULE_KEEPINVENTORY).get() || gamerules.getRule(AccessoriesGameRules.RULE_KEEP_ACCESSORY_INVENTORY).get();
 
         for (var containerEntry : AccessoriesHolderImpl.getHolder(capability).getAllSlotContainers().entrySet()) {
             var slotType = containerEntry.getValue().slotType();

@@ -1,10 +1,7 @@
 package io.wispforest.accessories.commands;
 
 import com.mojang.brigadier.LiteralMessage;
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.arguments.DoubleArgumentType;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.Dynamic3CommandExceptionType;
@@ -29,6 +26,7 @@ import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.mixin.CommandSelectionAccessor;
 import io.wispforest.accessories.mixin.ResourceArgumentAccessor;
 import io.wispforest.endec.Endec;
+import io.wispforest.owo.command.EnumArgumentType;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -163,6 +161,31 @@ public class AccessoriesCommands implements CommandTreeGenerator.Branched {
                 );
             });
         }
+
+        var toggleableFeatures = List.of("banner", "glider", "totem");
+
+        var featureToggleFailure = new DynamicCommandExceptionType(branch -> Component.translatable("accessories.commands.feature.toggle.failure", branch, toggleableFeatures.toString()));
+
+        root.leaves(
+            "feature",
+            branches("enable", "disable"),
+            branches(toggleableFeatures),
+            //required("value", BoolArgumentType.bool()),
+            (ctx, state, branch) -> {
+                var bl = Objects.equals(state, "enable");
+
+                switch (branch) {
+                    case "banner" -> Accessories.config().contentOptions.allowBannerEquip(bl);
+                    case "glider" -> Accessories.config().contentOptions.allowGliderEquip(bl);
+                    case "totem" -> Accessories.config().contentOptions.allowTotemEquip(bl);
+                    case null, default -> throw featureToggleFailure.create(branch);
+                }
+
+                ctx.getSource().sendSystemMessage(Component.translatable("accessories.commands.feature.toggle." + (bl ? "on" : "off"), branch));
+
+                return 1;
+            }
+        );
 
         root.leaves(
             "edit",

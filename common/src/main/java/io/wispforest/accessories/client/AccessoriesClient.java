@@ -2,6 +2,7 @@ package io.wispforest.accessories.client;
 
 import com.mojang.blaze3d.platform.Window;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.AccessoriesClientInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.client.screen.AccessoriesScreenTransitionHelper;
@@ -20,6 +21,7 @@ import io.wispforest.accessories.mixin.owo.ConfigWrapperAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
+import io.wispforest.accessories.pond.TooltipFlagExtension;
 import io.wispforest.owo.config.ui.ConfigScreenProviders;
 import io.wispforest.owo.config.ui.OptionComponentFactory;
 import io.wispforest.owo.config.ui.OptionComponents;
@@ -38,6 +40,7 @@ import io.wispforest.owo.util.ReflectionUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -53,6 +56,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.phys.EntityHitResult;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.NotNull;
@@ -67,7 +71,7 @@ import static io.wispforest.accessories.Accessories.MODID;
 
 public class AccessoriesClient {
 
-    public static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(Accessories.of("accessories"));
+    public static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(Accessories.of("main"));
 
     public static final KeyMapping OPEN_SCREEN = new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, KEY_CATEGORY);
 
@@ -263,7 +267,23 @@ public class AccessoriesClient {
         });
     }
 
+    private static final boolean IS_OSX = Util.getPlatform() == Util.OS.OSX;
+    private static final int EDIT_SHORTCUT_KEY_MODIFIER = IS_OSX ? GLFW.GLFW_MOD_SUPER : GLFW.GLFW_MOD_CONTROL;
+
     public static void init(){
+        AccessoriesClientInternals.setInstance(new AccessoriesClientInternals() {
+            @Override
+            public TooltipFlag createTooltipFlag(TooltipFlag flag) {
+                var client = Minecraft.getInstance();
+
+                var modifiers = (client.hasShiftDown() ? GLFW.GLFW_MOD_SHIFT : 0)
+                    | (client.hasControlDown() ? EDIT_SHORTCUT_KEY_MODIFIER : 0)
+                    | (client.hasAltDown() ? GLFW.GLFW_MOD_ALT : 0);
+
+                return TooltipFlagExtension.createFlag(flag, modifiers);
+            }
+        });
+
         ClientLifecycleEvents.END_DATA_PACK_RELOAD.register((client, success) -> {
             if (!success) return; // LOADING PROBLEM HAS OCCURRED SO THINGS WILL GO WRONG IF WE TRY DOING OUR STUFF
 

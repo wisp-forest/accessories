@@ -32,7 +32,7 @@
   "accessories.slot_group.leg": "Ноги",
   "accessories.slot_group.feet": "Ступни",
   "accessories.slot_group.unsorted": "Неотсортированные",
-  "accessories.key.category.accessories": "Аксессуары",
+  "key.category.accessories.main": "Аксессуары",
   "argument.livingEntities.nonLiving": "Эта команда может касаться только живых существ, но предоставленный выбор включает и неживые существа",
 
   "gamerule.accessories.keepAccessoryInventory": "Сохранение инвентаря аксессуаров",

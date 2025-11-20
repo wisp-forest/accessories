@@ -33,7 +33,7 @@
   "accessories.slot_group.feet": "腳",
   "accessories.slot_group.unsorted": "未分類",
 
-  "accessories.key.category.accessories": "飾品｜Accessories",
+  "key.category.accessories.main": "飾品｜Accessories",
   "argument.livingEntities.nonLiving": "只有活體（Living Entity）可能受此指令影響，但所提供的實體選擇器包括非活體",
 
   "#comment": "GUI Related Below",

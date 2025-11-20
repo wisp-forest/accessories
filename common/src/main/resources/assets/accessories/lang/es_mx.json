@@ -32,7 +32,7 @@
   "accessories.slot_group.leg": "Piernas",
   "accessories.slot_group.feet": "Pies",
   "accessories.slot_group.unsorted": "Sin clasificar",
-  "accessories.key.category.accessories": "Accesories",
+  "key.category.accessories.main": "Accesories",
   "argument.livingEntities.nonLiving": "Solo las entidades vivas pueden ser afectadas por este comando, pero el selector proporcionado incluye entidades no vivas",
 
   "gamerule.accessories.keepAccessoryInventory": "Mantener Inventario de Accesories",

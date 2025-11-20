@@ -1,6 +1,7 @@
 package io.wispforest.accessories.impl.event;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.data.AccessoriesBaseData;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.slot.SlotBasedPredicate;
 import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
@@ -29,7 +30,7 @@ public class VanillaItemPredicates {
         if(stack.has(DataComponents.DEATH_PROTECTION)) {
             if ((validSlots.contains(slotType.name()) || validSlots.contains("any")) && Accessories.config().contentOptions.allowTotemEquip()) {
                 return TriState.TRUE;
-            } else if (slotType.name().equals("charm") && stack.is(AccessoriesTags.VALID_TOTEM_EQUIP)){
+            } else if (slotType.name().equals(AccessoriesBaseData.CHARM_SLOT) && stack.is(AccessoriesTags.VALID_TOTEM_EQUIP)){
                 return TriState.TRUE;
             }
         }

@@ -4,6 +4,7 @@ import com.google.common.collect.Multimap;
 import com.google.gson.JsonObject;
 import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.data.api.EndecDataLoader;
+import io.wispforest.accessories.data.api.IdentifiedResourceReloadListener;
 import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuData;
@@ -11,6 +12,8 @@ import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import io.wispforest.endec.Endec;
 import io.wispforest.owo.serialization.CodecUtils;
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
+import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
@@ -25,10 +28,12 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -42,11 +47,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.GameRules;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
@@ -127,7 +134,7 @@ public class AccessoriesFabricInternals extends AccessoriesInternals {
         }
     }
 
-    public Function<PreparableReloadListener.SharedState, HolderLookup.@Nullable Provider> registerLoader(PackType packType, EndecDataLoader<?> dataLoader) {
+    public void registerLoader(PackType packType, IdentifiedResourceReloadListener dataLoader) {
         var loader = ResourceLoader.get(packType);
 
         var id = dataLoader.getId();
@@ -138,6 +145,13 @@ public class AccessoriesFabricInternals extends AccessoriesInternals {
             loader.addReloaderOrdering(dependencyId, id);
         }
 
-        return sharedState -> sharedState.get(ResourceLoader.RELOADER_REGISTRY_LOOKUP_KEY);
+        if (dataLoader instanceof EndecDataLoader<?> endecDataLoader) {
+            endecDataLoader.setRegistriesAccess(sharedState -> sharedState.get(ResourceLoader.RELOADER_REGISTRY_LOOKUP_KEY));
+        }
+    }
+
+    @Override
+    public <T> String getTagTranslation(TagKey<T> tagKey) {
+        return tagKey.getTranslationKey();
     }
 }

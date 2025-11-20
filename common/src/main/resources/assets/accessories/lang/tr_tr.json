@@ -32,7 +32,7 @@
   "accessories.slot_group.leg": "Bacaklar",
   "accessories.slot_group.feet": "Ayaklar",
   "accessories.slot_group.unsorted": "Sınıflandırılmamış",
-  "accessories.key.category.accessories": "Aksesuarlar",
+  "key.category.accessories.main": "Aksesuarlar",
   "argument.livingEntities.nonLiving": "Bu komuttan yalnızca canlı varlıklar etkilenebilir, ancak sağlanan seçici canlı olmayan varlıkları da içerir",
 
   "#comment": "GUI Related Below",

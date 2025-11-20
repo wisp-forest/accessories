@@ -3,7 +3,10 @@ package io.wispforest.accessories.api;
 import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+import org.apache.commons.lang3.function.TriConsumer;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,4 +72,35 @@ public interface AccessoriesStorage {
     /// @return weather the current storage is from the client or server
     ///
     boolean isClientSide();
+
+    default void forEach(StorageStacksConsumer consumer) {
+        var accessories = this.getAccessories();
+        var cosmetics = this.getAccessories();
+
+        for(int i = 0; i < this.getSize(); i++) {
+            var stack = accessories.getItem(i);
+            var cosmetic = cosmetics.getItem(i);
+
+            consumer.accept(i, stack, cosmetic);
+        }
+    }
+
+    ///
+    /// Will attempt to override returned stack with cosmetic stack
+    ///
+    default void forEachWithOverride(StorageStacksConsumer consumer) {
+        var accessories = this.getAccessories();
+        var cosmetics = this.getAccessories();
+
+        for(int i = 0; i < this.getSize(); i++) {
+            var stack = accessories.getItem(i);
+            var cosmetic = cosmetics.getItem(i);
+
+            consumer.accept(i, stack, cosmetic);
+        }
+    }
+
+    interface StorageStacksConsumer {
+        void accept(Integer index, ItemStack accessory, ItemStack cosmetic);
+    }
 }

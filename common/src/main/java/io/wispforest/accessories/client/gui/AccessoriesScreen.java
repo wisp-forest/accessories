@@ -17,7 +17,6 @@ import io.wispforest.accessories.impl.option.PlayerOption;
 import io.wispforest.accessories.impl.option.PlayerOptions;
 import io.wispforest.accessories.impl.option.PlayerOptionsAccess;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
-import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import io.wispforest.accessories.menu.ArmorSlotTypes;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.menu.networking.ToggledSlots;
@@ -290,7 +289,7 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
     @Override
     protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
         if(this.hoveredSlot != null) {
-            if (this.hoveredSlot instanceof AccessoriesInternalSlot accessoriesInternalSlot) {
+            if (this.hoveredSlot instanceof AccessoriesBasedSlot accessoriesInternalSlot) {
                 if (!ArmorSlotTypes.isArmorType(accessoriesInternalSlot.slotName())) {
                     AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(this.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION));
                 }
@@ -306,13 +305,6 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
         super.renderTooltip(guiGraphics, x, y);
 
         AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(false);
-    }
-
-    @Override
-    protected void drawComponentTooltip(GuiGraphics drawContext, int mouseX, int mouseY, float tickDelta) {
-        //drawContext.push().translate(0,0, 300);
-        super.drawComponentTooltip(drawContext, mouseX, mouseY, tickDelta);
-        //drawContext.pop();
     }
 
     @Override
@@ -351,7 +343,7 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
 
         //--
 
-        if (hoveredSlot != null && hoveredSlot instanceof AccessoriesInternalSlot slot && slot.isActive() && !slot.getItem().isEmpty()) {
+        if (hoveredSlot != null && hoveredSlot instanceof AccessoriesBasedSlot slot && slot.isActive() && !slot.getItem().isEmpty()) {
             var positions = AccessoriesFunkyRenderingState.INSTANCE.getNotVeryNicePositions();
 
             var positionKey = slot.slotPath();
@@ -585,7 +577,8 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
                     .child(
                             Containers.verticalFlow(Sizing.fixed(0), Sizing.fixed(0))
                                     .surface((ctx, component) -> {
-                                        var surfaceType = Math.min((this.getMenu().addedArmorSlots() / 2), 4) + "_slots";
+                                        // TODO: MAKE NO EQUIPMENT SLOT VARIANT...
+                                        var surfaceType = Math.max(1, Math.min((this.getMenu().addedArmorSlots() / 2), 4)) + "_slots";
                                         var sideBySideMode = this.getDefaultedData(PlayerOptions.SIDE_BY_SIDE_ENTITY);
 
                                         DrawUtils.blit(
@@ -1204,7 +1197,7 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
             var slot = this.slot();
 
             if(slot != null) {
-                if (slot instanceof AccessoriesInternalSlot accessoriesInternalSlot) {
+                if (slot instanceof AccessoriesBasedSlot accessoriesInternalSlot) {
                     if (!ArmorSlotTypes.isArmorType(accessoriesInternalSlot.slotName())) {
                         AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(screen.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION));
                     }

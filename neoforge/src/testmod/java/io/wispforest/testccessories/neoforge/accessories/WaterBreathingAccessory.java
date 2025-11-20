@@ -19,7 +19,7 @@ public class WaterBreathingAccessory implements Accessory {
     private static final ResourceLocation GRAVITY_LOCATION = Testccessories.of("gravity_accessory_adjustment");
 
     public static void init() {
-        AccessoryRegistry.register(TestItems.testItem1, new WaterBreathingAccessory());
+        AccessoryRegistry.register(TestItems.testItem1.get(), new WaterBreathingAccessory());
     }
 
     public static final String REFILL_TIME_OUT_KEY = "RefillTimeout";

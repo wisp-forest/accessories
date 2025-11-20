@@ -3,7 +3,7 @@ package io.wispforest.accessories.api.events;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.impl.AccessoryAttributeLogic;
-import io.wispforest.accessories.impl.AccessoryNestUtils;
+import io.wispforest.accessories.api.core.AccessoryNestUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,7 +17,7 @@ public interface AdjustAttributeModifierCallback {
 
     Event<AdjustAttributeModifierCallback> EVENT = EventFactory.createArrayBacked(AdjustAttributeModifierCallback.class,
             (invokers) -> (stack, reference, builder) -> {
-                AccessoryNestUtils.recursiveStackConsumption(stack, reference, (stack1, reference1) -> {
+                AccessoryNestUtils.recursivelyConsume(stack, reference, (stack1, reference1) -> {
                     var innerBuilder = new AccessoryAttributeBuilder(reference1, builder);
 
                     for (var invoker : invokers) invoker.adjustAttributes(stack1, reference1, innerBuilder);

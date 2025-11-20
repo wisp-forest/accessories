@@ -29,7 +29,7 @@ import java.util.function.Function;
 
 
 // TODO: 1.21.4 ADJUSTMENTS SHOULD BE MADE TO USE LESS DIRECT CODE ANYWAYS
-public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListener<T> {
+public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListener<T> implements IdentifiedResourceReloadListener {
 
     protected final String type;
 
@@ -42,7 +42,7 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
 
     protected final boolean requiresRegistries;
 
-    private final Function<PreparableReloadListener.SharedState, HolderLookup.@Nullable Provider> registriesAccess;
+    private Function<PreparableReloadListener.SharedState, HolderLookup.@Nullable Provider> registriesAccess = sharedState -> null;
 
     protected EndecDataLoader(ResourceLocation id, String type, Endec<T> endec, PackType packType) {
         this(id, type, endec, packType, false);
@@ -70,17 +70,23 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
         this.requiresRegistries = requiresRegistries;
         this.dependencies = value;
 
-        this.registriesAccess = AccessoriesInternals.INSTANCE.registerLoader(packType, this);
+        this.registerForType(packType);
 
         if (packType.equals(PackType.SERVER_DATA) && this instanceof SyncedDataHelper<?> syncedDataLoader) {
             SyncedDataHelperManager.registerLoader(syncedDataLoader);
         }
     }
 
+    public void setRegistriesAccess(Function<PreparableReloadListener.SharedState, HolderLookup.@Nullable Provider> registriesAccess) {
+        this.registriesAccess = registriesAccess;
+    }
+
+    @Override
     public ResourceLocation getId() {
         return this.id;
     }
 
+    @Override
     public Set<ResourceLocation> getDependencyIds() {
         return this.dependencies;
     }

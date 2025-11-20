@@ -1,6 +1,7 @@
 package io.wispforest.accessories.compat.config;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.data.AccessoriesBaseData;
 import io.wispforest.accessories.impl.PlayerEquipControl;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.owo.config.Option;
@@ -18,22 +19,28 @@ public class AccessoriesConfigModel {
     public ContentFocusedOptions contentOptions = new ContentFocusedOptions();
     
     public static class ContentFocusedOptions {
-        @RestartRequired
         @Sync(Option.SyncMode.OVERRIDE_CLIENT)
-        public List<String> validGliderSlots = new ArrayList<>(List.of("cape", "back"));
+        @Hook
+        public List<String> validGliderSlots = new ArrayList<>(List.of(AccessoriesBaseData.CAPE_SLOT, AccessoriesBaseData.BACK_SLOT));
 
+        @Sync(Option.SyncMode.OVERRIDE_CLIENT)
+        @Hook
         public boolean allowGliderEquip = false;
 
-        @RestartRequired
         @Sync(Option.SyncMode.OVERRIDE_CLIENT)
-        public List<String> validTotemSlots = new ArrayList<>(List.of("charm"));
-        
+        @Hook
+        public List<String> validTotemSlots = new ArrayList<>(List.of(AccessoriesBaseData.CHARM_SLOT));
+
+        @Sync(Option.SyncMode.OVERRIDE_CLIENT)
+        @Hook
         public boolean allowTotemEquip = false;
 
-        @RestartRequired
         @Sync(Option.SyncMode.OVERRIDE_CLIENT)
-        public List<String> validBannerSlots = new ArrayList<>(List.of("hat", "cape"));
+        @Hook
+        public List<String> validBannerSlots = new ArrayList<>(List.of(AccessoriesBaseData.CAPE_SLOT, AccessoriesBaseData.HAT_SLOT));
 
+        @Sync(Option.SyncMode.OVERRIDE_CLIENT)
+        @Hook
         public boolean allowBannerEquip = true;
     }
     

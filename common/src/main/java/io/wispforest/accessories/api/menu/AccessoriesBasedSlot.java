@@ -36,21 +36,33 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
 
     public final LivingEntity entity;
     public final AccessoriesContainer accessoriesContainer;
+    public final boolean isCosmetic;
 
     public AccessoriesBasedSlot(AccessoriesContainer accessoriesContainer, ExpandedContainer container, int slot, int x, int y) {
+        this(accessoriesContainer, container, accessoriesContainer.getCosmeticAccessories() == container, slot, x, y);
+    }
+
+    private AccessoriesBasedSlot(AccessoriesContainer accessoriesContainer, ExpandedContainer container, boolean isCosmetic, int slot, int x, int y) {
         super(container, slot, x, y);
 
         this.accessoriesContainer = accessoriesContainer;
         this.entity = accessoriesContainer.capability().entity();
+        this.isCosmetic = isCosmetic;
     }
 
     @Nullable
+    @Deprecated(forRemoval = true)
     public static AccessoriesBasedSlot of(LivingEntity livingEntity, SlotType slotType, int x, int y) {
         return of(livingEntity, slotType, 0, x, y);
     }
 
     @Nullable
     public static AccessoriesBasedSlot of(LivingEntity livingEntity, SlotType slotType, int slot, int x, int y) {
+        return of(livingEntity, slotType, false, slot, x, y);
+    }
+
+    @Nullable
+    public static AccessoriesBasedSlot of(LivingEntity livingEntity, SlotType slotType, boolean isCosmetic, int slot, int x, int y) {
         var capability = livingEntity.accessoriesCapability();
 
         if(capability == null) {
@@ -75,7 +87,7 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
             return null;
         }
 
-        return new AccessoriesBasedSlot(container, container.getAccessories(), slot, x, y);
+        return new AccessoriesBasedSlot(container, isCosmetic ? container.getAccessories() : container.getCosmeticAccessories(), slot, x, y);
     }
 
     @Override
@@ -109,12 +121,20 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
 
     @Override
     public void setByPlayer(ItemStack newStack, ItemStack oldStack) {
-        ((AccessoriesLivingEntityExtension)this.entity).onEquipItem(accessoriesContainer.createReference(this.getContainerSlot()), oldStack, newStack);
+        ((AccessoriesLivingEntityExtension) this.entity).onEquipItem(accessoriesContainer.createReference(this.getContainerSlot()), oldStack, newStack);
+
         super.setByPlayer(newStack, oldStack);
     }
 
     @Override
     public boolean mayPlace(ItemStack stack) {
+        // Cosmetic slots do not run the canEquip for the given accessory stack
+        if (this.isCosmeticSlot()) {
+            var slotType = this.accessoriesContainer.slotType();
+
+            return SlotPredicateRegistry.getPredicateResults(slotType.validators(), this.entity.level(), this.entity, slotType, this.getContainerSlot(), stack);
+        }
+
         return SlotPredicateRegistry.canInsertIntoSlot(stack, SlotReference.of(this.entity, this.accessoriesContainer.getSlotName(), this.getContainerSlot()));
     }
 
@@ -128,7 +148,8 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
             if(!result.orElse(false)) return false;
         }
 
-        return AccessoryRegistry.canUnequip(this.getItem(), SlotReference.of(this.entity, this.accessoriesContainer.getSlotName(), this.getContainerSlot()));
+        // Cosmetic slots do not run the canUnequip for the given accessory stack
+        return isCosmetic || AccessoryRegistry.canUnequip(this.getItem(), SlotReference.of(this.entity, this.accessoriesContainer.getSlotName(), this.getContainerSlot()));
     }
 
     @Override

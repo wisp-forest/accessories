@@ -38,7 +38,7 @@
   "accessories.slot_group.feet": "Feet",
   "accessories.slot_group.unsorted": "Unsorted",
 
-  "accessories.key.category.accessories": "Accessories",
+  "key.category.accessories.main": "Accessories",
   "accessories.key.open_accessories_screen": "Open Accessories Screen",
 
   "accessories.commands.attribute.failed.modifier_already_present_itemstack": "Modifier %s is already present on attribute %s for stack %s",
@@ -55,6 +55,11 @@
   "accessories.commands.slot.modifier.clear.container.success": "Slot Attributes for %s has been removed for entity %s",
 
   "accessories.argument.livingEntities.nonLiving": "Only living entities may be affected by this command, but the provided selector includes non living entities",
+
+  "accessories.commands.feature.toggle.failure" : "'%s' dose not match any of the toggleable features: %s",
+
+  "accessories.commands.feature.toggle.on" : "'%s' has been enabled!",
+  "accessories.commands.feature.toggle.off" : "'%s' has been disabled!",
 
   "accessories.commands.dump.failure" : "'%s' dose not match any of the valid types for logging: %s",
   "accessories.commands.dump.success" : "'%s' data has been dumped to the log file!",

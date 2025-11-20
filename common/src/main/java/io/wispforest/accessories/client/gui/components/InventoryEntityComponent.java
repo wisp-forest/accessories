@@ -260,13 +260,17 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
 
         var yPos = this.height / 2f;
 
-        matrix.translate(additionalOffset * (isLeftSide ? -2.3f : 2.3f), -yPos, 60);
+        matrix.translate(centerOffSet(isLeftSide), -yPos, 60);
 
         matrix.scale(xyScaleValue, -xyScaleValue, -baseScaleValue);
 
         matrix.translate(0, entity.getBbHeight() / -2f, 0);
 
         matrix.translate(this.xOffset * (isLeftSide ? 1 : -1), this.yOffset, 0);
+    }
+
+    private float centerOffSet(boolean isLeftSide) {
+        return additionalOffset * (isLeftSide ? -2.3f : 2.3f);
     }
 
     private void rotateMatrixStack(Matrix4f matrix, LivingEntity living, int mouseX, int mouseY, boolean isLeftSide) {
@@ -277,7 +281,7 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
         var rotationOffset = (!isLeftSide ? 180f : 0);
 
         if (this.lookAtCursor) {
-            float yRotation = (float) Math.toDegrees(Math.atan((mouseX - this.x - (trueWidth / 2f)) / 40f));
+            float yRotation = (float) Math.toDegrees(Math.atan((mouseX - this.x - (trueWidth + centerOffSet(isLeftSide))) / 40f));
 
             living.yHeadRotO = -yRotation;
 

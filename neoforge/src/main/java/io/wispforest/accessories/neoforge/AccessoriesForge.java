@@ -1,5 +1,6 @@
 package io.wispforest.accessories.neoforge;
 
+import com.google.common.reflect.Reflection;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
@@ -9,18 +10,21 @@ import io.wispforest.accessories.commands.api.ArgumentRegistrationCallback;
 import io.wispforest.accessories.commands.api.CommandGenerators;
 import io.wispforest.accessories.commands.api.core.RecordArgumentTypeInfo;
 import io.wispforest.accessories.data.EntitySlotLoader;
+import io.wispforest.accessories.data.api.EndecDataLoader;
 import io.wispforest.accessories.data.api.SyncedDataHelperManager;
 import io.wispforest.accessories.impl.core.AccessoriesCapabilityImpl;
 import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
+import io.wispforest.accessories.misc.AccessoriesGameRules;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.accessories.utils.InstanceEndec;
 import io.wispforest.accessories.utils.ServerInstanceHolder;
 import io.wispforest.endec.SerializationContext;
 import net.minecraft.client.gui.screens.MenuScreens;
+import io.wispforest.endec.util.reflection.ReflectionUtils;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
@@ -67,10 +71,11 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -169,7 +174,7 @@ public class AccessoriesForge {
             NeoForge.EVENT_BUS.<OnDatapackSyncEvent>addListener(EventPriority.HIGHEST, syncEvent -> syncEvent.getRelevantPlayers().forEach(playerConsumer::accept));
         });
 
-        Accessories.RULE_KEEP_ACCESSORY_INVENTORY = GameRules.register("accessories.keepAccessoryInventory", GameRules.Category.PLAYER, GameRules.BooleanValue.create(false));
+        Reflection.initialize(AccessoriesGameRules.class);
     }
 
     public void registerCommands(RegisterCommandsEvent event) {
@@ -195,15 +200,25 @@ public class AccessoriesForge {
     }
 
     public void registerReloadListeners(AddServerReloadListenersEvent event){
-        var loaders = AccessoriesNeoforgeInternals.TO_BE_LOADED.getOrDefault(PackType.SERVER_DATA, new LinkedHashMap<>());
+        var loaders = AccessoriesNeoforgeInternals.TO_BE_LOADED.getOrDefault(PackType.SERVER_DATA, new LinkedHashSet<>());
 
-        loaders.forEach((endecDataLoader, obj) -> {
-            obj.setValue(event.getRegistryAccess());
+        loaders.forEach((loader) -> {
+            if (loader instanceof EndecDataLoader<?> endecDataLoader) {
+                var registryHolder = new MutableObject<>(event.getRegistryAccess());
 
-            event.addListener(endecDataLoader.getId(), endecDataLoader);
+                endecDataLoader.setRegistriesAccess(sharedState -> {
+                    var registry = registryHolder.getValue();
+
+                    registryHolder.setValue(null);
+
+                    return registry;
+                });
+            }
+
+            event.addListener(loader.getId(), loader);
         });
 
-        loaders.keySet().forEach((endecDataLoader) -> {
+        loaders.forEach((endecDataLoader) -> {
             for (var dependencyId : endecDataLoader.getDependencyIds()) {
                 event.addDependency(dependencyId, endecDataLoader.getId());
             }

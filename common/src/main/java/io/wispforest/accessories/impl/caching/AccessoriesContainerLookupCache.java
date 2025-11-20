@@ -5,7 +5,7 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.caching.ItemStackBasedPredicate;
 import io.wispforest.accessories.api.equip.EquipmentChecking;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
-import io.wispforest.accessories.impl.AccessoryNestUtils;
+import io.wispforest.accessories.api.core.AccessoryNestUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -52,7 +52,7 @@ public class AccessoriesContainerLookupCache extends EquipmentLookupCache {
                     if(!cosmetic.isEmpty() && Accessories.config().clientOptions.showCosmeticAccessories()) stack = cosmetic;
                 }
 
-                var entryReference = AccessoryNestUtils.recursiveStackHandling(stack, reference, (innerStack, ref) -> {
+                var entryReference = AccessoryNestUtils.recursivelyHandle(stack, reference, (innerStack, ref) -> {
                     return (!innerStack.isEmpty() && predicate.test(innerStack))
                             ? new SlotEntryReference(reference, innerStack)
                             : null;
@@ -98,7 +98,7 @@ public class AccessoriesContainerLookupCache extends EquipmentLookupCache {
 
             var reference = this.container.createReference(i);
 
-            AccessoryNestUtils.recursiveStackConsumption(stack, reference, (innerStack, ref) -> currentlyAllEquipped.add(new SlotEntryReference(ref, innerStack)));
+            AccessoryNestUtils.recursivelyConsume(stack, reference, (innerStack, ref) -> currentlyAllEquipped.add(new SlotEntryReference(ref, innerStack)));
         });
 
         this.getAllEquipped = currentlyAllEquipped;

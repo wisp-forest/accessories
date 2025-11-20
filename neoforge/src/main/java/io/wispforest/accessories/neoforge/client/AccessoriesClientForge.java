@@ -9,6 +9,7 @@ import io.wispforest.accessories.impl.event.AccessoriesEventHandler;
 import io.wispforest.accessories.menu.AccessoriesMenuTypes;
 import io.wispforest.accessories.neoforge.AccessoriesNeoforgeInternals;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.model.HumanoidModel;
@@ -24,12 +25,14 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.ClientTooltipFlag;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -49,11 +52,11 @@ public class AccessoriesClientForge {
     }
 
     public void registerReloadListeners(AddClientReloadListenersEvent event){
-        var loaders = AccessoriesNeoforgeInternals.TO_BE_LOADED.getOrDefault(PackType.CLIENT_RESOURCES, new LinkedHashMap<>());
+        var loaders = AccessoriesNeoforgeInternals.TO_BE_LOADED.getOrDefault(PackType.CLIENT_RESOURCES, new LinkedHashSet<>());
 
-        loaders.forEach((endecDataLoader, obj) -> event.addListener(endecDataLoader.getId(), endecDataLoader));
+        loaders.forEach((endecDataLoader) -> event.addListener(endecDataLoader.getId(), endecDataLoader));
 
-        loaders.forEach((endecDataLoader, obj) -> {
+        loaders.forEach((endecDataLoader) -> {
             for (var dependencyId : endecDataLoader.getDependencyIds()) {
                 event.addDependency(dependencyId, endecDataLoader.getId());
             }

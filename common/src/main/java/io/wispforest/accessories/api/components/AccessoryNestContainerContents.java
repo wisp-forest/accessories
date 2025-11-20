@@ -12,8 +12,11 @@ import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.CodecUtils;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 public final class AccessoryNestContainerContents {
 
@@ -106,6 +109,30 @@ public final class AccessoryNestContainerContents {
 
     public List<ItemStack> accessories() {
         return accessories;
+    }
+
+    public void iterateStacks(BiConsumer<Integer, ItemStack> consumer) {
+        for (int i = 0; i < this.accessories.size(); i++) {
+            var innerStack = this.accessories.get(i);
+
+            if (innerStack.isEmpty()) continue;
+
+            consumer.accept(i, innerStack);
+        }
+    }
+
+    public <T> @Nullable T iterateStacks(BiFunction<Integer, ItemStack, @Nullable T> function) {
+        for (int i = 0; i < this.accessories.size(); i++) {
+            var innerStack = this.accessories.get(i);
+
+            if (innerStack.isEmpty()) continue;
+
+            var value = function.apply(i, innerStack);
+
+            if(value != null) break;
+        }
+
+        return null;
     }
 
     @Override

@@ -2,15 +2,13 @@ package io.wispforest.accessories;
 
 import com.google.common.reflect.Reflection;
 import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.api.core.Accessory;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
 import io.wispforest.accessories.commands.AccessoriesCommands;
 import io.wispforest.accessories.compat.config.AccessoriesConfig;
 import io.wispforest.accessories.criteria.AccessoryChangedCriterion;
-import io.wispforest.accessories.data.CustomRendererLoader;
-import io.wispforest.accessories.data.EntitySlotLoader;
-import io.wispforest.accessories.data.SlotGroupLoader;
-import io.wispforest.accessories.data.SlotTypeLoader;
+import io.wispforest.accessories.data.*;
 import io.wispforest.accessories.impl.event.VanillaItemPredicates;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.accessories.menu.AccessoriesMenuVariant;
@@ -18,10 +16,13 @@ import io.wispforest.accessories.menu.ArmorSlotTypes;
 import io.wispforest.accessories.mixin.CriteriaTriggersAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.client.ScreenVariantPing;
+import io.wispforest.accessories.networking.client.SyncServerOverrideOption;
 import io.wispforest.accessories.utils.EndecUtils;
 import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.LivingEntity;
@@ -31,11 +32,11 @@ import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameRules;
 import net.minecraft.world.phys.EntityHitResult;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 import org.slf4j.Logger;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -60,9 +61,6 @@ public class Accessories {
 
         DEBUG = debug;
     }
-
-    @ApiStatus.Internal
-    public static GameRules.Key<GameRules.BooleanValue> RULE_KEEP_ACCESSORY_INVENTORY = null;
 
     public static final String MODID = "accessories";
 
@@ -125,7 +123,7 @@ public class Accessories {
         if(targetEntity != null && !player.equals(targetEntity)) {
             var result = AllowEntityModificationCallback.EVENT.invoker().allowModifications(targetEntity, player, null);
 
-            if(!result.orElse(false)) return;
+            if(!result.orElse(false) && !player.hasPermissions(Commands.LEVEL_ADMINS)) return;
         }
 
         AccessoriesInternals.INSTANCE.openAccessoriesMenu(player, variant, targetEntity, carriedStack);
@@ -156,6 +154,17 @@ public class Accessories {
         ArmorSlotTypes.INSTANCE.init();
 
         VanillaItemPredicates.init();
+
+        // TODO: remove when proper sync changes go into effect
+        var config = config();
+        var contentOptions = config().contentOptions;
+        var keys = config().keys;
+        SyncServerOverrideOption.hookUpdate(contentOptions::subscribeToValidBannerSlots, config, keys.contentOptions_validBannerSlots);
+        SyncServerOverrideOption.hookUpdate(contentOptions::subscribeToValidGliderSlots, config, keys.contentOptions_validGliderSlots);
+        SyncServerOverrideOption.hookUpdate(contentOptions::subscribeToValidTotemSlots, config, keys.contentOptions_validTotemSlots);
+        SyncServerOverrideOption.hookUpdate(contentOptions::subscribeToAllowBannerEquip, config, keys.contentOptions_allowBannerEquip);
+        SyncServerOverrideOption.hookUpdate(contentOptions::subscribeToAllowGliderEquip, config, keys.contentOptions_allowGliderEquip);
+        SyncServerOverrideOption.hookUpdate(contentOptions::subscribeToAllowTotemEquip, config, keys.contentOptions_allowTotemEquip);
     }
 
     public static void registerCriteria(){

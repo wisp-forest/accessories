@@ -96,7 +96,7 @@ public class UniqueSlotHandling {
         /**
          * Controls whether accessories can be equipped from use into this slot.
          * <p>
-         * A value of {@code false} overrides {@link Accessory#canEquipFromUse(ItemStack)}.
+         * A value of {@code false} overrides {@link Accessory#canEquipFromUse(ItemStack, SlotReference)}.
          */
         UniqueSlotBuilder allowEquipFromUse(boolean value);
 

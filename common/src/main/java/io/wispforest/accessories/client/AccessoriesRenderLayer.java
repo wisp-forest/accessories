@@ -4,9 +4,9 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.client.AccessoriesRenderStateKeys;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
+import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
-import io.wispforest.accessories.menu.AccessoriesInternalSlot;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.ClientAvatarEntity;
 import net.minecraft.client.model.EntityModel;
@@ -82,7 +82,7 @@ public class AccessoriesRenderLayer<S extends LivingEntityRenderState, M extends
         if (shouldUpdate) lastUpdated20th = current20th;
 
         var selected = (client.screen instanceof AccessoriesScreenBase<?> screenBase)
-            ? screenBase.getSelectedSlotIf(AccessoriesInternalSlot.class)
+            ? screenBase.getSelectedSlotIf(AccessoriesBasedSlot.class)
             : null;
 
         boolean preventHovering = selected != null && selected.getItem().isEmpty();

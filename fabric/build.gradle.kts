@@ -19,8 +19,8 @@ dependencies {
     modLocalRuntime(libs.modmenu)
     //--
 
-    modrinth(this::modLocalRuntime, "ok-boomer" to "0.1.3+1.21")
-    modrinth(this::modLocalRuntime, "sodium" to "${libs.versions.sodium.get()}-fabric")
+//    modrinth(this::modLocalRuntime, "ok-boomer" to "0.1.3+1.21")
+//    modrinth(this::modLocalRuntime, "sodium" to "${libs.versions.sodium.get()}-fabric")
 
     modCompileOnly(libs.trinkets)
 }
