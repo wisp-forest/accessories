@@ -13,10 +13,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.function.BiPredicate;
 
 import static io.wispforest.accessories.api.attributes.AttributeModificationData.AllowedType;
 
@@ -242,14 +244,42 @@ public final class AccessoryAttributeBuilder {
     @Override
     public boolean equals(Object obj) {
         if(!(obj instanceof AccessoryAttributeBuilder otherBuilder)) return false;
-        if(!areMapsEqual(this.stackedAttributes, otherBuilder.stackedAttributes)) return false;
+        if(!areMapsEqual(this.stackedAttributes.asMap(), otherBuilder.stackedAttributes.asMap(), Record::equals)) return false;
 
         return this.exclusiveAttributes.equals(otherBuilder.exclusiveAttributes);
     }
 
-    private static <K, V> boolean areMapsEqual(Multimap<K, V> multimap1, Multimap<K, V> multimap2) {
-        for (var entry : multimap1.asMap().entrySet()) {
-            if(!entry.getValue().equals(multimap2.get(entry.getKey()))) return false;
+    public boolean equalWithoutPaths(Object obj) {
+        if(!(obj instanceof AccessoryAttributeBuilder otherBuilder)) return false;
+        if(!areMapsEqual(this.stackedAttributes.asMap(), otherBuilder.stackedAttributes.asMap(), AttributeModificationData::equalsWithoutPath)) return false;
+
+        return this.exclusiveAttributes.equals(otherBuilder.exclusiveAttributes);
+    }
+
+    private static <K, V, C extends Collection<V>> boolean areMapsEqual(Map<K, C> multimap1, Map<K, C> multimap2, BiPredicate<@NotNull V, @NotNull V> equalsCheck) {
+        return areListValuesInMapEqual(multimap1, multimap2, (list1, list2) -> {
+            for (V v : list1) {
+                var result = false;
+
+                for (V v1 : list2) {
+                    result = equalsCheck.test(v, v1);
+
+                    if (result) break;
+                }
+
+                if (!result) return false;
+            }
+
+            return true;
+        });
+    }
+
+    private static <K, V, C extends Collection<V>> boolean areListValuesInMapEqual(Map<K, C> multimap1, Map<K, C> multimap2, BiPredicate<C, C> equalsCheck) {
+        for (var entry : multimap1.entrySet()) {
+            var list1 = entry.getValue();
+            var list2 = multimap2.get(entry.getKey());
+
+            if (list2 == null || !equalsCheck.test(list1, list2)) return false;
         }
 
         return true;

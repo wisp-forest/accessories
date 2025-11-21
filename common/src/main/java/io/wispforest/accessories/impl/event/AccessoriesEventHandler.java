@@ -611,7 +611,7 @@ public class AccessoriesEventHandler {
                 defaultModifiers = builder;
             } else if (allDuplicates) {
                 // TODO: ! WARNING ! THIS MAY NOT WORK?
-                allDuplicates = defaultModifiers.equals(builder);
+                allDuplicates = defaultModifiers.equalWithoutPaths(builder);
             }
         }
 

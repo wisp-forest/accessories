@@ -20,7 +20,7 @@ dependencies {
     forgeRuntimeLibrary(libs.jankson)
     // --
 
-    modrinth(this::modLocalRuntime, "sodium" to "${libs.versions.sodium.get()}-neoforge")
+    //modrinth(this::modLocalRuntime, "sodium" to "${libs.versions.sodium.get()}-neoforge")
 
     modCompileOnly(libs.curios)
 }

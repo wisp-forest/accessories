@@ -6,6 +6,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 ///
 /// Helper record to hold data on a Attribute Modification made within the [AccessoryAttributeBuilder]
 ///
@@ -36,6 +38,18 @@ public record AttributeModificationData(@Nullable String slotPath, Holder<Attrib
         if (isSlotValidation) return this.usedInSlotValidation();
 
         return true;
+    }
+
+    public boolean equalsWithoutPath(Object object) {
+        return object instanceof AttributeModificationData that
+            && usedInSlotValidation == that.usedInSlotValidation
+            && Objects.equals(modifier, that.modifier)
+            && Objects.equals(attribute, that.attribute);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(attribute, modifier, usedInSlotValidation);
     }
 
     @Override
