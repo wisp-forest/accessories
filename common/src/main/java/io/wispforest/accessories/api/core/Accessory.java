@@ -1,6 +1,9 @@
 package io.wispforest.accessories.api.core;
 
 import io.wispforest.accessories.api.SoundEventData;
+import io.wispforest.accessories.api.action.ActionResponse;
+import io.wispforest.accessories.api.action.ActionResponseBuffer;
+import io.wispforest.accessories.api.action.CurseBound;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryItemAttributeModifiers;
@@ -71,30 +74,33 @@ public interface Accessory {
      * Used to indicate if the given Accessory can be equipped, such is invoked within {@link AccessoryRegistry#canEquip}
      * and is desired method to check if such can occur.
      *
-     * @param stack the stack to be equipped
+     * @param stack     the stack to be equipped
      * @param reference the slot the accessory is in
-     * @return whether the given stack can be equipped
+     * @param buffer    the buffer to send a response to if the Accessory can or can not be equipped
      */
     @ApiStatus.OverrideOnly
-    default boolean canEquip(ItemStack stack, SlotReference reference){
-        return true;
+    default void canEquip(ItemStack stack, SlotReference reference, ActionResponseBuffer buffer){
+        if (canEquip(stack, reference)) return;
+
+        buffer.respondWith(ActionResponse.of(false, Component.literal("Such an item can not be equipped!")));
     }
 
     /**
      * Used to indicate if the given Accessory can be unequipped, such is invoked within {@link AccessoryRegistry#canUnequip}
      * and is desired method to check if such can occur.
      *
-     * @param stack the stack to be unequipped
+     * @param stack     the stack to be unequipped
      * @param reference the slot the accessory is in
-     * @return whether the given stack can be unequipped
+     * @param buffer    the buffer to send a response to if the Accessory can or can not be equipped
      */
     @ApiStatus.OverrideOnly
-    default boolean canUnequip(ItemStack stack, SlotReference reference){
-        if(EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) {
-            return reference.entity() instanceof Player player && player.isCreative();
-        }
+    @MustBeInvokedByOverriders
+    default void canUnequip(ItemStack stack, SlotReference reference, ActionResponseBuffer buffer){
+        if (CurseBound.checkIfCursed(stack, reference.entity(), buffer)) return;
 
-        return true;
+        if (canUnequip(stack, reference)) return;
+
+        buffer.respondWith(ActionResponse.of(false, Component.literal("Such an item can not be unequipped!")));
     }
 
     //--
@@ -297,4 +303,36 @@ public interface Accessory {
     @Deprecated(forRemoval = true)
     @ApiStatus.ScheduledForRemoval(inVersion = "1.22")
     default void getExtraTooltip(ItemStack stack, List<Component> tooltips){}
+
+    /**
+     * Used to indicate if the given Accessory can be equipped, such is invoked within {@link AccessoryRegistry#canEquip}
+     * and is desired method to check if such can occur.
+     *
+     * @param stack the stack to be equipped
+     * @param reference the slot the accessory is in
+     * @return whether the given stack can be equipped
+     */
+    @Deprecated(forRemoval = true)
+    @ApiStatus.OverrideOnly
+    default boolean canEquip(ItemStack stack, SlotReference reference){
+        return true;
+    }
+
+    /**
+     * Used to indicate if the given Accessory can be unequipped, such is invoked within {@link AccessoryRegistry#canUnequip}
+     * and is desired method to check if such can occur.
+     *
+     * @param stack the stack to be unequipped
+     * @param reference the slot the accessory is in
+     * @return whether the given stack can be unequipped
+     */
+    @Deprecated(forRemoval = true)
+    @ApiStatus.OverrideOnly
+    default boolean canUnequip(ItemStack stack, SlotReference reference){
+        if(EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) {
+            return reference.entity() instanceof Player player && player.isCreative();
+        }
+
+        return true;
+    }
 }

@@ -1,5 +1,7 @@
 package io.wispforest.accessories.api.slot;
 
+import io.wispforest.accessories.api.action.ActionResponseBuffer;
+import io.wispforest.accessories.api.slot.validator.SlotValidator;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -10,7 +12,8 @@ import java.util.function.Predicate;
 /**
  * Predicate used to verify if the given stack is valid for the passed SlotType and index
  */
-public interface SlotBasedPredicate {
+@Deprecated(forRemoval = true)
+public interface SlotBasedPredicate extends SlotValidator {
 
     /**
      * Predicate method used to check if the given stack is valid for the given slot
@@ -39,5 +42,16 @@ public interface SlotBasedPredicate {
 
     static SlotBasedPredicate withEntity(EntityBasedPredicate entityBasedPredicate) {
         return entityBasedPredicate;
+    }
+
+    //--
+
+    @Override
+    default void isValidForSlot(Level level, SlotType slotType, int index, ItemStack stack, ActionResponseBuffer buffer) {
+        var isValid = isValid(level, slotType, index, stack);
+
+        if (isValid == TriState.DEFAULT) return;
+
+        var reason =
     }
 }
