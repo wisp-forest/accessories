@@ -17,19 +17,18 @@ import net.minecraft.client.resources.model.EquipmentClientInfo;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.gen.Accessor;
+import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(WingsLayer.class)
 public abstract class WingsLayerMixin<S extends HumanoidRenderState, M extends EntityModel<S>> implements WingsLayerExtension<S> {
+    @Accessor("equipmentRenderer")
+    public abstract EquipmentLayerRenderer accessories$equipmentRenderer();
 
-
-    @Shadow @Final private EquipmentLayerRenderer equipmentRenderer;
-
-    @Shadow
-    public abstract void submit(PoseStack arg, SubmitNodeCollector arg2, int i, S arg3, float f, float g);
+    @Invoker("submit")
+    public abstract void accessories$submit(PoseStack arg, SubmitNodeCollector arg2, int i, S arg3, float f, float g);
 
     @Override
     public void renderStack(ItemStack stack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S humanoidRenderState) {
@@ -37,7 +36,7 @@ public abstract class WingsLayerMixin<S extends HumanoidRenderState, M extends E
 
         humanoidRenderState.chestEquipment = stack;
 
-        this.submit(poseStack, submitNodeCollector, i, humanoidRenderState, humanoidRenderState.yRot, humanoidRenderState.xRot);
+        this.accessories$submit(poseStack, submitNodeCollector, i, humanoidRenderState, humanoidRenderState.yRot, humanoidRenderState.xRot);
 
         humanoidRenderState.chestEquipment = prevItem;
     }
@@ -53,7 +52,7 @@ public abstract class WingsLayerMixin<S extends HumanoidRenderState, M extends E
                     var equippable = stack1.get(DataComponents.EQUIPPABLE);
 
                     if (equippable != null && equippable.assetId().isPresent()) {
-                        var list = ((EquipmentLayerRendererAccessor) this.equipmentRenderer).accessories$equipmentAssetManager()
+                        var list = ((EquipmentLayerRendererAccessor) this.accessories$equipmentRenderer()).accessories$equipmentAssetManager()
                                 .get(equippable.assetId().get())
                                 .getLayers(EquipmentClientInfo.LayerType.WINGS);
 

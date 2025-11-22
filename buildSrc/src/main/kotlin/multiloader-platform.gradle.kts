@@ -1,8 +1,6 @@
 import io.wispforest.helpers.Extensions.currentPlatform
 import io.wispforest.helpers.Extensions.modId
-import io.wispforest.helpers.ResourceProcessingUtils
-import org.apache.tools.ant.filters.LineContains
-import org.gradle.kotlin.dsl.get
+import net.fabricmc.loom.task.service.MixinRefmapService
 
 plugins {
     id("multiloader-base")
@@ -82,19 +80,19 @@ tasks.shadowJar {
 
     exclude("architectury.common.json")
 
-    if (currentPlatform == "neoforge") { // Neoforge does not require the refmap, we remove the file and the line within the mixin json
-        exclude("${modId}-common-common-refmap.json")
-
-        filesMatching("${modId}-common.mixins.json") {
-            filter(LineContains::class, "negate" to true, "contains" to listOf("refmap"))
-        }
-    } else if (currentPlatform == "fabric") { // Fabric requires the refmap but only in prod so we have the field get filled in here
-        val commonExtraProperties = mutableMapOf("mod_id" to modid)
-
-        filesMatching(listOf("${modId}-common.mixins.json")) {
-            filter(ResourceProcessingUtils.expandIgnoreErrors(commonExtraProperties) { true })
-        }
-    }
+//    if (currentPlatform == "neoforge") { // Neoforge does not require the refmap, we remove the file and the line within the mixin json
+//        exclude("${modId}-common-common-refmap.json")
+//
+//        filesMatching("${modId}-common.mixins.json") {
+//            filter(LineContains::class, "negate" to true, "contains" to listOf("refmap"))
+//        }
+//    } else if (currentPlatform == "fabric") { // Fabric requires the refmap but only in prod so we have the field get filled in here
+//        val commonExtraProperties = mutableMapOf("mod_id" to modid)
+//
+//        filesMatching(listOf("${modId}-common.mixins.json")) {
+//            filter(ResourceProcessingUtils.expandIgnoreErrors(commonExtraProperties) { true })
+//        }
+//    }
 }
 
 // Remap the shadow jar to the proper platform mapping
@@ -103,6 +101,12 @@ tasks.remapJar {
     dependsOn(tasks.shadowJar)
     archiveClassifier.set("")
     if (currentPlatform == "fabric") injectAccessWidener = true
+
+    var commonProject = project(":common");
+
+    var commonRemapJarTask = commonProject.tasks.remapJar.get();
+
+    this.mixinRefmapServiceOptions.addAll(MixinRefmapService.createOptions(commonRemapJarTask))
 }
 
 // Add Common files to Source

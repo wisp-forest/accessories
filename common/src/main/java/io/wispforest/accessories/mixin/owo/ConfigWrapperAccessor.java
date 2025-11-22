@@ -9,6 +9,6 @@ import java.util.Map;
 
 @Mixin(value = ConfigWrapper.class, remap = false)
 public interface ConfigWrapperAccessor {
-    @Accessor(value = "builder", remap = false)
+    @Accessor(value = "builder")
     ReflectiveEndecBuilder accessories$builder();
 }

@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.gen.Accessor;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -14,36 +15,39 @@ import java.util.Deque;
 @Mixin(GuiGraphics.class)
 public abstract class GuiGraphicsMixin implements ScissorStackManipulation {
 
-    @Shadow @Final public GuiGraphics.ScissorStack scissorStack;
+    @Accessor("scissorStack")
+    public abstract GuiGraphics.ScissorStack accessories$scissorStack();
 
     @Override
     public void accessories$renderWithoutEntries(Runnable runnable, @Nullable Integer levels) {
-        ((ScissorStackManipulation) this.scissorStack).accessories$renderWithoutEntries(runnable, levels);
+        ((ScissorStackManipulation) this.accessories$scissorStack()).accessories$renderWithoutEntries(runnable, levels);
     }
 
     @Mixin(GuiGraphics.ScissorStack.class)
     public abstract static class ScissorStackMixin implements ScissorStackManipulation {
-        @Shadow @Final private Deque<ScreenRectangle> stack;
+        @Accessor("stack")
+        public abstract Deque<ScreenRectangle> accessories$stack();
 
         @Override
         public void accessories$renderWithoutEntries(Runnable runnable, @Nullable Integer levels) {
-            Deque<ScreenRectangle> stackCopy = new ArrayDeque<>(stack);
+            var originalStack = accessories$stack();
+            var copiedStack = new ArrayDeque<>(accessories$stack());
 
             if (levels != null) {
                 for (var i = 0; i < levels; i++) {
-                    stack.pollLast();
+                    originalStack.pollLast();
                 }
 
                 runnable.run();
 
-                stack.clear();
+                originalStack.clear();
             } else {
-                stack.clear();
+                originalStack.clear();
 
                 runnable.run();
             }
 
-            stack.addAll(stackCopy);
+            originalStack.addAll(copiedStack);
         }
     }
 }

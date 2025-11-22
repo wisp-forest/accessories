@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -41,8 +42,8 @@ import java.util.function.Predicate;
 @Mixin(EnchantmentHelper.class)
 public abstract class EnchantmentHelperMixin {
 
-    @Shadow
-    protected static void runIterationOnItem(ItemStack itemStack, EquipmentSlot equipmentSlot, LivingEntity livingEntity, EnchantmentHelper.EnchantmentInSlotVisitor enchantmentInSlotVisitor) {}
+    @Invoker("runIterationOnItem")
+    public static void accessoriess$runIterationOnItem(ItemStack itemStack, EquipmentSlot equipmentSlot, LivingEntity livingEntity, EnchantmentHelper.EnchantmentInSlotVisitor enchantmentInSlotVisitor) {}
 
     @WrapOperation(method = "getEnchantmentLevel", at = @At(value = "INVOKE", target = "Ljava/util/Map;values()Ljava/util/Collection;"))
     private static Collection<ItemStack> addAccessoriesStacks(Map instance, Operation<Collection<ItemStack>> original, @Local(argsOnly = true) Holder<Enchantment> enchantment, @Local(argsOnly = true) LivingEntity entity){
@@ -116,7 +117,7 @@ public abstract class EnchantmentHelperMixin {
                         var itemStack = entryReference.stack();
 
                         ((AccessoriesLivingEntityExtension) livingEntity).pushEnchantmentContext(itemStack, entryReference.reference());
-                        runIterationOnItem(itemStack, AccessoriesInternals.INSTANCE.getInternalEquipmentSlot(), livingEntity, enchantmentInSlotVisitor);
+                        accessoriess$runIterationOnItem(itemStack, AccessoriesInternals.INSTANCE.getInternalEquipmentSlot(), livingEntity, enchantmentInSlotVisitor);
                     });
         }
     }

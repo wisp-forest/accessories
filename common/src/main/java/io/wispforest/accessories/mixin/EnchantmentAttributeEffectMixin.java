@@ -14,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(EnchantmentAttributeEffect.class)
 public abstract class EnchantmentAttributeEffectMixin {
-
     @Inject(method = "makeAttributeMap", at = @At("HEAD"), cancellable = true)
     private void returnEmptyIfAccessoriesSlot(int i, EquipmentSlot equipmentSlot, CallbackInfoReturnable<HashMultimap<Holder<Attribute>, AttributeModifier>> cir) {
         if(equipmentSlot.equals(AccessoriesInternals.INSTANCE.getInternalEquipmentSlot())) cir.setReturnValue(HashMultimap.create());

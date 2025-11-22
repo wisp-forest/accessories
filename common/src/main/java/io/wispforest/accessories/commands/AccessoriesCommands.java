@@ -26,7 +26,6 @@ import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.mixin.CommandSelectionAccessor;
 import io.wispforest.accessories.mixin.ResourceArgumentAccessor;
 import io.wispforest.endec.Endec;
-import io.wispforest.owo.command.EnumArgumentType;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -126,7 +125,7 @@ public class AccessoriesCommands implements CommandTreeGenerator.Branched {
         if (type instanceof IntegerArgumentType) return IntegerArgumentType::getInteger;
         if (type instanceof ResourceExtendedArgument<?>) return ResourceExtendedArgument::getResource;
         if (type instanceof ResourceArgument<?> resourceArgument) {
-            var key = (ResourceKey<Registry<Object>>) ((ResourceArgumentAccessor<?>) resourceArgument).registryKey();
+            var key = (ResourceKey<Registry<Object>>) ((ResourceArgumentAccessor<?>) resourceArgument).accessories$registryKey();
             return (ctx, name) -> ResourceArgument.getResource(ctx, name, key);
         }
         if (type instanceof AccessoriesMixedSlotArgument) return AccessoriesMixedSlotArgument::getSlot;

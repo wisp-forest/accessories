@@ -16,6 +16,7 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -27,11 +28,12 @@ import java.util.function.Predicate;
 @Mixin(Inventory.class)
 public abstract class InventoryMixin {
 
-    @Shadow @Final public Player player;
+    @Accessor("player")
+    public abstract Player accessories$player();
 
     @Inject(method = "clearOrCountMatchingItems", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z", shift = At.Shift.AFTER))
     private void clearAccessories(Predicate<ItemStack> stackPredicate, int maxCount, Container inventory, CallbackInfoReturnable<Integer> cir, @Local(ordinal = 1) LocalIntRef i) {
-        var capability = AccessoriesCapability.get(player);
+        var capability = AccessoriesCapability.get(accessories$player());
 
         if(capability == null) return;
 
@@ -61,7 +63,7 @@ public abstract class InventoryMixin {
 
     @Unique
     private boolean checkAccessoriesContainers(Predicate<ItemStack> predicate){
-        var capability = AccessoriesCapability.get(player);
+        var capability = AccessoriesCapability.get(accessories$player());
 
         if(capability == null) return false;
 
@@ -70,10 +72,13 @@ public abstract class InventoryMixin {
 
     @Inject(method = "dropAll", at = @At(value = "TAIL"))
     private void addAccessoriesToDropCall(CallbackInfo ci) {
-        for (var itemstack : ((DroppedStacksExtension) this.player).toBeDroppedStacks()) {
-            this.player.drop(itemstack, true, false);
+        var player = accessories$player();
+        var ext = ((DroppedStacksExtension) player);
+
+        for (var itemstack : ext.toBeDroppedStacks()) {
+            player.drop(itemstack, true, false);
         }
 
-        ((DroppedStacksExtension)this.player).addToBeDroppedStacks(List.of());
+        ext.addToBeDroppedStacks(List.of());
     }
 }

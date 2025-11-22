@@ -15,10 +15,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(EquipmentSlot.Type.class)
 public abstract class EquipmentSlotTypeMixin {
 
-    @Final
-    @Shadow
-    @Mutable
-    private static EquipmentSlot.Type[] $VALUES;
+//    @Final
+//    @Shadow
+//    @Mutable
+//    private static EquipmentSlot.Type[] $VALUES;
 
     @Invoker("<init>")
     public static EquipmentSlot.Type invokeNew(String internalName, int ordinal) {

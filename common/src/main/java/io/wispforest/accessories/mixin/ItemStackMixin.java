@@ -11,11 +11,13 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ItemStack.class)
-public class ItemStackMixin implements ItemStackExtension {
+public abstract class ItemStackMixin implements ItemStackExtension {
 
-    @Shadow private int count;
+    @Accessor("count")
+    public abstract int accessories$count();
 
     @Nullable
     @Unique
@@ -23,28 +25,24 @@ public class ItemStackMixin implements ItemStackExtension {
 
     @Override
     public EventStream<ItemStackResize> accessories$getResizeEvent() {
-        if (resizeEvent == null) {
-            resizeEvent = EnhancedEventStream.of((invokers, barrier) -> (stack, types) -> {
+        if (this.resizeEvent == null) {
+            this.resizeEvent = EnhancedEventStream.of((invokers, barrier) -> (stack, types) -> {
                 try (barrier) {
                     invokers.forEach(invoker -> invoker.onResize(stack, types));
                 }
-            }, () -> resizeEvent = null);
+            }, () -> this.resizeEvent = null);
         }
 
-        return resizeEvent;
+        return this.resizeEvent;
     }
     @WrapMethod(method = "setCount")
     private void accessories$handleResizeEvent(int count, Operation<Void> original) {
         int prevSize = 0;
 
-        if (resizeEvent != null) {
-            prevSize = this.count;
-        }
+        if (this.resizeEvent != null) prevSize = this.accessories$count();
 
         original.call(count);
 
-        if (resizeEvent != null) {
-            accessories$getResizeEvent().sink().onResize((ItemStack) (Object) this, prevSize);
-        }
+        if (this.resizeEvent != null) accessories$getResizeEvent().sink().onResize((ItemStack) (Object) this, prevSize);
     }
 }

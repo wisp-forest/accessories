@@ -9,5 +9,5 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 public interface SimpleJsonResourceReloadListenerAccessor<T> {
 
     @Accessor("codec")
-    Codec<T> getCodec();
+    Codec<T> accessories$getCodec();
 }

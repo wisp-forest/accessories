@@ -9,7 +9,7 @@ import java.util.Map;
 
 @Mixin(ModelPart.class)
 public interface ModelPartAccessor {
-    @Accessor("cubes") List<ModelPart.Cube> getCubes();
+    @Accessor("cubes") List<ModelPart.Cube> accessories$getCubes();
 
-    @Accessor("children") Map<String, ModelPart> getChildren();
+    @Accessor("children") Map<String, ModelPart> accessories$getChildren();
 }

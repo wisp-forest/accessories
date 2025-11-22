@@ -15,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(DumpdataCommand.class)
 public abstract class DumpdataCommandMixin {
-
     @WrapOperation(method = "executeItem", at = @At(value = "INVOKE", target = "Lcom/mojang/serialization/Codec;encodeStart(Lcom/mojang/serialization/DynamicOps;Ljava/lang/Object;)Lcom/mojang/serialization/DataResult;"))
     private static DataResult wrapWithRegistries(Codec instance, DynamicOps dynamicOps, Object object, Operation<DataResult> original, @Local(argsOnly = true) CommandContext<CommandSourceStack> context) {
         return original.call(instance, RegistryOps.create(dynamicOps, context.getSource().registryAccess()), object);

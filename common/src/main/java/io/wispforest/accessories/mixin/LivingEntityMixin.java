@@ -61,8 +61,6 @@ import java.util.stream.Stream;
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin extends Entity implements AccessoriesAPIAccess, AccessoriesLivingEntityExtension {
 
-    @Shadow public abstract void swing(InteractionHand hand, boolean updateSelf);
-
     @Unique
     private AccessoriesCapabilityImpl accessories$capability = null;
 

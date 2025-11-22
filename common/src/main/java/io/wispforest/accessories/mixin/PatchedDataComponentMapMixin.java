@@ -44,20 +44,20 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
 
         this.itemStack = itemStack;
 
-        if (mutationEvent == null) {
-            mutationEvent = EnhancedEventStream.of((invokers, barrier) -> (stack, types) -> {
+        if (this.mutationEvent == null) {
+            this.mutationEvent = EnhancedEventStream.of((invokers, barrier) -> (stack, types) -> {
                 try (barrier) {
                     invokers.forEach(itemStackMutation -> itemStackMutation.onMutation(stack, types));
                 }
-            }, () -> mutationEvent = null);
+            }, () -> this.mutationEvent = null);
         }
 
-        return mutationEvent;
+        return this.mutationEvent;
     }
 
     @Override
     public boolean accessories$hasChanged() {
-        var bl = changeCheckStack;
+        var bl = this.changeCheckStack;
 
         this.changeCheckStack = false;
 

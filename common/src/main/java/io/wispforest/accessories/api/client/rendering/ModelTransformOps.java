@@ -83,7 +83,7 @@ public class ModelTransformOps {
     }
 
     private static Optional<ModelPart> getAnyDescendantWithName(ModelPart part, String name) {
-        for (var entry : ((ModelPartAccessor) (Object) part).getChildren().entrySet()) {
+        for (var entry : ((ModelPartAccessor) (Object) part).accessories$getChildren().entrySet()) {
             var childName = entry.getKey();
             var childPart = entry.getValue();
 
@@ -162,10 +162,10 @@ public class ModelTransformOps {
             var parts = new ArrayList<ModelPart>();
 
             parts.add(part);
-            parts.addAll(((ModelPartAccessor) (Object) part).getChildren().values());
+            parts.addAll(((ModelPartAccessor) (Object) part).accessories$getChildren().values());
 
             for (var modelPart : parts) {
-                for (ModelPart.Cube cube : ((ModelPartAccessor) (Object) modelPart).getCubes()) {
+                for (ModelPart.Cube cube : ((ModelPartAccessor) (Object) modelPart).accessories$getCubes()) {
                     min = new Vec3(
                             Math.min(min.x, Math.min(cube.minX + modelPart.x, cube.maxX + modelPart.x)),
                             Math.min(min.y, Math.min(cube.minY + modelPart.y, cube.maxY + modelPart.y)),
@@ -179,7 +179,7 @@ public class ModelTransformOps {
                 }
             }
         } else {
-            for (ModelPart.Cube cube : ((ModelPartAccessor) (Object) part).getCubes()) {
+            for (ModelPart.Cube cube : ((ModelPartAccessor) (Object) part).accessories$getCubes()) {
                 min = new Vec3(
                         Math.min(min.x, Math.min(cube.minX, cube.maxX)),
                         Math.min(min.y, Math.min(cube.minY, cube.maxY)),

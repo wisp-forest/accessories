@@ -11,7 +11,7 @@ import java.util.Map;
 
 @Mixin(ConfigSynchronizer.class)
 public interface ConfigSynchronizerAccessor {
-    @Accessor(value = "KNOWN_CONFIGS", remap = false)
+    @Accessor(value = "KNOWN_CONFIGS")
     static Map<String, ConfigWrapper<?>> KNOWN_CONFIGS() {
         throw new IllegalStateException("UHHHHHHHHHHHHHHHHHH");
     }
