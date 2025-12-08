@@ -3,6 +3,7 @@ package io.wispforest.accessories.api.slot;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesStorage;
 import io.wispforest.accessories.api.events.DropRule;
+import io.wispforest.accessories.api.slot.validator.SlotValidatorRegistry;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -58,7 +59,7 @@ public interface SlotType extends Comparable<SlotType> {
 
     ///
     /// @return A set of [Identifier] used to check if an accessory is valid for the given
-    /// slot used within {@link SlotPredicateRegistry#canInsertIntoSlot}.
+    /// slot used within {@link SlotValidatorRegistry#canInsertIntoSlot}.
     ///
     Set<Identifier> validators();
 

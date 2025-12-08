@@ -1,8 +1,10 @@
 package io.wispforest.accessories.api.slot;
 
+import io.wispforest.accessories.api.action.ActionResponse;
 import io.wispforest.accessories.api.action.ActionResponseBuffer;
 import io.wispforest.accessories.api.slot.validator.SlotValidator;
 import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -52,6 +54,10 @@ public interface SlotBasedPredicate extends SlotValidator {
 
         if (isValid == TriState.DEFAULT) return;
 
-        var reason =
+        var message = isValid.get()
+            ? Component.literal("Such an item is valid to be equipped!")
+            : Component.literal("Such an item is not valid to be equipped!");
+
+        buffer.respondWith(ActionResponse.of(isValid.get(), message));
     }
 }

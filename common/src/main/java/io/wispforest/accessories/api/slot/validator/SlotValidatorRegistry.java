@@ -148,7 +148,13 @@ public class SlotValidatorRegistry {
     }
 
     public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, Level level, @Nullable LivingEntity entity, SlotType slotType, int index, ItemStack stack){
-        var buffer = new ActionResponseBuffer(true);
+        return getPredicateResponse(predicateIds, level, entity, slotType, index, stack, true)
+            .canPerformAction()
+            .orElse(false);
+    }
+
+    public static ActionResponseBuffer getPredicateResponse(Set<ResourceLocation> predicateIds, Level level, @Nullable LivingEntity entity, SlotType slotType, int index, ItemStack stack, boolean allowEarlyReturn){
+        var buffer = new ActionResponseBuffer(allowEarlyReturn);
 
         for (var predicateId : predicateIds) {
             var predicate = getPredicate(predicateId);
@@ -164,7 +170,7 @@ public class SlotValidatorRegistry {
             if(buffer.canPerformAction() != TriState.DEFAULT) break;
         }
 
-        return buffer.canPerformAction().orElse(false);
+        return buffer;
     }
 
     private static TagKey<Item> getSlotTag(SlotType slotType) {
@@ -224,7 +230,7 @@ public class SlotValidatorRegistry {
 
             var validSlots = slotValidationData.validSlotOverrides();
 
-            if (validSlots.contains(name) || validSlots.contains("any")) {
+            if (validSlots.contains(name) || validSlots.contains(AccessoriesBaseData.ANY_SLOT)) {
                 buffer.respondWith(ActionResponse.of(true, Component.literal("Was able to equip the given Accessory as its blacklisted for this slot!")));
             }
         });

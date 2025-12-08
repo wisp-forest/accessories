@@ -14,6 +14,7 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.attributes.SlotAttribute;
 import io.wispforest.accessories.api.client.rendering.RenderingFunction;
 import io.wispforest.accessories.api.components.*;
+import io.wispforest.accessories.api.data.AccessoriesBaseData;
 import io.wispforest.accessories.commands.api.CommandGenerators;
 import io.wispforest.accessories.commands.api.CommandTreeGenerator;
 import io.wispforest.accessories.commands.api.base.BranchedCommandGenerator;
@@ -627,7 +628,7 @@ public class AccessoriesCommands implements CommandTreeGenerator.Branched {
 
         itemStack.set(
                 AccessoriesDataComponents.SLOT_VALIDATION,
-                new AccessorySlotValidationComponent(Set.of("any"), Set.of())
+                new AccessorySlotValidationComponent(Set.of(AccessoriesBaseData.ANY_SLOT), Set.of())
         );
 
         ctx.getSource().getPlayerOrException()

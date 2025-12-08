@@ -17,6 +17,7 @@ import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.*;
 import io.wispforest.accessories.api.slot.*;
+import io.wispforest.accessories.api.slot.validator.SlotValidatorRegistry;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
@@ -146,7 +147,7 @@ public class AccessoriesEventHandler {
 
         if (stack.isEmpty()) return;
 
-        var bl = !SlotPredicateRegistry.canInsertIntoSlot(stack, reference);
+        var bl = !SlotValidatorRegistry.canInsertIntoSlot(stack, reference);
 
         if (bl) dropAndRemoveStack(container, reference, player);
     }
@@ -491,7 +492,7 @@ public class AccessoriesEventHandler {
     private static void addEntityBasedTooltipData(LivingEntity entity, Accessory accessory, ItemStack stack, List<Component> tooltip, TooltipDisplay display, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
         // TODO: MAYBE DEPENDING ON ENTITY OR SOMETHING SHOW ALL VALID SLOTS BUT COLOR CODE THEM IF NOT VALID FOR ENTITY?
         // TODO: ADD BETTER HANDLING FOR POSSIBLE SLOTS THAT ARE EQUIPABLE IN BUT IS AT ZERO SIZE
-        var validSlotTypes = new HashSet<>(SlotPredicateRegistry.getValidSlotTypes(entity, stack));
+        var validSlotTypes = new HashSet<>(SlotValidatorRegistry.getValidSlotTypes(entity, stack));
 
         if (validSlotTypes.isEmpty()) return;
 

@@ -8,6 +8,7 @@ import io.wispforest.accessories.api.equip.EquipAction;
 import io.wispforest.accessories.api.equip.EquipCheck;
 import io.wispforest.accessories.api.equip.EquipmentChecking;
 import io.wispforest.accessories.api.slot.*;
+import io.wispforest.accessories.api.slot.validator.SlotValidatorRegistry;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
 import io.wispforest.accessories.pond.AccessoriesAPIAccess;
@@ -90,11 +91,11 @@ public interface AccessoriesCapability extends AccessoriesStorageLookup {
 
             if (stack.isEmpty()) continue;
 
-            slots.addAll(SlotPredicateRegistry.getValidSlotTypes(entity, stack));
+            slots.addAll(SlotValidatorRegistry.getValidSlotTypes(entity, stack));
         }
 
         for (var ref : this.getAllEquipped()) {
-            slots.addAll(SlotPredicateRegistry.getValidSlotTypes(entity, ref.stack()));
+            slots.addAll(SlotValidatorRegistry.getValidSlotTypes(entity, ref.stack()));
         }
 
         slots.addAll(SlotTypeLoader.getUsedSlotsByRegistryItem(entity));

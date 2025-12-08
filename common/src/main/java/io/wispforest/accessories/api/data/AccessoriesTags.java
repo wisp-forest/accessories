@@ -40,7 +40,7 @@ public class AccessoriesTags {
      * Slot tag used to allow for this given items contained inside to be
      * equipped to any slot if the such has the {@link AccessoriesBaseData#TAG_PREDICATE_ID}
      */
-    public static final TagKey<Item> ANY_TAG = itemTag("any");
+    public static final TagKey<Item> ANY_TAG = itemTag(ANY_SLOT);
 
     public static final TagKey<Item> VALID_GLIDER_EQUIP = itemTag("valid_glider_equip");
 

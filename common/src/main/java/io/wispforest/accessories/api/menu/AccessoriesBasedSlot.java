@@ -5,9 +5,9 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
-import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.validator.SlotValidatorRegistry;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.core.ExpandedContainer;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
@@ -132,10 +132,10 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
         if (this.isCosmeticSlot()) {
             var slotType = this.accessoriesContainer.slotType();
 
-            return SlotPredicateRegistry.getPredicateResults(slotType.validators(), this.entity.level(), this.entity, slotType, this.getContainerSlot(), stack);
+            return SlotValidatorRegistry.getPredicateResults(slotType.validators(), this.entity.level(), this.entity, slotType, this.getContainerSlot(), stack);
         }
 
-        return SlotPredicateRegistry.canInsertIntoSlot(stack, SlotReference.of(this.entity, this.accessoriesContainer.getSlotName(), this.getContainerSlot()));
+        return SlotValidatorRegistry.canInsertIntoSlot(stack, SlotReference.of(this.entity, this.accessoriesContainer.getSlotName(), this.getContainerSlot()));
     }
 
     @Override

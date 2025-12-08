@@ -2,10 +2,11 @@ package io.wispforest.accessories.data;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.data.AccessoriesBaseData;
 import io.wispforest.accessories.api.events.DropRule;
-import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.api.slot.validator.SlotValidatorRegistry;
 import io.wispforest.accessories.data.api.ManagedEndecDataLoader;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.impl.slot.SlotTypeImpl;
@@ -81,7 +82,7 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
         BuiltInRegistries.ITEM.forEach(item -> {
             var stack = item.getDefaultInstance();
 
-            var validSlots = SlotPredicateRegistry.getStackSlotTypes(living, stack);
+            var validSlots = SlotValidatorRegistry.getStackSlotTypes(living, stack);
 
             validSlotTypes.addAll(validSlots);
         });
@@ -188,7 +189,7 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
         }
 
         builders.forEach((s, slotBuilder) -> {
-            if(s.equals("any")) return;
+            if(s.equals(AccessoriesBaseData.ANY_SLOT)) return;
 
             tempMap.put(Accessories.parseLocationOrDefault(s), slotBuilder.create());
         });

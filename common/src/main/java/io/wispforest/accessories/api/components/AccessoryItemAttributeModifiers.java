@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.attributes.SlotAttribute;
+import io.wispforest.accessories.api.data.AccessoriesBaseData;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.SlotTypeLoader;
@@ -54,7 +55,7 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
     }
 
     public AccessoryItemAttributeModifiers withModifierAddedForAny(Holder<Attribute> holder, AttributeModifier attributeModifier, boolean isStackable) {
-        return withModifierAdded(holder, attributeModifier, "any", isStackable);
+        return withModifierAdded(holder, attributeModifier, AccessoriesBaseData.ANY_SLOT, isStackable);
     }
 
     public AccessoryItemAttributeModifiers withModifierAdded(Holder<Attribute> holder, AttributeModifier attributeModifier, String slotName, boolean isStackable) {
@@ -106,7 +107,7 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
             // OVERALL SHOULD BE BETTER INDICATE THAT THE USER DOSE NOT HAVE THE SLOT OR SOMETHING
             // if (slots.isEmpty() && !slots.containsKey(Accessories.parseLocationOrDefault(slotTarget))) continue;
 
-            if(slotReference.slotName().equals(slotTarget) || slotTarget.equals("any")) {
+            if(slotReference.slotName().equals(slotTarget) || slotTarget.equals(AccessoriesBaseData.ANY_SLOT)) {
                 if (entry.isStackable()) {
                     builder.addStackable(entry.attribute(), attributeModifier, entry.usedInSlotValidation());
                 } else {
@@ -131,7 +132,7 @@ public record AccessoryItemAttributeModifiers(List<AccessoryItemAttributeModifie
         }
 
         public AccessoryItemAttributeModifiers.Builder addForAny(Holder<Attribute> holder, AttributeModifier attributeModifier, boolean isStackable) {
-            return addForSlot(holder, attributeModifier, "any", isStackable);
+            return addForSlot(holder, attributeModifier, AccessoriesBaseData.ANY_SLOT, isStackable);
         }
 
         public AccessoryItemAttributeModifiers.Builder addForSlot(Holder<Attribute> holder, AttributeModifier attributeModifier, String slotName, boolean isStackable) {

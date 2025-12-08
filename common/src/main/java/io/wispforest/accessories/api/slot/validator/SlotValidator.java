@@ -27,6 +27,8 @@ public interface SlotValidator {
 
             if (!isSuccess) {
                 buffer.respondWith(ActionResponse.of(false, invalidReason));
+            } else {
+                buffer.respondWith(ActionResponse.SUCCESS);
             }
         };
     }
@@ -44,6 +46,8 @@ public interface SlotValidator {
 
             if (!isSuccess) {
                 buffer.respondWith(ActionResponse.of(false, invalidReason));
+            } else {
+                buffer.respondWith(ActionResponse.SUCCESS);
             }
         };
     }

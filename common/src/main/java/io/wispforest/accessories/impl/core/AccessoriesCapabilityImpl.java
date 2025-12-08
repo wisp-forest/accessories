@@ -9,8 +9,8 @@ import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.equip.EquipAction;
 import io.wispforest.accessories.api.equip.EquipCheck;
-import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.api.slot.validator.SlotValidatorRegistry;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.impl.AccessoryAttributeLogic;
@@ -236,7 +236,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
             for (var container : this.getContainers().values()) {
                 if (container.getSize() <= 0) continue;
 
-                boolean isValid = SlotPredicateRegistry.canInsertIntoSlot(stack, container.createReference(0));
+                boolean isValid = SlotValidatorRegistry.canInsertIntoSlot(stack, container.createReference(0));
 
                 // Prevents checking containers that will never allow for the given stack to be equipped within it
                 if (!isValid || !ExtraSlotTypeProperties.getProperty(container.getSlotName(), entity.level().isClientSide()).allowEquipFromUse()) continue;
@@ -251,7 +251,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
                     if (slotStack.isEmpty()
                             && AccessoryRegistry.canUnequip(slotStack, slotReference)
-                            && SlotPredicateRegistry.canInsertIntoSlot(stack, slotReference)
+                            && SlotValidatorRegistry.canInsertIntoSlot(stack, slotReference)
                             && extraCheck.isValid(slotStack, false)) {
                         return Pair.of(container.createReference(i), (newStack) -> setStack(slotReference, newStack, false));
                     }
@@ -269,7 +269,7 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
                 if (slotStack.isEmpty() || !AccessoryRegistry.canUnequip(slotStack, slotReference)) continue;
 
-                if (stack.isEmpty() || (SlotPredicateRegistry.canInsertIntoSlot(stack, slotReference) && extraCheck.isValid(slotStack, true))) {
+                if (stack.isEmpty() || (SlotValidatorRegistry.canInsertIntoSlot(stack, slotReference) && extraCheck.isValid(slotStack, true))) {
                     return Pair.of(slotReference, (newStack) -> setStack(slotReference, newStack, true));
                 }
             }
