@@ -9,6 +9,7 @@ import io.wispforest.accessories.api.slot.SlotBasedPredicate;
 import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
+import io.wispforest.accessories.api.slot.validator.SlotValidatorRegistry;
 import io.wispforest.accessories.impl.AccessoryAttributeLogic;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
@@ -93,12 +94,12 @@ public class AccessoriesAPI {
      */
     @Deprecated(forRemoval = true)
     public static boolean isValidAccessory(ItemStack stack, Level level){
-        return SlotPredicateRegistry.isValidAccessory(stack, level);
+        return SlotValidatorRegistry.isValidAccessory(stack, level);
     }
 
     @Deprecated(forRemoval = true)
     public static boolean isValidAccessory(ItemStack stack, Level level, @Nullable LivingEntity entity){
-        return SlotPredicateRegistry.isValidAccessory(stack, level, entity);
+        return SlotValidatorRegistry.isValidAccessory(stack, level, entity);
     }
 
     //--
@@ -159,11 +160,11 @@ public class AccessoriesAPI {
 
     /**
      * Used to check if the given {@link ItemStack} is valid for the given LivingEntity and SlotReference
-     * based on {@link SlotBasedPredicate}s bound to the Slot and the {@link Accessory} bound to the stack if present
+     * based on {@link io.wispforest.accessories.api.slot.validator.SlotValidator}s bound to the Slot and the {@link Accessory} bound to the stack if present
      */
     @Deprecated(forRemoval = true)
     public static boolean canInsertIntoSlot(ItemStack stack, SlotReference reference){
-        return SlotPredicateRegistry.canInsertIntoSlot(stack, reference);
+        return SlotValidatorRegistry.canInsertIntoSlot(stack, reference);
     }
 
     /**
@@ -196,22 +197,22 @@ public class AccessoriesAPI {
      */
     @Deprecated(forRemoval = true)
     public static Collection<SlotType> getValidSlotTypes(LivingEntity entity, ItemStack stack){
-        return SlotPredicateRegistry.getValidSlotTypes(entity, stack);
+        return SlotValidatorRegistry.getValidSlotTypes(entity, stack);
     }
 
     @Deprecated(forRemoval = true)
     public static Collection<SlotType> getStackSlotTypes(Level level, ItemStack stack){
-        return SlotPredicateRegistry.getStackSlotTypes(level, null, stack);
+        return SlotValidatorRegistry.getStackSlotTypes(level, null, stack);
     }
 
     @Deprecated(forRemoval = true)
     public static Collection<SlotType> getStackSlotTypes(LivingEntity entity, ItemStack stack) {
-        return SlotPredicateRegistry.getStackSlotTypes(entity.level(), entity, stack);
+        return SlotValidatorRegistry.getStackSlotTypes(entity.level(), entity, stack);
     }
 
     @Deprecated(forRemoval = true)
     public static Collection<SlotType> getStackSlotTypes(Level level, @Nullable LivingEntity entity, ItemStack stack) {
-        return SlotPredicateRegistry.getStackSlotTypes(level, entity, stack);
+        return SlotValidatorRegistry.getStackSlotTypes(level, entity, stack);
     }
 
     @Deprecated(forRemoval = true)
@@ -244,11 +245,11 @@ public class AccessoriesAPI {
 
     @Deprecated(forRemoval = true)
     public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, Level level, SlotType slotType, int index, ItemStack stack){
-        return SlotPredicateRegistry.getPredicateResults(predicateIds, level, null, slotType, index, stack);
+        return SlotValidatorRegistry.getPredicateResults(predicateIds, level, null, slotType, index, stack);
     }
 
     @Deprecated(forRemoval = true)
     public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, Level level, @Nullable LivingEntity entity, SlotType slotType, int index, ItemStack stack){
-        return SlotPredicateRegistry.getPredicateResults(predicateIds, level, entity, slotType, index, stack);
+        return SlotValidatorRegistry.getPredicateResults(predicateIds, level, entity, slotType, index, stack);
     }
 }

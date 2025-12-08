@@ -2,6 +2,7 @@ package io.wispforest.accessories.data;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.data.AccessoriesBaseData;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
@@ -118,7 +119,7 @@ public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroup
             if(entry.slots().contains(slot)) return entry;
         }
 
-        return groups.get(Accessories.parseLocationOrDefault("any"));
+        return groups.get(Accessories.parseLocationOrDefault(AccessoriesBaseData.ANY_SLOT));
     }
 
     public record RawGroupData(int order, Set<String> slots, ResourceLocation icon) {

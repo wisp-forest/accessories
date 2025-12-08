@@ -1,7 +1,11 @@
 package io.wispforest.accessories.api.data;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.slot.SlotType;
 import net.minecraft.resources.ResourceLocation;
+
+import java.util.Collection;
+import java.util.function.Supplier;
 
 // TODO: Rename to constants?
 public class AccessoriesBaseData {
@@ -18,6 +22,16 @@ public class AccessoriesBaseData {
     public static final String RING_SLOT = "ring";
     public static final String SHOES_SLOT = "shoes";
     public static final String WRIST_SLOT = "wrist";
+
+    public static final String ANY_SLOT = "any";
+
+    public static boolean isValidSlotWithAny(Collection<String> allowSlotNames, SlotType slotType) {
+        return isValidSlotWithAny(allowSlotNames, slotType::name);
+    }
+
+    public static boolean isValidSlotWithAny(Collection<String> allowSlotNames, Supplier<String> slotName) {
+        return allowSlotNames.contains(AccessoriesBaseData.ANY_SLOT) || allowSlotNames.contains(slotName.get());
+    }
 
     public static final String MISC_GROUP = "misc";
     public static final String HEAD_GROUP = "head";
