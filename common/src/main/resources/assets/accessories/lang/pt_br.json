@@ -163,14 +163,14 @@
     {"text": "[", "color": "gray"},
     {"text": "✔", "color": "#28FFBF"},
     {"text": "]", "color": "gray"},
-    " Mostrado"
+    " Exibidos"
   ],
   "accessories.show_equipped_stack_slot_type.toggle.disabled": [
     "",
     {"text": "[", "color": "gray"},
     {"text": "❌", "color": "#EB1D36"},
     {"text": "]", "color": "gray"},
-    " Escondido"
+    " Oculto"
   ],
   "accessories.show_equipped_stack_slot_type.toggle.enabled.tooltip": "Ocultar o tipo de Espaço do item equipado",
   "accessories.show_equipped_stack_slot_type.toggle.disabled.tooltip": "Mostrar o tipo de Espaço do item equipado",
