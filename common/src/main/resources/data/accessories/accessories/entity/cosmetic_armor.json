@@ -4,9 +4,9 @@
     "#accessories:cosmetic_armor_targets"
   ],
   "slots": [
-    "accessories:head",
-    "accessories:chest",
-    "accessories:legs",
-    "accessories:feet"
+    "accessories_cosmetics:head",
+    "accessories_cosmetics:chest",
+    "accessories_cosmetics:legs",
+    "accessories_cosmetics:feet"
   ]
 }
