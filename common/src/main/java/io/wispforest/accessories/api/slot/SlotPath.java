@@ -13,6 +13,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import org.apache.commons.lang3.RegExUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -124,18 +125,34 @@ public sealed interface SlotPath permits SlotPathImpl, DelegatingSlotPath {
 
     @Nullable
     static SlotPath fromString(String path) {
-        var parts = path.split("/");
+        var nameAndParts = path.split("/(?=\\d)");
 
-        if (parts.length <= 1) return null;
+        if (nameAndParts.length <= 1) return null;
 
-        var baseSlotName = parts[0].replace("-", ":");
-        var index = Integer.parseInt(parts[1]);
+        var baseSlotName = nameAndParts[0].replaceFirst("-(?=([^-]+$))", ":");
+        var pathParts = nameAndParts[1].split("/");
 
-        return of(baseSlotName, index);
+        var index = Integer.parseInt(pathParts[0]);
+
+        if (pathParts.length == 1) return of(baseSlotName, index);
+
+        var innerIndices = new ArrayList<Integer>();
+
+        for (int i = 1; i < pathParts.length; i++) {
+            var nestPath = pathParts[i];
+
+            innerIndices.add(Integer.parseInt(nestPath.split("_(?=\\d+$)")[1]));
+        }
+
+        return of(baseSlotName, index, innerIndices);
     }
 
     default String createString() {
-        return toLocation().toString().replace(":", "-");
+        var location = toLocation();
+
+        return location.getNamespace().equals(Accessories.MODID)
+            ? location.getPath()
+            : location.toString().replace(":", "-");
     }
 
     default ResourceLocation toLocation() {
