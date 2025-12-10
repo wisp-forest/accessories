@@ -115,9 +115,7 @@ public class AccessoryRegistry {
         return buffer.canPerformAction().orElse(true);
     }
 
-    public static ActionResponseBuffer canEquipResponse(ItemStack stack, SlotReference reference){
-        var buffer = new ActionResponseBuffer(false);
-
+    public static ActionResponseBuffer canEquipResponse(ItemStack stack, SlotReference reference, ActionResponseBuffer buffer){
         CanEquipCallback.EVENT.invoker().canEquip(stack, reference, buffer);
 
         getAccessoryOrDefault(stack).canEquip(stack, reference, buffer);
@@ -125,9 +123,7 @@ public class AccessoryRegistry {
         return buffer;
     }
 
-    public static ActionResponseBuffer canUnequipResponse(ItemStack stack, SlotReference reference){
-        var buffer = new ActionResponseBuffer(false);
-
+    public static ActionResponseBuffer canUnequipResponse(ItemStack stack, SlotReference reference, ActionResponseBuffer buffer){
         CanUnequipCallback.EVENT.invoker().canUnequip(stack, reference, buffer);
 
         getAccessoryOrDefault(stack).canUnequip(stack, reference, buffer);

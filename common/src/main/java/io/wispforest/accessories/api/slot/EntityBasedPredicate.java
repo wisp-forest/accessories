@@ -24,6 +24,11 @@ public interface EntityBasedPredicate extends SlotBasedPredicate, EntitySlotVali
     }
 
     @Override
+    default void isValidForSlot(Level level, SlotType slotType, int index, ItemStack stack, ActionResponseBuffer buffer) {
+        SlotBasedPredicate.super.isValidForSlot(level, slotType, index, stack, buffer);
+    }
+
+    @Override
     default void isValidForSlot(@Nullable LivingEntity entity, Level level, SlotType slotType, int index, ItemStack stack, ActionResponseBuffer buffer) {
         var isValid = isValid(level, entity, slotType, index, stack);
 
