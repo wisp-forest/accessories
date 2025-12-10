@@ -69,6 +69,10 @@ public sealed interface SlotPath permits SlotPathImpl, DelegatingSlotPath {
     ///
     boolean isNested();
 
+    default SlotPath unpack() {
+        return this;
+    }
+
     //--
 
     static SlotPath of(SlotType slotType, int index) {

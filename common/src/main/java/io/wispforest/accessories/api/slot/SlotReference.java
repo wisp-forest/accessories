@@ -12,6 +12,7 @@ import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.List;
 ///
 /// You can confirm that this is still valid by using the references[isValid][#isValid()]
 ///
+@ApiStatus.NonExtendable
 public non-sealed interface SlotReference extends DelegatingSlotPath {
 
     static SlotReference of(LivingEntity livingEntity, String slotName, int index) {
@@ -35,6 +37,10 @@ public non-sealed interface SlotReference extends DelegatingSlotPath {
     }
 
     static SlotReference of(LivingEntity livingEntity, SlotPath slotPath) {
+        if (slotPath instanceof DelegatingSlotPath delegating) {
+            slotPath = delegating.unpack();
+        }
+
         return new SlotReferenceImpl(livingEntity, slotPath);
     }
 

@@ -10,6 +10,11 @@ public sealed interface DelegatingSlotPath extends SlotPath permits SlotReferenc
     SlotPath slotPath();
 
     @Override
+    default SlotPath unpack() {
+        return this.slotPath();
+    }
+
+    @Override
     default String slotName() {
         return slotPath().slotName();
     }
