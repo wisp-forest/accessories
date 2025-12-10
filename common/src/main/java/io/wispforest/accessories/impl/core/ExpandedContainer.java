@@ -233,6 +233,10 @@ public class ExpandedContainer extends BaseContainer {
 
                             if (cache != null) cache.invalidateLookupData(this.container.getSlotName(), stack1, types);
                         }
+
+                        if (canFlagSetCalls) {
+                            setFlags.put(slot, true);
+                        }
                     })
             );
 
@@ -240,6 +244,8 @@ public class ExpandedContainer extends BaseContainer {
                     ItemStackResize.getEvent(stack).source().subscribe((stack1, prevSize) -> {
                         if (stack1.isEmpty()) {
                             this.setItem(slot, ItemStack.EMPTY);
+                        } else if (canFlagSetCalls) {
+                            setFlags.put(slot, true);
                         }
                     })
             );
