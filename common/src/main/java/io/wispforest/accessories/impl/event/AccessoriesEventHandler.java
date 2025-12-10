@@ -218,8 +218,8 @@ public class AccessoriesEventHandler {
         var capability = AccessoriesCapability.get(entity);
 
         if (capability != null) {
-            var dirtyStacks = new HashMap<String, ItemStack>();
-            var dirtyCosmeticStacks = new HashMap<String, ItemStack>();
+            var dirtyStacks = new HashMap<SlotPath, ItemStack>();
+            var dirtyCosmeticStacks = new HashMap<SlotPath, ItemStack>();
 
             var removedAttributesBuilder = new AccessoryAttributeBuilder();
             var addedAttributesBuilder = new AccessoryAttributeBuilder();
@@ -232,8 +232,6 @@ public class AccessoriesEventHandler {
 
                 for (int i = 0; i < accessories.getContainerSize(); i++) {
                     var slotReference = container.createReference(i);
-
-                    var slotId = container.getSlotName() + "/" + i;
 
                     var currentStack = accessories.getItem(i);
 
@@ -344,7 +342,7 @@ public class AccessoriesEventHandler {
                         AccessoryChangeCallback.EVENT.invoker().onChange(lastStack, currentStack, slotReference, equipmentChange ? SlotStateChange.REPLACEMENT : SlotStateChange.MUTATION);
 
                         container.getAccessories().setPreviousItem(i, currentStack);
-                        dirtyStacks.put(slotId, currentStack.copy());
+                        dirtyStacks.put(slotReference.slotPath(), currentStack.copy());
 
                         recursiveStackChange(slotReference, AccessoryNestUtils.getData(lastStack), AccessoryNestUtils.getData(currentStack));
                     }
@@ -354,7 +352,7 @@ public class AccessoriesEventHandler {
 
                     if (!ItemStack.matches(currentCosmeticStack, lastCosmeticStack)) {
                         cosmetics.setPreviousItem(i, currentCosmeticStack);
-                        dirtyCosmeticStacks.put(slotId, currentCosmeticStack.copy());
+                        dirtyCosmeticStacks.put(slotReference.slotPath(), currentCosmeticStack.copy());
 
                         if (entity instanceof ServerPlayer serverPlayer) {
                             if (!currentStack.isEmpty()) {

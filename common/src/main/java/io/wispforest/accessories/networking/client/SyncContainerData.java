@@ -3,6 +3,7 @@ package io.wispforest.accessories.networking.client;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.endec.NbtMapCarrier;
 import io.wispforest.accessories.impl.core.AccessoriesContainerImpl;
 import io.wispforest.accessories.impl.core.AccessoriesHolderImpl;
@@ -24,17 +25,19 @@ import java.util.*;
  * Catch all packet for handling syncing of containers and accessories within the main container
  * and cosmetic variant with the ability for it to be sync separately
  */
-public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks) {
+public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updatedContainers, Map<SlotPath, ItemStack> dirtyStacks, Map<SlotPath, ItemStack> dirtyCosmeticStacks) {
 
-    public static StructEndec<SyncContainerData> ENDEC = StructEndecBuilder.of(
+    private static final Endec<Map<SlotPath, ItemStack>> PATH_TO_STACK_ENDEC = Endec.map(SlotPath.ENDEC, CodecUtils.toEndec(ItemStack.OPTIONAL_CODEC));
+
+    public static final StructEndec<SyncContainerData> ENDEC = StructEndecBuilder.of(
             Endec.VAR_INT.fieldOf("entityId", SyncContainerData::entityId),
             NbtMapCarrier.ENDEC.mapOf().fieldOf("updatedContainers", SyncContainerData::updatedContainers),
-            CodecUtils.toEndec(ItemStack.OPTIONAL_CODEC).mapOf().fieldOf("dirtyStacks", SyncContainerData::dirtyStacks),
-            CodecUtils.toEndec(ItemStack.OPTIONAL_CODEC).mapOf().fieldOf("dirtyCosmeticStacks", SyncContainerData::dirtyCosmeticStacks),
+            PATH_TO_STACK_ENDEC.fieldOf("dirtyStacks", SyncContainerData::dirtyStacks),
+            PATH_TO_STACK_ENDEC.fieldOf("dirtyCosmeticStacks", SyncContainerData::dirtyCosmeticStacks),
             SyncContainerData::new
     );
 
-    public static SyncContainerData of(LivingEntity livingEntity, Collection<AccessoriesContainer> updatedContainers, Map<String, ItemStack> dirtyStacks, Map<String, ItemStack> dirtyCosmeticStacks){
+    public static SyncContainerData of(LivingEntity livingEntity, Collection<AccessoriesContainer> updatedContainers, Map<SlotPath, ItemStack> dirtyStacks, Map<SlotPath, ItemStack> dirtyCosmeticStacks){
         var updatedContainerTags = new HashMap<String, NbtMapCarrier>();
 
         for (AccessoriesContainer updatedContainer : updatedContainers) {
@@ -107,9 +110,8 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
         Set<String> invalidDirtyStackContainers = new HashSet<>();
 
         for (var entry : packet.dirtyStacks().entrySet()) {
-            var parts = entry.getKey().split("/");
-
-            var slot = parts[0];
+            var path = entry.getKey();
+            var slot = path.slotName();
 
             if(!containers.containsKey(slot)) {
                 invalidDirtyStackContainers.add(slot);
@@ -122,7 +124,7 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
             changedContainers.add(container.getSlotName());
 
             try {
-                container.getAccessories().setItem(Integer.parseInt(parts[1]), entry.getValue());
+                container.getAccessories().setItem(path.index(), entry.getValue());
             } catch (NumberFormatException ignored){}
         }
 
@@ -135,9 +137,8 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
         Set<String> invalidDirtyCosmeticContainers = new HashSet<>();
 
         for (var entry : packet.dirtyCosmeticStacks().entrySet()) {
-            var parts = entry.getKey().split("/");
-
-            var slot = parts[0];
+            var path = entry.getKey();
+            var slot = path.slotName();
 
             if(!containers.containsKey(slot)) {
                 invalidDirtyCosmeticContainers.add(slot);
@@ -150,7 +151,7 @@ public record SyncContainerData(int entityId, Map<String, NbtMapCarrier> updated
             changedContainers.add(container.getSlotName());
 
             try {
-                container.getCosmeticAccessories().setItem(Integer.parseInt(parts[1]), entry.getValue());
+                container.getCosmeticAccessories().setItem(path.index(), entry.getValue());
             } catch (NumberFormatException ignored){}
         }
 
