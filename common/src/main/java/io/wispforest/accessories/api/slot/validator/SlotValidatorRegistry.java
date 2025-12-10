@@ -74,6 +74,22 @@ public class SlotValidatorRegistry {
         return getPredicateResults(slotType.validators(), reference.entity().level(), reference.entity(), slotType, 0, stack) && AccessoryRegistry.canEquip(stack, reference);
     }
 
+    public static ActionResponseBuffer canInsertIntoSlotResponse(ItemStack stack, SlotReference reference){
+        var slotType = reference.type();
+
+        if(slotType == null) {
+            throw new IllegalStateException("Unable to get the needed SlotType from the SlotReference passed within `canInsertIntoSlot`! [Name: " + reference.slotName() + "]");
+        }
+
+        var buffer = new ActionResponseBuffer(false);
+
+        getPredicateResponse(slotType.validators(), reference.entity().level(), reference.entity(), slotType, 0, stack, buffer);
+
+        AccessoryRegistry.canEquipResponse(stack, reference, buffer);
+
+        return buffer;
+    }
+
     /**
      * @return All valid {@link SlotType}s for the given {@link ItemStack} based on the {@link LivingEntity}
      * available {@link SlotType}s
@@ -148,14 +164,12 @@ public class SlotValidatorRegistry {
     }
 
     public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, Level level, @Nullable LivingEntity entity, SlotType slotType, int index, ItemStack stack){
-        return getPredicateResponse(predicateIds, level, entity, slotType, index, stack, true)
+        return getPredicateResponse(predicateIds, level, entity, slotType, index, stack, new ActionResponseBuffer(true))
             .canPerformAction()
             .orElse(false);
     }
 
-    public static ActionResponseBuffer getPredicateResponse(Set<ResourceLocation> predicateIds, Level level, @Nullable LivingEntity entity, SlotType slotType, int index, ItemStack stack, boolean allowEarlyReturn){
-        var buffer = new ActionResponseBuffer(allowEarlyReturn);
-
+    public static ActionResponseBuffer getPredicateResponse(Set<ResourceLocation> predicateIds, Level level, @Nullable LivingEntity entity, SlotType slotType, int index, ItemStack stack, ActionResponseBuffer buffer){
         for (var predicateId : predicateIds) {
             var predicate = getPredicate(predicateId);
 
@@ -191,17 +205,19 @@ public class SlotValidatorRegistry {
                 @Override
                 public void gatherReason(Consumer<Component> messageAdditionCallback, Item.TooltipContext ctx, TooltipFlag type) {
                     var baseMessage = canPerformAction
-                        ? Component.literal("Such accessory was found within the groupings for this slot.")
-                        : Component.literal("Such accessory was not found within the groupings for this slot.");
+                        ? Component.literal("Stack is valid for the given Group.")
+                        : Component.literal("Stack is invalid for the given Group.");
 
                     if (type.isAdvanced() || type.hasShiftDown()) {
                         baseMessage.append(
-                            Component.literal("The Tag Groups that fit are: ")
-                                .append(ComponentUtils.formatList(this.getTags(), Component.literal(","), tag -> {
+                            Component.literal(" The Tag Groups that fit are: ")
+                                .append(ComponentUtils.formatList(this.getTags(), Component.literal(", "), tag -> {
                                     return Component.translatable(AccessoriesInternals.INSTANCE.getTagTranslation(tag));
                                 }))
                         );
                     }
+
+                    messageAdditionCallback.accept(baseMessage);
                 }
             });
         });
