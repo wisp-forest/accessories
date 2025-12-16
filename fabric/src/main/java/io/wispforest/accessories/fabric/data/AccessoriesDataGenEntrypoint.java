@@ -11,7 +11,7 @@ import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistrySetBuilder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 
 public class AccessoriesDataGenEntrypoint implements DataGeneratorEntrypoint {
@@ -64,7 +64,7 @@ public class AccessoriesDataGenEntrypoint implements DataGeneratorEntrypoint {
                     var modid = "accessories";
 
                     output.accept(
-                            ResourceLocation.fromNamespaceAndPath(modid, "test_binding"),
+                            Identifier.fromNamespaceAndPath(modid, "test_binding"),
                             this.builder()
                                     .slots("test")
                                     .entityType(EntityType.PLAYER)

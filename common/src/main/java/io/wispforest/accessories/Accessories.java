@@ -21,16 +21,17 @@ import io.wispforest.accessories.utils.EndecUtils;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
@@ -44,10 +45,10 @@ public class Accessories {
 
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public static final ResourceLocation SLOT_LOADER_LOCATION = Accessories.of("slot_loader");
-    public static final ResourceLocation ENTITY_SLOT_LOADER_LOCATION = Accessories.of("entity_slot_loader");
-    public static final ResourceLocation SLOT_GROUP_LOADER_LOCATION = Accessories.of("slot_group_loader");
-    public static final ResourceLocation DATA_RELOAD_HOOK = Accessories.of("data_reload_hook");
+    public static final Identifier SLOT_LOADER_LOCATION = Accessories.of("slot_loader");
+    public static final Identifier ENTITY_SLOT_LOADER_LOCATION = Accessories.of("entity_slot_loader");
+    public static final Identifier SLOT_GROUP_LOADER_LOCATION = Accessories.of("slot_group_loader");
+    public static final Identifier DATA_RELOAD_HOOK = Accessories.of("data_reload_hook");
 
     public static final boolean DEBUG;
 
@@ -64,12 +65,12 @@ public class Accessories {
 
     public static final String MODID = "accessories";
 
-    public static ResourceLocation of(String path){
-        return ResourceLocation.fromNamespaceAndPath(MODID, path);
+    public static Identifier of(String path){
+        return Identifier.fromNamespaceAndPath(MODID, path);
     }
 
-    public static ResourceLocation parseLocationOrDefault(String s){
-        var location = ResourceLocation.tryParse(s);
+    public static Identifier parseLocationOrDefault(String s){
+        var location = Identifier.tryParse(s);
 
         if (location == null) location = Accessories.of(s);
 
@@ -123,7 +124,7 @@ public class Accessories {
         if(targetEntity != null && !player.equals(targetEntity)) {
             var result = AllowEntityModificationCallback.EVENT.invoker().allowModifications(targetEntity, player, null);
 
-            if(!result.orElse(false) && !player.hasPermissions(Commands.LEVEL_ADMINS)) return;
+            if(!result.orElse(false) && !(player instanceof ServerPlayer sp && sp.level().getServer().getPlayerList().isOp(new NameAndId(sp.getGameProfile())))) return;
         }
 
         AccessoriesInternals.INSTANCE.openAccessoriesMenu(player, variant, targetEntity, carriedStack);

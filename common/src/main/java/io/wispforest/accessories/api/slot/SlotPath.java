@@ -11,7 +11,7 @@ import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.CodecUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.RegExUtils;
 import org.jetbrains.annotations.ApiStatus;
@@ -159,15 +159,15 @@ public sealed interface SlotPath permits SlotPathImpl, DelegatingSlotPath {
             : location.toString().replace(":", "-");
     }
 
-    default ResourceLocation toLocation() {
+    default Identifier toLocation() {
         var parts = slotName().split(":");
 
-        ResourceLocation location;
+        Identifier location;
 
         if (parts.length == 1) {
             location = Accessories.of(parts[0]);
         } else {
-            location = ResourceLocation.fromNamespaceAndPath(parts[0], slotName().replace(parts[0] + ":", ""));
+            location = Identifier.fromNamespaceAndPath(parts[0], slotName().replace(parts[0] + ":", ""));
         }
 
         location = location.withSuffix("/" + index());

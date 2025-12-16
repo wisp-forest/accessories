@@ -22,7 +22,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,10 +51,10 @@ public class ResourceExtendedArgument<T> implements ArgumentType<Holder<T>> {
     final ResourceKey<? extends Registry<T>> registryKey;
     private final HolderLookup<T> registryLookup;
 
-    private final Function<ResourceLocation, @Nullable Holder<T>> additionalLookup;
-    private final Supplier<Stream<ResourceLocation>> additionalSuggestions;
+    private final Function<Identifier, @Nullable Holder<T>> additionalLookup;
+    private final Supplier<Stream<Identifier>> additionalSuggestions;
 
-    public ResourceExtendedArgument(CommandBuildContext context, ResourceKey<? extends Registry<T>> registryKey, Function<ResourceLocation, @Nullable Holder<T>> additionalLookup, Supplier<Stream<ResourceLocation>> additionalSuggestions) {
+    public ResourceExtendedArgument(CommandBuildContext context, ResourceKey<? extends Registry<T>> registryKey, Function<Identifier, @Nullable Holder<T>> additionalLookup, Supplier<Stream<Identifier>> additionalSuggestions) {
         this.registryKey = registryKey;
         this.registryLookup = context.lookupOrThrow(registryKey);
 
@@ -62,7 +62,7 @@ public class ResourceExtendedArgument<T> implements ArgumentType<Holder<T>> {
         this.additionalSuggestions = additionalSuggestions;
     }
 
-    public static <T> ResourceExtendedArgument<T> resource(CommandBuildContext context, ResourceKey<? extends Registry<T>> registryKey, Function<ResourceLocation, @Nullable Holder<T>> additionalLookup, Supplier<Stream<ResourceLocation>> additionalSuggestions) {
+    public static <T> ResourceExtendedArgument<T> resource(CommandBuildContext context, ResourceKey<? extends Registry<T>> registryKey, Function<Identifier, @Nullable Holder<T>> additionalLookup, Supplier<Stream<Identifier>> additionalSuggestions) {
         return new ResourceExtendedArgument<>(context, registryKey, additionalLookup, additionalSuggestions);
     }
 
@@ -94,19 +94,19 @@ public class ResourceExtendedArgument<T> implements ArgumentType<Holder<T>> {
     }
 
     public Holder<T> parse(StringReader builder) throws CommandSyntaxException {
-        ResourceLocation resourceLocation = ResourceLocation.read(builder);
+        Identifier resourceLocation = Identifier.read(builder);
         ResourceKey<T> resourceKey = ResourceKey.create(this.registryKey, resourceLocation);
 
         var entry = this.registryLookup.get(resourceKey)
                 .map(tReference -> (Holder<T>) tReference)
                 .or(() -> Optional.ofNullable(this.additionalLookup.apply(resourceLocation)));
 
-        return entry.orElseThrow(() -> ERROR_UNKNOWN_RESOURCE.createWithContext(builder, resourceLocation, this.registryKey.location()));
+        return entry.orElseThrow(() -> ERROR_UNKNOWN_RESOURCE.createWithContext(builder, resourceLocation, this.registryKey.identifier()));
     }
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> commandContext, SuggestionsBuilder suggestionsBuilder) {
-        var registryKeys = this.registryLookup.listElementIds().map(ResourceKey::location);
+        var registryKeys = this.registryLookup.listElementIds().map(ResourceKey::identifier);
         var extraEntries = this.additionalSuggestions.get();
 
         return SharedSuggestionProvider.suggestResource(Stream.concat(registryKeys, extraEntries), suggestionsBuilder);

@@ -9,7 +9,7 @@ import io.wispforest.accessories.AccessoriesLoaderInternals;
 import io.wispforest.accessories.api.slot.SlotPath;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.jetbrains.annotations.ApiStatus;
@@ -30,7 +30,7 @@ public final class AccessoryAttributeBuilder {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private final Map<Holder<Attribute>, Map<ResourceLocation, AttributeModificationData>> exclusiveAttributes;
+    private final Map<Holder<Attribute>, Map<Identifier, AttributeModificationData>> exclusiveAttributes;
     private final Multimap<Holder<Attribute>, AttributeModificationData> stackedAttributes;
 
     private final SlotPath slotPath;
@@ -68,7 +68,7 @@ public final class AccessoryAttributeBuilder {
     /**
      * Adds a given attribute modifier as an exclusive modifier meaning that only one instance should ever exist
      */
-    public AccessoryAttributeBuilder addExclusive(Holder<Attribute> attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
+    public AccessoryAttributeBuilder addExclusive(Holder<Attribute> attribute, Identifier location, double amount, AttributeModifier.Operation operation) {
         return this.addExclusive(attribute, location, amount, operation, false);
     }
 
@@ -76,14 +76,14 @@ public final class AccessoryAttributeBuilder {
      * Adds a given attribute modifier as a stackable modifier meaning variants based on slot position is allowed. This is done by post process
      * step of appending slot information when adding to the living entity
      */
-    public AccessoryAttributeBuilder addStackable(Holder<Attribute> attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
+    public AccessoryAttributeBuilder addStackable(Holder<Attribute> attribute, Identifier location, double amount, AttributeModifier.Operation operation) {
         return this.addStackable(attribute, location, amount, operation, false);
     }
 
     /**
      * Adds a given attribute modifier as an exclusive modifier meaning that only one instance should ever exist
      */
-    public AccessoryAttributeBuilder addExclusive(Holder<Attribute> attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation, boolean usedInSlotValidation) {
+    public AccessoryAttributeBuilder addExclusive(Holder<Attribute> attribute, Identifier location, double amount, AttributeModifier.Operation operation, boolean usedInSlotValidation) {
         return this.addExclusive(attribute, new AttributeModifier(location, amount, operation), usedInSlotValidation);
     }
 
@@ -91,7 +91,7 @@ public final class AccessoryAttributeBuilder {
      * Adds a given attribute modifier as a stackable modifier meaning variants based on slot position is allowed. This is done by post process
      * step of appending slot information when adding to the living entity
      */
-    public AccessoryAttributeBuilder addStackable(Holder<Attribute> attribute, ResourceLocation location, double amount, AttributeModifier.Operation operation, boolean usedInSlotValidation) {
+    public AccessoryAttributeBuilder addStackable(Holder<Attribute> attribute, Identifier location, double amount, AttributeModifier.Operation operation, boolean usedInSlotValidation) {
         return this.addStackable(attribute, new AttributeModifier(location, amount, operation), usedInSlotValidation);
     }
 
@@ -103,7 +103,7 @@ public final class AccessoryAttributeBuilder {
         return this.addStackable(attribute, modifier, false);
     }
 
-    private final Set<ResourceLocation> previouslyWarnedLocations = new HashSet<>();
+    private final Set<Identifier> previouslyWarnedLocations = new HashSet<>();
 
     /**
      * Adds a given attribute modifier as an exclusive modifier meaning that only one instance should ever exist
@@ -137,7 +137,7 @@ public final class AccessoryAttributeBuilder {
     //--
 
     @Nullable
-    public AttributeModificationData getExclusive(Holder<Attribute> attribute, ResourceLocation location) {
+    public AttributeModificationData getExclusive(Holder<Attribute> attribute, Identifier location) {
         var innerMap = this.exclusiveAttributes.get(attribute);
 
         if(innerMap == null) return null;
@@ -145,12 +145,12 @@ public final class AccessoryAttributeBuilder {
         return innerMap.get(location);
     }
 
-    public Collection<AttributeModificationData> getStacks(Holder<Attribute> attribute, ResourceLocation location) {
+    public Collection<AttributeModificationData> getStacks(Holder<Attribute> attribute, Identifier location) {
         return this.stackedAttributes.get(attribute).stream().filter(data -> data.modifier().id().equals(location)).toList();
     }
 
     @Nullable
-    public AttributeModificationData removeExclusive(Holder<Attribute> attribute, ResourceLocation location) {
+    public AttributeModificationData removeExclusive(Holder<Attribute> attribute, Identifier location) {
         var innerMap = this.exclusiveAttributes.get(attribute);
 
         if(innerMap == null) return null;
@@ -158,7 +158,7 @@ public final class AccessoryAttributeBuilder {
         return innerMap.remove(location);
     }
 
-    public Collection<AttributeModificationData> removeStacks(Holder<Attribute> attribute, ResourceLocation location) {
+    public Collection<AttributeModificationData> removeStacks(Holder<Attribute> attribute, Identifier location) {
         Set<AttributeModificationData> removedData = new HashSet<>();
 
         for (var data : List.copyOf(this.stackedAttributes.get(attribute))) {
@@ -226,7 +226,7 @@ public final class AccessoryAttributeBuilder {
         return this.exclusiveAttributes.isEmpty() && this.stackedAttributes.isEmpty();
     }
 
-    public Map<Holder<Attribute>, Map<ResourceLocation, AttributeModificationData>> exclusiveAttributes() {
+    public Map<Holder<Attribute>, Map<Identifier, AttributeModificationData>> exclusiveAttributes() {
         return ImmutableMap.copyOf(this.exclusiveAttributes);
     }
 

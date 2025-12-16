@@ -7,13 +7,13 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Optional;
 import java.util.Set;
 
-public record SlotTypeImpl(String name, Optional<String> alternativeTranslation, ResourceLocation icon, int order, int amount, Set<ResourceLocation> validators, DropRule dropRule) implements SlotType  {
-    public SlotTypeImpl(String name, ResourceLocation icon, int order, int amount, Set<ResourceLocation> validators, DropRule dropRule) {
+public record SlotTypeImpl(String name, Optional<String> alternativeTranslation, Identifier icon, int order, int amount, Set<Identifier> validators, DropRule dropRule) implements SlotType  {
+    public SlotTypeImpl(String name, Identifier icon, int order, int amount, Set<Identifier> validators, DropRule dropRule) {
         this(name, Optional.empty(), icon, order, amount, validators, dropRule);
     }
 

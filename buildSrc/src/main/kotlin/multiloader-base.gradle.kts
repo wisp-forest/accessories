@@ -81,6 +81,8 @@ loom {
 }
 
 repositories {
+    mavenLocal()
+
     // Platform Mavens
     maven("https://maven.parchmentmc.org")
     maven("https://maven.fabricmc.net/")
@@ -127,7 +129,7 @@ dependencies {
         mappings (
             loom.layered {
                 this.officialMojangMappings()
-                this.parchment("org.parchmentmc.data:parchment-${libs.versions.minecraft.asProvider().get()}:${libs.versions.parchment.get()}@zip")
+                this.parchment("org.parchmentmc.data:parchment-1.21.10:${libs.versions.parchment.get()}@zip")
             }
         )
     }

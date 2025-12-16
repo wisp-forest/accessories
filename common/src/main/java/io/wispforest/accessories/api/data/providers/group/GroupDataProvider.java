@@ -8,7 +8,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,7 +31,7 @@ public abstract class GroupDataProvider extends BaseDataProvider<GroupDataProvid
     @Override
     protected abstract void buildData(HolderLookup.Provider provider, GroupOutput output);
 
-    public SlotGroupBuilder builder(ResourceLocation uniqueLocation) {
+    public SlotGroupBuilder builder(Identifier uniqueLocation) {
         return builder(uniqueLocation.toString());
     }
 
@@ -59,12 +59,12 @@ public abstract class GroupDataProvider extends BaseDataProvider<GroupDataProvid
     @Override
     protected final GroupOutput buildOutput(CachedOutput cachedOutput, HolderLookup.Provider provider) {
         return new GroupOutput() {
-            final Set<ResourceLocation> set = Sets.newHashSet();
+            final Set<Identifier> set = Sets.newHashSet();
             final List<CompletableFuture<?>> list = new ArrayList<>();
 
             @Override
             public void accept(String namespace, RawSlotGroup rawSlotType) {
-                var location = ResourceLocation.fromNamespaceAndPath(namespace, rawSlotType.name().replace(":", "/"));
+                var location = Identifier.fromNamespaceAndPath(namespace, rawSlotType.name().replace(":", "/"));
 
                 if (!set.add(location)) throw new IllegalStateException("Duplicate Group: " + location);
 

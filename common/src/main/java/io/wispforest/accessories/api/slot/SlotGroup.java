@@ -3,7 +3,7 @@ package io.wispforest.accessories.api.slot;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -17,7 +17,7 @@ import java.util.Set;
 ///
 public interface SlotGroup extends Comparable<SlotGroup> {
 
-    ResourceLocation UNKNOWN = Accessories.of("gui/group/unknown");
+    Identifier UNKNOWN = Accessories.of("gui/group/unknown");
 
     ///
     /// @return The group name which may or may not contain a namespace
@@ -27,7 +27,7 @@ public interface SlotGroup extends Comparable<SlotGroup> {
     ///
     /// @return A parsed group name as either `accessories:{group_name_here}` or `{group_namespace_here}:{group_name_here}`
     ///
-    default ResourceLocation getId() {
+    default Identifier getId() {
         return Accessories.parseLocationOrDefault(this.name());
     }
 
@@ -41,7 +41,7 @@ public interface SlotGroup extends Comparable<SlotGroup> {
     ///
     /// @return The location for the given icon within the GUI Atlas for the given slot group
     ///
-    ResourceLocation icon();
+    Identifier icon();
 
     ///
     /// Used with sorting all registered groups when creating list of slot groups

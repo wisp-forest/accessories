@@ -134,7 +134,7 @@ public class AccessoriesClientForge {
         }
 
         event.getSkins().stream()
-            .flatMap(type -> Stream.<AvatarRenderer<?>>of(event.getPlayerRenderer(type), event.getMannequinRenderer(type)))
+            .flatMap(type -> Stream.<AvatarRenderer<?>>of(event.getAvatarRenderer(type), event.getMannequinRenderer(type)))
             .filter(Objects::nonNull)
             .forEach(renderer -> renderer.addLayer(new AccessoriesRenderLayer<>(renderer)));
     }

@@ -2,7 +2,7 @@ package io.wispforest.accessories.client.gui;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class ButtonEvents {
 
@@ -13,6 +13,6 @@ public class ButtonEvents {
     }
 
     public interface AdjustRendering {
-        boolean render(AbstractButton button, GuiGraphics instance, ResourceLocation sprite, int x, int y, int width, int height);
+        boolean render(AbstractButton button, GuiGraphics instance, Identifier sprite, int x, int y, int width, int height);
     }
 }

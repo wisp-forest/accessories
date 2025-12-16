@@ -25,7 +25,18 @@ public final class SlotAccessContainer implements Container {
     }
 
     public static Container ofGenericArmor(EquipmentSlot equipmentSlot, LivingEntity livingEntity) {
-        return new SlotAccessContainer(SlotAccess.forEquipmentSlot(livingEntity, equipmentSlot));
+        return new SlotAccessContainer(new SlotAccess() {
+            @Override
+            public ItemStack get() {
+                return livingEntity.getItemBySlot(equipmentSlot);
+            }
+
+            @Override
+            public boolean set(ItemStack stack) {
+                livingEntity.setItemSlot(equipmentSlot, stack);
+                return true;
+            }
+        });
     }
 
     @Nullable
@@ -40,7 +51,19 @@ public final class SlotAccessContainer implements Container {
 
         if(index == 40) return null;
 
-        return new SlotAccessContainer(SlotAccess.forContainer(player.getInventory(), index));
+        final int containerIndex = index;
+        return new SlotAccessContainer(new SlotAccess() {
+            @Override
+            public ItemStack get() {
+                return player.getInventory().getItem(containerIndex);
+            }
+
+            @Override
+            public boolean set(ItemStack stack) {
+                player.getInventory().setItem(containerIndex, stack);
+                return true;
+            }
+        });
     }
 
     //--

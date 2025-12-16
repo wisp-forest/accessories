@@ -3,7 +3,7 @@ package io.wispforest.accessories.utils;
 import com.google.gson.*;
 import com.mojang.logging.LogUtils;
 import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.GsonHelper;
@@ -21,10 +21,10 @@ public class JsonUtils {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    public record FileResourceData(ResourceLocation fileLocation, JsonObject obj, Resource resource){}
+    public record FileResourceData(Identifier fileLocation, JsonObject obj, Resource resource){}
 
-    public static <T> Map<ResourceLocation, Resource> scanDirectoryWithReplace(ResourceManager resourceManager, FileToIdConverter fileToIdConverter) {
-        var outputResources = new LinkedHashMap<ResourceLocation, FileResourceData>();
+    public static <T> Map<Identifier, Resource> scanDirectoryWithReplace(ResourceManager resourceManager, FileToIdConverter fileToIdConverter) {
+        var outputResources = new LinkedHashMap<Identifier, FileResourceData>();
 
         for(var entry : fileToIdConverter.listMatchingResourceStacks(resourceManager).entrySet()) {
             var filePath = entry.getKey();

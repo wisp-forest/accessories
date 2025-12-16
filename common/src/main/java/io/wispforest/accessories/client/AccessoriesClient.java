@@ -40,7 +40,7 @@ import io.wispforest.owo.util.ReflectionUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -178,7 +178,7 @@ public class AccessoriesClient {
 
                                     client.mouseHandler.releaseMouse();
                                     KeyMapping.releaseAll();
-                                    newScreen.init(client, client.getWindow().getGuiScaledWidth(), client.getWindow().getGuiScaledHeight());
+                                    newScreen.init(client.getWindow().getGuiScaledWidth(), client.getWindow().getGuiScaledHeight());
                                     client.noRender = false;
                                 });
 

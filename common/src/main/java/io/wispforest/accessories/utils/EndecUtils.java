@@ -24,7 +24,7 @@ import io.wispforest.owo.serialization.format.ContextHolder;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.EndTag;

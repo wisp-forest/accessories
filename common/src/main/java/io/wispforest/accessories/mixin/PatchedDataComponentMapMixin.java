@@ -81,12 +81,7 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
     @Unique
     private boolean inApplyPatchLock = false;
 
-    //TODO: FIGURE OUT WHY ARCH LOOM DON'T REMAP WRAP METHOD
-    @WrapMethod(method = {
-            "applyPatch(Lnet/minecraft/core/component/DataComponentPatch;)V", // Mojmap
-            "method_57936(Lnet/minecraft/class_9326;)V",                      // Yarn Interm.
-            "applyChanges(Lnet/minecraft/component/ComponentChanges;)V"       // Yarn
-    }, expect = 1, require = 1, allow = 1)
+    @WrapMethod(method = "applyPatch(Lnet/minecraft/core/component/DataComponentPatch;)V")
     private void accessories$updateChangeValue(DataComponentPatch patch, Operation<Void> original) {
         this.changeCheckStack = true;
 

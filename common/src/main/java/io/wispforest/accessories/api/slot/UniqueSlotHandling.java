@@ -11,7 +11,7 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import org.apache.commons.lang3.function.TriFunction;
@@ -56,7 +56,7 @@ public class UniqueSlotHandling {
         /**
          * Starts building a new unique slot.
          */
-        UniqueSlotBuilder create(ResourceLocation location, int amount);
+        UniqueSlotBuilder create(Identifier location, int amount);
     }
 
     /**
@@ -69,7 +69,7 @@ public class UniqueSlotHandling {
          * <p>
          * By default, the tag-based slot predicate is used.
          */
-        UniqueSlotBuilder slotPredicates(ResourceLocation... locations);
+        UniqueSlotBuilder slotPredicates(Identifier... locations);
 
         /**
          * Sets the list of entity types that will have this slot.
@@ -118,7 +118,7 @@ public class UniqueSlotHandling {
     //--
 
     @ApiStatus.Internal
-    public static void gatherUniqueSlots(TriFunction<ResourceLocation, Integer, Collection<ResourceLocation>, SlotTypeReference> slotRegistration) {
+    public static void gatherUniqueSlots(TriFunction<Identifier, Integer, Collection<Identifier>, SlotTypeReference> slotRegistration) {
         GROUPS_SERVER.clear();
         SLOT_TO_ENTITIES.clear();
 
@@ -130,7 +130,7 @@ public class UniqueSlotHandling {
     @ApiStatus.Internal
     public static void buildClientSlotReferences() {
         UniqueSlotBuilderFactory eventRegistration = (location, amount) -> new UniqueSlotBuilder() {
-            @Override public UniqueSlotBuilder slotPredicates(ResourceLocation... locations) { return this; }
+            @Override public UniqueSlotBuilder slotPredicates(Identifier... locations) { return this; }
             @Override public UniqueSlotBuilder validTypes(EntityType<?>... types) { return this; }
             @Override public UniqueSlotBuilder strictMode(StrictMode value) { return this; }
             @Override public UniqueSlotBuilder allowResizing(boolean value) { return this; }
@@ -155,9 +155,9 @@ public class UniqueSlotHandling {
     }
 
     private static final class ServerUniqueSlotBuilder implements UniqueSlotBuilder {
-        private final ResourceLocation location;
+        private final Identifier location;
         private final int amount;
-        private Set<ResourceLocation> slotPredicates = Set.of(Accessories.of("tag"));
+        private Set<Identifier> slotPredicates = Set.of(Accessories.of("tag"));
         private Set<EntityType<?>> validTypes = Set.of();
 
         private StrictMode mode = StrictMode.FULL;
@@ -165,9 +165,9 @@ public class UniqueSlotHandling {
         private boolean allowEquipFromUse = true;
         private boolean allowTooltipInfo = true;
 
-        private final TriFunction<ResourceLocation, Integer, Collection<ResourceLocation>, SlotTypeReference> slotRegistration;
+        private final TriFunction<Identifier, Integer, Collection<Identifier>, SlotTypeReference> slotRegistration;
 
-        ServerUniqueSlotBuilder(ResourceLocation location, int amount, TriFunction<ResourceLocation, Integer, Collection<ResourceLocation>, SlotTypeReference> slotRegistration){
+        ServerUniqueSlotBuilder(Identifier location, int amount, TriFunction<Identifier, Integer, Collection<Identifier>, SlotTypeReference> slotRegistration){
             this.location = location;
             this.amount = amount;
 
@@ -175,7 +175,7 @@ public class UniqueSlotHandling {
         }
 
         @Override
-        public ServerUniqueSlotBuilder slotPredicates(ResourceLocation... locations) {
+        public ServerUniqueSlotBuilder slotPredicates(Identifier... locations) {
             this.slotPredicates = Set.of(locations);
 
             return this;

@@ -20,12 +20,7 @@ import org.spongepowered.asm.mixin.Mixin;
 @Mixin(CustomHeadLayer.class)
 public abstract class CustomHeadLayerMixin<S extends LivingEntityRenderState, M extends EntityModel<S> & HeadedModel> {
 
-    //TODO: FIGURE OUT WHY ARCH LOOM DON'T REMAP WRAP METHOD
-    @WrapMethod(method = {
-            "submit(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/SubmitNodeCollector;ILnet/minecraft/client/renderer/entity/state/LivingEntityRenderState;FF)V",      // Mojmap
-            "method_17159(Lnet/minecraft/class_4587;Lnet/minecraft/class_11659;ILnet/minecraft/class_10042;FF)V",                                                                             // Yarn Interm.
-            "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;ILnet/minecraft/client/render/entity/state/LivingEntityRenderState;FF)V" // Yarn
-    })
+    @WrapMethod(method = "submit")
     private void accessories$adjustHeadItem(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, S livingEntityRenderState, float f, float g, Operation<Void> original) {
         ItemStackRenderState prevState = null;
 

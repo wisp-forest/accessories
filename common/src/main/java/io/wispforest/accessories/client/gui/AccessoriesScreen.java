@@ -40,7 +40,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.ErrorScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.*;
@@ -417,7 +417,7 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
 //                }
 //            });
 
-            minecraft.renderBuffers().bufferSource().endBatch(RenderType.LINES);
+            minecraft.renderBuffers().bufferSource().endBatch();
 
             linesToAccessoryPositions.clear();
         }

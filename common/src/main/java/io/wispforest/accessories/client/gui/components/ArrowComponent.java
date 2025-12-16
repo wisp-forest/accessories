@@ -7,10 +7,10 @@ import io.wispforest.owo.ui.core.AnimatableProperty;
 import io.wispforest.owo.ui.core.OwoUIDrawContext;
 import io.wispforest.owo.ui.core.PositionedRectangle;
 import io.wispforest.owo.ui.core.Sizing;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class ArrowComponent extends BaseComponent {
-    protected final ResourceLocation texture = Accessories.of("textures/gui/theme/all_arrow_directions.png");
+    protected final Identifier texture = Accessories.of("textures/gui/theme/all_arrow_directions.png");
 
     protected final int textureWidth = 32;
     protected final int textureHeight = 32;

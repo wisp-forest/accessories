@@ -7,7 +7,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,7 +47,7 @@ public abstract class EntityBindingProvider extends BaseDataProvider<EntityBindi
     }
 
     public interface EntityBindingOutput extends BaseDataProvider.DataOutput {
-        void accept(ResourceLocation location, RawEntityBinding binding);
+        void accept(Identifier location, RawEntityBinding binding);
     }
 
     @Override
@@ -57,7 +57,7 @@ public abstract class EntityBindingProvider extends BaseDataProvider<EntityBindi
             final List<CompletableFuture<?>> list = new ArrayList<>();
 
             @Override
-            public void accept(ResourceLocation location, RawEntityBinding binding) {
+            public void accept(Identifier location, RawEntityBinding binding) {
                 list.add(DataProvider.saveStable(cachedOutput, provider, CODEC, binding, EntityBindingProvider.this.pathProvider().json(location)));
             }
 

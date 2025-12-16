@@ -3,45 +3,45 @@
 [versions]
 java = "21"
 
-minecraft = "1.21.10"
-minecraft_base = "1.21.10"
+minecraft = "1.21.11"
+minecraft_base = "1.21.11"
 
-neoforge_minecraft_range = "[1.21.10,)"
-fabric_minecraft_range = "~1.21.10"
+neoforge_minecraft_range = "[1.21.11,)"
+fabric_minecraft_range = "~1.21.11"
 
 # https://parchmentmc.org/docs/getting-started
 parchment = "2025.10.12"
 
 # Core Libs
 
-fabric_loader = "0.17.2"           # https://fabricmc.net/develop
-fabric_api    = "0.135.0+1.21.10"    # https://fabricmc.net/develop
+fabric_loader = "0.18.2"           # https://fabricmc.net/develop
+fabric_api    = "0.139.4+1.21.11"    # https://fabricmc.net/develop
 
 fabric_loader_range=">=0.16.9"
 fabric_api_range="*"
 
-neoforge      = "21.10.16-beta"      # https://projects.neoforged.net/neoforged/neoforge
+neoforge      = "21.11.1-beta"      # https://projects.neoforged.net/neoforged/neoforge
 ffapi_base    = "0.4.42+d1308dedd1"
 
-neoforge_range="[21.10.16-beta,)"
+neoforge_range="[21.11.1-beta,)"
 neoforge_loader_range="[4,)"
 
 # Libs
 
 mixinextras = "0.5.0"
 
-modmenu = "16.0.0-rc.1"        # https://modrinth.com/mod/modmenu/versions
+modmenu = "1.21.11"        # local build for 1.21.11
 
 endec         = "0.1.11"
 endec_netty   = "0.1.5"
 endec_gson    = "0.1.6"
 endec_jankson = "0.1.6"
 
-owo_fabric   = "0.12.24+1.21.9"
-owo_neoforge = "0.12.27+1.21.10"
+owo_fabric   = "0.12.24+1.21.11"
+owo_neoforge = "0.12.27+1.21.11"
 
-owo_fabric_range   = ">=0.12.24+1.21.9"
-owo_neoforge_range = "[0.12.27+1.21.10,)"
+owo_fabric_range   = ">=0.12.24+1.21.11"
+owo_neoforge_range = "[0.12.27+1.21.11,)"
 
 jankson = "1.2.2"
 

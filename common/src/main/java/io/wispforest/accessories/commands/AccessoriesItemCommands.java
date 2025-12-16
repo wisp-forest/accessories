@@ -211,7 +211,7 @@ public class AccessoriesItemCommands implements CommandTreeGenerator.Branched {
 
 			SlotAccess slotAccess = entity.getSlot(index);
 
-			if (slotAccess == SlotAccess.NULL) throw ERROR_SOURCE_INAPPLICABLE_SLOT.create(slot);
+			if (slotAccess == null || slotAccess.get().isEmpty()) throw ERROR_SOURCE_INAPPLICABLE_SLOT.create(slot);
 
 			return slotAccess.get().copy();
 		} else {
@@ -239,7 +239,7 @@ public class AccessoriesItemCommands implements CommandTreeGenerator.Branched {
 
 			SlotAccess slotAccess = entity.getSlot(index);
 
-			if (slotAccess == SlotAccess.NULL) throw ERROR_SOURCE_INAPPLICABLE_SLOT.create(slot);
+			if (slotAccess == null) throw ERROR_SOURCE_INAPPLICABLE_SLOT.create(slot);
 
 			slotAccess.set(stack);
 		} else {

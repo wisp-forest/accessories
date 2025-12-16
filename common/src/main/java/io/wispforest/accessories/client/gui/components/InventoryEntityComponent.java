@@ -233,7 +233,6 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
             }
 
             entityState.lightCoords = 15728880;
-            entityState.hitboxesRenderState = null;
             entityState.shadowPieces.clear();
             entityState.outlineColor = 0;
 

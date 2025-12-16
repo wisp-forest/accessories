@@ -5,12 +5,12 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Optional;
 import java.util.Set;
 
-public record RawSlotType(String name, Optional<Boolean> replace, Optional<ResourceLocation> icon, Optional<Integer> order, Optional<Integer> amount, Optional<Set<ResourceLocation>> validators, Optional<DropRule> dropRule) {
+public record RawSlotType(String name, Optional<Boolean> replace, Optional<Identifier> icon, Optional<Integer> order, Optional<Integer> amount, Optional<Set<Identifier>> validators, Optional<DropRule> dropRule) {
     public static final StructEndec<RawSlotType> ENDEC = StructEndecBuilder.of(
             Endec.STRING.fieldOf("name", RawSlotType::name),
             Endec.BOOLEAN.optionalOf().fieldOf("replace", RawSlotType::replace),

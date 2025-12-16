@@ -46,7 +46,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
@@ -65,7 +65,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -274,7 +274,7 @@ public class AccessoriesEventHandler {
 
                                 splitPath.removeLast();
 
-                                removedEnchantmentBuilder.addStackable(attributeHolder, new AttributeModifier(ResourceLocation.fromNamespaceAndPath(namespace, String.join("/", splitPath)), modifier.amount(), modifier.operation()));
+                                removedEnchantmentBuilder.addStackable(attributeHolder, new AttributeModifier(Identifier.fromNamespaceAndPath(namespace, String.join("/", splitPath)), modifier.amount(), modifier.operation()));
                             });
 
                             removedAttributesBuilder.addFrom(removedEnchantmentBuilder);
@@ -293,7 +293,7 @@ public class AccessoriesEventHandler {
 
                                 splitPath.removeLast();
 
-                                addedEnchantmentBuilder.addStackable(attributeHolder, new AttributeModifier(ResourceLocation.fromNamespaceAndPath(namespace, String.join("/", splitPath)), modifier.amount(), modifier.operation()));
+                                addedEnchantmentBuilder.addStackable(attributeHolder, new AttributeModifier(Identifier.fromNamespaceAndPath(namespace, String.join("/", splitPath)), modifier.amount(), modifier.operation()));
                             });
 
                             addedAttributesBuilder.addFrom(addedEnchantmentBuilder);
@@ -719,7 +719,8 @@ public class AccessoriesEventHandler {
 
         var gamerules = ((ServerLevel) entity.level()).getGameRules();
 
-        var keepInv = gamerules.getRule(GameRules.RULE_KEEPINVENTORY).get() || gamerules.getRule(AccessoriesGameRules.RULE_KEEP_ACCESSORY_INVENTORY).get();
+        var accessoriesKey = AccessoriesGameRules.getKeepAccessoryInventoryKey();
+        var keepInv = gamerules.get(GameRules.KEEP_INVENTORY) || (accessoriesKey != null && gamerules.get(accessoriesKey));
 
         for (var containerEntry : AccessoriesHolderImpl.getHolder(capability).getAllSlotContainers().entrySet()) {
             var slotType = containerEntry.getValue().slotType();

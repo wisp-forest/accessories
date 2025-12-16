@@ -6,7 +6,7 @@ import io.wispforest.endec.SerializationContext;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.function.UnaryOperator;
@@ -39,7 +39,7 @@ public class AccessoriesDataComponents {
             builder -> builder.endec(AccessoryMobEffectsComponent.ENDEC, BASE_CTX)
     );
 
-    private static <T> DataComponentType<T> register(ResourceLocation string, UnaryOperator<DataComponentType.Builder<T>> unaryOperator) {
+    private static <T> DataComponentType<T> register(Identifier string, UnaryOperator<DataComponentType.Builder<T>> unaryOperator) {
         return Registry.register(BuiltInRegistries.DATA_COMPONENT_TYPE, string, ((DataComponentType.Builder)unaryOperator.apply(DataComponentType.builder())).build());
     }
 

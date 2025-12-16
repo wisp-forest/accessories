@@ -3,7 +3,7 @@ package io.wispforest.accessories.api.attributes;
 import com.google.common.collect.Multimap;
 import io.wispforest.accessories.api.slot.SlotType;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
@@ -57,15 +57,15 @@ public class SlotAttribute extends Attribute {
 
     //--
 
-    public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, SlotType slotType, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
+    public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, SlotType slotType, Identifier location, double amount, AttributeModifier.Operation operation) {
         addSlotModifier(map, slotType.name(), location, amount, operation);
     }
 
-    public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String slot, ResourceLocation location, double amount, AttributeModifier.Operation operation) {
+    public static void addSlotModifier(Multimap<Holder<Attribute>, AttributeModifier> map, String slot, Identifier location, double amount, AttributeModifier.Operation operation) {
         map.put(SlotAttribute.getAttributeHolder(slot), new AttributeModifier(location, amount, operation));
     }
 
-    public static void addSlotAttribute(AccessoryAttributeBuilder builder, String targetSlot, ResourceLocation location, double amount, AttributeModifier.Operation operation, boolean isStackable) {
+    public static void addSlotAttribute(AccessoryAttributeBuilder builder, String targetSlot, Identifier location, double amount, AttributeModifier.Operation operation, boolean isStackable) {
         if(isStackable) {
             builder.addStackable(SlotAttribute.getAttributeHolder(targetSlot), location, amount, operation);
         } else {
@@ -73,7 +73,7 @@ public class SlotAttribute extends Attribute {
         }
     }
 
-    public static void addSlotAttribute(ItemStack stack, String targetSlot, String boundSlot, ResourceLocation location, double amount, AttributeModifier.Operation operation, boolean isStackable) {
+    public static void addSlotAttribute(ItemStack stack, String targetSlot, String boundSlot, Identifier location, double amount, AttributeModifier.Operation operation, boolean isStackable) {
         AccessoryAttributeUtils.addAttribute(stack, boundSlot, SlotAttribute.getAttributeHolder(targetSlot), location, amount, operation, isStackable);
     }
 }
