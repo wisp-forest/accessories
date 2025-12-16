@@ -37,10 +37,12 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
@@ -117,7 +119,7 @@ public class AccessoriesCommands implements CommandTreeGenerator.Branched {
 
     @Nullable
     public static <T> NamedArgumentGetter<CommandSourceStack, ?> getArgumentGetterErased(ArgumentType<T> type) {
-        if (type instanceof ResourceLocationArgument) return ResourceLocationArgument::getId;
+        if (type instanceof IdentifierArgument) return IdentifierArgument::getId;
         if (type instanceof ComponentArgument) return ComponentArgument::getResolvedComponent;
         if (type instanceof BoolArgumentType) return BoolArgumentType::getBool;
         if (type instanceof SlotArgumentType) return SlotArgumentType::getSlot;
@@ -135,14 +137,21 @@ public class AccessoriesCommands implements CommandTreeGenerator.Branched {
     }
 
     public void generateTrees(BranchedCommandGenerator root, CommandBuildContext context, Commands.CommandSelection environment) {
-        root.modifyRootNode(builder -> builder.requires(stack -> stack.hasPermission(Commands.LEVEL_GAMEMASTERS)));
+        root.modifyRootNode(builder -> builder.requires(stack -> {
+            var entity = stack.getEntity();
+            if (entity instanceof ServerPlayer sp) {
+                return sp.level().getServer().getPlayerList().isOp(new NameAndId(sp.getGameProfile()));
+            }
+            var server = stack.getServer();
+            return server != null && server.isSingleplayer();
+        }));
 
         if (((CommandSelectionAccessor) (Object) environment).accessories$includeIntegrated()) {
             root.branch("rendering", renderingBranch -> {
                 renderingBranch.leaves(
                     "create-renderer-stack",
-                    required("renderer_id", ResourceLocationArgument.id()),
-                    required("item_model_id", ResourceLocationArgument.id()),
+                    required("renderer_id", IdentifierArgument.id()),
+                    required("item_model_id", IdentifierArgument.id()),
                     required("custom_name", ComponentArgument.textComponent(context)),
                     defaulted("is_bundle", BoolArgumentType.bool(), false),
                     (ctx, rendererId, itemModelId, component, isBundle) -> {
@@ -151,7 +160,7 @@ public class AccessoriesCommands implements CommandTreeGenerator.Branched {
                     }
                 ).leaves(
                     "listen-to-renderer",
-                    defaulted("item_model_id", ResourceLocationArgument.id(), null),
+                    defaulted("item_model_id", IdentifierArgument.id(), null),
                     (ctx, id) -> {
                         CustomRendererLoader.constantFileResolving(ctx.getSource().getServer(), id);
 
@@ -293,7 +302,7 @@ public class AccessoriesCommands implements CommandTreeGenerator.Branched {
                         .branch(
                             required("entity", EntityArgument.entity(), EntityArgument::getEntity),
                             required("slot", SlotArgumentType.INSTANCE),
-                            required("id", ResourceLocationArgument.id()),
+                            required("id", IdentifierArgument.id()),
                             branchBuilder -> {
                                 branchBuilder.leaves(
                                     "add",
@@ -456,7 +465,7 @@ public class AccessoriesCommands implements CommandTreeGenerator.Branched {
             itemComponentBranch.branch(
                 "attribute",
                 required("attribute", ResourceExtendedArgument.attributes(context)),
-                required("id", ResourceLocationArgument.id()),
+                required("id", IdentifierArgument.id()),
                 branchBuilder -> {
                     branchBuilder.leaves(
                             "add",
@@ -483,7 +492,7 @@ public class AccessoriesCommands implements CommandTreeGenerator.Branched {
         });
     }
 
-    private static int getAttributeModifier(CommandContext<CommandSourceStack> ctx, Holder<Attribute> holder, ResourceLocation resourceLocation, double d) throws CommandSyntaxException {
+    private static int getAttributeModifier(CommandContext<CommandSourceStack> ctx, Holder<Attribute> holder, Identifier resourceLocation, double d) throws CommandSyntaxException {
         var commandSourceStack = ctx.getSource();
         var livingEntity = ctx.getSource().getPlayerOrException();
 
@@ -513,7 +522,7 @@ public class AccessoriesCommands implements CommandTreeGenerator.Branched {
             (var1, var2, var3) -> Component.translatableEscape("accessories.commands.attribute.failed.modifier_already_present_itemstack", var1, var2, var3)
     );
 
-    private static int addModifier(CommandContext<CommandSourceStack> ctx, Holder<Attribute> holder, ResourceLocation resourceLocation, double d, AttributeModifier.Operation operation, String slotName, boolean isStackable, boolean usedInSlotValidation) throws CommandSyntaxException {
+    private static int addModifier(CommandContext<CommandSourceStack> ctx, Holder<Attribute> holder, Identifier resourceLocation, double d, AttributeModifier.Operation operation, String slotName, boolean isStackable, boolean usedInSlotValidation) throws CommandSyntaxException {
         var commandSourceStack = ctx.getSource();
 
         if (operation == null) {
@@ -547,7 +556,7 @@ public class AccessoriesCommands implements CommandTreeGenerator.Branched {
             (var1, var2, var3) -> Component.translatableEscape("accessories.commands.attribute.failed.no_modifier_itemstack", var1, var2, var3)
     );
 
-    private static int removeModifier(CommandContext<CommandSourceStack> ctx, Holder<Attribute> holder, ResourceLocation location) throws CommandSyntaxException {
+    private static int removeModifier(CommandContext<CommandSourceStack> ctx, Holder<Attribute> holder, Identifier location) throws CommandSyntaxException {
         var commandSourceStack = ctx.getSource();
         var livingEntity = ctx.getSource().getPlayerOrException();
 
@@ -597,7 +606,7 @@ public class AccessoriesCommands implements CommandTreeGenerator.Branched {
         return 1;
     }
 
-    private static int createRenderStack(CommandContext<CommandSourceStack> ctx, ResourceLocation rendererId, ResourceLocation modelId, Component component, boolean isBundle) throws CommandSyntaxException {
+    private static int createRenderStack(CommandContext<CommandSourceStack> ctx, Identifier rendererId, Identifier modelId, Component component, boolean isBundle) throws CommandSyntaxException {
         Item item = Items.STICK;
 
         try {

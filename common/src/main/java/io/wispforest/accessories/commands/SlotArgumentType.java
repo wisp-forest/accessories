@@ -10,7 +10,7 @@ import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
@@ -25,7 +25,7 @@ public final class SlotArgumentType implements ArgumentType<String> {
 
     @Override
     public String parse(StringReader reader) throws CommandSyntaxException {
-        ResourceLocation arg = ResourceLocation.read(reader);
+        Identifier arg = Identifier.read(reader);
 
         String slotName = (arg.getNamespace().equals("minecraft")) ? arg.getPath() : arg.toString();
 

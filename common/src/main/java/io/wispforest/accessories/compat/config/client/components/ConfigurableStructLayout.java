@@ -14,7 +14,7 @@ import io.wispforest.owo.ui.core.Sizing;
 import io.wispforest.owo.ui.parsing.UIModel;
 import io.wispforest.owo.util.NumberReflection;
 import io.wispforest.owo.util.Observable;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.mutable.MutableObject;
 
@@ -71,7 +71,7 @@ public class ConfigurableStructLayout<T> extends FlowLayout {
                 this.numberField(field, ReflectOps.get(field, value));
             } else if (fieldClazz == String.class) {
                 this.stringField(field, ReflectOps.get(field, value));
-            } else if (fieldClazz == ResourceLocation.class) {
+            } else if (fieldClazz == Identifier.class) {
                 this.identifierField(field, ReflectOps.get(field, value));
             } else if (fieldClazz.isEnum()) {
                 this.createEnumButton(field, ReflectOps.get(field, value));
@@ -114,11 +114,11 @@ public class ConfigurableStructLayout<T> extends FlowLayout {
         });
     }
 
-    public ConfigurableStructLayout<T> identifierField(Field field, ResourceLocation defaultValue) {
+    public ConfigurableStructLayout<T> identifierField(Field field, Identifier defaultValue) {
         return textBoxHandle(field, defaultValue, configTextBox -> {
             configTextBox.inputPredicate(s -> s.matches("[a-z0-9_.:\\-]*"));
-            configTextBox.applyPredicate(s -> ResourceLocation.tryParse(s) != null);
-            configTextBox.valueParser(ResourceLocation::parse);
+            configTextBox.applyPredicate(s -> Identifier.tryParse(s) != null);
+            configTextBox.valueParser(Identifier::parse);
         });
     }
 

@@ -7,7 +7,7 @@ import io.wispforest.testccessories.fabric.client.TestScreenPacket;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 
@@ -34,7 +34,7 @@ public class Testccessories implements ModInitializer {
         AccessoriesNetworking.CHANNEL.registerClientboundDeferred(TestScreenPacket.class, TestScreenPacket.ENDEC);
     }
 
-    public static ResourceLocation of(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MODID, path);
+    public static Identifier of(String path) {
+        return Identifier.fromNamespaceAndPath(MODID, path);
     }
 }

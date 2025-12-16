@@ -7,18 +7,18 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.gui.render.state.BlitRenderState;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.joml.Matrix3x2f;
 
 public class PixelPerfectTextureComponent extends BaseComponent {
 
-    private final ResourceLocation texture;
+    private final Identifier texture;
 
-    public PixelPerfectTextureComponent(ResourceLocation texture, int textureWidth, int textureHeight, int scale) {
+    public PixelPerfectTextureComponent(Identifier texture, int textureWidth, int textureHeight, int scale) {
         this(texture, Sizing.fixed(textureWidth * scale), Sizing.fixed(textureHeight * scale));
     }
 
-    public PixelPerfectTextureComponent(ResourceLocation texture, Sizing horizontalSizing, Sizing verticalSizing) {
+    public PixelPerfectTextureComponent(Identifier texture, Sizing horizontalSizing, Sizing verticalSizing) {
         super();
 
         this.texture = texture;
@@ -35,16 +35,18 @@ public class PixelPerfectTextureComponent extends BaseComponent {
         drawPixelPerfectTextureQuad(context, texture, this.x(), this.y(), this.width(), this.height());
     }
 
-    public static void drawPixelPerfectTextureQuad(OwoUIDrawContext context, ResourceLocation texture, int x1, int y1, int width, int height) {
+    public static void drawPixelPerfectTextureQuad(OwoUIDrawContext context, Identifier texture, int x1, int y1, int width, int height) {
         int x2 = x1 + width;
         int y2 = y1 + height;
 
-        var gpuTextureView = Minecraft.getInstance().getTextureManager().getTexture(texture).getTextureView();
+        var textureObj = Minecraft.getInstance().getTextureManager().getTexture(texture);
+        var gpuTextureView = textureObj.getTextureView();
+        var gpuSampler = textureObj.getSampler();
 
         context.guiRenderState.submitGuiElement(
             new BlitRenderState(
                 RenderPipelines.GUI_TEXTURED,
-                TextureSetup.singleTexture(gpuTextureView),
+                TextureSetup.singleTexture(gpuTextureView, gpuSampler),
                 new Matrix3x2f(context.pose()),
                 x1, y1,
                 x2, y2,

@@ -5,7 +5,7 @@ import io.wispforest.accessories.api.events.DropRule;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.impl.slot.ExtraSlotTypeProperties;
 import io.wispforest.accessories.impl.slot.StrictMode;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 
 import java.util.HashSet;
@@ -21,13 +21,13 @@ public class SlotBuilder {
     private final String name;
     private final boolean uniqueSlot;
 
-    private ResourceLocation icon = null;
+    private Identifier icon = null;
     private Integer order = null;
 
     private Integer baseAmount = null;
     private Integer offsetAmount = 0;
 
-    private final Set<ResourceLocation> validators = new HashSet<>();
+    private final Set<Identifier> validators = new HashSet<>();
     private DropRule dropRule = null;
 
     public SlotBuilder(String name, boolean replace) {
@@ -38,7 +38,7 @@ public class SlotBuilder {
         this.uniqueSlot = UniqueSlotHandling.isUniqueSlot(name);
     }
 
-    public SlotBuilder icon(ResourceLocation value) {
+    public SlotBuilder icon(Identifier value) {
         this.icon = value;
         return this;
     }
@@ -84,7 +84,7 @@ public class SlotBuilder {
         return this;
     }
 
-    public SlotBuilder validator(ResourceLocation validator) {
+    public SlotBuilder validator(Identifier validator) {
         if (this.uniqueSlot && !ExtraSlotTypeProperties.getProperty(this.name, false).strictMode().equals(StrictMode.NONE)) {
             LOGGER.error("[SlotDataProvider] An attempt to adjust the validators for a given Unique slot even though strict mode is enabled! [Slot: {}]", this.name);
 

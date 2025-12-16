@@ -12,7 +12,7 @@ import io.wispforest.owo.serialization.RegistriesAttribute;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -32,10 +32,10 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
 
     protected final String type;
 
-    protected final ResourceLocation id;
+    protected final Identifier id;
     protected final Endec<T> endec;
 
-    protected final Set<ResourceLocation> dependencies;
+    protected final Set<Identifier> dependencies;
 
     protected final SerializationContext context;
 
@@ -43,23 +43,23 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
 
     private Function<PreparableReloadListener.SharedState, HolderLookup.@Nullable Provider> registriesAccess = sharedState -> null;
 
-    protected EndecDataLoader(ResourceLocation id, String type, Endec<T> endec, PackType packType) {
+    protected EndecDataLoader(Identifier id, String type, Endec<T> endec, PackType packType) {
         this(id, type, endec, packType, false);
     }
 
-    protected EndecDataLoader(ResourceLocation id, String type, Endec<T> endec, PackType packType, Set<ResourceLocation> value) {
+    protected EndecDataLoader(Identifier id, String type, Endec<T> endec, PackType packType, Set<Identifier> value) {
         this(id, type, endec, packType, SerializationContext.empty(),false, value);
     }
 
-    protected EndecDataLoader(ResourceLocation id, String type, Endec<T> endec, PackType packType, boolean requiresRegistries) {
+    protected EndecDataLoader(Identifier id, String type, Endec<T> endec, PackType packType, boolean requiresRegistries) {
         this(id, type, endec, packType, SerializationContext.empty(), requiresRegistries);
     }
 
-    protected EndecDataLoader(ResourceLocation id, String type, Endec<T> endec, PackType packType, SerializationContext context, boolean requiresRegistries) {
+    protected EndecDataLoader(Identifier id, String type, Endec<T> endec, PackType packType, SerializationContext context, boolean requiresRegistries) {
         this(id, type, endec, packType, context, requiresRegistries, Set.of());
     }
 
-    protected EndecDataLoader(ResourceLocation id, String type, Endec<T> endec, PackType packType, SerializationContext context, boolean requiresRegistries, Set<ResourceLocation> value) {
+    protected EndecDataLoader(Identifier id, String type, Endec<T> endec, PackType packType, SerializationContext context, boolean requiresRegistries, Set<Identifier> value) {
         super(new DelegatingCodec<>(endec.toString(), endec), FileToIdConverter.json(type));
 
         this.id = id;
@@ -81,12 +81,12 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
     }
 
     @Override
-    public ResourceLocation getId() {
+    public Identifier getId() {
         return this.id;
     }
 
     @Override
-    public Set<ResourceLocation> getDependencyIds() {
+    public Set<Identifier> getDependencyIds() {
         return this.dependencies;
     }
 
@@ -113,7 +113,7 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
     }
 
     @Override
-    protected Map<ResourceLocation, T> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
+    protected Map<Identifier, T> prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
         var entries = super.prepare(resourceManager, profiler);
 
         getCodec().resetCodec();

@@ -3,7 +3,7 @@ package io.wispforest.accessories.client;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
 import io.wispforest.accessories.api.client.renderers.AccessoryRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
 
@@ -23,5 +23,5 @@ public class AccessoryRendererErrorCache {
         }
     }
 
-    public record Key(UUID entityUUID, int itemStackHash, ResourceLocation rendererId) { }
+    public record Key(UUID entityUUID, int itemStackHash, Identifier rendererId) { }
 }

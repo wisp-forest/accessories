@@ -1,33 +1,33 @@
 package io.wispforest.accessories.compat.config;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Objects;
 
 public final class MenuButtonInjection {
-    public ResourceLocation menuType;
+    public Identifier menuType;
     public int xOffset;
     public int yOffset;
 
     public MenuButtonInjection() {
-        this.menuType = ResourceLocation.fromNamespaceAndPath("minecraft", "");
+        this.menuType = Identifier.fromNamespaceAndPath("minecraft", "");
         this.xOffset = 0;
         this.yOffset = 0;
     }
 
     @Deprecated
-    public MenuButtonInjection(ResourceLocation menuType, int xOffset, int yOffset, boolean mini) {
+    public MenuButtonInjection(Identifier menuType, int xOffset, int yOffset, boolean mini) {
         this(menuType, xOffset, yOffset);
     }
 
-    public MenuButtonInjection(ResourceLocation menuType, int xOffset, int yOffset) {
+    public MenuButtonInjection(Identifier menuType, int xOffset, int yOffset) {
         this.menuType = menuType;
         this.xOffset = xOffset;
         this.yOffset = yOffset;
     }
 
 
-    public ResourceLocation menuType() {
+    public Identifier menuType() {
         return menuType;
     }
 

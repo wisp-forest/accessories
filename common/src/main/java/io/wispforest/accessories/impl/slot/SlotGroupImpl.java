@@ -5,13 +5,13 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public record SlotGroupImpl(String name, int order, Set<String> slots, ResourceLocation icon) implements SlotGroup {
+public record SlotGroupImpl(String name, int order, Set<String> slots, Identifier icon) implements SlotGroup {
 
     public static final StructEndec<SlotGroup> ENDEC = StructEndecBuilder.of(
             Endec.STRING.fieldOf("name", SlotGroup::name),

@@ -1,7 +1,7 @@
 package io.wispforest.accessories.impl.event;
 
 import net.fabricmc.fabric.api.event.Event;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.function.Function;
 
@@ -31,14 +31,14 @@ public class WrappedEvent<T, W> extends Event<T> {
     }
 
     @Override
-    public void register(ResourceLocation phase, T listener) {
+    public void register(Identifier phase, T listener) {
         var wrappedListener = this.conversionFunc.apply(listener);
 
         this.targetEvent.register(phase, wrappedListener);
     }
 
     @Override
-    public void addPhaseOrdering(ResourceLocation firstPhase, ResourceLocation secondPhase) {
+    public void addPhaseOrdering(Identifier firstPhase, Identifier secondPhase) {
         this.targetEvent.addPhaseOrdering(firstPhase, secondPhase);
     }
 }

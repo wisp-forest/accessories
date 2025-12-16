@@ -23,7 +23,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.data.AtlasIds;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.CreativeModeTab;
 import org.jetbrains.annotations.Nullable;
@@ -39,8 +39,8 @@ import static io.wispforest.owo.ui.container.Containers.verticalFlow;
 
 public class ComponentUtils {
 
-    private static final ResourceLocation SLOT = ResourceLocation.withDefaultNamespace("textures/gui/sprites/container/slot.png");
-    private static final ResourceLocation DARK_SLOT = Accessories.of("textures/gui/theme/dark/slot.png");
+    private static final Identifier SLOT = Identifier.withDefaultNamespace("textures/gui/sprites/container/slot.png");
+    private static final Identifier DARK_SLOT = Accessories.of("textures/gui/theme/dark/slot.png");
 
     public static final Surface BACKGROUND_SLOT_RENDERING_SURFACE = (context, component) -> {
         var slotComponents = new ArrayList<AccessoriesScreen.ExtendedSlotComponent>();
@@ -91,7 +91,7 @@ public class ComponentUtils {
         NinePatchTexture.draw(getScrollabarTexture(direction, active), context, x + 1, y + 1, width - 2, height - 2);
     };
 
-    public static ResourceLocation getScrollabarTexture(ScrollContainer.ScrollDirection direction, boolean active) {
+    public static Identifier getScrollabarTexture(ScrollContainer.ScrollDirection direction, boolean active) {
         var scrollBarType = (direction == ScrollContainer.ScrollDirection.VERTICAL ? "vertical" : "horizontal") + (active ? "" : "_disabled");
         var themeType = checkMode("light", "dark");
 
@@ -110,7 +110,7 @@ public class ComponentUtils {
         NinePatchTexture.draw(getBtnTexture(button), context, button.getX(), button.getY(), button.width(), button.height());
     };
 
-    private static ResourceLocation getBtnTexture(ButtonComponent btn) {
+    private static Identifier getBtnTexture(ButtonComponent btn) {
         var btnType = (btn.isActive() ? (btn.isHovered() ? "hovered" : "active") : "disabled");
         var themeType = checkMode("light", "dark");
 
@@ -160,7 +160,7 @@ public class ComponentUtils {
         setCallback.accept(o, getterFunc.apply(Accessories.config().screenOptions.isDarkMode()));
     }
 
-    public static ResourceLocation getSlotTexture() {
+    public static Identifier getSlotTexture() {
         return checkMode(SLOT, DARK_SLOT);
     }
 
@@ -295,15 +295,15 @@ public class ComponentUtils {
                 .renderer(texturedRenderer);
     }
 
-    public static io.wispforest.owo.ui.core.Component createIconButton(Consumer<ButtonComponent> action, int size, Consumer<ButtonComponent> builder, Function<ButtonComponent, ResourceLocation> textureGetter) {
+    public static io.wispforest.owo.ui.core.Component createIconButton(Consumer<ButtonComponent> action, int size, Consumer<ButtonComponent> builder, Function<ButtonComponent, Identifier> textureGetter) {
         return createIconButton(action, size, null, builder, (context, buttonComponent) -> textureGetter.apply(buttonComponent));
     }
 
-    public static io.wispforest.owo.ui.core.Component createIconButton(Consumer<ButtonComponent> action, int size, Consumer<ButtonComponent> builder, BiFunction<OwoUIDrawContext, ButtonComponent, ResourceLocation> textureGetter) {
+    public static io.wispforest.owo.ui.core.Component createIconButton(Consumer<ButtonComponent> action, int size, Consumer<ButtonComponent> builder, BiFunction<OwoUIDrawContext, ButtonComponent, Identifier> textureGetter) {
         return createIconButton(action, size, null, builder, textureGetter);
     }
 
-    public static io.wispforest.owo.ui.core.Component createIconButton(Consumer<ButtonComponent> action, int size, String id, Consumer<ButtonComponent> builder, BiFunction<OwoUIDrawContext, ButtonComponent, ResourceLocation> textureGetter) {
+    public static io.wispforest.owo.ui.core.Component createIconButton(Consumer<ButtonComponent> action, int size, String id, Consumer<ButtonComponent> builder, BiFunction<OwoUIDrawContext, ButtonComponent, Identifier> textureGetter) {
         return verticalFlow(Sizing.content(), Sizing.content())
                 .child(
                         Components.button(Component.empty(), action)

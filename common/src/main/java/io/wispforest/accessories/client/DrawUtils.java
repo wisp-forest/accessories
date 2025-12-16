@@ -11,13 +11,13 @@ import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.data.AtlasIds;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.joml.Matrix3x2f;
 import org.joml.Vector4f;
 
 public class DrawUtils {
 
-    public static void drawWithSpectrum(GuiGraphics ctx, int x, int y, int blitOffset, int width, int height, ResourceLocation texture, float alpha) {
+    public static void drawWithSpectrum(GuiGraphics ctx, int x, int y, int blitOffset, int width, int height, Identifier texture, float alpha) {
         TextureAtlasSprite sprite = Minecraft.getInstance().getAtlasManager()
             .getAtlasOrThrow(AtlasIds.GUI)
             .getSprite(texture);
@@ -37,7 +37,7 @@ public class DrawUtils {
     // Y: Top Right
     // Z: Bottom Left
     // W: Bottom Right
-    private static void innerDrawWithSpectrum(GuiGraphics guiGraphics, ResourceLocation atlasLocation, int x1, int x2, int y1, int y2, int blitOffset, float minU, float maxU, float minV, float maxV, Vector4f alphaValues) {
+    private static void innerDrawWithSpectrum(GuiGraphics guiGraphics, Identifier atlasLocation, int x1, int x2, int y1, int y2, int blitOffset, float minU, float maxU, float minV, float maxV, Vector4f alphaValues) {
         guiGraphics.guiRenderState.submitGuiElement(
             new BlitSpectrumRenderState(
                 AccessoriesPipelines.SPECTRUM,
@@ -88,27 +88,27 @@ public class DrawUtils {
         return new ScreenRectangle(x1, y1, Math.abs(x2 - x1), Math.abs(y2 - y1))/*.transformMaxBounds(matrix3x2f)*/;
     }
 
-    public static void blitSprite(GuiGraphics context, ResourceLocation atlasLocation, int x, int y, int width, int height) {
+    public static void blitSprite(GuiGraphics context, Identifier atlasLocation, int x, int y, int width, int height) {
         blitSprite(context, atlasLocation, x, y, width, height, -1);
     }
 
-    public static void blitSprite(GuiGraphics context, ResourceLocation atlasLocation, int x, int y, int width, int height, int blitOffset) {
+    public static void blitSprite(GuiGraphics context, Identifier atlasLocation, int x, int y, int width, int height, int blitOffset) {
         context.blitSprite(RenderPipelines.GUI_TEXTURED, atlasLocation, x, y, width, height, blitOffset);
     }
 
-    public static void blit(GuiGraphics context, ResourceLocation atlasLocation, int x, int y, int width, int height) {
+    public static void blit(GuiGraphics context, Identifier atlasLocation, int x, int y, int width, int height) {
         blit(context, atlasLocation, x, y, 0, 0, width, height, width, height);
     }
 
-    public static void blit(GuiGraphics context, ResourceLocation atlasLocation, int x, int y, int uWidth, int vHeight, int textureWidth, int textureHeight) {
+    public static void blit(GuiGraphics context, Identifier atlasLocation, int x, int y, int uWidth, int vHeight, int textureWidth, int textureHeight) {
         blit(context, atlasLocation, x, y, 0, 0, uWidth, vHeight, textureWidth, textureHeight);
     }
 
-    public static void blit(GuiGraphics context, ResourceLocation atlasLocation, int x, int y, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight) {
+    public static void blit(GuiGraphics context, Identifier atlasLocation, int x, int y, float uOffset, float vOffset, int uWidth, int vHeight, int textureWidth, int textureHeight) {
         context.blit(RenderPipelines.GUI_TEXTURED, atlasLocation, x, y, uOffset, vOffset, uWidth, vHeight, uWidth, vHeight, textureWidth, textureHeight);
     }
 
-    public static void blit(GuiGraphics context, ResourceLocation atlasLocation, int x, int y, float uOffset, float vOffset, int uWidth, int vHeight, int width, int height, int textureWidth, int textureHeight) {
+    public static void blit(GuiGraphics context, Identifier atlasLocation, int x, int y, float uOffset, float vOffset, int uWidth, int vHeight, int width, int height, int textureWidth, int textureHeight) {
         context.blit(RenderPipelines.GUI_TEXTURED, atlasLocation, x, y, uOffset, vOffset, uWidth, vHeight, width, height, textureWidth, textureHeight, -1);
     }
 

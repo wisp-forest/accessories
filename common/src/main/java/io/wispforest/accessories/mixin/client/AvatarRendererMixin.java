@@ -8,14 +8,14 @@ import io.wispforest.accessories.client.AccessoriesRenderLayer;
 import io.wispforest.accessories.pond.CosmeticArmorLookupTogglable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.ClientAvatarEntity;
-import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.model.player.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.player.AvatarRenderer;
 import net.minecraft.client.renderer.entity.state.AvatarRenderState;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Avatar;
 import net.minecraft.world.entity.HumanoidArm;
 import org.spongepowered.asm.mixin.Mixin;
@@ -38,12 +38,12 @@ public abstract class AvatarRendererMixin<A extends Avatar & ClientAvatarEntity>
 //    }
 
     @WrapMethod(method = "renderHand")
-    public void accessories$cosmeticallyAdjustFirstPersonView(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, ResourceLocation resourceLocation, ModelPart modelPart, boolean bl, Operation<Void> original) {
+    public void accessories$cosmeticallyAdjustFirstPersonView(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int i, Identifier resourceLocation, ModelPart modelPart, boolean bl, Operation<Void> original) {
         CosmeticArmorLookupTogglable.runWithLookupToggle(Minecraft.getInstance().player, () -> original.call(poseStack, submitNodeCollector, i, resourceLocation, modelPart, bl));
     }
 
-    @Inject(method = "renderHand", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitModelPart(Lnet/minecraft/client/model/geom/ModelPart;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/RenderType;IILnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V", shift = At.Shift.AFTER))
-    private void accessories$firstPersonAccessories(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int combinedLight, ResourceLocation resourceLocation, ModelPart rendererArm, boolean bl, CallbackInfo ci, @Local PlayerModel playerModel) {
+    @Inject(method = "renderHand", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/SubmitNodeCollector;submitModelPart(Lnet/minecraft/client/model/geom/ModelPart;Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/client/renderer/rendertype/RenderType;IILnet/minecraft/client/renderer/texture/TextureAtlasSprite;)V", shift = At.Shift.AFTER))
+    private void accessories$firstPersonAccessories(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int combinedLight, Identifier resourceLocation, ModelPart rendererArm, boolean bl, CallbackInfo ci, @Local PlayerModel playerModel) {
         AccessoriesRenderLayer.submitFirstPersonAsClientPlayer((AvatarRenderer<A>) (Object) this, playerModel, poseStack, combinedLight, submitNodeCollector, rendererArm == this.model.leftArm ? HumanoidArm.LEFT : HumanoidArm.RIGHT);
     }
 }

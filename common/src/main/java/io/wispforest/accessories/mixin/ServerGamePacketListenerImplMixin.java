@@ -16,13 +16,7 @@ public abstract class ServerGamePacketListenerImplMixin {
     @Accessor("player")
     public abstract ServerPlayer accessories$player();
 
-    @WrapMethod(
-            method = {
-                    "handlePlayerCommand",                                                               // Mojmap
-                    "method_12045(Lnet/minecraft/class_2641;)V",                                         // Yarn Interm.
-                    "onClientCommand(Lnet/minecraft/network/packet/c2s/play/ClientCommandC2SPacket;)V",  // Yarn
-            }
-    )
+    @WrapMethod(method = "handlePlayerCommand")
     private void accessories$transferStack(ServerboundPlayerCommandPacket packet, Operation<Void> original) {
         PacketUtils.ensureRunningOnSameThread(packet, (ServerGamePacketListenerImpl) (Object) this, this.accessories$player().level());
 

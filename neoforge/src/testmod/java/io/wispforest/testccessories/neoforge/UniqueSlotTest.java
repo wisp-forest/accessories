@@ -5,7 +5,7 @@ import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import net.fabricmc.fabric.api.util.TriState;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.BlockItem;
@@ -13,9 +13,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class UniqueSlotTest implements UniqueSlotHandling.RegistrationCallback {
 
-    private final ResourceLocation slotPredicate1 = Testccessories.of("test_slot_1_equipment");
-    private final ResourceLocation slotPredicate2 = Testccessories.of("test_slot_2_equipment");
-    private final ResourceLocation slotPredicate3 = Testccessories.of("test_slot_3_equipment");
+    private final Identifier slotPredicate1 = Testccessories.of("test_slot_1_equipment");
+    private final Identifier slotPredicate2 = Testccessories.of("test_slot_2_equipment");
+    private final Identifier slotPredicate3 = Testccessories.of("test_slot_3_equipment");
 
     public static final UniqueSlotTest INSTANCE = new UniqueSlotTest();
 

@@ -15,9 +15,9 @@ import net.minecraft.client.gui.screens.inventory.HorseInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.animal.equine.AbstractHorse;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.jetbrains.annotations.ApiStatus;
@@ -39,7 +39,7 @@ public class AccessoriesScreenTransitionHelper {
 
     private static final List<Class<AbstractContainerScreen<AbstractContainerMenu>>> SCREEN_CLASSES = new ArrayList<>();
 
-    private static final Map<ResourceLocation, MenuButtonInjection> BUTTON_INJECTION_DATA = new HashMap<>();
+    private static final Map<Identifier, MenuButtonInjection> BUTTON_INJECTION_DATA = new HashMap<>();
 
     private static final Map<Predicate<AbstractContainerScreen<AbstractContainerMenu>>, ScreenTransitionHelper> SCREEN_PREDICATES = new LinkedHashMap<>();
 
@@ -60,21 +60,21 @@ public class AccessoriesScreenTransitionHelper {
         SCREEN_CLASSES.addAll((Collection) List.of(screenClasses));
     }
 
-    public static <M extends AbstractContainerMenu, S extends AbstractContainerScreen<M>> void registerPlayerScreenTransition(ResourceLocation location, Class<S> screenClass) {
+    public static <M extends AbstractContainerMenu, S extends AbstractContainerScreen<M>> void registerPlayerScreenTransition(Identifier location, Class<S> screenClass) {
         registerPlayerScreenTransition(location, screenClass::isInstance);
 
         registerScreensForButton(screenClass);
     }
 
-    public static void registerPlayerScreenTransition(ResourceLocation location, Predicate<AbstractContainerScreen<AbstractContainerMenu>> screenPredicate) {
+    public static void registerPlayerScreenTransition(Identifier location, Predicate<AbstractContainerScreen<AbstractContainerMenu>> screenPredicate) {
         registerScreenTransition(location, screenPredicate, ScreenBasedTargetGetter.PLAYER_DEFAULTED_TARGET, ScreenReopener.PLAYER_INVENTORY);
     }
 
-    public static <M extends AbstractContainerMenu, S extends AbstractContainerScreen<M>> void registerScreenTransitionWithCustomInvReopener(ResourceLocation location, Class<S> screenClass, ScreenBasedTargetGetter<M, S> getter) {
+    public static <M extends AbstractContainerMenu, S extends AbstractContainerScreen<M>> void registerScreenTransitionWithCustomInvReopener(Identifier location, Class<S> screenClass, ScreenBasedTargetGetter<M, S> getter) {
         registerScreenTransition(location, screenClass, getter, (ScreenReopener<M, S>) ScreenReopener.CUSTOM_INVENTORY);
     }
 
-    public static <M extends AbstractContainerMenu, S extends AbstractContainerScreen<M>> void registerScreenTransition(ResourceLocation location, Class<S> screenClass, ScreenBasedTargetGetter<M, S> getter, ScreenReopener<M, S> reopener) {
+    public static <M extends AbstractContainerMenu, S extends AbstractContainerScreen<M>> void registerScreenTransition(Identifier location, Class<S> screenClass, ScreenBasedTargetGetter<M, S> getter, ScreenReopener<M, S> reopener) {
         registerScreenTransition(location,
                 screenClass::isInstance,
                 (ScreenBasedTargetGetter<AbstractContainerMenu, AbstractContainerScreen<AbstractContainerMenu>>) getter,
@@ -83,7 +83,7 @@ public class AccessoriesScreenTransitionHelper {
         registerScreensForButton(screenClass);
     }
 
-    public static void registerScreenTransition(ResourceLocation location, Predicate<AbstractContainerScreen<AbstractContainerMenu>> screenPredicate, ScreenBasedTargetGetter<AbstractContainerMenu, AbstractContainerScreen<AbstractContainerMenu>> targetEntityGetter, ScreenReopener<AbstractContainerMenu, AbstractContainerScreen<AbstractContainerMenu>> reopener) {
+    public static void registerScreenTransition(Identifier location, Predicate<AbstractContainerScreen<AbstractContainerMenu>> screenPredicate, ScreenBasedTargetGetter<AbstractContainerMenu, AbstractContainerScreen<AbstractContainerMenu>> targetEntityGetter, ScreenReopener<AbstractContainerMenu, AbstractContainerScreen<AbstractContainerMenu>> reopener) {
         SCREEN_PREDICATES.put(screenPredicate, new ScreenTransitionHelper(location, targetEntityGetter, reopener));
     }
 
@@ -185,13 +185,13 @@ public class AccessoriesScreenTransitionHelper {
 
     @ApiStatus.Internal
     public static void init() {
-        registerPlayerScreenTransition(ResourceLocation.withDefaultNamespace("creative_player_inventory"), CreativeModeInventoryScreen.class);
-        registerPlayerScreenTransition(ResourceLocation.withDefaultNamespace("player_inventory"), InventoryScreen.class);
+        registerPlayerScreenTransition(Identifier.withDefaultNamespace("creative_player_inventory"), CreativeModeInventoryScreen.class);
+        registerPlayerScreenTransition(Identifier.withDefaultNamespace("player_inventory"), InventoryScreen.class);
 
         //--
 
         registerScreenTransitionWithCustomInvReopener(
-                ResourceLocation.withDefaultNamespace("horse_inventory"),
+                Identifier.withDefaultNamespace("horse_inventory"),
                 HorseInventoryScreen.class,
                 (HorseInventoryScreen screen) -> ((HorseInventoryMenuAccessor) screen.getMenu()).accessories$horse()
         );
@@ -221,9 +221,9 @@ public class AccessoriesScreenTransitionHelper {
         INITIALIZED_INJECTIONS = true;
     }
 
-    private record ScreenTransitionHelper(ResourceLocation location, ScreenBasedTargetGetter<AbstractContainerMenu, AbstractContainerScreen<AbstractContainerMenu>> getter, ScreenReopener<AbstractContainerMenu, AbstractContainerScreen<AbstractContainerMenu>> reopener) { }
+    private record ScreenTransitionHelper(Identifier location, ScreenBasedTargetGetter<AbstractContainerMenu, AbstractContainerScreen<AbstractContainerMenu>> getter, ScreenReopener<AbstractContainerMenu, AbstractContainerScreen<AbstractContainerMenu>> reopener) { }
 
     public interface MenuButtonInjectionCallback {
-        void registerInjections(BiConsumer<ResourceLocation, MenuButtonInjection> registerFunc);
+        void registerInjections(BiConsumer<Identifier, MenuButtonInjection> registerFunc);
     }
 }

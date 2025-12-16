@@ -6,7 +6,7 @@ import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.testccessories.neoforge.Testccessories;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
@@ -18,7 +18,7 @@ public class RingIncreaserAccessory implements Accessory {
         AccessoryRegistry.register(Items.BEACON, new RingIncreaserAccessory());
     }
 
-    private static final ResourceLocation ringAdditionLocation = Testccessories.of("additional_rings");
+    private static final Identifier ringAdditionLocation = Testccessories.of("additional_rings");
 
     @Override
     public void onEquip(ItemStack stack, SlotReference reference) {

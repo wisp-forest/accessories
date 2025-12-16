@@ -172,9 +172,10 @@ public class RenderingFunctionOps {
             case RenderingFunction.Particle particleData -> {
                 if (!PARTICLE_UPDATE_CACHE.hasAllottedTime(new ParticleTimeKey(((AccessoriesRenderStateAPI) renderState).getEntityUUIDForState(), uniqueKey, particleData), particleData.delay())) return;
 
+                var cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
                 var pos = new Vector3f(0, 0, 0)
                         .mulPosition(matrices.last().pose())
-                        .add(Minecraft.getInstance().gameRenderer.getMainCamera().getPosition().toVector3f());
+                        .add((float) cameraPos.x, (float) cameraPos.y, (float) cameraPos.z);
 
                 renderParticle(level, particleData, pos.x(), pos.y(), pos.z());
             }

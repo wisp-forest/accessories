@@ -3,7 +3,7 @@ package io.wispforest.accessories.api;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.impl.core.ExpandedContainer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
@@ -78,7 +78,7 @@ public interface AccessoriesContainer extends AccessoriesStorage {
     ///
     /// @return All slot modifiers applied to the given Container
     ///
-    Map<ResourceLocation, AttributeModifier> getModifiers();
+    Map<Identifier, AttributeModifier> getModifiers();
 
     ///
     /// @return All cached modifiers sent within sync packet to the client
@@ -108,13 +108,13 @@ public interface AccessoriesContainer extends AccessoriesStorage {
     /// Remove the specific attribute modifier from the map if found
     /// @param location The specific location
     ///
-    boolean hasModifier(ResourceLocation location);
+    boolean hasModifier(Identifier location);
 
     ///
     /// Remove the specific attribute modifier from the map if found
     /// @param location The specific location
     ///
-    void removeModifier(ResourceLocation location);
+    void removeModifier(Identifier location);
 
     ///
     /// Remove all modifiers from the given container

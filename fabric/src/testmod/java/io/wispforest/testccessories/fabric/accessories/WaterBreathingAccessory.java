@@ -7,7 +7,7 @@ import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.testccessories.fabric.TestItems;
 import io.wispforest.testccessories.fabric.Testccessories;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -16,7 +16,7 @@ import net.minecraft.world.item.component.CustomData;
 
 public class WaterBreathingAccessory implements Accessory {
 
-    private static final ResourceLocation GRAVITY_LOCATION = Testccessories.of("gravity_accessory_adjustment");
+    private static final Identifier GRAVITY_LOCATION = Testccessories.of("gravity_accessory_adjustment");
 
     public static void init() {
         AccessoryRegistry.register(TestItems.testItem1, new WaterBreathingAccessory());

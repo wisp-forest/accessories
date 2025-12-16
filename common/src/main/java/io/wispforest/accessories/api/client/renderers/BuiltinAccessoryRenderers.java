@@ -25,7 +25,7 @@ import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
@@ -152,10 +152,10 @@ public class BuiltinAccessoryRenderers {
         }
     }
 
-    public static final ResourceLocation BUNDLE_RENDERER_ID = Accessories.of("bundle_renderer");
-    public static final ResourceLocation DEFAULT_RENDERER_ID = Accessories.of("default_renderer");
-    public static final ResourceLocation ARMOR_RENDERER_ID = Accessories.of("armor_renderer");
-    public static final ResourceLocation ELYTRA_RENDERER_ID = Accessories.of("elytra_renderer");
+    public static final Identifier BUNDLE_RENDERER_ID = Accessories.of("bundle_renderer");
+    public static final Identifier DEFAULT_RENDERER_ID = Accessories.of("default_renderer");
+    public static final Identifier ARMOR_RENDERER_ID = Accessories.of("armor_renderer");
+    public static final Identifier ELYTRA_RENDERER_ID = Accessories.of("elytra_renderer");
 
     static {
         AccessoriesRendererRegistry.bindItemToRenderer(Items.BUNDLE, BUNDLE_RENDERER_ID, BundleAccessoryRenderer::new);

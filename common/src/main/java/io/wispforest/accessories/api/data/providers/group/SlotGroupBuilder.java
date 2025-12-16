@@ -1,7 +1,7 @@
 package io.wispforest.accessories.api.data.providers.group;
 
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +14,7 @@ public class SlotGroupBuilder {
     private final String name;
     private final boolean uniqueGroup;
 
-    private ResourceLocation icon = null;
+    private Identifier icon = null;
     private Integer order = null;
 
     private final List<String> slots = new ArrayList<>();
@@ -32,7 +32,7 @@ public class SlotGroupBuilder {
         return this;
     }
 
-    public SlotGroupBuilder icon(ResourceLocation value) {
+    public SlotGroupBuilder icon(Identifier value) {
         this.icon = value;
         return this;
     }

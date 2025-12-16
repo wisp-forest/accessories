@@ -17,7 +17,7 @@ import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
@@ -121,7 +121,7 @@ public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroup
         return groups.get(Accessories.parseLocationOrDefault("any"));
     }
 
-    public record RawGroupData(int order, Set<String> slots, ResourceLocation icon) {
+    public record RawGroupData(int order, Set<String> slots, Identifier icon) {
         public static final StructEndec<RawGroupData> ENDEC = StructEndecBuilder.of(
                 Endec.INT.fieldOf("order", RawGroupData::order),
                 EndecUtils.<Set<String>, String>collectionOf(Endec.STRING, LinkedHashSet::new).fieldOf("slots", RawGroupData::slots),
@@ -131,7 +131,7 @@ public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroup
     }
 
     @Override
-    public Map<ResourceLocation, SlotGroup> mapFrom(Map<ResourceLocation, RawGroupData> rawData) {
+    public Map<Identifier, SlotGroup> mapFrom(Map<Identifier, RawGroupData> rawData) {
         var slotGroups = new LinkedHashMap<String, SlotGroupBuilder>();
 
         slotGroups.put("unsorted", new SlotGroupBuilder("unsorted").order(30));
@@ -201,7 +201,7 @@ public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroup
 
         return slotGroups.entrySet().stream()
             .map(entry -> Map.entry(Accessories.parseLocationOrDefault(entry.getKey()), entry.getValue().build()))
-            .sorted(Map.Entry.<ResourceLocation, SlotGroup>comparingByValue().reversed())
+            .sorted(Map.Entry.<Identifier, SlotGroup>comparingByValue().reversed())
             .collect(CollectionUtils.toLinkedMap());
     }
 
@@ -211,7 +211,7 @@ public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroup
         private Integer order = null;
         private final Set<SlotType> slots = new HashSet<>();
 
-        private ResourceLocation iconLocation = SlotGroup.UNKNOWN;
+        private Identifier iconLocation = SlotGroup.UNKNOWN;
 
         public SlotGroupBuilder(String name){
             this.name = name;
@@ -235,7 +235,7 @@ public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroup
             return this;
         }
 
-        public SlotGroupBuilder icon(ResourceLocation location) {
+        public SlotGroupBuilder icon(Identifier location) {
             this.iconLocation = location;
 
             return this;

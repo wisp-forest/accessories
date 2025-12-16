@@ -22,7 +22,7 @@ import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.HumanoidArm;
@@ -45,7 +45,7 @@ public sealed interface RenderingFunction permits DeferredRenderer, Block, Compo
         return new Transformations(transformations, new Compound(renderingFunctions, armTarget));
     }
 
-    static Model ofModel(ResourceLocation id) {
+    static Model ofModel(Identifier id) {
         return new Model(id);
     }
 
@@ -100,7 +100,7 @@ public sealed interface RenderingFunction permits DeferredRenderer, Block, Compo
         return new Entity(entityType, data, true);
     }
 
-    static Particle ofParticle(ResourceLocation uniqueId, float delay, ParticleOptions particleData, Vector3f delta, float speed, int count, boolean overrideLimiter, boolean alwaysShow) {
+    static Particle ofParticle(Identifier uniqueId, float delay, ParticleOptions particleData, Vector3f delta, float speed, int count, boolean overrideLimiter, boolean alwaysShow) {
         return new Particle(uniqueId, delay, particleData, delta, speed, count, overrideLimiter, alwaysShow);
     }
 
@@ -137,7 +137,7 @@ public sealed interface RenderingFunction permits DeferredRenderer, Block, Compo
         );
     }
 
-    record Model(ResourceLocation id) implements RenderingFunction {
+    record Model(Identifier id) implements RenderingFunction {
         public static final StructEndec<Model> ENDEC = StructEndecBuilder.of(
                 MinecraftEndecs.IDENTIFIER.fieldOf("id", Model::id),
                 Model::new
@@ -183,7 +183,7 @@ public sealed interface RenderingFunction permits DeferredRenderer, Block, Compo
         );
     }
 
-    record Particle(ResourceLocation uniqueId, float delay, ParticleOptions particleData, Vector3f delta, float speed, int count, boolean overrideLimiter, boolean alwaysShow) implements RenderingFunction {
+    record Particle(Identifier uniqueId, float delay, ParticleOptions particleData, Vector3f delta, float speed, int count, boolean overrideLimiter, boolean alwaysShow) implements RenderingFunction {
         private static final Endec<ParticleOptions> PARTICLE_OPTIONS_ENDEC = CodecUtils.toEndec(ParticleTypes.CODEC);
 
         public static final StructEndec<Particle> ENDEC = StructEndecBuilder.of(
@@ -317,13 +317,13 @@ public sealed interface RenderingFunction permits DeferredRenderer, Block, Compo
                 DeferredRenderer::new
         );
 
-        private final ResourceLocation rendererId;
+        private final Identifier rendererId;
         private final Map<String, JsonElement> references;
         private final ArmTarget firstPersonArmTarget;
 
         private final UUID uuid;
 
-        public DeferredRenderer(ResourceLocation rendererId,
+        public DeferredRenderer(Identifier rendererId,
                                 Map<String, JsonElement> references,
                                 ArmTarget firstPersonArmTarget) {
             this.rendererId = rendererId;
@@ -334,7 +334,7 @@ public sealed interface RenderingFunction permits DeferredRenderer, Block, Compo
         }
 
         public Map<String, JsonElement> references() { return Collections.unmodifiableMap(references); }
-        public ResourceLocation rendererId() { return rendererId; }
+        public Identifier rendererId() { return rendererId; }
         public ArmTarget firstPersonArmTarget() { return firstPersonArmTarget; }
         public UUID getUUID() { return uuid; }
 

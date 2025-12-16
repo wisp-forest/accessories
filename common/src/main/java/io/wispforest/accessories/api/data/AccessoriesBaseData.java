@@ -1,7 +1,7 @@
 package io.wispforest.accessories.api.data;
 
 import io.wispforest.accessories.Accessories;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 // TODO: Rename to constants?
 public class AccessoriesBaseData {
@@ -27,9 +27,9 @@ public class AccessoriesBaseData {
     public static final String FEET_GROUP = "feet";
     public static final String UNSORTED_GROUP = "unsorted";
 
-    public static final ResourceLocation ALL_PREDICATE_ID = Accessories.of("all");
-    public static final ResourceLocation NONE_PREDICATE_ID = Accessories.of("none");
-    public static final ResourceLocation TAG_PREDICATE_ID = Accessories.of("tag");
-    public static final ResourceLocation ATTRIBUTE_PREDICATE_ID = Accessories.of("attribute");
-    public static final ResourceLocation COMPONENT_PREDICATE_ID = Accessories.of("component");
+    public static final Identifier ALL_PREDICATE_ID = Accessories.of("all");
+    public static final Identifier NONE_PREDICATE_ID = Accessories.of("none");
+    public static final Identifier TAG_PREDICATE_ID = Accessories.of("tag");
+    public static final Identifier ATTRIBUTE_PREDICATE_ID = Accessories.of("attribute");
+    public static final Identifier COMPONENT_PREDICATE_ID = Accessories.of("component");
 }

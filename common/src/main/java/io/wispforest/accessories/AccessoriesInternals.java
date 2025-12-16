@@ -11,7 +11,7 @@ import io.wispforest.endec.Endec;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
@@ -29,7 +29,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -100,9 +100,9 @@ public abstract class AccessoriesInternals {
 
     public abstract void giveItemToPlayer(ServerPlayer player, ItemStack stack);
 
-    public abstract boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, SimplePreparableReloadListener listener, @Nullable RegistryOps.RegistryInfoLookup registryInfo);
+    public abstract boolean isValidOnConditions(JsonObject object, String dataType, Identifier key, SimplePreparableReloadListener listener, @Nullable RegistryOps.RegistryInfoLookup registryInfo);
 
-    public abstract <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(ResourceLocation location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func);
+    public abstract <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(Identifier location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func);
 
     public abstract void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack);
 

@@ -1,6 +1,6 @@
 package io.wispforest.accessories.api.client;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.context.ContextKey;
 
 import java.util.function.Supplier;
@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 public class DefaultedContextKey<T> extends ContextKey<T> {
     private final Supplier<T> defaultValue;
 
-    public DefaultedContextKey(ResourceLocation name, Supplier<T> defaultValue) {
+    public DefaultedContextKey(Identifier name, Supplier<T> defaultValue) {
         super(name);
 
         this.defaultValue = defaultValue;

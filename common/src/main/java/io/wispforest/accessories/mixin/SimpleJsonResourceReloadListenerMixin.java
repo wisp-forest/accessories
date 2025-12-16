@@ -10,7 +10,7 @@ import io.wispforest.accessories.pond.ContextedFileToIdConverter;
 import io.wispforest.accessories.pond.ReplaceableJsonResourceReloadListener;
 import io.wispforest.accessories.utils.JsonUtils;
 import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
@@ -36,7 +36,7 @@ public abstract class SimpleJsonResourceReloadListenerMixin implements Replaceab
     }
 
     @WrapOperation(method = "prepare(Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/util/profiling/ProfilerFiller;)Ljava/util/Map;", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/packs/resources/SimpleJsonResourceReloadListener;scanDirectory(Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/resources/FileToIdConverter;Lcom/mojang/serialization/DynamicOps;Lcom/mojang/serialization/Codec;Ljava/util/Map;)V"))
-    private <T> void checkIfReplaceScan(ResourceManager resourceManager, FileToIdConverter converter, DynamicOps<JsonElement> ops, Codec<T> codec, Map<ResourceLocation, T> output, Operation<Void> original) {
+    private <T> void checkIfReplaceScan(ResourceManager resourceManager, FileToIdConverter converter, DynamicOps<JsonElement> ops, Codec<T> codec, Map<Identifier, T> output, Operation<Void> original) {
         // TODO: REPLACE WITH INJECTION INTO ORIGINAL SCAN??
 
         if (this.allowReplacementLoading) {
@@ -49,7 +49,7 @@ public abstract class SimpleJsonResourceReloadListenerMixin implements Replaceab
 
     @WrapOperation(method = "scanDirectory(Lnet/minecraft/server/packs/resources/ResourceManager;Lnet/minecraft/resources/FileToIdConverter;Lcom/mojang/serialization/DynamicOps;Lcom/mojang/serialization/Codec;Ljava/util/Map;)V",
     at = @At(value = "INVOKE", target = "Lnet/minecraft/resources/FileToIdConverter;listMatchingResources(Lnet/minecraft/server/packs/resources/ResourceManager;)Ljava/util/Map;"))
-    private static Map<ResourceLocation, Resource> listReplacedResources(FileToIdConverter instance, ResourceManager resourceManager, Operation<Map<ResourceLocation, Resource>> original) {
+    private static Map<Identifier, Resource> listReplacedResources(FileToIdConverter instance, ResourceManager resourceManager, Operation<Map<Identifier, Resource>> original) {
         if (instance instanceof ContextedFileToIdConverter ctx && ctx.<Boolean>getDataOrDefault(Accessories.of("allow_replacement_loading"), false)) {
             return JsonUtils.scanDirectoryWithReplace(resourceManager, instance);
         }
