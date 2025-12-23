@@ -1,0 +1,6 @@
+{
+  "order": 100,
+  "icon": "accessories:gui/slot/charm",
+  "amount": 0,
+  "operation": "SET"
+}
