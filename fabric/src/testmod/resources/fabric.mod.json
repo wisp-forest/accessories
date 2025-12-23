@@ -19,7 +19,7 @@
       "io.wispforest.testccessories.fabric.Testccessories"
     ],
     "client":[
-      "io.wispforest.testccessories.fabric.client.TestccessoriesClientFabric"
+      "io.wispforest.testccessories.fabric.client.TestccessoriesClient"
     ]
   },
   "mixins": [

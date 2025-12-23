@@ -17,12 +17,15 @@ import java.util.Optional;
 
 public class TestScreen extends AbstractContainerScreen<TestMenu> implements MenuAccess<TestMenu> {
 
-    private static final Identifier SLOT_FRAME = Accessories.of("textures/gui/slot.png");
+    private static final Identifier SLOT_FRAME = Accessories.of("textures/gui/theme/light/slot.png");
 
     private static final Identifier BACKGROUND_PATCH = Accessories.of("background_patch");
 
     public TestScreen(TestMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
+
+        inventoryLabelY = 42069;
+        titleLabelX -= 10;
     }
 
     @Override
@@ -43,13 +46,15 @@ public class TestScreen extends AbstractContainerScreen<TestMenu> implements Men
             }
         }
 
-        var padding = 4;
+        var titleOffset = 12;
+
+        var padding = 6;
 
         var width = (maxX - minX) + 18 + (padding * 2);
-        var height = (maxY - minY) + 18 + (padding * 2);
+        var height = (maxY - minY) + 18 + (padding * 2) + titleOffset;
 
         var startX = minX - padding;
-        var startY = minY - padding;
+        var startY = minY - titleOffset - padding;
 
         guiGraphics.push().translate((float)leftPos, (float)topPos);
 

@@ -59,6 +59,6 @@ public class Testccessories {
     }
 
     public static void initNetworkPackets() {
-        AccessoriesNetworking.CHANNEL.registerClientboundDeferred(TestScreenPacket.class, TestScreenPacket.ENDEC);
+        AccessoriesNetworking.CHANNEL.registerServerbound(TestScreenPacket.class, TestScreenPacket.ENDEC, AccessoriesNetworking.serverHandler(TestScreenPacket::handlePacket));
     }
 }

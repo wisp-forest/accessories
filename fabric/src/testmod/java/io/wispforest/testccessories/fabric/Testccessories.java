@@ -30,11 +30,13 @@ public class Testccessories implements ModInitializer {
         UniqueSlotHandling.EVENT.register(UniqueSlotTest.INSTANCE);
 
         TestItems.init();
-
-        AccessoriesNetworking.CHANNEL.registerClientboundDeferred(TestScreenPacket.class, TestScreenPacket.ENDEC);
     }
 
     public static Identifier of(String path) {
         return Identifier.fromNamespaceAndPath(MODID, path);
+    }
+
+    public static void initNetworkPackets() {
+        AccessoriesNetworking.CHANNEL.registerServerbound(TestScreenPacket.class, TestScreenPacket.ENDEC, AccessoriesNetworking.serverHandler(TestScreenPacket::handlePacket));
     }
 }

@@ -16,7 +16,7 @@ import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Items;
 
-public class TestccessoriesClientFabric implements ClientModInitializer {
+public class TestccessoriesClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         AppleAccessory.clientInit();
@@ -48,7 +48,5 @@ public class TestccessoriesClientFabric implements ClientModInitializer {
         });
 
         RegistryEntryAddedCallback.event(BuiltInRegistries.ITEM).register((i, location, item) -> AccessoriesRendererRegistry.bindItemToArmorRenderer(item));
-
-        AccessoriesNetworking.CHANNEL.registerClientbound(TestScreenPacket.class, TestScreenPacket.ENDEC, AccessoriesNetworking.clientHandler(TestScreenPacket::handlePacket));
     }
 }
