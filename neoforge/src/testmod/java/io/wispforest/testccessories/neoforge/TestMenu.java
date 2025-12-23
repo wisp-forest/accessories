@@ -22,14 +22,13 @@ public class TestMenu extends AbstractContainerMenu {
 
         var baseY = 20;
 
-        var generator = AccessoriesSlotGenerator.of(this::addSlot, 0, baseY, player, UniqueSlotTest.testSlot1Ref(), UniqueSlotTest.testSlot2Ref());
+        var generator = AccessoriesSlotGenerator.of(this::addSlot, 0, baseY, player, UniqueSlotTest.testSlot1Ref(), UniqueSlotTest.testSlot2Ref(), UniqueSlotTest.testSlot3Ref());
 
         baseY += 18;
 
-        if(generator != null) {
-            this.addedSlots = generator.padding(1)
-                    .row();
-        }
+        baseY += 4;
+
+        if(generator != null) this.addedSlots = generator.row();
 
         for(int i = 0; i < 3; ++i) {
             for(int j = 0; j < 9; ++j) {

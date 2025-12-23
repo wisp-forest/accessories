@@ -2,7 +2,6 @@ package io.wispforest.testccessories.neoforge.client;
 
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
-import io.wispforest.accessories.client.GuiGraphicsUtils;
 import io.wispforest.testccessories.neoforge.TestMenu;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -17,12 +16,15 @@ import java.util.Optional;
 
 public class TestScreen extends AbstractContainerScreen<TestMenu> implements MenuAccess<TestMenu> {
 
-    private static final ResourceLocation SLOT_FRAME = Accessories.of("textures/gui/slot.png");
+    private static final ResourceLocation SLOT_FRAME = Accessories.of("textures/gui/theme/light/slot.png");
 
     private static final ResourceLocation BACKGROUND_PATCH = Accessories.of("background_patch");
 
     public TestScreen(TestMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
+
+        inventoryLabelY = 42069;
+        titleLabelX -= 10;
     }
 
     @Override
@@ -43,18 +45,20 @@ public class TestScreen extends AbstractContainerScreen<TestMenu> implements Men
             }
         }
 
-        var padding = 4;
+        var titleOffset = 12;
+
+        var padding = 6;
 
         var width = (maxX - minX) + 18 + (padding * 2);
-        var height = (maxY - minY) + 18 + (padding * 2);
+        var height = (maxY - minY) + 18 + (padding * 2) + titleOffset;
 
         var startX = minX - padding;
-        var startY = minY - padding;
+        var startY = minY - titleOffset - padding;
 
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate((float)leftPos, (float)topPos, 0.0F);
 
-        GuiGraphicsUtils.blitSpriteBatched(guiGraphics, BACKGROUND_PATCH, startX - 1, startY - 1, width + 1, height + 1);
+        guiGraphics.blitSprite(BACKGROUND_PATCH, startX - 1, startY - 1, width + 1, height + 1); //147
 
         for (Slot slot : this.menu.slots) {
             guiGraphics.blit(SLOT_FRAME, slot.x - 1, slot.y - 1, 0, 0, 18, 18, 18, 18);

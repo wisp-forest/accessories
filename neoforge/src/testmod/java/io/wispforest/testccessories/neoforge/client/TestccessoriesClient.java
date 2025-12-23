@@ -32,8 +32,6 @@ public class TestccessoriesClient {
         MenuScreens.register(Testccessories.TEST_MENU_TYPE, TestScreen::new);
 
         NeoForge.EVENT_BUS.addListener(this::initCommand);
-
-        AccessoriesNetworking.CHANNEL.registerClientbound(TestScreenPacket.class, TestScreenPacket.ENDEC, AccessoriesNetworking.clientHandler(TestScreenPacket::handlePacket));
     }
 
     public void initCommand(RegisterClientCommandsEvent event){

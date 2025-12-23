@@ -35,10 +35,6 @@ public class Testccessories {
         bus.addListener(TestItems::addToItemGroup);
     }
 
-    public void commonInit(FMLCommonSetupEvent event) {
-        AccessoriesNetworking.CHANNEL.registerClientboundDeferred(TestScreenPacket.class, TestScreenPacket.ENDEC);
-    }
-
     public static void registerStuff(RegisterEvent event) {
         event.register(Registries.MENU, helper -> {
             TEST_MENU_TYPE = new MenuType<>(TestMenu::new, FeatureFlags.DEFAULT_FLAGS);
@@ -60,5 +56,9 @@ public class Testccessories {
 
     public static ResourceLocation of(String path) {
         return ResourceLocation.fromNamespaceAndPath(MODID, path);
+    }
+
+    public static void initNetworkPackets() {
+        AccessoriesNetworking.CHANNEL.registerServerbound(TestScreenPacket.class, TestScreenPacket.ENDEC, AccessoriesNetworking.serverHandler(TestScreenPacket::handlePacket));
     }
 }

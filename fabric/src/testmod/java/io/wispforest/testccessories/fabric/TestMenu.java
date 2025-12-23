@@ -26,10 +26,9 @@ public class TestMenu extends AbstractContainerMenu {
 
         baseY += 18;
 
-        if(generator != null) {
-            this.addedSlots = generator.padding(1)
-                    .row();
-        }
+        baseY += 4;
+
+        if(generator != null) this.addedSlots = generator.row();
 
         for(int i = 0; i < 3; ++i) {
             for(int j = 0; j < 9; ++j) {
