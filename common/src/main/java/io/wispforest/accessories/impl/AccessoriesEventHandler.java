@@ -494,7 +494,7 @@ public class AccessoriesEventHandler {
 
             validSlotTypes.addAll (validUniqueSlots);
 
-            final var filteredValidUniqueSlots = new ArrayList<>();
+            final var filteredValidUniqueSlots = new ArrayList<SlotType>();
 
             for (var slotType : validUniqueSlots) {
                 if (ExtraSlotTypeProperties.getProperty(slotType.name(), true).allowTooltipInfo()) {
