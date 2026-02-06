@@ -6,9 +6,15 @@ import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.slf4j.Logger;
+
+import java.util.Collection;
+import java.util.Map;
 
 public class AttributeUtils {
     public static final Logger LOGGER = LogUtils.getLogger();
@@ -19,27 +25,29 @@ public class AttributeUtils {
         var attributeMap = livingEntity.getAttributes();
         var capability = livingEntity.accessoriesCapability();
 
+        if (capability == null) return;
+
         var containers = capability.getContainers();
 
-        attributes.getSlotModifiers().asMap().forEach((s, modifiers) -> {
-            var container = containers.get(s);
+        for (var entry : attributes.getSlotModifiers().asMap().entrySet()) {
+            var container = containers.get(entry.getKey());
 
-            if(container == null) return;
+            if (container == null) continue;
 
-            modifiers.stream()
-                    .filter(modifier -> !container.hasModifier(modifier.id()))
-                    .forEach(container::addTransientModifier);
-        });
+            for (var modifier :  entry.getValue()) {
+                if (!container.hasModifier(modifier.id())) container.addTransientModifier(modifier);
+            }
+        }
 
-        attributes.getAttributeModifiers(true).asMap().forEach((holder, modifiers) -> {
-            var instance = attributeMap.getInstance(holder);
+        for (var entry : attributes.getAttributeModifiers(true).asMap().entrySet()) {
+            var instance = attributeMap.getInstance(entry.getKey());
 
-            if(instance == null) return;
+            if (instance == null) continue;
 
-            modifiers.stream()
-                    .filter(modifier -> !instance.hasModifier(modifier.id()))
-                    .forEach(instance::addTransientModifier);
-        });
+            for (var modifier : entry.getValue()) {
+                if (!instance.hasModifier(modifier.id())) instance.addTransientModifier(modifier);
+            }
+        }
     }
 
     public static void removeTransientAttributeModifiers(LivingEntity livingEntity, AccessoryAttributeBuilder attributes) {
@@ -50,25 +58,21 @@ public class AttributeUtils {
 
         var containers = capability.getContainers();
 
-        attributes.getSlotModifiers().asMap().forEach((s, modifiers) -> {
-            var container = containers.get(s);
+        for (var entry : attributes.getSlotModifiers().asMap().entrySet()) {
+            var container = containers.get(entry.getKey());
 
-            if(container == null) return;
+            if (container == null) continue;
 
-            modifiers.stream()
-                    .map(AttributeModifier::id)
-                    .forEach(container::removeModifier);
-        });
+            for (var attributeModifier : entry.getValue()) container.removeModifier(attributeModifier.id());
+        }
 
-        attributes.getAttributeModifiers(true).asMap().forEach((holder, modifiers) -> {
-            var instance = attributeMap.getInstance(holder);
+        for (var entry : attributes.getAttributeModifiers(true).asMap().entrySet()) {
+            var instance = attributeMap.getInstance(entry.getKey());
 
-            if(instance == null) return;
+            if (instance == null) continue;
 
-            modifiers.stream()
-                    .map(AttributeModifier::id)
-                    .forEach(instance::removeModifier);
-        });
+            for (var attributeModifier : entry.getValue()) instance.removeModifier(attributeModifier.id());
+        }
     }
 
     public static final StructEndec<AttributeModifier> ATTRIBUTE_MODIFIER_ENDEC = StructEndecBuilder.of(

@@ -439,10 +439,11 @@ public class AccessoriesEventHandler {
                 return isUnique;
             });
 
-            var sharedSlotTypes = SlotTypeLoader.getSlotTypes(entity.level()).values()
-                    .stream()
-                    .filter(slotType -> !UniqueSlotHandling.isUniqueSlot(slotType.name()))
-                    .collect(Collectors.toSet());
+            var sharedSlotTypes = new HashSet<>();
+
+            for (var type : SlotTypeLoader.getSlotTypes(entity.level()).values()) {
+                if (!UniqueSlotHandling.isUniqueSlot(type.name())) sharedSlotTypes.add(type);
+            }
 
             var slotInfoComponent = Component.literal("");
 
@@ -493,9 +494,13 @@ public class AccessoriesEventHandler {
 
             validSlotTypes.addAll (validUniqueSlots);
 
-            final var filteredValidUniqueSlots = validUniqueSlots.stream()
-                    .filter(slotType -> ExtraSlotTypeProperties.getProperty(slotType.name(), true).allowTooltipInfo())
-                    .toList();
+            final var filteredValidUniqueSlots = new ArrayList<>();
+
+            for (var slotType : validUniqueSlots) {
+                if (ExtraSlotTypeProperties.getProperty(slotType.name(), true).allowTooltipInfo()) {
+                    filteredValidUniqueSlots.add(slotType);
+                }
+            }
 
             if (!filteredValidUniqueSlots.isEmpty()) {
                 var uniqueItr = filteredValidUniqueSlots.iterator();

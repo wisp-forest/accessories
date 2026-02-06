@@ -35,64 +35,48 @@ import java.util.function.Predicate;
 public abstract class EnchantmentHelperMixin {
 
     @Shadow
-    protected static void runIterationOnItem(ItemStack itemStack, EquipmentSlot equipmentSlot, LivingEntity livingEntity, EnchantmentHelper.EnchantmentInSlotVisitor enchantmentInSlotVisitor) {}
+    private static void runIterationOnItem(ItemStack itemStack, EquipmentSlot equipmentSlot, LivingEntity livingEntity, EnchantmentHelper.EnchantmentInSlotVisitor enchantmentInSlotVisitor) {}
 
     @WrapOperation(method = "getEnchantmentLevel", at = @At(value = "INVOKE", target = "Ljava/util/Map;values()Ljava/util/Collection;"))
     private static Collection<ItemStack> addAccessoriesStacks(Map instance, Operation<Collection<ItemStack>> original, @Local(argsOnly = true) Holder<Enchantment> enchantment, @Local(argsOnly = true) LivingEntity entity){
-        var returnValue = new ArrayList<>(original.call(instance));
+        var stacks = original.call(instance);
 
         //if(Accessories.enchantmentValidForRedirect(enchantment)) {
         var capability = entity.accessoriesCapability();
 
         if(capability != null) {
-            returnValue.addAll(capability.getAllEquipped().stream().map(SlotEntryReference::stack).toList());
+            stacks = new ArrayList<>(stacks);
+
+            for (var slotEntryReference : capability.getAllEquipped()) {
+                stacks.add(slotEntryReference.stack());
+            }
         }
         //}
 
-        return returnValue;
+        return stacks;
     }
-
-//    @ModifyReturnValue(method = "getEnchantmentLevel", at = @At(value = "RETURN"))
-//    private static int adjustEnchantmentLevel(int original, @Local(argsOnly = true) LivingEntity livingEntity, @Local(argsOnly = true) Holder<Enchantment> holder){
-//        var enchantments = livingEntity.registryAccess().registry(Registries.ENCHANTMENT).orElseThrow();
-//
-//        if(enchantments.getResourceKey(holder.value()).orElseThrow().equals(Enchantments.LOOTING)){
-//            ExtraEventHandler.lootingAdjustments(livingEntity, , value)
-//        }
-//
-//        return original;
-//    }
 
     @Inject(method = "getRandomItemWith", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getRandom()Lnet/minecraft/util/RandomSource;"))
     private static void adjustListForAccessories(DataComponentType<?> dataComponentType, LivingEntity livingEntity, Predicate<ItemStack> predicate, CallbackInfoReturnable<Optional<EnchantedItemInUse>> cir, @Local(ordinal = 0) List<EnchantedItemInUse> list) {
         var capability = livingEntity.accessoriesCapability();
 
         if(capability != null){
-            var allEquippedAccessories = capability
-                    .getAllEquipped()
-                    .stream()
-                    .filter(entryReference -> {
-                        var itemStack = entryReference.stack();
+            for (var ref : capability.getAllEquipped()) {
+                var itemStack = ref.stack();
 
-                        if(predicate.test(entryReference.stack())) {
-                            ItemEnchantments itemEnchantments = itemStack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+                if(!predicate.test(ref.stack())) continue;
 
-                            for(var entry : itemEnchantments.entrySet()) {
-                                var holder = entry.getKey();
+                var itemEnchantments = itemStack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
 
-                                if (holder.value().effects().has(dataComponentType) && enchantmentValidForRedirect(livingEntity.registryAccess(), holder.value())) { //((Enchantment)holder.value()).matchingSlot(equipmentSlot)
-                                    return true;
-                                }
-                            }
-                        }
+                for(var entry : itemEnchantments.entrySet()) {
+                    var holder = entry.getKey();
+                    var value = holder.value();
 
-                        return false;
-                    }).map(entryReference -> {
-                        return new EnchantedItemInUse(entryReference.stack(), AccessoriesInternals.INTERNAL_SLOT, livingEntity, item -> AccessoriesAPI.breakStack(entryReference.reference()));
-                    })
-                    .toList();
-
-            list.addAll(allEquippedAccessories);
+                    if (value.effects().has(dataComponentType) && enchantmentValidForRedirect(livingEntity.registryAccess(), value)) { //((Enchantment)holder.value()).matchingSlot(equipmentSlot)
+                        list.add(new EnchantedItemInUse(itemStack, AccessoriesInternals.INTERNAL_SLOT, livingEntity, item -> AccessoriesAPI.breakStack(ref.reference())));
+                    }
+                }
+            }
         }
     }
 
@@ -101,12 +85,9 @@ public abstract class EnchantmentHelperMixin {
         var capability = livingEntity.accessoriesCapability();
 
         if(capability != null){
-            capability.getAllEquipped()
-                    .forEach(entryReference -> {
-                        var itemStack = entryReference.stack();
-
-                        runIterationOnItem(itemStack, AccessoriesInternals.INTERNAL_SLOT, livingEntity, enchantmentInSlotVisitor);
-                    });
+            for (var ref : capability.getAllEquipped()) {
+                runIterationOnItem(ref.stack(), AccessoriesInternals.INTERNAL_SLOT, livingEntity, enchantmentInSlotVisitor);
+            }
         }
     }
 

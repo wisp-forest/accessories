@@ -63,6 +63,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -231,16 +232,12 @@ public class AccessoriesForge {
 
         if (droppedStacks == null) return;
 
-        event.getDrops().addAll(
-                droppedStacks.stream()
-                        .flatMap(stack -> createDroppedEntity(event.getEntity(), stack))
-                        .toList()
-        );
+        var drops = event.getDrops();
+
+        for (var droppedStack : droppedStacks) createDroppedEntity(event.getEntity(), droppedStack, drops);
     }
 
-    private static Stream<ItemEntity> createDroppedEntity(Entity entity, ItemStack stack) {
-        var itemEntities = new ArrayList<ItemEntity>();
-
+    private static void createDroppedEntity(Entity entity, ItemStack stack, Collection<ItemEntity> collection) {
         if (!stack.isEmpty()) {
             var random = entity.getRandom();
 
@@ -256,7 +253,7 @@ public class AccessoriesForge {
 
                 itemEntity.setDeltaMovement((-Mth.sin(g) * f), 0.2F, (Mth.cos(g) * f));
 
-                itemEntities.add(itemEntity);
+                collection.add(itemEntity);
             } else {
                 double itemWidth = EntityType.ITEM.getWidth();
 
@@ -274,12 +271,10 @@ public class AccessoriesForge {
 
                     itemEntity.setDeltaMovement(random.triangle(0.0, max), random.triangle(0.2, max), random.triangle(0.0, max));
 
-                    itemEntities.add(itemEntity);
+                    collection.add(itemEntity);
                 }
             }
         }
-
-        return itemEntities.stream();
     }
 
     public void onLivingEntityTick(EntityTickEvent.Pre event){

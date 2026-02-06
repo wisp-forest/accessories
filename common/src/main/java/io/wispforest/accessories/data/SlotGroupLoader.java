@@ -46,23 +46,25 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
 
     public static Map<SlotGroup, List<SlotType>> getValidGroups(LivingEntity living) {
         var entitySpecificSlots = EntitySlotLoader.getEntitySlots(living);
+        var map = new LinkedHashMap<SlotGroup, List<SlotType>>();
 
-        var groups = SlotGroupLoader.getGroups(living.level(), false);
+        for (var group : SlotGroupLoader.getGroups(living.level(), false)) {
+            if (UniqueSlotHandling.isUniqueGroup(group.name(), living.level().isClientSide())) continue;
 
-        return groups.stream()
-                .map(slotGroup -> {
-                    if(UniqueSlotHandling.isUniqueGroup(slotGroup.name(), living.level().isClientSide())) return null;
+            var slots = new ArrayList<SlotType>();
 
-                    var slots = slotGroup.slots()
-                            .stream()
-                            .filter(entitySpecificSlots::containsKey)
-                            .map(slot -> SlotTypeLoader.getSlotType(living.level(), slot))
-                            .toList();
+            for (var slot : group.slots()) {
+                var slotType = entitySpecificSlots.get(slot);
 
-                    return slots.isEmpty() ? null : Map.entry(slotGroup, slots);
-                })
-                .filter(Objects::nonNull)
-                .collect(CollectionUtils.toLinkedMap());
+                if (slotType == null) continue;
+
+                slots.add(slotType);
+            }
+
+            if (!slots.isEmpty()) map.put(group, slots);
+        }
+
+        return map;
     }
 
     public static Optional<SlotGroup> getGroup(Level level, String group){
@@ -79,9 +81,13 @@ public class SlotGroupLoader extends ReplaceableJsonResourceReloadListener {
     public final List<SlotGroup> getGroups(boolean isClientSide, boolean filterUniqueGroups){
         var groups = getGroupMap(isClientSide).values();
 
-        if(filterUniqueGroups) groups = groups.stream().filter(group -> !UniqueSlotHandling.isUniqueGroup(group.name(), isClientSide)).toList();
+        if(!filterUniqueGroups) return List.copyOf(groups);
 
-        return List.copyOf(groups);
+        var list = new ArrayList<SlotGroup>();
+        for (var group : groups) {
+            if (!UniqueSlotHandling.isUniqueGroup(group.name(), isClientSide)) list.add(group);
+        }
+        return list;
     }
 
     public final SlotGroup getGroup(boolean isClientSide, String group){

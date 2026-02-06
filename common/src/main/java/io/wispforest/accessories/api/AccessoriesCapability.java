@@ -251,7 +251,11 @@ public interface AccessoriesCapability {
 
         if (cache != null && !(predicate instanceof ItemStackPredicate)) return cache.getEquipped(predicate);
 
-        return getAllEquipped().stream().filter(reference -> predicate.test(reference.stack())).toList();
+        var list = new ArrayList<SlotEntryReference>();
+        for (var reference : getAllEquipped()) {
+            if (predicate.test(reference.stack())) list.add(reference);
+        }
+        return list;
     }
 
     /**

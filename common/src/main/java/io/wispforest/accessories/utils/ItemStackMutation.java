@@ -15,5 +15,6 @@ public interface ItemStackMutation {
         return ((PatchedDataComponentMapExtension) (Object) ((ItemStackAccessor) (Object) stack).accessories$components()).accessories$getMutationEvent(stack);
     }
 
+    // TODO: MAYBE JUST MAKE THIS A SET?
     void onMutation(ItemStack stack, List<DataComponentType<?>> types);
 }

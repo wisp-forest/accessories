@@ -153,7 +153,11 @@ class WrappingCollection<K, C extends Collection<K>> implements Collection<K> {
 
     @Override
     public int size() {
-        return (int) innerSet.stream().filter(keyValidator).count();
+        var count = 0;
+        for (K k : innerSet) {
+            if (keyValidator.test(k)) count++;
+        }
+        return count;
     }
 
     @Override
@@ -170,17 +174,52 @@ class WrappingCollection<K, C extends Collection<K>> implements Collection<K> {
 
     @Override
     public @NotNull Iterator<K> iterator() {
-        return innerSet.stream().filter(keyValidator).iterator();
+        var itr = innerSet.iterator();
+        return new Iterator<K>() {
+            private K entry = null;
+
+            @Override
+            public boolean hasNext() {
+                if (entry == null && itr.hasNext()) {
+                    var entry = itr.next();
+
+                    while (!keyValidator.test(entry)) {
+                        if (!itr.hasNext()) break;
+
+                        entry = itr.next();
+                    }
+                }
+
+                return entry != null;
+            }
+
+            @Override
+            public K next() {
+                var entry = this.entry;
+
+                this.entry = null;
+
+                return entry;
+            }
+        };
     }
 
     @Override
     public @NotNull Object[] toArray() {
-        return innerSet.stream().filter(keyValidator).toArray();
+        var list = new ArrayList<K>();
+        for (K k : innerSet) {
+            if (keyValidator.test(k)) list.add(k);
+        }
+        return list.toArray();
     }
 
     @Override
     public @NotNull <T> T[] toArray(@NotNull T[] a) {
-        return innerSet.stream().filter(keyValidator).toArray(value -> (T[]) Array.newInstance(a.getClass().getComponentType(), value));
+        var list = new ArrayList<>();
+        for (K k : innerSet) {
+            if (keyValidator.test(k)) list.add(k);
+        }
+        return list.toArray(a);
     }
 
     @Override public boolean add(K k) { return throwUnsupported("add"); }

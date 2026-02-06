@@ -19,10 +19,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Mixin(PatchedDataComponentMap.class)
 public abstract class PatchedDataComponentMapMixin implements PatchedDataComponentMapExtension {
@@ -88,9 +85,9 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
     private void accessories$updateChangeValue_applyPatchTail(DataComponentPatch patch, CallbackInfo ci){
         this.inApplyPatchLock = false;
 
-        var changedDataTypes = (List<DataComponentType<?>>) (List) patch.entrySet().stream().map(Map.Entry::getKey).toList();
-
-        this.accessories$handleMutationEvent(changedDataTypes);
+        var list = new ArrayList<DataComponentType<?>>();
+        for (var entry : patch.entrySet()) list.add(entry.getKey());
+        this.accessories$handleMutationEvent(list);
     }
 
     @Inject(method = "applyPatch(Lnet/minecraft/core/component/DataComponentType;Ljava/util/Optional;)V", at = @At("HEAD"))
@@ -106,9 +103,9 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
     private void accessories$updateChangeValue_restorePatch(DataComponentPatch patch, CallbackInfo ci){
         this.changeCheckStack = true;
 
-        var changedDataTypes = (List<DataComponentType<?>>) (List) patch.entrySet().stream().map(Map.Entry::getKey).toList();
-
-        this.accessories$handleMutationEvent(changedDataTypes);
+        var list = new ArrayList<DataComponentType<?>>();
+        for (var entry : patch.entrySet()) list.add(entry.getKey());
+        this.accessories$handleMutationEvent(list);
     }
 
     @Unique
