@@ -1,0 +1,374 @@
+{
+  "accessories.slot.tooltip.singular": "スロット：",
+  "accessories.slot.tooltip.plural": "スロット：",
+  "accessories.cosmetic_slot.tooltip.singular": "装飾品スロット：",
+  "accessories.cosmetic_slot.tooltip.plural": "装飾品スロット：",
+  "accessories.slot.any": "すべて",
+  "accessories.slot.except": " 例外：",
+  "accessories.tooltip.attributes.any": "装備したとき：",
+  "accessories.tooltip.attributes.slot": "%sに装備したとき：",
+  "accessories.tooltip.currently_equipped_in": "装備中：",
+  "accessories.slot.hat": "帽子",
+  "accessories.slot.face": "顔",
+  "accessories.slot.cape": "マント",
+  "accessories.slot.necklace": "ネックレス",
+  "accessories.slot.back": "背中",
+  "accessories.slot.hand": "手",
+  "accessories.slot.ring": "リング",
+  "accessories.slot.wrist": "手首",
+  "accessories.slot.belt": "ベルト",
+  "accessories.slot.anklet": "アンクレット",
+  "accessories.slot.shoes": "靴",
+  "accessories.slot.charm": "チャーム",
+  "accessories.slot.accessories.head": "頭",
+  "accessories.slot.accessories.chest": "胴体",
+  "accessories.slot.accessories.legs": "脚",
+  "accessories.slot.accessories.feet": "足",
+  "accessories.slot.accessories.animal_body": "身体",
+  "accessories.slot_group.misc": "その他",
+  "accessories.slot_group.head": "頭",
+  "accessories.slot_group.chest": "胴体",
+  "accessories.slot_group.arm": "腕",
+  "accessories.slot_group.leg": "脚",
+  "accessories.slot_group.feet": "足",
+  "accessories.slot_group.unsorted": "未分類",
+  "accessories.key.category.accessories": "Accessories",
+  "argument.livingEntities.nonLiving": "このコマンドはMobエンティティにのみ有効ですが、非Mobエンティティも指定されています",
+
+  "gamerule.accessories.keepAccessoryInventory": "アクセサリーインベントリの保持",
+
+  "#comment": "GUI Related Below",
+
+  "accessories.key.open_accessories_screen": "アクセサリーを開く",
+  "accessories.slot.cosmetics.toggle.show": "装飾品スロットを表示",
+  "accessories.slot.cosmetics.toggle.hide": "装飾品スロットを非表示",
+  "accessories.display.toggle.show": "アクセサリーを表示",
+  "accessories.display.toggle.hide": "アクセサリーを非表示",
+  "accessories.lines.toggle.show": "すべての行を表示",
+  "accessories.lines.toggle.hide": "すべての行を非表示",
+  "accessories.unused_slots.toggle.show": "未使用のスロットを表示",
+  "accessories.unused_slots.toggle.hide": "未使用のスロットを非表示",
+  "accessories.slot_cosmetics.toggle.enabled": "アクセサリースロットを表示",
+  "accessories.slot_cosmetics.toggle.disabled": "装飾品スロットを表示",
+  "accessories.advanced_options.toggle.enabled": "❤",
+  "accessories.advanced_options.toggle.disabled": "⚗",
+  "accessories.advanced_options.toggle.enabled.tooltip": "追加の画面設定を非表示",
+  "accessories.advanced_options.toggle.disabled.tooltip": "追加の画面設定を表示",
+  "accessories.unused_slots.label": "未使用のスロット：",
+  "accessories.unused_slots.toggle.enabled": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "］", "color": "gray"},
+    "表示"
+  ],
+  "accessories.unused_slots.toggle.disabled": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "］", "color": "gray"},
+    "非表示"
+  ],
+  "accessories.unused_slots.toggle.enabled.tooltip": "すべての未使用のスロットを非表示にします",
+  "accessories.unused_slots.toggle.disabled.tooltip": "すべての未使用のスロットを表示します",
+  "accessories.column_amount_slider.label": "列数：",
+  "accessories.column_amount_slider.tooltip": "アクセサリースロットの列数を調整するスライダー",
+  "accessories.widget_type.label": "ｳｨｼﾞｪｯﾄの種類：",
+  "accessories.widget_type.paginated": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "☰", "color": "#347ecf"},
+    {"text": "］", "color": "gray"},
+    "ページ式"
+  ],
+  "accessories.widget_type.paginated.tooltip": "アクセサリースロットをページごとに表示",
+  "accessories.widget_type.scrollable": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "⏷", "color": "#953abd"},
+    {"text": "］", "color": "gray"},
+    "スクロール式"
+  ],
+  "accessories.main_widget_position.label": "ｳｨｼﾞｪｯﾄの位置：",
+  "accessories.main_widget_position.toggle.enabled": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "←", "color": "#32a852"},
+    {"text": "］", "color": "gray"},
+    "左"
+  ],
+  "accessories.main_widget_position.toggle.disabled": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "→", "color": "#32a852"},
+    {"text": "］", "color": "gray"},
+    "右"
+  ],
+  "accessories.main_widget_position.toggle.enabled.tooltip": "アクセサリーウィジェットを右側に移動します",
+  "accessories.main_widget_position.toggle.disabled.tooltip": "アクセサリーウィジェットを左側に移動します",
+  "accessories.group_filter.label": "ｸﾞﾙｰﾌﾟﾌｨﾙﾀｰ：",
+  "accessories.group_filter.toggle.enabled": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "］", "color": "gray"},
+    "表示"
+  ],
+  "accessories.group_filter.toggle.disabled": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "］", "color": "gray"},
+    "非表示"
+  ],
+  "accessories.group_filter.toggle.enabled.tooltip": "グループフィルターウィジェットを非表示にします",
+  "accessories.group_filter.toggle.disabled.tooltip": "グループフィルターウィジェットを表示します",
+  "accessories.side_widget_position.label": "サイドの位置：",
+  "accessories.side_widget_position.toggle.enabled": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "()", "color": "#32a852"},
+    {"text": "］", "color": "gray"},
+    "一緒"
+  ],
+  "accessories.side_widget_position.toggle.disabled": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "||", "color": "#32a852"},
+    {"text": "］", "color": "gray"},
+    "分離"
+  ],
+  "accessories.side_widget_position.toggle.enabled.tooltip": "サイドウィジェットをアクセサリーウィジェットと同じ側に配置します",
+  "accessories.side_widget_position.toggle.disabled.tooltip": "サイドウィジェットをアクセサリーウィジェットの反対側に配置します",
+  "accessories.dark_mode_toggle.label": "テーマ：",
+  "accessories.dark_mode_toggle.toggle.enabled": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "☽", "color": "#3d29c2"},
+    {"text": "］", "color": "gray"},
+    "ダーク"
+  ],
+  "accessories.dark_mode_toggle.toggle.disabled": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "☀", "color": "#bffa9b"},
+    {"text": "］", "color": "gray"},
+    "ライト"
+  ],
+  "accessories.dark_mode_toggle.toggle.enabled.tooltip": "テーマをライトモードに変更します",
+  "accessories.dark_mode_toggle.toggle.disabled.tooltip": "テーマをダークモードに変更します",
+  "accessories.show_equipped_stack_slot_type.label": "装備の種類：",
+  "accessories.show_equipped_stack_slot_type.toggle.enabled": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "］", "color": "gray"},
+    "表示"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.disabled": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "］", "color": "gray"},
+    "非表示"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.enabled.tooltip": "装備スタックのスロットの種類を非表示にします",
+  "accessories.show_equipped_stack_slot_type.toggle.disabled.tooltip": "装備スタックのスロットの種類を表示します",
+  "accessories.entity_look_at_cursor.label": "マウスを見る：",
+  "accessories.entity_look_at_cursor.toggle.enabled": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "］", "color": "gray"},
+    "有効"
+  ],
+  "accessories.entity_look_at_cursor.toggle.disabled": [
+    "",
+    {"text": "［", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "］", "color": "gray"},
+    "無効"
+  ],
+  "accessories.entity_look_at_cursor.toggle.enabled.tooltip": "カーソルを見る動作を無効化します",
+  "accessories.entity_look_at_cursor.toggle.disabled.tooltip": "カーソルを見る動作を有効化します",
+  "accessories.lines.toggle.enabled.tooltip": "すべての行の描画を非表示にします",
+  "accessories.lines.toggle.disabled.tooltip": "すべての行の描画を表示します",
+  "accessories.crafting_grid.toggle.enabled": "☒",
+  "accessories.crafting_grid.toggle.disabled": "☐",
+  "accessories.crafting_grid.toggle.enabled.tooltip": "クラフトグリッドを非表示",
+  "accessories.crafting_grid.toggle.disabled.tooltip": "クラフトグリッドを表示",
+  "accessories.widget_type.scrollable.tooltip": "アクセサリースロットをスクロールで表示",
+  "accessories.selection_screen.message": [
+    "Modパックのスタイルや\n",
+    "あなたのプレイスタイルに応じて、\n",
+    "画面のレイアウトを選択できます。\n\n",
+    "なお、もし気に入らない場合は、\n",
+    "Accessoriesの設定からいつでも\n",
+    "変更することができます。"
+  ],
+  "accessories.unique_slots.toggle.show": "ユニークスロットを表示",
+  "accessories.unique_slots.toggle.hide": "ユニークスロットを非表示",
+  "accessories.back.screen": "前の画面へ",
+  "accessories.open.screen": "アクセサリーを開く",
+  "accessories.reset.group_filter": "グループフィルターをリセット",
+
+  "#comment": "Config Related Below",
+
+  "text.config.accessories.title": "Accessoriesの設定",
+
+  "text.config.accessories.option.useExperimentalCaching": "実験的なキャッシュを使用する",
+  "text.config.accessories.option.useExperimentalCaching.tooltip": [
+    "様々なItemStack参照をキャッシュして性能の向上を\n",
+    "試みます。問題を引き起こす可能性があります。"
+  ],
+
+  "text.config.accessories.category.clientOptions": "クライアントの設定",
+  "text.config.accessories.category.clientOptions.tooltip": [
+    "描画やプレイヤー入力に関する一般的なクライアント側設定"
+  ],
+
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement": "空のレンダーを強制的に置換する",
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement.tooltip": [
+    "登録済みのレンダーが無効と判断された場合、代わりに\n",
+    "デフォルトの描画を使用するよう強制します。"
+  ],
+
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError": "空のアクセサリーエラーを無効化する",
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError.tooltip": [
+    "アクセサリー画面を開いた際、使用中のスロットが\n",
+    "見つからない場合に表示されるエラーメッセージを無効化します。"
+  ],
+
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories": "装飾品アイテムを表示する",
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories.tooltip": [
+    "通常スロットに装備されている場合、装飾品アイテムの表示を有効化／無効化します。"
+  ],
+
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders": "デフォルトの描画を無効化する",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.tooltip": [
+    "使用されている場合、同梱されているデフォルトのレンダラーによる描画を無効化します。"
+  ],
+
+  "text.config.accessories.option.clientOptions.equipControl": "クイック装着モード",
+  "text.config.accessories.option.clientOptions.equipControl.tooltip": [
+    "手に持ったスタックを素早く装備するために使用されるモードを変更します。"
+  ],
+
+  "text.config.accessories.enum.playerEquipControl.must_crouch": "スニークが必要",
+  "text.config.accessories.enum.playerEquipControl.must_not_crouch": "スニークは不要",
+  "text.config.accessories.enum.playerEquipControl.disabled": "無効",
+
+  "text.config.accessories.category.screenOptions": "画面の設定",
+  "text.config.accessories.category.screenOptions.tooltip": [
+    "すべてのバリアントおよび追加ボタンの位置調整に関する画面の設定"
+  ],
+
+  "text.config.accessories.option.screenOptions.selectedScreenType": "画面の選択",
+  "text.config.accessories.option.screenOptions.selectedScreenType.tooltip": [
+    "どの画面を使用するかを調整します。未選択の場合は\n",
+    "ユーザーに選択を促すプロンプトが表示されます。"
+  ],
+
+  "text.config.accessories.enum.screenType.none": "未選択",
+  "text.config.accessories.enum.screenType.original": "オリジナル",
+  "text.config.accessories.enum.screenType.experimental_v1": "実験的",
+
+  "text.config.accessories.option.screenOptions.showUnusedSlots": "未使用のスロットを表示",
+  "text.config.accessories.option.screenOptions.showUnusedSlots.tooltip": "未使用のスロットの表示を切り替えます",
+
+  "text.config.accessories.option.screenOptions.allowSlotScrolling": "スロットのスクロールを許可",
+  "text.config.accessories.option.screenOptions.allowSlotScrolling.tooltip": [
+    "スクロールスタックを許可するModがある場合に便利ですが、\n",
+    "アクセサリーの操作時に問題を引き起こす場合があります。"
+  ],
+
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType": "装備スタックのスロットの種類を表示",
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType.tooltip": [
+    "指定されたスタックが装備されているスロットの種類をツールチップに表示します。"
+  ],
+
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor": "エンティティをマウスカーソルに追従させる",
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor.tooltip": [
+    "有効にすると、エンティティがマウスカーソル\n",
+    "を追従し、無効の場合は手動で回転できます。"
+  ],
+
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid": "サイドバーにクラフトグリッドを表示",
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid.tooltip": [
+    "グループフィルターが存在しない場合、クラフトグリッドを\n",
+    "下部ではなくサイドバーに配置しようとします。"
+  ],
+
+  "text.config.accessories.section.button_offsets": "追加ボタンの位置調整",
+
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset": "インベントリのボタンの位置調整",
+
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.x": "Xオフセット",
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.y": "Yオフセット",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset": "クリエイティブインベントリのボタンの位置調整",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.x": "Xオフセット",
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.y": "Yオフセット",
+
+  "text.config.accessories.section.experimental": "実験的な画面",
+
+  "text.config.accessories.option.screenOptions.isDarkMode": "ダークモードを使用する",
+  "text.config.accessories.option.screenOptions.isDarkMode.tooltip": [
+    "実験的な画面のテーマをダークモードに変更します"
+  ],
+
+  "text.config.accessories.section.legacy": "オリジナルの画面",
+
+  "text.config.accessories.option.screenOptions.showGroupTabs": "クイック検索用グループタブを表示する",
+  "text.config.accessories.option.screenOptions.showGroupTabs.tooltip": [
+    "オリジナルの画面内のグループタブを表示するかを切り替えます。"
+  ],
+
+  "text.config.accessories.section.hover": "マウスを重ねたときの設定",
+
+  "text.config.accessories.category.screenOptions.hoveredOptions": "マウスを重ねたときの設定",
+  "text.config.accessories.category.screenOptions.hoveredOptions.tooltip": [
+    "カーソルを合わせたエントリの描画効果を制御する設定"
+  ],
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.brightenHovered": "エントリを明るくする",
+  "text.config.accessories.option.screenOptions.hoveredOptions.cycleBrightness": "明るさを循環",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.line": "行を描画する",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.clickbait": "強調表示",
+
+  "text.config.accessories.category.screenOptions.unHoveredOptions": "マウスを重ねていないときの設定",
+  "text.config.accessories.category.screenOptions.unHoveredOptions.tooltip": [
+    "カーソルを合わせていないエントリの描画効果を制御する設定"
+  ],
+
+  "text.config.accessories.option.screenOptions.unHoveredOptions.renderUnHovered": "描画する",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenUnHovered": "エントリを暗くする",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedBrightness": "暗くしたときの明るさ",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedOpacity": "暗くしたときの不透明度",
+
+  "text.config.accessories.option.disabledDefaultRenders": "デフォルトのレンダラーを無効化する",
+  "text.config.accessories.option.disabledDefaultRenders.tooltip": [
+    "指定されたスロットのデフォルトの描画を無効化するのに便利です。\n",
+    "ブロックまたはアイテムの描画を個別または両方まとめて対象にできます。"
+  ],
+
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.slotType": "スロット",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.targetType": "種類",
+
+  "text.config.accessories.enum.targetType.item": "アイテム",
+  "text.config.accessories.enum.targetType.block": "ブロック",
+  "text.config.accessories.enum.targetType.all": "すべて",
+
+  "text.config.accessories.option.modifiers": "スロット数の補正",
+  "text.config.accessories.option.modifiers.tooltip": [
+    "データパックを使用せずに、特定のスロットの種類に\n",
+    "オフセット値を追加するのに便利です。\n",
+    "正の値と負の値の両方が指定可能です。"
+  ],
+
+  "text.config.accessories.option.modifiers.slotType": "スロット",
+  "text.config.accessories.option.modifiers.amount": "オフセット"
+}
