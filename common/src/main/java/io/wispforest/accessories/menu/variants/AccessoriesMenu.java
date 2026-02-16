@@ -127,12 +127,14 @@ public class AccessoriesMenu extends AccessoriesMenuBase {
             if (container == null || container.slotType() == null) continue;
 
             for (int i = 0; i < container.getSize(); i++) {
-                var cosmeticSlot = new AccessoriesBasedSlot(container, container.getCosmeticAccessories(), i, -300, -300);
+                var cosmeticSlot = new AccessoriesBasedSlot(container, container.getCosmeticAccessories(), i, -300, -300)
+                    .ownerPlayer(this::owner);
 
                 this.addSlot(cosmeticSlot);
                 this.accessoriesSpecificSlots.add(cosmeticSlot);
 
-                var baseSlot = new AccessoriesBasedSlot(container, container.getAccessories(), i, -300, -300);
+                var baseSlot = new AccessoriesBasedSlot(container, container.getAccessories(), i, -300, -300)
+                    .ownerPlayer(this::owner);
 
                 this.addSlot(baseSlot);
                 this.accessoriesSpecificSlots.add(baseSlot);
@@ -185,7 +187,7 @@ public class AccessoriesMenu extends AccessoriesMenuBase {
             public @Nullable ResourceLocation getNoItemIcon() {
                 return location;
             }
-        };
+        }.ownerPlayer(this::owner);
 
         this.addSlot(cosmeticSlot);
 

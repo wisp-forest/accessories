@@ -69,7 +69,7 @@ public class DrawUtils {
         var matrix = new Matrix3x2f(guiGraphics.pose());
         var scissorRect = guiGraphics.scissorStack.peek();
 
-        // TODO: SEEMS BROKEN WHEN ANYTHING IS MANIPULATION THE MATRIX STACK SOOOOOO
+        // TODO: SEEMS BROKEN WHEN ANYTHING IS MANIPULATING THE MATRIX STACK SOOOOOO
         guiGraphics.guiRenderState.submitGuiElement(
             new GradientQuadElementRenderState(
                 OwoUIPipelines.GUI_HSV,

@@ -1,9 +1,13 @@
 package io.wispforest.accessories;
 
-import io.wispforest.accessories.pond.TooltipFlagExtension;
-import io.wispforest.accessories.utils.ServiceLoaderUtils;
+import io.wispforest.accessories.api.tooltip.*;
+import io.wispforest.accessories.pond.TooltipFlagExtended;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.Style;
 import net.minecraft.world.item.TooltipFlag;
-import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.stream.Stream;
 
 public abstract class AccessoriesClientInternals {
 
@@ -25,7 +29,62 @@ public abstract class AccessoriesClientInternals {
         hasInstanceBeenSet = true;
     }
 
-    public TooltipFlag createTooltipFlag(TooltipFlag flag) {
-        return TooltipFlagExtension.createFlag(flag, Integer.MAX_VALUE);
+    public TooltipComponentBuilder createTooltipBuilder() {
+        return new TooltipComponentBuilder() {
+            @Override
+            public TooltipComponentBuilder add(TooltipComponentHolder holder) {
+                return this;
+            }
+
+            @Override
+            public TooltipComponentBuilder divider() {
+                return this;
+            }
+
+            @Override
+            public TooltipComponentBuilder divider(int height) {
+                return this;
+            }
+
+            @Override
+            public TooltipComponentBuilder add(FormattedText text) {
+                return this;
+            }
+
+            @Override
+            public TooltipComponentBuilder add(TooltipComponentBuilder builder) {
+                return this;
+            }
+
+            @Override
+            public TooltipComponentBuilder addAll(Collection<? extends FormattedText> text) {
+                return this;
+            }
+
+            @Override
+            public TooltipComponentBuilder addAll(TextPrefixer prefixer, FormattedTextBuilder builder) {
+                return this;
+            }
+
+            public boolean isEmpty() {
+                return true;
+            }
+        };
+    }
+
+    public TextWrapper createWrapper(int maxWidth, Style overrideStyle) {
+        return TextWrapper.NONE;
+    }
+
+    public TooltipFlag createTooltipFlag() {
+        return TooltipFlagExtended.create(false);
+    }
+
+    public int createBitFlag() {
+        return createBitFlag(true, true, true);
+    }
+
+    public int createBitFlag(boolean hasShift, boolean hasControl, boolean hasAlt) {
+        return Integer.MAX_VALUE;
     }
 }

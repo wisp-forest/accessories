@@ -2,9 +2,11 @@ package io.wispforest.accessories;
 
 import com.google.common.reflect.Reflection;
 import com.mojang.logging.LogUtils;
-import io.wispforest.accessories.api.core.Accessory;
+import io.wispforest.accessories.api.action.ActionResponse;
+import io.wispforest.accessories.api.action.ActionResponseBuffer;
 import io.wispforest.accessories.api.data.AccessoriesTags;
-import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
+import io.wispforest.accessories.api.events.v2.AllowEntityModificationCallback;
+import io.wispforest.accessories.api.tooltip.ComponentBuilder;
 import io.wispforest.accessories.commands.AccessoriesCommands;
 import io.wispforest.accessories.compat.config.AccessoriesConfig;
 import io.wispforest.accessories.criteria.AccessoryChangedCriterion;
@@ -21,8 +23,8 @@ import io.wispforest.accessories.utils.EndecUtils;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.LivingEntity;
@@ -30,13 +32,11 @@ import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameRules;
 import net.minecraft.world.phys.EntityHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 import org.slf4j.Logger;
 
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -76,12 +76,16 @@ public class Accessories {
         return location;
     }
 
-    public static String translationKey(String path){
-        return MODID + "." + path;
+    public static String translationKey(String ...path){
+        return MODID + "." + String.join(".", path);
     }
 
-    public static Component translation(String path) {
+    public static MutableComponent translation(String ...path) {
         return Component.translatable(translationKey(path));
+    }
+
+    public static ComponentBuilder translationWithArgs(String ...path) {
+        return (args) -> Component.translatable(translationKey(path), args);
     }
 
     //--
@@ -121,9 +125,11 @@ public class Accessories {
 
     public static void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
         if(targetEntity != null && !player.equals(targetEntity)) {
-            var result = AllowEntityModificationCallback.EVENT.invoker().allowModifications(targetEntity, player, null);
+            var buffer = new ActionResponseBuffer(false);
 
-            if(!result.orElse(false) && !player.hasPermissions(Commands.LEVEL_ADMINS)) return;
+            AllowEntityModificationCallback.EVENT.invoker().allowModifications(targetEntity, player, null, buffer);
+
+            if(!buffer.canPerformAction().isValid(false) && !player.hasPermissions(Commands.LEVEL_ADMINS)) return;
         }
 
         AccessoriesInternals.INSTANCE.openAccessoriesMenu(player, variant, targetEntity, carriedStack);
@@ -139,16 +145,23 @@ public class Accessories {
 
         AccessoriesCommands.init();
 
-        AllowEntityModificationCallback.EVENT.register((target, player, reference) -> {
+        AllowEntityModificationCallback.EVENT.register((target, player, reference, buffer) -> {
             var type = target.getType();
 
-            if(type.is(AccessoriesTags.MODIFIABLE_ENTITY_BLACKLIST)) return TriState.FALSE;
+            if(type.is(AccessoriesTags.MODIFIABLE_ENTITY_BLACKLIST)) {
+                buffer.respondWith(ActionResponse.of(false, Component.literal("Given entity can not be manged by you!")));
+                return;
+            }
 
             var isOwnersPet = (target instanceof OwnableEntity ownableEntity && ownableEntity.getOwner() != null && ownableEntity.getOwner().equals(player));
 
-            if(isOwnersPet || type.is(AccessoriesTags.MODIFIABLE_ENTITY_WHITELIST)) return TriState.TRUE;
-
-            return TriState.DEFAULT;
+            if(isOwnersPet || type.is(AccessoriesTags.MODIFIABLE_ENTITY_WHITELIST)) {
+                buffer.respondWith(ActionResponse.of(true,
+                    isOwnersPet
+                        ? Component.literal("Your pet can be managed by you.")
+                        : Component.literal("Given entity can be manged by you."))
+                );
+            }
         });
 
         ArmorSlotTypes.INSTANCE.init();

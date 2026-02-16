@@ -83,7 +83,7 @@ public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroup
                     return slots.isEmpty() ? null : Map.entry(slotGroup, slots);
                 })
                 .filter(Objects::nonNull)
-                .collect(CollectionUtils.toLinkedMap());
+                .collect(CollectionUtils.linkedMapCollector());
     }
 
     public static Optional<SlotGroup> getGroup(Level level, String group){
@@ -144,8 +144,8 @@ public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroup
         rawData.forEach((location, rawGroupData) -> {
             var pathParts = location.getPath().split("/");
 
-            String groupName = pathParts[pathParts.length - 1];
-            String namespace = pathParts.length > 1 ? pathParts[0] + ":" : "";
+            var groupName = pathParts[pathParts.length - 1];
+            var namespace = pathParts.length > 1 ? pathParts[0] + ":" : "";
 
             var isShared = namespace.isBlank();
 
@@ -154,26 +154,31 @@ public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroup
             var group = slotGroups.computeIfAbsent(groupName, SlotGroupBuilder::new);
 
             if(isShared) {
-                for (String s : rawGroupData.slots()) {
-                    for (var builderEntry : slotGroups.entrySet()) {
-                        if (builderEntry.getValue().slots.contains(s)) {
-                            LOGGER.error("Unable to assign a give slot [{}] to the group [{}] as it already exists within the group [{}]", s, group, builderEntry.getKey());
-                            return;
+                for (var s : rawGroupData.slots()) {
+                    var slotType = allSlots.remove(Accessories.parseLocationOrDefault(s));
+
+                    boolean isValid = true;
+
+                    if (slotType == null) {
+                        LOGGER.warn("Slot '{}' for the given group '{}' was not found to be loaded, it will be ignored!", s, groupName);
+
+                        isValid = false;
+                    } else {
+                        for (var builderEntry : slotGroups.entrySet()) {
+                            if (builderEntry.getValue().slots.contains(slotType)) {
+                                LOGGER.error("Unable to assign a give slot '{}' to the group '{}' as it already exists within the group '{}'", s, group, builderEntry.getKey());
+                                isValid = false;
+                            }
                         }
                     }
 
-                    var slotType = allSlots.remove(Accessories.parseLocationOrDefault(s));
-
-                    if (slotType == null) {
-                        LOGGER.warn("SlotType added to a given group without being in the main map for slots! [Name: {}]", s);
-                    } else {
-                        group.addSlot(slotType);
-                    }
+                    if (isValid) group.addSlot(slotType);
                 }
 
                 group.order(rawGroupData.order());
-                group.icon(rawGroupData.icon());
             }
+
+            group.icon(rawGroupData.icon());
         });
 
         //--
@@ -203,7 +208,7 @@ public class SlotGroupLoader extends ManagedEndecDataLoader<SlotGroup, SlotGroup
         return slotGroups.entrySet().stream()
             .map(entry -> Map.entry(Accessories.parseLocationOrDefault(entry.getKey()), entry.getValue().build()))
             .sorted(Map.Entry.<ResourceLocation, SlotGroup>comparingByValue().reversed())
-            .collect(CollectionUtils.toLinkedMap());
+            .collect(CollectionUtils.linkedMapCollector());
     }
 
     public static class SlotGroupBuilder {

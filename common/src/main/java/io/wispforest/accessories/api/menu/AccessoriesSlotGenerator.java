@@ -7,6 +7,7 @@ import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Slot Generator to be used for slots generator from {@link UniqueSlotHandling} event hooks
@@ -28,6 +30,8 @@ public class AccessoriesSlotGenerator {
     private final AccessoriesCapability capability;
 
     private final Consumer<Slot> slotConsumer;
+
+    private Supplier<@Nullable Player> ownerPlayer = () -> null;
 
     private List<SlotType> slotTypes = List.of();
 
@@ -73,6 +77,12 @@ public class AccessoriesSlotGenerator {
         if(capability == null) return null;
 
         return new AccessoriesSlotGenerator(slotConsumer, startX, startY, capability);
+    }
+
+    public AccessoriesSlotGenerator ownerPlayer(Supplier<@Nullable Player> ownerPlayer) {
+        this.ownerPlayer = ownerPlayer;
+
+        return this;
     }
 
     /**
@@ -204,7 +214,7 @@ public class AccessoriesSlotGenerator {
 
         for (var container : containers) {
             for (int i = 0; i < container.getSize(); i++) {
-                slotConsumer.accept(new AccessoriesBasedSlot(container, container.getAccessories(), i, this.startX + xOffset, this.startY + yOffset));
+                slotConsumer.accept(new AccessoriesBasedSlot(container, container.getAccessories(), i, this.startX + xOffset, this.startY + yOffset).ownerPlayer(ownerPlayer));
 
                 if(type == LayoutType.COLUMN) {
                     yOffset += (this.verticalPadding) + 18;

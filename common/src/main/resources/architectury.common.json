@@ -11,7 +11,7 @@
       "io/wispforest/accessories/pond/AccessoriesRenderStateAPI"
     ],
     "net/minecraft/class_1836": [
-      "io/wispforest/accessories/pond/TooltipFlagExtension"
+      "io/wispforest/accessories/pond/TooltipFlagExtended"
     ]
   }
 }

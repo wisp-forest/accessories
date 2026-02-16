@@ -148,16 +148,22 @@ public interface AccessoryNest extends Accessory {
 
     @Override
     default void canEquip(ItemStack stack, SlotReference reference, ActionResponseBuffer buffer) {
-        var innerBuffer = buffer.createInnerBuffer();
+        handleEntries(stack, reference, new PathedAccessoryFunction<SlotReference, ActionResponseBuffer>() {
+            @Override
+            public ActionResponseBuffer handle(Accessory accessory, ItemStack innerStack, SlotReference innerRef) {
+                accessory.canEquip(innerStack, innerRef, buffer);
 
-        consumeEntries(stack, reference, (accessory, innerStack, innerRef) -> {
-            accessory.canEquip(innerStack, innerRef, innerBuffer);
+                return buffer;
+            }
+
+            @Override
+            public boolean isDefaulted(ActionResponseBuffer buffer) {
+                return buffer.shouldReturnEarly();
+            }
         });
 
-        if (innerBuffer.addToParentBuffer()) return;
-
-        // TODO: REMOVE WHEN DEPRECATION PHASE HAS BEEN LONG ENOUGH
-        if (canEquip(stack, reference)) return;
+        // TODO: REMOVE canEquip call WHEN DEPRECATION PHASE HAS BEEN LONG ENOUGH
+        if (buffer.shouldReturnEarly() || canEquip(stack, reference)) return;
 
         buffer.respondWith(ActionResponse.of(false, Component.literal("Such an item can not be equipped!")));
     }
@@ -166,16 +172,22 @@ public interface AccessoryNest extends Accessory {
     default void canUnequip(ItemStack stack, SlotReference reference, ActionResponseBuffer buffer) {
         if (CurseBound.checkIfCursed(stack, reference.entity(), buffer)) return;
 
-        var innerBuffer = buffer.createInnerBuffer();
+        handleEntries(stack, reference, new PathedAccessoryFunction<SlotReference, ActionResponseBuffer>() {
+            @Override
+            public ActionResponseBuffer handle(Accessory accessory, ItemStack innerStack, SlotReference innerRef) {
+                accessory.canUnequip(innerStack, innerRef, buffer);
 
-        consumeEntries(stack, reference, (accessory, innerStack, innerRef) -> {
-            accessory.canUnequip(innerStack, innerRef, innerBuffer);
+                return buffer;
+            }
+
+            @Override
+            public boolean isDefaulted(ActionResponseBuffer buffer) {
+                return buffer.shouldReturnEarly();
+            }
         });
 
-        if (innerBuffer.addToParentBuffer()) return;
-
-        // TODO: REMOVE WHEN DEPRECATION PHASE HAS BEEN LONG ENOUGH
-        if (canUnequip(stack, reference)) return;
+        // TODO: REMOVE canUnequip call WHEN DEPRECATION PHASE HAS BEEN LONG ENOUGH
+        if (buffer.shouldReturnEarly() || canUnequip(stack, reference)) return;
 
         buffer.respondWith(ActionResponse.of(false, Component.literal("Such an item can not be unequipped!")));
     }

@@ -80,7 +80,7 @@ public class ComponentUtils {
         for (var slotComponent : slotComponents) {
             var slot = slotComponent.slot();
 
-            if (!(slot instanceof SlotTypeAccessible slotTypeAccessible) || !slotTypeAccessible.isCosmeticSlot()) continue;
+            if (!(slot instanceof SlotTypeAccessible access) || !access.isCosmeticSlot()) continue;
 
             DrawUtils.drawRectOutlineWithSpectrum(context, slotComponent.x(), slotComponent.y(), 16, 16, 0.35f, false);
         }
@@ -305,16 +305,16 @@ public class ComponentUtils {
 
     public static io.wispforest.owo.ui.core.Component createIconButton(Consumer<ButtonComponent> action, int size, String id, Consumer<ButtonComponent> builder, BiFunction<OwoUIDrawContext, ButtonComponent, ResourceLocation> textureGetter) {
         return verticalFlow(Sizing.content(), Sizing.content())
-                .child(
-                        Components.button(Component.empty(), action)
-                                .sizing(Sizing.fixed(size))
-                                .configure(builder)
-                                .renderer((ctx, btn, delta) -> {
-                                    ctx.push();
-                                    DrawUtils.blit(ctx, textureGetter.apply(ctx, btn), btn.getX(), btn.getY(), btn.width(), btn.height());
-                                    ctx.pop();
-                                }).id(id)
-                );
+            .child(
+                Components.button(Component.empty(), action)
+                    .sizing(Sizing.fixed(size))
+                    .configure(builder)
+                    .renderer((ctx, btn, delta) -> {
+                        ctx.push();
+                        DrawUtils.blit(ctx, textureGetter.apply(ctx, btn), btn.getX(), btn.getY(), btn.width(), btn.height());
+                        ctx.pop();
+                    }).id(id)
+            );
     }
 
     public static <C extends BaseOwoHandledScreen.SlotComponent> io.wispforest.owo.ui.core.Component createCraftingComponent(int start, Function<Integer, C> componentFactory, Consumer<Integer> slotEnabler, boolean isVertical) {

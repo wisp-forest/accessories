@@ -1,61 +1,59 @@
 package io.wispforest.accessories.api.action;
 
-import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.tooltip.ListTooltipAdder;
+import io.wispforest.accessories.utils.ComponentOps;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.contents.PlainTextContents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.TooltipFlag;
-import org.apache.commons.lang3.mutable.MutableObject;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-import java.util.SequencedCollection;
-import java.util.function.Consumer;
+///
+/// Acts as a holder for a [ValidationState] and message used to tell if
+/// an action can or can not be performed with a default value  being letting
+/// the caller decided the outcome.
+///
+public interface ActionResponse extends ReasonProvider {
 
-public interface ActionResponse extends Reasonable {
+    static ActionResponse SUCCESS = of(true, Component.empty());
 
-    ActionResponse SUCCESS = of(true, Component.empty());
-
-    boolean canPerformAction();
-
-    @Override
-    void gatherReason(Consumer<Component> messageAdditionCallback, Item.TooltipContext ctx, TooltipFlag type);
+    //--
 
     static ActionResponse of(boolean canPerformAction, Component reason) {
-        return new ActionResponseBase(canPerformAction) {
+        return of(ValidationState.of(canPerformAction), reason);
+    }
+
+    static ActionResponse of(ValidationState state, Component reason) {
+        return of(state, (callback, ctx, type) -> {
+            callback.add(ComponentOps.validateComponent(reason, "ActionResponse"));
+        });
+    }
+
+    static ActionResponse of(ValidationState state, ReasonProvider provider) {
+        return new ActionResponseBase(state) {
             @Override
-            public void gatherReason(Consumer<Component> messageAdditionCallback, Item.TooltipContext ctx, TooltipFlag type) {
-                messageAdditionCallback.accept(reason);
+            public void addInfo(ListTooltipAdder adder, Item.TooltipContext ctx, TooltipFlag type) {
+                provider.addInfo(adder, ctx, type);
             }
         };
     }
 
-    static ActionResponse combineToSingleResponse(SequencedCollection<ActionResponse> responses) {
-        return new CompoundResponse(responses.stream().toList());
-    }
+    //--
 
-    @Nullable
-    static Component getResponseReason(ActionResponse response, Item.TooltipContext ctx, TooltipFlag type) {
-        var componentHolder = new MutableObject<Component>();
+    ///
+    /// @return The resultant of the response indicating either its [VALID][ValidationState#VALID],
+    /// [INVALID][ValidationState#INVALID], or [IRRELEVANT][ValidationState#IRRELEVANT] to the
+    /// outcome of the action check.
+    ///
+    ValidationState canPerformAction();
 
-        response.gatherReason(componentHolder::setValue, ctx, type);
+    @Override
+    void addInfo(ListTooltipAdder adder, Item.TooltipContext ctx, TooltipFlag flag);
 
-        var component = componentHolder.getValue();
-
-        if (Accessories.DEBUG) {
-            Objects.requireNonNull(component, "AccessResponse requires non null reason Component!");
-
-            if (response != SUCCESS && component.getContents() == PlainTextContents.EMPTY) {
-                throw new IllegalStateException("Custom AccessResponse requires non empty reason Component!");
-            }
-        }
-
-        return component;
-    }
+    //--
 
     @Override
     boolean equals(Object obj);
 
     @Override
     int hashCode();
+
 }

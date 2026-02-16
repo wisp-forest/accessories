@@ -1,6 +1,7 @@
 package io.wispforest.accessories.api.components;
 
 import io.wispforest.accessories.api.core.Accessory;
+import io.wispforest.accessories.api.core.AccessoryNestUtils;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.events.SlotStateChange;
 import io.wispforest.accessories.api.slot.SlotEntryReference;
@@ -122,6 +123,10 @@ public final class AccessoryNestContainerContents {
     }
 
     public <T> @Nullable T iterateStacks(BiFunction<Integer, ItemStack, @Nullable T> function) {
+        return iterateStacks(function, (AccessoryNestUtils.DefaultBehavior<T>) AccessoryNestUtils.DefaultBehavior.INSTANCE);
+    }
+
+    public <T> @Nullable T iterateStacks(BiFunction<Integer, ItemStack, @Nullable T> function, AccessoryNestUtils.DefaultBehavior<T> behavior) {
         for (int i = 0; i < this.accessories.size(); i++) {
             var innerStack = this.accessories.get(i);
 
@@ -129,7 +134,7 @@ public final class AccessoryNestContainerContents {
 
             var value = function.apply(i, innerStack);
 
-            if(value != null) break;
+            if(!behavior.isDefaulted(value)) break;
         }
 
         return null;

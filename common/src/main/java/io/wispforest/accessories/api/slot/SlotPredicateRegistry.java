@@ -43,7 +43,7 @@ public class SlotPredicateRegistry {
 
             validator.isValidForSlot(level, slotType, index, stack, buffer);
 
-            return buffer.canPerformAction();
+            return buffer.canPerformAction().toTriState();
         }
     }
 
@@ -54,7 +54,7 @@ public class SlotPredicateRegistry {
 
             validator.isValidForSlot(entity, level, slotType, index, stack, buffer);
 
-            return buffer.canPerformAction();
+            return buffer.canPerformAction().toTriState();
         }
     }
 

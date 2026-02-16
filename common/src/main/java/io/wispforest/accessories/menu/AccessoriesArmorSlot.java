@@ -27,4 +27,9 @@ public class AccessoriesArmorSlot extends ArmorSlot implements SlotTypeAccessibl
     public int index() {
         return this.index;
     }
+
+    @Override
+    public boolean isCosmeticSlot() {
+        return false;
+    }
 }

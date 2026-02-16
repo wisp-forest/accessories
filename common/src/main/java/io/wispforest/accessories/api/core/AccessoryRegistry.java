@@ -1,11 +1,14 @@
 package io.wispforest.accessories.api.core;
 
 import io.wispforest.accessories.api.action.ActionResponseBuffer;
+import io.wispforest.accessories.api.action.ValidationState;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.api.events.v2.AllowEntityModificationCallback;
 import io.wispforest.accessories.api.events.v2.CanEquipCallback;
 import io.wispforest.accessories.api.events.v2.CanUnequipCallback;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
@@ -87,11 +90,11 @@ public class AccessoryRegistry {
 
         var state = buffer.canPerformAction();
 
-        if(!state.equals(TriState.DEFAULT)) return state.orElse(true);
+        if(!state.equals(ValidationState.IRRELEVANT)) return state.isValid(true);
 
         getAccessoryOrDefault(stack).canEquip(stack, reference, buffer);
 
-        return buffer.canPerformAction().orElse(true);
+        return buffer.canPerformAction().isValid(true);
     }
 
     /**
@@ -108,11 +111,11 @@ public class AccessoryRegistry {
 
         var state = buffer.canPerformAction();
 
-        if(!state.equals(TriState.DEFAULT)) return state.orElse(true);
+        if(!state.equals(ValidationState.IRRELEVANT)) return state.isValid(true);
 
         getAccessoryOrDefault(stack).canUnequip(stack, reference, buffer);
 
-        return buffer.canPerformAction().orElse(true);
+        return buffer.canPerformAction().isValid(true);
     }
 
     public static ActionResponseBuffer canEquipResponse(ItemStack stack, SlotReference reference, ActionResponseBuffer buffer){

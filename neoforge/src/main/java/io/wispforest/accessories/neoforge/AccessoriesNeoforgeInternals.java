@@ -17,6 +17,7 @@ import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.format.bytebuf.ByteBufDeserializer;
 import io.wispforest.endec.format.bytebuf.ByteBufSerializer;
 import io.wispforest.owo.serialization.RegistriesAttribute;
+import net.minecraft.Util;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
@@ -32,6 +33,8 @@ import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -44,6 +47,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.conditions.ICondition;
@@ -150,5 +156,20 @@ public class AccessoriesNeoforgeInternals extends AccessoriesInternals {
     @Override
     public <T> String getTagTranslation(TagKey<T> tagKey) {
         return Tags.getTagTranslationKey(tagKey);
+    }
+
+    @Override
+    public <T> String geEntryTranslation(Holder<T> entry) {
+        var value = entry.value();
+
+        return switch (value) {
+            case Item item -> item.getDescriptionId();
+            case Block block -> block.getDescriptionId();
+            case EntityType<?> type -> type.getDescriptionId();
+            case MobEffect effect -> effect.getDescriptionId();
+            case Attribute attribute -> attribute.getDescriptionId();
+            case Fluid fluid -> fluid.getFluidType().getDescriptionId();
+            default -> value.toString();
+        };
     }
 }

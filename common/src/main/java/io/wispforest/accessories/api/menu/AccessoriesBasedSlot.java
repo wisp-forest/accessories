@@ -3,11 +3,15 @@ package io.wispforest.accessories.api.menu;
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesContainer;
+import io.wispforest.accessories.api.action.ActionResponseBuffer;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
-import io.wispforest.accessories.api.events.AllowEntityModificationCallback;
+import io.wispforest.accessories.api.events.v2.AllowEntityModificationCallback;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 import io.wispforest.accessories.api.slot.validator.SlotValidatorRegistry;
+import io.wispforest.accessories.api.tooltip.TooltipAdder;
+import io.wispforest.accessories.api.tooltip.impl.TooltipEntry;
+import io.wispforest.accessories.api.tooltip.TooltipInfoProvider;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.impl.core.ExpandedContainer;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
@@ -18,25 +22,29 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Base slot class implementation for Accessories with static methods that force checks if
  * the passed entity and type can be found. Primarily used with internal screen and
  * with the {@link AccessoriesSlotGenerator} for unique slots API
  */
-public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
+public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible, TooltipInfoProvider<TooltipAdder> {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public final LivingEntity entity;
     public final AccessoriesContainer accessoriesContainer;
     public final boolean isCosmetic;
+
+    private Supplier<@Nullable Player> ownerPlayer = () -> null;
 
     public AccessoriesBasedSlot(AccessoriesContainer accessoriesContainer, ExpandedContainer container, int slot, int x, int y) {
         this(accessoriesContainer, container, accessoriesContainer.getCosmeticAccessories() == container, slot, x, y);
@@ -90,6 +98,17 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
         return new AccessoriesBasedSlot(container, isCosmetic ? container.getAccessories() : container.getCosmeticAccessories(), slot, x, y);
     }
 
+    public AccessoriesBasedSlot ownerPlayer(Supplier<@Nullable Player> ownerPlayer) {
+        this.ownerPlayer = ownerPlayer;
+
+        return this;
+    }
+
+    @Override
+    public boolean isCosmeticSlot() {
+        return this.isCosmetic;
+    }
+
     @Override
     public AccessoriesContainer getContainer() {
         return accessoriesContainer;
@@ -128,28 +147,16 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
 
     @Override
     public boolean mayPlace(ItemStack stack) {
-        // Cosmetic slots do not run the canEquip for the given accessory stack
-        if (this.isCosmeticSlot()) {
-            var slotType = this.accessoriesContainer.slotType();
-
-            return SlotValidatorRegistry.getPredicateResults(slotType.validators(), this.entity.level(), this.entity, slotType, this.getContainerSlot(), stack);
-        }
-
-        return SlotValidatorRegistry.canInsertIntoSlot(stack, SlotReference.of(this.entity, this.accessoriesContainer.getSlotName(), this.getContainerSlot()));
+        return canEquipSlotResponse(this.isCosmeticSlot(), ownerPlayer.get(), stack, this.slotReference(), new ActionResponseBuffer(true))
+            .canPerformAction()
+            .isValid();
     }
 
     @Override
     public boolean mayPickup(Player player) {
-        if(!this.entity.equals(player)/*this.entity != player*/) {
-            var ref = this.accessoriesContainer.createReference(this.getContainerSlot());
-
-            var result = AllowEntityModificationCallback.EVENT.invoker().allowModifications(this.entity, player, ref);
-
-            if(!result.orElse(false)) return false;
-        }
-
-        // Cosmetic slots do not run the canUnequip for the given accessory stack
-        return isCosmetic || AccessoryRegistry.canUnequip(this.getItem(), SlotReference.of(this.entity, this.accessoriesContainer.getSlotName(), this.getContainerSlot()));
+        return canUnequipSlotResponse(this.isCosmeticSlot(), player, this.getItem(), this.slotReference(), new ActionResponseBuffer(true))
+            .canPerformAction()
+            .isValid(true);
     }
 
     @Override
@@ -159,15 +166,56 @@ public class AccessoriesBasedSlot extends Slot implements SlotTypeAccessible {
         return slotType != null ? slotType.icon() : SlotType.EMPTY_SLOT_ICON;
     }
 
+    @Deprecated(forRemoval = true)
     public List<Component> getTooltipData() {
-        var tooltipData = new ArrayList<Component>();
+        return TooltipInfoProvider.gatherInfo(this, TooltipEntry.of(), Item.TooltipContext.EMPTY, TooltipFlag.NORMAL).entries();
+    }
 
+    @Override
+    public void addInfo(TooltipAdder adder, Item.TooltipContext ctx, TooltipFlag type) {
         var slotType = this.accessoriesContainer.slotType();
 
-        tooltipData.add(Component.translatable(Accessories.translationKey( "slot.tooltip.singular"))
-                .withStyle(ChatFormatting.GRAY)
-                .append(Component.translatable(slotType.translation()).withStyle(ChatFormatting.BLUE)));
+        adder.add(
+            Component.translatable(Accessories.translationKey( "slot.tooltip.singular"))
+            .withStyle(ChatFormatting.GRAY)
+            .append(Component.translatable(slotType.translation()).withStyle(ChatFormatting.BLUE))
+        );
+    }
 
-        return tooltipData;
+    public ActionResponseBuffer checkInsertion(ItemStack stack) {
+        return canEquipSlotResponse(this.isCosmeticSlot(), ownerPlayer.get(), stack, this.slotReference(), new ActionResponseBuffer(false));
+    }
+
+    public ActionResponseBuffer checkExtraction() {
+        return canUnequipSlotResponse(this.isCosmeticSlot(), ownerPlayer.get(), this.getItem(), this.slotReference(), new ActionResponseBuffer(false));
+    }
+
+    public static ActionResponseBuffer canUnequipSlotResponse(boolean isCosmetic, @Nullable Player player, ItemStack stack, SlotReference ref, ActionResponseBuffer buffer){
+        var ownerEntity = ref.entity();
+
+        if (stack.isEmpty()) return buffer;
+
+        if (player != null && !ownerEntity.equals(player)) AllowEntityModificationCallback.EVENT.invoker().allowModifications(ownerEntity, player, ref, buffer);
+        if (!buffer.shouldReturnEarly() && !isCosmetic) AccessoryRegistry.canUnequipResponse(stack, ref, buffer);
+
+        return buffer;
+    }
+
+    public static ActionResponseBuffer canEquipSlotResponse(boolean isCosmetic, @Nullable Player player, ItemStack stack, SlotReference ref, ActionResponseBuffer buffer){
+        var ownerEntity = ref.entity();
+
+        if (stack.isEmpty()) return buffer;
+
+        if (player != null && !ownerEntity.equals(player)) AllowEntityModificationCallback.EVENT.invoker().allowModifications(ownerEntity, player, ref, buffer);
+        if (!buffer.shouldReturnEarly()) {
+            if (isCosmetic) {
+                var type = ref.type();
+                SlotValidatorRegistry.getPredicateResponse(type.validators(), ownerEntity.level(), ownerEntity, type, ref.index(), stack, buffer);
+            } else {
+                SlotValidatorRegistry.canInsertIntoSlotResponse(stack, ref, buffer);
+            }
+        }
+
+        return buffer;
     }
 }
