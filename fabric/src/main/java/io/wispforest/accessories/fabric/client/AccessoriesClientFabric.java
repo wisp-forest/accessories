@@ -73,24 +73,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
 
         KeyMappingHelper.registerKeyMapping(AccessoriesClient.OPEN_SCREEN);
 
-        ClientTickEvents.START_CLIENT_TICK.register(client -> {
-            if (AccessoriesClient.OPEN_SCREEN.consumeClick()){
-                var player = client.player;
-
-                if (Accessories.config().screenOptions.prioritizeCreativeScreen() && player != null && player.isCreative()) {
-                    if (client.gameMode.isServerControlledInventory()) {
-                        player.sendOpenInventory();
-                    } else {
-                        client.getTutorial().onOpenInventory();
-                        client.setScreen(new InventoryScreen(player));
-                    }
-
-                    return;
-                }
-
-                AccessoriesClient.openScreenFromKey();
-            }
-        });
+        ClientTickEvents.START_CLIENT_TICK.register(AccessoriesClient::handleKeyMappings);
 
         LivingEntityRenderLayerRegistrationCallback.EVENT.register((entityType, entityRenderer, registrationHelper, context) -> {
             if(!(entityRenderer.getModel() instanceof HumanoidModel)) return;

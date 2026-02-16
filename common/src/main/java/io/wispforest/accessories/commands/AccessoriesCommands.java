@@ -25,6 +25,7 @@ import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.mixin.CommandSelectionAccessor;
+import io.wispforest.accessories.mixin.EnchantCommandAccessor;
 import io.wispforest.accessories.mixin.ResourceArgumentAccessor;
 import io.wispforest.endec.Endec;
 import net.minecraft.commands.CommandBuildContext;
@@ -47,7 +48,10 @@ import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -371,6 +375,52 @@ public class AccessoriesCommands implements CommandTreeGenerator.Branched {
                                 );
                         });
                 });
+        });
+
+        root.branch("enchant", enchantBranch -> {
+            enchantBranch.leaves(
+                required("targets", EntityArgument.entities(), EntityArgument::getEntities),
+                required("enchantment", ResourceArgument.resource(context, Registries.ENCHANTMENT), ResourceArgument::getEnchantment),
+                defaulted("applyDelay", IntegerArgumentType.integer(0), 1),
+                (ctx, targets, enchantmentRef, level) -> {
+                    var source = ctx.getSource();
+                    var enchantment = enchantmentRef.value();
+
+                    if (level > enchantment.getMaxLevel()) throw EnchantCommandAccessor.accessories$ERROR_LEVEL_TOO_HIGH().create(level, enchantment.getMaxLevel());
+
+                    int i = 0;
+
+                    var isSingleTarget = targets.size() == 1;
+
+                    for (var entity : targets) {
+                        if (entity instanceof LivingEntity livingEntity) {
+                            var itemStack = livingEntity.getMainHandItem();
+                            if (!itemStack.isEmpty()) {
+                                if (EnchantmentHelper.isEnchantmentCompatible(EnchantmentHelper.getEnchantmentsForCrafting(itemStack).keySet(), enchantmentRef)) {
+                                    itemStack.enchant(enchantmentRef, level);
+                                    i++;
+                                } else if (isSingleTarget) {
+                                    throw EnchantCommandAccessor.accessories$ERROR_INCOMPATIBLE().create(itemStack.getHoverName().getString());
+                                }
+                            } else if (isSingleTarget) {
+                                throw EnchantCommandAccessor.accessories$ERROR_NO_ITEM().create(livingEntity.getName().getString());
+                            }
+                        } else if (isSingleTarget) {
+                            throw EnchantCommandAccessor.accessories$ERROR_NOT_LIVING_ENTITY().create(entity.getName().getString());
+                        }
+                    }
+
+                    if (i == 0) throw EnchantCommandAccessor.accessories$ERROR_NOTHING_HAPPENED().create();
+
+                    var fullname = Enchantment.getFullname(enchantmentRef, level);
+
+                    source.sendSuccess(() -> isSingleTarget
+                        ? Component.translatable("commands.enchant.success.single", fullname, targets.iterator().next().getDisplayName())
+                        : Component.translatable("commands.enchant.success.multiple", fullname, targets.size()), true);
+
+                    return i;
+                }
+            );
         });
 
         root.branch("components", itemComponentBranch -> {

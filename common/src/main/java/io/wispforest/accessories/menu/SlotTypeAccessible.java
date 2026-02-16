@@ -2,6 +2,7 @@ package io.wispforest.accessories.menu;
 
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.slot.SlotPath;
+import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.api.slot.SlotType;
 
 public interface SlotTypeAccessible {
@@ -9,6 +10,8 @@ public interface SlotTypeAccessible {
     AccessoriesContainer getContainer();
 
     int index();
+
+    boolean isCosmeticSlot();
 
     default String slotName() {
         return getContainer().getSlotName();
@@ -22,7 +25,7 @@ public interface SlotTypeAccessible {
         return getContainer().createPath(index());
     }
 
-    default boolean isCosmeticSlot() {
-        return false;
+    default SlotReference slotReference() {
+        return getContainer().createReference(index());
     }
 }

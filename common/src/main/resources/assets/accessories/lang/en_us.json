@@ -8,6 +8,68 @@
   "accessories.tooltip.attributes.any": "When Equipped:",
   "accessories.tooltip.attributes.slot": "When Equipped in %s:",
   "accessories.tooltip.currently_equipped_in": "Equipped in: ",
+
+  "accessories.tooltip.equipment_reasoning": "Equipment Reasoning: ",
+  "accessories.tooltip.accessory_reasoning": "Accessory Reasoning: ",
+
+  "accessories.tooltip.slot.invalid": "%s",
+  "accessories.tooltip.slot.valid": "%s",
+  "accessories.tooltip.slot.irrelevant": "%s",
+
+  "accessories.tooltip.extra_info": "Hold %s to show more info. ",
+  "accessories.tooltip.extra_info.list.entry_separator": ", ",
+  "accessories.tooltip.extra_info.2_or_more": "%s or %s",
+
+  "accessories.tooltip.equipment_reasoning.list_entry.invalid": "(❌): ",
+  "accessories.tooltip.equipment_reasoning.list_entry.valid": "(✔): ",
+  "accessories.tooltip.equipment_reasoning.list_entry.irrelevant": "(#): ",
+
+  "accessories.tooltip.equipment_reasoning.indent_entry": "      ",
+
+  "accessories.tooltip.list_entry": " ‐ ",
+  "accessories.tooltip.indent_entry": "   ",
+
+  "accessories.tooltip.validator.simplied_message.valid": "Can be equipped into the slot.",
+  "accessories.tooltip.validator.simplied_message.invalid": "Can not be equipped into the slot.",
+  "accessories.tooltip.validator.simplied_message.irrelevant": "Such is irrelevant for the given slot.",
+
+  "accessories.tooltip.validator.always_valid": "Anything can fit within this slot!.",
+  "accessories.tooltip.validator.always_invalid": "The slot is unable to take any Accessory, forever!",
+
+  "accessories.tooltip.validator.tag.simple.valid": "Valid for the given group(s).",
+  "accessories.tooltip.validator.tag.simple.invalid": "Invalid for the given group(s).",
+
+  "accessories.tooltip.validator.tag.entry_separator": ", ",
+
+  "accessories.tooltip.validator.tag.advanced.valid.any": "Entry is within one of the group(s): %s",
+  "accessories.tooltip.validator.tag.advanced.valid.all": "Entry is within all of group(s): %s",
+  "accessories.tooltip.validator.tag.advanced.invalid.any": "Entry isn't within any of the group(s): %s",
+  "accessories.tooltip.validator.tag.advanced.invalid.all": "Entry isn't within all of group(s): %s",
+
+  "accessories.tooltip.validator.set.entry_separator": ", ",
+
+  "accessories.tooltip.validator.set.simple.valid": "Valid for the given %s group.",
+  "accessories.tooltip.validator.set.simple.invalid": "Invalid for the given %s group.",
+
+  "accessories.tooltip.validator.set.advanced.valid": "Entry is one of the valid %s: %s",
+  "accessories.tooltip.validator.set.advanced.invalid": "Entry isn't any of the valid %s: %s",
+
+  "minecraft.entity_type.singular": "Entity",
+  "minecraft.entity_type.plural": "Entities",
+
+  "accessories.tooltip.validator.cursed": "Its bound to you till death!",
+
+  "accessories.tooltip.validator.attribute.simple.include": "Contains attributes for the given slot.",
+  "accessories.tooltip.validator.attribute.simple.excludes": "Contains no attributes for the given slot.",
+
+  "accessories.tooltip.validator.component.entry_separator": ", ",
+
+  "accessories.tooltip.validator.component.advanced.invalid": "Invalid as its explicitly disallowed: %s",
+  "accessories.tooltip.validator.component.advanced.valid": "Valid as its explicitly allowed: %s",
+  "accessories.tooltip.validator.component.advanced.irrelevant": "Irrelevant as its not explicitly allowed: %s",
+
+  "accessories.tooltip.validator.component.simple.irrelevant": "Irrelevant as its not explicitly allowed.",
+
   "accessories.slot.hat": "Hat",
   "accessories.slot.face": "Face",
   "accessories.slot.cape": "Cape",
@@ -20,6 +82,21 @@
   "accessories.slot.anklet": "Anklet",
   "accessories.slot.shoes": "Shoes",
   "accessories.slot.charm": "Charm",
+
+  "tag.item.accessories.hat": "Hat",
+  "tag.item.accessories.face": "Face",
+  "tag.item.accessories.cape": "Cape",
+  "tag.item.accessories.necklace": "Necklace",
+  "tag.item.accessories.back": "Back",
+  "tag.item.accessories.hand": "Hand",
+  "tag.item.accessories.ring": "Ring",
+  "tag.item.accessories.wrist": "Wrist",
+  "tag.item.accessories.belt": "Belt",
+  "tag.item.accessories.anklet": "Anklet",
+  "tag.item.accessories.shoes": "Shoes",
+  "tag.item.accessories.charm": "Charm",
+  "tag.item.accessories.any": "Any",
+
   "accessories.slot.accessories.head": "Head",
   "accessories.slot.accessories.chest": "Chest",
   "accessories.slot.accessories.legs": "Legs",
@@ -38,6 +115,8 @@
   "accessories.slot_group.unsorted": "Unsorted",
   "key.category.accessories.main": "Accessories",
   "accessories.key.open_accessories_screen": "Open Accessories Screen",
+  "accessories.key.open_others_accessories_screen": "Open Another's Accessories Screen",
+
   "accessories.commands.attribute.failed.modifier_already_present_itemstack": "Modifier %s is already present on attribute %s for stack %s",
   "accessories.commands.attribute.failed.no_modifier_itemstack": "Attribute %s for stack %s has no modifier %s",
   "accessories.commands.attribute.modifier.add.success_itemstack": "Added modifier %s to attribute %s for stack %s",
@@ -213,6 +292,13 @@
   "text.config.accessories.option.screenOptions.isDarkMode.tooltip": "Changes the theming for the experimental screen to be dark mode.",
   "text.config.accessories.option.screenOptions.alwaysShowCraftingGrid": "Always show Crafting grid",
   "text.config.accessories.option.screenOptions.alwaysShowCraftingGrid.tooltip": "Will remove the toggle button for the crafting grid and always show it within the experimental screen.",
+
+  "text.config.accessories.option.screenOptions.equipCheckTooltipType": "Equipment Tooltip Checking Type",
+  "text.config.accessories.option.screenOptions.equipCheckTooltipType.tooltip": "Changes how much info is disabled about if a Accessory can be equipped into a given slot or be unequipped from a given slot",
+
+  "text.config.accessories.option.screenOptions.showSlotDarkeningEffect": "Show Slot Darkening Effect",
+  "text.config.accessories.option.screenOptions.showSlotDarkeningEffect.tooltip": "Toggles if slot darkening for equipping or unequipping items are shown within the Accessories Screen",
+
   "text.config.accessories.section.legacy": "Original Screen",
   "text.config.accessories.option.screenOptions.showGroupTabs": "Show quick seeking group tabs",
   "text.config.accessories.option.screenOptions.showGroupTabs.tooltip": "Toggles the group tabs within the original screen to be shown or hidden.",
@@ -239,5 +325,10 @@
   "text.config.accessories.option.modifiers": "Slot Amount Modifiers",
   "text.config.accessories.option.modifiers.tooltip": "Useful to add offset values to a given slot type without\nneeding a datapack as it allows for both positive or\nnegative offset value.",
   "text.config.accessories.option.modifiers.slotType": "Slot",
-  "text.config.accessories.option.modifiers.amount": "Offset"
+  "text.config.accessories.option.modifiers.amount": "Offset",
+
+  "text.config.accessories.enum.tooltipInfoType.all": "All",
+  "text.config.accessories.enum.tooltipInfoType.advanced": "Advanced",
+  "text.config.accessories.enum.tooltipInfoType.basic": "Basic",
+  "text.config.accessories.enum.tooltipInfoType.disabled": "Disabled"
 }

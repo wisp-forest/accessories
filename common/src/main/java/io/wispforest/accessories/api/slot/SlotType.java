@@ -37,7 +37,11 @@ public interface SlotType extends Comparable<SlotType> {
     /// @return A {@link Component} Translation key for the given slot
     ///
     default String translation(){
-        return Accessories.translationKey("slot." + name().replace(":", "."));
+        return toTranslationKey(name());
+    }
+
+    static String toTranslationKey(String slotName){
+        return Accessories.translationKey("slot." + slotName.replace(":", "."));
     }
 
     ///

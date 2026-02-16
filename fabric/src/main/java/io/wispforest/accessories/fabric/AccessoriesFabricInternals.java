@@ -15,14 +15,18 @@ import io.wispforest.owo.serialization.CodecUtils;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
 import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.impl.resource.conditions.ResourceConditionsImpl;
+import net.minecraft.util.Util;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.Identifier;
@@ -32,6 +36,8 @@ import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -46,6 +52,9 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.material.Fluid;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
@@ -151,5 +160,27 @@ public class AccessoriesFabricInternals extends AccessoriesInternals {
     @Override
     public <T> String getTagTranslation(TagKey<T> tagKey) {
         return tagKey.getTranslationKey();
+    }
+
+    @Override
+    public <T> String geEntryTranslation(Holder<T> entry) {
+        var value = entry.value();
+
+        return switch (value) {
+            case Item item -> item.getDescriptionId();
+            case Block block -> block.getDescriptionId();
+            case EntityType<?> type -> type.getDescriptionId();
+            case MobEffect effect -> effect.getDescriptionId();
+            case Attribute attribute -> attribute.getDescriptionId();
+            case Fluid fluid -> {
+                var fluidBlock = fluid.defaultFluidState().createLegacyBlock().getBlock();
+
+                // Some non-placeable fluids use air as their fluid block, in that case infer translation key from the fluid id.
+                yield fluidBlock == Blocks.AIR
+                    ? Util.makeDescriptionId("block", BuiltInRegistries.FLUID.getKey(fluid))
+                    : fluidBlock.getDescriptionId();
+            }
+            default -> value.toString();
+        };
     }
 }

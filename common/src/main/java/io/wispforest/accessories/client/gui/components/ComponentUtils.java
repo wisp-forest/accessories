@@ -80,7 +80,7 @@ public class ComponentUtils {
         for (var slotComponent : slotComponents) {
             var slot = slotComponent.slot();
 
-            if (!(slot instanceof SlotTypeAccessible slotTypeAccessible) || !slotTypeAccessible.isCosmeticSlot()) continue;
+            if (!(slot instanceof SlotTypeAccessible access) || !access.isCosmeticSlot()) continue;
 
             DrawUtils.drawRectOutlineWithSpectrum(context, slotComponent.x(), slotComponent.y(), 16, 16, 0.35f, false);
         }

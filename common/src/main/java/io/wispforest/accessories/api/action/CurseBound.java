@@ -1,5 +1,7 @@
 package io.wispforest.accessories.api.action;
 
+import io.wispforest.accessories.api.tooltip.ListTooltipAdder;
+import io.wispforest.accessories.api.tooltip.impl.ListTooltipEntry;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -8,8 +10,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-
-import java.util.function.Consumer;
 
 public class CurseBound extends ActionResponseBase {
 
@@ -30,8 +30,8 @@ public class CurseBound extends ActionResponseBase {
     }
 
     @Override
-    public void gatherReason(Consumer<Component> messageAdditionCallback, Item.TooltipContext ctx, TooltipFlag type) {
-        messageAdditionCallback.accept(Component.literal("Such an item is bound to the Entity till death!"));
+    public void addInfo(ListTooltipAdder adder, Item.TooltipContext ctx, TooltipFlag type) {
+        adder.add(Component.translatable("accessories.tooltip.validator.cursed"));
     }
 
     @Override

@@ -5,7 +5,11 @@ import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.AccessoriesClientInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.client.AccessoriesRendererRegistry;
+import io.wispforest.accessories.api.client.tooltip.TextWrapperImpl;
+import io.wispforest.accessories.api.client.tooltip.TooltipComponentBuilderImpl;
 import io.wispforest.accessories.api.client.screen.AccessoriesScreenTransitionHelper;
+import io.wispforest.accessories.api.tooltip.TextWrapper;
+import io.wispforest.accessories.api.tooltip.TooltipComponentBuilder;
 import io.wispforest.accessories.client.gui.AccessoriesScreenBase;
 import io.wispforest.accessories.client.gui.components.AccessoriesScreenSettingsLayout;
 import io.wispforest.accessories.client.gui.components.ComponentUtils;
@@ -21,7 +25,7 @@ import io.wispforest.accessories.mixin.owo.ConfigWrapperAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
 import io.wispforest.accessories.networking.server.ScreenOpen;
-import io.wispforest.accessories.pond.TooltipFlagExtension;
+import io.wispforest.accessories.pond.TooltipFlagExtended;
 import io.wispforest.owo.config.ui.ConfigScreenProviders;
 import io.wispforest.owo.config.ui.OptionComponentFactory;
 import io.wispforest.owo.config.ui.OptionComponents;
@@ -43,16 +47,16 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.util.Util;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.BannerItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
@@ -66,6 +70,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static io.wispforest.accessories.Accessories.MODID;
 
@@ -74,6 +79,7 @@ public class AccessoriesClient {
     public static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(Accessories.of("main"));
 
     public static final KeyMapping OPEN_SCREEN = new KeyMapping(MODID + ".key.open_accessories_screen", GLFW.GLFW_KEY_H, KEY_CATEGORY);
+    public static final KeyMapping OPEN_OTHERS_SCREEN = new KeyMapping(MODID + ".key.open_others_accessories_screen", GLFW.GLFW_KEY_H, KEY_CATEGORY);
 
     //public static final ShaderProgram BLIT_SHADER_KEY = new ShaderProgram(Accessories.of("core/fish"), DefaultVertexFormat.BLIT_SCREEN, ShaderDefines.EMPTY);
 
@@ -272,14 +278,31 @@ public class AccessoriesClient {
     public static void init(){
         AccessoriesClientInternals.setInstance(new AccessoriesClientInternals() {
             @Override
-            public TooltipFlag createTooltipFlag(TooltipFlag flag) {
-                var client = Minecraft.getInstance();
+            public TooltipComponentBuilder createTooltipBuilder() {
+                return new TooltipComponentBuilderImpl();
+            }
 
-                var modifiers = (client.hasShiftDown() ? GLFW.GLFW_MOD_SHIFT : 0)
-                    | (client.hasControlDown() ? EDIT_SHORTCUT_KEY_MODIFIER : 0)
-                    | (client.hasAltDown() ? GLFW.GLFW_MOD_ALT : 0);
+            @Override
+            public TextWrapper createWrapper(int maxWidth, Style overrideStyle) {
+                return new TextWrapperImpl(maxWidth, overrideStyle);
+            }
 
-                return TooltipFlagExtension.createFlag(flag, modifiers);
+            @Override
+            public TooltipFlag createTooltipFlag() {
+                return TooltipFlagExtended.create(Minecraft.getInstance().options.advancedItemTooltips);
+            }
+
+            @Override
+            public int createBitFlag() {
+                var inst = Minecraft.getInstance();
+                return createBitFlag(inst.hasShiftDown(), inst.hasControlDown(), inst.hasAltDown());
+            }
+
+            @Override
+            public int createBitFlag(boolean hasShift, boolean hasControl, boolean hasAlt) {
+                return (hasShift ? GLFW.GLFW_MOD_SHIFT : 0)
+                    | (hasControl ? EDIT_SHORTCUT_KEY_MODIFIER : 0)
+                    | (hasAlt ? GLFW.GLFW_MOD_ALT : 0);
             }
         });
 
@@ -308,25 +331,66 @@ public class AccessoriesClient {
         initLayer();
     }
 
-    public static void openScreenFromKey() {
+    public static boolean isInventoryKey(Predicate<KeyMapping> predicate) {
+        return predicate.test(OPEN_SCREEN) || predicate.test(OPEN_OTHERS_SCREEN);
+    }
+
+    public static void handleKeyMappings(Minecraft client) {
+        while (AccessoriesClient.OPEN_SCREEN.consumeClick()){
+            var player = client.player;
+
+            if (Accessories.config().screenOptions.prioritizeCreativeScreen() && player != null && player.isCreative()) {
+                if (client.gameMode.isServerControlledInventory()) {
+                    player.sendOpenInventory();
+                } else {
+                    client.getTutorial().onOpenInventory();
+                    client.setScreen(new InventoryScreen(player));
+                }
+
+                return;
+            }
+
+            AccessoriesClient.openScreenFromKey(AccessoriesClient.OPEN_SCREEN);
+        }
+
+        if (!AccessoriesClient.OPEN_OTHERS_SCREEN.same(AccessoriesClient.OPEN_SCREEN)) {
+            while (AccessoriesClient.OPEN_OTHERS_SCREEN.consumeClick()){
+                AccessoriesClient.openScreenFromKey(AccessoriesClient.OPEN_OTHERS_SCREEN);
+            }
+        }
+    }
+
+    public static void openScreenFromKey(KeyMapping keyMapping) {
         var minecraft = Minecraft.getInstance();
         var currentScreen = minecraft.screen;
 
         if (currentScreen instanceof AccessoriesScreenBase) {
             minecraft.setScreen(null);
         } else if (currentScreen == null) {
-            AccessoriesClient.attemptToOpenScreen(minecraft.player.isShiftKeyDown() ? EntityTarget.LOOKING_ENTITY : EntityTarget.PLAYER);
-        } else {
-            LivingEntity targetEntity = null;
+            EntityTarget target;
 
-            if (currentScreen instanceof AbstractContainerScreen<?> containerScreen) {
-                targetEntity = AccessoriesScreenTransitionHelper.getTargetEntity((AbstractContainerScreen<AbstractContainerMenu>) containerScreen);
+            if (keyMapping == OPEN_OTHERS_SCREEN) {
+                target = EntityTarget.LOOKING_ENTITY;
+            } else if (!OPEN_SCREEN.same(OPEN_OTHERS_SCREEN)) {
+                target = EntityTarget.PLAYER;
+            } else {
+                target = minecraft.player.isShiftKeyDown() ? EntityTarget.LOOKING_ENTITY : EntityTarget.PLAYER;
             }
 
-            if (targetEntity == null) targetEntity = minecraft.player;
-
-            AccessoriesClient.attemptToOpenScreenFromEntity(targetEntity);
+            AccessoriesClient.attemptToOpenScreen(target);
         }
+        // TODO: REMOVE AFTER MORE THINKING AS THIS KIND OF DOSE NOT MAKE SENSE AND WILL MOST LIKELY NOT BE AS USEFUL BUT MUST THINK ABOUT SUCH A BIT
+//        else {
+//            LivingEntity targetEntity = null;
+//
+//            if (currentScreen instanceof AbstractContainerScreen<?> containerScreen) {
+//                targetEntity = AccessoriesScreenTransitionHelper.getTargetEntity((AbstractContainerScreen<AbstractContainerMenu>) containerScreen);
+//            }
+//
+//            if (targetEntity == null) targetEntity = minecraft.player;
+//
+//            AccessoriesClient.attemptToOpenScreenFromEntity(targetEntity);
+//        }
     }
 
     private static void attemptAction(Consumer<AccessoriesPlayerOptionsHolder> consumer) {
@@ -381,9 +445,7 @@ public class AccessoriesClient {
                 : AccessoriesScreenTransitionHelper.getTargetEntity(player);
 
         if(targetEntity == null) {
-            if (entityTarget.equals(EntityTarget.PLAYER)){
-                return attemptToOpenScreenFromEntity(player);
-            } else if (entityTarget.equals(EntityTarget.LOOKING_ENTITY)) {
+            if (entityTarget.equals(EntityTarget.LOOKING_ENTITY)) {
                 var result = ProjectileUtil.getHitResultOnViewVector(player, e -> e instanceof LivingEntity, player.entityInteractionRange());
 
                 if (result instanceof EntityHitResult entitResult && entitResult.getEntity() instanceof LivingEntity living) {
@@ -392,9 +454,11 @@ public class AccessoriesClient {
             }
         }
 
-        if (targetEntity != null && !EntitySlotLoader.getEntitySlots(targetEntity).isEmpty()) return attemptToOpenScreenFromEntity(targetEntity);
+        if (targetEntity == null || entityTarget.equals(EntityTarget.PLAYER)){
+            return attemptToOpenScreenFromEntity(player);
+        }
 
-        return false;
+        return !EntitySlotLoader.getEntitySlots(targetEntity).isEmpty() && attemptToOpenScreenFromEntity(targetEntity);
     }
 
     public static boolean attemptToOpenScreenFromEntity(LivingEntity targetingEntity) {

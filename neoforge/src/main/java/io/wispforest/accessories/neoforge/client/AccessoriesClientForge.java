@@ -90,23 +90,7 @@ public class AccessoriesClientForge {
     }
 
     public static void clientTick(ClientTickEvent.Pre event) {
-        if (AccessoriesClient.OPEN_SCREEN.consumeClick()) {
-            var client = Minecraft.getInstance();
-            var player = client.player;
-
-            if (Accessories.config().screenOptions.prioritizeCreativeScreen() && player != null && player.isCreative()) {
-                if (client.gameMode.isServerControlledInventory()) {
-                    player.sendOpenInventory();
-                } else {
-                    client.getTutorial().onOpenInventory();
-                    client.setScreen(new InventoryScreen(player));
-                }
-
-                return;
-            }
-
-            AccessoriesClient.openScreenFromKey();
-        }
+        AccessoriesClient.handleKeyMappings(Minecraft.getInstance());
     }
 
     public static void itemTooltipCallback(ItemTooltipEvent event) {

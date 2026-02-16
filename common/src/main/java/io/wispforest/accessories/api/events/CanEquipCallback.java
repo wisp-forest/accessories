@@ -1,6 +1,7 @@
 package io.wispforest.accessories.api.events;
 
 import io.wispforest.accessories.api.action.ActionResponseBuffer;
+import io.wispforest.accessories.api.action.ValidationState;
 import io.wispforest.accessories.api.core.AccessoryNestUtils;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
@@ -26,7 +27,7 @@ public interface CanEquipCallback {
         canEquipCallback -> (stack, reference, callback) -> {
             var result = canEquipCallback.canEquip(stack, reference);
 
-            if (result != TriState.DEFAULT) callback.respondWith(new UnknownResponse(result.get()));
+            if (result != TriState.DEFAULT) callback.respondWith(new UnknownResponse(ValidationState.of(result)));
         },
         canEquipCallbackEvent -> {
             return (stack, reference) -> {
@@ -34,7 +35,7 @@ public interface CanEquipCallback {
 
                 canEquipCallbackEvent.invoker().canEquip(stack, reference, buffer);
 
-                return buffer.canPerformAction();
+                return buffer.canPerformAction().toTriState();
             };
         }
     );

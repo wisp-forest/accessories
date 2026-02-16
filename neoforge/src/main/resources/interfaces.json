@@ -6,6 +6,6 @@
     "io/wispforest/accessories/pond/AccessoriesRenderStateAPI"
   ],
   "net/minecraft/world/item/TooltipFlag": [
-    "io/wispforest/accessories/pond/TooltipFlagExtension"
+    "io/wispforest/accessories/pond/TooltipFlagExtended"
   ]
 }

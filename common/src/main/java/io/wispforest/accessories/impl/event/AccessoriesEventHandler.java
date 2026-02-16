@@ -38,6 +38,7 @@ import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.networking.client.SyncPlayerOptions;
 import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
+import io.wispforest.accessories.pond.TooltipFlagExtended;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.owo.serialization.RegistriesAttribute;
@@ -474,15 +475,16 @@ public class AccessoriesEventHandler {
         AccessoryChangeCallback.EVENT.invoker().onChange(lastStack, currentStack, slotReference, stateChange);
     }
 
-    public static void getTooltipData(@Nullable LivingEntity entity, ItemStack stack, List<Component> tooltip,TooltipDisplay display, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
+    public static void getTooltipData(@Nullable LivingEntity entity, ItemStack stack, List<Component> tooltip, TooltipDisplay display, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
         var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
         if (accessory != null) {
             // Add possible client values to tooltipFlag
-            tooltipType = AccessoriesClientInternals.getInstance().createTooltipFlag(tooltipType);
+            tooltipType = ((io.wispforest.accessories.pond.TooltipFlagExtended) tooltipType).withMask();
 
-            if (entity != null && AccessoriesCapability.get(entity) != null)
+            if (entity != null && AccessoriesCapability.get(entity) != null) {
                 addEntityBasedTooltipData(entity, accessory, stack, tooltip, display, tooltipContext, tooltipType);
+            }
 
             accessory.getExtraTooltip(stack, tooltip, tooltipContext, tooltipType);
         }
@@ -559,7 +561,7 @@ public class AccessoriesEventHandler {
                 }
             }
 
-            validSlotTypes.addAll (validUniqueSlots);
+            validSlotTypes.addAll(validUniqueSlots);
 
             final var filteredValidUniqueSlots = validUniqueSlots.stream()
                     .filter(slotType -> ExtraSlotTypeProperties.getProperty(slotType.name(), true).allowTooltipInfo())
@@ -583,9 +585,9 @@ public class AccessoriesEventHandler {
                 var slotTranslationKey = "slot.tooltip." + ((validSlotTypes.size() > 1 && !allSlots) ? "plural" : "singular");
 
                 slotInfoComponent.append(
-                        Component.translatable(Accessories.translationKey(slotTranslationKey))
-                                .withStyle(ChatFormatting.GRAY)
-                                .append(slotsComponent.withStyle(ChatFormatting.BLUE))
+                    Component.translatable(Accessories.translationKey(slotTranslationKey))
+                        .withStyle(ChatFormatting.GRAY)
+                        .append(slotsComponent.withStyle(ChatFormatting.BLUE))
                 );
 
                 tooltip.add(slotInfoComponent);

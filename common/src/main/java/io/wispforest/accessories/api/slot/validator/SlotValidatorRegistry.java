@@ -2,12 +2,10 @@ package io.wispforest.accessories.api.slot.validator;
 
 import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.api.AccessoriesCapability;
-import io.wispforest.accessories.api.action.ActionResponse;
-import io.wispforest.accessories.api.action.ActionResponseBuffer;
-import io.wispforest.accessories.api.action.TagValidationResponse;
+import io.wispforest.accessories.api.action.*;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
+import io.wispforest.accessories.api.components.AccessorySlotValidationComponent;
 import io.wispforest.accessories.api.core.Accessory;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.data.AccessoriesBaseData;
@@ -16,31 +14,25 @@ import io.wispforest.accessories.api.slot.*;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoryAttributeLogic;
-import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentUtils;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 public class SlotValidatorRegistry {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private static final Map<ResourceLocation, SlotValidator> PREDICATES = new HashMap<>();
+    private static final Map<Identifier, SlotValidator> PREDICATES = new HashMap<>();
 
-    public static void register(ResourceLocation location, SlotValidator predicate) {
+    public static void register(Identifier location, SlotValidator predicate) {
         if(PREDICATES.containsKey(location)) {
             LOGGER.warn("[AccessoriesAPI]: A SlotValidator attempted to be registered but a duplicate entry existed already! [Id: {}]", location);
 
@@ -51,10 +43,10 @@ public class SlotValidatorRegistry {
     }
 
     /**
-     * @return {@link SlotValidator} bound to the given {@link ResourceLocation} or an Empty {@link Optional} if absent
+     * @return {@link SlotValidator} bound to the given {@link Identifier} or an Empty {@link Optional} if absent
      */
     @Nullable
-    public static SlotValidator getPredicate(ResourceLocation location) {
+    public static SlotValidator getPredicate(Identifier location) {
         return PREDICATES.get(location);
     }
 
@@ -74,14 +66,12 @@ public class SlotValidatorRegistry {
         return getPredicateResults(slotType.validators(), reference.entity().level(), reference.entity(), slotType, 0, stack) && AccessoryRegistry.canEquip(stack, reference);
     }
 
-    public static ActionResponseBuffer canInsertIntoSlotResponse(ItemStack stack, SlotReference reference){
+    public static ActionResponseBuffer canInsertIntoSlotResponse(ItemStack stack, SlotReference reference, ActionResponseBuffer buffer){
         var slotType = reference.type();
 
         if(slotType == null) {
             throw new IllegalStateException("Unable to get the needed SlotType from the SlotReference passed within `canInsertIntoSlot`! [Name: " + reference.slotName() + "]");
         }
-
-        var buffer = new ActionResponseBuffer(false);
 
         getPredicateResponse(slotType.validators(), reference.entity().level(), reference.entity(), slotType, 0, stack, buffer);
 
@@ -159,17 +149,17 @@ public class SlotValidatorRegistry {
         return validSlots;
     }
 
-    public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, Level level, SlotType slotType, int index, ItemStack stack){
+    public static boolean getPredicateResults(Set<Identifier> predicateIds, Level level, SlotType slotType, int index, ItemStack stack){
         return getPredicateResults(predicateIds, level, null, slotType, index, stack);
     }
 
-    public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, Level level, @Nullable LivingEntity entity, SlotType slotType, int index, ItemStack stack){
+    public static boolean getPredicateResults(Set<Identifier> predicateIds, Level level, @Nullable LivingEntity entity, SlotType slotType, int index, ItemStack stack){
         return getPredicateResponse(predicateIds, level, entity, slotType, index, stack, new ActionResponseBuffer(true))
             .canPerformAction()
-            .orElse(false);
+            .isValid(false);
     }
 
-    public static ActionResponseBuffer getPredicateResponse(Set<ResourceLocation> predicateIds, Level level, @Nullable LivingEntity entity, SlotType slotType, int index, ItemStack stack, ActionResponseBuffer buffer){
+    public static ActionResponseBuffer getPredicateResponse(Set<Identifier> predicateIds, Level level, @Nullable LivingEntity entity, SlotType slotType, int index, ItemStack stack, ActionResponseBuffer buffer){
         for (var predicateId : predicateIds) {
             var predicate = getPredicate(predicateId);
 
@@ -181,14 +171,14 @@ public class SlotValidatorRegistry {
                 predicate.isValidForSlot(level, slotType, index, stack, buffer);
             }
 
-            if(buffer.canPerformAction() != TriState.DEFAULT) break;
+            if(buffer.canPerformAction() != ValidationState.IRRELEVANT) break;
         }
 
         return buffer;
     }
 
     private static TagKey<Item> getSlotTag(SlotType slotType) {
-        var location = UniqueSlotHandling.isUniqueSlot(slotType.name()) ? ResourceLocation.parse(slotType.name()) : Accessories.of(slotType.name());
+        var location = UniqueSlotHandling.isUniqueSlot(slotType.name()) ? Identifier.parse(slotType.name()) : Accessories.of(slotType.name());
 
         return TagKey.create(Registries.ITEM, location);
     }
@@ -201,54 +191,28 @@ public class SlotValidatorRegistry {
             buffer.respondWith(SlotValidatorReasons.ALWAYS_INVALID);
         });
         register(AccessoriesBaseData.TAG_PREDICATE_ID, (level, slotType, i, stack, buffer) -> {
-            buffer.respondWith(new TagValidationResponse<>(stack.getItemHolder(), List.of(getSlotTag(slotType), AccessoriesTags.ANY_TAG)) {
-                @Override
-                public void gatherReason(Consumer<Component> messageAdditionCallback, Item.TooltipContext ctx, TooltipFlag type) {
-                    var baseMessage = canPerformAction
-                        ? Component.literal("Stack is valid for the given Group.")
-                        : Component.literal("Stack is invalid for the given Group.");
-
-                    if (type.isAdvanced() || type.hasShiftDown()) {
-                        baseMessage.append(
-                            Component.literal(" The Tag Groups that fit are: ")
-                                .append(ComponentUtils.formatList(this.getTags(), Component.literal(", "), tag -> {
-                                    return Component.translatable(AccessoriesInternals.INSTANCE.getTagTranslation(tag));
-                                }))
-                        );
-                    }
-
-                    messageAdditionCallback.accept(baseMessage);
-                }
-            });
+            buffer.respondWith(new TagValidationResponse<>(stack.getItem().builtInRegistryHolder(), List.of(getSlotTag(slotType), AccessoriesTags.ANY_TAG), TagValidationResponse.ANY_MATCH));
         });
         register(AccessoriesBaseData.ATTRIBUTE_PREDICATE_ID, SlotValidator.withEntity((entity, level, slotType, index, stack, buffer) -> {
             var bl = !AccessoryAttributeLogic.getAttributeModifiers(stack, entity, slotType.name(), index)
                 .getAttributeModifiers(false, true)
                 .isEmpty();
 
-            if (!bl) return;
+            buffer.respondWith(ActionResponse.of(ValidationState.ofOrIrrelevant(bl), (callback, ctx, type) -> {
+                var infoType = (bl ? "include" : "excludes");
 
-            buffer.respondWith(ActionResponse.of(true, Component.literal("Given accessory was found to have a attribute belonging to the slot.")));
+
+                if (type.isAdvanced() || ((io.wispforest.accessories.pond.TooltipFlagExtended) type).hasShiftDown()) {
+                    callback.add(Accessories.translation("tooltip.validator.attribute.simple", infoType));
+                }
+            }));
         }));
         register(AccessoriesBaseData.COMPONENT_PREDICATE_ID, (level, slotType, index, stack, buffer) -> {
-            if(!stack.has(AccessoriesDataComponents.SLOT_VALIDATION)) return;
+            var slotValidationData = stack.getOrDefault(AccessoriesDataComponents.SLOT_VALIDATION, AccessorySlotValidationComponent.EMPTY);
 
-            var slotValidationData = stack.get(AccessoriesDataComponents.SLOT_VALIDATION);
-            var name = slotType.name();
+            if (slotValidationData.isEmpty()) return;
 
-            //--
-
-            var invalidSlots = slotValidationData.invalidSlotOverrides();
-
-            if (invalidSlots.contains(name)) {
-                buffer.respondWith(ActionResponse.of(false, Component.literal("Unable to equip the given Accessory as its blacklisted for this slot!")));
-            }
-
-            var validSlots = slotValidationData.validSlotOverrides();
-
-            if (validSlots.contains(name) || validSlots.contains(AccessoriesBaseData.ANY_SLOT)) {
-                buffer.respondWith(ActionResponse.of(true, Component.literal("Was able to equip the given Accessory as its blacklisted for this slot!")));
-            }
+            buffer.respondWith(new SlotValidationResponse(slotType.name(), slotValidationData.validSlotOverrides(), slotValidationData.invalidSlotOverrides()));
         });
     }
 }

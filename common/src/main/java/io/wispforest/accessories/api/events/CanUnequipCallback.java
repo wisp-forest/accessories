@@ -1,6 +1,7 @@
 package io.wispforest.accessories.api.events;
 
 import io.wispforest.accessories.api.action.ActionResponseBuffer;
+import io.wispforest.accessories.api.action.ValidationState;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.slot.SlotReference;
 import io.wispforest.accessories.impl.core.UnknownResponse;
@@ -25,7 +26,7 @@ public interface CanUnequipCallback {
         canEquipCallback -> (stack, reference, callback) -> {
             var result = canEquipCallback.canUnequip(stack, reference);
 
-            if (result != TriState.DEFAULT) callback.respondWith(new UnknownResponse(result.get()));
+            if (result != TriState.DEFAULT) callback.respondWith(new UnknownResponse(ValidationState.of(result)));
         },
         canEquipCallbackEvent -> {
             return (stack, reference) -> {
@@ -33,7 +34,7 @@ public interface CanUnequipCallback {
 
                 canEquipCallbackEvent.invoker().canUnequip(stack, reference, buffer);
 
-                return buffer.canPerformAction();
+                return buffer.canPerformAction().toTriState();
             };
         }
     );

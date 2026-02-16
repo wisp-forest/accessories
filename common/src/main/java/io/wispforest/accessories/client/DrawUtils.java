@@ -72,7 +72,7 @@ public class DrawUtils {
         var gfxAccess = (GuiGraphicsAccess) (Object) guiGraphics;
         var scissorRect = gfxAccess.accessories$scissorStack().peek();
 
-        // TODO: SEEMS BROKEN WHEN ANYTHING IS MANIPULATION THE MATRIX STACK SOOOOOO
+        // TODO: SEEMS BROKEN WHEN ANYTHING IS MANIPULATING THE MATRIX STACK SOOOOOO
         gfxAccess.accessories$guiRenderState().addGuiElement(
             new GradientQuadElementRenderState(
                 OwoUIPipelines.GUI_HSV,
