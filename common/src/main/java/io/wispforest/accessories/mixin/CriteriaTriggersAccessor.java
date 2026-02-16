@@ -7,7 +7,6 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(CriteriaTriggers.class)
 public interface CriteriaTriggersAccessor {
-
     @Invoker("register")
     static <T extends CriterionTrigger<?>> T accessories$callRegister(String name, T trigger) {
         throw new UnsupportedOperationException();

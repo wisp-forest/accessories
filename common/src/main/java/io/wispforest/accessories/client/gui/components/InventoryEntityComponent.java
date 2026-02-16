@@ -232,6 +232,11 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
                 entityState.nameTagAttachment = null;
             }
 
+            entityState.lightCoords = 15728880;
+            entityState.hitboxesRenderState = null;
+            entityState.shadowPieces.clear();
+            entityState.outlineColor = 0;
+
             context.guiRenderState.submitPicturesInPictureState(new EntityElementRenderState(
                 entityState,
                 matrix,

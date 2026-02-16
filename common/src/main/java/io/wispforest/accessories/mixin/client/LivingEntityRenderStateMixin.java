@@ -10,7 +10,6 @@ import org.spongepowered.asm.mixin.Unique;
 
 @Mixin(LivingEntityRenderState.class)
 public abstract class LivingEntityRenderStateMixin implements AccessoriesRenderStateAPImpl {
-
     @Unique
     private final Reference2ObjectMap<ContextKey<?>, Object> keyToData = new Reference2ObjectOpenHashMap<>();
 

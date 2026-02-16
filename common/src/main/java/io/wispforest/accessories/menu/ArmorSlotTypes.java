@@ -44,12 +44,16 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
 
     public static final ArmorSlotTypes INSTANCE = new ArmorSlotTypes();
 
-    private static final ResourceLocation HEAD_PREDICATE_LOCATION = Accessories.of("head");
-    private static final ResourceLocation CHEST_PREDICATE_LOCATION = Accessories.of("chest");
-    private static final ResourceLocation LEGS_PREDICATE_LOCATION = Accessories.of("legs");
-    private static final ResourceLocation FEET_PREDICATE_LOCATION = Accessories.of("feet");
-    private static final ResourceLocation ANIMAL_BODY_PREDICATE_LOCATION  = Accessories.of("animal_body");
-    private static final ResourceLocation SADDLE_PREDICATE_LOCATION  = Accessories.of("saddle");
+    private static final ResourceLocation HEAD_PREDICATE_LOCATION = of("head");
+    private static final ResourceLocation CHEST_PREDICATE_LOCATION = of("chest");
+    private static final ResourceLocation LEGS_PREDICATE_LOCATION = of("legs");
+    private static final ResourceLocation FEET_PREDICATE_LOCATION = of("feet");
+    private static final ResourceLocation ANIMAL_BODY_PREDICATE_LOCATION  = of("animal_body");
+    private static final ResourceLocation SADDLE_PREDICATE_LOCATION  = of("saddle");
+
+    public static ResourceLocation of(String path) {
+        return ResourceLocation.fromNamespaceAndPath(Accessories.MODID + "_" + "cosmetics", path);
+    }
 
     private SlotTypeReference headSlotReference = null;
     private SlotTypeReference chestSlotReference = null;
@@ -143,7 +147,7 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
 
     @Override
     public void registerSlots(UniqueSlotHandling.UniqueSlotBuilderFactory factory) {
-        headSlotReference = factory.create(Accessories.of("head"), 1)
+        headSlotReference = factory.create(of("head"), 1)
                 .allowTooltipInfo(false)
                 .slotPredicates(HEAD_PREDICATE_LOCATION)
                 .strictMode(StrictMode.PARTIAL)
@@ -151,7 +155,7 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
                 .allowEquipFromUse(false)
                 .build();
 
-        chestSlotReference = factory.create(Accessories.of("chest"), 1)
+        chestSlotReference = factory.create(of("chest"), 1)
                 .allowTooltipInfo(false)
                 .slotPredicates(CHEST_PREDICATE_LOCATION)
                 .strictMode(StrictMode.PARTIAL)
@@ -159,7 +163,7 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
                 .allowEquipFromUse(false)
                 .build();
 
-        legsSlotReference = factory.create(Accessories.of("legs"), 1)
+        legsSlotReference = factory.create(of("legs"), 1)
                 .allowTooltipInfo(false)
                 .slotPredicates(LEGS_PREDICATE_LOCATION)
                 .strictMode(StrictMode.PARTIAL)
@@ -167,7 +171,7 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
                 .allowEquipFromUse(false)
                 .build();
 
-        feetSlotReference = factory.create(Accessories.of("feet"), 1)
+        feetSlotReference = factory.create(of("feet"), 1)
                 .allowTooltipInfo(false)
                 .slotPredicates(FEET_PREDICATE_LOCATION)
                 .strictMode(StrictMode.PARTIAL)
@@ -175,7 +179,7 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
                 .allowEquipFromUse(false)
                 .build();
 
-        animalBodySlotReference = factory.create(Accessories.of("animal_body"), 1)
+        animalBodySlotReference = factory.create(of("animal_body"), 1)
                 .allowTooltipInfo(false)
                 .slotPredicates(ANIMAL_BODY_PREDICATE_LOCATION)
                 .strictMode(StrictMode.PARTIAL)
@@ -183,7 +187,7 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
                 .allowEquipFromUse(false)
                 .build();
 
-        saddleSlotReference = factory.create(Accessories.of("saddle"), 1)
+        saddleSlotReference = factory.create(of("saddle"), 1)
                 .allowTooltipInfo(false)
                 .slotPredicates(SADDLE_PREDICATE_LOCATION)
                 .strictMode(StrictMode.PARTIAL)

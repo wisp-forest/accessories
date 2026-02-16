@@ -4,7 +4,6 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
-import io.wispforest.accessories.AccessoriesInternals;
 import io.wispforest.accessories.mixin.SimpleJsonResourceReloadListenerAccessor;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
@@ -110,7 +109,7 @@ public abstract class EndecDataLoader<T> extends SimpleJsonResourceReloadListene
 
     @ApiStatus.Internal
     private DelegatingCodec<T> getCodec() {
-        return ((DelegatingCodec<T>) ((SimpleJsonResourceReloadListenerAccessor<T>) this).getCodec());
+        return ((DelegatingCodec<T>) ((SimpleJsonResourceReloadListenerAccessor<T>) this).accessories$getCodec());
     }
 
     @Override

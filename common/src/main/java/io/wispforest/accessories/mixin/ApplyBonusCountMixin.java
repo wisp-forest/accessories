@@ -11,17 +11,18 @@ import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
 @Mixin(ApplyBonusCount.class)
 public abstract class ApplyBonusCountMixin {
-
-    @Shadow @Final private Holder<Enchantment> enchantment;
+    @Accessor("enchantment")
+    public abstract Holder<Enchantment> accessories$enchantment();
 
     @ModifyArg(method = "run", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/storage/loot/functions/ApplyBonusCount$Formula;calculateNewCount(Lnet/minecraft/util/RandomSource;II)I"), index = 2)
     private int test(int value, @Local(argsOnly = true) LootContext context){
-        return (this.enchantment.value() == context.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getValueOrThrow(Enchantments.FORTUNE))
+        return (this.accessories$enchantment().value() == context.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getValueOrThrow(Enchantments.FORTUNE))
                 ? ExtraEventHandler.fortuneAdjustment(context, value)
                 : value;
     }

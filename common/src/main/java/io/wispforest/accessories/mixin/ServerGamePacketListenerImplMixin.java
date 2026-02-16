@@ -9,11 +9,12 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(ServerGamePacketListenerImpl.class)
 public abstract class ServerGamePacketListenerImplMixin {
-    @Shadow public abstract ServerPlayer getPlayer();
+    @Accessor("player")
+    public abstract ServerPlayer accessories$player();
 
     @WrapMethod(
             method = {
@@ -23,9 +24,9 @@ public abstract class ServerGamePacketListenerImplMixin {
             }
     )
     private void accessories$transferStack(ServerboundPlayerCommandPacket packet, Operation<Void> original) {
-        PacketUtils.ensureRunningOnSameThread(packet, (ServerGamePacketListenerImpl) (Object) this, this.getPlayer().level());
+        PacketUtils.ensureRunningOnSameThread(packet, (ServerGamePacketListenerImpl) (Object) this, this.accessories$player().level());
 
-        var currentContainerMenu = this.getPlayer().containerMenu;
+        var currentContainerMenu = this.accessories$player().containerMenu;
 
         if (packet.getAction().equals(ServerboundPlayerCommandPacket.Action.OPEN_INVENTORY) && currentContainerMenu instanceof AccessoriesMenuBase) {
             var carriedStack = currentContainerMenu.getCarried();
@@ -34,13 +35,13 @@ public abstract class ServerGamePacketListenerImplMixin {
 
             original.call(packet);
 
-            var newMenu = this.getPlayer().containerMenu;
+            var newMenu = this.accessories$player().containerMenu;
 
             if (newMenu != currentContainerMenu) {
                 if (newMenu.getCarried().isEmpty()) {
                     newMenu.setCarried(carriedStack);
                 } else {
-                    this.getPlayer().handleExtraItemsCreatedOnUse(carriedStack);
+                    this.accessories$player().handleExtraItemsCreatedOnUse(carriedStack);
                 }
             } else {
                 currentContainerMenu.setCarried(carriedStack);

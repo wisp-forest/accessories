@@ -58,7 +58,7 @@ public class BuiltinAccessoryRenderers {
 
             var equipmentSlot = stack.get(DataComponents.EQUIPPABLE).slot();
 
-            var possibleLayer = accessor.getLayers().stream()
+            var possibleLayer = accessor.accessories$getLayers().stream()
                     .filter(renderLayer -> renderLayer instanceof HumanoidArmorLayer<?,?,?>)
                     .findFirst();
 
@@ -100,7 +100,7 @@ public class BuiltinAccessoryRenderers {
 
             if (!(stack.has(DataComponents.GLIDER))) return;
 
-            var possibleLayer = accessor.getLayers().stream()
+            var possibleLayer = accessor.accessories$getLayers().stream()
                     .filter(renderLayer -> renderLayer instanceof WingsLayer<?,?>)
                     .findFirst();
 

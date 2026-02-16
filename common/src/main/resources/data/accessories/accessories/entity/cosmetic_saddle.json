@@ -4,6 +4,6 @@
     "#accessories:cosmetic_saddle_targets"
   ],
   "slots": [
-    "accessories:saddle"
+    "accessories_cosmetics:saddle"
   ]
 }

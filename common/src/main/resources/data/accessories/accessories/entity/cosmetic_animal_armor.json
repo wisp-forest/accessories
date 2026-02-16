@@ -4,6 +4,6 @@
     "#accessories:cosmetic_animal_armor_targets"
   ],
   "slots": [
-    "accessories:animal_body"
+    "accessories_cosmetics:animal_body"
   ]
 }

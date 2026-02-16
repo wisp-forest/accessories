@@ -12,7 +12,6 @@ import java.util.function.Consumer;
 
 @Mixin(LoadingOverlay.class)
 public abstract class LoadingOverlayMixin {
-
     @ModifyVariable(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/screens/Overlay;<init>()V", shift = At.Shift.AFTER), argsOnly = true)
     private Consumer<Optional<Throwable>> addEventHook(Consumer<Optional<Throwable>> value) {
         return (throwable) -> {

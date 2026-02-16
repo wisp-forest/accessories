@@ -233,6 +233,9 @@ public class ExpandedContainer extends BaseContainer {
 
                             if (cache != null) cache.invalidateLookupData(this.container.getSlotName(), stack1, types);
                         }
+
+                        // TODO: MAYBE ADJUST FLAGGING SYSTEM TO INDICATE TYPE OF MUTATION FOUND INSTEAD OF COPING STACK?
+                        this.setPreviousItem(slot, stack1.copy());
                     })
             );
 
@@ -241,6 +244,9 @@ public class ExpandedContainer extends BaseContainer {
                         if (stack1.isEmpty()) {
                             this.setItem(slot, ItemStack.EMPTY);
                         }
+
+                        // TODO: MAYBE ADJUST FLAGGING SYSTEM TO INDICATE TYPE OF MUTATION FOUND INSTEAD OF COPING STACK?
+                        this.setPreviousItem(slot, stack1.copyWithCount(prevSize));
                     })
             );
         }

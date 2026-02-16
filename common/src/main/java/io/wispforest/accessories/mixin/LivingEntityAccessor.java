@@ -7,5 +7,5 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 
 @Mixin(LivingEntity.class)
 public interface LivingEntityAccessor {
-    @Invoker("breakItem") public void accessors$breakItem(ItemStack stack);
+    @Invoker("breakItem") void accessors$breakItem(ItemStack stack);
 }

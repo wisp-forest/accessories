@@ -131,7 +131,7 @@ public class AccessoriesCommands implements CommandTreeGenerator.Branched {
         if (type instanceof IntegerArgumentType) return IntegerArgumentType::getInteger;
         if (type instanceof ResourceExtendedArgument<?>) return ResourceExtendedArgument::getResource;
         if (type instanceof ResourceArgument<?> resourceArgument) {
-            var key = (ResourceKey<Registry<Object>>) ((ResourceArgumentAccessor<?>) resourceArgument).registryKey();
+            var key = (ResourceKey<Registry<Object>>) ((ResourceArgumentAccessor<?>) resourceArgument).accessories$registryKey();
             return (ctx, name) -> ResourceArgument.getResource(ctx, name, key);
         }
         if (type instanceof AccessoriesMixedSlotArgument) return AccessoriesMixedSlotArgument::getSlot;

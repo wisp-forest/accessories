@@ -12,5 +12,5 @@ import java.util.List;
 
 @Mixin(LivingEntityRenderer.class)
 public interface LivingEntityRendererAccessor<T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<? super S>> {
-    @Accessor("layers") List<RenderLayer<S, M>> getLayers();
+    @Accessor("layers") List<RenderLayer<S, M>> accessories$getLayers();
 }

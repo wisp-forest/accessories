@@ -105,8 +105,8 @@ object RunConfigurationUtils {
         if (this.currentPlatform != "neoforge") return
 
         settings.mods {
-            create("${rootProject.property("test_mod_id")}") { sourceSet(this@setupTestMod.sourceSets["testmod"]) }
-            create("${rootProject.property("mod_id")}") { sourceSet(this@setupTestMod.sourceSets["main"]) }
+            create("${rootProject.property("test_mod_id")}".replace("-", "_")) { sourceSet(this@setupTestMod.sourceSets["testmod"]) }
+            create("${rootProject.property("mod_id")}".replace("-", "_")) { sourceSet(this@setupTestMod.sourceSets["main"]) }
         }
     }
 
