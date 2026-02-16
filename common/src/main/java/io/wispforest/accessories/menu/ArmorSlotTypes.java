@@ -1,14 +1,16 @@
 package io.wispforest.accessories.menu;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.action.ActionResponse;
+import io.wispforest.accessories.api.action.ActionResponseBuffer;
 import io.wispforest.accessories.api.core.Accessory;
-import io.wispforest.accessories.api.slot.EntityBasedPredicate;
-import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.api.slot.validator.EntitySlotValidator;
+import io.wispforest.accessories.api.slot.validator.SlotValidatorRegistry;
 import io.wispforest.accessories.impl.slot.StrictMode;
-import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -135,12 +137,12 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
     public void init() {
         UniqueSlotHandling.EVENT.register(this);
 
-        SlotPredicateRegistry.register(HEAD_PREDICATE_LOCATION, (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.HEAD)));
-        SlotPredicateRegistry.register(CHEST_PREDICATE_LOCATION, (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.CHEST)));
-        SlotPredicateRegistry.register(LEGS_PREDICATE_LOCATION,  (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.LEGS)));
-        SlotPredicateRegistry.register(FEET_PREDICATE_LOCATION,  (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.FEET)));
-        SlotPredicateRegistry.register(ANIMAL_BODY_PREDICATE_LOCATION,  (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.BODY)));
-        SlotPredicateRegistry.register(SADDLE_PREDICATE_LOCATION,  (EntityBasedPredicate) ((level, entity, slotType, slot, stack) -> isValid(entity, stack, EquipmentSlot.SADDLE)));
+        SlotValidatorRegistry.register(HEAD_PREDICATE_LOCATION, (EntitySlotValidator) ((entity, level, slotType, slot, stack, buffer) -> isValid(entity, stack, EquipmentSlot.HEAD, buffer)));
+        SlotValidatorRegistry.register(CHEST_PREDICATE_LOCATION, (EntitySlotValidator) ((entity, level, slotType, slot, stack, buffer) -> isValid(entity, stack, EquipmentSlot.CHEST, buffer)));
+        SlotValidatorRegistry.register(LEGS_PREDICATE_LOCATION,  (EntitySlotValidator) ((entity, level, slotType, slot, stack, buffer) -> isValid(entity, stack, EquipmentSlot.LEGS, buffer)));
+        SlotValidatorRegistry.register(FEET_PREDICATE_LOCATION,  (EntitySlotValidator) ((entity, level, slotType, slot, stack, buffer) -> isValid(entity, stack, EquipmentSlot.FEET, buffer)));
+        SlotValidatorRegistry.register(ANIMAL_BODY_PREDICATE_LOCATION,  (EntitySlotValidator) ((entity, level, slotType, slot, stack, buffer) -> isValid(entity, stack, EquipmentSlot.BODY, buffer)));
+        SlotValidatorRegistry.register(SADDLE_PREDICATE_LOCATION,  (EntitySlotValidator) ((entity, level, slotType, slot, stack, buffer) -> isValid(entity, stack, EquipmentSlot.SADDLE, buffer)));
     }
 
     @Override
@@ -194,7 +196,7 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
                 .build();
     }
 
-    private static TriState isValid(@Nullable LivingEntity livingEntity, ItemStack stack, EquipmentSlot equipmentSlot) {
+    private static void isValid(@Nullable LivingEntity livingEntity, ItemStack stack, EquipmentSlot equipmentSlot, ActionResponseBuffer buffer) {
         EquipmentSlot stackEquipmentSlot = null;
 
         if(livingEntity == null) {
@@ -205,7 +207,9 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
             stackEquipmentSlot = livingEntity.getEquipmentSlotForItem(stack);
         }
 
-        return equipmentSlot.equals(stackEquipmentSlot) ? TriState.TRUE : TriState.DEFAULT;
+        if (equipmentSlot.equals(stackEquipmentSlot)) {
+            buffer.respondWith(ActionResponse.of(true, Component.literal("Given stack fits within '" + equipmentSlot.getName() + "' slot.")));
+        }
     }
 
     @Nullable

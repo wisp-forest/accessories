@@ -1,10 +1,14 @@
 package io.wispforest.accessories.api.core;
 
+import io.wispforest.accessories.api.action.ActionResponseBuffer;
+import io.wispforest.accessories.api.action.ValidationState;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
-import io.wispforest.accessories.api.events.CanEquipCallback;
-import io.wispforest.accessories.api.events.CanUnequipCallback;
+import io.wispforest.accessories.api.events.v2.AllowEntityModificationCallback;
+import io.wispforest.accessories.api.events.v2.CanEquipCallback;
+import io.wispforest.accessories.api.events.v2.CanUnequipCallback;
 import io.wispforest.accessories.api.slot.SlotReference;
 import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.ApiStatus;
@@ -80,11 +84,17 @@ public class AccessoryRegistry {
      * @return if the stack can be equipped or not
      */
     public static boolean canEquip(ItemStack stack, SlotReference reference){
-        var result = CanEquipCallback.EVENT.invoker().canEquip(stack, reference);
+        var buffer = new ActionResponseBuffer(true);
 
-        if(!result.equals(TriState.DEFAULT)) return result.orElse(true);
+        CanEquipCallback.EVENT.invoker().canEquip(stack, reference, buffer);
 
-        return getAccessoryOrDefault(stack).canEquip(stack, reference);
+        var state = buffer.canPerformAction();
+
+        if(!state.equals(ValidationState.IRRELEVANT)) return state.isValid(true);
+
+        getAccessoryOrDefault(stack).canEquip(stack, reference, buffer);
+
+        return buffer.canPerformAction().isValid(true);
     }
 
     /**
@@ -95,12 +105,35 @@ public class AccessoryRegistry {
      * @return if the stack can be unequipped or not
      */
     public static boolean canUnequip(ItemStack stack, SlotReference reference){
-        var result = CanUnequipCallback.EVENT.invoker().canUnequip(stack, reference);
+        var buffer = new ActionResponseBuffer(true);
 
-        if(!result.equals(TriState.DEFAULT)) return result.orElse(true);
+        CanUnequipCallback.EVENT.invoker().canUnequip(stack, reference, buffer);
 
-        return getAccessoryOrDefault(stack).canUnequip(stack, reference);
+        var state = buffer.canPerformAction();
+
+        if(!state.equals(ValidationState.IRRELEVANT)) return state.isValid(true);
+
+        getAccessoryOrDefault(stack).canUnequip(stack, reference, buffer);
+
+        return buffer.canPerformAction().isValid(true);
     }
+
+    public static ActionResponseBuffer canEquipResponse(ItemStack stack, SlotReference reference, ActionResponseBuffer buffer){
+        CanEquipCallback.EVENT.invoker().canEquip(stack, reference, buffer);
+
+        getAccessoryOrDefault(stack).canEquip(stack, reference, buffer);
+
+        return buffer;
+    }
+
+    public static ActionResponseBuffer canUnequipResponse(ItemStack stack, SlotReference reference, ActionResponseBuffer buffer){
+        CanUnequipCallback.EVENT.invoker().canUnequip(stack, reference, buffer);
+
+        getAccessoryOrDefault(stack).canUnequip(stack, reference, buffer);
+
+        return buffer;
+    }
+
 
     //--
 

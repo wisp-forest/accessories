@@ -1,10 +1,11 @@
 package io.wispforest.testccessories.fabric;
 
-import io.wispforest.accessories.api.slot.SlotBasedPredicate;
-import io.wispforest.accessories.api.slot.SlotPredicateRegistry;
+import io.wispforest.accessories.api.action.ActionResponse;
 import io.wispforest.accessories.api.slot.SlotTypeReference;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
-import net.fabricmc.fabric.api.util.TriState;
+import io.wispforest.accessories.api.slot.validator.SlotValidator;
+import io.wispforest.accessories.api.slot.validator.SlotValidatorRegistry;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.EntityType;
@@ -20,10 +21,12 @@ public class UniqueSlotTest implements UniqueSlotHandling.RegistrationCallback {
     public static final UniqueSlotTest INSTANCE = new UniqueSlotTest();
 
     private UniqueSlotTest(){
-        SlotPredicateRegistry.register(slotPredicate1, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem1)));
-        SlotPredicateRegistry.register(slotPredicate2, SlotBasedPredicate.ofItem(item -> item.equals(TestItems.testItem2)));
-        SlotPredicateRegistry.register(slotPredicate3, (level, slotType, slot, stack) -> {
-            return (stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock().builtInRegistryHolder().is(BlockTags.BEDS)) ? TriState.TRUE : TriState.DEFAULT;
+        SlotValidatorRegistry.register(slotPredicate1, SlotValidator.ofItem(item -> item.equals(TestItems.testItem1)));
+        SlotValidatorRegistry.register(slotPredicate2, SlotValidator.ofItem(item -> item.equals(TestItems.testItem2)));
+        SlotValidatorRegistry.register(slotPredicate3, (level, slotType, slot, stack, buffer) -> {
+            if (stack.getItem() instanceof BlockItem blockItem && blockItem.getBlock().builtInRegistryHolder().is(BlockTags.BEDS)) {
+                buffer.respondWith(ActionResponse.of(true, Component.literal("The bed fits within the bed slot!")));
+            }
         });
     }
 

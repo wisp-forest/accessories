@@ -1,8 +1,13 @@
 package io.wispforest.accessories.api.events;
 
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.action.ActionResponseBuffer;
+import io.wispforest.accessories.api.action.ValidationState;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.SlotReference;
+import io.wispforest.accessories.impl.core.UnknownResponse;
+import io.wispforest.accessories.impl.event.WrappedEvent;
+import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.fabricmc.fabric.api.util.TriState;
@@ -16,23 +21,28 @@ import org.jetbrains.annotations.Nullable;
  * screen being open by the given player.
  * <p>
  * Fired in {@link AccessoriesBasedSlot#mayPickup}
- * and in {@link Accessories#openAccessoriesMenu(Player, LivingEntity, ItemStack)}
+ * and in {@link Accessories#openAccessoriesMenu(Player, AccessoriesMenuVariant, LivingEntity,ItemStack)}
  */
+@Deprecated
 public interface AllowEntityModificationCallback {
 
-    Event<AllowEntityModificationCallback> EVENT = EventFactory.createArrayBacked(AllowEntityModificationCallback.class,
-            (invokers) -> (targetEntity, player, reference) -> {
-                TriState returnResult = TriState.DEFAULT;
+    Event<AllowEntityModificationCallback> EVENT = new WrappedEvent<>(
+        io.wispforest.accessories.api.events.v2.AllowEntityModificationCallback.EVENT,
+        callback -> {
+            return (targetEntity, player, ref, buffer) -> {
+                var result = callback.allowModifications(targetEntity, player, ref);
 
-                for (var invoker : invokers) {
-                    returnResult = invoker.allowModifications(targetEntity, player, reference);
+                buffer.respondWith(new UnknownResponse(ValidationState.of(result)));
+            };
+        }, event -> {
+            return (targetEntity, player, reference) -> {
+                var buffer = new ActionResponseBuffer(true);
 
-                    if(!returnResult.equals(TriState.DEFAULT)) break;
-                }
+                event.invoker().allowModifications(targetEntity, player, reference, buffer);
 
-                return returnResult;
-            }
-    );
+                return buffer.canPerformAction().toTriState();
+            };
+        });
 
     /**
      * @param targetEntity The targeted entity for modification

@@ -3,6 +3,7 @@ package io.wispforest.accessories.api.slot;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.api.AccessoriesStorage;
 import io.wispforest.accessories.api.events.DropRule;
+import io.wispforest.accessories.api.slot.validator.SlotValidatorRegistry;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -36,7 +37,11 @@ public interface SlotType extends Comparable<SlotType> {
     /// @return A {@link Component} Translation key for the given slot
     ///
     default String translation(){
-        return Accessories.translationKey("slot." + name().replace(":", "."));
+        return toTranslationKey(name());
+    }
+
+    static String toTranslationKey(String slotName){
+        return Accessories.translationKey("slot." + slotName.replace(":", "."));
     }
 
     ///
@@ -58,7 +63,7 @@ public interface SlotType extends Comparable<SlotType> {
 
     ///
     /// @return A set of [ResourceLocation] used to check if an accessory is valid for the given
-    /// slot used within {@link SlotPredicateRegistry#canInsertIntoSlot}.
+    /// slot used within {@link SlotValidatorRegistry#canInsertIntoSlot}.
     ///
     Set<ResourceLocation> validators();
 

@@ -1,4 +1,3 @@
-import io.wispforest.helpers.Utils
 import io.wispforest.helpers.Extensions.modrinth
 import io.wispforest.helpers.Extensions.modrinthImplementation
 

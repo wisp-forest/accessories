@@ -11,11 +11,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 ///
 /// General utility for recursively handling and/or consuming the nest and/or their children entries. Basically
 /// a class for helping with unpacking data and attempting to interact with it safely
@@ -98,7 +93,7 @@ public class AccessoryNestUtils {
 
         var value = function.handle(accessory, stack, reference);
 
-        if (accessory instanceof AccessoryNest && value == null) {
+        if (accessory instanceof AccessoryNest && function.isDefaulted(value)) {
             value = handleEntries(stack, reference, (innerStack, innerRef) -> recursivelyHandle(innerStack, innerRef, function));
         }
 
@@ -115,9 +110,10 @@ public class AccessoryNestUtils {
         var data = getData(stack);
 
         if (data != null) {
-            value = data.iterateStacks((i, innerStack) -> {
-                return function.handle(innerStack, SlotPath.cloneWithInnerIndex(reference, i));
-            });
+            value = data.iterateStacks(
+                (i, innerStack) -> function.handle(innerStack, SlotPath.cloneWithInnerIndex(reference, i)),
+                function
+            );
 
             if (reference instanceof SlotReference ref) {
                 checkIfChangesOccurred(stack, ref.entity(), data);
@@ -170,18 +166,24 @@ public class AccessoryNestUtils {
     public static <T> @Nullable T recursivelyHandle(ItemStack stack, AccessoryFunction<T> function) {
         var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
-        function.handle(accessory, stack);
+        var value = function.handle(accessory, stack);
 
-        if (!(accessory instanceof AccessoryNest)) return null;
+        if (accessory instanceof AccessoryNest && function.isDefaulted(value)) {
+            value = handleEntries(stack, innerStack -> recursivelyHandle(innerStack, function), function);
+        }
 
-        return handleEntries(stack, innerStack -> recursivelyHandle(innerStack, function));
+        return value;
     }
 
     public static <T> @Nullable T handleEntries(ItemStack stack, AccessoryFunction<T> function) {
-        return handleEntries(stack, (innerStack) -> function.handle(AccessoryRegistry.getAccessoryOrDefault(innerStack), innerStack));
+        return handleEntries(stack, (innerStack) -> function.handle(AccessoryRegistry.getAccessoryOrDefault(innerStack), innerStack), function);
     }
 
     public static <T> @Nullable T handleEntries(ItemStack stack, StackFunction<T> function) {
+        return handleEntries(stack, function, (DefaultBehavior<T>) DefaultBehavior.INSTANCE);
+    }
+
+    public static <T> @Nullable T handleEntries(ItemStack stack, StackFunction<T> function, DefaultBehavior<T> behavior) {
         var data = getData(stack);
 
         if (data == null) return null;
@@ -193,7 +195,7 @@ public class AccessoryNestUtils {
 
             value = function.handle(innerStack);
 
-            if (value != null) break;
+            if (!behavior.isDefaulted(value)) break;
         }
 
         return value;
@@ -231,7 +233,12 @@ public class AccessoryNestUtils {
 
     //--
 
+    // TODO: MOVE ALL INTERFACES TO SUB FOLDER
+
+    // TODO: RENAME TO SOMETHING ELSE BETTER?
     public interface DefaultBehavior<T> {
+        static DefaultBehavior INSTANCE = new DefaultBehavior() {};
+
         default boolean isDefaulted(@Nullable T t) {
             return t == null;
         }

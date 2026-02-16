@@ -107,6 +107,12 @@ public class AccessoriesConfigModel {
         @Hook
         public boolean alwaysShowCraftingGrid = false;
 
+        @Hook
+        public TooltipInfoType equipCheckTooltipType = TooltipInfoType.BASIC;
+
+        @Hook
+        public boolean showSlotDarkeningEffect = true;
+
         // Screen Injected Button offsets
 
         @SectionHeader("hover")

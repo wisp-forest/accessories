@@ -17,6 +17,7 @@ import io.wispforest.accessories.api.core.AccessoryRegistry;
 import io.wispforest.accessories.api.data.AccessoriesTags;
 import io.wispforest.accessories.api.events.*;
 import io.wispforest.accessories.api.slot.*;
+import io.wispforest.accessories.api.slot.validator.SlotValidatorRegistry;
 import io.wispforest.accessories.data.EntitySlotLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.endec.NbtMapCarrier;
@@ -37,6 +38,7 @@ import io.wispforest.accessories.networking.client.SyncContainerData;
 import io.wispforest.accessories.networking.client.SyncEntireContainer;
 import io.wispforest.accessories.networking.client.SyncPlayerOptions;
 import io.wispforest.accessories.pond.AccessoriesLivingEntityExtension;
+import io.wispforest.accessories.pond.TooltipFlagExtended;
 import io.wispforest.accessories.utils.AttributeUtils;
 import io.wispforest.endec.SerializationContext;
 import io.wispforest.owo.serialization.RegistriesAttribute;
@@ -146,7 +148,7 @@ public class AccessoriesEventHandler {
 
         if (stack.isEmpty()) return;
 
-        var bl = !SlotPredicateRegistry.canInsertIntoSlot(stack, reference);
+        var bl = !SlotValidatorRegistry.canInsertIntoSlot(stack, reference);
 
         if (bl) dropAndRemoveStack(container, reference, player);
     }
@@ -473,15 +475,16 @@ public class AccessoriesEventHandler {
         AccessoryChangeCallback.EVENT.invoker().onChange(lastStack, currentStack, slotReference, stateChange);
     }
 
-    public static void getTooltipData(@Nullable LivingEntity entity, ItemStack stack, List<Component> tooltip,TooltipDisplay display, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
+    public static void getTooltipData(@Nullable LivingEntity entity, ItemStack stack, List<Component> tooltip, TooltipDisplay display, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
         var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
 
         if (accessory != null) {
             // Add possible client values to tooltipFlag
-            tooltipType = AccessoriesClientInternals.getInstance().createTooltipFlag(tooltipType);
+            tooltipType = tooltipType.withMask();
 
-            if (entity != null && AccessoriesCapability.get(entity) != null)
+            if (entity != null && AccessoriesCapability.get(entity) != null) {
                 addEntityBasedTooltipData(entity, accessory, stack, tooltip, display, tooltipContext, tooltipType);
+            }
 
             accessory.getExtraTooltip(stack, tooltip, tooltipContext, tooltipType);
         }
@@ -491,7 +494,7 @@ public class AccessoriesEventHandler {
     private static void addEntityBasedTooltipData(LivingEntity entity, Accessory accessory, ItemStack stack, List<Component> tooltip, TooltipDisplay display, Item.TooltipContext tooltipContext, TooltipFlag tooltipType) {
         // TODO: MAYBE DEPENDING ON ENTITY OR SOMETHING SHOW ALL VALID SLOTS BUT COLOR CODE THEM IF NOT VALID FOR ENTITY?
         // TODO: ADD BETTER HANDLING FOR POSSIBLE SLOTS THAT ARE EQUIPABLE IN BUT IS AT ZERO SIZE
-        var validSlotTypes = new HashSet<>(SlotPredicateRegistry.getValidSlotTypes(entity, stack));
+        var validSlotTypes = new HashSet<>(SlotValidatorRegistry.getValidSlotTypes(entity, stack));
 
         if (validSlotTypes.isEmpty()) return;
 
@@ -558,7 +561,7 @@ public class AccessoriesEventHandler {
                 }
             }
 
-            validSlotTypes.addAll (validUniqueSlots);
+            validSlotTypes.addAll(validUniqueSlots);
 
             final var filteredValidUniqueSlots = validUniqueSlots.stream()
                     .filter(slotType -> ExtraSlotTypeProperties.getProperty(slotType.name(), true).allowTooltipInfo())
@@ -582,9 +585,9 @@ public class AccessoriesEventHandler {
                 var slotTranslationKey = "slot.tooltip." + ((validSlotTypes.size() > 1 && !allSlots) ? "plural" : "singular");
 
                 slotInfoComponent.append(
-                        Component.translatable(Accessories.translationKey(slotTranslationKey))
-                                .withStyle(ChatFormatting.GRAY)
-                                .append(slotsComponent.withStyle(ChatFormatting.BLUE))
+                    Component.translatable(Accessories.translationKey(slotTranslationKey))
+                        .withStyle(ChatFormatting.GRAY)
+                        .append(slotsComponent.withStyle(ChatFormatting.BLUE))
                 );
 
                 tooltip.add(slotInfoComponent);

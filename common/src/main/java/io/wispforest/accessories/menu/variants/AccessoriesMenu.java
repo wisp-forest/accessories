@@ -4,6 +4,7 @@ import io.wispforest.accessories.api.AccessoriesCapability;
 import io.wispforest.accessories.api.AccessoriesContainer;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.*;
+import io.wispforest.accessories.api.slot.validator.SlotValidatorRegistry;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.impl.core.ExpandedContainer;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
@@ -126,12 +127,14 @@ public class AccessoriesMenu extends AccessoriesMenuBase {
             if (container == null || container.slotType() == null) continue;
 
             for (int i = 0; i < container.getSize(); i++) {
-                var cosmeticSlot = new AccessoriesBasedSlot(container, container.getCosmeticAccessories(), i, -300, -300);
+                var cosmeticSlot = new AccessoriesBasedSlot(container, container.getCosmeticAccessories(), i, -300, -300)
+                    .ownerPlayer(this::owner);
 
                 this.addSlot(cosmeticSlot);
                 this.accessoriesSpecificSlots.add(cosmeticSlot);
 
-                var baseSlot = new AccessoriesBasedSlot(container, container.getAccessories(), i, -300, -300);
+                var baseSlot = new AccessoriesBasedSlot(container, container.getAccessories(), i, -300, -300)
+                    .ownerPlayer(this::owner);
 
                 this.addSlot(baseSlot);
                 this.accessoriesSpecificSlots.add(baseSlot);
@@ -184,7 +187,7 @@ public class AccessoriesMenu extends AccessoriesMenuBase {
             public @Nullable ResourceLocation getNoItemIcon() {
                 return location;
             }
-        };
+        }.ownerPlayer(this::owner);
 
         this.addSlot(cosmeticSlot);
 
@@ -258,7 +261,7 @@ public class AccessoriesMenu extends AccessoriesMenuBase {
 
             var currentlyUsedSlots = AccessoriesCapability.getUsedSlotsFor(entity, this.owner.getInventory());
 
-            currentlyUsedSlots.addAll(SlotPredicateRegistry.getValidSlotTypes(entity, this.getCarried()));
+            currentlyUsedSlots.addAll(SlotValidatorRegistry.getValidSlotTypes(entity, this.getCarried()));
 
             if(!currentlyUsedSlots.isEmpty()) {
                 this.usedSlots.addAll(currentlyUsedSlots);
@@ -435,7 +438,7 @@ public class AccessoriesMenu extends AccessoriesMenuBase {
 
         if (capability == null) return false;
 
-        var validSlotTypes = SlotPredicateRegistry.getStackSlotTypes(living, stack);
+        var validSlotTypes = SlotValidatorRegistry.getStackSlotTypes(living, stack);
 
         for (var slot : this.slots.subList(this.startingAccessoriesSlot, this.slots.size())) {
             if (slot instanceof SlotTypeAccessible accessible && validSlotTypes.contains(accessible.slotType())) return true;

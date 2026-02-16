@@ -38,8 +38,6 @@ fun setupTask(targetTask: AbstractRemapJarTask, taskName: String, archiveClassif
     targetTask.sourceNamespace = "named"
     targetTask.targetNamespace = "named"
 
-    //targetTask.remapperIsolation = true
-
     targetTask.mustRunAfter(
         mutableListOf(
             tasks.namedOrNull("generateMetadataFileForMavenCommonPublication"),

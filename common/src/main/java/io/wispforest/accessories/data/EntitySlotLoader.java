@@ -108,8 +108,9 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
 
         for (var entry : data.entrySet()) {
             var map = entry.getValue().stream()
-                    .map(string -> SlotTypeLoader.INSTANCE.getSlotType(true, string))
-                    .collect(CollectionUtils.toLinkedMap(SlotType::name));
+                .map(string -> SlotTypeLoader.INSTANCE.getSlotType(true, string))
+                .filter(Objects::nonNull)
+                .collect(CollectionUtils.linkedMapKeyCollector(SlotType::name));
 
             entitySlotTypes.put(entry.getKey(), map);
         }

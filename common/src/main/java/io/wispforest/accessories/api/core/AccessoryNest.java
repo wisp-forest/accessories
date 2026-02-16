@@ -1,5 +1,8 @@
 package io.wispforest.accessories.api.core;
 
+import io.wispforest.accessories.api.action.ActionResponse;
+import io.wispforest.accessories.api.action.ActionResponseBuffer;
+import io.wispforest.accessories.api.action.CurseBound;
 import io.wispforest.accessories.api.attributes.AccessoryAttributeBuilder;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.components.AccessoryNestContainerContents;
@@ -144,21 +147,49 @@ public interface AccessoryNest extends Accessory {
     }
 
     @Override
-    default boolean canEquip(ItemStack stack, SlotReference reference) {
-        return handleEntries(stack, reference, (accessory, innerStack, innerRef) -> {
-            return (accessory.canEquip(innerStack, innerRef)) ? null : false;
+    default void canEquip(ItemStack stack, SlotReference reference, ActionResponseBuffer buffer) {
+        handleEntries(stack, reference, new PathedAccessoryFunction<SlotReference, ActionResponseBuffer>() {
+            @Override
+            public ActionResponseBuffer handle(Accessory accessory, ItemStack innerStack, SlotReference innerRef) {
+                accessory.canEquip(innerStack, innerRef, buffer);
+
+                return buffer;
+            }
+
+            @Override
+            public boolean isDefaulted(ActionResponseBuffer buffer) {
+                return buffer.shouldReturnEarly();
+            }
         });
+
+        // TODO: REMOVE canEquip call WHEN DEPRECATION PHASE HAS BEEN LONG ENOUGH
+        if (buffer.shouldReturnEarly() || canEquip(stack, reference)) return;
+
+        buffer.respondWith(ActionResponse.of(false, Component.literal("Such an item can not be equipped!")));
     }
 
     @Override
-    default boolean canUnequip(ItemStack stack, SlotReference reference) {
-        if(EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) {
-            return reference.entity() instanceof Player player && player.isCreative();
-        }
+    default void canUnequip(ItemStack stack, SlotReference reference, ActionResponseBuffer buffer) {
+        if (CurseBound.checkIfCursed(stack, reference.entity(), buffer)) return;
 
-        return handleEntries(stack, reference, (accessory, innerStack, innerRef) -> {
-            return (accessory.canUnequip(innerStack, innerRef)) ? null : false;
+        handleEntries(stack, reference, new PathedAccessoryFunction<SlotReference, ActionResponseBuffer>() {
+            @Override
+            public ActionResponseBuffer handle(Accessory accessory, ItemStack innerStack, SlotReference innerRef) {
+                accessory.canUnequip(innerStack, innerRef, buffer);
+
+                return buffer;
+            }
+
+            @Override
+            public boolean isDefaulted(ActionResponseBuffer buffer) {
+                return buffer.shouldReturnEarly();
+            }
         });
+
+        // TODO: REMOVE canUnequip call WHEN DEPRECATION PHASE HAS BEEN LONG ENOUGH
+        if (buffer.shouldReturnEarly() || canUnequip(stack, reference)) return;
+
+        buffer.respondWith(ActionResponse.of(false, Component.literal("Such an item can not be unequipped!")));
     }
 
     @Override
@@ -288,5 +319,19 @@ public interface AccessoryNest extends Accessory {
                 return state != TriState.DEFAULT;
             }
         }).toBoolean(true);
+    }
+
+    @Override
+    default boolean canEquip(ItemStack stack, SlotReference reference) {
+        return true;
+    }
+
+    @Override
+    default boolean canUnequip(ItemStack stack, SlotReference reference) {
+        if(EnchantmentHelper.has(stack, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) {
+            return reference.entity() instanceof Player player && player.isCreative();
+        }
+
+        return true;
     }
 }

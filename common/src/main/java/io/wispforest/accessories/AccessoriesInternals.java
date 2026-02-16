@@ -113,4 +113,6 @@ public abstract class AccessoriesInternals {
     //--
 
     public abstract <T> String getTagTranslation(TagKey<T> tagKey);
+
+    public abstract <T> String geEntryTranslation(Holder<T> entry);
 }

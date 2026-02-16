@@ -36,18 +36,22 @@ public abstract class AbstractContainerScreenMixin implements ContainerScreenExt
 
     @WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V"))
     private void accessories$adjustFor18x18(GuiGraphics instance, RenderPipeline pipeline, ResourceLocation texture, int x, int y, int width, int height, Operation<Void> original) {
-        var textureAtlasSprite = Minecraft.getInstance().getAtlasManager()
-            .getAtlasOrThrow(AtlasIds.GUI)
-            .getSprite(texture);
+        var atlas = Minecraft.getInstance().getAtlasManager()
+            .getAtlasOrThrow(AtlasIds.GUI);
 
-        var is18x18 = textureAtlasSprite.contents().width() == 18 && textureAtlasSprite.contents().height() == 18;
+        var sprite = atlas.getSprite(texture);
 
-        if(is18x18) {
-            width = 18;
-            height = 18;
+        if (sprite != atlas.missingSprite()) {
+            var ctn = sprite.contents();
+            var is18x18 = ctn.width() == 18 && ctn.height() == 18;
 
-            x = x - 1;
-            y = y - 1;
+            if(is18x18) {
+                width = 18;
+                height = 18;
+
+                x = x - 1;
+                y = y - 1;
+            }
         }
 
         original.call(instance, pipeline, texture, x, y, width, height);

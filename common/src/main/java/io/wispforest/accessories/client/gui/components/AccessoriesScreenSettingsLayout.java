@@ -71,9 +71,7 @@ public class AccessoriesScreenSettingsLayout extends FlowLayout implements Playe
     public <T> void setData(PlayerOption<T> option, T data) {
         optionAccess.setData(option, data);
 
-        if (updateLive) {
-            onHolderChange(option);
-        }
+        if (updateLive) onHolderChange(option);
     }
 
     public interface ComponentAccess {
@@ -260,19 +258,19 @@ public class AccessoriesScreenSettingsLayout extends FlowLayout implements Playe
 
     private Component ofSettingsToggle(String name, Supplier<Boolean> getter, Consumer<Boolean> setter) {
         return wrapAsSettings(
-                name,
-                Components.button(
-                                createToggleText(name, false, getter.get()),
-                                btn -> {
-                                    var newValue = !getter.get();
+            name,
+            Components.button(
+                createToggleText(name, false, getter.get()),
+                btn -> {
+                    var newValue = !getter.get();
 
-                                    btn.setMessage(createToggleText(name, false, newValue));
-                                    btn.tooltip(createToggleText(name, true, newValue));
+                    btn.setMessage(createToggleText(name, false, newValue));
+                    btn.tooltip(createToggleText(name, true, newValue));
 
-                                    setter.accept(newValue);
-                                })
-                        .renderer(ComponentUtils.getButtonRenderer())
-                        .tooltip(createToggleText(name, true, getter.get()))
+                    setter.accept(newValue);
+                })
+                .renderer(ComponentUtils.getButtonRenderer())
+                .tooltip(createToggleText(name, true, getter.get()))
         );
     }
 

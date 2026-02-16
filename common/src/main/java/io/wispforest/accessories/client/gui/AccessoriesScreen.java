@@ -1,16 +1,22 @@
 package io.wispforest.accessories.client.gui;
 
-import com.mojang.logging.LogUtils;
 import io.wispforest.accessories.Accessories;
+import io.wispforest.accessories.api.action.ActionResponseBuffer;
+import io.wispforest.accessories.api.action.ValidationState;
+import io.wispforest.accessories.api.client.tooltip.TooltipComponentBuilderImpl;
+import io.wispforest.accessories.api.tooltip.*;
 import io.wispforest.accessories.api.client.screen.AccessoriesScreenTransitionHelper;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.api.slot.SlotGroup;
 import io.wispforest.accessories.api.slot.UniqueSlotHandling;
+import io.wispforest.accessories.api.tooltip.impl.ListTooltipEntry;
+import io.wispforest.accessories.api.tooltip.impl.TooltipEntry;
 import io.wispforest.accessories.client.AccessoriesClient;
 import io.wispforest.accessories.client.AccessoriesFunkyRenderingState;
 import io.wispforest.accessories.client.DrawUtils;
 import io.wispforest.accessories.client.gui.components.*;
 import io.wispforest.accessories.client.gui.utils.Line3d;
+import io.wispforest.accessories.compat.config.TooltipInfoType;
 import io.wispforest.accessories.data.SlotGroupLoader;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.option.PlayerOption;
@@ -21,9 +27,14 @@ import io.wispforest.accessories.menu.ArmorSlotTypes;
 import io.wispforest.accessories.menu.SlotTypeAccessible;
 import io.wispforest.accessories.menu.networking.ToggledSlots;
 import io.wispforest.accessories.menu.variants.AccessoriesMenu;
+import io.wispforest.accessories.mixin.client.AbstractContainerScreenAccessor;
+import io.wispforest.accessories.mixin.client.GuiGraphicsAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.accessories.networking.holder.SyncOptionChange;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
+import io.wispforest.accessories.pond.DeferredTooltipGetter;
+import io.wispforest.accessories.pond.TooltipFlagExtended;
+import io.wispforest.accessories.utils.ComponentOps;
 import io.wispforest.owo.mixin.ui.SlotAccessor;
 import io.wispforest.owo.ui.base.BaseOwoHandledScreen;
 import io.wispforest.owo.ui.component.ButtonComponent;
@@ -34,30 +45,37 @@ import io.wispforest.owo.ui.container.StackLayout;
 import io.wispforest.owo.ui.core.*;
 import io.wispforest.owo.util.pond.OwoSlotExtension;
 import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.booleans.BooleanUnaryOperator;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.ErrorScreen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.lwjgl.glfw.GLFW;
-import org.slf4j.Logger;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, AccessoriesMenu> implements AccessoriesScreenBase<AccessoriesMenu>, ContainerScreenExtension, PlayerOptionsAccess {
 
-    private static final Logger LOGGER = LogUtils.getLogger();
     private final @Nullable AbstractContainerScreen<AbstractContainerMenu> prevScreen;
 
     public AccessoriesScreen(AccessoriesMenu handler, Inventory inventory, Component title) {
@@ -90,7 +108,7 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
             var unpackRules = new ArrayDeque<List<Pair<Boolean, String>>>();
 
             unpackRules.push(List.of());
-            unpackRules.push(List.of(Pair.of(false, "armor_entity_layout"), Pair.of(true, "bottom_inventory_section")));
+            unpackRules.push(List.of(Pair.of(false, ARMOR_ENTITY.id()), Pair.of(true, "bottom_inventory_section")));
             unpackRules.push(List.of(Pair.of(false, "outer_accessories_layout")));
 
             var stream = rootComponent().children().stream();
@@ -178,6 +196,8 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
         hideSlot(index);
 
         this.changedSlots.put(index, true);
+
+        currentEquipCheckStack = ItemStack.EMPTY;
     }
 
     @Override
@@ -190,6 +210,8 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
         if (!this.changedSlots.getOrDefault(index, true)) return;
 
         this.changedSlots.put(index, false);
+
+        currentEquipCheckStack = ItemStack.EMPTY;
     }
 
     //--
@@ -275,63 +297,420 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
         return true;
     }
 
-    //--
+    //-- Slot Darkening Logic
 
-//    @Override
-//    protected int getLayerZOffset(HandledScreenLayer layer) {
-//        if(layer == HandledScreenLayer.CURSOR_ITEM || layer == HandledScreenLayer.ITEM_TOOLTIP) {
-//            return 600;
-//        }
-//
-//        return super.getLayerZOffset(layer);
-//    }
+    private ItemStack currentEquipCheckStack = ItemStack.EMPTY;
 
-    @Override
-    protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
-        if(this.hoveredSlot != null) {
-            if (this.hoveredSlot instanceof AccessoriesBasedSlot accessoriesInternalSlot) {
-                if (!ArmorSlotTypes.isArmorType(accessoriesInternalSlot.slotName())) {
-                    AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(this.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION));
+    private boolean isOutsideInvArea = false;
+
+    private final Map<Slot, SlotEquipCheckerState> slotToEquipCheck = new WeakHashMap<>();
+
+    private static class SlotEquipCheckerState {
+        public static final SlotEquipCheckerState EMPTY = new SlotEquipCheckerState(-1).isValid(true);
+
+        private final int slotIndex;
+        private final AnimatableProperty<Color> color = AnimatableProperty.of(Color.ofArgb(0x00000000));
+
+        private boolean isValid = true;
+        private State state = State.Light;
+
+        public SlotEquipCheckerState(Slot slot) {
+            this(slot.index);
+        }
+
+        public SlotEquipCheckerState(int slotIndex) {
+            this.slotIndex = slotIndex;
+        }
+
+        public SlotEquipCheckerState isValid(boolean value) {
+            isValid = value;
+
+            return this;
+        }
+
+        public boolean isValid() {
+            return isValid;
+        }
+
+        public boolean isDarkened(Slot slot) {
+            return state != State.Light && !((OwoSlotExtension) slot).owo$getDisabledOverride();
+        }
+
+        public Color getColor() {
+            return color.get();
+        }
+
+        public void updateSlotDarkening(boolean isOutsideInvArea, boolean isHoveringASlot, @Nullable Slot hoveredSlot, boolean isCarryingStack, float partialTick) {
+            color.update(partialTick);
+
+            if ((isOutsideInvArea && isCarryingStack) || (hoveredSlot != null && slotIndex == hoveredSlot.index)) {
+                if (isValid) {
+                    startLightning();
+                } else {
+                    startDarkening(isHoveringASlot);
                 }
-            } else if (this.hoveredSlot instanceof ArmorSlot) {
-                AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(true);
-            } else if (this.hoveredSlot.container instanceof TransientCraftingContainer || this.hoveredSlot instanceof ResultSlot) {
-                if (!(boolean) this.getDefaultedData(PlayerOptions.SHOW_GROUP_FILTER)) {
-                    AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(!(boolean) this.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION));
-                }
+            } else if (state.isDark()) {
+                startLightning();
             }
         }
 
-        super.renderTooltip(guiGraphics, x, y);
+        private void startLightning() {
+            if (state.isLight()) return;
 
-        AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(false);
+            color.animate(500, Easing.QUADRATIC, Color.ofArgb(0x00000000))
+                .forwards()
+                .finished()
+                .subscribe((dir, looping) -> state = State.Light);
+
+            state = State.Lightning;
+        }
+
+        private void startDarkening(boolean fast) {
+            if (fast ? state.isFastDark() : state.isDark()) return;
+
+            color.animate(fast ? 250 : 650, Easing.QUADRATIC, Color.ofArgb(0x4D000000))
+                .forwards()
+                .finished()
+                .subscribe((dir, looping) -> state = State.Dark);
+
+            state = fast ? State.FastDarkening : State.Darkening;
+        }
+
+        public void render(GuiGraphics guiGraphics, Slot slot, boolean isSideBySideSlots) {
+            int x = slot.x, y = slot.y;
+
+            if (!isDarkened(slot)) return;
+
+            var color = getColor().argb();
+
+            if (!(slot instanceof AccessoriesBasedSlot basedSlot) || (basedSlot.isCosmetic && isSideBySideSlots)) {
+                guiGraphics.fill(x, y, x + 16, y + 16, color);
+            } else {
+                guiGraphics.fill(x, y, x + 13, y + 2, color);
+                guiGraphics.fill(x, y + 2, x + 14, y + 16, color);
+                guiGraphics.fill(x + 14, y + 3, x + 16, y + 16, color);
+            }
+        }
+
+        private enum State {
+            Darkening,
+            FastDarkening,
+            Dark,
+            Lightning,
+            Light;
+
+            public boolean isDark() { return isFastDark() || this == State.Darkening; }
+
+            public boolean isFastDark() { return this == State.FastDarkening || this == State.Dark; }
+
+            public boolean isLight() { return this == State.Lightning || this == State.Light; }
+        }
+    }
+
+    public void updateSlotDarkening(float partialTick) {
+        var isCarryingStack = !this.getMenu().getCarried().isEmpty();
+        var isHoveringSlot = hoveredSlot instanceof SlotTypeAccessible;
+
+        stateAccess.forEach((slot, state) -> {
+            state.updateSlotDarkening(isOutsideInvArea, isHoveringSlot, this.hoveredSlot, isCarryingStack, partialTick);
+        });
+    }
+
+    private interface SlotEquipStateAccess {
+        void forEach(BiConsumer<Slot, SlotEquipCheckerState> consumer);
+
+        SlotEquipCheckerState getOrDefault(Slot slot);
+
+        SlotEquipCheckerState getOrCreate(Slot slot);
+    }
+
+    private final SlotEquipStateAccess stateAccess = new SlotEquipStateAccess() {
+        @Override
+        public void forEach(BiConsumer<Slot, SlotEquipCheckerState> consumer) {
+            if (!Accessories.config().screenOptions.showSlotDarkeningEffect()) return;
+
+            AccessoriesScreen.this.slotToEquipCheck.forEach(consumer);
+        }
+
+        @Override
+        public SlotEquipCheckerState getOrDefault(Slot slot) {
+            if (!Accessories.config().screenOptions.showSlotDarkeningEffect()) return SlotEquipCheckerState.EMPTY;
+
+            return AccessoriesScreen.this.slotToEquipCheck.getOrDefault(slot, SlotEquipCheckerState.EMPTY);
+        }
+
+        public SlotEquipCheckerState getOrCreate(Slot slot) {
+            if (!Accessories.config().screenOptions.showSlotDarkeningEffect()) return SlotEquipCheckerState.EMPTY;
+
+            return AccessoriesScreen.this.slotToEquipCheck.computeIfAbsent(slot, SlotEquipCheckerState::new);
+        }
+    };
+
+    public SlotEquipStateAccess getSlotToEquipCheckMap(ItemStack stack) {
+        if (!ItemStack.matches(stack, currentEquipCheckStack) && Accessories.config().screenOptions.showSlotDarkeningEffect()) {
+            var player = Minecraft.getInstance().player;
+
+            for (var slot : this.getMenu().slots) {
+                if (slot instanceof SlotTypeAccessible) {
+                    slotToEquipCheck.computeIfAbsent(slot, SlotEquipCheckerState::new)
+                        .isValid((stack.isEmpty() || slot.mayPlace(stack)) && slot.mayPickup(player));
+                }
+            }
+
+            currentEquipCheckStack = stack.copy();
+        }
+
+        return stateAccess;
+    }
+
+
+    @Override
+    protected void renderSlotHighlightBack(GuiGraphics guiGraphics) {
+        var slotToEquipCheck = getSlotToEquipCheckMap(this.getMenu().getCarried());
+
+        if (this.hoveredSlot == null || !this.hoveredSlot.isHighlightable() || !slotToEquipCheck.getOrDefault(hoveredSlot).isValid()) {
+            return;
+        }
+
+        var texture = AbstractContainerScreenAccessor.accessories$SLOT_HIGHLIGHT_BACK_SPRITE();
+        int x = this.hoveredSlot.x - 4, y = this.hoveredSlot.y - 4;
+
+        renderWithClippingCheck(guiGraphics, x, y, (graphics) -> graphics.blitSprite(RenderPipelines.GUI_TEXTURED, texture, x, y, 24, 24));
     }
 
     @Override
-    protected List<Component> getTooltipFromContainerItem(ItemStack itemStack) {
-        var tooltipData = getTooltipFromItem(this.minecraft, itemStack);
+    protected void renderSlotHighlightFront(GuiGraphics guiGraphics) {
+        var access = getSlotToEquipCheckMap(this.getMenu().getCarried());
 
-        if (Accessories.config().screenOptions.showEquippedStackSlotType()
-                && this.menu.getCarried().isEmpty()
-                && this.hoveredSlot != null
-                && this.hoveredSlot.hasItem()
-                && this.hoveredSlot instanceof AccessoriesBasedSlot slot && ExtraSlotTypeProperties.getProperty(slot.slotName(), true).allowTooltipInfo()) {
-            var hoveredStack = this.hoveredSlot.getItem();
+        var isSideBySideSlots = this.getDefaultedData(PlayerOptions.SIDE_BY_SIDE_SLOTS);
 
-            if (itemStack == hoveredStack) {
-                tooltipData.add(Component.empty());
-                tooltipData.add(
-                        Component.translatable(Accessories.translationKey("tooltip.currently_equipped_in"))
+        access.forEach((slot, data) -> data.render(guiGraphics, slot, isSideBySideSlots));
+
+        if (this.hoveredSlot == null || !this.hoveredSlot.isHighlightable()) return;
+
+        var data = access.getOrCreate(this.hoveredSlot);
+
+        if (this.currentEquipCheckStack.isEmpty()) data.isValid(this.hoveredSlot.mayPickup(Minecraft.getInstance().player));
+        if (!data.isValid()) return;
+
+        var texture = AbstractContainerScreenAccessor.accessories$SLOT_HIGHLIGHT_FRONT_SPRITE();
+        int x = this.hoveredSlot.x - 4, y = this.hoveredSlot.y - 4;
+
+        renderWithClippingCheck(guiGraphics, x, y, (graphics) -> graphics.blitSprite(RenderPipelines.GUI_TEXTURED, texture, x, y, 24, 24));
+    }
+
+    private void renderWithClippingCheck(GuiGraphics guiGraphics, int x, int y, Consumer<GuiGraphics> drawCall) {
+        if (!(hoveredSlot instanceof AccessoriesBasedSlot basedSlot) || (basedSlot.isCosmetic && this.getDefaultedData(PlayerOptions.SIDE_BY_SIDE_SLOTS))) {
+            drawCall.accept(guiGraphics);
+
+            return;
+        }
+
+        guiGraphics.enableScissor(x, y, x + 17, y + 6);
+        drawCall.accept(guiGraphics);
+        guiGraphics.disableScissor();
+
+        guiGraphics.enableScissor(x, y + 6, x + 18, y + 24);
+        drawCall.accept(guiGraphics);
+        guiGraphics.disableScissor();
+
+        guiGraphics.enableScissor(x + 18, y + 7, x + 24, y + 24);
+        drawCall.accept(guiGraphics);
+        guiGraphics.disableScissor();
+    }
+
+    //---
+
+    private TooltipCacheData tooltipStackKey = TooltipCacheData.EMPTY;
+    private final TooltipComponentBuilderImpl validationTooltipComponents = (TooltipComponentBuilderImpl) TooltipComponentBuilder.of();
+
+    @Override
+    protected void renderTooltip(GuiGraphics guiGraphics, int x, int y) {
+        boolean bl = false;
+
+        if(this.hoveredSlot != null) {
+            if (this.hoveredSlot instanceof AccessoriesBasedSlot accessoriesInternalSlot) {
+                bl = !ArmorSlotTypes.isArmorType(accessoriesInternalSlot.slotName()) && this.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION);
+            } else if (this.hoveredSlot instanceof ArmorSlot) {
+                bl = true;
+            } else if (this.hoveredSlot.container instanceof TransientCraftingContainer || this.hoveredSlot instanceof ResultSlot) {
+                bl = !(boolean) this.getDefaultedData(PlayerOptions.SHOW_GROUP_FILTER) && !(boolean) this.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION);
+            }
+        }
+
+        AccessoriesScreenBase.setPositioner(bl);
+
+        super.renderTooltip(guiGraphics, x, y);
+
+        if (this.hoveredSlot instanceof AccessoriesBasedSlot slot && ExtraSlotTypeProperties.getProperty(slot.slotName(), true).allowTooltipInfo()) {
+            var client = Minecraft.getInstance();
+
+            var ctx = Item.TooltipContext.of(client.level);
+            var flag = TooltipFlagExtended.create();
+
+            var key = new TooltipCacheData(slot, this.getMenu().getCarried(), flag.getModifiers());
+
+            var builder = TooltipComponentBuilder.of();
+            var existingTooltip = ((DeferredTooltipGetter) guiGraphics).accessories$getTooltip();
+
+            if (existingTooltip != null) {
+                builder.add(existingTooltip);
+            } else {
+                builder.addAll(TooltipInfoProvider.gatherInfo(slot, TooltipEntry.of(), ctx, flag).entries());
+            }
+
+            if (this.menu.getCarried().isEmpty()) {
+                if (slot.hasItem() && Accessories.config().screenOptions.showEquippedStackSlotType()) {
+                    builder
+                        .divider(4)
+                        .add(
+                            Component.translatable(Accessories.translationKey("tooltip.currently_equipped_in"))
                                 .withStyle(ChatFormatting.GRAY)
                                 .append(
-                                        Component.translatable(slot.slotType().translation())
-                                                .withStyle(ChatFormatting.BLUE)
+                                    Component.translatable(slot.slotType().translation())
+                                        .withStyle(ChatFormatting.BLUE)
                                 )
+                        );
+                }
+            }
+
+            var tooltipType = Accessories.config().screenOptions.equipCheckTooltipType();
+
+            if (!key.equals(tooltipStackKey) && tooltipType != TooltipInfoType.DISABLED) {
+                tooltipStackKey = key;
+                validationTooltipComponents.clear();
+
+                if (!key.isEmpty()) {
+                    var stackType = StackType.HELD;
+                    var buffer = slot.checkInsertion(key.heldStack);
+
+                    if (buffer.isEmpty() || (buffer.canPerformAction().isValid() && !slot.getItem().isEmpty())) {
+                        var otherBuffer = slot.checkExtraction();
+
+                        if (buffer.isEmpty() || (!otherBuffer.isEmpty() && otherBuffer.canPerformAction() != ValidationState.VALID)){
+                            stackType = StackType.SLOT;
+                            buffer = otherBuffer;
+                        }
+                    }
+
+                    if (!buffer.isEmpty()) {
+                        addValidationInfo(buffer, tooltipType, stackType, validationTooltipComponents, ctx, flag);
+                    }
+                }
+            }
+
+            if (!validationTooltipComponents.isEmpty()) {
+                builder
+                    .divider(4)
+                    .add(validationTooltipComponents);
+            }
+
+            if (!builder.isEmpty()) {
+                ((GuiGraphicsAccessor) guiGraphics).accessories$setTooltipForNextFrameInternal(
+                    this.font,
+                    ((TooltipComponentBuilderImpl) builder).build(TextWrapper.createWrapper(240)),
+                    x, y,
+                    DefaultTooltipPositioner.INSTANCE,
+                    null,
+                    true
                 );
             }
         }
 
-        return tooltipData;
+        AccessoriesScreenBase.setPositioner(false);
+    }
+
+    private enum StackType {
+        HELD,
+        SLOT
+    }
+
+    private static final class TooltipCacheData {
+        private static final TooltipCacheData EMPTY = new TooltipCacheData(null, ItemStack.EMPTY, 0);
+
+        private final WeakReference<AccessoriesBasedSlot> slotRef;
+        private final ItemStack heldStack;
+        private final ItemStack slotStack;
+        private final int modifierBitmask;
+
+        private TooltipCacheData(@Nullable AccessoriesBasedSlot slot, ItemStack heldStack, int modifierBitmask) {
+            this.slotRef = new WeakReference<>(slot);
+            this.heldStack = heldStack;
+            this.slotStack = slot != null ? slot.getItem() : ItemStack.EMPTY;
+            this.modifierBitmask = modifierBitmask;
+        }
+
+        public boolean isEmpty() {
+            return heldStack.isEmpty() && slotStack.isEmpty();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof TooltipCacheData otherKey)) return false;
+
+            return ItemStack.isSameItemSameComponents(this.heldStack, otherKey.heldStack)
+                && ItemStack.isSameItemSameComponents(this.slotStack, otherKey.slotStack)
+                && Objects.equals(this.slotRef.get(), otherKey.slotRef.get())
+                && modifierBitmask == otherKey.modifierBitmask;
+        }
+    }
+
+    private void addValidationInfo(ActionResponseBuffer buffer, TooltipInfoType tooltipType, StackType type, TooltipComponentBuilder builder, Item.TooltipContext ctx, TooltipFlag flag) {
+        if (tooltipType.equals(TooltipInfoType.ALL)) flag = flag.withMask(Integer.MAX_VALUE);
+
+        // TODO: SAVE TOOLTIP TO PREVENT REGATHERING INFO
+        var withSuccess = collectTooltipInfo(buffer, false, ctx, flag);
+        var withoutSuccess = collectTooltipInfo(buffer, true, ctx, flag);
+
+        var splitData = (flag.hasShiftDown() || tooltipType.equals(TooltipInfoType.ADVANCED) ? withSuccess : withoutSuccess);
+
+        var hasData = !splitData.isEmpty();
+
+        ComponentOps.ExtraInfoFooter footerGenerator;
+
+        if (flag.getModifiers() != Integer.MAX_VALUE) {
+            var sizes = new HashSet<>(List.of(collectTooltipInfo(buffer, false, ctx, flag.withMask(0)).hashCode()));
+
+            footerGenerator = ComponentOps.attemptToAddExtraInfoFooter(
+                new LinkedHashSet<>(splitData.hashCode() != withSuccess.hashCode() ? List.of("key.keyboard.left.shift") : List.of()),
+                flag,
+                newFlag -> {
+                    return sizes.add(collectTooltipInfo(buffer, false, ctx, newFlag).hashCode());
+                }
+            );
+        } else {
+            footerGenerator = new ComponentOps.ExtraInfoFooter(new LinkedHashMap<>());
+        }
+
+        if (hasData) {
+            builder
+                .add(Accessories.translation("tooltip", (type == StackType.HELD ? "accessory_reasoning" : "equipment_reasoning")))
+                .divider(2)
+                .addAll(TextPrefixer.NONE, splitData);
+
+            if (!footerGenerator.keyToFormattedText().isEmpty()) {
+                builder.divider(4);
+            }
+        }
+
+        footerGenerator.addTo(builder);
+    }
+
+    private ListTooltipAdder collectTooltipInfo(ActionResponseBuffer buffer, boolean filterSuccess, Item.TooltipContext ctx, TooltipFlag flag) {
+        var responses = buffer.responses(filterSuccess);
+        var adder = ListTooltipEntry.flatMap();
+
+        if (!responses.isEmpty()) {
+            for (var response : responses) {
+                var entryAdder = adder.createListedEntry(
+                    response.canPerformAction().asEntryComponent(),
+                    Accessories.translation("tooltip.equipment_reasoning.indent_entry"));
+
+                TooltipInfoProvider.gatherInfo(response, entryAdder, ctx, flag);
+            }
+        }
+
+        return adder;
     }
 
     private final List<Vector3d> hoveredAccessoryPositons = new ArrayList<>();
@@ -364,6 +743,8 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        updateSlotDarkening(partialTick);
+
         this.renderBg(guiGraphics, partialTick, mouseX, mouseY);
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
@@ -425,15 +806,15 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
 
     //--
 
-    public void showCosmeticState(boolean value) {
-        this.setData(PlayerOptions.SHOW_COSMETIC_SLOTS, value);
+    public static final ComponentKey<FlowLayout> ARMOR_ENTITY = ComponentKey.of(FlowLayout.class, "armor_entity_layout");
+    public static final ComponentKey<FlowLayout> SIDE_BAR = ComponentKey.of(FlowLayout.class, "side_bar_holder");
+    public static final ComponentKey<FlowLayout> TOGGLE_PANEL = ComponentKey.of(FlowLayout.class, "accessories_toggle_panel");
 
-        AccessoriesNetworking.sendToServer(PlayerOptions.SHOW_COSMETIC_SLOTS.toPacket(value));
-    }
-
-    public boolean showCosmeticState() {
-        return this.getDefaultedData(PlayerOptions.SHOW_COSMETIC_SLOTS);
-    }
+    public static final ComponentKey<FlowLayout> GROUP_FILTER = ComponentKey.of(FlowLayout.class, "group_filter_holder");
+    public static final ComponentKey<FlowLayout> BOTTOM_HOLDER = ComponentKey.of(FlowLayout.class, "bottom_component_holder");
+    public static final ComponentKey<FlowLayout> CRAFTING_GRID = ComponentKey.of(FlowLayout.class, "crafting_grid_layout");
+    public static final ComponentKey<io.wispforest.owo.ui.core.Component> CRAFTING_GRID_BTN = ComponentKey.of(io.wispforest.owo.ui.core.Component.class, "crafting_grid_btn");
+    public static final ComponentKey<StackLayout> ENTITY_PANEL = ComponentKey.of(StackLayout.class, "entity_button_panel");
 
     @Override
     protected void build(FlowLayout rootComponent) {
@@ -475,62 +856,72 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
                 .padding(Insets.of(7, 7, 7, 4))
                 .allowOverflow(true);
 
+        var craftingGridArea = CRAFTING_GRID.withId(
+            Containers.verticalFlow(Sizing.content(), Sizing.content())
+                .positioning(Positioning.absolute(162, -7))
+                .configure((FlowLayout component) -> {
+                    if (this.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID)) {
+                        component.child(createCraftingGrid());
+                    }
+                })
+        );
+
         var bottomInvComponent = new FlowLayout(Sizing.content(), Sizing.content(), FlowLayout.Algorithm.HORIZONTAL){
             @Override
             public boolean isInBoundingBox(double x, double y) {
-                return super.isInBoundingBox(x, y)
-                    || offhandComponent.isInBoundingBox(x, y);
+                if (super.isInBoundingBox(x, y) || offhandComponent.isInBoundingBox(x, y)) return true;
+
+                if (!craftingGridArea.children().isEmpty()) {
+                    return craftingGridArea.children().getFirst().isInBoundingBox(x, y);
+                }
+
+                return false;
             }
-        }
-                 .child(
-                        Containers.verticalFlow(Sizing.content(), Sizing.content()) // Sizing.expand()
-                                .child(offhandComponent)
-                                .allowOverflow(true)
-                                .positioning(Positioning.absolute(-(18 + 4 + 7), 51))
-//                                .margins(Insets.top(54 + 4))
+
+            @Override
+            protected void parentUpdate(float delta, int mouseX, int mouseY) {
+                AccessoriesScreen.this.isOutsideInvArea = !isInBoundingBox(mouseX, mouseY);
+            }
+        }.child(
+                Containers.verticalFlow(Sizing.content(), Sizing.content())
+                    .child(offhandComponent)
+                    .allowOverflow(true)
+                    .positioning(Positioning.absolute(-(18 + 4 + 7), 51))
+            )
+            .child(
+                BOTTOM_HOLDER.withId(
+                    Containers.verticalFlow(Sizing.fixed(162), Sizing.fixed(76))
+                        .child(playerInv)
                 )
-                .child(
-                        Containers.verticalFlow(Sizing.fixed(162), Sizing.fixed(76))
-                                .child(playerInv)
-//                                        .margins(Insets.left(4))
-                                .id("bottom_component_holder")
-                )
-                .child(
-                        Containers.verticalFlow(Sizing.content(), Sizing.content())
-                                .positioning(Positioning.absolute(162, -7))
-                                .configure((FlowLayout component) -> {
-                                    if (this.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID)) {
-                                        component.child(createCraftingGrid());
-                                    }
-                                })
-                                .id("crafting_grid_layout")
-                )
-                .padding(Insets.of(7)/*.add(0,0,0,22)*/)
-                .surface((ctx, component) -> {
+            )
+            .child(craftingGridArea)
+            .padding(Insets.of(7))
+            .surface((ctx, component) -> {
 //                            ComponentUtils.getPanelSurface().draw(ctx, component);
 //                            ComponentUtils.BACKGROUND_SLOT_RENDERING_SURFACE.draw(ctx, component);
 
-                    var showCraftingGrid = this.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID);
-                    var width = showCraftingGrid ? 238 : 198;
+                var showCraftingGrid = this.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID);
+                var width = showCraftingGrid ? 238 : 198;
 
-                    DrawUtils.blit(
-                            ctx,
-                            Accessories.of("textures/gui/theme/" + ComponentUtils.checkMode("light", "dark") + "/player_inv/" + (showCraftingGrid ? "with" : "without") + "_crafting.png"),
-                            component.x() - (18 + 4), component.y(), width, 90
-                    );
-                })
-                .allowOverflow(true)
-                .id("bottom_inventory_section");
+                DrawUtils.blit(
+                        ctx,
+                        Accessories.of("textures/gui/theme/" + ComponentUtils.checkMode("light", "dark") + "/player_inv/" + (showCraftingGrid ? "with" : "without") + "_crafting.png"),
+                        component.x() - (18 + 4), component.y(), width, 90
+                );
+            })
+            .allowOverflow(true)
+            .id("bottom_inventory_section");
 
         baseChildren.add(bottomInvComponent);
 
 
         //--
 
-        var primaryLayout = (FlowLayout) Containers.horizontalFlow(Sizing.content(), Sizing.fixed(140))
+        var primaryLayout = ARMOR_ENTITY.withId(
+            (FlowLayout) Containers.horizontalFlow(Sizing.content(), Sizing.fixed(140))
                 .gap(2)
                 .horizontalAlignment(HorizontalAlignment.CENTER)
-                .id("armor_entity_layout");
+        );
 
         {
             var armorSlotsLayout = Containers.verticalFlow(Sizing.content(), Sizing.content())
@@ -639,18 +1030,17 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
                                     }).positioning(Positioning.relative(100, 0))
                     ).child(
                             ComponentUtils.createIconButton(
-                                    btn -> {
-                                        toggleAdvancedOptions(btn);
-                                    },
-                                    14,
-                                    "advanced_options_btn",
-                                    btn -> {
-                                        btn.tooltip(createToggleText("advanced_options", true, this.getDefaultedData(PlayerOptions.ADVANCED_SETTINGS)))
-                                                .margins(Insets.of(0, 3, 0, 3));
-                                    },
-                                    (ctx, btn) -> {
-                                        return Accessories.of("textures/gui/settings_icon" + (btn.isHovered() ? "_hovered" : "") + ".png");
-                                    }).positioning(Positioning.relative(100, 100))
+                                this::toggleAdvancedOptions,
+                                14,
+                                "advanced_options_btn",
+                                btn -> {
+                                    btn.tooltip(createToggleText("advanced_options", true, this.getDefaultedData(PlayerOptions.ADVANCED_SETTINGS)))
+                                            .margins(Insets.of(0, 3, 0, 3));
+                                },
+                                (ctx, btn) -> {
+                                    return Accessories.of("textures/gui/settings_icon" + (btn.isHovered() ? "_hovered" : "") + ".png");
+                                }
+                            ).positioning(Positioning.relative(100, 100))
                     );
 
             if(!Accessories.config().screenOptions.alwaysShowCraftingGrid()){
@@ -660,10 +1050,11 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
             }
 
             primaryLayout.child(
-                entityContainer
-                    .allowOverflow(true)
-                    .padding(Insets.of(7))
-                    .id("entity_button_panel")
+                ENTITY_PANEL.withId(
+                    entityContainer
+                        .allowOverflow(true)
+                        .padding(Insets.of(7))
+                )
             );
         }
 
@@ -710,8 +1101,8 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
     public void setupPadding() {
         if (this.topComponent == null) return;
 
-        var hasSideBar = this.rootComponent().childById(io.wispforest.owo.ui.core.Component.class, "side_bar_holder") != null;
-        var primaryLayout = rootComponent().childById(FlowLayout.class, "armor_entity_layout");
+        var hasSideBar = SIDE_BAR.has(rootComponent());
+        var primaryLayout = ARMOR_ENTITY.getFrom(rootComponent());
 
         setupPadding(this.topComponent, hasSideBar, primaryLayout);
     }
@@ -732,7 +1123,7 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
 
                 if (this.getDefaultedData(PlayerOptions.SIDE_WIDGET_POSITION)) {
                     roundingOffset = (this.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION) ? -1 : -3);
-                } else if(component(io.wispforest.owo.ui.core.Component.class, "group_filter_holder") == null && !this.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION)) {
+                } else if(GROUP_FILTER.has(rootComponent()) && !this.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION)) {
                     roundingOffset = -2;
                 }
 
@@ -798,7 +1189,7 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
 
         this.getMenu().getAccessoriesSlots().forEach(this::disableSlot);
 
-        var primaryLayout = rootComponent().childById(FlowLayout.class, "armor_entity_layout");
+        var primaryLayout = ARMOR_ENTITY.getFrom(rootComponent());
 
         //--
 
@@ -828,7 +1219,7 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
             hasSideBar = swapOrCreateSideBarComponent();
         } else {
             if(this.getMenu().selectedGroups().isEmpty()) {
-                var sideBarOptionsComponent = primaryLayout.childById(io.wispforest.owo.ui.core.Component.class, "accessories_toggle_panel");
+                var sideBarOptionsComponent = TOGGLE_PANEL.getFrom(primaryLayout);
 
                 if (sideBarOptionsComponent != null) {
                     var sideParParent = sideBarOptionsComponent.parent();
@@ -850,26 +1241,23 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
     public boolean swapOrCreateSideBarComponent() {
         if (this.topComponent == null && this.getMenu().selectedGroups().isEmpty()) return false;
 
-        var armorAndEntityComp = rootComponent().childById(FlowLayout.class, "armor_entity_layout");
+        var armorAndEntityComp = ARMOR_ENTITY.getFrom(rootComponent());
 
-        armorAndEntityComp.removeChild(armorAndEntityComp.childById(FlowLayout.class, "side_bar_holder"));
+        SIDE_BAR.removeFrom(armorAndEntityComp);
 
         var sideBarResultWidget = createSideBarOptions();
 
         rebuildComponentRectangles = true;
 
-        if (sideBarResultWidget != null) {
-            if ((boolean) this.getDefaultedData(PlayerOptions.SIDE_WIDGET_POSITION) == this.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION)) {
-                armorAndEntityComp.child(0, sideBarResultWidget);
-            } else {
-                armorAndEntityComp.child(sideBarResultWidget);
-            }
+        if (sideBarResultWidget == null) return false;
 
-            return true;
+        if ((boolean) this.getDefaultedData(PlayerOptions.SIDE_WIDGET_POSITION) == this.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION)) {
+            armorAndEntityComp.child(0, sideBarResultWidget);
+        } else {
+            armorAndEntityComp.child(sideBarResultWidget);
         }
 
-
-        return false;
+        return true;
     }
 
     @Nullable
@@ -884,32 +1272,30 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
     //--
     @Nullable
     private io.wispforest.owo.ui.core.Component createSideBarOptions() {
-        var accessoriesTogglePanel = (FlowLayout) Containers.verticalFlow(Sizing.content(), Sizing.content())
-                .id("accessories_toggle_panel");
-
         var groupFilterComponent = createGroupFilters();
 
-        if(groupFilterComponent != null) {
-            return Containers.verticalFlow(Sizing.content(), Sizing.content())
-                    .child(
-                            accessoriesTogglePanel.child(groupFilterComponent)
-                                    .padding(Insets.of(7))
-                                    .surface((ctx, component) -> {
-                                        ComponentUtils.getPanelSurface().and(ComponentUtils.getPanelWithInset(6))
-                                                .draw(ctx, component);
-                                    })
-                                    .horizontalAlignment(HorizontalAlignment.CENTER)
-                    )
-                    .horizontalAlignment(this.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION) ? HorizontalAlignment.LEFT : HorizontalAlignment.RIGHT)
-                    .id("side_bar_holder");
-        }
+        if (groupFilterComponent == null) return null;
 
-        return null;
+        var accessoriesTogglePanel = TOGGLE_PANEL.withId(Containers.verticalFlow(Sizing.content(), Sizing.content()));
+
+        return SIDE_BAR.withId(
+            Containers.verticalFlow(Sizing.content(), Sizing.content())
+                .child(
+                    accessoriesTogglePanel.child(groupFilterComponent)
+                        .padding(Insets.of(7))
+                        .surface((ctx, component) -> {
+                            ComponentUtils.getPanelSurface().and(ComponentUtils.getPanelWithInset(6))
+                                .draw(ctx, component);
+                        })
+                        .horizontalAlignment(HorizontalAlignment.CENTER)
+                )
+                .horizontalAlignment(this.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION) ? HorizontalAlignment.LEFT : HorizontalAlignment.RIGHT)
+        );
     }
 
     public void rebuildSideBarOptions() {
         if(this.getDefaultedData(PlayerOptions.SHOW_GROUP_FILTER)) {
-            var panel = rootComponent().childById(FlowLayout.class, "accessories_toggle_panel");
+            var panel = TOGGLE_PANEL.getFrom(rootComponent());
 
             if(panel != null) {
                 var groupFilter = this.createGroupFilters();
@@ -917,9 +1303,7 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
                 if (groupFilter != null) panel.child(groupFilter);
             }
         } else {
-            var component = rootComponent().childById(ParentComponent.class, "group_filter_holder");
-
-            if (component != null) component.remove();
+            GROUP_FILTER.removeFromRoot(rootComponent());
         }
 
         rebuildComponentRectangles = true;
@@ -934,35 +1318,27 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
     private io.wispforest.owo.ui.core.Component createGroupFilters() {
         if (!this.getDefaultedData(PlayerOptions.SHOW_GROUP_FILTER)) return null;
 
-        var groups = new ArrayList<>(SlotGroupLoader.getValidGroups(this.getMenu().targetEntityDefaulted()).keySet());
+        var capability = this.targetEntityDefaulted().accessoriesCapability();
+        if (capability == null) return null;
 
+        var groups = new ArrayList<>(SlotGroupLoader.getValidGroups(this.getMenu().targetEntityDefaulted()).keySet());
         if (groups.isEmpty()) return null;
 
         var usedSlots = this.getMenu().getUsedSlots();
-
         var groupButtons = new ArrayList<io.wispforest.owo.ui.core.Component>();
 
-        for (SlotGroup group : groups) {
+        // Filter Groups that have valid slots for the given target entity and are not from the unique slot API
+        for (var group : groups) {
             var groupSlots = group.slots().stream()
-                    .filter(slotName -> {
-                        if (UniqueSlotHandling.isUniqueSlot(slotName)) return false;
+                .filter(slotName -> {
+                    if (UniqueSlotHandling.isUniqueSlot(slotName)) return false;
 
-                        var slotType = SlotTypeLoader.getSlotType(this.targetEntityDefaulted(), slotName);
+                    var container = capability.getContainers().get(slotName);
 
-                        if (slotType == null) return false;
-
-                        var capability = this.targetEntityDefaulted().accessoriesCapability();
-
-                        if (capability == null) return false;
-
-                        var container = capability.getContainer(slotType);
-
-                        if (container == null) return false;
-
-                        return container.getSize() > 0;
-                    })
-                    .map((slotName) -> SlotTypeLoader.INSTANCE.getSlotType(false, slotName))
-                    .collect(Collectors.toSet());
+                    return container != null && container.getSize() > 0;
+                })
+                .map((slotName) -> SlotTypeLoader.INSTANCE.getSlotType(false, slotName))
+                .collect(Collectors.toSet());
 
             if (groupSlots.isEmpty() || (usedSlots != null && groupSlots.stream().noneMatch(usedSlots::contains))) continue;
 
@@ -976,48 +1352,47 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
                 .gap(1);
 
         if(groupButtons.size() > 7) {
-            var scrollable = new ExtendedScrollContainer<>(
-                    ScrollContainer.ScrollDirection.VERTICAL,
-                    Sizing.fixed(18 + 3),
-                    Sizing.fixed(108/*(5 * 14) + (5) + (2 * 2) - 1*/),
-                    baseButtonLayout.padding(Insets.of(1))
+            this.groupFilterScrollable = new ExtendedScrollContainer<>(
+                ScrollContainer.ScrollDirection.VERTICAL,
+                Sizing.fixed(18 + 3),
+                Sizing.fixed(108),
+                baseButtonLayout.padding(Insets.of(1))
             ).configure((ExtendedScrollContainer<?> scrollContainer) -> {
                 scrollContainer.oppositeScrollbar((boolean) this.getDefaultedData(PlayerOptions.SIDE_WIDGET_POSITION) == this.getDefaultedData(PlayerOptions.MAIN_WIDGET_POSITION))
-//                    .customClippingInsets(Insets.of(1))
-                        .scrollToAfterLayout(groupFilterScrollable != null ? groupFilterScrollable.getProgress() : 0)
-                        .scrollbarThiccness(2)
-                        .scrollbar(ScrollContainer.Scrollbar.flat(Color.ofArgb(0xA0000000)))
-                        .fixedScrollbarLength(16)
-                        .padding(Insets.of(1, 2, 2, 1))
-                        .id("group_filters_scrollable");
+                    .scrollToAfterLayout(groupFilterScrollable != null ? groupFilterScrollable.getProgress() : 0)
+                    .scrollbarThiccness(2)
+                    .scrollbar(ScrollContainer.Scrollbar.flat(Color.ofArgb(0xA0000000)))
+                    .fixedScrollbarLength(16)
+                    .padding(Insets.of(1, 2, 2, 1))
+                    .id("group_filters_scrollable");
             });
 
-            baseButtonLayout = scrollable;
-            this.groupFilterScrollable = scrollable;
+            baseButtonLayout = this.groupFilterScrollable;
         } else {
-            baseButtonLayout.padding(Insets.of(1, 2, 2, 2));
             this.groupFilterScrollable = null;
+            baseButtonLayout.padding(Insets.of(1, 2, 2, 2));
         }
 
-        return Containers.verticalFlow(Sizing.content(), Sizing.content())
+        return GROUP_FILTER.withId(
+            Containers.verticalFlow(Sizing.content(), Sizing.content())
                 .child(
-                        ComponentUtils.createIconButton(
-                                (btn) -> {
-                                    this.getMenu().selectedGroups().clear();
-                                    this.rebuildAccessoriesComponent();
-                                },
-                                14,
-                                (btn) -> {
-                                    btn.tooltip(Component.translatable(Accessories.translationKey("reset.group_filter")));
-                                },
-                                (btn) -> {
-                                    return Accessories.of("textures/gui/reset_icon" + (btn.isHovered() ? "_hovered" : "") + ".png");
-                                })
-                                .margins(Insets.of(3, 1, 0, 0))
+                    ComponentUtils.createIconButton(
+                            (btn) -> {
+                                this.getMenu().selectedGroups().clear();
+                                this.rebuildAccessoriesComponent();
+                            },
+                            14,
+                            (btn) -> {
+                                btn.tooltip(Component.translatable(Accessories.translationKey("reset.group_filter")));
+                            },
+                            (btn) -> {
+                                return Accessories.of("textures/gui/reset_icon" + (btn.isHovered() ? "_hovered" : "") + ".png");
+                            })
+                        .margins(Insets.of(3, 1, 0, 0))
                 )
                 .child(baseButtonLayout)
                 .horizontalAlignment(HorizontalAlignment.CENTER)
-                .id("group_filter_holder");
+        );
     }
 
     //--
@@ -1026,7 +1401,7 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
     private AccessoriesScreenSettingsLayout settingsLayout = null;
 
     private void swapBottomComponentHolder() {
-        var holder = rootComponent().childById(FlowLayout.class, "bottom_component_holder");
+        var holder = BOTTOM_HOLDER.getFrom(rootComponent());
 
         holder.clearChildren();
 
@@ -1061,32 +1436,25 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
     private void toggleCraftingGrid() {
         rebuildComponentRectangles = true;
 
-        this.removeCraftingGrid();
+        var gridHolder = CRAFTING_GRID.getFrom(rootComponent());
 
-        if (!(boolean) this.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID)) return;
+        if (gridHolder == null) throw new IllegalStateException("Unable to get crafting grid layout!");
 
-        var bottom_holder = rootComponent().childById(FlowLayout.class, "crafting_grid_layout");//side_bar_holder
+        gridHolder.clearChildren();
 
-        bottom_holder.child(createCraftingGrid());
-    }
-
-    private void removeCraftingGrid() {
-        var bottom_holder = rootComponent().childById(FlowLayout.class, "crafting_grid_layout");//side_bar_holder
-
-        if (bottom_holder != null) {
-            bottom_holder.clearChildren();
-        }
-
-        if (!(boolean) this.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID)) {
-            bottom_holder.margins(Insets.of(0));
+        if (!this.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID)) {
+            gridHolder.margins(Insets.of(0));
 
             for (int i = 0; i < 5; i++) this.disableSlot(i);
         }
+
+        if (!this.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID)) return;
+
+        gridHolder.child(createCraftingGrid());
     }
 
     private io.wispforest.owo.ui.core.Component createCraftingGrid() {
-        return ComponentUtils.createCraftingComponent(0, this::slotAsComponent, this::enableSlot, true)
-                .id("crafting_component");
+        return ComponentUtils.createCraftingComponent(0, this::slotAsComponent, this::enableSlot, true);
     }
 
     private io.wispforest.owo.ui.core.Component createCraftingToggleButton() {
@@ -1095,14 +1463,12 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
                 AccessoriesNetworking
                     .sendToServer(SyncOptionChange.of(PlayerOptions.SHOW_CRAFTING_GRID, this.menu.owner(), bl -> !bl));
 
-                this.setData(PlayerOptions.SHOW_CRAFTING_GRID, !this.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID));
-
-                btn.tooltip(createToggleText("crafting_grid", true, this.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID)));
+                btn.tooltip(createToggleText("crafting_grid", true, this.setDataFrom(PlayerOptions.SHOW_CRAFTING_GRID, BooleanUnaryOperator.negation())));
 
                 this.toggleCraftingGrid();
             },
             14,
-            "crafting_grid_btn",
+            CRAFTING_GRID_BTN.id(),
             btn -> {
                 btn.tooltip(createToggleText("crafting_grid", true, this.getDefaultedData(PlayerOptions.SHOW_CRAFTING_GRID)))
                     .margins(Insets.of(0, 3, 3, 0));
@@ -1120,24 +1486,20 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
 
         settingsLayout.onHolderChange(option);
 
-        if (option.equals(PlayerOptions.SHOW_CRAFTING_GRID)) {
-            var buttonPanel = component(StackLayout.class, "entity_button_panel");
+        if (!option.equals(PlayerOptions.SHOW_CRAFTING_GRID)) return;
 
-            var craftingBtn = buttonPanel.childById(io.wispforest.owo.ui.core.Component.class, "crafting_grid_btn");
+        var buttonPanel = ENTITY_PANEL.getFrom(rootComponent());
+        var craftingBtn = CRAFTING_GRID_BTN.getFrom(buttonPanel);
 
-            if (craftingBtn != null && Accessories.config().screenOptions.alwaysShowCraftingGrid()) {
-                buttonPanel.removeChild(craftingBtn);
-            } else if (craftingBtn == null && Accessories.config().screenOptions.alwaysShowCraftingGrid()) {
-                buttonPanel.child(buttonPanel.children().size() - 1, createCraftingToggleButton());
-            }
+        if (craftingBtn != null && Accessories.config().screenOptions.alwaysShowCraftingGrid()) {
+            buttonPanel.removeChild(craftingBtn);
+        } else if (craftingBtn == null && Accessories.config().screenOptions.alwaysShowCraftingGrid()) {
+            buttonPanel.child(buttonPanel.children().size() - 1, createCraftingToggleButton());
         }
     }
 
     private void toggleAdvancedOptions(ButtonComponent btn) {
-        boolean value = !(boolean) this.getDefaultedData(PlayerOptions.ADVANCED_SETTINGS);
-        this.setData(PlayerOptions.ADVANCED_SETTINGS, value);
-
-        btn.tooltip(createToggleText("advanced_options", true, this.getDefaultedData(PlayerOptions.ADVANCED_SETTINGS)));
+        btn.tooltip(createToggleText("advanced_options", true, this.setDataFrom(PlayerOptions.ADVANCED_SETTINGS, BooleanUnaryOperator.negation())));
 
         this.swapBottomComponentHolder();
     }
@@ -1164,10 +1526,6 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
             this.index = index;
 
             this.didDraw = true;
-
-            if (slot() instanceof AccessoriesBasedSlot accessoriesBasedSlot) {
-                this.tooltip(accessoriesBasedSlot.getTooltipData());
-            }
         }
 
         public final Slot slot() {
@@ -1178,15 +1536,13 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
         public void dismount(DismountReason reason) {
             super.dismount(reason);
 
-            if (reason == DismountReason.REMOVED) {
-                ((SlotAccessor) slot).owo$setX(-300);
-                ((SlotAccessor) slot).owo$setY(-300);
-            }
+            if (reason == DismountReason.REMOVED) hideSlot(slot);
         }
 
         @Override
         public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
-            //super.draw(context, mouseX, mouseY, partialTicks, delta);
+            // DO NOT CALL SUPER AS SCISSOR ISSUES OCCUR
+
             this.didDraw = true;
 
             ((OwoSlotExtension) this.slot).owo$setDisabledOverride(false);
@@ -1210,14 +1566,24 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
                 }
             }
 
-            //context.translate(0, 0, 600);
             super.drawTooltip(context, mouseX, mouseY, partialTicks, delta);
-            //context.translate(0, 0, -600);
+
             AccessoriesScreenBase.FORCE_TOOLTIP_LEFT.setValue(false);
         }
     }
 
     //--
+
+    public void showCosmeticState(boolean value) {
+        this.setData(PlayerOptions.SHOW_COSMETIC_SLOTS, value);
+
+        AccessoriesNetworking.sendToServer(PlayerOptions.SHOW_COSMETIC_SLOTS.toPacket(value));
+    }
+
+    public boolean showCosmeticState() {
+        return this.getDefaultedData(PlayerOptions.SHOW_COSMETIC_SLOTS);
+    }
+
 
     @Override
     public <T> Optional<T> getData(PlayerOption<T> option) {
@@ -1232,5 +1598,11 @@ public class AccessoriesScreen extends BaseOwoHandledScreen<FlowLayout, Accessor
     @Override
     public <T> void setData(PlayerOption<T> option, T data) {
         option.setData(this.menu.owner(), data);
+    }
+
+    public <T> T setDataFrom(PlayerOption<T> option, UnaryOperator<T> operator) {
+        var value = operator.apply(getData(option).orElseThrow());
+        setData(option, value);
+        return value;
     }
 }
