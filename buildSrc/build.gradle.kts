@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
     implementation("architectury-plugin:architectury-plugin.gradle.plugin:3.4-SNAPSHOT")
-    implementation("dev.architectury:architectury-loom:1.11-SNAPSHOT")
+    implementation("dev.architectury:architectury-loom:1.13-SNAPSHOT")
     implementation("com.gradleup.shadow:shadow-gradle-plugin:9.2.2")
 
     // Required to get Version Catalogs to show in buildSrc

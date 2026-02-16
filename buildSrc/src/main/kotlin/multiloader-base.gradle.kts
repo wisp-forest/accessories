@@ -84,13 +84,14 @@ repositories {
     // Platform Mavens
     maven("https://maven.parchmentmc.org")
     maven("https://maven.fabricmc.net/")
-    maven("https://maven.neoforged.net/releases/")
-
-    // Fabric API Event Lib
-    maven("https://maven.su5ed.dev/releases")
+    //maven("https://maven.neoforged.net/releases/")
 
     // oωo (owo-lib) and Endec Lib
     maven("https://maven.wispforest.io/releases")
+    maven("https://jitpack.io")
+
+    // Fabric API Event Lib
+    maven("https://maven.su5ed.dev/releases")
 
     // REI Item Viewer
     maven("https://maven.shedaniel.me/")
