@@ -40,8 +40,7 @@
     "client.owo.OwoReiPluginMixin",
     "client.owo.ScissorStackMixin",
     "client.owo.ScrollContainerMixin",
-    "sodium.MPOATVConstructingVertexConsumerMixin_SodiumImpl",
-    "SimpleJsonResourceReloadListenerAccessor"
+    "sodium.MPOATVConstructingVertexConsumerMixin_SodiumImpl"
   ],
   "mixins": [
     "ApplyBonusCountMixin",
@@ -70,6 +69,7 @@
     "PowderSnowBlockMixin",
     "RegistryOpsAccessor",
     "ServerChunkLoadingManagerAccessor",
+    "SimpleJsonResourceReloadListenerAccessor",
     "SlotAccessor",
     "StateHolderAccessor",
     "StriderMixin",
