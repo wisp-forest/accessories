@@ -98,10 +98,10 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
         if (!(this.entity instanceof ServerPlayer serverPlayer) || serverPlayer.connection == null) return;
 
-        RegistryAccess registryAccess = this.entity.level().registryAccess();
+        var registryAccess = this.entity.level().registryAccess();
 
         // Defer update packet until end of tick because client may still be connecting at this point
-        MinecraftServer server = serverPlayer.server;
+        var server = serverPlayer.server;
         server.schedule(server.wrapRunnable(() -> {
             var carrier = NbtMapCarrier.of();
 
