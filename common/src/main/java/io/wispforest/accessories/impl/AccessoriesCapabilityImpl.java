@@ -26,6 +26,8 @@ import io.wispforest.endec.SerializationContext;
 import io.wispforest.endec.util.MapCarrier;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import it.unimi.dsi.fastutil.Pair;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -96,11 +98,17 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
 
         if (!(this.entity instanceof ServerPlayer serverPlayer) || serverPlayer.connection == null) return;
 
-        var carrier = NbtMapCarrier.of();
+        var registryAccess = this.entity.level().registryAccess();
 
-        holder.write(carrier, SerializationContext.attributes(RegistriesAttribute.of(this.entity.level().registryAccess())));
+        // Defer update packet until end of tick because client may still be connecting at this point
+        var server = serverPlayer.server;
+        server.schedule(server.wrapRunnable(() -> {
+            var carrier = NbtMapCarrier.of();
 
-        AccessoriesNetworking.sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(serverPlayer.getId(), carrier));
+            holder.write(carrier, SerializationContext.attributes(RegistriesAttribute.of(registryAccess)));
+
+            AccessoriesNetworking.sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(serverPlayer.getId(), carrier));
+        }));
     }
 
     private boolean updateContainersLock = false;
