@@ -49,11 +49,11 @@ public class AccessoriesRenderLayer<S extends LivingEntityRenderState, M extends
     public void submit(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light, S entityState, float f, float g) {
         var client = Minecraft.getInstance();
 
-        var states = entityState.getStateData(AccessoriesRenderStateKeys.ACCESSORY_RENDER_STATES);
+        var states = ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) entityState).getStateData(AccessoriesRenderStateKeys.ACCESSORY_RENDER_STATES);
 
         if (states == null) return;
 
-        entityState.setStateData(AccessoriesRenderStateKeys.LIGHT, light);
+        ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) entityState).setStateData(AccessoriesRenderStateKeys.LIGHT, light);
 
         var funkyRenderState = AccessoriesFunkyRenderingState.INSTANCE;
         
@@ -131,7 +131,7 @@ public class AccessoriesRenderLayer<S extends LivingEntityRenderState, M extends
                 try {
                     renderer.render(accessoryRenderState, entityState, getParentModel(), poseStack, submitNodeCollector);
                 } catch (Throwable e) {
-                    AccessoryRendererErrorCache.logIfTimeAllotted(entityState.getEntityUUIDForState(), stack, renderer, e);
+                    AccessoryRendererErrorCache.logIfTimeAllotted(((io.wispforest.accessories.pond.AccessoriesRenderStateAPI) entityState).getEntityUUIDForState(), stack, renderer, e);
                 }
 
                 poseStack.popPose();
@@ -203,11 +203,11 @@ public class AccessoriesRenderLayer<S extends LivingEntityRenderState, M extends
 
         var entityState = avatarRender.createRenderState(entity, partialTicks);
 
-        entityState.setStateData(AccessoriesRenderStateKeys.LIGHT, combinedLight);
+        ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) entityState).setStateData(AccessoriesRenderStateKeys.LIGHT, combinedLight);
 
         AccessoriesRenderStateKeys.setupStateForAccessories(entityState, entity, partialTicks, arm);
 
-        var states = entityState.getStateData(AccessoriesRenderStateKeys.ACCESSORY_RENDER_STATES);
+        var states = ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) entityState).getStateData(AccessoriesRenderStateKeys.ACCESSORY_RENDER_STATES);
 
         if (states == null) return;
 
@@ -220,7 +220,7 @@ public class AccessoriesRenderLayer<S extends LivingEntityRenderState, M extends
             try {
                 renderer.render(accessoryRenderState, entityState, model, matrices, submitNodeCollector);
             } catch (Throwable e) {
-                AccessoryRendererErrorCache.logIfTimeAllotted(entityState.getEntityUUIDForState(), stack, renderer, e);
+                AccessoryRendererErrorCache.logIfTimeAllotted(((io.wispforest.accessories.pond.AccessoriesRenderStateAPI) entityState).getEntityUUIDForState(), stack, renderer, e);
             }
 
             matrices.popPose();

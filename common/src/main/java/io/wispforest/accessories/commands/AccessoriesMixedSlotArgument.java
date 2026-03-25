@@ -85,7 +85,7 @@ public record AccessoriesMixedSlotArgument(String entityArgumentName) implements
                 var entityTarget = EntityArgument.getEntity((CommandContext<CommandSourceStack>) commandContext, entityArgumentName);
 
                 if (entityTarget instanceof LivingEntity livingEntity) {
-                    var capability = livingEntity.accessoriesCapability();
+                    var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) livingEntity).accessoriesCapability();
 
                     if (capability != null) {
                         suggestions.addAll(

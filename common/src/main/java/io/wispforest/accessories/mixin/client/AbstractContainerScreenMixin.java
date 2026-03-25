@@ -5,10 +5,10 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import io.wispforest.accessories.pond.ContainerScreenExtension;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.data.AtlasIds;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.Slot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -27,15 +27,15 @@ public abstract class AbstractContainerScreenMixin implements ContainerScreenExt
         if(override != null) cir.setReturnValue(override);
     }
 
-    @Inject(method = "renderSlot", at = @At(value = "HEAD"), cancellable = true)
-    private void accessories$shouldRenderSlot(GuiGraphics guiGraphics, Slot slot, CallbackInfo ci) {
+    @Inject(method = "extractSlot", at = @At(value = "HEAD"), cancellable = true)
+    private void accessories$shouldRenderSlot(GuiGraphicsExtractor guiGraphics, Slot slot, int x, int y, CallbackInfo ci) {
         var result = this.shouldRenderSlot(slot);
 
         if(result != null && !result) ci.cancel();
     }
 
-    @WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/ResourceLocation;IIII)V"))
-    private void accessories$adjustFor18x18(GuiGraphics instance, RenderPipeline pipeline, ResourceLocation texture, int x, int y, int width, int height, Operation<Void> original) {
+    @WrapOperation(method = "extractSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphicsExtractor;blitSprite(Lcom/mojang/blaze3d/pipeline/RenderPipeline;Lnet/minecraft/resources/Identifier;IIII)V"))
+    private void accessories$adjustFor18x18(GuiGraphicsExtractor instance, RenderPipeline pipeline, Identifier texture, int x, int y, int width, int height, Operation<Void> original) {
         var textureAtlasSprite = Minecraft.getInstance().getAtlasManager()
             .getAtlasOrThrow(AtlasIds.GUI)
             .getSprite(texture);

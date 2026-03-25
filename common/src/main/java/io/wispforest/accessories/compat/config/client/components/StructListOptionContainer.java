@@ -4,8 +4,8 @@ package io.wispforest.accessories.compat.config.client.components;
 import io.wispforest.owo.config.Option;
 import io.wispforest.owo.config.ui.component.ListOptionContainer;
 import io.wispforest.owo.ops.TextOps;
-import io.wispforest.owo.ui.component.Components;
-import io.wispforest.owo.ui.container.Containers;
+import io.wispforest.owo.ui.component.UIComponents;
+import io.wispforest.owo.ui.container.UIContainers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.CursorStyle;
 import io.wispforest.owo.ui.core.Insets;
@@ -36,11 +36,11 @@ public class StructListOptionContainer<T> extends ListOptionContainer<T> {
 
         var listType = (Class<T>) ReflectionUtils.getTypeArgument(this.backingOption.backingField().field().getGenericType(), 0);
         for (int i = 0; i < this.backingList.size(); i++) {
-            var container = Containers.horizontalFlow(Sizing.fill(100), Sizing.content());
+            var container = UIContainers.horizontalFlow(Sizing.fill(100), Sizing.content());
             container.verticalAlignment(VerticalAlignment.CENTER);
 
             int optionIndex = i;
-            final var label = Components.label(TextOps.withFormatting("- ", ChatFormatting.GRAY));
+            final var label = UIComponents.label(TextOps.withFormatting("- ", ChatFormatting.GRAY));
 
             label.margins(Insets.left(6)); //10
 
@@ -64,7 +64,7 @@ public class StructListOptionContainer<T> extends ListOptionContainer<T> {
                 backingList.set(i, (T) ConfigurableStructLayout.ReflectOps.defaultConstruct(listType));
             }
 
-            var labelContainer = Containers.verticalFlow(Sizing.fixed(19), Sizing.content());
+            var labelContainer = UIContainers.verticalFlow(Sizing.fixed(19), Sizing.content());
 
             labelContainer.child(label);
 

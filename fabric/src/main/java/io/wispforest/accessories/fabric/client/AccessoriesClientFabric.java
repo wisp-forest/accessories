@@ -15,9 +15,9 @@ import io.wispforest.accessories.networking.AccessoriesNetworking;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityFeatureRendererRegistrationCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.LivingEntityRenderLayerRegistrationCallback;
 import net.fabricmc.fabric.api.event.Event;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
@@ -71,7 +71,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
 //        });
 
 
-        KeyBindingHelper.registerKeyBinding(AccessoriesClient.OPEN_SCREEN);
+        KeyMappingHelper.registerKeyMapping(AccessoriesClient.OPEN_SCREEN);
 
         ClientTickEvents.START_CLIENT_TICK.register(client -> {
             if (AccessoriesClient.OPEN_SCREEN.consumeClick()){
@@ -92,7 +92,7 @@ public class AccessoriesClientFabric implements ClientModInitializer {
             }
         });
 
-        LivingEntityFeatureRendererRegistrationCallback.EVENT.register((entityType, entityRenderer, registrationHelper, context) -> {
+        LivingEntityRenderLayerRegistrationCallback.EVENT.register((entityType, entityRenderer, registrationHelper, context) -> {
             if(!(entityRenderer.getModel() instanceof HumanoidModel)) return;
 
             // TODO: CONFIRM THIS IS CORRECT!

@@ -1,12 +1,12 @@
 package io.wispforest.accessories.mixin;
 
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
-import net.minecraft.world.inventory.HorseInventoryMenu;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.inventory.AbstractMountInventoryMenu;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(HorseInventoryMenu.class)
+@Mixin(AbstractMountInventoryMenu.class)
 public interface HorseInventoryMenuAccessor {
-    @Accessor("horse")
-    AbstractHorse accessories$horse();
+    @Accessor("mount")
+    LivingEntity accessories$horse();
 }

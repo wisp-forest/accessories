@@ -23,31 +23,6 @@ publishing {
             }
         }
 
-        if (project.name == "common") {
-            create<MavenPublication>("mavenMojmap") {
-                val name = project.name
-
-                version = "${rootProject.property("mod_version")}+${libs.versions.minecraft.asProvider().get()}-mojmap"
-                artifactId = "${modid}-${name}"
-
-                afterEvaluate {
-                    this@create.from(components["java"])
-
-                    this@create.setArtifacts(emptyList<Any>())
-
-                    val mojmapJarTask = project.tasks.named("mojmapJar");
-                    artifact(mojmapJarTask) {
-                        builtBy(mojmapJarTask)
-                        classifier = ""
-                    }
-                    val mojmapSourcesJarTask = project.tasks.named("mojmapSourcesJar");
-                    artifact(mojmapSourcesJarTask) {
-                        builtBy(mojmapSourcesJarTask)
-                        classifier = "sources"
-                    }
-                }
-            }
-        }
     }
 
     MavenSetupUtils.setupMavenRepo(rootProject, repositories)

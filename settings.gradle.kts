@@ -19,6 +19,6 @@ dependencyResolutionManagement {
 
 include("common")
 include("fabric")
-include("neoforge")
+//include("neoforge") // Disabled - no owo-lib-neoforge for 1.21.11
 
 rootProject.name = "accessories"

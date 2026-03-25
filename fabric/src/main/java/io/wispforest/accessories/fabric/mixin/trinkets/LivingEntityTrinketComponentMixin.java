@@ -2,7 +2,6 @@ package io.wispforest.accessories.fabric.mixin.trinkets;
 
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
-import dev.emi.trinkets.api.LivingEntityTrinketComponent;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Pseudo
-@Mixin(value = LivingEntityTrinketComponent.class, remap = false)
+@Mixin(targets = "dev.emi.trinkets.api.LivingEntityTrinketComponent", remap = false)
 public class LivingEntityTrinketComponentMixin {
 
     @Inject(method = "readFromNbt", at = @At("HEAD"), remap = false)

@@ -20,7 +20,7 @@ public record NukeAccessories() {
             return;
         }
 
-        var cap = player.accessoriesCapability();
+        var cap = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) player).accessoriesCapability();
 
         if (cap != null) {
             cap.reset(false);

@@ -13,7 +13,7 @@ import io.wispforest.accessories.data.SlotTypeLoader;
 import io.wispforest.accessories.impl.AccessoryAttributeLogic;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
@@ -28,9 +28,9 @@ public class SlotPredicateRegistry {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private static final Map<ResourceLocation, SlotBasedPredicate> PREDICATES = new HashMap<>();
+    private static final Map<Identifier, SlotBasedPredicate> PREDICATES = new HashMap<>();
 
-    public static void register(ResourceLocation location, SlotBasedPredicate predicate) {
+    public static void register(Identifier location, SlotBasedPredicate predicate) {
         if(PREDICATES.containsKey(location)) {
             LOGGER.warn("[AccessoriesAPI]: A SlotBasedPredicate attempted to be registered but a duplicate entry existed already! [Id: {}]", location);
 
@@ -41,10 +41,10 @@ public class SlotPredicateRegistry {
     }
 
     /**
-     * @return {@link SlotBasedPredicate} bound to the given {@link ResourceLocation} or an Empty {@link Optional} if absent
+     * @return {@link SlotBasedPredicate} bound to the given {@link Identifier} or an Empty {@link Optional} if absent
      */
     @Nullable
-    public static SlotBasedPredicate getPredicate(ResourceLocation location) {
+    public static SlotBasedPredicate getPredicate(Identifier location) {
         return PREDICATES.get(location);
     }
 
@@ -133,11 +133,11 @@ public class SlotPredicateRegistry {
         return validSlots;
     }
 
-    public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, Level level, SlotType slotType, int index, ItemStack stack){
+    public static boolean getPredicateResults(Set<Identifier> predicateIds, Level level, SlotType slotType, int index, ItemStack stack){
         return getPredicateResults(predicateIds, level, null, slotType, index, stack);
     }
 
-    public static boolean getPredicateResults(Set<ResourceLocation> predicateIds, Level level, @Nullable LivingEntity entity, SlotType slotType, int index, ItemStack stack){
+    public static boolean getPredicateResults(Set<Identifier> predicateIds, Level level, @Nullable LivingEntity entity, SlotType slotType, int index, ItemStack stack){
         var result = TriState.DEFAULT;
 
         for (var predicateId : predicateIds) {
@@ -158,7 +158,7 @@ public class SlotPredicateRegistry {
     }
 
     private static TagKey<Item> getSlotTag(SlotType slotType) {
-        var location = UniqueSlotHandling.isUniqueSlot(slotType.name()) ? ResourceLocation.parse(slotType.name()) : Accessories.of(slotType.name());
+        var location = UniqueSlotHandling.isUniqueSlot(slotType.name()) ? Identifier.parse(slotType.name()) : Accessories.of(slotType.name());
 
         return TagKey.create(Registries.ITEM, location);
     }

@@ -6,7 +6,7 @@ import io.wispforest.accessories.impl.PlayerEquipControl;
 import io.wispforest.accessories.impl.option.AccessoriesPlayerOptionsHolder;
 import io.wispforest.owo.config.Option;
 import io.wispforest.owo.config.annotation.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -72,9 +72,9 @@ public class AccessoriesConfigModel {
         @Hook
         public List<MenuButtonInjection> menuButtonInjections = new ArrayList<>(
             List.of(
-                new MenuButtonInjection(ResourceLocation.withDefaultNamespace("creative_player_inventory"), 96, 6),
-                new MenuButtonInjection(ResourceLocation.withDefaultNamespace("player_inventory"), 66, 8),
-                new MenuButtonInjection(ResourceLocation.withDefaultNamespace("horse_inventory"), 69, 18)
+                new MenuButtonInjection(Identifier.withDefaultNamespace("creative_player_inventory"), 96, 6),
+                new MenuButtonInjection(Identifier.withDefaultNamespace("player_inventory"), 66, 8),
+                new MenuButtonInjection(Identifier.withDefaultNamespace("horse_inventory"), 69, 18)
             )
         );
 

@@ -7,7 +7,7 @@ import io.wispforest.accessories.mixin.client.ModelPartAccessor;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.ApiStatus;
@@ -22,10 +22,10 @@ import java.util.Optional;
 @ApiStatus.Experimental
 public class ModelTransformOps {
 
-    private static final Map<ResourceLocation, ModelPartTransformer> ADDITIONAL_TRANSFORMERS = new LinkedHashMap<>();
+    private static final Map<Identifier, ModelPartTransformer> ADDITIONAL_TRANSFORMERS = new LinkedHashMap<>();
 
     @ApiStatus.Experimental
-    public static void registerTransformer(ResourceLocation location, ModelPartTransformer modelTransformers) {
+    public static void registerTransformer(Identifier location, ModelPartTransformer modelTransformers) {
         if (ADDITIONAL_TRANSFORMERS.containsKey(location)) {
             throw new IllegalStateException("Already existing ModelTransformer exists!");
         }

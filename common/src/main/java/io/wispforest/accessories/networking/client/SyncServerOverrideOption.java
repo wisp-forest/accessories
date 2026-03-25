@@ -24,7 +24,7 @@ public record SyncServerOverrideOption(String configId, Option.Key optionKey, Fr
     public static final StructEndec<SyncServerOverrideOption> ENDEC = StructEndecBuilder.of(
         Endec.STRING.fieldOf("config_id", SyncServerOverrideOption::configId),
         Endec.STRING.xmap(Option.Key::new, Option.Key::asString).fieldOf("option_key", SyncServerOverrideOption::optionKey),
-        MinecraftEndecs.PACKET_BYTE_BUF.fieldOf("buf", SyncServerOverrideOption::buf),
+        MinecraftEndecs.FRIENDLY_BYTE_BUF.fieldOf("buf", SyncServerOverrideOption::buf),
         SyncServerOverrideOption::new
     );
 

@@ -15,7 +15,7 @@ public abstract class ClientPacketListenerMixin {
 
     @ModifyReturnValue(method = "findTotem", at = @At(value = "RETURN", ordinal = 1))
     private static ItemStack accessories$findPossibleTotem(ItemStack original, @Local(argsOnly = true) Player player) {
-        var capability = player.accessoriesCapability();
+        var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) player).accessoriesCapability();
 
         if (capability != null) {
             var totem = capability.getFirstEquipped(ItemStackBasedPredicate.ofComponents("totem_check", DataComponents.DEATH_PROTECTION));

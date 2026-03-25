@@ -167,7 +167,7 @@ public class ExtraEventHandler {
             .build(CacheLoader.from(() -> new HashMap<>()));
 
     public static TriState isGazedBlocked(LivingEntity lookingEntity, LivingEntity targetEntity){
-        if (lookingEntity.getType().is(AccessoriesTags.GAZE_DISGUISED_BLACKLIST)) return TriState.DEFAULT;
+        if (lookingEntity.getType().builtInRegistryHolder().is(AccessoriesTags.GAZE_DISGUISED_BLACKLIST)) return TriState.DEFAULT;
 
         var cache = gazeDisguiseCache.getIfPresent(targetEntity.getId());
 

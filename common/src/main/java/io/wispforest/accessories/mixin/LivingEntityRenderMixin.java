@@ -11,7 +11,7 @@ import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -24,10 +24,10 @@ public abstract class LivingEntityRenderMixin {
     private <S extends EntityRenderState> void accessories$passCameraRenderState(RenderLayer instance, PoseStack poseStack, SubmitNodeCollector collector, int i, S s, float f, float g, Operation<Void> original, @Local(argsOnly = true) CameraRenderState cameraState) {
         var bl = instance instanceof AccessoriesRenderLayer<?,?>;
 
-        if (bl) ((LivingEntityRenderState) s).setStateData(AccessoriesRenderStateKeys.CAMERA_STATE, cameraState);
+        if (bl) ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) s).setStateData(AccessoriesRenderStateKeys.CAMERA_STATE, cameraState);
 
         original.call(instance, poseStack, collector, i, s, f, g);
 
-        if (bl) ((LivingEntityRenderState) s).setStateData(AccessoriesRenderStateKeys.CAMERA_STATE, null);
+        if (bl) ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) s).setStateData(AccessoriesRenderStateKeys.CAMERA_STATE, null);
     }
 }

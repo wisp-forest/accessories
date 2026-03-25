@@ -29,14 +29,14 @@ public interface SimpleAccessoryRenderer extends AccessoryRenderer {
 
         align(accessoryState, entityState, model, matrices);
 
-        var light = entityState.getStateData(AccessoriesRenderStateKeys.LIGHT);
+        var light = ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) entityState).getStateData(AccessoriesRenderStateKeys.LIGHT);
         var stack = accessoryState.getStateData(AccessoriesRenderStateKeys.ITEM_STACK);
 
         renderStack(accessoryState, entityState, model, matrices, collector, stack, stackRenderState, light);
     }
 
     public default <S extends LivingEntityRenderState> void renderStack(AccessoryRenderState accessoryState, S entityState, EntityModel<S> model, PoseStack matrices, SubmitNodeCollector collector, ItemStack stack, ItemStackRenderState stackRenderState, int light) {
-        stackRenderState.submit(matrices, collector, entityState.getStateData(AccessoriesRenderStateKeys.LIGHT), OverlayTexture.NO_OVERLAY, 0);
+        stackRenderState.submit(matrices, collector, ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) entityState).getStateData(AccessoriesRenderStateKeys.LIGHT), OverlayTexture.NO_OVERLAY, 0);
     }
 
     @Override

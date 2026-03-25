@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Minecraft.class)
 public abstract class MinecraftMixin {
-    @Inject(method = "resizeDisplay", at = @At(value = "TAIL"))
+    @Inject(method = "resizeGui", at = @At(value = "TAIL"))
     private void captureResize(CallbackInfo ci){
         var client = ((Minecraft) ((Object) this));
         AccessoriesClient.WINDOW_RESIZE_CALLBACK_EVENT.invoker().onResized(client, client.getWindow());

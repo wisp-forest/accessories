@@ -1,5 +1,9 @@
 package io.wispforest.accessories.compat.jei;
 
+// JEI integration disabled - no JEI available for 1.21.11 yet
+// TODO: Re-enable when JEI is updated for 1.21.11
+
+/*
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import mezz.jei.api.IModPlugin;
@@ -7,14 +11,14 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 
 @JeiPlugin
 public class AccessoriesClientJEIPlugin implements IModPlugin {
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return Accessories.of("main");
     }
 
@@ -30,3 +34,4 @@ public class AccessoriesClientJEIPlugin implements IModPlugin {
         });
     }
 }
+*/

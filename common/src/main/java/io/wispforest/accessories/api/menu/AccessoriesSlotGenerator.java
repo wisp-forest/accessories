@@ -45,7 +45,7 @@ public class AccessoriesSlotGenerator {
 
     @Nullable
     public static AccessoriesSlotGenerator of(Consumer<Slot> slotConsumer, int startX, int startY, LivingEntity livingEntity, SlotTypeReference... references) {
-        var capability = livingEntity.accessoriesCapability();
+        var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) livingEntity).accessoriesCapability();
 
         if(capability == null) return null;
 
@@ -54,7 +54,7 @@ public class AccessoriesSlotGenerator {
 
     @Nullable
     public static AccessoriesSlotGenerator of(Consumer<Slot> slotConsumer, int startX, int startY, LivingEntity livingEntity, SlotType... slotTypes) {
-        var capability = livingEntity.accessoriesCapability();
+        var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) livingEntity).accessoriesCapability();
 
         if(capability == null) return null;
 
@@ -68,7 +68,7 @@ public class AccessoriesSlotGenerator {
      */
     @Nullable
     public static AccessoriesSlotGenerator of(Consumer<Slot> slotConsumer, int startX, int startY, LivingEntity livingEntity) {
-        var capability = livingEntity.accessoriesCapability();
+        var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) livingEntity).accessoriesCapability();
 
         if(capability == null) return null;
 

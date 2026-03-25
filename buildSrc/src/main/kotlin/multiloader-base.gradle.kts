@@ -7,7 +7,7 @@ import io.wispforest.helpers.RunConfigurationUtils.createExtraRunConfigs
 import io.wispforest.helpers.UtilsJava
 
 plugins {
-    id("dev.architectury.loom")
+    id("dev.architectury.loom-no-remap")
     id("maven-publish")
     id("base")
     id("java")
@@ -81,6 +81,8 @@ loom {
 }
 
 repositories {
+    mavenLocal()  // Local maven for custom owo-lib build
+
     // Platform Mavens
     maven("https://maven.parchmentmc.org")
     maven("https://maven.fabricmc.net/")
@@ -121,16 +123,6 @@ repositories {
 dependencies {
     minecraft("com.mojang:minecraft:${libs.versions.minecraft.asProvider().get()}")
 
-    if (name == "common-mojmap") {
-        mappings(loom.officialMojangMappings())
-    } else {
-        mappings (
-            loom.layered {
-                this.officialMojangMappings()
-                this.parchment("org.parchmentmc.data:parchment-${libs.versions.minecraft.asProvider().get()}:${libs.versions.parchment.get()}@zip")
-            }
-        )
-    }
 
     if (projectPlatform != "common" && enabledTestmodPlatforms.contains(projectPlatform)) {
         "testmodImplementation"(sourceSets.main.get().output)
@@ -139,7 +131,7 @@ dependencies {
     // General Libs
     var owolibDependency = if (projectPlatform == "neoforge") libs.owolib.neo else libs.owolib.fabric
 
-    modImplementation(owolibDependency) {
+    implementation(owolibDependency) {
         if (projectPlatform == "common") exclude("net.fabricmc.fabric-api")
     }
     annotationProcessor(owolibDependency) {
@@ -153,7 +145,7 @@ dependencies {
     //--
 
     // Item Viewer Libs
-    project.setupItemViewerDependencies(modCompileOnly = this::modCompileOnly, modLocalRuntime = this::modLocalRuntime)
+    project.setupItemViewerDependencies(modCompileOnly = this::compileOnly, modLocalRuntime = this::runtimeOnly)
 }
 
 tasks.processResources {

@@ -15,7 +15,7 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
@@ -61,7 +61,7 @@ public class RenderingFunctionOps {
         var level = client.level;
 //        var targetEntity = reference.entity();
 
-        var cameraState = renderState.getStateData(AccessoriesRenderStateKeys.CAMERA_STATE);
+        var cameraState = ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) renderState).getStateData(AccessoriesRenderStateKeys.CAMERA_STATE);
 
         switch (renderingFunction) {
             case RenderingFunction.Transformations transformation -> {
@@ -172,9 +172,10 @@ public class RenderingFunctionOps {
             case RenderingFunction.Particle particleData -> {
                 if (!PARTICLE_UPDATE_CACHE.hasAllottedTime(new ParticleTimeKey(((AccessoriesRenderStateAPI) renderState).getEntityUUIDForState(), uniqueKey, particleData), particleData.delay())) return;
 
+                var cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
                 var pos = new Vector3f(0, 0, 0)
                         .mulPosition(matrices.last().pose())
-                        .add(Minecraft.getInstance().gameRenderer.getMainCamera().getPosition().toVector3f());
+                        .add((float) cameraPos.x, (float) cameraPos.y, (float) cameraPos.z);
 
                 renderParticle(level, particleData, pos.x(), pos.y(), pos.z());
             }
@@ -195,7 +196,7 @@ public class RenderingFunctionOps {
 
                 if(renderFunction == null) return;
 
-                var lookup = renderState.getStateData(AccessoriesRenderStateKeys.STORAGE_LOOKUP);
+                var lookup = ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) renderState).getStateData(AccessoriesRenderStateKeys.STORAGE_LOOKUP);
 
                 renderFunction.ifLeft(accessoryRenderer -> {
                     try {
@@ -245,7 +246,10 @@ public class RenderingFunctionOps {
 
     private static void renderBlock(Minecraft client, BlockState state, @Nullable BlockEntity blockEntity, CameraRenderState cameraState, float partialTick, PoseStack matrices, SubmitNodeCollector collector, int packedLight, int packedOverlay, int color) {
         if (state.getRenderShape() != RenderShape.INVISIBLE) {
-            collector.submitBlock(matrices, state, packedLight, packedOverlay, 0);
+            var blockStateModel = client.getModelManager().getBlockStateModelSet().get(state);
+            var parts = new java.util.ArrayList<net.minecraft.client.renderer.block.dispatch.BlockStateModelPart>();
+            blockStateModel.collectParts(net.minecraft.util.RandomSource.create(), parts);
+            collector.submitBlockModel(matrices, net.minecraft.client.renderer.rendertype.RenderTypes.solidMovingBlock(), parts, new int[0], packedLight, packedOverlay, 0);
         }
 
         if (blockEntity != null) {
@@ -365,8 +369,8 @@ public class RenderingFunctionOps {
 
     @Nullable
     public static Boolean shouldRender(ItemStack stack, SlotPath path, AccessoriesStorageLookup storageLookup, LivingEntity entity, LivingEntityRenderState entityState, RenderingFunction renderingFunction) {
-        if (renderingFunction instanceof RenderingFunction.ArmedTargeted armedTargeted && entityState.hasStateData(AccessoriesRenderStateKeys.ARM)) {
-            if (armedTargeted.firstPersonArmTarget().hasArm(entityState.getStateData(AccessoriesRenderStateKeys.ARM))) return true;
+        if (renderingFunction instanceof RenderingFunction.ArmedTargeted armedTargeted && ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) entityState).hasStateData(AccessoriesRenderStateKeys.ARM)) {
+            if (armedTargeted.firstPersonArmTarget().hasArm(((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) entityState).getStateData(AccessoriesRenderStateKeys.ARM))) return true;
         }
 
         return switch (renderingFunction) {

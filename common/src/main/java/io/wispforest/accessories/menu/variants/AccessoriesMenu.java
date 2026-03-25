@@ -12,7 +12,7 @@ import io.wispforest.accessories.menu.*;
 import io.wispforest.accessories.menu.networking.ToggledSlots;
 import io.wispforest.owo.client.screens.SlotGenerator;
 import it.unimi.dsi.fastutil.Pair;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -82,7 +82,7 @@ public class AccessoriesMenu extends AccessoriesMenuBase {
             }
 
             @Override
-            public ResourceLocation getNoItemIcon() {
+            public Identifier getNoItemIcon() {
                 return InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD;
             }
         });
@@ -161,7 +161,7 @@ public class AccessoriesMenu extends AccessoriesMenuBase {
 
             @Override
             public boolean stillValid(Player player) {
-                return player.getVehicle() == living || player.canInteractWithEntity(living, 4.0);
+                return player.getVehicle() == living || player.distanceTo(living) <= player.entityInteractionRange() + 4.0;
             }
 
             @Override public void setChanged() {}
@@ -181,7 +181,7 @@ public class AccessoriesMenu extends AccessoriesMenuBase {
 
         var cosmeticSlot = new AccessoriesBasedSlot(container, container.getCosmeticAccessories(), 0, -300, -300){
             @Override
-            public @Nullable ResourceLocation getNoItemIcon() {
+            public @Nullable Identifier getNoItemIcon() {
                 return location;
             }
         };
@@ -278,7 +278,7 @@ public class AccessoriesMenu extends AccessoriesMenuBase {
                             .filter(slotType -> {
                                 if (UniqueSlotHandling.isUniqueSlot(slotType.name())) return false;
 
-                                var capability = targetEntity.accessoriesCapability();
+                                var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) targetEntity).accessoriesCapability();
 
                                 if (capability == null) return false;
 
@@ -431,7 +431,7 @@ public class AccessoriesMenu extends AccessoriesMenuBase {
     }
 
     protected boolean canMoveToAccessorySlot(ItemStack stack, LivingEntity living) {
-        var capability = living.accessoriesCapability();
+        var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) living).accessoriesCapability();
 
         if (capability == null) return false;
 

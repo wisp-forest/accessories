@@ -18,7 +18,7 @@ import io.wispforest.endec.format.gson.GsonDeserializer;
 import io.wispforest.owo.Owo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.FileToIdConverter;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
@@ -40,7 +40,7 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
     private static final Logger LOGGER = LogUtils.getLogger();
 
     @Nullable
-    private ResourceLocation constantResolveTarget = null;
+    private Identifier constantResolveTarget = null;
 
     public static final CustomRendererLoader CLIENT_OVERRIDES = new CustomRendererLoader(PackType.CLIENT_RESOURCES);
     public static final CustomRendererLoader PRIMARY = new CustomRendererLoader(PackType.SERVER_DATA);
@@ -82,8 +82,8 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
 
     private boolean alwaysResolveFlag = false;
 
-    private final Set<ResourceLocation> missingRenderersClient = new HashSet<>();
-    private final Set<ResourceLocation> missingRenderersServer = new HashSet<>();
+    private final Set<Identifier> missingRenderersClient = new HashSet<>();
+    private final Set<Identifier> missingRenderersServer = new HashSet<>();
 
     @Override
     protected void onSync() {
@@ -95,7 +95,7 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
     }
 
     @Override
-    public Map<ResourceLocation, RawRenderer> mapFrom(Map<ResourceLocation, RawRenderer> rawData) {
+    public Map<Identifier, RawRenderer> mapFrom(Map<Identifier, RawRenderer> rawData) {
         this.resolvedServer.clear();
         this.missingRenderersServer.clear();
 
@@ -104,7 +104,7 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
 
     @Nullable
     private RenderingFunction.Compound getOrResolveRendererInitial(DeferredRenderer deferredRenderer, boolean isClientSide, boolean allowMissing) {
-        Deque<ResourceLocation> currentResolveTree = new ArrayDeque<>();
+        Deque<Identifier> currentResolveTree = new ArrayDeque<>();
         var references = new HashMap<>(deferredRenderer.references());
 
         RenderingFunction.Compound function = null;
@@ -133,7 +133,7 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
         return function;
     }
 
-    private RenderingFunction.Compound resolveRenderer(Deque<ResourceLocation> currentResolveTree, ResourceLocation id, Map<String, JsonElement> references, boolean isClientSide, boolean allowMissing) {
+    private RenderingFunction.Compound resolveRenderer(Deque<Identifier> currentResolveTree, Identifier id, Map<String, JsonElement> references, boolean isClientSide, boolean allowMissing) {
         currentResolveTree.push(id);
 
         RawRenderer rawRenderer = null;
@@ -163,7 +163,7 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
     }
 
     @Nullable
-    private RenderingFunction.Compound resolveRawData(Deque<ResourceLocation> currentResolveTree, ResourceLocation id, RenderingFunction function, Map<String, JsonElement> references, boolean isClientSide) {
+    private RenderingFunction.Compound resolveRawData(Deque<Identifier> currentResolveTree, Identifier id, RenderingFunction function, Map<String, JsonElement> references, boolean isClientSide) {
         if (function instanceof RawRenderer data) {
             data.references().forEach(references::putIfAbsent);
 
@@ -276,7 +276,7 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
     //--
 
     @ApiStatus.Internal
-    public static void constantFileResolving(MinecraftServer server, ResourceLocation id) {
+    public static void constantFileResolving(MinecraftServer server, Identifier id) {
         if (server.isDedicatedServer() && Accessories.DEBUG) return;
 
         PRIMARY.constantResolveTarget = id;
@@ -287,7 +287,7 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
     }
 
     @Nullable
-    protected RenderingFunction.RawRenderer getDataFromId(ResourceLocation id, boolean isClientSide) {
+    protected RenderingFunction.RawRenderer getDataFromId(Identifier id, boolean isClientSide) {
         var fileId = FileToIdConverter.json(this.type).idToFile(id);
         ResourceManager resource = getResourceManager(isClientSide);
 
@@ -321,7 +321,7 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
         return null;
     }
 
-    private static final Cache<ResourceLocation, Integer> ERROR_CACHE = CacheBuilder.newBuilder()
+    private static final Cache<Identifier, Integer> ERROR_CACHE = CacheBuilder.newBuilder()
             .expireAfterAccess(Duration.ofSeconds(30))
             .maximumSize(3000)
             .build();
@@ -338,7 +338,7 @@ public class CustomRendererLoader extends SimpleManagedEndecDataLoader<RawRender
         LOGGER.error(throwable.getMessage());
     }
 
-    private void errorIfDifferent(ResourceLocation id, Throwable e, Runnable runnable) {
+    private void errorIfDifferent(Identifier id, Throwable e, Runnable runnable) {
         if (!alwaysResolveFlag) {
             runnable.run();
             return;

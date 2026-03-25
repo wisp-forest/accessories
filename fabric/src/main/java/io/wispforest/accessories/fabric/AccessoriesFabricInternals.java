@@ -12,11 +12,9 @@ import io.wispforest.accessories.menu.AccessoriesMenuVariant;
 import io.wispforest.accessories.menu.variants.AccessoriesMenuBase;
 import io.wispforest.endec.Endec;
 import io.wispforest.owo.serialization.CodecUtils;
-import net.fabricmc.fabric.api.gamerule.v1.GameRuleFactory;
-import net.fabricmc.fabric.api.gamerule.v1.GameRuleRegistry;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuProvider;
+import net.fabricmc.fabric.api.menu.v1.ExtendedMenuType;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.PlayerInventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
@@ -27,7 +25,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.PackType;
@@ -47,7 +45,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.TooltipDisplay;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.Nullable;
 
@@ -95,16 +93,16 @@ public class AccessoriesFabricInternals extends AccessoriesInternals {
         }
     }
 
-    public boolean isValidOnConditions(JsonObject object, String dataType, ResourceLocation key, SimplePreparableReloadListener listener, @Nullable RegistryOps.RegistryInfoLookup registryInfo) {
+    public boolean isValidOnConditions(JsonObject object, String dataType, Identifier key, SimplePreparableReloadListener listener, @Nullable RegistryOps.RegistryInfoLookup registryInfo) {
         return ResourceConditionsImpl.applyResourceConditions(object, dataType, key, registryInfo);
     }
 
-    public <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(ResourceLocation location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func){
-        return Registry.register(BuiltInRegistries.MENU, location, new ExtendedScreenHandlerType<>(func::apply, CodecUtils.toPacketCodec(endec)));
+    public <T extends AbstractContainerMenu, D> MenuType<T> registerMenuType(Identifier location, Endec<D> endec, TriFunction<Integer, Inventory, D, T> func){
+        return Registry.register(BuiltInRegistries.MENU, location, new ExtendedMenuType<>(func::apply, CodecUtils.toPacketCodec(endec)));
     }
 
     public void openAccessoriesMenu(Player player, AccessoriesMenuVariant variant, @Nullable LivingEntity targetEntity, @Nullable ItemStack carriedStack) {
-        player.openMenu(new ExtendedScreenHandlerFactory<AccessoriesMenuData>() {
+        player.openMenu(new ExtendedMenuProvider<AccessoriesMenuData>() {
             @Override
             public AccessoriesMenuData getScreenOpeningData(ServerPlayer player) {
                 return AccessoriesMenuData.of(targetEntity, ((AccessoriesMenuBase) player.containerMenu));
@@ -139,14 +137,14 @@ public class AccessoriesFabricInternals extends AccessoriesInternals {
 
         var id = dataLoader.getId();
 
-        loader.registerReloader(id, dataLoader);
+        loader.registerReloadListener(id, dataLoader);
 
         for (var dependencyId : dataLoader.getDependencyIds()) {
-            loader.addReloaderOrdering(dependencyId, id);
+            loader.addListenerOrdering(dependencyId, id);
         }
 
         if (dataLoader instanceof EndecDataLoader<?> endecDataLoader) {
-            endecDataLoader.setRegistriesAccess(sharedState -> sharedState.get(ResourceLoader.RELOADER_REGISTRY_LOOKUP_KEY));
+            endecDataLoader.setRegistriesAccess(sharedState -> sharedState.get(ResourceLoader.REGISTRY_LOOKUP_KEY));
         }
     }
 

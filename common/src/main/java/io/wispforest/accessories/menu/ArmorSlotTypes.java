@@ -9,11 +9,11 @@ import io.wispforest.accessories.api.slot.UniqueSlotHandling;
 import io.wispforest.accessories.impl.slot.StrictMode;
 import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.animal.horse.AbstractHorse;
-import net.minecraft.world.entity.animal.horse.Llama;
+import net.minecraft.world.entity.animal.equine.AbstractHorse;
+import net.minecraft.world.entity.animal.equine.Llama;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -23,14 +23,14 @@ import java.util.Map;
 
 public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
 
-    private static final ResourceLocation SADDLE_SLOT_SPRITE = ResourceLocation.withDefaultNamespace("container/slot/saddle");
+    private static final Identifier SADDLE_SLOT_SPRITE = Identifier.withDefaultNamespace("container/slot/saddle");
 
-    private static final ResourceLocation LLAMA_ARMOR_SLOT_SPRITE = ResourceLocation.withDefaultNamespace("container/slot/llama_armor");
-    private static final ResourceLocation HORSE_ARMOR_SLOT_SPRITE = ResourceLocation.withDefaultNamespace("container/slot/horse_armor");
+    private static final Identifier LLAMA_ARMOR_SLOT_SPRITE = Identifier.withDefaultNamespace("container/slot/llama_armor");
+    private static final Identifier HORSE_ARMOR_SLOT_SPRITE = Identifier.withDefaultNamespace("container/slot/horse_armor");
 
     private static final Accessory armorAccessory = new Accessory() {};
 
-    public static final Map<EquipmentSlot, ResourceLocation> TEXTURE_EMPTY_SLOTS = Map.of(
+    public static final Map<EquipmentSlot, Identifier> TEXTURE_EMPTY_SLOTS = Map.of(
             EquipmentSlot.FEET, InventoryMenu.EMPTY_ARMOR_SLOT_BOOTS,
             EquipmentSlot.LEGS, InventoryMenu.EMPTY_ARMOR_SLOT_LEGGINGS,
             EquipmentSlot.CHEST, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE,
@@ -42,15 +42,15 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
 
     public static final ArmorSlotTypes INSTANCE = new ArmorSlotTypes();
 
-    private static final ResourceLocation HEAD_PREDICATE_LOCATION = of("head");
-    private static final ResourceLocation CHEST_PREDICATE_LOCATION = of("chest");
-    private static final ResourceLocation LEGS_PREDICATE_LOCATION = of("legs");
-    private static final ResourceLocation FEET_PREDICATE_LOCATION = of("feet");
-    private static final ResourceLocation ANIMAL_BODY_PREDICATE_LOCATION  = of("animal_body");
-    private static final ResourceLocation SADDLE_PREDICATE_LOCATION  = of("saddle");
+    private static final Identifier HEAD_PREDICATE_LOCATION = of("head");
+    private static final Identifier CHEST_PREDICATE_LOCATION = of("chest");
+    private static final Identifier LEGS_PREDICATE_LOCATION = of("legs");
+    private static final Identifier FEET_PREDICATE_LOCATION = of("feet");
+    private static final Identifier ANIMAL_BODY_PREDICATE_LOCATION  = of("animal_body");
+    private static final Identifier SADDLE_PREDICATE_LOCATION  = of("saddle");
 
-    public static ResourceLocation of(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Accessories.MODID + "_" + "cosmetics", path);
+    public static Identifier of(String path) {
+        return Identifier.fromNamespaceAndPath(Accessories.MODID + "_" + "cosmetics", path);
     }
 
     private SlotTypeReference headSlotReference = null;
@@ -98,7 +98,7 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
     }
 
     @Nullable
-    public static ResourceLocation getEmptyTexture(EquipmentSlot slot, LivingEntity living) {
+    public static Identifier getEmptyTexture(EquipmentSlot slot, LivingEntity living) {
         var texture = TEXTURE_EMPTY_SLOTS.get(slot);
 
         if (texture != null) return texture;
@@ -210,7 +210,7 @@ public class ArmorSlotTypes implements UniqueSlotHandling.RegistrationCallback {
 
     @Nullable
     public static ItemStack getAlternativeStack(LivingEntity instance, EquipmentSlot equipmentSlot) {
-        var capability = instance.accessoriesCapability();
+        var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) instance).accessoriesCapability();
 
         if (capability != null) {
             var reference = ArmorSlotTypes.getReferenceFromSlot(equipmentSlot);

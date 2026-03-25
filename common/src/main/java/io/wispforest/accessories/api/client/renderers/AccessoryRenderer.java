@@ -72,7 +72,7 @@ public interface AccessoryRenderer {
     /// with [AccessoriesRenderStateKeys#ARM]
     ///
     default boolean shouldRender(ItemStack stack, SlotPath path, AccessoriesStorageLookup storageLookup, LivingEntity entity, LivingEntityRenderState entityState, boolean isRenderingEnabled) {
-        if (entityState.hasStateData(AccessoriesRenderStateKeys.ARM)) {
+        if (((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) entityState).hasStateData(AccessoriesRenderStateKeys.ARM)) {
             return false;
         }
 

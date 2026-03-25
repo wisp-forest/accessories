@@ -11,7 +11,7 @@ import io.wispforest.accessories.api.client.renderers.WrappedAccessoryRenderer;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.api.core.AccessoryRegistry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -31,23 +31,23 @@ import java.util.function.Supplier;
  */
 public class AccessoriesRendererRegistry {
 
-    public static final ResourceLocation NO_RENDERER_ID = Accessories.of("no_renderer");
+    public static final Identifier NO_RENDERER_ID = Accessories.of("no_renderer");
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private static final Map<Item, ResourceLocation> ITEM_TO_RENDERER = new HashMap<>();
-    private static final Map<Item, ResourceLocation> DATA_LOADED_ITEM_TO_RENDERER = new HashMap<>();
+    private static final Map<Item, Identifier> ITEM_TO_RENDERER = new HashMap<>();
+    private static final Map<Item, Identifier> DATA_LOADED_ITEM_TO_RENDERER = new HashMap<>();
 
-    private static final Map<ResourceLocation, Supplier<AccessoryRenderer>> RENDERERS = new HashMap<>();
+    private static final Map<Identifier, Supplier<AccessoryRenderer>> RENDERERS = new HashMap<>();
 
-    private static final BiMap<ResourceLocation, AccessoryRenderer> CACHED_RENDERERS = HashBiMap.create();
+    private static final BiMap<Identifier, AccessoryRenderer> CACHED_RENDERERS = HashBiMap.create();
 
     /**
-     * Binds the given item to use the following renderer as registered though {@link AccessoriesRendererRegistry#registerRenderer(ResourceLocation, Supplier)}
+     * Binds the given item to use the following renderer as registered though {@link AccessoriesRendererRegistry#registerRenderer(Identifier, Supplier)}
      * @param item
      * @param rendererId
      */
-    public static void bindItemToRenderer(Item item, ResourceLocation rendererId) {
+    public static void bindItemToRenderer(Item item, Identifier rendererId) {
         var entry = ITEM_TO_RENDERER.putIfAbsent(item, rendererId);
 
         if (entry != null) {
@@ -55,7 +55,7 @@ public class AccessoriesRendererRegistry {
         }
     }
 
-    public static void bindItemToRenderer(Item item, ResourceLocation rendererId, Supplier<AccessoryRenderer> renderer) {
+    public static void bindItemToRenderer(Item item, Identifier rendererId, Supplier<AccessoryRenderer> renderer) {
         bindItemToRenderer(item, rendererId);
 
         registerRenderer(rendererId, renderer);
@@ -78,7 +78,7 @@ public class AccessoriesRendererRegistry {
         bindItemToRenderer(item, BuiltinAccessoryRenderers.ARMOR_RENDERER_ID);
     }
 
-    public static void registerRenderer(ResourceLocation location, Supplier<AccessoryRenderer> renderer) {
+    public static void registerRenderer(Identifier location, Supplier<AccessoryRenderer> renderer) {
         RENDERERS.put(location, renderer);
     }
 
@@ -88,7 +88,7 @@ public class AccessoriesRendererRegistry {
         return getBoundRenderer(item) != null;
     }
 
-    public static boolean hasRenderer(ResourceLocation rendererId) {
+    public static boolean hasRenderer(Identifier rendererId) {
         return RENDERERS.containsKey(rendererId);
     }
 
@@ -145,19 +145,19 @@ public class AccessoriesRendererRegistry {
     }
 
     @Nullable
-    public static AccessoryRenderer getRenderer(ResourceLocation rendererId) {
+    public static AccessoryRenderer getRenderer(Identifier rendererId) {
         if (rendererId.equals(NO_RENDERER_ID)) return new BuiltinAccessoryRenderers.EmptyRenderer();
 
         return CACHED_RENDERERS.get(rendererId);
     }
 
     @Nullable
-    public static ResourceLocation getRendererId(AccessoryRenderer renderer) {
+    public static Identifier getRendererId(AccessoryRenderer renderer) {
         return CACHED_RENDERERS.inverse().get(renderer);
     }
 
     @Nullable
-    public static ResourceLocation getBoundRenderer(Item item) {
+    public static Identifier getBoundRenderer(Item item) {
         if (DATA_LOADED_ITEM_TO_RENDERER.containsKey(item)) {
             return DATA_LOADED_ITEM_TO_RENDERER.get(item);
         }
@@ -168,7 +168,7 @@ public class AccessoriesRendererRegistry {
     //--
 
     @ApiStatus.Internal
-    public static void setDataLoadedItemToRenderer(Map<Item, ResourceLocation> data) {
+    public static void setDataLoadedItemToRenderer(Map<Item, Identifier> data) {
         DATA_LOADED_ITEM_TO_RENDERER.clear();
         DATA_LOADED_ITEM_TO_RENDERER.putAll(data);
     }
@@ -201,7 +201,7 @@ public class AccessoriesRendererRegistry {
     //--
 
     @Deprecated(forRemoval = true)
-    public static ResourceLocation getRendererId(Item item) {
+    public static Identifier getRendererId(Item item) {
         return BuiltInRegistries.ITEM.getKey(item);
     }
 

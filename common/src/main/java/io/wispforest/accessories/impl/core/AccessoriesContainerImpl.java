@@ -30,9 +30,9 @@ import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import it.unimi.dsi.fastutil.ints.Int2BooleanLinkedOpenHashMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
-import net.minecraft.world.ContainerListener;
+import io.wispforest.accessories.utils.ContainerListener;
 import net.minecraft.world.ItemStackWithSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
@@ -48,7 +48,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     protected AccessoriesCapability capability;
     private String slotName;
 
-    protected final Map<ResourceLocation, AttributeModifier> modifiers = new HashMap<>();
+    protected final Map<Identifier, AttributeModifier> modifiers = new HashMap<>();
     protected final Set<AttributeModifier> persistentModifiers = new HashSet<>();
     protected final Set<AttributeModifier> cachedModifiers = new HashSet<>();
 
@@ -295,7 +295,7 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     @Override
-    public Map<ResourceLocation, AttributeModifier> getModifiers() {
+    public Map<Identifier, AttributeModifier> getModifiers() {
         return Collections.unmodifiableMap(this.modifiers);
     }
 
@@ -322,12 +322,12 @@ public class AccessoriesContainerImpl implements AccessoriesContainer, InstanceE
     }
 
     @Override
-    public boolean hasModifier(ResourceLocation location) {
+    public boolean hasModifier(Identifier location) {
         return this.modifiers.containsKey(location);
     }
 
     @Override
-    public void removeModifier(ResourceLocation location) {
+    public void removeModifier(Identifier location) {
         var modifier = this.modifiers.remove(location);
 
         if(modifier == null) return;

@@ -3,9 +3,9 @@ package io.wispforest.accessories.client.gui.components;
 import io.wispforest.accessories.Accessories;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.impl.option.PlayerOptions;
-import io.wispforest.owo.ui.component.Components;
+import io.wispforest.owo.ui.component.UIComponents;
 import io.wispforest.owo.ui.component.LabelComponent;
-import io.wispforest.owo.ui.container.Containers;
+import io.wispforest.owo.ui.container.UIContainers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.*;
 import io.wispforest.owo.util.Observable;
@@ -91,7 +91,7 @@ public class PaginatedAccessoriesLayout extends AccessoriesContainingLayout<Pagi
 
         var currentPage = getCurrentPageOrDefault();
 
-        var holder = Containers.horizontalFlow(Sizing.content(), Sizing.content())
+        var holder = UIContainers.horizontalFlow(Sizing.content(), Sizing.content())
                 .configure((FlowLayout layout) -> {
                     layout.gap(3)
                             .id("accessories_container_holder");
@@ -107,7 +107,7 @@ public class PaginatedAccessoriesLayout extends AccessoriesContainingLayout<Pagi
             holder.child(currentPage.getLayout(screen.showCosmeticState()));
         }
 
-        var accessoriesMainLayout = (FlowLayout) Containers.verticalFlow(Sizing.content(), Sizing.content())
+        var accessoriesMainLayout = (FlowLayout) UIContainers.verticalFlow(Sizing.content(), Sizing.content())
                 .gap(2)
                 .child(holder)
                 .horizontalAlignment(HorizontalAlignment.RIGHT)
@@ -121,7 +121,7 @@ public class PaginatedAccessoriesLayout extends AccessoriesContainingLayout<Pagi
             return;
         }
 
-        var pageLabel = Components.label(Component.literal((pageIndex().get() + 1) + "/" + layoutData.pages().size()))
+        var pageLabel = UIComponents.label(Component.literal((pageIndex().get() + 1) + "/" + layoutData.pages().size()))
                 .configure((LabelComponent labelComponent) -> {
                     ComponentUtils.addModeCheckHook(
                             Color.ofFormatting(ChatFormatting.DARK_GRAY), Color.ofFormatting(ChatFormatting.WHITE),
@@ -133,9 +133,9 @@ public class PaginatedAccessoriesLayout extends AccessoriesContainingLayout<Pagi
 
         pageIndex().observe(integer -> pageLabel.text(Component.literal((pageIndex().get() + 1) + "/" + layoutData.pages().size())));
 
-        var titleBar = Containers.horizontalFlow(Sizing.fixed(currentPage.width(screen.showCosmeticState(), layoutData.sideBySide())), Sizing.content())
+        var titleBar = UIContainers.horizontalFlow(Sizing.fixed(currentPage.width(screen.showCosmeticState(), layoutData.sideBySide())), Sizing.content())
                 .child(
-                        Containers.horizontalFlow(Sizing.expand(100), Sizing.content())
+                        UIContainers.horizontalFlow(Sizing.expand(100), Sizing.content())
                                 .child(pageLabel)
                                 .horizontalAlignment(HorizontalAlignment.CENTER)
                 )
@@ -185,7 +185,7 @@ public class PaginatedAccessoriesLayout extends AccessoriesContainingLayout<Pagi
         this.sizing(Sizing.content(), Sizing.fixed(minimumLayoutHeight));
 
         this.child(accessoriesMainLayout);
-        this.child(Containers.verticalFlow(Sizing.content(), Sizing.expand()));
+        this.child(UIContainers.verticalFlow(Sizing.content(), Sizing.expand()));
     }
 
     private void switchPage(int pageOffset) {
@@ -303,12 +303,12 @@ public class PaginatedAccessoriesLayout extends AccessoriesContainingLayout<Pagi
         return this.getCurrentPageOrDefault().getAlternativeChecks(showingCosmetics);
     }
 
-    private void swapSlotStates(ParentComponent prevComp, ParentComponent newComp, boolean selectedPage) {
+    private void swapSlotStates(ParentUIComponent prevComp, ParentUIComponent newComp, boolean selectedPage) {
         toggleSlotStates(prevComp, false, selectedPage);
         toggleSlotStates(newComp, true, selectedPage);
     }
 
-    private void toggleSlotStates(ParentComponent component, boolean showSlots, boolean selectedPage) {
+    private void toggleSlotStates(ParentUIComponent component, boolean showSlots, boolean selectedPage) {
         if (!showSlots){
             ComponentUtils.recursiveSearchSlots(component, slotComponent -> screen.disableSlot(slotComponent.slot()));
         } else {

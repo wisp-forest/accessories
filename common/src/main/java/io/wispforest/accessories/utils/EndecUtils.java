@@ -16,7 +16,7 @@ import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.endec.impl.StructField;
 import io.wispforest.endec.util.MapCarrierDecodable;
 import io.wispforest.endec.util.MapCarrierEncodable;
-import io.wispforest.owo.mixin.serialization.ForwardingDynamicOpsAccessor;
+import io.wispforest.owo.mixin.serialization.DelegatingOpsAccessor;
 import io.wispforest.owo.mixin.serialization.RegistryOpsAccessor;
 import io.wispforest.owo.serialization.CodecUtils;
 import io.wispforest.owo.serialization.RegistriesAttribute;
@@ -24,7 +24,7 @@ import io.wispforest.owo.serialization.format.ContextHolder;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.floats.FloatArrayList;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.EndTag;
@@ -95,9 +95,9 @@ public class EndecUtils {
                         block -> {
                             BlockState stateHolder = block.defaultBlockState();
 
-                            if (stateHolder.getValues().isEmpty()) return MapCodec.unit(stateHolder);
+                            if (stateHolder.getValues().findAny().isEmpty()) return MapCodec.unit(stateHolder);
 
-                            return (((StateHolderAccessor<Block, BlockState>) stateHolder).accessories$propertiesCodec())
+                            return block.getStateDefinition().propertiesCodec()
                                     .codec()
                                     .lenientOptionalFieldOf("properties")
                                     .xmap(optional -> optional.orElse(stateHolder), Optional::of);
@@ -367,7 +367,7 @@ public class EndecUtils {
             : null;
 
         while (rootOps instanceof DelegatingOps<?>) {
-            rootOps = ((ForwardingDynamicOpsAccessor<?>) rootOps).owo$delegate();
+            rootOps = ((DelegatingOpsAccessor<?>) rootOps).owo$delegate();
 
             if (context == null && rootOps instanceof ContextHolder holder) {
                 context = holder.capturedContext().and(assumedContext);

@@ -1,26 +1,27 @@
 import io.wispforest.helpers.Extensions.currentPlatform
 import io.wispforest.helpers.Extensions.modId
-import net.fabricmc.loom.task.service.MixinRefmapService
-
 plugins {
     id("multiloader-base")
     id("com.gradleup.shadow")
 }
 
 val common by configurations.creating
+val commonRuntime by configurations.creating
 val shadowCommon by configurations.creating
 
 configurations {
     common
+    commonRuntime
     shadowCommon // Don't use shadow from the shadow plugin since it *excludes* files.
     "compileClasspath" { extendsFrom(common) }
-    "runtimeClasspath" { extendsFrom(common) }
+    "runtimeClasspath" { extendsFrom(commonRuntime) }
 }
 
 // Setup platforms Shadow Configs
 dependencies {
-    "common"(project(":common", "namedElements")) { this.isTransitive = false }
-    "shadowCommon"(project(":common", "namedElements")) { this.isTransitive = false }
+    "common"(project(":common", "apiElements")) { this.isTransitive = false }
+    "commonRuntime"(project(":common", "runtimeElements")) { this.isTransitive = false }
+    "shadowCommon"(project(":common", "apiElements")) { this.isTransitive = false }
 }
 
 //-- Data Generation Setup Section
@@ -95,18 +96,14 @@ tasks.shadowJar {
 //    }
 }
 
-// Remap the shadow jar to the proper platform mapping
-tasks.remapJar {
-    inputFile.set(tasks.shadowJar.get().archiveFile)
-    dependsOn(tasks.shadowJar)
+// No remapping needed for unobfuscated Minecraft 26.1
+tasks.shadowJar {
     archiveClassifier.set("")
-    if (currentPlatform == "fabric") injectAccessWidener = true
+}
 
-    var commonProject = project(":common");
-
-    var commonRemapJarTask = commonProject.tasks.remapJar.get();
-
-    this.mixinRefmapServiceOptions.addAll(MixinRefmapService.createOptions(commonRemapJarTask))
+tasks.jar {
+    dependsOn(tasks.shadowJar)
+    enabled = false
 }
 
 // Add Common files to Source

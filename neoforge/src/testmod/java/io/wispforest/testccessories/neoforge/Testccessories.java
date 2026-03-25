@@ -6,7 +6,7 @@ import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.testccessories.neoforge.accessories.*;
 import io.wispforest.testccessories.neoforge.client.TestScreenPacket;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.bus.api.IEventBus;
@@ -54,8 +54,8 @@ public class Testccessories {
         UniqueSlotHandling.EVENT.register(UniqueSlotTest.INSTANCE);
     }
 
-    public static ResourceLocation of(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MODID, path);
+    public static Identifier of(String path) {
+        return Identifier.fromNamespaceAndPath(MODID, path);
     }
 
     public static void initNetworkPackets() {

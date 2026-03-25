@@ -31,7 +31,7 @@ public record AccessoryBreak(int entityId, String slotName, int slotIndex) {
 
         var slotReference = SlotReference.of(livingEntity, packet.slotName(), packet.slotIndex());
 
-        var capability = livingEntity.accessoriesCapability();
+        var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) livingEntity).accessoriesCapability();
 
         var container = capability.getContainer(slotReference.type());
 

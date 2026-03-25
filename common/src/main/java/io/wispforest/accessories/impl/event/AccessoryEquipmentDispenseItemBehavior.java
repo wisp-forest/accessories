@@ -59,7 +59,7 @@ public final class AccessoryEquipmentDispenseItemBehavior extends DefaultDispens
         if (targetCapability != null) {
             var type = entity.getType();
 
-            if (type.is(AccessoriesTags.MODIFIABLE_ENTITY_WHITELIST) || !type.is(AccessoriesTags.MODIFIABLE_ENTITY_BLACKLIST)) {
+            if (type.builtInRegistryHolder().is(AccessoriesTags.MODIFIABLE_ENTITY_WHITELIST) || !type.builtInRegistryHolder().is(AccessoriesTags.MODIFIABLE_ENTITY_BLACKLIST)) {
                 var accessory = AccessoryRegistry.getAccessoryOrDefault(stack);
                 var equipReference = targetCapability.canEquipAccessory(stack, false);
 

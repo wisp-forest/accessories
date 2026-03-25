@@ -1,9 +1,10 @@
 package io.wispforest.accessories.client.gui.components;
 
 import com.mojang.math.Axis;
+import io.wispforest.accessories.pond.GuiGraphicsAccess;
 import io.wispforest.owo.ui.component.EntityComponent;
-import io.wispforest.owo.ui.core.Component;
-import io.wispforest.owo.ui.core.OwoUIDrawContext;
+import io.wispforest.owo.ui.core.UIComponent;
+import io.wispforest.owo.ui.core.OwoUIGraphics;
 import io.wispforest.owo.ui.core.Sizing;
 import io.wispforest.owo.ui.renderstate.EntityElementRenderState;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
@@ -85,9 +86,9 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
     public float xOffset = 0.0f;
     public float yOffset = 0.0f;
 
-    private TriConsumer<OwoUIDrawContext, Component, List<Runnable>> renderWrapping = (ctx, component, runnables) -> runnables.forEach(Runnable::run);
+    private TriConsumer<OwoUIGraphics, UIComponent, List<Runnable>> renderWrapping = (ctx, component, runnables) -> runnables.forEach(Runnable::run);
 
-    public InventoryEntityComponent<E> renderWrapping(TriConsumer<OwoUIDrawContext, Component, List<Runnable>> renderWrapping) {
+    public InventoryEntityComponent<E> renderWrapping(TriConsumer<OwoUIGraphics, UIComponent, List<Runnable>> renderWrapping) {
         this.renderWrapping = renderWrapping;
 
         return this;
@@ -144,7 +145,7 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
     }
 
     @Override
-    public void draw(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta) {
+    public void draw(OwoUIGraphics context, int mouseX, int mouseY, float partialTicks, float delta) {
         if(!(entity instanceof LivingEntity living)) {
             super.draw(context, mouseX, mouseY, partialTicks, delta);
 
@@ -190,7 +191,7 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
         );
     }
 
-    private void renderLiving(OwoUIDrawContext context, LivingEntity living, int mouseX, int mouseY, float partialTicks, boolean isLeftSide) {
+    private void renderLiving(OwoUIGraphics context, LivingEntity living, int mouseX, int mouseY, float partialTicks, boolean isLeftSide) {
         var matrix = new Matrix4f();
 
         transformMatrixStack(matrix, isLeftSide);
@@ -233,15 +234,16 @@ public class InventoryEntityComponent<E extends Entity> extends EntityComponent<
             }
 
             entityState.lightCoords = 15728880;
-            entityState.hitboxesRenderState = null;
+            // hitboxesRenderState field removed in 1.21.11 (debug hitbox rendering moved elsewhere)
             entityState.shadowPieces.clear();
             entityState.outlineColor = 0;
 
-            context.guiRenderState.submitPicturesInPictureState(new EntityElementRenderState(
+            var gfxAccess = (GuiGraphicsAccess) (Object) context;
+            gfxAccess.accessories$guiRenderState().addPicturesInPictureState(new EntityElementRenderState(
                 entityState,
                 matrix,
                 new ScreenRectangle(this.x, this.y, this.width, this.height),
-                context.scissorStack.peek()
+                gfxAccess.accessories$scissorStack().peek()
             ));
         }
 

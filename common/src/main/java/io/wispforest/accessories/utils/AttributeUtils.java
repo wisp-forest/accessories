@@ -17,7 +17,7 @@ public class AttributeUtils {
         if(attributes.isEmpty()) return;
 
         var attributeMap = livingEntity.getAttributes();
-        var capability = livingEntity.accessoriesCapability();
+        var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) livingEntity).accessoriesCapability();
 
         var containers = capability.getContainers();
 
@@ -46,7 +46,7 @@ public class AttributeUtils {
         if(attributes.isEmpty()) return;
 
         var attributeMap = livingEntity.getAttributes();
-        var capability = livingEntity.accessoriesCapability();
+        var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) livingEntity).accessoriesCapability();
 
         var containers = capability.getContainers();
 

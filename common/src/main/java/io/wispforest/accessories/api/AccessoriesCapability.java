@@ -44,7 +44,7 @@ public interface AccessoriesCapability extends AccessoriesStorageLookup {
     }
 
     static Collection<SlotType> getUsedSlotsFor(LivingEntity entity, Container container) {
-        var capability = entity.accessoriesCapability();
+        var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) entity).accessoriesCapability();
 
         return (capability != null) ? capability.getUsedSlotsFor(container) : Set.of();
     }

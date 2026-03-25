@@ -10,19 +10,18 @@ plugins {
 
 dependencies {
     // Core Libs
-    modImplementation(libs.fabric.loader)
-    modImplementation(libs.fabric.api)
+    implementation(libs.fabric.loader)
+    implementation(libs.fabric.api)
     // --
 
     // General Libs
-    modCompileOnly(libs.modmenu)
-    modLocalRuntime(libs.modmenu)
+    compileOnly(libs.modmenu) { isTransitive = false }
     //--
 
-//    modrinth(this::modLocalRuntime, "ok-boomer" to "0.1.3+1.21")
-//    modrinth(this::modLocalRuntime, "sodium" to "${libs.versions.sodium.get()}-fabric")
+//    modrinth(this::runtimeOnly, "ok-boomer" to "0.1.3+1.21")
+    modrinth(this::runtimeOnly, "sodium" to "${libs.versions.sodium.get()}-fabric")
 
-    modCompileOnly(libs.trinkets)
+    // compileOnly(libs.trinkets) // TODO: update trinkets for 26.1
 }
 
 repositories {}

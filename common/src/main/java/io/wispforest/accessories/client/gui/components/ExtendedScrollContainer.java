@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class ExtendedScrollContainer<C extends Component> extends ScrollContainer<C> {
+public class ExtendedScrollContainer<C extends UIComponent> extends ScrollContainer<C> {
 
     protected TriConsumer<ExtendedScrollContainer<?>, Double, Double> scrolledTo = (container, prevOffset, currentOffset) -> {};
 
@@ -136,7 +136,7 @@ public class ExtendedScrollContainer<C extends Component> extends ScrollContaine
     }
 
     @Override
-    protected void drawChildren(OwoUIDrawContext context, int mouseX, int mouseY, float partialTicks, float delta, List<? extends Component> children) {
+    protected void drawChildren(OwoUIGraphics context, int mouseX, int mouseY, float partialTicks, float delta, List<? extends UIComponent> children) {
         if (this.customClippingInsets != Insets.none()) {
             context.enableScissor(this.x + customClippingInsets.left(),
                 this.y + customClippingInsets.top(),

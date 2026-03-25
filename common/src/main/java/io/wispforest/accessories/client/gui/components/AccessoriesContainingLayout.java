@@ -3,7 +3,7 @@ package io.wispforest.accessories.client.gui.components;
 import io.wispforest.accessories.api.menu.AccessoriesBasedSlot;
 import io.wispforest.accessories.client.gui.AccessoriesScreen;
 import io.wispforest.accessories.impl.option.PlayerOptions;
-import io.wispforest.owo.ui.container.Containers;
+import io.wispforest.owo.ui.container.UIContainers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.Insets;
 import io.wispforest.owo.ui.core.PositionedRectangle;
@@ -89,8 +89,8 @@ public abstract class AccessoriesContainingLayout<D extends AccessoriesContainin
     //--
 
     protected static BaseLayoutGroup createBaseLayoutGroup(AccessoriesScreen screen, List<Slot> slots, int totalRowCount, int maxColumnCount, int colStartingIndexOffset, boolean sideBySide) {
-        var accessoriesLayout = Containers.verticalFlow(Sizing.content(), Sizing.content());
-        var cosmeticsLayout = Containers.verticalFlow(Sizing.content(), Sizing.content());
+        var accessoriesLayout = UIContainers.verticalFlow(Sizing.content(), Sizing.content());
+        var cosmeticsLayout = UIContainers.verticalFlow(Sizing.content(), Sizing.content());
 
         var accessoriesChecks = new ArrayList<PositionedRectangle>();
         var cosmeticChecks = new ArrayList<PositionedRectangle>();
@@ -100,10 +100,10 @@ public abstract class AccessoriesContainingLayout<D extends AccessoriesContainin
         for (int row = 0; row < totalRowCount; row++) {
             var colStartingIndex = colStartingIndexOffset + (row * (maxColumnCount * 2));
 
-            var accessoriesRowLayout = (FlowLayout) Containers.horizontalFlow(Sizing.content(), Sizing.content())
+            var accessoriesRowLayout = (FlowLayout) UIContainers.horizontalFlow(Sizing.content(), Sizing.content())
                     .id("row_" + row);
 
-            var cosmeticRowLayout = (FlowLayout) Containers.horizontalFlow(Sizing.content(), Sizing.content())
+            var cosmeticRowLayout = (FlowLayout) UIContainers.horizontalFlow(Sizing.content(), Sizing.content())
                     .id("row_" + row);
 
             var accessoriesRowButtons = new ArrayList<PositionedRectangle>();
@@ -188,8 +188,8 @@ public abstract class AccessoriesContainingLayout<D extends AccessoriesContainin
 
     protected record BaseLayoutGroup(FlowLayout accessoriesLayout, FlowLayout cosmeticLayout, List<PositionedRectangle> accessoriesBtnChecks, List<PositionedRectangle> cosmeticBtnChecks, int totalColumnCount) {
         public static final BaseLayoutGroup DEFAULT = new BaseLayoutGroup(
-                Containers.verticalFlow(Sizing.content(), Sizing.content()),
-                Containers.verticalFlow(Sizing.content(), Sizing.content()),
+                UIContainers.verticalFlow(Sizing.content(), Sizing.content()),
+                UIContainers.verticalFlow(Sizing.content(), Sizing.content()),
                 List.of(),
                 List.of(),
                 0);

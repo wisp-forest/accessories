@@ -18,7 +18,7 @@ import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagKey;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 /**
  * Resource Reload in which handles the loading of {@link SlotType}'s bindings
- * to the targeted {@link EntityType} though a {@link TagKey} or {@link ResourceLocation}
+ * to the targeted {@link EntityType} though a {@link TagKey} or {@link Identifier}
  */
 public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityBinding> implements SyncedDataHelper<SequencedMap<EntityType<?>, List<String>>> {
 
@@ -98,7 +98,7 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
     @Override
     public Endec<SequencedMap<EntityType<?>, List<String>>> syncDataEndec() {
         return Endec.map(LinkedHashMap::new,
-            type -> BuiltInRegistries.ENTITY_TYPE.getKey(type).toString(), strType -> BuiltInRegistries.ENTITY_TYPE.getValue(ResourceLocation.parse(strType)),
+            type -> BuiltInRegistries.ENTITY_TYPE.getKey(type).toString(), strType -> BuiltInRegistries.ENTITY_TYPE.getValue(Identifier.parse(strType)),
             Endec.STRING.listOf());
     }
 
@@ -167,7 +167,7 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
     //--
 
     @Override
-    protected void apply(Map<ResourceLocation, RawEnityBinding> rawData, ResourceManager resourceManager, ProfilerFiller profiler) {
+    protected void apply(Map<Identifier, RawEnityBinding> rawData, ResourceManager resourceManager, ProfilerFiller profiler) {
         var allSlotTypes = SlotTypeLoader.INSTANCE.getEntries(false);
 
         this.tagToBoundSlots.clear();
@@ -199,14 +199,14 @@ public class EntitySlotLoader extends EndecDataLoader<EntitySlotLoader.RawEnityB
 
             rawEnityBinding.entityTargets().forEach(string -> {
                 if(string.contains("#")){
-                    var entityTypeTagLocation = ResourceLocation.tryParse(string.replace("#", ""));
+                    var entityTypeTagLocation = Identifier.tryParse(string.replace("#", ""));
 
                     var entityTypeTag = TagKey.create(Registries.ENTITY_TYPE, entityTypeTagLocation);
 
                     tagToBoundSlots.computeIfAbsent(entityTypeTag, entityTag -> new HashMap<>())
                             .putAll(slots);
                 } else {
-                    Optional.ofNullable(ResourceLocation.tryParse(string))
+                    Optional.ofNullable(Identifier.tryParse(string))
                             .flatMap(BuiltInRegistries.ENTITY_TYPE::getOptional)
                             .ifPresentOrElse(entityType -> {
                                 entityToBoundSlots.computeIfAbsent(entityType, entityType1 -> new HashMap<>())

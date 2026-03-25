@@ -50,7 +50,7 @@ public abstract class EnchantmentHelperMixin {
         var returnValue = new ArrayList<>(original.call(instance));
 
         //if(Accessories.enchantmentValidForRedirect(enchantment)) {
-        var capability = entity.accessoriesCapability();
+        var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) entity).accessoriesCapability();
 
         if(capability != null) {
             returnValue.addAll(capability.getAllEquipped().stream().map(SlotEntryReference::stack).toList());
@@ -73,7 +73,7 @@ public abstract class EnchantmentHelperMixin {
 
     @Inject(method = "getRandomItemWith", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/LivingEntity;getRandom()Lnet/minecraft/util/RandomSource;"))
     private static void adjustListForAccessories(DataComponentType<?> dataComponentType, LivingEntity livingEntity, Predicate<ItemStack> predicate, CallbackInfoReturnable<Optional<EnchantedItemInUse>> cir, @Local(ordinal = 0) List<EnchantedItemInUse> list) {
-        var capability = livingEntity.accessoriesCapability();
+        var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) livingEntity).accessoriesCapability();
 
         if(capability != null){
             var allEquippedAccessories = capability
@@ -109,7 +109,7 @@ public abstract class EnchantmentHelperMixin {
 
     @Inject(method = "runIterationOnEquipment", at = @At("TAIL"))
     private static void adjustIterationWithAccessories(LivingEntity livingEntity, EnchantmentHelper.EnchantmentInSlotVisitor enchantmentInSlotVisitor, CallbackInfo ci) {
-        var capability = livingEntity.accessoriesCapability();
+        var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) livingEntity).accessoriesCapability();
 
         if(capability != null){
             capability.getAllEquipped()
@@ -166,17 +166,6 @@ public abstract class EnchantmentHelperMixin {
         if (record == null) record = original.call(itemStack, inSlot, owner);
 
         return record;
-    }
-
-    @WrapOperation(method = "method_60148", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/enchantment/Enchantment;matchingSlot(Lnet/minecraft/world/entity/EquipmentSlot;)Z"))
-    private static boolean allowAccessoriesSlotEnchentments(Enchantment instance, EquipmentSlot slot, Operation<Boolean> original) {
-        if (slot.equals(AccessoriesInternals.INSTANCE.getInternalEquipmentSlot())) {
-            var valid = enchantmentValidForRedirect(null, instance);
-
-            if(valid != null) return valid;
-        }
-
-        return original.call(instance, slot);
     }
 
     @Unique

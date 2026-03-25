@@ -17,7 +17,7 @@ import io.wispforest.endec.StructEndec;
 import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -99,7 +99,7 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
     }
 
     @Override
-    public Map<ResourceLocation, SlotType> mapFrom(Map<ResourceLocation, RawSlotData> rawData) {
+    public Map<Identifier, SlotType> mapFrom(Map<Identifier, RawSlotData> rawData) {
         var uniqueSlots = new LinkedHashMap<String, SlotBuilder>();
 
         try {
@@ -177,7 +177,7 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
             builders.put(slotBuilder.name, slotBuilder);
         }
 
-        var tempMap = new HashMap<ResourceLocation, SlotType>();
+        var tempMap = new HashMap<Identifier, SlotType>();
 
         for (var modifier : Accessories.config().modifiers()) {
             var builder = builders.getOrDefault(modifier.slotType, null);
@@ -198,11 +198,11 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
         return tempMap;
     }
 
-    public record RawSlotData(@Nullable ResourceLocation icon,
+    public record RawSlotData(@Nullable Identifier icon,
                               @Nullable Integer order,
                               @Nullable Integer amount,
                               @Nullable OperationType operationType,
-                              @Nullable Set<ResourceLocation> validators,
+                              @Nullable Set<Identifier> validators,
                               @Nullable DropRule dropRule) {
         public static final StructEndec<RawSlotData> ENDEC = StructEndecBuilder.of(
                 MinecraftEndecs.IDENTIFIER.optionalFieldOf("icon", RawSlotData::icon, () -> null),
@@ -217,13 +217,13 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
 
     public static class SlotBuilder {
         private final String name;
-        private ResourceLocation icon = null;
+        private Identifier icon = null;
         private Integer order = null;
 
         public Integer baseAmount = null;
         private Integer offsetAmount = 0;
 
-        private final Set<ResourceLocation> validators = new HashSet<>();
+        private final Set<Identifier> validators = new HashSet<>();
         private DropRule dropRule = null;
 
         private Optional<String> alternativeTranslation = Optional.empty();
@@ -237,7 +237,7 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
             return this;
         }
 
-        public SlotBuilder icon(ResourceLocation value){
+        public SlotBuilder icon(Identifier value){
             if (value != null) this.icon = value;
             return this;
         }
@@ -262,7 +262,7 @@ public class SlotTypeLoader extends ManagedEndecDataLoader<SlotType, SlotTypeLoa
             return this;
         }
 
-        public SlotBuilder validator(ResourceLocation validator){
+        public SlotBuilder validator(Identifier validator){
             this.validators.add(validator);
             return this;
         }

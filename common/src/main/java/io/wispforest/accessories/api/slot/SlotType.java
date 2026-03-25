@@ -5,7 +5,7 @@ import io.wispforest.accessories.api.AccessoriesStorage;
 import io.wispforest.accessories.api.events.DropRule;
 import io.wispforest.accessories.data.SlotTypeLoader;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -18,7 +18,7 @@ import java.util.Set;
 ///
 public interface SlotType extends Comparable<SlotType> {
 
-    ResourceLocation EMPTY_SLOT_ICON = Accessories.of("gui/slot/empty");
+    Identifier EMPTY_SLOT_ICON = Accessories.of("gui/slot/empty");
 
     ///
     /// @return The slot name which may or may not contain a namespace
@@ -28,7 +28,7 @@ public interface SlotType extends Comparable<SlotType> {
     ///
     /// @return A parsed slot name as either `accessories:{group_name_here}` or `{group_namespace_here}:{group_name_here}`
     ///
-    default ResourceLocation getId() {
+    default Identifier getId() {
         return Accessories.parseLocationOrDefault(this.name());
     }
 
@@ -42,7 +42,7 @@ public interface SlotType extends Comparable<SlotType> {
     ///
     /// @return The location for the given icon within the Block Atlas for the given slot type.
     ///
-    ResourceLocation icon();
+    Identifier icon();
 
     ///
     /// Used with sorting all registered slots within a given group when creating list of slots
@@ -57,10 +57,10 @@ public interface SlotType extends Comparable<SlotType> {
     int amount();
 
     ///
-    /// @return A set of [ResourceLocation] used to check if an accessory is valid for the given
+    /// @return A set of [Identifier] used to check if an accessory is valid for the given
     /// slot used within {@link SlotPredicateRegistry#canInsertIntoSlot}.
     ///
-    Set<ResourceLocation> validators();
+    Set<Identifier> validators();
 
     ///
     /// @return The given {@link DropRule} used upon an entity's death to decided what action to perform with

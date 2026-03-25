@@ -174,10 +174,10 @@ class PublishCallback {
  */
 abstract class CopyDataFile : DefaultTask() {
     @get:InputFiles
-    abstract val inputFiles: ListProperty<RegularFile?>
+    abstract val inputFiles: ListProperty<RegularFile>
 
     @get:OutputFiles
-    abstract val outputFiles: ListProperty<RegularFile?>
+    abstract val outputFiles: ListProperty<RegularFile>
 
     @TaskAction
     @Throws(IOException::class)

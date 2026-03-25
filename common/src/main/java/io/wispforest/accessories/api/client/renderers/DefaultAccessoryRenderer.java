@@ -72,7 +72,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
             throw new IllegalStateException("Unable to render default accessory as the ItemStacks render state has not been setup!");
         }
 
-        var light = entityState.getStateData(AccessoriesRenderStateKeys.LIGHT);
+        var light = ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) entityState).getStateData(AccessoriesRenderStateKeys.LIGHT);
 
         Consumer<PoseStack> renderCall = (poseStack) -> stackRenderState.submit(poseStack, collector, light, OverlayTexture.NO_OVERLAY, entityState.outlineColor);
 
@@ -113,7 +113,7 @@ public class DefaultAccessoryRenderer implements AccessoryRenderer {
             return false;
         }
 
-        var arm = renderState.getStateData(AccessoriesRenderStateKeys.ARM);
+        var arm = ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) renderState).getStateData(AccessoriesRenderStateKeys.ARM);
 
         if (arm != null) {
             return (slotName.equals("hand") || slotName.equals("wrist") || slotName.equals("ring"))

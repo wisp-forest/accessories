@@ -1,6 +1,6 @@
 package io.wispforest.accessories.pond;
 
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.input.InputQuirks;
 import net.minecraft.world.item.TooltipFlag;
 
@@ -39,17 +39,14 @@ public interface TooltipFlagExtension {
                 return flag.isCreative();
             }
 
-            @Override
             public boolean hasAltDown() {
                 return (this.getModifiers() & 4) != 0;
             }
 
-            @Override
             public boolean hasShiftDown() {
                 return (this.getModifiers() & 1) != 0;
             }
 
-            @Override
             public boolean hasControlDown() {
                 return (this.getModifiers() & EDIT_SHORTCUT_KEY_MODIFIER) != 0;
             }

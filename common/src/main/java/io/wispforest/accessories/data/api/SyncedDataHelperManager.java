@@ -7,7 +7,7 @@ import io.wispforest.endec.impl.StructEndecBuilder;
 import io.wispforest.owo.network.ClientAccess;
 import io.wispforest.owo.network.OwoNetChannel;
 import io.wispforest.owo.serialization.endec.MinecraftEndecs;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -21,7 +21,7 @@ public class SyncedDataHelperManager {
 
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private static final Map<ResourceLocation, SyncedDataHelper<?>> ALL_SYNCED_LOADERS = new LinkedHashMap<>();
+    private static final Map<Identifier, SyncedDataHelper<?>> ALL_SYNCED_LOADERS = new LinkedHashMap<>();
 
     public static void registerLoader(SyncedDataHelper<?> loader) {
         if (ALL_SYNCED_LOADERS.containsKey(loader.getId())) {
@@ -32,7 +32,7 @@ public class SyncedDataHelperManager {
     }
 
     @Nullable
-    public static SyncedDataHelper<?> getLoader(ResourceLocation id) {
+    public static SyncedDataHelper<?> getLoader(Identifier id) {
         return ALL_SYNCED_LOADERS.get(id);
     }
 
@@ -45,7 +45,7 @@ public class SyncedDataHelperManager {
                     .stream()
                     .collect(Collectors.toList());
 
-            Set<ResourceLocation> resolvedIds = new HashSet<>();
+            Set<Identifier> resolvedIds = new HashSet<>();
 
             for (SyncedDataHelper<?> dataLoader : endecDataLoaders) {
                 resolvedIds.add(dataLoader.getId());
@@ -105,7 +105,7 @@ public class SyncedDataHelperManager {
 
     @ApiStatus.Internal
     private static final class SyncLoaderDataPacket {
-        private static final Map<ResourceLocation, StructEndec<SyncLoaderDataPacket>> CACHED_ENDECS = new HashMap<>();
+        private static final Map<Identifier, StructEndec<SyncLoaderDataPacket>> CACHED_ENDECS = new HashMap<>();
 
         private static final StructEndec<SyncLoaderDataPacket> ENDEC = Endec.dispatched(
                 id -> {
@@ -126,10 +126,10 @@ public class SyncedDataHelperManager {
                 SyncLoaderDataPacket::id,
                 MinecraftEndecs.IDENTIFIER);
 
-        private final ResourceLocation id;
+        private final Identifier id;
         private final Object data;
 
-        private SyncLoaderDataPacket(ResourceLocation id, Object data) {
+        private SyncLoaderDataPacket(Identifier id, Object data) {
             this.id = id;
             this.data = data;
         }
@@ -146,7 +146,7 @@ public class SyncedDataHelperManager {
             }
         }
 
-        public ResourceLocation id() {
+        public Identifier id() {
             return id;
         }
 

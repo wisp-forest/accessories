@@ -3,7 +3,7 @@ package io.wispforest.accessories.data.api;
 import com.google.common.collect.BiMap;
 import io.wispforest.endec.Endec;
 import io.wispforest.endec.SerializationContext;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -17,80 +17,80 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 
-public abstract class ManagedEndecDataLoader<V, D> extends EndecDataLoader<D> implements SyncedDataHelper<SequencedBiMap<ResourceLocation, V>>, LookupDataLoader<V> {
+public abstract class ManagedEndecDataLoader<V, D> extends EndecDataLoader<D> implements SyncedDataHelper<SequencedBiMap<Identifier, V>>, LookupDataLoader<V> {
 
-    private final SequencedBiMap<ResourceLocation, V> server = SequencedBiMap.of(LinkedHashMap::new);
-    private final SequencedBiMap<ResourceLocation, V> client = SequencedBiMap.of(LinkedHashMap::new);
+    private final SequencedBiMap<Identifier, V> server = SequencedBiMap.of(LinkedHashMap::new);
+    private final SequencedBiMap<Identifier, V> client = SequencedBiMap.of(LinkedHashMap::new);
 
     private final Endec<V> valueEndec;
-    private final Endec<SequencedBiMap<ResourceLocation, V>> mapEndec;
+    private final Endec<SequencedBiMap<Identifier, V>> mapEndec;
 
-    protected ManagedEndecDataLoader(ResourceLocation id, String type, Endec<V> valueEndec, Endec<D> dataEndec, PackType packType) {
+    protected ManagedEndecDataLoader(Identifier id, String type, Endec<V> valueEndec, Endec<D> dataEndec, PackType packType) {
         this(id, type, valueEndec, dataEndec, packType, false);
     }
 
-    protected ManagedEndecDataLoader(ResourceLocation id, String type, Endec<V> valueEndec, Endec<D> dataEndec, PackType packType, boolean requiresRegistries) {
+    protected ManagedEndecDataLoader(Identifier id, String type, Endec<V> valueEndec, Endec<D> dataEndec, PackType packType, boolean requiresRegistries) {
         this(id, type, valueEndec, dataEndec, packType, SerializationContext.empty(), requiresRegistries);
     }
 
-    protected ManagedEndecDataLoader(ResourceLocation id, String type, Endec<V> valueEndec, Endec<D> dataEndec, PackType packType, Set<ResourceLocation> dependencies) {
+    protected ManagedEndecDataLoader(Identifier id, String type, Endec<V> valueEndec, Endec<D> dataEndec, PackType packType, Set<Identifier> dependencies) {
         this(id, type, valueEndec, dataEndec, packType, SerializationContext.empty(), false, dependencies);
     }
 
-    protected ManagedEndecDataLoader(ResourceLocation id, String type, Endec<V> valueEndec, Endec<D> dataEndec, PackType packType, SerializationContext context, boolean requiresRegistries) {
+    protected ManagedEndecDataLoader(Identifier id, String type, Endec<V> valueEndec, Endec<D> dataEndec, PackType packType, SerializationContext context, boolean requiresRegistries) {
         this(id, type, valueEndec, dataEndec, packType, context, requiresRegistries, Set.of());
     }
 
-    protected ManagedEndecDataLoader(ResourceLocation id, String type, Endec<V> valueEndec, Endec<D> dataEndec, PackType packType, SerializationContext context, boolean requiresRegistries, Set<ResourceLocation> dependencies) {
+    protected ManagedEndecDataLoader(Identifier id, String type, Endec<V> valueEndec, Endec<D> dataEndec, PackType packType, SerializationContext context, boolean requiresRegistries, Set<Identifier> dependencies) {
         super(id, type, dataEndec, packType, context, requiresRegistries, dependencies);
 
         this.valueEndec = valueEndec;
-        this.mapEndec = biMapEndec(value -> SequencedBiMap.of(LinkedHashMap::new), ResourceLocation::toString, ResourceLocation::tryParse, valueEndec);
+        this.mapEndec = biMapEndec(value -> SequencedBiMap.of(LinkedHashMap::new), Identifier::toString, Identifier::tryParse, valueEndec);
     }
 
-    public static <V, D> ManagedEndecDataLoader<V, D> of(ResourceLocation id, String type, Endec<V> valueEndec, Endec<D> dataEndec, PackType packType, Function<Map<ResourceLocation, D>, Map<ResourceLocation, V>> mapFrom) {
+    public static <V, D> ManagedEndecDataLoader<V, D> of(Identifier id, String type, Endec<V> valueEndec, Endec<D> dataEndec, PackType packType, Function<Map<Identifier, D>, Map<Identifier, V>> mapFrom) {
         return new ManagedEndecDataLoader<V, D>(id, type, valueEndec, dataEndec, packType){
             @Override
-            public Map<ResourceLocation, V> mapFrom(Map<ResourceLocation, D> rawData) {
+            public Map<Identifier, V> mapFrom(Map<Identifier, D> rawData) {
                 return mapFrom.apply(rawData);
             }
         };
     }
 
     @Override
-    public Map<ResourceLocation, V> getEntries(boolean isClientSide) {
+    public Map<Identifier, V> getEntries(boolean isClientSide) {
         return Collections.unmodifiableMap(isClientSide ? client : server);
     }
 
     @Override
     @Nullable
-    public V getEntry(ResourceLocation id, boolean isClientSide) {
+    public V getEntry(Identifier id, boolean isClientSide) {
         return (isClientSide ? client : server).get(id);
     }
 
     @Override
-    public ResourceLocation getId(V t, boolean isClientSide) {
+    public Identifier getId(V t, boolean isClientSide) {
         return (isClientSide ? client : server).inverse().get(t);
     }
 
     //--
 
-    public abstract Map<ResourceLocation, V> mapFrom(Map<ResourceLocation, D> rawData);
+    public abstract Map<Identifier, V> mapFrom(Map<Identifier, D> rawData);
 
     protected void onSync() {}
 
     @Override
-    public final SequencedBiMap<ResourceLocation, V> getServerData() {
+    public final SequencedBiMap<Identifier, V> getServerData() {
         return this.server;
     }
 
     @Override
-    public final Endec<SequencedBiMap<ResourceLocation, V>> syncDataEndec() {
+    public final Endec<SequencedBiMap<Identifier, V>> syncDataEndec() {
         return this.mapEndec;
     }
 
     @Override
-    public final void onReceivedData(SequencedBiMap<ResourceLocation, V> data) {
+    public final void onReceivedData(SequencedBiMap<Identifier, V> data) {
         this.client.clear();
         this.client.putAll(data);
 
@@ -100,7 +100,7 @@ public abstract class ManagedEndecDataLoader<V, D> extends EndecDataLoader<D> im
     //--
 
     @Override
-    protected void apply(Map<ResourceLocation, D> loadedObjects, ResourceManager resourceManager, ProfilerFiller profiler) {
+    protected void apply(Map<Identifier, D> loadedObjects, ResourceManager resourceManager, ProfilerFiller profiler) {
         this.server.clear();
         this.server.putAll(mapFrom(loadedObjects));
     }

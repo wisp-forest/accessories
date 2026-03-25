@@ -40,7 +40,7 @@ public record SyncCosmeticToggle(@Nullable Integer entityId, String slotName, in
             if(!result.orElse(false)) return;
         }
 
-        var capability = targetEntity.accessoriesCapability();
+        var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) targetEntity).accessoriesCapability();
 
         if(capability == null) return;
 

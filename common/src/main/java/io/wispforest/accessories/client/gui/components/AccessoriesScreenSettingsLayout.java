@@ -8,9 +8,9 @@ import io.wispforest.accessories.mixin.client.AbstractSliderButtonAccessor;
 import io.wispforest.accessories.mixin.client.owo.DiscreteSliderComponentAccessor;
 import io.wispforest.accessories.networking.AccessoriesNetworking;
 import io.wispforest.owo.ui.component.ButtonComponent;
-import io.wispforest.owo.ui.component.Components;
+import io.wispforest.owo.ui.component.UIComponents;
 import io.wispforest.owo.ui.component.DiscreteSliderComponent;
-import io.wispforest.owo.ui.container.Containers;
+import io.wispforest.owo.ui.container.UIContainers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.container.GridLayout;
 import io.wispforest.owo.ui.core.*;
@@ -78,9 +78,9 @@ public class AccessoriesScreenSettingsLayout extends FlowLayout implements Playe
 
     public interface ComponentAccess {
         @Nullable
-        <T extends io.wispforest.owo.ui.core.Component> T getComponent(Class<T> clazz, String id);
+        <T extends io.wispforest.owo.ui.core.UIComponent> T getComponent(Class<T> clazz, String id);
 
-        default <T extends io.wispforest.owo.ui.core.Component> void adjustIfPresent(Class<T> clazz, String id, Consumer<T> callback) {
+        default <T extends io.wispforest.owo.ui.core.UIComponent> void adjustIfPresent(Class<T> clazz, String id, Consumer<T> callback) {
             var component = getComponent(clazz, id);
 
             if (component != null) callback.accept(component);
@@ -101,11 +101,11 @@ public class AccessoriesScreenSettingsLayout extends FlowLayout implements Playe
     }
 
     private void buildLayout() {
-        List<Component> children = new ArrayList<>();
+        List<UIComponent> children = new ArrayList<>();
 
         children.add(
                 wrapAsSettings(PlayerOptions.COLUMN_AMOUNT,
-                        Components.discreteSlider(Sizing.fixed(45), getMinimumColumnAmount(), getMaximumColumnAmount())
+                        UIComponents.discreteSlider(Sizing.fixed(45), getMinimumColumnAmount(), getMaximumColumnAmount())
                                 .configure((DiscreteSliderComponent slider) -> {
                                     slider.snap(true)
                                         .setFromDiscreteValue(this.getDefaultedData(PlayerOptions.COLUMN_AMOUNT))
@@ -123,7 +123,7 @@ public class AccessoriesScreenSettingsLayout extends FlowLayout implements Playe
 
         children.add(
                 wrapAsSettings(PlayerOptions.WIDGET_TYPE,
-                        Components.button(
+                        UIComponents.button(
                                         widgetTypeToggleMessage(this.getDefaultedData(PlayerOptions.WIDGET_TYPE), false),
                                         btn -> {
                                             var newWidget = this.getDefaultedData(PlayerOptions.WIDGET_TYPE) + 1;
@@ -221,7 +221,7 @@ public class AccessoriesScreenSettingsLayout extends FlowLayout implements Playe
                         }
                 ));
 
-        var baseOptionPanel = Containers.grid(Sizing.fixed(maxWidth), Sizing.content(), (int) Math.ceil(children.size() / (float) columnAmount), columnAmount)
+        var baseOptionPanel = UIContainers.grid(Sizing.fixed(maxWidth), Sizing.content(), (int) Math.ceil(children.size() / (float) columnAmount), columnAmount)
                 .configure((GridLayout component) -> {
                     component
                             .verticalAlignment(VerticalAlignment.CENTER)
@@ -244,24 +244,24 @@ public class AccessoriesScreenSettingsLayout extends FlowLayout implements Playe
             }
         }
 
-        this.child(Containers.verticalScroll(Sizing.expand(), Sizing.expand(), baseOptionPanel));
+        this.child(UIContainers.verticalScroll(Sizing.expand(), Sizing.expand(), baseOptionPanel));
     }
 
     private int getEntryWidth() {
         return (maxWidth - 14) / columnAmount;
     }
 
-    private Component ofSettingsToggle(PlayerOption<Boolean> playerOption, BiConsumer<PlayerOption<Boolean>, Boolean> onChange) {
+    private UIComponent ofSettingsToggle(PlayerOption<Boolean> playerOption, BiConsumer<PlayerOption<Boolean>, Boolean> onChange) {
         return ofSettingsToggle(playerOption.name(), () -> this.getDefaultedData(playerOption), newValue -> {
             this.setData(playerOption, newValue);
             onChange.accept(playerOption, newValue);
         });
     }
 
-    private Component ofSettingsToggle(String name, Supplier<Boolean> getter, Consumer<Boolean> setter) {
+    private UIComponent ofSettingsToggle(String name, Supplier<Boolean> getter, Consumer<Boolean> setter) {
         return wrapAsSettings(
                 name,
-                Components.button(
+                UIComponents.button(
                                 createToggleText(name, false, getter.get()),
                                 btn -> {
                                     var newValue = !getter.get();
@@ -276,19 +276,19 @@ public class AccessoriesScreenSettingsLayout extends FlowLayout implements Playe
         );
     }
 
-    private Component wrapAsSettings(PlayerOption<?> playerOption, Component component) {
+    private UIComponent wrapAsSettings(PlayerOption<?> playerOption, UIComponent component) {
         return wrapAsSettings(playerOption.name(), component);
     }
 
-    private Component wrapAsSettings(String name, Component component) {
+    private UIComponent wrapAsSettings(String name, UIComponent component) {
         return createBaseParent()
                 .gap(0)
-                .child(Components.label(Accessories.translation(name + ".label")).margins(Insets.left(1)))
+                .child(UIComponents.label(Accessories.translation(name + ".label")).margins(Insets.left(1)))
                 .child(component.id(name).horizontalSizing(Sizing.fixed(getEntryWidth())).verticalSizing(Sizing.fixed(14)));
     }
 
     private FlowLayout createBaseParent() {
-        return Containers.verticalFlow(Sizing.fixed(getEntryWidth()), Sizing.fixed(23));
+        return UIContainers.verticalFlow(Sizing.fixed(getEntryWidth()), Sizing.fixed(23));
     }
 
     private static net.minecraft.network.chat.Component widgetTypeToggleMessage(int value, boolean isTooltip) {

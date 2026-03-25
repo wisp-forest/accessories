@@ -8,7 +8,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,7 +31,7 @@ public abstract class SlotDataProvider extends BaseDataProvider<SlotDataProvider
     @Override
     protected abstract void buildData(HolderLookup.Provider provider, SlotOutput output);
 
-    public SlotBuilder builder(ResourceLocation uniqueLocation) {
+    public SlotBuilder builder(Identifier uniqueLocation) {
         return builder(uniqueLocation.toString());
     }
 
@@ -59,12 +59,12 @@ public abstract class SlotDataProvider extends BaseDataProvider<SlotDataProvider
     @Override
     protected final SlotOutput buildOutput(CachedOutput cachedOutput, HolderLookup.Provider provider) {
         return new SlotOutput() {
-            final Set<ResourceLocation> set = Sets.newHashSet();
+            final Set<Identifier> set = Sets.newHashSet();
             final List<CompletableFuture<?>> list = new ArrayList<>();
 
             @Override
             public void accept(String namespace, RawSlotType rawSlotType) {
-                var location = ResourceLocation.fromNamespaceAndPath(namespace, rawSlotType.name().replace(":", "/"));
+                var location = Identifier.fromNamespaceAndPath(namespace, rawSlotType.name().replace(":", "/"));
 
                 if (!set.add(location)) throw new IllegalStateException("Duplicate SlotType: " + location);
 

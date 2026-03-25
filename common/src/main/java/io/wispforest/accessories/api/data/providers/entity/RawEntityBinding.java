@@ -6,7 +6,7 @@ import io.wispforest.endec.impl.StructEndecBuilder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 
@@ -32,11 +32,11 @@ public record RawEntityBinding(Optional<Boolean> replace, List<TagKey<EntityType
 
                 for (var entity : entities) {
                     if(entity.charAt(0) == '#') {
-                        var tag = TagKey.create(Registries.ENTITY_TYPE, ResourceLocation.parse(entity.replace("#", "")));
+                        var tag = TagKey.create(Registries.ENTITY_TYPE, Identifier.parse(entity.replace("#", "")));
 
                         tags.add(tag);
                     } else {
-                        var entityType = BuiltInRegistries.ENTITY_TYPE.getValueOrThrow(ResourceKey.create(Registries.ENTITY_TYPE, ResourceLocation.parse(entity)));
+                        var entityType = BuiltInRegistries.ENTITY_TYPE.getValueOrThrow(ResourceKey.create(Registries.ENTITY_TYPE, Identifier.parse(entity)));
 
                         entityTypes.add(entityType);
                     }

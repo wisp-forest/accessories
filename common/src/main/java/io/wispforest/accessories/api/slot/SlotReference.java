@@ -94,7 +94,7 @@ public non-sealed interface SlotReference extends DelegatingSlotPath {
     ///
     @Nullable
     default AccessoriesCapability capability() {
-        return this.entity().accessoriesCapability();
+        return ((io.wispforest.accessories.pond.AccessoriesAPIAccess) this.entity()).accessoriesCapability();
     }
 
     ///

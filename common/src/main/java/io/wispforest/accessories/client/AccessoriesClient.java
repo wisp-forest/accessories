@@ -29,9 +29,9 @@ import io.wispforest.owo.config.ui.component.OptionValueProvider;
 import io.wispforest.owo.config.ui.component.SearchAnchorComponent;
 import io.wispforest.owo.ui.base.BaseOwoScreen;
 import io.wispforest.owo.ui.component.ButtonComponent;
-import io.wispforest.owo.ui.component.Components;
+import io.wispforest.owo.ui.component.UIComponents;
 import io.wispforest.owo.ui.component.LabelComponent;
-import io.wispforest.owo.ui.container.Containers;
+import io.wispforest.owo.ui.container.UIContainers;
 import io.wispforest.owo.ui.container.FlowLayout;
 import io.wispforest.owo.ui.core.*;
 import io.wispforest.owo.ui.layers.Layers;
@@ -40,7 +40,7 @@ import io.wispforest.owo.util.ReflectionUtils;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -113,7 +113,7 @@ public class AccessoriesClient {
 
                                 btnLayout.removeChild(tempBtn);
 
-                                var toggleButton = (ButtonComponent) Components.button(Component.literal("Edit"), btn -> {})
+                                var toggleButton = (ButtonComponent) UIComponents.button(Component.literal("Edit"), btn -> {})
                                     .verticalSizing(tempBtn.verticalSizing().get())
                                     .horizontalSizing(tempBtn.horizontalSizing().get());
 
@@ -125,30 +125,30 @@ public class AccessoriesClient {
                                     var newScreen = new BaseOwoScreen<FlowLayout>() {
                                         @Override
                                         protected @NotNull OwoUIAdapter<FlowLayout> createAdapter() {
-                                            return OwoUIAdapter.create(this, Containers::verticalFlow);
+                                            return OwoUIAdapter.create(this, UIContainers::verticalFlow);
                                         }
 
                                         @Override
                                         protected void build(FlowLayout rootComponent) {
                                             rootComponent.child(
-                                                Containers.verticalFlow(Sizing.fixed(178), Sizing.content())
+                                                UIContainers.verticalFlow(Sizing.fixed(178), Sizing.content())
                                                     .child(
-                                                        Containers.horizontalFlow(Sizing.content(), Sizing.fixed(14))
+                                                        UIContainers.horizontalFlow(Sizing.content(), Sizing.fixed(14))
                                                             .child(
-                                                                Containers.horizontalFlow(Sizing.expand(), Sizing.content())
+                                                                UIContainers.horizontalFlow(Sizing.expand(), Sizing.content())
                                                                     .child(
-                                                                        Components.label(
+                                                                        UIComponents.label(
                                                                             Component.literal("Default Screen Options")
                                                                         )
                                                                     ).horizontalAlignment(HorizontalAlignment.LEFT)
                                                             )
                                                             .child(
-                                                                Components.button(Component.literal("Back"), btn -> onClose())
+                                                                UIComponents.button(Component.literal("Back"), btn -> onClose())
                                                                     .verticalSizing(Sizing.fixed(14))
                                                             ).verticalAlignment(VerticalAlignment.CENTER)
                                                     )
                                                     .child(
-                                                        Containers.verticalFlow(Sizing.fill(), Sizing.fixed(186))
+                                                        UIContainers.verticalFlow(Sizing.fill(), Sizing.fixed(186))
                                                             .child(new AccessoriesScreenSettingsLayout(holderValue.getValue(), this::component).shouldNetworkSync(false).updateLive(true))
                                                             .padding(Insets.of(1))
                                                             .surface(ComponentUtils.getInsetPanelSurface())
@@ -178,8 +178,7 @@ public class AccessoriesClient {
 
                                     client.mouseHandler.releaseMouse();
                                     KeyMapping.releaseAll();
-                                    newScreen.init(client, client.getWindow().getGuiScaledWidth(), client.getWindow().getGuiScaledHeight());
-                                    client.noRender = false;
+                                    newScreen.init(client.getWindow().getGuiScaledWidth(), client.getWindow().getGuiScaledHeight());
                                 });
 
                                 optionComponent.child(new SearchAnchorComponent(
@@ -218,11 +217,11 @@ public class AccessoriesClient {
                                         var annotationData = option.backingField().field().getAnnotation(Structured.class);
 
                                         var title = net.minecraft.network.chat.Component.translatable("text.config." + option.configName() + ".option." + option.key().asString());
-                                        var titleLayout = Containers.horizontalFlow(Sizing.content(), Sizing.content());
+                                        var titleLayout = UIContainers.horizontalFlow(Sizing.content(), Sizing.content());
                                         titleLayout.padding(Insets.of(5, 5, 5, 0));
 
                                         title = title.copy().withStyle(ChatFormatting.UNDERLINE);
-                                        titleLayout.child(Components.label(title));
+                                        titleLayout.child(UIComponents.label(title));
 
                                         var component = StructOptionContainer.of(model, option, builder, annotationData.sideBySide());
 
@@ -233,12 +232,12 @@ public class AccessoriesClient {
                                                 () -> component.parsedValue().toString()
                                         ));
 
-                                        var mainLayout = Containers.verticalFlow(Sizing.content(), Sizing.content());
+                                        var mainLayout = UIContainers.verticalFlow(Sizing.content(), Sizing.content());
 
                                         mainLayout.child(titleLayout)
                                                 .child(component);
 
-                                        return new OptionComponentFactory.Result<io.wispforest.owo.ui.core.Component, OptionValueProvider>(mainLayout, component);
+                                        return new OptionComponentFactory.Result<io.wispforest.owo.ui.core.UIComponent, OptionValueProvider>(mainLayout, component);
                                     });
                         }));
 
@@ -288,7 +287,12 @@ public class AccessoriesClient {
             if (!success) return; // LOADING PROBLEM HAS OCCURRED SO THINGS WILL GO WRONG IF WE TRY DOING OUR STUFF
 
             BuiltInRegistries.ITEM.forEach(item -> {
-                var defaultStack = item.getDefaultInstance();
+                ItemStack defaultStack;
+                try {
+                    defaultStack = item.getDefaultInstance();
+                } catch (NullPointerException e) {
+                    return; // Components not bound yet for this item, skip
+                }
 
                 if (item instanceof BannerItem || defaultStack.has(DataComponents.GLIDER)) {
                     if (!AccessoriesRendererRegistry.hasRenderer(item)) {
@@ -402,7 +406,7 @@ public class AccessoriesClient {
             var options = AccessoriesPlayerOptionsHolder.getOptions(player);
 
             if(slots.isEmpty() && !options.getDefaultedData(PlayerOptions.SHOW_UNUSED_SLOTS) && !displayUnusedSlotWarning && !Accessories.config().clientOptions.disableEmptySlotScreenError()) {
-                player.displayClientMessage(Component.literal("[Accessories]: No Used Slots found by any mod directly, the screen will show empty unless a item is found to implement slots!"), false);
+                player.sendSystemMessage(Component.literal("[Accessories]: No Used Slots found by any mod directly, the screen will show empty unless a item is found to implement slots!"));
 
                 displayUnusedSlotWarning = true;
             }
@@ -438,7 +442,7 @@ public class AccessoriesClient {
     public static void initLayer() {
         AccessoriesScreenTransitionHelper.init();
 
-        Layers.add(Containers::verticalFlow, instance -> {
+        Layers.add(UIContainers::verticalFlow, instance -> {
             // THIS IS HERE TO HAVE UPDATE POSITION EVERY FRAME BEFORE RENDER TO STOP STUPID POSITIONING PROBLEMS!!!
             instance.aggressivePositioning = true;
 
@@ -448,7 +452,7 @@ public class AccessoriesClient {
 
             if (injectionData == null) return;
 
-            var button = (ButtonComponent) Components.button(Component.literal(""), (btn) -> {
+            var button = (ButtonComponent) UIComponents.button(Component.literal(""), (btn) -> {
                         var target = AccessoriesScreenTransitionHelper.getTargetEntity(instance.screen);
 
                         if (target == null) target = Minecraft.getInstance().player;

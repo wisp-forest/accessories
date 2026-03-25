@@ -25,7 +25,7 @@ import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
@@ -71,8 +71,8 @@ public class BuiltinAccessoryRenderers {
     private static <S extends HumanoidRenderState, M extends HumanoidModel<S>, A extends HumanoidModel<S>> void rendererArmor(HumanoidArmorLayer<S, M, A> armorLayer, ItemStack stack, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, S renderState, EquipmentSlot equipmentSlot) {
         var armorLayerAccessor = (HumanoidArmorLayerAccessor<S, A>) armorLayer;
 
-        var light = renderState.getStateData(AccessoriesRenderStateKeys.LIGHT);
-        var partialTicks = renderState.getStateData(AccessoriesRenderStateKeys.PARTIAL_TICKS);
+        var light = ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) renderState).getStateData(AccessoriesRenderStateKeys.LIGHT);
+        var partialTicks = ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) renderState).getStateData(AccessoriesRenderStateKeys.PARTIAL_TICKS);
 
         if (!attemptGeckoRender(stack, poseStack, submitNodeCollector, renderState, equipmentSlot, light, partialTicks, armorLayer.getParentModel())) {
             armorLayerAccessor.accessories$renderArmorPiece(poseStack, submitNodeCollector, stack, equipmentSlot, light, renderState);
@@ -104,7 +104,7 @@ public class BuiltinAccessoryRenderers {
                     .filter(renderLayer -> renderLayer instanceof WingsLayer<?,?>)
                     .findFirst();
 
-            var light = entityState.getStateData(AccessoriesRenderStateKeys.LIGHT);
+            var light = ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) entityState).getStateData(AccessoriesRenderStateKeys.LIGHT);
 
             possibleLayer.ifPresent(layer -> ((WingsLayerExtension<HumanoidRenderState>) layer).renderStack(stack, matrices, collector, light, humanoidRenderState));
         }
@@ -124,10 +124,10 @@ public class BuiltinAccessoryRenderers {
 
             if (data == null || data.renderingFunctions() == null) return;
 
-            var light = entityState.getStateData(AccessoriesRenderStateKeys.LIGHT);
-            var partialTicks = entityState.getStateData(AccessoriesRenderStateKeys.PARTIAL_TICKS);
+            var light = ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) entityState).getStateData(AccessoriesRenderStateKeys.LIGHT);
+            var partialTicks = ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) entityState).getStateData(AccessoriesRenderStateKeys.PARTIAL_TICKS);
 
-            RenderingFunctionOps.handleFunctions(stack, path, matrices, model, entityState, collector, light, partialTicks, entityState.getStateData(AccessoriesRenderStateKeys.ARM), 15728880, OverlayTexture.NO_OVERLAY, -1, data.renderingFunctions());
+            RenderingFunctionOps.handleFunctions(stack, path, matrices, model, entityState, collector, light, partialTicks, ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) entityState).getStateData(AccessoriesRenderStateKeys.ARM), 15728880, OverlayTexture.NO_OVERLAY, -1, data.renderingFunctions());
         }
 
         @Override
@@ -146,16 +146,14 @@ public class BuiltinAccessoryRenderers {
         public List<ItemStack> getInnerStacks(ItemStack holderStack) {
             var contents = holderStack.get(DataComponents.BUNDLE_CONTENTS);
 
-            var items = contents.items();
-
-            return (items instanceof List<ItemStack> stacks) ? stacks : Streams.stream(items).toList();
+            return contents.itemCopyStream().toList();
         }
     }
 
-    public static final ResourceLocation BUNDLE_RENDERER_ID = Accessories.of("bundle_renderer");
-    public static final ResourceLocation DEFAULT_RENDERER_ID = Accessories.of("default_renderer");
-    public static final ResourceLocation ARMOR_RENDERER_ID = Accessories.of("armor_renderer");
-    public static final ResourceLocation ELYTRA_RENDERER_ID = Accessories.of("elytra_renderer");
+    public static final Identifier BUNDLE_RENDERER_ID = Accessories.of("bundle_renderer");
+    public static final Identifier DEFAULT_RENDERER_ID = Accessories.of("default_renderer");
+    public static final Identifier ARMOR_RENDERER_ID = Accessories.of("armor_renderer");
+    public static final Identifier ELYTRA_RENDERER_ID = Accessories.of("elytra_renderer");
 
     static {
         AccessoriesRendererRegistry.bindItemToRenderer(Items.BUNDLE, BUNDLE_RENDERER_ID, BundleAccessoryRenderer::new);

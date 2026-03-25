@@ -24,7 +24,7 @@ import io.wispforest.endec.util.MapCarrierDecodable;
 import io.wispforest.endec.util.MapCarrierEncodable;
 import io.wispforest.owo.serialization.RegistriesAttribute;
 import io.wispforest.owo.serialization.format.nbt.NbtEndec;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -293,7 +293,7 @@ public class AccessoriesHolderImpl implements InstanceEndec {
     }
 
     public void read(LivingEntity entity, MapCarrier carrier, SerializationContext ctx) {
-        read(entity.accessoriesCapability(), entity, carrier, ctx);
+        read(((io.wispforest.accessories.pond.AccessoriesAPIAccess) entity).accessoriesCapability(), entity, carrier, ctx);
     }
 
     public void read(AccessoriesCapability capability, LivingEntity entity, MapCarrierDecodable carrier, SerializationContext ctx) {

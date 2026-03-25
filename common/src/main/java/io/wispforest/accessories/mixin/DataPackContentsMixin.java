@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 // Copied 1:1 from https://github.com/FabricMC/fabric/blob/625ef353552d973b6ed26c720dfa892e064afeef/fabric-resource-conditions-api-v1/src/main/java/net/fabricmc/fabric/mixin/resource/conditions/DataPackContentsMixin.java#L41
 @Mixin(ReloadableServerResources.class)
 public abstract class DataPackContentsMixin {
-    @Inject(method = "updateStaticRegistryTags", at = @At("TAIL"))
+    @Inject(method = "updateComponentsAndStaticRegistryTags", at = @At("TAIL"))
     private void removeLoadedTags(CallbackInfo ci) {
         EntitySlotLoader.INSTANCE.buildEntryMap();
     }

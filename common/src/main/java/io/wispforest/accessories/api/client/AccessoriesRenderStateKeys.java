@@ -9,7 +9,7 @@ import io.wispforest.accessories.api.slot.SlotPath;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.client.renderer.state.CameraRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.util.context.ContextKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.HumanoidArm;
@@ -45,7 +45,7 @@ public class AccessoriesRenderStateKeys {
 
 
     public static void setupStateForAccessories(EntityRenderState state, Entity entity, float partialTick, HumanoidArm arm) {
-        if (state instanceof LivingEntityRenderState livingState) livingState.setStateData(ARM, arm);
+        if (state instanceof LivingEntityRenderState livingState) ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) livingState).setStateData(ARM, arm);
 
         setupStateForAccessories(state, entity, partialTick);
     }
@@ -53,12 +53,12 @@ public class AccessoriesRenderStateKeys {
     public static void setupStateForAccessories(EntityRenderState state, Entity entity, float partialTick) {
         if (!(state instanceof LivingEntityRenderState livingState) || !(entity instanceof LivingEntity livingEntity)) return;
 
-        livingState.setStateData(AccessoriesRenderStateKeys.ENTITY_UUID, livingEntity.getUUID());
-        livingState.setStateData(AccessoriesRenderStateKeys.ENTITY_ID, livingEntity.getId());
+        ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) livingState).setStateData(AccessoriesRenderStateKeys.ENTITY_UUID, livingEntity.getUUID());
+        ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) livingState).setStateData(AccessoriesRenderStateKeys.ENTITY_ID, livingEntity.getId());
 
-        livingState.setStateData(AccessoriesRenderStateKeys.PARTIAL_TICKS, partialTick);
+        ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) livingState).setStateData(AccessoriesRenderStateKeys.PARTIAL_TICKS, partialTick);
 
-        var capability = livingEntity.accessoriesCapability();
+        var capability = ((io.wispforest.accessories.pond.AccessoriesAPIAccess) livingEntity).accessoriesCapability();
 
         if (capability == null) return;
 
@@ -72,7 +72,7 @@ public class AccessoriesRenderStateKeys {
 
         AccessoriesStorageLookup lookup = () -> map;
 
-        livingState.setStateData(AccessoriesRenderStateKeys.STORAGE_LOOKUP, lookup);
+        ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) livingState).setStateData(AccessoriesRenderStateKeys.STORAGE_LOOKUP, lookup);
 
         var renderStates = new LinkedHashMap<SlotPath, AccessoryRenderState>();
 
@@ -104,6 +104,6 @@ public class AccessoriesRenderStateKeys {
             }
         }
 
-        livingState.setStateData(AccessoriesRenderStateKeys.ACCESSORY_RENDER_STATES, renderStates);
+        ((io.wispforest.accessories.pond.AccessoriesRenderStateAPImpl) livingState).setStateData(AccessoriesRenderStateKeys.ACCESSORY_RENDER_STATES, renderStates);
     }
 }

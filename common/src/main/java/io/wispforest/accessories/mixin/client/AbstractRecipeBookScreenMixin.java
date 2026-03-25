@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AbstractRecipeBookScreen.class)
 public abstract class AbstractRecipeBookScreenMixin {
-    @Inject(method = "method_64513", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/Button;setPosition(II)V"))
+    @Inject(method = "init", at = @At(value = "TAIL"))
     private void updateLayout(CallbackInfo ci){
         Layers.getInstances((AbstractRecipeBookScreen) (Object) this).forEach(Layer.Instance::dispatchLayoutUpdates);
     }
