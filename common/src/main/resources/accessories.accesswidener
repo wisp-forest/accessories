@@ -9,12 +9,12 @@ extendable class net/minecraft/world/item/enchantment/EnchantmentHelper$Enchantm
 accessible class net/minecraft/world/inventory/ArmorSlot
 extendable class net/minecraft/world/inventory/ArmorSlot
 
-extendable method net/minecraft/client/gui/screens/inventory/AbstractContainerScreen renderSlotHighlightBack (Lnet/minecraft/client/gui/GuiGraphics;)V
-extendable method net/minecraft/client/gui/screens/inventory/AbstractContainerScreen renderSlotHighlightFront (Lnet/minecraft/client/gui/GuiGraphics;)V
-extendable method net/minecraft/client/gui/screens/inventory/AbstractContainerScreen renderFloatingItem (Lnet/minecraft/client/gui/GuiGraphics;Lnet/minecraft/world/item/ItemStack;IILjava/lang/String;)V
+accessible method net/minecraft/client/gui/screens/inventory/AbstractContainerScreen extractSlotHighlightBack (Lnet/minecraft/client/gui/GuiGraphicsExtractor;)V
+accessible method net/minecraft/client/gui/screens/inventory/AbstractContainerScreen extractSlotHighlightFront (Lnet/minecraft/client/gui/GuiGraphicsExtractor;)V
+accessible method net/minecraft/client/gui/screens/inventory/AbstractContainerScreen extractFloatingItem (Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/world/item/ItemStack;IILjava/lang/String;)V
 accessible class net/minecraft/server/level/ChunkMap$TrackedEntity
 accessible method net/minecraft/world/entity/player/Player closeContainer ()V
 
 accessible class net/minecraft/client/gui/screens/MenuScreens$ScreenConstructor
-accessible field net/minecraft/client/gui/GuiGraphics guiRenderState Lnet/minecraft/client/gui/render/state/GuiRenderState;
-accessible field net/minecraft/client/gui/GuiGraphics scissorStack Lnet/minecraft/client/gui/GuiGraphics$ScissorStack;
+accessible field net/minecraft/client/gui/GuiGraphicsExtractor guiRenderState Lnet/minecraft/client/renderer/state/gui/GuiRenderState;
+accessible field net/minecraft/client/gui/GuiGraphicsExtractor scissorStack Lnet/minecraft/client/gui/GuiGraphicsExtractor$ScissorStack;
