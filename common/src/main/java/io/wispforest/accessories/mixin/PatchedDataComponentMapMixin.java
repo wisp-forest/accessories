@@ -119,6 +119,7 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
     @Unique
     private void accessories$handleMutationEvent(List<DataComponentType<?>> changedDataTypes) {
         if(this.mutationEvent == null) return;
+
         this.mutationEvent.sink().onMutation(this.itemStack, changedDataTypes);
     }
 }
