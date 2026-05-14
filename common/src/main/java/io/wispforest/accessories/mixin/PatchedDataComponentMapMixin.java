@@ -19,10 +19,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Mixin(PatchedDataComponentMap.class)
 public abstract class PatchedDataComponentMapMixin implements PatchedDataComponentMapExtension {
@@ -96,7 +93,11 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
 
         this.inApplyPatchLock = false;
 
-        var changedDataTypes = (List<DataComponentType<?>>) (List) patch.entrySet().stream().map(Map.Entry::getKey).toList();
+        if (this.mutationEvent == null) {
+            return;
+        }
+
+        var changedDataTypes = new ArrayList<>(((DataComponentPatchAccessor) (Object) patch).getMap().keySet());
 
         this.accessories$handleMutationEvent(changedDataTypes);
     }
@@ -114,7 +115,11 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
     private void accessories$updateChangeValue_restorePatch(DataComponentPatch patch, CallbackInfo ci){
         this.changeCheckStack = true;
 
-        var changedDataTypes = (List<DataComponentType<?>>) (List) patch.entrySet().stream().map(Map.Entry::getKey).toList();
+        if (this.mutationEvent == null) {
+            return;
+        }
+
+        var changedDataTypes = new ArrayList<>(((DataComponentPatchAccessor) (Object) patch).getMap().keySet());
 
         this.accessories$handleMutationEvent(changedDataTypes);
     }
@@ -122,7 +127,6 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
     @Unique
     private void accessories$handleMutationEvent(List<DataComponentType<?>> changedDataTypes) {
         if(this.mutationEvent == null) return;
-
         this.mutationEvent.sink().onMutation(this.itemStack, changedDataTypes);
     }
 }
