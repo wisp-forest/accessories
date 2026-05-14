@@ -85,9 +85,13 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
     private void accessories$updateChangeValue_applyPatchTail(DataComponentPatch patch, CallbackInfo ci){
         this.inApplyPatchLock = false;
 
-        var list = new ArrayList<DataComponentType<?>>();
-        for (var entry : patch.entrySet()) list.add(entry.getKey());
-        this.accessories$handleMutationEvent(list);
+        if (this.mutationEvent == null) {
+            return;
+        }
+
+        var changedDataTypes = new ArrayList<>(((DataComponentPatchAccessor) (Object) patch).getMap().keySet());
+
+        this.accessories$handleMutationEvent(changedDataTypes);
     }
 
     @Inject(method = "applyPatch(Lnet/minecraft/core/component/DataComponentType;Ljava/util/Optional;)V", at = @At("HEAD"))
@@ -103,15 +107,18 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
     private void accessories$updateChangeValue_restorePatch(DataComponentPatch patch, CallbackInfo ci){
         this.changeCheckStack = true;
 
-        var list = new ArrayList<DataComponentType<?>>();
-        for (var entry : patch.entrySet()) list.add(entry.getKey());
-        this.accessories$handleMutationEvent(list);
+        if (this.mutationEvent == null) {
+            return;
+        }
+
+        var changedDataTypes = new ArrayList<>(((DataComponentPatchAccessor) (Object) patch).getMap().keySet());
+
+        this.accessories$handleMutationEvent(changedDataTypes);
     }
 
     @Unique
     private void accessories$handleMutationEvent(List<DataComponentType<?>> changedDataTypes) {
         if(this.mutationEvent == null) return;
-
         this.mutationEvent.sink().onMutation(this.itemStack, changedDataTypes);
     }
 }
