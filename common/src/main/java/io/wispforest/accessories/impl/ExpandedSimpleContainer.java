@@ -2,6 +2,7 @@ package io.wispforest.accessories.impl;
 
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
+import io.wispforest.accessories.AccessoriesLoaderInternals;
 import io.wispforest.accessories.api.AccessoriesAPI;
 import io.wispforest.accessories.api.components.AccessoriesDataComponents;
 import io.wispforest.accessories.utils.ItemStackMutation;
@@ -10,7 +11,6 @@ import it.unimi.dsi.fastutil.ints.Int2BooleanArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2BooleanMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
@@ -182,7 +182,7 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
 
         var nameInfo = (this.name != null ? "Container: " + this.name + ", " : "");
 
-        if(!isValid && FabricLoader.getInstance().isDevelopmentEnvironment()){
+        if(!isValid && AccessoriesLoaderInternals.isDevelopmentEnv()){
             try {
                 throw new IllegalStateException("Access to a given Inventory was found to be out of the range valid for the container! [Name: " + nameInfo + " Index: " + slot + "]");
             } catch (Exception e) {
