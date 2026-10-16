@@ -85,6 +85,13 @@ public class ExpandedSimpleContainer extends SimpleContainer implements Iterable
                 : ItemStack.EMPTY;
     }
 
+    /**
+     * Should only be used by reset with full sync.
+     */
+    public void clearPreviousItems() {
+        this.previousItems.clear();
+    }
+
     //--
 
     @Override

@@ -108,6 +108,11 @@ public class AccessoriesCapabilityImpl implements AccessoriesCapability, Instanc
         holder.write(carrier, SerializationContext.empty());
 
         AccessoriesInternals.getNetworkHandler().sendToTrackingAndSelf(serverPlayer, new SyncEntireContainer(serverPlayer.getId(), carrier));
+
+        // The full sync is sent after modification, clear all previous items to prevent desync.
+        holder.getSlotContainers().values().stream()
+                .map(AccessoriesContainer::getAccessories)
+                .forEach(ExpandedSimpleContainer::clearPreviousItems);
     }
 
     private boolean updateContainersLock = false;
