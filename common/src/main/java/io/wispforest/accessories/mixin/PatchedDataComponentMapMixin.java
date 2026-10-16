@@ -61,12 +61,16 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
     private <T> void accessories$updateChangeValue_set(DataComponentType<? super T> component, @Nullable T value, CallbackInfoReturnable<T> cir){
         this.changeCheckStack = true;
 
+        if(this.mutationEvent == null) return;
+
         this.accessories$handleMutationEvent(List.of(component));
     }
 
     @Inject(method = "remove", at = @At("HEAD"))
     private <T> void accessories$updateChangeValue_remove(DataComponentType<? super T> component, CallbackInfoReturnable<T> cir){
         this.changeCheckStack = true;
+
+        if(this.mutationEvent == null) return;
 
         this.accessories$handleMutationEvent(List.of(component));
     }
@@ -85,6 +89,8 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
     private void accessories$updateChangeValue_applyPatchTail(DataComponentPatch patch, CallbackInfo ci){
         this.inApplyPatchLock = false;
 
+        if(this.mutationEvent == null) return;
+
         var list = new ArrayList<DataComponentType<?>>();
         for (var entry : patch.entrySet()) list.add(entry.getKey());
         this.accessories$handleMutationEvent(list);
@@ -94,6 +100,8 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
     private void accessories$updateChangeValue_applyPatch(DataComponentType<?> component, Optional<?> value, CallbackInfo ci){
         this.changeCheckStack = true;
 
+        if(this.mutationEvent == null) return;
+
         if (!this.inApplyPatchLock) {
             this.accessories$handleMutationEvent(List.of(component));
         }
@@ -102,6 +110,8 @@ public abstract class PatchedDataComponentMapMixin implements PatchedDataCompone
     @Inject(method = "restorePatch", at = @At("HEAD"))
     private void accessories$updateChangeValue_restorePatch(DataComponentPatch patch, CallbackInfo ci){
         this.changeCheckStack = true;
+
+        if(this.mutationEvent == null) return;
 
         var list = new ArrayList<DataComponentType<?>>();
         for (var entry : patch.entrySet()) list.add(entry.getKey());
