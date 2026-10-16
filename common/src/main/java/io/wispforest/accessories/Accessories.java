@@ -15,7 +15,6 @@ import io.wispforest.accessories.utils.EndecUtils;
 import io.wispforest.endec.format.jankson.JanksonDeserializer;
 import io.wispforest.endec.format.jankson.JanksonSerializer;
 import net.fabricmc.fabric.api.util.TriState;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -125,7 +124,7 @@ public class Accessories {
 
             if(type.is(AccessoriesTags.MODIFIABLE_ENTITY_BLACKLIST)) return TriState.FALSE;
 
-            var isOwnersPet = (target instanceof OwnableEntity ownableEntity && ownableEntity.getOwner() != null && ownableEntity.getOwner().equals(player));
+            var isOwnersPet = (target instanceof OwnableEntity ownableEntity && player.equals(ownableEntity.getOwner()));
 
             if(isOwnersPet || type.is(AccessoriesTags.MODIFIABLE_ENTITY_WHITELIST)) return TriState.TRUE;
 
