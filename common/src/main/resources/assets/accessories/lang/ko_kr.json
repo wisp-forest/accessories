@@ -1,0 +1,371 @@
+{
+  "accessories.slot.tooltip.singular": "슬롯: ",
+  "accessories.slot.tooltip.plural": "슬롯: ",
+  "accessories.cosmetic_slot.tooltip.singular": "치장 슬롯: ",
+  "accessories.cosmetic_slot.tooltip.plural": "치장 슬롯: ",
+  "accessories.slot.any": "아무거나",
+  "accessories.slot.except": " 제외 ",
+  "accessories.tooltip.attributes.any": "장착 시:",
+  "accessories.tooltip.attributes.slot": "%s에 장착 시:",
+  "accessories.tooltip.currently_equipped_in": "장착된 슬롯: ",
+  "accessories.slot.hat": "모자",
+  "accessories.slot.face": "얼굴",
+  "accessories.slot.cape": "망토",
+  "accessories.slot.necklace": "목걸이",
+  "accessories.slot.back": "등",
+  "accessories.slot.hand": "손",
+  "accessories.slot.ring": "반지",
+  "accessories.slot.wrist": "손목",
+  "accessories.slot.belt": "벨트",
+  "accessories.slot.anklet": "발찌",
+  "accessories.slot.shoes": "신발",
+  "accessories.slot.charm": "부적",
+  "accessories.slot.accessories.head": "머리",
+  "accessories.slot.accessories.chest": "가슴",
+  "accessories.slot.accessories.legs": "다리",
+  "accessories.slot.accessories.feet": "발",
+  "accessories.slot.accessories.animal_body": "몸통",
+  "accessories.slot_group.misc": "기타",
+  "accessories.slot_group.head": "머리",
+  "accessories.slot_group.chest": "가슴",
+  "accessories.slot_group.arm": "팔",
+  "accessories.slot_group.leg": "다리",
+  "accessories.slot_group.feet": "발",
+  "accessories.slot_group.unsorted": "미분류",
+  "accessories.key.category.accessories": "액세서리",
+  "argument.livingEntities.nonLiving": "이 명령은 생명체에만 적용할 수 있지만, 제공된 선택자에 생명체가 아닌 개체가 포함되어 있습니다",
+
+  "gamerule.accessories.keepAccessoryInventory": "액세서리 인벤토리 유지",
+
+  "#comment": "아래는 GUI 관련 항목",
+
+  "accessories.key.open_accessories_screen": "액세서리 화면 열기",
+  "accessories.slot.cosmetics.toggle.show": "치장 슬롯 보이기",
+  "accessories.slot.cosmetics.toggle.hide": "치장 슬롯 숨기기",
+  "accessories.display.toggle.show": "액세서리 보이기",
+  "accessories.display.toggle.hide": "액세서리 숨기기",
+  "accessories.lines.toggle.show": "모든 선 보이기",
+  "accessories.lines.toggle.hide": "모든 선 숨기기",
+  "accessories.unused_slots.toggle.show": "사용하지 않는 슬롯 보이기",
+  "accessories.unused_slots.toggle.hide": "사용하지 않는 슬롯 숨기기",
+  "accessories.slot_cosmetics.toggle.enabled": "액세서리 슬롯 보이기",
+  "accessories.slot_cosmetics.toggle.disabled": "치장 슬롯 보이기",
+  "accessories.advanced_options.toggle.enabled": "❤",
+  "accessories.advanced_options.toggle.disabled": "⚗",
+  "accessories.advanced_options.toggle.enabled.tooltip": "추가 화면 설정 옵션 숨기기",
+  "accessories.advanced_options.toggle.disabled.tooltip": "추가 화면 설정 옵션 보이기",
+  "accessories.unused_slots.label": "사용하지 않는 슬롯:",
+  "accessories.unused_slots.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " 표시됨"
+  ],
+  "accessories.unused_slots.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " 숨김"
+  ],
+  "accessories.unused_slots.toggle.enabled.tooltip": "사용하지 않는 모든 슬롯 숨기기",
+  "accessories.unused_slots.toggle.disabled.tooltip": "사용하지 않는 모든 슬롯 보이기",
+  "accessories.column_amount_slider.label": "열 개수:",
+  "accessories.column_amount_slider.tooltip": "액세서리 배치의 열 개수를 조정하는 슬라이더입니다",
+  "accessories.widget_type.label": "위젯 방식:",
+  "accessories.widget_type.paginated": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☰", "color": "#347ecf"},
+    {"text": "]", "color": "gray"},
+    " 페이지"
+  ],
+  "accessories.widget_type.paginated.tooltip": "액세서리 슬롯을 페이지로 나누어 보여주는 배치입니다",
+  "accessories.widget_type.scrollable": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "⏷", "color": "#953abd"},
+    {"text": "]", "color": "gray"},
+    " 스크롤"
+  ],
+  "accessories.main_widget_position.label": "위젯 위치:",
+  "accessories.main_widget_position.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "←", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " 왼쪽"
+  ],
+  "accessories.main_widget_position.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "→", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " 오른쪽"
+  ],
+  "accessories.main_widget_position.toggle.enabled.tooltip": "액세서리 위젯을 오른쪽으로 이동",
+  "accessories.main_widget_position.toggle.disabled.tooltip": "액세서리 위젯을 왼쪽으로 이동",
+  "accessories.group_filter.label": "그룹 필터:",
+  "accessories.group_filter.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " 표시됨"
+  ],
+  "accessories.group_filter.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " 숨김"
+  ],
+  "accessories.group_filter.toggle.enabled.tooltip": "그룹 필터 위젯 숨기기",
+  "accessories.group_filter.toggle.disabled.tooltip": "그룹 필터 위젯 보이기",
+  "accessories.side_widget_position.label": "사이드 위치:",
+  "accessories.side_widget_position.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "()", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " 함께"
+  ],
+  "accessories.side_widget_position.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "||", "color": "#32a852"},
+    {"text": "]", "color": "gray"},
+    " 분리"
+  ],
+  "accessories.side_widget_position.toggle.enabled.tooltip": "사이드 위젯을 액세서리 위젯과 함께 배치",
+  "accessories.side_widget_position.toggle.disabled.tooltip": "사이드 위젯을 액세서리 위젯의 반대편에 배치",
+  "accessories.dark_mode_toggle.label": "테마 모드:",
+  "accessories.dark_mode_toggle.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☽", "color": "#3d29c2"},
+    {"text": "]", "color": "gray"},
+    " 어둡게"
+  ],
+  "accessories.dark_mode_toggle.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "☀", "color": "#bffa9b"},
+    {"text": "]", "color": "gray"},
+    " 밝게"
+  ],
+  "accessories.dark_mode_toggle.toggle.enabled.tooltip": "밝은 테마로 변경",
+  "accessories.dark_mode_toggle.toggle.disabled.tooltip": "어두운 테마로 변경",
+  "accessories.show_equipped_stack_slot_type.label": "장착 유형:",
+  "accessories.show_equipped_stack_slot_type.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " 표시됨"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " 숨김"
+  ],
+  "accessories.show_equipped_stack_slot_type.toggle.enabled.tooltip": "장착된 스택의 슬롯 유형 숨기기",
+  "accessories.show_equipped_stack_slot_type.toggle.disabled.tooltip": "장착된 스택의 슬롯 유형 보이기",
+  "accessories.entity_look_at_cursor.label": "마우스 바라보기:",
+  "accessories.entity_look_at_cursor.toggle.enabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "✔", "color": "#28FFBF"},
+    {"text": "]", "color": "gray"},
+    " 활성화됨"
+  ],
+  "accessories.entity_look_at_cursor.toggle.disabled": [
+    "",
+    {"text": "[", "color": "gray"},
+    {"text": "❌", "color": "#EB1D36"},
+    {"text": "]", "color": "gray"},
+    " 비활성화됨"
+  ],
+  "accessories.entity_look_at_cursor.toggle.enabled.tooltip": "커서를 바라보지 않도록 설정",
+  "accessories.entity_look_at_cursor.toggle.disabled.tooltip": "커서를 바라보도록 설정",
+  "accessories.lines.toggle.enabled.tooltip": "모든 선 렌더링 숨기기",
+  "accessories.lines.toggle.disabled.tooltip": "모든 선 렌더링 보이기",
+  "accessories.crafting_grid.toggle.enabled": "☒",
+  "accessories.crafting_grid.toggle.disabled": "☐",
+  "accessories.crafting_grid.toggle.enabled.tooltip": "작은 제작 격자 숨기기",
+  "accessories.crafting_grid.toggle.disabled.tooltip": "작은 제작 격자 보이기",
+  "accessories.widget_type.scrollable.tooltip": "액세서리 슬롯을 스크롤로 보여주는 배치입니다",
+  "accessories.selection_screen.message": [
+    "아래에는 모드팩 스타일이나 플레이 방식에 따라 \n",
+    "선택할 수 있는 화면 옵션들이 있습니다. \n\n",
+    "선택한 옵션이 마음에 들지 않는다면 \n",
+    "Accessories 설정에서 언제든지 변경할 수 있습니다."
+  ],
+  "accessories.unique_slots.toggle.show": "고유 슬롯 보이기",
+  "accessories.unique_slots.toggle.hide": "고유 슬롯 숨기기",
+  "accessories.back.screen": "이전 화면으로",
+  "accessories.open.screen": "액세서리 화면 열기",
+  "accessories.reset.group_filter": "그룹 필터 초기화",
+
+  "#comment": "아래는 설정 관련 항목",
+
+  "text.config.accessories.title": "Accessories 설정",
+
+  "text.config.accessories.option.useExperimentalCaching": "실험적 캐싱 사용",
+  "text.config.accessories.option.useExperimentalCaching.tooltip": [
+    "여러 ItemStack 조회를 캐시해 성능을 높이려 하지만\n",
+    "문제가 발생할 수 있습니다."
+  ],
+
+  "text.config.accessories.category.clientOptions": "클라이언트 옵션",
+  "text.config.accessories.category.clientOptions.tooltip": [
+    "렌더링이나 플레이어 입력과 관련된 일반 클라이언트 옵션입니다"
+  ],
+
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement": "빈 렌더 대체 강제",
+  "text.config.accessories.option.clientOptions.forceNullRenderReplacement.tooltip": [
+    "렌더링하지 않도록 등록된 렌더를 발견하면\n",
+    "대신 기본 렌더링을 사용하도록 강제합니다."
+  ],
+
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError": "빈 액세서리 오류 비활성화",
+  "text.config.accessories.option.clientOptions.disableEmptySlotScreenError.tooltip": [
+    "액세서리 화면을 열었을 때 사용 중인 슬롯이 없으면\n",
+    "표시되는 오류 메시지를 비활성화합니다."
+  ],
+
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories": "아이템 치장 렌더링 표시",
+  "text.config.accessories.option.clientOptions.showCosmeticAccessories.tooltip": [
+    "장착한 경우 치장용 아이템 변형 렌더링을 활성화하거나 비활성화합니다."
+  ],
+
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders": "기본 렌더링 비활성화",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.tooltip": [
+    "사용 중인 아이템의 포함된 기본 렌더러 렌더링을 비활성화합니다."
+  ],
+
+  "text.config.accessories.option.clientOptions.equipControl": "손 아이템 빠른 장착 모드",
+  "text.config.accessories.option.clientOptions.equipControl.tooltip": [
+    "손에 든 스택을 빠르게 장착하는 데 사용하는 모드를 변경합니다."
+  ],
+
+  "text.config.accessories.enum.playerEquipControl.must_crouch": "웅크리기 필요",
+  "text.config.accessories.enum.playerEquipControl.must_not_crouch": "웅크리지 않음",
+  "text.config.accessories.enum.playerEquipControl.disabled": "비활성화",
+
+  "text.config.accessories.category.screenOptions": "화면 옵션",
+  "text.config.accessories.category.screenOptions.tooltip": [
+    "모든 화면 변형과 삽입된 버튼 오프셋에 대한 화면 설정 옵션입니다"
+  ],
+
+  "text.config.accessories.option.screenOptions.selectedScreenType": "선택된 화면 유형",
+  "text.config.accessories.option.screenOptions.selectedScreenType.tooltip": [
+    "사용할 화면을 조정합니다. 없음으로 설정하면\n",
+    "사용자가 선택할 수 있는 프롬프트가 표시됩니다."
+  ],
+
+  "text.config.accessories.enum.screenType.none": "미정",
+  "text.config.accessories.enum.screenType.original": "기본",
+  "text.config.accessories.enum.screenType.experimental_v1": "실험적",
+
+  "text.config.accessories.option.screenOptions.showUnusedSlots": "사용하지 않는 슬롯 표시",
+  "text.config.accessories.option.screenOptions.showUnusedSlots.tooltip": "사용하지 않는 슬롯 필터링을 전환합니다",
+
+  "text.config.accessories.option.screenOptions.allowSlotScrolling": "화면 슬롯 스크롤 허용",
+  "text.config.accessories.option.screenOptions.allowSlotScrolling.tooltip": [
+    "특정 모드가 스택 스크롤을 허용해 액세서리를 넘길 때\n",
+    "문제가 생기는 경우에 유용합니다."
+  ],
+
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType": "장착된 스택의 슬롯 유형 표시",
+  "text.config.accessories.option.screenOptions.showEquippedStackSlotType.tooltip": [
+    "지정된 스택이 장착된 슬롯 유형을 툴팁에 표시합니다."
+  ],
+
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor": "개체가 마우스 커서를 따라보게 하기",
+  "text.config.accessories.option.screenOptions.entityLooksAtMouseCursor.tooltip": [
+    "활성화하면 개체가 마우스 커서를 따라봅니다.\n",
+    "비활성화하면 개체를 직접 회전할 수 있습니다."
+  ],
+
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid": "사이드바 안 제작 격자 허용",
+  "text.config.accessories.option.screenOptions.allowSideBarCraftingGrid.tooltip": [
+    "그룹 필터가 없으면 제작 격자를 아래쪽 대신\n",
+    "사이드바 안에 배치하려고 시도합니다."
+  ],
+
+  "text.config.accessories.section.button_offsets": "삽입된 버튼 오프셋",
+
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset": "인벤토리 버튼 오프셋",
+
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.x": "X 오프셋",
+  "text.config.accessories.option.screenOptions.inventoryButtonOffset.y": "Y 오프셋",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset": "크리에이티브 인벤토리 버튼 오프셋",
+
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.x": "X 오프셋",
+  "text.config.accessories.option.screenOptions.creativeInventoryButtonOffset.y": "Y 오프셋",
+
+  "text.config.accessories.section.experimental": "실험적 화면",
+
+  "text.config.accessories.option.screenOptions.isDarkMode": "어두운 테마 사용",
+  "text.config.accessories.option.screenOptions.isDarkMode.tooltip": [
+    "실험적 화면의 테마를 어두운 모드로 변경합니다."
+  ],
+
+  "text.config.accessories.section.legacy": "기본 화면",
+
+  "text.config.accessories.option.screenOptions.showGroupTabs": "빠른 탐색 그룹 탭 표시",
+  "text.config.accessories.option.screenOptions.showGroupTabs.tooltip": [
+    "기본 화면의 그룹 탭을 보이거나 숨길지 전환합니다."
+  ],
+
+  "text.config.accessories.section.hover": "마우스 오버 효과",
+
+  "text.config.accessories.category.screenOptions.hoveredOptions": "마우스 오버 옵션",
+  "text.config.accessories.category.screenOptions.hoveredOptions.tooltip": [
+    "마우스를 올린 항목의 렌더링 효과를 제어하는 옵션입니다."
+  ],
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.brightenHovered": "마우스 오버 항목 밝게",
+  "text.config.accessories.option.screenOptions.hoveredOptions.cycleBrightness": "밝기 순환",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.line": "선 그리기",
+
+  "text.config.accessories.option.screenOptions.hoveredOptions.clickbait": "클릭 유도",
+
+  "text.config.accessories.category.screenOptions.unHoveredOptions": "마우스 오버되지 않은 옵션",
+  "text.config.accessories.category.screenOptions.unHoveredOptions.tooltip": [
+    "마우스를 올리지 않은 항목의 렌더링 효과를 제어하는 옵션입니다."
+  ],
+
+  "text.config.accessories.option.screenOptions.unHoveredOptions.renderUnHovered": "마우스 오버되지 않은 항목 렌더링",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenUnHovered": "마우스 오버되지 않은 항목 어둡게",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedBrightness": "어두운 밝기",
+  "text.config.accessories.option.screenOptions.unHoveredOptions.darkenedOpacity": "어두운 불투명도",
+
+  "text.config.accessories.option.disabledDefaultRenders": "기본 렌더러 비활성화",
+  "text.config.accessories.option.disabledDefaultRenders.tooltip": [
+    "특정 슬롯의 기본 렌더링을 비활성화할 때 유용합니다.\n",
+    "블록 또는 아이템 렌더링을 개별적으로 지정할 수 있습니다."
+  ],
+
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.slotType": "슬롯",
+  "text.config.accessories.option.clientOptions.disabledDefaultRenders.targetType": "유형",
+
+  "text.config.accessories.enum.targetType.item": "아이템",
+  "text.config.accessories.enum.targetType.block": "블록",
+  "text.config.accessories.enum.targetType.all": "전체",
+
+  "text.config.accessories.option.modifiers": "슬롯 개수 수정자",
+  "text.config.accessories.option.modifiers.tooltip": [
+    "데이터팩 없이 특정 슬롯 유형에 오프셋 값을 추가할 때 유용합니다.\n",
+    "양수와 음수 오프셋 값을 모두 사용할 수 있습니다."
+  ],
+
+  "text.config.accessories.option.modifiers.slotType": "슬롯",
+  "text.config.accessories.option.modifiers.amount": "오프셋"
+}
