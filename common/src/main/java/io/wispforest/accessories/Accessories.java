@@ -94,7 +94,7 @@ public class Accessories {
 
             if(type.is(AccessoriesTags.MODIFIABLE_ENTITY_BLACKLIST)) return TriState.FALSE;
 
-            var isOwnersPet = (target instanceof OwnableEntity ownableEntity && ownableEntity.getOwner().equals(player));
+            var isOwnersPet = (target instanceof OwnableEntity ownableEntity && player.equals(ownableEntity.getOwner()));
 
             if(isOwnersPet || type.is(AccessoriesTags.MODIFIABLE_ENTITY_WHITELIST)) return TriState.TRUE;
 
